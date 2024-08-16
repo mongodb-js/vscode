@@ -93,21 +93,6 @@
             "name": "query",
             "isSticky": true,
             "description": "Ask how to write MongoDB queries or pipelines. For example, you can ask: \"Show me all the documents where the address contains the word street\"."
-          },
-          {
-            "name": "database",
-            "description": "Set the database from Participant.",
-            "when": "mdb.isCalledByParticipant == true"
-          },
-          {
-            "name": "collection",
-            "description": "Set the collection from Participant.",
-            "when": "mdb.isCalledByParticipant == true"
-          },
-          {
-            "name": "connect",
-            "description": "Set the connection from Participant.",
-            "when": "mdb.isCalledByParticipant == true"
           }
         ]
       }

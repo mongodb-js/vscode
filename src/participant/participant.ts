@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { DataService } from 'mongodb-data-service';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -100,13 +101,27 @@ export class ParticipantController {
     return this._participant || this.createParticipant(context);
   }
 
-  handleEmptyQueryRequest(): ChatResult {
-    return {
-      errorDetails: {
-        message:
-          'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".',
-      },
-    };
+  handleEmptyQueryRequest(stream: vscode.ChatResponseStream): undefined {
+    let message;
+    switch (this._queryGenerationStatus) {
+      case QUERY_GENERATION_STATUS.ASK_TO_CONNECT:
+        message =
+          'Please select a cluster to connect by clicking on an item in the connections list.';
+        break;
+      case QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME:
+        message =
+          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.';
+        break;
+      case QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME:
+        message =
+          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.';
+        break;
+      default:
+        message =
+          'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".';
+    }
+    stream.markdown(vscode.l10n.t(`${message}\n\n`));
+    return;
   }
 
   handleError(err: any, stream: vscode.ChatResponseStream): void {
@@ -203,36 +218,6 @@ export class ParticipantController {
     return;
   }
 
-  async _printAndCallParticipantCommand({
-    command,
-    query,
-  }: {
-    command: string;
-    query?: string;
-  }): Promise<boolean> {
-    // We don't want yet users to call these commands from the chat,
-    // therefore we enable them only to be called programmatically by the participant.
-    // Currently, /connect, /database, and /collection commands are part of the query generation flow.
-    // If we allow users to call them directly, they will call the /query command to complete the sequence.
-    // That might be unexpected for users if they want just to change the current namespace.
-    // but it returns a generated query in a Chat response.
-    // We will explore in the future possible ways to debound these commands.
-    // See https://github.com/microsoft/vscode/issues/225516
-    void vscode.commands.executeCommand(
-      'setContext',
-      'mdb.isCalledByParticipant',
-      true
-    );
-    await vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /${command} ${query}`,
-    });
-    return vscode.commands.executeCommand(
-      'setContext',
-      'mdb.isCalledByParticipant',
-      false
-    );
-  }
-
   async connectWithParticipant(id: string): Promise<boolean> {
     if (!id) {
       await this._connectionController.connectWithURI();
@@ -241,9 +226,8 @@ export class ParticipantController {
     }
 
     const connectionName = this._connectionController.getActiveConnectionName();
-    return this._printAndCallParticipantCommand({
-      command: 'connect',
-      query: connectionName,
+    return vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: `@MongoDB /query ${connectionName}`,
     });
   }
 
@@ -265,6 +249,11 @@ export class ParticipantController {
     return connName;
   }
 
+  // TODO: Evaluate the usability of displaying all existing connections in the list.
+  // Consider introducing a "recent connections" feature to display only a limited number of recent connections,
+  // with a "Show more" link that opens the Command Palette for access to the full list.
+  // If we implement this, the "Add new connection" link may become redundant,
+  // as this option is already available in the Command Palette dropdown.
   getConnectionsTree(): vscode.MarkdownString[] {
     if (!Object.values(this._connectionController._connections).length) {
       return [];
@@ -290,26 +279,22 @@ export class ParticipantController {
   }
 
   async selectDatabaseWithParticipant(name: string): Promise<boolean> {
-    return this._printAndCallParticipantCommand({
-      command: 'database',
-      query: name,
+    this._databaseName = name;
+    return vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: `@MongoDB /query ${name}`,
     });
   }
 
   async selectCollectionWithParticipant(name: string): Promise<boolean> {
-    return this._printAndCallParticipantCommand({
-      command: 'collection',
-      query: name,
+    this._collectionName = name;
+    return vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: `@MongoDB /query ${name}`,
     });
   }
 
-  async getDatabasesTree(): Promise<vscode.MarkdownString[]> {
-    const dataService = this._connectionController.getActiveDataService();
-
-    if (dataService === null) {
-      return [];
-    }
-
+  async getDatabasesTree(
+    dataService: DataService
+  ): Promise<vscode.MarkdownString[]> {
     try {
       const databases = await dataService.listDatabases({
         nameOnly: true,
@@ -322,17 +307,15 @@ export class ParticipantController {
         })
       );
     } catch (error) {
+      // Users can always do this manually when asked to provide a database name.
       return [];
     }
   }
 
-  async getCollectionTree(): Promise<vscode.MarkdownString[]> {
+  async getCollectionTree(
+    dataService: DataService
+  ): Promise<vscode.MarkdownString[]> {
     if (!this._databaseName) {
-      return [];
-    }
-
-    const dataService = this._connectionController.getActiveDataService();
-    if (dataService === null) {
       return [];
     }
 
@@ -346,6 +329,7 @@ export class ParticipantController {
         })
       );
     } catch (error) {
+      // Users can always do this manually when asked to provide a collection name.
       return [];
     }
   }
@@ -369,7 +353,7 @@ export class ParticipantController {
     }
 
     if (!request.prompt || request.prompt.trim().length === 0) {
-      return this.handleEmptyQueryRequest();
+      return this.handleEmptyQueryRequest(stream);
     }
 
     // Ask to connect if not connected.
@@ -386,25 +370,50 @@ export class ParticipantController {
       return;
     }
 
-    // Look for a namespace in the prompt.
-    const messagesWithNamespace = NamespacePrompt.buildMessages({
-      context,
-      request,
-    });
-    const responseContentWithNamespace = await this.getChatResponseContent({
-      messages: messagesWithNamespace,
-      stream,
-      token,
-    });
-    const namespace = parseForDatabaseAndCollectionName(
-      responseContentWithNamespace
-    );
+    // If we're not waiting for a user to provide a namespace in the chat, search for it in the prompt.
+    if (
+      !this._queryGenerationStatus ||
+      ![
+        QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME,
+        QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME,
+      ].includes(this._queryGenerationStatus)
+    ) {
+      const messagesWithNamespace = NamespacePrompt.buildMessages({
+        context,
+        request,
+      });
+      const responseContentWithNamespace = await this.getChatResponseContent({
+        messages: messagesWithNamespace,
+        stream,
+        token,
+      });
+      const namespace = parseForDatabaseAndCollectionName(
+        responseContentWithNamespace
+      );
 
-    if (namespace.databaseName) {
-      this._databaseName = namespace.databaseName;
+      if (namespace.databaseName) {
+        this._databaseName = namespace.databaseName;
+      }
+      if (namespace.collectionName) {
+        this._collectionName = namespace.collectionName;
+      }
     }
-    if (namespace.collectionName) {
-      this._collectionName = namespace.collectionName;
+
+    if (
+      this._queryGenerationStatus ===
+      QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME
+    ) {
+      this._databaseName = request.prompt;
+      this._queryGenerationStatus = this._collectionName
+        ? QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY
+        : QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
+    } else if (
+      this._queryGenerationStatus ===
+      QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
+    ) {
+      this._collectionName = request.prompt;
+      this._queryGenerationStatus =
+        QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
     }
 
     if (!this._collectionName) {
@@ -416,50 +425,36 @@ export class ParticipantController {
         QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME;
     }
 
-    // If we could not find a database or collection name in the user prompt,
-    // we fetch available namespaces from the current connection.
-    // Users can select a value by clicking on the list item.
+    // If no database or collection name is found in the user prompt,
+    // we retrieve the available namespaces from the current connection.
+    // Users can then select a value by clicking on an item in the list.
     if (
       this._queryGenerationStatus ===
       QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME
     ) {
-      const tree = await this.getDatabasesTree();
+      const tree = await this.getDatabasesTree(dataService);
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
       );
       for (const item of tree) {
         stream.markdown(item);
       }
-      if (this._collectionName) {
-        this._queryGenerationStatus =
-          QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
-      } else {
-        this._queryGenerationStatus =
-          QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
-      }
       return;
     } else if (
       this._queryGenerationStatus ===
       QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
     ) {
-      const tree = await this.getCollectionTree();
+      if (!this._databaseName) {
+        this._databaseName = request.prompt;
+      }
+      const tree = await this.getCollectionTree(dataService);
       stream.markdown(
         'Which collection would you like to query within this database?\n\n'
       );
       for (const item of tree) {
         stream.markdown(item);
       }
-      if (!this._databaseName) {
-        this._databaseName = request.prompt;
-      }
-      this._queryGenerationStatus =
-        QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
       return;
-    } else if (
-      this._queryGenerationStatus ===
-      QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY
-    ) {
-      this._collectionName = request.prompt;
     }
 
     const abortController = new AbortController();
@@ -494,11 +489,6 @@ export class ParticipantController {
       });
     }
 
-    await vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: '@MongoDB /query',
-      isPartialQuery: true,
-    });
-
     return { metadata: { responseContent } };
   }
 
@@ -528,24 +518,6 @@ export class ParticipantController {
     }
 
     if (request.command === 'query') {
-      this._chatResult = await this.handleQueryRequest(...args);
-      return;
-    } else if (request.command === 'connect') {
-      // The query can be already generated and returned to the chat,
-      // but users still can click on the connections in the list to change the current cluster.
-      stream.markdown(vscode.l10n.t('MongoDB connection successful.\n\n'));
-      if (
-        this._queryGenerationStatus !== QUERY_GENERATION_STATUS.QUERY_GENERATED
-      ) {
-        this._chatResult = await this.handleQueryRequest(...args);
-      }
-      return;
-    } else if (request.command === 'database') {
-      this._databaseName = request.prompt;
-      this._chatResult = await this.handleQueryRequest(...args);
-      return;
-    } else if (request.command === 'collection') {
-      this._collectionName = request.prompt;
       this._chatResult = await this.handleQueryRequest(...args);
       return;
     } else if (request.command === 'docs') {
