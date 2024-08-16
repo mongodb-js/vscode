@@ -14,12 +14,12 @@ import { NamespacePrompt } from './prompts/namespace';
 
 const log = createLogger('participant');
 
-enum QUERY_GENERATION_STATUS {
+enum QUERY_GENERATION_STATE {
+  READY = 'READY',
   ASK_TO_CONNECT = 'ASK_TO_CONNECT',
   ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
   ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
   READY_TO_GENERATE_QUERY = 'READY_TO_GENERATE_QUERY',
-  QUERY_GENERATED = 'QUERY_GENERATED',
 }
 
 interface ChatResult extends vscode.ChatResult {
@@ -63,7 +63,7 @@ export class ParticipantController {
   _chatResult?: ChatResult;
   _connectionController: ConnectionController;
   _storageController: StorageController;
-  _queryGenerationStatus?: QUERY_GENERATION_STATUS;
+  _queryGenerationState?: QUERY_GENERATION_STATE;
   _databaseName?: string;
   _collectionName?: string;
 
@@ -103,16 +103,16 @@ export class ParticipantController {
 
   handleEmptyQueryRequest(stream: vscode.ChatResponseStream): undefined {
     let message;
-    switch (this._queryGenerationStatus) {
-      case QUERY_GENERATION_STATUS.ASK_TO_CONNECT:
+    switch (this._queryGenerationState) {
+      case QUERY_GENERATION_STATE.ASK_TO_CONNECT:
         message =
           'Please select a cluster to connect by clicking on an item in the connections list.';
         break;
-      case QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME:
+      case QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME:
         message =
           'Please select a database by either clicking on an item in the list or typing the name manually in the chat.';
         break;
-      case QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME:
+      case QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME:
         message =
           'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.';
         break;
@@ -226,6 +226,10 @@ export class ParticipantController {
     }
 
     const connectionName = this._connectionController.getActiveConnectionName();
+    if (connectionName) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.READY;
+    }
+
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       query: `@MongoDB /query ${connectionName}`,
     });
@@ -334,15 +338,7 @@ export class ParticipantController {
     }
   }
 
-  // @MongoDB /query find all documents where the "address" has the word Broadway in it.
-  // eslint-disable-next-line complexity
-  async handleQueryRequest(
-    request: vscode.ChatRequest,
-    context: vscode.ChatContext,
-    stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
-  ) {
-    // Check if this is a new chat.
+  _ifNewChatResetQueryGenerationState(context: vscode.ChatContext) {
     const isNewChat = !context.history.find(
       (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
     );
@@ -351,32 +347,24 @@ export class ParticipantController {
       this._databaseName = undefined;
       this._collectionName = undefined;
     }
+  }
 
-    if (!request.prompt || request.prompt.trim().length === 0) {
-      return this.handleEmptyQueryRequest(stream);
+  async _shouldAskForNamespace(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ) {
+    if (this._alreadyReceivedNamespaceFromUser(request.prompt)) {
+      return false;
     }
 
-    // Ask to connect if not connected.
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      const tree = this.getConnectionsTree();
-      stream.markdown(
-        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
-      );
-      for (const item of tree) {
-        stream.markdown(item);
-      }
-      this._queryGenerationStatus = QUERY_GENERATION_STATUS.ASK_TO_CONNECT;
-      return;
-    }
-
-    // If we're not waiting for a user to provide a namespace in the chat, search for it in the prompt.
     if (
-      !this._queryGenerationStatus ||
+      !this._queryGenerationState ||
       ![
-        QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME,
-        QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME,
-      ].includes(this._queryGenerationStatus)
+        QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME,
+        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME,
+      ].includes(this._queryGenerationState)
     ) {
       const messagesWithNamespace = NamespacePrompt.buildMessages({
         context,
@@ -391,47 +379,68 @@ export class ParticipantController {
         responseContentWithNamespace
       );
 
-      if (namespace.databaseName) {
-        this._databaseName = namespace.databaseName;
-      }
-      if (namespace.collectionName) {
-        this._collectionName = namespace.collectionName;
+      this._databaseName = namespace.databaseName || this._databaseName;
+      this._collectionName = namespace.collectionName || this._collectionName;
+
+      if (namespace.databaseName && namespace.collectionName) {
+        this._queryGenerationState =
+          QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
+        return false;
       }
     }
 
+    return true;
+  }
+
+  _alreadyReceivedNamespaceFromUser(prompt: string): boolean {
     if (
-      this._queryGenerationStatus ===
-      QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME
+      this._queryGenerationState ===
+      QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME
     ) {
-      this._databaseName = request.prompt;
-      this._queryGenerationStatus = this._collectionName
-        ? QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY
-        : QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
-    } else if (
-      this._queryGenerationStatus ===
-      QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
-    ) {
-      this._collectionName = request.prompt;
-      this._queryGenerationStatus =
-        QUERY_GENERATION_STATUS.READY_TO_GENERATE_QUERY;
-    }
+      this._databaseName = prompt;
+      if (this._collectionName) {
+        this._queryGenerationState =
+          QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
+        return true;
+      }
 
-    if (!this._collectionName) {
-      this._queryGenerationStatus =
-        QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME;
+      this._queryGenerationState =
+        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
+      return false;
+    }
+    if (
+      this._queryGenerationState ===
+      QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME
+    ) {
+      this._collectionName = prompt;
+      this._queryGenerationState =
+        QUERY_GENERATION_STATE.READY_TO_GENERATE_QUERY;
+      return true;
     }
     if (!this._databaseName) {
-      this._queryGenerationStatus =
-        QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME;
+      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
+      return false;
+    }
+    if (!this._collectionName) {
+      this._queryGenerationState =
+        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
+      return false;
     }
 
-    // If no database or collection name is found in the user prompt,
-    // we retrieve the available namespaces from the current connection.
-    // Users can then select a value by clicking on an item in the list.
-    if (
-      this._queryGenerationStatus ===
-      QUERY_GENERATION_STATUS.ASK_FOR_DATABASE_NAME
-    ) {
+    return true;
+  }
+
+  async _askForNamespace(
+    request: vscode.ChatRequest,
+    stream: vscode.ChatResponseStream
+  ): Promise<undefined> {
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+      return;
+    }
+
+    if (!this._databaseName) {
       const tree = await this.getDatabasesTree(dataService);
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
@@ -439,14 +448,8 @@ export class ParticipantController {
       for (const item of tree) {
         stream.markdown(item);
       }
-      return;
-    } else if (
-      this._queryGenerationStatus ===
-      QUERY_GENERATION_STATUS.ASK_FOR_COLLECTION_NAME
-    ) {
-      if (!this._databaseName) {
-        this._databaseName = request.prompt;
-      }
+      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
+    } else if (!this._collectionName) {
       const tree = await this.getCollectionTree(dataService);
       stream.markdown(
         'Which collection would you like to query within this database?\n\n'
@@ -454,7 +457,54 @@ export class ParticipantController {
       for (const item of tree) {
         stream.markdown(item);
       }
+      this._queryGenerationState =
+        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
+    }
+
+    return;
+  }
+
+  _shouldAskToConnectIfNotConnected(
+    stream: vscode.ChatResponseStream
+  ): boolean {
+    const dataService = this._connectionController.getActiveDataService();
+    if (dataService) {
+      return false;
+    }
+
+    const tree = this.getConnectionsTree();
+    stream.markdown(
+      "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
+    );
+    for (const item of tree) {
+      stream.markdown(item);
+    }
+    this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+    return true;
+  }
+
+  // @MongoDB /query find all documents where the "address" has the word Broadway in it.
+  async handleQueryRequest(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ) {
+    this._ifNewChatResetQueryGenerationState(context);
+
+    if (this._shouldAskToConnectIfNotConnected(stream)) {
       return;
+    }
+
+    const shouldAskForNamespace = await this._shouldAskForNamespace(
+      request,
+      context,
+      stream,
+      token
+    );
+
+    if (shouldAskForNamespace) {
+      return await this._askForNamespace(request, stream);
     }
 
     const abortController = new AbortController();
@@ -475,7 +525,7 @@ export class ParticipantController {
     });
 
     stream.markdown(responseContent);
-    this._queryGenerationStatus = QUERY_GENERATION_STATUS.QUERY_GENERATED;
+    this._queryGenerationState = QUERY_GENERATION_STATE.READY;
 
     const runnableContent = getRunnableContentFromString(responseContent);
     if (runnableContent && runnableContent.trim().length) {
