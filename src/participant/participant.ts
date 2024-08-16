@@ -200,7 +200,6 @@ export class ParticipantController {
     stream.markdown(responseContent);
 
     const runnableContent = getRunnableContentFromString(responseContent);
-
     if (runnableContent && runnableContent.trim().length) {
       stream.button({
         command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
@@ -212,7 +211,7 @@ export class ParticipantController {
         title: vscode.l10n.t('Open in playground'),
       });
 
-      return { metadata: { responseContent } };
+      return { metadata: { responseContent: runnableContent } };
     }
 
     return { metadata: {} };
@@ -545,7 +544,7 @@ export class ParticipantController {
       });
     }
 
-    return { metadata: { responseContent } };
+    return { metadata: { responseContent: runnableContent } };
   }
 
   async chatHandler(
