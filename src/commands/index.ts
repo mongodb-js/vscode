@@ -79,6 +79,9 @@ enum EXTENSION_COMMANDS {
   // Chat participant.
   OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND = 'mdb.openParticipantQueryInPlayground',
   RUN_PARTICIPANT_QUERY = 'mdb.runParticipantQuery',
+  CONNECT_WITH_PARTICIPANT = 'mdb.connectWithParticipant',
+  SELECT_DATABASE_WITH_PARTICIPANT = 'mdb.selectDatabaseWithParticipant',
+  SELECT_COLLECTION_WITH_PARTICIPANT = 'mdb.selectCollectionWithParticipant',
 }
 
 export default EXTENSION_COMMANDS;
