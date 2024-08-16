@@ -253,7 +253,7 @@ export class ParticipantController {
     return connName;
   }
 
-  // TODO: Evaluate the usability of displaying all existing connections in the list.
+  // TODO (VSCODE-589): Evaluate the usability of displaying all existing connections in the list.
   // Consider introducing a "recent connections" feature to display only a limited number of recent connections,
   // with a "Show more" link that opens the Command Palette for access to the full list.
   // If we implement this, the "Add new connection" link may become redundant,
@@ -292,6 +292,7 @@ export class ParticipantController {
     });
   }
 
+  // TODO (VSCODE-589): Display only 10 items in clickable lists with the show more option.
   async getDatabasesTree(
     dataService: DataService
   ): Promise<vscode.MarkdownString[]> {
@@ -312,6 +313,7 @@ export class ParticipantController {
     }
   }
 
+  // TODO (VSCODE-589): Display only 10 items in clickable lists with the show more option.
   async getCollectionTree(
     dataService: DataService
   ): Promise<vscode.MarkdownString[]> {
