@@ -16,7 +16,7 @@ export class QueryPrompt {
   A user will provide the basis for the query.
   Keep your response concise.
   Respond in MongoDB shell syntax inside a single '''javascript markdown code snippet.
-  You can use only the following MongoDB Shell commands: use, aggregate, bulkWrite, countDocu, findOneAndReplace,
+  You can use only the following MongoDB Shell commands: use, aggregate, bulkWrite, countDocuments, findOneAndReplace,
   findOneAndUpdate, insert, insertMany, insertOne, remove, replaceOne, update, updateMany, updateOne.
 
   Example 1:

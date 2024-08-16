@@ -420,6 +420,9 @@ export default class ConnectionController {
 
     log.info('Successfully connected', { connectionId });
     this._statusView.showMessage('MongoDB connection successful.');
+    setTimeout(() => {
+      this._statusView.hideMessage();
+    }, 5000);
 
     dataService.addReauthenticationHandler(
       this._reauthenticationHandler.bind(this)
@@ -603,10 +606,12 @@ export default class ConnectionController {
       'mdb.isAtlasStreams',
       false
     );
-    this._statusView.showMessage('MongoDB disconnected.');
 
     this._disconnecting = false;
-    this._statusView.hideMessage();
+    this._statusView.showMessage('MongoDB disconnected.');
+    setTimeout(() => {
+      this._statusView.hideMessage();
+    }, 5000);
 
     return true;
   }
