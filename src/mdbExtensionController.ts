@@ -150,6 +150,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
+    void this.showSurveyForEstablishedUsers();
   }
 
   registerCommands = (): void => {
@@ -812,6 +813,41 @@ export default class MDBExtensionController implements vscode.Disposable {
         StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
         true
       );
+    }
+  }
+
+  async showSurveyForEstablishedUsers(): Promise<void> {
+    const surveyId = '9viN9wcbsC3zvHyg7';
+
+    const hasBeenShownSurveyAlready =
+      this._storageController.get(StorageVariables.GLOBAL_SURVEY_SHOWN) ===
+      surveyId;
+
+    // Show the overview page when it hasn't been show to the
+    // user yet, and they have saved connections
+    // -> they haven't just started using this extension
+    if (!hasBeenShownSurveyAlready) {
+      if (this._connectionStorage.hasSavedConnections()) {
+        const action = 'Share your thoughts';
+        const text = 'How can we make the MongoDB extension better for you?';
+        const link = 'https://forms.gle/9viN9wcbsC3zvHyg7';
+        const result = await vscode.window.showInformationMessage(
+          text,
+          {},
+          {
+            title: action,
+          }
+        );
+        if (result && result.title === action) {
+          void vscode.env.openExternal(vscode.Uri.parse(link));
+        }
+
+        // whether action was taken or the prompt dismissed, we won't show this again
+        void this._storageController.update(
+          StorageVariables.GLOBAL_SURVEY_SHOWN,
+          surveyId
+        );
+      }
     }
   }
 
