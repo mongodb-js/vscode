@@ -59,6 +59,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
 
       testParticipantController = new ParticipantController({
         connectionController: testConnectionController,
+        storageController: testStorageController,
       });
 
       sandbox.replace(

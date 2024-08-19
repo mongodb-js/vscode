@@ -92,6 +92,7 @@ suite('Playground Controller Test Suite', function () {
     );
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
+      storageController: testStorageController,
     });
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,

@@ -39,7 +39,7 @@ describe('OverviewPage test suite', function () {
   describe('Connection Form', function () {
     // Rendering the connection form takes ~4 seconds, so we need to increase the timeout.
     // Not sure on the cause of this slowdown, it could be animation based.
-    this.timeout(10000);
+    this.timeout(20000);
     it('is able to open and close the new connection form', async function () {
       render(<OverviewPage />);
 

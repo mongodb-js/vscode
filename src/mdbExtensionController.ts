@@ -109,6 +109,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       new PlaygroundDiagnosticsCodeActionProvider();
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
+      storageController: this._storageController,
     });
     this._playgroundController = new PlaygroundController({
       connectionController: this._connectionController,
@@ -291,7 +292,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => {
         return this._playgroundController.createPlaygroundFromParticipantQuery({
           text:
-            this._participantController._chatResult.metadata.queryContent || '',
+            this._participantController._chatResult?.metadata
+              ?.responseContent || '',
         });
       }
     );
@@ -300,9 +302,24 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => {
         return this._playgroundController.evaluateParticipantQuery({
           text:
-            this._participantController._chatResult.metadata.queryContent || '',
+            this._participantController._chatResult?.metadata
+              ?.responseContent || '',
         });
       }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+      (id: string) => this._participantController.connectWithParticipant(id)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+      (name: string) =>
+        this._participantController.selectDatabaseWithParticipant(name)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+      (name: string) =>
+        this._participantController.selectCollectionWithParticipant(name)
     );
   };
 
