@@ -175,6 +175,7 @@ suite('MDBExtensionController Test Suite', function () {
     let fakeActiveConnectionId: SinonSpy;
     let showErrorMessageStub: SinonStub;
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
+    let openExternalStub: SinonStub;
 
     const sandbox = sinon.createSandbox();
 
@@ -183,6 +184,7 @@ suite('MDBExtensionController Test Suite', function () {
         vscode.window,
         'showInformationMessage'
       );
+      openExternalStub = sandbox.stub(vscode.env, 'openExternal');
       openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
       fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
       sandbox.replace(
@@ -1722,20 +1724,13 @@ suite('MDBExtensionController Test Suite', function () {
       suite(
         "when a user hasn't been shown the survey prompt yet, and they have connections saved",
         () => {
-          for (const reaction of [
+          [
             { description: 'clicked the button', value: 'Share your thoughts' },
             { description: 'dismissed', value: undefined },
-          ]) {
-            let showInformationMessageStub: SinonStub;
-            let fakeUpdate: SinonSpy;
-            let openExternalStub: SinonStub;
-            before(() => {
-              showInformationMessageStub = sandbox.stub(
-                vscode.window,
-                'showInformationMessage'
-              );
+          ].forEach((reaction) => {
+            let connectionsUpdateStub: SinonStub;
+            beforeEach(() => {
               showInformationMessageStub.resolves(reaction.value);
-              openExternalStub = sandbox.stub(vscode.env, 'openExternal');
               openExternalStub.resolves(undefined);
               sandbox.replace(
                 mdbTestExtension.testExtensionController._storageController,
@@ -1747,13 +1742,16 @@ suite('MDBExtensionController Test Suite', function () {
                 'hasSavedConnections',
                 sandbox.fake.returns(true)
               );
-              fakeUpdate = sandbox.fake.resolves(undefined);
-              sandbox.replace(
+              connectionsUpdateStub = sandbox.stub(
                 mdbTestExtension.testExtensionController._storageController,
-                'update',
-                fakeUpdate
+                'update'
               );
+              connectionsUpdateStub.resolves(undefined);
               void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
+            });
+
+            afterEach(() => {
+              sandbox.restore();
             });
 
             test('they are shown the survey prompt', () => {
@@ -1778,28 +1776,23 @@ suite('MDBExtensionController Test Suite', function () {
             });
 
             test("it sets that they've been shown the survey", () => {
-              assert(fakeUpdate.called);
+              assert(connectionsUpdateStub.called);
               assert.strictEqual(
-                fakeUpdate.firstCall.args[0],
+                connectionsUpdateStub.firstCall.args[0],
                 StorageVariables.GLOBAL_SURVEY_SHOWN
               );
               assert.strictEqual(
-                fakeUpdate.firstCall.args[1],
+                connectionsUpdateStub.firstCall.args[1],
                 '9viN9wcbsC3zvHyg7'
               );
             });
-          }
+          });
         }
       );
 
       suite('when a user has been shown the survey prompt already', () => {
-        let showInformationMessageStub: SinonStub;
-        let fakeUpdate: SinonSpy;
-        before(() => {
-          showInformationMessageStub = sandbox.stub(
-            vscode.window,
-            'showInformationMessage'
-          );
+        let connectionsUpdateStub: SinonStub;
+        beforeEach(() => {
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
@@ -1810,12 +1803,12 @@ suite('MDBExtensionController Test Suite', function () {
             'hasSavedConnections',
             sandbox.fake.returns(true)
           );
-          fakeUpdate = sandbox.fake.resolves(undefined);
-          sandbox.replace(
+          connectionsUpdateStub = sandbox.stub(
             mdbTestExtension.testExtensionController._storageController,
-            'update',
-            fakeUpdate
+            'update'
           );
+          connectionsUpdateStub.resolves(undefined);
+
           void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
         });
 
@@ -1825,13 +1818,8 @@ suite('MDBExtensionController Test Suite', function () {
       });
 
       suite('when a has no connections saved', () => {
-        let showInformationMessageStub: SinonStub;
-        let fakeUpdate: SinonSpy;
-        before(() => {
-          showInformationMessageStub = sandbox.stub(
-            vscode.window,
-            'showInformationMessage'
-          );
+        let connectionsUpdateStub: SinonStub;
+        beforeEach(() => {
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
@@ -1842,12 +1830,12 @@ suite('MDBExtensionController Test Suite', function () {
             'hasSavedConnections',
             sandbox.fake.returns(false) // no connections yet - this might be the first install
           );
-          fakeUpdate = sandbox.fake.resolves(undefined);
-          sandbox.replace(
+          connectionsUpdateStub = sandbox.stub(
             mdbTestExtension.testExtensionController._storageController,
-            'update',
-            fakeUpdate
+            'update'
           );
+          connectionsUpdateStub.resolves(undefined);
+
           void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
         });
 
