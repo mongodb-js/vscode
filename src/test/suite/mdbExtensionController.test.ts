@@ -1729,7 +1729,7 @@ suite('MDBExtensionController Test Suite', function () {
             let showInformationMessageStub: SinonStub;
             let fakeUpdate: SinonSpy;
             let openExternalStub: SinonStub;
-            beforeEach(() => {
+            before(() => {
               showInformationMessageStub = sandbox.stub(
                 vscode.window,
                 'showInformationMessage'
@@ -1791,6 +1791,70 @@ suite('MDBExtensionController Test Suite', function () {
           }
         }
       );
+
+      suite('when a user has been shown the survey prompt already', () => {
+        let showInformationMessageStub: SinonStub;
+        let fakeUpdate: SinonSpy;
+        before(() => {
+          showInformationMessageStub = sandbox.stub(
+            vscode.window,
+            'showInformationMessage'
+          );
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._storageController,
+            'get',
+            sandbox.fake.returns('9viN9wcbsC3zvHyg7') // survey has been shown
+          );
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._connectionStorage,
+            'hasSavedConnections',
+            sandbox.fake.returns(true)
+          );
+          fakeUpdate = sandbox.fake.resolves(undefined);
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._storageController,
+            'update',
+            fakeUpdate
+          );
+          void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
+        });
+
+        test('they are not shown the survey prompt', () => {
+          assert(showInformationMessageStub.notCalled);
+        });
+      });
+
+      suite('when a has no connections saved', () => {
+        let showInformationMessageStub: SinonStub;
+        let fakeUpdate: SinonSpy;
+        before(() => {
+          showInformationMessageStub = sandbox.stub(
+            vscode.window,
+            'showInformationMessage'
+          );
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._storageController,
+            'get',
+            sandbox.fake.returns(undefined)
+          );
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._connectionStorage,
+            'hasSavedConnections',
+            sandbox.fake.returns(false) // no connections yet - this might be the first install
+          );
+          fakeUpdate = sandbox.fake.resolves(undefined);
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._storageController,
+            'update',
+            fakeUpdate
+          );
+          void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
+        });
+
+        test('they are not shown the survey prompt', () => {
+          assert(showInformationMessageStub.notCalled);
+        });
+      });
     });
   });
 });
