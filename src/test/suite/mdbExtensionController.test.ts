@@ -1717,5 +1717,80 @@ suite('MDBExtensionController Test Suite', function () {
         });
       });
     });
+
+    suite('survey prompt', function () {
+      suite(
+        "when a user hasn't been shown the survey prompt yet, and they have connections saved",
+        () => {
+          for (const reaction of [
+            { description: 'clicked the button', value: 'Share your thoughts' },
+            { description: 'dismissed', value: undefined },
+          ]) {
+            let showInformationMessageStub: SinonStub;
+            let fakeUpdate: SinonSpy;
+            let openExternalStub: SinonStub;
+            beforeEach(() => {
+              showInformationMessageStub = sandbox.stub(
+                vscode.window,
+                'showInformationMessage'
+              );
+              showInformationMessageStub.resolves(reaction.value);
+              openExternalStub = sandbox.stub(vscode.env, 'openExternal');
+              openExternalStub.resolves(undefined);
+              sandbox.replace(
+                mdbTestExtension.testExtensionController._storageController,
+                'get',
+                sandbox.fake.returns(undefined)
+              );
+              sandbox.replace(
+                mdbTestExtension.testExtensionController._connectionStorage,
+                'hasSavedConnections',
+                sandbox.fake.returns(true)
+              );
+              fakeUpdate = sandbox.fake.resolves(undefined);
+              sandbox.replace(
+                mdbTestExtension.testExtensionController._storageController,
+                'update',
+                fakeUpdate
+              );
+              void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
+            });
+
+            test('they are shown the survey prompt', () => {
+              assert(showInformationMessageStub.called);
+              assert.strictEqual(
+                showInformationMessageStub.firstCall.args[0],
+                'How can we make the MongoDB extension better for you?'
+              );
+            });
+
+            test(`user ${reaction.description}`, () => {
+              if (reaction.value === undefined) {
+                assert(openExternalStub.notCalled);
+              }
+              if (reaction.value) {
+                assert(openExternalStub.called);
+                assert.strictEqual(
+                  openExternalStub.firstCall.args[0],
+                  'https://forms.gle/9viN9wcbsC3zvHyg7'
+                );
+              }
+            });
+
+            test("it sets that they've been shown the survey", () => {
+              assert(fakeUpdate.called);
+              assert.strictEqual(
+                fakeUpdate.firstCall.args[0],
+                StorageVariables.GLOBAL_SURVEY_SHOWN
+              );
+              assert.strictEqual(
+                fakeUpdate.firstCall.args[1],
+                '9viN9wcbsC3zvHyg7'
+              );
+            });
+          }
+        }
+      );
+    });
   });
 });
