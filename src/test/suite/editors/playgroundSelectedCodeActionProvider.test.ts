@@ -13,7 +13,7 @@ import type { PlaygroundResult } from '../../../types/playgroundType';
 import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub } from '../stubs';
-import { ParticipantController } from '../../../participant/participant';
+import ParticipantController from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
 import StatusView from '../../../views/statusView';
 import StorageController from '../../../storage/storageController';
