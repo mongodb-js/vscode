@@ -1727,8 +1727,11 @@ suite('MDBExtensionController Test Suite', function () {
         "when a user hasn't been shown the survey prompt yet, and they have connections saved",
         () => {
           [
-            { description: 'clicked the button', value: { title: 'Share your thoughts' } },
-            // { description: 'dismissed', value: undefined },
+            {
+              description: 'clicked the button',
+              value: { title: 'Share your thoughts' },
+            },
+            { description: 'dismissed', value: undefined },
           ].forEach((reaction) => {
             suite(`user ${reaction.description}`, () => {
               let connectionsUpdateStub: SinonStub;
@@ -1774,7 +1777,7 @@ suite('MDBExtensionController Test Suite', function () {
                   assert(uriParseStub.called);
                   assert.strictEqual(
                     uriParseStub.firstCall.args[0],
-                    'https://forms.gle/9viN9wcbsC3zvHyg7',
+                    'https://forms.gle/9viN9wcbsC3zvHyg7'
                   );
                 }
               });
