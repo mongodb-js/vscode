@@ -1,3 +1,5 @@
+import sourceMapSupport from 'source-map-support';
+sourceMapSupport.install();
 import Mocha from 'mocha';
 import glob from 'glob';
 import path from 'path';
