@@ -18,7 +18,6 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
 
 suite('Participant Controller Test Suite', function () {
-  const sandbox = sinon.createSandbox();
   const extensionContextStub = new ExtensionContextStub();
 
   // The test extension runner.
@@ -49,7 +48,7 @@ suite('Participant Controller Test Suite', function () {
       connectionController: testConnectionController,
       storageController: testStorageController,
     });
-    sandbox.replace(
+    sinon.replace(
       testParticipantController._connectionController,
       'getActiveDataService',
       () =>
@@ -60,7 +59,7 @@ suite('Participant Controller Test Suite', function () {
             url: TEST_DATABASE_URI,
             options: {},
           }),
-          once: sandbox.stub(),
+          once: sinon.stub(),
         } as unknown as DataService)
     );
     chatContextStub = {
@@ -73,17 +72,17 @@ suite('Participant Controller Test Suite', function () {
       ],
     };
     chatStreamStub = {
-      markdown: sandbox.fake(),
-      button: sandbox.fake(),
+      markdown: sinon.fake(),
+      button: sinon.fake(),
     };
     chatTokenStub = {
       onCancellationRequested: () => {},
     };
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
-    sandbox.replace(
+    sinon.replace(
       vscode.lm,
       'selectChatModels',
-      sandbox.fake.returns([
+      sinon.fake.returns([
         {
           id: 'modelId',
           vendor: 'copilot',
@@ -107,7 +106,7 @@ suite('Participant Controller Test Suite', function () {
   });
 
   afterEach(function () {
-    sandbox.restore();
+    sinon.restore();
   });
 
   test('parses a returned by ai text for database and collection name', function () {
@@ -132,17 +131,17 @@ suite('Participant Controller Test Suite', function () {
 
   suite('when connected', function () {
     beforeEach(function () {
-      sandbox
+      sinon
         .stub(testParticipantController, '_shouldAskToConnectIfNotConnected')
         .returns(false);
     });
 
     suite('when has not been shown a welcome message yet', function () {
       beforeEach(function () {
-        sandbox.replace(
+        sinon.replace(
           testParticipantController._storageController,
           'get',
-          sandbox.fake.returns(false)
+          sinon.fake.returns(false)
         );
       });
 
@@ -165,22 +164,20 @@ suite('Participant Controller Test Suite', function () {
 
     suite('when has been shown a welcome message already', function () {
       beforeEach(function () {
-        sandbox.replace(
+        sinon.replace(
           testParticipantController._storageController,
           'get',
-          sandbox.fake.returns(true)
+          sinon.fake.returns(true)
         );
       });
 
       suite('known namespace', function () {
         beforeEach(function () {
-          sandbox
-            .stub(testParticipantController, '_databaseName')
-            .value('dbOne');
-          sandbox
+          sinon.stub(testParticipantController, '_databaseName').value('dbOne');
+          sinon
             .stub(testParticipantController, '_collectionName')
             .value('collOne');
-          sandbox
+          sinon
             .stub(testParticipantController, '_shouldAskForNamespace')
             .resolves(false);
         });
