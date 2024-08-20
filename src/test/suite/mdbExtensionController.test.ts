@@ -176,7 +176,6 @@ suite('MDBExtensionController Test Suite', function () {
     let showErrorMessageStub: SinonStub;
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
     let openExternalStub: SinonStub;
-    let uriParseStub: SinonStub;
 
     const sandbox = sinon.createSandbox();
 
@@ -186,7 +185,6 @@ suite('MDBExtensionController Test Suite', function () {
         'showInformationMessage'
       );
       openExternalStub = sandbox.stub(vscode.env, 'openExternal');
-      uriParseStub = sandbox.stub(vscode.Uri, 'parse');
       openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
       fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
       sandbox.replace(
@@ -1735,6 +1733,7 @@ suite('MDBExtensionController Test Suite', function () {
           ].forEach((reaction) => {
             suite(`user ${reaction.description}`, () => {
               let connectionsUpdateStub: SinonStub;
+              let uriParseStub: SinonStub;
               beforeEach(async () => {
                 showInformationMessageStub.resolves(reaction.value);
                 openExternalStub.resolves(undefined);
@@ -1752,6 +1751,7 @@ suite('MDBExtensionController Test Suite', function () {
                   mdbTestExtension.testExtensionController._storageController,
                   'update'
                 );
+                uriParseStub = sandbox.stub(vscode.Uri, 'parse');
                 connectionsUpdateStub.resolves(undefined);
                 await mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
               });
