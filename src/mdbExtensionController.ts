@@ -826,8 +826,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Show the overview page when it hasn't been show to the
     // user yet, and they have saved connections
     // -> they haven't just started using this extension
-    if (!hasBeenShownSurveyAlready) {
-      if (this._connectionStorage.hasSavedConnections()) {
+    if (hasBeenShownSurveyAlready || !this._connectionStorage.hasSavedConnections()) {
+      return;
+    }
         const action = 'Share your thoughts';
         const text = 'How can we make the MongoDB extension better for you?';
         const link = 'https://forms.gle/9viN9wcbsC3zvHyg7';
