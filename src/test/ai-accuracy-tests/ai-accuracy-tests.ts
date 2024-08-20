@@ -339,7 +339,6 @@ describe('AI Accuracy Tests', function () {
               : 0,
         });
 
-        // Assert that the average accuracy for this input is above the threshold
         expect(averageAccuracy).to.be.at.least(
           accuracyThreshold,
           `Average accuracy (${averageAccuracy}) for input "${testCase.userInput}" is below the threshold (${accuracyThreshold})`

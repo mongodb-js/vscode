@@ -27,7 +27,6 @@ function getTestResultsTable(testResults: TestResult[]) {
     .map((key) => `<th>${key}</th>`)
     .join('');
 
-  // Generate the rows dynamically
   const resultRows = testResults
     .map((result) => {
       const row = Object.values(result)
