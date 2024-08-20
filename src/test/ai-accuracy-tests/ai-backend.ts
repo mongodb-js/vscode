@@ -3,7 +3,7 @@ import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/compl
 import Anthropic from '@anthropic-ai/sdk';
 import type { TextBlock } from '@anthropic-ai/sdk/resources';
 
-import { CHAT_PARTICIPANT_MODEL } from '../../participant/participant';
+import { CHAT_PARTICIPANT_MODEL } from '../../participant/constants';
 
 let anthropic: Anthropic;
 if (process.env.ANTHROPIC_API_KEY) {

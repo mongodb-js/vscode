@@ -5,48 +5,60 @@ import { MongoCluster } from 'mongodb-runner';
 import path from 'path';
 import util from 'util';
 import os from 'os';
+import * as vscode from 'vscode';
 
 import { loadFixturesToDB } from './fixtures/fixture-loader';
 import type { Fixtures } from './fixtures/fixture-loader';
 import { AIBackend } from './ai-backend';
 import { GenericPrompt } from '../../participant/prompts/generic';
 import { QueryPrompt } from '../../participant/prompts/query';
-import * as vscode from 'vscode';
+import {
+  createTestResultsHTMLPage,
+  type TestOutputs,
+  type TestResult,
+} from './create-test-results-html-page';
+import { NamespacePrompt } from '../../participant/prompts/namespace';
+import { runCodeInMessage } from './assertions';
 
-const numberOfRunsPerTest = 5;
+const numberOfRunsPerTest = 1;
+
+type AssertProps = {
+  responseContent: string;
+  connectionString: string;
+  fixtures: Fixtures;
+};
 
 type TestCase = {
   testCase: string;
-  type: 'generic' | 'query';
+  type: 'generic' | 'query' | 'namespace';
   userInput: string;
   databaseName?: string;
   collectionName?: string;
   accuracyThresholdOverride?: number;
-  assertResult: (responseContent: string) => Promise<void> | void;
+  assertResult: (props: AssertProps) => Promise<void> | void;
   only?: boolean; // Translates to mocha's it.only so only this test will run.
 };
 
 const testCases: TestCase[] = [
   {
-    testCase: 'Basic generic question',
-    type: 'generic',
-    userInput: 'What is MongoDB?',
-    assertResult: (response: string) => {
-      expect(response).to.have.length.greaterThan(5);
-    },
-  },
-  {
     testCase: 'Basic query',
     type: 'query',
-    userInput: 'Example input 2',
-    assertResult: () => {},
-    only: true,
-  },
-  {
-    testCase: 'Date query',
-    type: 'query',
-    userInput: 'Example input 3',
-    assertResult: () => {},
+    databaseName: 'UFO',
+    collectionName: 'sightings',
+    userInput: 'How many documents are in the collection?',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps) => {
+      const result = await runCodeInMessage(responseContent, connectionString);
+
+      const totalResponse = `${result.printOutput.join('')}${
+        result.data?.result?.content
+      }`;
+
+      const number = totalResponse.match(/\d+/);
+      expect(number?.[0]).to.equal('5');
+    },
   },
 ];
 
@@ -61,18 +73,6 @@ const DEFAULT_ATTEMPTS_PER_TEST = 2;
 const ATTEMPTS_PER_TEST = process.env.AI_TESTS_ATTEMPTS_PER_TEST
   ? +process.env.AI_TESTS_ATTEMPTS_PER_TEST
   : DEFAULT_ATTEMPTS_PER_TEST;
-
-type TestResult = {
-  Test: string;
-  Type: string;
-  'User Input': string;
-  Namespace: string;
-  Accuracy: number;
-  Pass: '✗' | '✓';
-  'Avg Execution Time (ms)': number;
-  'Avg Prompt Tokens': number;
-  'Avg Completion Tokens': number;
-};
 
 /**
  * Insert the generative ai results to a db
@@ -124,6 +124,33 @@ async function pushResultsToDB({
   }
 }
 
+const buildMessages = (testCase: TestCase) => {
+  switch (testCase.type) {
+    case 'generic':
+      return GenericPrompt.buildMessages({
+        request: { prompt: testCase.userInput },
+        context: { history: [] },
+      });
+
+    case 'query':
+      return QueryPrompt.buildMessages({
+        request: { prompt: testCase.userInput },
+        context: { history: [] },
+        databaseName: testCase.databaseName,
+        collectionName: testCase.collectionName,
+      });
+
+    case 'namespace':
+      return NamespacePrompt.buildMessages({
+        request: { prompt: testCase.userInput },
+        context: { history: [] },
+      });
+
+    default:
+      throw new Error(`Unknown test case type: ${testCase.type}`);
+  }
+};
+
 async function runTest({
   testCase,
   aiBackend,
@@ -131,31 +158,9 @@ async function runTest({
   testCase: TestCase;
   aiBackend: AIBackend;
 }) {
-  await new Promise((resolve) => setTimeout(resolve, 5));
-
-  console.log('run test for test case', testCase.testCase);
-  // testCase
-
+  const messages = buildMessages(testCase);
   const chatCompletion = await aiBackend.runAIChatCompletionGeneration({
-    messages: [
-      ...(testCase.type === 'generic'
-        ? GenericPrompt.buildMessages({
-            request: {
-              prompt: testCase.userInput,
-            },
-            context: {
-              history: [],
-            },
-          })
-        : QueryPrompt.buildMessages({
-            request: {
-              prompt: testCase.userInput,
-            },
-            context: {
-              history: [],
-            },
-          })),
-    ].map((message) => ({
+    messages: messages.map((message) => ({
       ...message,
       role:
         message.role === vscode.LanguageModelChatMessageRole.User
@@ -164,7 +169,6 @@ async function runTest({
     })),
   });
 
-  // return 'did run the test';
   return chatCompletion;
 }
 
@@ -175,8 +179,12 @@ describe('AI Accuracy Tests', function () {
   let anyFailedAccuracyThreshold = false;
   let startTime;
   let aiBackend;
+  let connectionString: string;
 
   const results: TestResult[] = [];
+  const testOutputs: TestOutputs = {};
+
+  this.timeout(60_000 /* 1 min */);
 
   before(async function () {
     console.log('Starting setup for AI accuracy tests...');
@@ -187,6 +195,8 @@ describe('AI Accuracy Tests', function () {
       tmpDir: os.tmpdir(),
       topology: 'standalone',
     });
+    console.log('Started a test cluster:', cluster.connectionString);
+    connectionString = cluster.connectionString;
 
     mongoClient = new MongoClient(cluster.connectionString);
 
@@ -196,7 +206,7 @@ describe('AI Accuracy Tests', function () {
 
     aiBackend = new AIBackend('openai');
 
-    console.log(`Setup complete in ${Date.now() - startupStartTime}`);
+    console.log(`Test setup complete in ${Date.now() - startupStartTime}ms.`);
     console.log('Starting AI accuracy tests...');
     startTime = Date.now();
   });
@@ -207,12 +217,12 @@ describe('AI Accuracy Tests', function () {
 
     console.table(results, [
       'Type',
-      'User Input',
+      'Test',
       'Namespace',
       'Accuracy',
-      'Time Elapsed (MS)',
-      'Prompt Tokens',
-      'Completion Tokens',
+      'Avg Execution Time (ms)',
+      'Avg Prompt Tokens',
+      'Avg Completion Tokens',
       'Pass',
     ]);
 
@@ -227,22 +237,35 @@ describe('AI Accuracy Tests', function () {
 
     await mongoClient?.close();
     await cluster?.close();
+
+    const htmlPageLocation = await createTestResultsHTMLPage({
+      testResults: results,
+      testOutputs,
+    });
+    console.log('View prompts and responses here:');
+    console.log(htmlPageLocation);
   });
 
   for (const testCase of testCases) {
     const testFunction = testCase.only ? it.only : it;
-    const accuracyThreshold = testCase.accuracyThresholdOverride ?? 0.8;
 
     testFunction(
       `should pass for input: "${testCase.userInput}" if average accuracy is above threshold`,
       // eslint-disable-next-line no-loop-func
       async function () {
+        console.log(`Starting test run of ${testCase.testCase}.`);
+
         const testRunDidSucceed: boolean[] = [];
         const successFullRunStats: {
           promptTokens: number;
           completionTokens: number;
           executionTimeMS: number;
         }[] = [];
+        const accuracyThreshold = testCase.accuracyThresholdOverride ?? 0.8;
+        testOutputs[testCase.testCase] = {
+          prompt: testCase.userInput,
+          outputs: [],
+        };
 
         for (let i = 0; i < numberOfRunsPerTest; i++) {
           let success = false;
@@ -252,7 +275,14 @@ describe('AI Accuracy Tests', function () {
               testCase,
               aiBackend,
             });
-            await testCase.assertResult(responseContent.content);
+            testOutputs[testCase.testCase].outputs.push(
+              responseContent.content
+            );
+            await testCase.assertResult({
+              responseContent: responseContent.content,
+              connectionString,
+              fixtures,
+            });
 
             successFullRunStats.push({
               completionTokens: responseContent.usageStats.completionTokens,
@@ -260,9 +290,14 @@ describe('AI Accuracy Tests', function () {
               executionTimeMS: Date.now() - startTime,
             });
             success = true;
+
+            console.log(
+              `Test run of ${testCase.testCase}. Run ${i} of ${numberOfRunsPerTest} succeeded`
+            );
           } catch (err) {
             console.log(
-              `Test run of ${testCase.testCase}. ${i} of ${numberOfRunsPerTest} failed with error: `
+              `Test run of ${testCase.testCase}. Run ${i} of ${numberOfRunsPerTest} failed with error:`,
+              err
             );
           }
 

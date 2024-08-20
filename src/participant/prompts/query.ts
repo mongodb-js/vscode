@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { getHistoryMessages } from './history';
 
 export class QueryPrompt {
-  static getSystemPrompt({
+  static getAssistantPrompt({
     databaseName = 'mongodbVSCodeCopilotDB',
     collectionName = 'test',
   }: {
@@ -45,19 +45,15 @@ use('');
 MongoDB command to specify collection:
 db.getCollection('')
 
-Explain the code snippet you have generated.`;
+Concisely explain the code snippet you have generated.`;
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);
   }
 
-  static getUserPrompt(
-    // vscode.ChatRequest
-    // prompt: string;
-    request: vscode.ChatRequest
-  ): vscode.LanguageModelChatMessage {
+  static getUserPrompt(prompt: string): vscode.LanguageModelChatMessage {
     // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(request.prompt);
+    return vscode.LanguageModelChatMessage.User(prompt);
   }
 
   static buildMessages({
@@ -66,19 +62,17 @@ Explain the code snippet you have generated.`;
     databaseName,
     collectionName,
   }: {
-    // request: {
-    //     // vscode.ChatRequest
-    //     prompt: string;
-    //   };
-    request: vscode.ChatRequest;
+    request: {
+      prompt: string;
+    };
     context: vscode.ChatContext;
     databaseName?: string;
     collectionName?: string;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
-      QueryPrompt.getSystemPrompt({ databaseName, collectionName }),
+      QueryPrompt.getAssistantPrompt({ databaseName, collectionName }),
       ...getHistoryMessages({ context }),
-      QueryPrompt.getUserPrompt(request),
+      QueryPrompt.getUserPrompt(request.prompt),
     ];
 
     return messages;

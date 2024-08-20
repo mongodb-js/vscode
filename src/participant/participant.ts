@@ -8,7 +8,7 @@ import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
 import { GenericPrompt } from './prompts/generic';
-import { CHAT_PARTICIPANT_ID } from './constants';
+import { CHAT_PARTICIPANT_ID, CHAT_PARTICIPANT_MODEL } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { NamespacePrompt } from './prompts/namespace';
 
@@ -28,8 +28,6 @@ interface ChatResult extends vscode.ChatResult {
   };
 }
 
-export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
-
 const DB_NAME_ID = 'DATABASE_NAME';
 const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n`;
 
@@ -48,13 +46,11 @@ function parseForDatabaseAndCollectionName(text: string): {
 
 export function getRunnableContentFromString(text: string) {
   const matchedJSresponseContent = text.match(/```javascript((.|\n)*)```/);
-  log.info('matchedJSresponseContent', matchedJSresponseContent);
 
   const responseContent =
     matchedJSresponseContent && matchedJSresponseContent.length > 1
       ? matchedJSresponseContent[1]
       : '';
-  log.info('responseContent', responseContent);
   return responseContent;
 }
 

@@ -26,7 +26,7 @@ const getContent = ({ type, printable }: EvaluationResult) => {
     : getEJSON(printable);
 };
 
-const getLanguage = (evaluationResult: EvaluationResult) => {
+export const getLanguage = (evaluationResult: EvaluationResult) => {
   const content = getContent(evaluationResult);
 
   if (typeof content === 'object' && content !== null) {
@@ -40,14 +40,27 @@ type ExecuteCodeOptions = {
   codeToEvaluate: string;
   connectionString: string;
   connectionOptions: MongoClientOptions;
+  onPrint?: (values: EvaluationResult[]) => void;
   filePath?: string;
 };
+
+function handleEvalPrint(values: EvaluationResult[]) {
+  parentPort?.postMessage({
+    name: ServerCommands.SHOW_CONSOLE_OUTPUT,
+    payload: values.map((v) => {
+      return typeof v.printable === 'string'
+        ? v.printable
+        : util.inspect(v.printable);
+    }),
+  });
+}
 
 /**
  * Execute code from a playground.
  */
-const execute = async ({
+export const execute = async ({
   codeToEvaluate,
+  onPrint = handleEvalPrint,
   connectionString,
   connectionOptions,
   filePath,
@@ -66,16 +79,7 @@ const execute = async ({
 
     // Collect console.log() output.
     runtime.setEvaluationListener({
-      onPrint(values: EvaluationResult[]) {
-        parentPort?.postMessage({
-          name: ServerCommands.SHOW_CONSOLE_OUTPUT,
-          payload: values.map((v) => {
-            return typeof v.printable === 'string'
-              ? v.printable
-              : util.inspect(v.printable);
-          }),
-        });
-      },
+      onPrint,
     });
 
     // In order to support local require directly from the file where code lives, we can not wrap the

@@ -62,16 +62,16 @@ export async function loadFixturesToDB({
 }: {
   mongoClient: MongoClient;
 }): Promise<Fixtures> {
-  const fixtureFiles = (
-    await fs.readdir(path.join(__dirname, 'fixtures'), 'utf-8')
-  ).filter((f) => f.endsWith('.json'));
+  const fixtureFiles = (await fs.readdir(__dirname, 'utf-8')).filter((f) =>
+    f.endsWith('.json')
+  );
 
   const fixtures: Fixtures = {};
 
   // Load the static json fixtures.
   for (const fixture of fixtureFiles) {
     const fileContent = await fs.readFile(
-      path.join(__dirname, 'fixtures', fixture),
+      path.join(__dirname, fixture),
       'utf-8'
     );
 
