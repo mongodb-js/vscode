@@ -22,7 +22,7 @@ import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { ExtensionContextStub } from '../stubs';
-import { ParticipantController } from '../../../participant/participant';
+import ParticipantController from '../../../participant/participant';
 
 const expect = chai.expect;
 
