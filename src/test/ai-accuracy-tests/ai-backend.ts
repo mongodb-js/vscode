@@ -6,12 +6,6 @@ import type { TextBlock } from '@anthropic-ai/sdk/resources';
 import { CHAT_PARTICIPANT_MODEL } from '../../participant/constants';
 
 let anthropic: Anthropic;
-if (process.env.ANTHROPIC_API_KEY) {
-  anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
-}
-
 function getAnthropicClient() {
   if (!anthropic) {
     anthropic = new Anthropic({
@@ -23,12 +17,6 @@ function getAnthropicClient() {
 }
 
 let openai: OpenAI;
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
-
 function getOpenAIClient() {
   if (!openai) {
     openai = new OpenAI({
