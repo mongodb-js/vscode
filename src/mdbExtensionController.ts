@@ -839,7 +839,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             title: action,
           }
         );
-        if (result && result.title === action) {
+        if (result?.title === action) {
           void vscode.env.openExternal(vscode.Uri.parse(link));
         }
 
