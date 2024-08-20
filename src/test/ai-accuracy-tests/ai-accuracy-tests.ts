@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { expect } from 'chai';
 import { MongoClient } from 'mongodb';
 import { execFile as callbackExecFile } from 'child_process';
