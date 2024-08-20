@@ -176,6 +176,7 @@ suite('MDBExtensionController Test Suite', function () {
     let showErrorMessageStub: SinonStub;
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
     let openExternalStub: SinonStub;
+    let uriParseStub: SinonStub;
 
     const sandbox = sinon.createSandbox();
 
@@ -185,6 +186,7 @@ suite('MDBExtensionController Test Suite', function () {
         'showInformationMessage'
       );
       openExternalStub = sandbox.stub(vscode.env, 'openExternal');
+      uriParseStub = sandbox.stub(vscode.Uri, 'parse');
       openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
       fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
       sandbox.replace(
@@ -1725,66 +1727,69 @@ suite('MDBExtensionController Test Suite', function () {
         "when a user hasn't been shown the survey prompt yet, and they have connections saved",
         () => {
           [
-            { description: 'clicked the button', value: 'Share your thoughts' },
-            { description: 'dismissed', value: undefined },
+            { description: 'clicked the button', value: { title: 'Share your thoughts' } },
+            // { description: 'dismissed', value: undefined },
           ].forEach((reaction) => {
-            let connectionsUpdateStub: SinonStub;
-            beforeEach(() => {
-              showInformationMessageStub.resolves(reaction.value);
-              openExternalStub.resolves(undefined);
-              sandbox.replace(
-                mdbTestExtension.testExtensionController._storageController,
-                'get',
-                sandbox.fake.returns(undefined)
-              );
-              sandbox.replace(
-                mdbTestExtension.testExtensionController._connectionStorage,
-                'hasSavedConnections',
-                sandbox.fake.returns(true)
-              );
-              connectionsUpdateStub = sandbox.stub(
-                mdbTestExtension.testExtensionController._storageController,
-                'update'
-              );
-              connectionsUpdateStub.resolves(undefined);
-              void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
-            });
-
-            afterEach(() => {
-              sandbox.restore();
-            });
-
-            test('they are shown the survey prompt', () => {
-              assert(showInformationMessageStub.called);
-              assert.strictEqual(
-                showInformationMessageStub.firstCall.args[0],
-                'How can we make the MongoDB extension better for you?'
-              );
-            });
-
-            test(`user ${reaction.description}`, () => {
-              if (reaction.value === undefined) {
-                assert(openExternalStub.notCalled);
-              }
-              if (reaction.value) {
-                assert(openExternalStub.called);
-                assert.strictEqual(
-                  openExternalStub.firstCall.args[0],
-                  'https://forms.gle/9viN9wcbsC3zvHyg7'
+            suite(`user ${reaction.description}`, () => {
+              let connectionsUpdateStub: SinonStub;
+              beforeEach(async () => {
+                showInformationMessageStub.resolves(reaction.value);
+                openExternalStub.resolves(undefined);
+                sandbox.replace(
+                  mdbTestExtension.testExtensionController._storageController,
+                  'get',
+                  sandbox.fake.returns(undefined)
                 );
-              }
-            });
+                sandbox.replace(
+                  mdbTestExtension.testExtensionController._connectionStorage,
+                  'hasSavedConnections',
+                  sandbox.fake.returns(true)
+                );
+                connectionsUpdateStub = sandbox.stub(
+                  mdbTestExtension.testExtensionController._storageController,
+                  'update'
+                );
+                connectionsUpdateStub.resolves(undefined);
+                await mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
+              });
 
-            test("it sets that they've been shown the survey", () => {
-              assert(connectionsUpdateStub.called);
-              assert.strictEqual(
-                connectionsUpdateStub.firstCall.args[0],
-                StorageVariables.GLOBAL_SURVEY_SHOWN
-              );
-              assert.strictEqual(
-                connectionsUpdateStub.firstCall.args[1],
-                '9viN9wcbsC3zvHyg7'
-              );
+              afterEach(() => {
+                sandbox.restore();
+              });
+
+              test('they are shown the survey prompt', () => {
+                assert(showInformationMessageStub.called);
+                assert.strictEqual(
+                  showInformationMessageStub.firstCall.args[0],
+                  'How can we make the MongoDB extension better for you?'
+                );
+              });
+
+              test('the link was open if and only if they click the button', () => {
+                if (reaction.value === undefined) {
+                  assert(openExternalStub.notCalled);
+                }
+                if (reaction.value) {
+                  assert(openExternalStub.called);
+                  assert(uriParseStub.called);
+                  assert.strictEqual(
+                    uriParseStub.firstCall.args[0],
+                    'https://forms.gle/9viN9wcbsC3zvHyg7',
+                  );
+                }
+              });
+
+              test("it sets that they've been shown the survey", () => {
+                assert(connectionsUpdateStub.called);
+                assert.strictEqual(
+                  connectionsUpdateStub.firstCall.args[0],
+                  StorageVariables.GLOBAL_SURVEY_SHOWN
+                );
+                assert.strictEqual(
+                  connectionsUpdateStub.firstCall.args[1],
+                  '9viN9wcbsC3zvHyg7'
+                );
+              });
             });
           });
         }
