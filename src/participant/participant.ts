@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import type { DataService } from 'mongodb-data-service';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -97,27 +96,41 @@ export default class ParticipantController {
     return this._participant || this.createParticipant(context);
   }
 
-  handleEmptyQueryRequest(stream: vscode.ChatResponseStream): undefined {
-    let message;
+  async handleEmptyQueryRequest(): Promise<(string | vscode.MarkdownString)[]> {
+    const messages: (string | vscode.MarkdownString)[] = [];
     switch (this._queryGenerationState) {
       case QUERY_GENERATION_STATE.ASK_TO_CONNECT:
-        message =
-          'Please select a cluster to connect by clicking on an item in the connections list.';
+        messages.push(
+          vscode.l10n.t(
+            'Please select a cluster to connect by clicking on an item in the connections list.'
+          )
+        );
+        messages.push(...this.getConnectionsTree());
         break;
       case QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME:
-        message =
-          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.';
+        messages.push(
+          vscode.l10n.t(
+            'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
+          )
+        );
+        messages.push(...(await this.getDatabasesTree()));
         break;
       case QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME:
-        message =
-          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.';
+        messages.push(
+          vscode.l10n.t(
+            'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+          )
+        );
+        messages.push(...(await this.getCollectionTree()));
         break;
       default:
-        message =
-          'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".';
+        messages.push(
+          vscode.l10n.t(
+            'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
+          )
+        );
     }
-    stream.markdown(vscode.l10n.t(`${message}\n\n`));
-    return;
+    return messages;
   }
 
   handleError(err: any, stream: vscode.ChatResponseStream): void {
@@ -212,7 +225,7 @@ export default class ParticipantController {
     return { metadata: {} };
   }
 
-  async connectWithParticipant(id: string): Promise<boolean> {
+  async connectWithParticipant(id?: string): Promise<boolean> {
     if (!id) {
       await this._connectionController.connectWithURI();
     } else {
@@ -287,9 +300,13 @@ export default class ParticipantController {
   }
 
   // TODO (VSCODE-589): Display only 10 items in clickable lists with the show more option.
-  async getDatabasesTree(
-    dataService: DataService
-  ): Promise<vscode.MarkdownString[]> {
+  async getDatabasesTree(): Promise<vscode.MarkdownString[]> {
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+      return [];
+    }
+
     try {
       const databases = await dataService.listDatabases({
         nameOnly: true,
@@ -308,10 +325,14 @@ export default class ParticipantController {
   }
 
   // TODO (VSCODE-589): Display only 10 items in clickable lists with the show more option.
-  async getCollectionTree(
-    dataService: DataService
-  ): Promise<vscode.MarkdownString[]> {
+  async getCollectionTree(): Promise<vscode.MarkdownString[]> {
     if (!this._databaseName) {
+      return [];
+    }
+
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
       return [];
     }
 
@@ -437,7 +458,7 @@ export default class ParticipantController {
     // we retrieve the available namespaces from the current connection.
     // Users can then select a value by clicking on an item in the list.
     if (!this._databaseName) {
-      const tree = await this.getDatabasesTree(dataService);
+      const tree = await this.getDatabasesTree();
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
       );
@@ -446,7 +467,7 @@ export default class ParticipantController {
       }
       this._queryGenerationState = QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
     } else if (!this._collectionName) {
-      const tree = await this.getCollectionTree(dataService);
+      const tree = await this.getCollectionTree();
       stream.markdown(
         'Which collection would you like to query within this database?\n\n'
       );
@@ -550,6 +571,15 @@ export default class ParticipantController {
     ]
   ): Promise<void> {
     const [request, , stream] = args;
+
+    if (!request.prompt || request.prompt.trim().length === 0) {
+      const messages = await this.handleEmptyQueryRequest();
+      for (const msg of messages) {
+        stream.markdown(msg);
+      }
+      return;
+    }
+
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
       StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
     );
@@ -575,6 +605,6 @@ export default class ParticipantController {
       // TODO(VSCODE-571): Implement this.
     }
 
-    await this.handleGenericRequest(...args);
+    this._chatResult = await this.handleGenericRequest(...args);
   }
 }
