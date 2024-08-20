@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 
@@ -17,10 +16,6 @@ import { ExtensionContextStub } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
-
-const expect = chai.expect;
-
-chai.use(chaiAsPromised);
 
 suite('Participant Controller Test Suite', function () {
   const sandbox = sinon.createSandbox();
@@ -142,10 +137,6 @@ suite('Participant Controller Test Suite', function () {
         .returns(false);
     });
 
-    afterEach(function () {
-      sandbox.restore();
-    });
-
     suite('when has not been shown a welcome message yet', function () {
       beforeEach(function () {
         sandbox.replace(
@@ -153,10 +144,6 @@ suite('Participant Controller Test Suite', function () {
           'get',
           sandbox.fake.returns(false)
         );
-      });
-
-      afterEach(function () {
-        sandbox.restore();
       });
 
       test('prints the message to chat', async function () {
@@ -185,10 +172,6 @@ suite('Participant Controller Test Suite', function () {
         );
       });
 
-      afterEach(function () {
-        sandbox.restore();
-      });
-
       suite('known namespace', function () {
         beforeEach(function () {
           sandbox
@@ -200,10 +183,6 @@ suite('Participant Controller Test Suite', function () {
           sandbox
             .stub(testParticipantController, '_shouldAskForNamespace')
             .resolves(false);
-        });
-
-        afterEach(function () {
-          sandbox.restore();
         });
 
         test('generates a query', async function () {
@@ -231,10 +210,6 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('unknown namespace', function () {
-        afterEach(function () {
-          sandbox.restore();
-        });
-
         test('asks for a namespace and generates a query', async function () {
           const chatRequestMock = {
             prompt: 'find all docs by a name example',
