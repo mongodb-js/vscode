@@ -14,7 +14,7 @@ import { NamespacePrompt } from './prompts/namespace';
 
 const log = createLogger('participant');
 
-enum QUERY_GENERATION_STATE {
+export enum QUERY_GENERATION_STATE {
   DEFAULT = 'DEFAULT',
   ASK_TO_CONNECT = 'ASK_TO_CONNECT',
   ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
@@ -34,27 +34,26 @@ const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n`;
 const COL_NAME_ID = 'COLLECTION_NAME';
 const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
 
-function parseForDatabaseAndCollectionName(text: string): {
+export function parseForDatabaseAndCollectionName(text: string): {
   databaseName?: string;
   collectionName?: string;
 } {
-  const databaseName = text.match(DB_NAME_REGEX)?.[1];
-  const collectionName = text.match(COL_NAME_REGEX)?.[1];
-
+  const databaseName = text.match(DB_NAME_REGEX)?.[1].trim();
+  const collectionName = text.match(COL_NAME_REGEX)?.[1].trim();
   return { databaseName, collectionName };
 }
 
 export function getRunnableContentFromString(text: string) {
   const matchedJSresponseContent = text.match(/```javascript((.|\n)*)```/);
 
-  const responseContent =
+  const code =
     matchedJSresponseContent && matchedJSresponseContent.length > 1
       ? matchedJSresponseContent[1]
       : '';
-  return responseContent;
+  return code;
 }
 
-export class ParticipantController {
+export default class ParticipantController {
   _participant?: vscode.ChatParticipant;
   _connectionController: ConnectionController;
   _storageController: StorageController;
@@ -187,7 +186,6 @@ export class ParticipantController {
     token.onCancellationRequested(() => {
       abortController.abort();
     });
-
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,
@@ -335,7 +333,6 @@ export class ParticipantController {
     const isNewChat = !context.history.find(
       (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
     );
-
     if (isNewChat) {
       this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
       this._chatResult = undefined;
@@ -502,7 +499,6 @@ export class ParticipantController {
       stream,
       token
     );
-
     if (shouldAskForNamespace) {
       await this._askForNamespace(request, stream);
       return { metadata: {} };
@@ -519,6 +515,7 @@ export class ParticipantController {
       databaseName: this._databaseName,
       collectionName: this._collectionName,
     });
+
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,

@@ -45,7 +45,7 @@ import {
   isPlayground,
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
-import type { ParticipantController } from '../participant/participant';
+import type ParticipantController from '../participant/participant';
 
 const log = createLogger('playground controller');
 
