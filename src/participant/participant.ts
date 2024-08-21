@@ -271,7 +271,8 @@ export default class ParticipantController {
         commandId: 'mdb.connectWithParticipant',
         name: 'Add new connection',
       }),
-      ...Object.values(this._connectionController._connections)
+      ...this._connectionController
+        .getSavedConnections()
         .sort((connectionA: LoadedConnection, connectionB: LoadedConnection) =>
           (connectionA.name || '').localeCompare(connectionB.name || '')
         )

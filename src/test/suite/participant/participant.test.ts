@@ -16,6 +16,10 @@ import { ExtensionContextStub } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
+import {
+  SecretStorageLocation,
+  StorageLocation,
+} from '../../../storage/storageController';
 
 suite('Participant Controller Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
@@ -138,14 +142,19 @@ suite('Participant Controller Test Suite', function () {
         'get',
         sinon.fake.returns(true)
       );
-      sinon
-        .stub(testParticipantController._connectionController, '_connections')
-        .value([
+      sinon.replace(
+        testParticipantController._connectionController,
+        'getSavedConnections',
+        () => [
           {
             id: '123',
             name: 'localhost',
+            storageLocation: StorageLocation.NONE,
+            secretStorageLocation: SecretStorageLocation.SecretStorage,
+            connectionOptions: { connectionString: 'mongodb://localhost' },
           },
-        ]);
+        ]
+      );
     });
 
     test('asks to connect', async function () {
