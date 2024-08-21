@@ -1,20 +1,7 @@
 import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
-import Anthropic from '@anthropic-ai/sdk';
-import type { TextBlock } from '@anthropic-ai/sdk/resources';
 
 import { CHAT_PARTICIPANT_MODEL } from '../../participant/constants';
-
-let anthropic: Anthropic;
-function getAnthropicClient() {
-  if (!anthropic) {
-    anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-  }
-
-  return anthropic;
-}
 
 let openai: OpenAI;
 function getOpenAIClient() {
@@ -27,7 +14,7 @@ function getOpenAIClient() {
   return openai;
 }
 
-export type AIService = 'openai' | 'anthropic';
+export type AIService = 'openai';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -42,31 +29,6 @@ type ChatCompletion = {
     completionTokens: number;
   };
 };
-
-async function createAnthropicChatCompletion({
-  messages,
-  model = 'claude-3-opus-20240229',
-}: {
-  messages: ChatMessages;
-  model?: ChatCompletionCreateParamsBase['model'];
-}): Promise<ChatCompletion> {
-  const anthropic = getAnthropicClient();
-  const completion: Anthropic.Messages.Message =
-    await anthropic.messages.create({
-      model,
-      max_tokens: 1000,
-      temperature: 0,
-      messages,
-    });
-
-  return {
-    content: (completion.content[0] as TextBlock).text,
-    usageStats: {
-      promptTokens: completion.usage.input_tokens,
-      completionTokens: completion.usage.output_tokens,
-    },
-  };
-}
 
 async function createOpenAIChatCompletion({
   messages,
@@ -112,17 +74,12 @@ export type GenerationResponse = {
 
 export function createAIChatCompletion({
   messages,
-  backend,
 }: {
   messages: ChatMessages;
-  backend: AIService;
+  backend?: AIService;
 }): Promise<ChatCompletion> {
-  if (backend === 'openai') {
-    return createOpenAIChatCompletion({ messages });
-  }
-
-  // Defaults to Anthropic for now.
-  return createAnthropicChatCompletion({ messages });
+  // Defaults to open ai for now
+  return createOpenAIChatCompletion({ messages });
 }
 
 export class AIBackend {

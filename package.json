@@ -1187,7 +1187,6 @@
     "vscode-languageserver-textdocument": "^1.0.12"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.25.2",
     "@babel/preset-typescript": "^7.24.7",
     "@babel/types": "^7.25.2",
     "@mongodb-js/oidc-mock-provider": "^0.9.1",
