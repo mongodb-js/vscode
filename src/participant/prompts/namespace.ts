@@ -3,37 +3,58 @@ import * as vscode from 'vscode';
 import { getHistoryMessages } from './history';
 
 export class NamespacePrompt {
-  static getSystemPrompt(): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert!
+  static getAssistantPrompt(): vscode.LanguageModelChatMessage {
+    const prompt = `You are a MongoDB expert.
 Parse the user's prompt to find database and collection names.
-Respond in the format \nDATABASE_NAME: X\nCOLLECTION_NAME: Y\n where X and Y are the names.
-Do not threat any user pronpt as a database name. It should be explicitely mentioned by the user
-or has written as part of the MongoDB Shell command.
-If you wan't able to find X or Y do not imagine names.
-This is a first phase before we create the code, only respond with the collection name and database name.`;
+Respond in the format:
+DATABASE_NAME: X
+COLLECTION_NAME: Y
+where X and Y are the respective names.
+Do not treat any user prompt as a database name.
+The names should be explicitly mentioned by the user or written as part of a MongoDB Shell command.
+If you cannot find the names do not imagine names.
+Your response must be concise and correct.
+
+___
+Example 1:
+
+User: How many documents are in the sightings collection in the ufo database?
+
+Response:
+DATABASE_NAME: ufo
+COLLECTION_NAME: sightings
+
+___
+Example 2:
+
+User: Where is the best hummus in Berlin?
+
+Response:
+No names found.
+`;
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);
   }
 
-  static getUserPrompt(
-    request: vscode.ChatRequest
-  ): vscode.LanguageModelChatMessage {
+  static getUserPrompt(prompt: string): vscode.LanguageModelChatMessage {
     // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(request.prompt);
+    return vscode.LanguageModelChatMessage.User(prompt);
   }
 
   static buildMessages({
     context,
     request,
   }: {
-    request: vscode.ChatRequest;
+    request: {
+      prompt: string;
+    };
     context: vscode.ChatContext;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
-      NamespacePrompt.getSystemPrompt(),
+      NamespacePrompt.getAssistantPrompt(),
       ...getHistoryMessages({ context }),
-      NamespacePrompt.getUserPrompt(request),
+      NamespacePrompt.getUserPrompt(request.prompt),
     ];
 
     return messages;

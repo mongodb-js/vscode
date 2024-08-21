@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { getHistoryMessages } from './history';
 
 export class QueryPrompt {
-  static getSystemPrompt({
+  static getAssistantPrompt({
     databaseName = 'mongodbVSCodeCopilotDB',
     collectionName = 'test',
   }: {
@@ -15,9 +15,9 @@ export class QueryPrompt {
 Your task is to help the user craft MongoDB queries and aggregation pipelines that perform their task.
 Keep your response concise.
 You should suggest queries that are performant and correct.
-Respond with markdown, suggest code in a Markdown code block that begins with \'\'\'javascript and ends with \`\`\`.
+Respond with markdown, suggest code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
 You can imagine the schema.
-Respond in MongoDB shell syntax using the \'\'\'javascript code block syntax.
+Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.
 You can use only the following MongoDB Shell commands: use, aggregate, bulkWrite, countDocuments, findOneAndReplace,
 findOneAndUpdate, insert, insertMany, insertOne, remove, replaceOne, update, updateMany, updateOne.
 
@@ -45,17 +45,15 @@ use('');
 MongoDB command to specify collection:
 db.getCollection('')
 
-Explain the code snippet you have generated.`;
+Concisely explain the code snippet you have generated.`;
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);
   }
 
-  static getUserPrompt(
-    request: vscode.ChatRequest
-  ): vscode.LanguageModelChatMessage {
+  static getUserPrompt(prompt: string): vscode.LanguageModelChatMessage {
     // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(request.prompt);
+    return vscode.LanguageModelChatMessage.User(prompt);
   }
 
   static buildMessages({
@@ -64,15 +62,17 @@ Explain the code snippet you have generated.`;
     databaseName,
     collectionName,
   }: {
-    request: vscode.ChatRequest;
+    request: {
+      prompt: string;
+    };
     context: vscode.ChatContext;
     databaseName?: string;
     collectionName?: string;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
-      QueryPrompt.getSystemPrompt({ databaseName, collectionName }),
+      QueryPrompt.getAssistantPrompt({ databaseName, collectionName }),
       ...getHistoryMessages({ context }),
-      QueryPrompt.getUserPrompt(request),
+      QueryPrompt.getUserPrompt(request.prompt),
     ];
 
     return messages;
