@@ -27,6 +27,11 @@ interface ChatResult extends vscode.ChatResult {
   };
 }
 
+interface NamespaceQuickPicks {
+  label: string;
+  data: string;
+}
+
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 
 const DB_NAME_ID = 'DATABASE_NAME';
@@ -34,6 +39,8 @@ const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n`;
 
 const COL_NAME_ID = 'COLLECTION_NAME';
 const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
+
+const MAX_MARKDOWN_LIST_LENGTH = 10;
 
 export function parseForDatabaseAndCollectionName(text: string): {
   databaseName?: string;
@@ -227,7 +234,7 @@ export default class ParticipantController {
 
   async connectWithParticipant(id?: string): Promise<boolean> {
     if (!id) {
-      await this._connectionController.connectWithURI();
+      await this._connectionController.changeActiveConnection();
     } else {
       await this._connectionController.connectWithConnectionId(id);
     }
@@ -260,22 +267,16 @@ export default class ParticipantController {
     return connName;
   }
 
-  // TODO (VSCODE-589): Evaluate the usability of displaying all existing connections in the list.
-  // Consider introducing a "recent connections" feature to display only a limited number of recent connections,
-  // with a "Show more" link that opens the Command Palette for access to the full list.
-  // If we implement this, the "Add new connection" link may become redundant,
-  // as this option is already available in the Command Palette dropdown.
   getConnectionsTree(): vscode.MarkdownString[] {
     return [
-      this._createMarkdownLink({
-        commandId: 'mdb.connectWithParticipant',
-        name: 'Add new connection',
-      }),
       ...this._connectionController
         .getSavedConnections()
-        .sort((connectionA: LoadedConnection, connectionB: LoadedConnection) =>
-          (connectionA.name || '').localeCompare(connectionB.name || '')
-        )
+        .sort((a, b) => {
+          const aTime = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+          const bTime = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+          return bTime - aTime;
+        })
+        .slice(0, MAX_MARKDOWN_LIST_LENGTH)
         .map((conn: LoadedConnection) =>
           this._createMarkdownLink({
             commandId: 'mdb.connectWithParticipant',
@@ -283,24 +284,96 @@ export default class ParticipantController {
             name: conn.name,
           })
         ),
+      this._createMarkdownLink({
+        commandId: 'mdb.connectWithParticipant',
+        name: 'Show more',
+      }),
     ];
   }
 
-  async selectDatabaseWithParticipant(name: string): Promise<boolean> {
-    this._databaseName = name;
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${name}`,
+  async getDatabaseQuickPicks(): Promise<NamespaceQuickPicks[]> {
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+      return [];
+    }
+
+    try {
+      const databases = await dataService.listDatabases();
+      return databases.map((db) => ({
+        label: db.name,
+        data: db.name,
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async _selectDatabaseWithCommandPalette(): Promise<string | undefined> {
+    const databases = await this.getDatabaseQuickPicks();
+    const selectedQuickPickItem = await vscode.window.showQuickPick(databases, {
+      placeHolder: 'Select a database...',
     });
+    return selectedQuickPickItem?.data;
+  }
+
+  async selectDatabaseWithParticipant(name: string): Promise<boolean> {
+    if (!name) {
+      this._databaseName = await this._selectDatabaseWithCommandPalette();
+    } else {
+      this._databaseName = name;
+    }
+
+    return vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: `@MongoDB /query ${this._databaseName || ''}`,
+    });
+  }
+
+  async getCollectionQuickPicks(): Promise<NamespaceQuickPicks[]> {
+    if (!this._databaseName) {
+      return [];
+    }
+
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+      return [];
+    }
+
+    try {
+      const collections = await dataService.listCollections(this._databaseName);
+      return collections.map((db) => ({
+        label: db.name,
+        data: db.name,
+      }));
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async _selectCollectionWithCommandPalette(): Promise<string | undefined> {
+    const collections = await this.getCollectionQuickPicks();
+    const selectedQuickPickItem = await vscode.window.showQuickPick(
+      collections,
+      {
+        placeHolder: 'Select a collection...',
+      }
+    );
+    return selectedQuickPickItem?.data;
   }
 
   async selectCollectionWithParticipant(name: string): Promise<boolean> {
-    this._collectionName = name;
+    if (!name) {
+      this._collectionName = await this._selectCollectionWithCommandPalette();
+    } else {
+      this._collectionName = name;
+    }
+
     return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${name}`,
+      query: `@MongoDB /query ${this._collectionName || ''}`,
     });
   }
 
-  // TODO (VSCODE-589): Display only 10 items in clickable lists with the show more option.
   async getDatabasesTree(): Promise<vscode.MarkdownString[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
@@ -309,23 +382,30 @@ export default class ParticipantController {
     }
 
     try {
-      const databases = await dataService.listDatabases({
-        nameOnly: true,
-      });
-      return databases.map((db) =>
-        this._createMarkdownLink({
-          commandId: 'mdb.selectDatabaseWithParticipant',
-          query: db.name,
-          name: db.name,
-        })
-      );
+      const databases = await dataService.listDatabases();
+      return [
+        ...databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((db) =>
+          this._createMarkdownLink({
+            commandId: 'mdb.selectDatabaseWithParticipant',
+            query: db.name,
+            name: db.name,
+          })
+        ),
+        ...(databases.length > MAX_MARKDOWN_LIST_LENGTH
+          ? [
+              this._createMarkdownLink({
+                commandId: 'mdb.selectDatabaseWithParticipant',
+                name: 'Show more',
+              }),
+            ]
+          : []),
+      ];
     } catch (error) {
       // Users can always do this manually when asked to provide a database name.
       return [];
     }
   }
 
-  // TODO (VSCODE-589): Display only 10 items in clickable lists with the show more option.
   async getCollectionTree(): Promise<vscode.MarkdownString[]> {
     if (!this._databaseName) {
       return [];
@@ -339,13 +419,23 @@ export default class ParticipantController {
 
     try {
       const collections = await dataService.listCollections(this._databaseName);
-      return collections.map((coll) =>
-        this._createMarkdownLink({
-          commandId: 'mdb.selectCollectionWithParticipant',
-          query: coll.name,
-          name: coll.name,
-        })
-      );
+      return [
+        ...collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((coll) =>
+          this._createMarkdownLink({
+            commandId: 'mdb.selectCollectionWithParticipant',
+            query: coll.name,
+            name: coll.name,
+          })
+        ),
+        ...(collections.length > MAX_MARKDOWN_LIST_LENGTH
+          ? [
+              this._createMarkdownLink({
+                commandId: 'mdb.selectCollectionWithParticipant',
+                name: 'Show more',
+              }),
+            ]
+          : []),
+      ];
     } catch (error) {
       // Users can always do this manually when asked to provide a collection name.
       return [];
