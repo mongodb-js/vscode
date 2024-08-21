@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import type { PlaygroundResult } from '../types/playgroundType';
-import { ExportToLanguages } from '../types/playgroundType';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -50,19 +49,13 @@ export default class PlaygroundResultProvider
       return 'undefined';
     }
 
-    const { type, content, language } = this._playgroundResult;
+    const { type, content } = this._playgroundResult;
 
     if (type === 'undefined') {
       return 'undefined';
     }
 
-    if (
-      type === 'string' ||
-      (language &&
-        Object.values(ExportToLanguages).includes(
-          language as ExportToLanguages
-        ))
-    ) {
+    if (type === 'string') {
       return this._playgroundResult.content;
     }
 

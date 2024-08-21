@@ -16,10 +16,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
 import { ServerCommands } from './serverCommands';
-import type {
-  PlaygroundEvaluateParams,
-  PlaygroundTextAndSelection,
-} from '../types/playgroundType';
+import type { PlaygroundEvaluateParams } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
@@ -181,22 +178,6 @@ connection.onRequest(
   ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
   ({ namespace, schemaFields }) => {
     return mongoDBService.cacheFields(namespace, schemaFields);
-  }
-);
-
-// Identify if the playground selection is an array or object.
-connection.onRequest(
-  ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
-  (params: PlaygroundTextAndSelection) => {
-    return mongoDBService.getExportToLanguageMode(params);
-  }
-);
-
-// Find the current namespace for a playground selection.
-connection.onRequest(
-  ServerCommands.GET_NAMESPACE_FOR_SELECTION,
-  (params: PlaygroundTextAndSelection) => {
-    return mongoDBService.getNamespaceForSelection(params);
   }
 );
 

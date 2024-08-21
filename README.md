@@ -36,21 +36,6 @@ Read more about this functionality in the [online documentation](https://www.mon
 
 _Note: Make sure you are connected to a server or cluster before using a playground. You can't run a playground and you won't get intelligent completions if you are not connected._
 
-#### From Query API to your favorite language
-
-Select queries and aggregations within your Playground files and translate them into your favorite programming language. Supported languages are:
-
- * Java
- * Node.js
- * C#
- * Python 3
- * Ruby
- * Go
- * Rust
- * PHP
-
-![Export to language](resources/screenshots/export-to-language.gif)
-
 ### Document Editing
 
 Editing documents with MongoDB for VS Code is as natural as editing any file in the code editor. Open a document in an editor tab, edit it, and save the changes back to MongoDB.

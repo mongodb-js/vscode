@@ -24,14 +24,11 @@ import translator from '@mongosh/i18n';
 import { isAtlasStream } from 'mongodb-build-info';
 import { Worker as WorkerThreads } from 'worker_threads';
 
-import { ExportToLanguageMode } from '../types/playgroundType';
 import formatError from '../utils/formatError';
 import { ServerCommands } from './serverCommands';
 import type {
   ShellEvaluateResult,
   PlaygroundEvaluateParams,
-  ExportToLanguageNamespace,
-  PlaygroundTextAndSelection,
   MongoClientOptions,
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
@@ -516,49 +513,6 @@ export default class MongoDBService {
       };
     }
     return state;
-  }
-
-  /**
-   * Parse code from a playground to identify
-   * a context in which export to language action is being called.
-   */
-  getExportToLanguageMode(
-    params: PlaygroundTextAndSelection
-  ): ExportToLanguageMode {
-    const state = this._visitor.parseASTForExportToLanguage(params);
-
-    if (state.isArraySelection) {
-      return ExportToLanguageMode.AGGREGATION;
-    }
-
-    if (state.isObjectSelection) {
-      return ExportToLanguageMode.QUERY;
-    }
-
-    return ExportToLanguageMode.OTHER;
-  }
-
-  /**
-   * Parse code from a playground to identify
-   * a namespace for the export to language action.
-   */
-  getNamespaceForSelection(
-    params: PlaygroundTextAndSelection
-  ): ExportToLanguageNamespace {
-    try {
-      const state = this.withDefaultDatabase(
-        this._visitor.parseASTForNamespace(params)
-      );
-      return {
-        databaseName: state.databaseName,
-        collectionName: state.collectionName,
-      };
-    } catch (error) {
-      this._connection.console.error(
-        `VISITOR namespace for selection error: ${util.inspect(error)}`
-      );
-      return { databaseName: null, collectionName: null };
-    }
   }
 
   _getAggregationDocumentation({

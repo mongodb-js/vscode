@@ -18,9 +18,6 @@ import { createLogger } from '../logging';
 import type {
   PlaygroundEvaluateParams,
   ShellEvaluateResult,
-  ExportToLanguageMode,
-  ExportToLanguageNamespace,
-  PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 import { ServerCommands } from './serverCommands';
@@ -218,24 +215,6 @@ export default class LanguageServerController {
     });
 
     return res;
-  }
-
-  async getExportToLanguageMode(
-    params: PlaygroundTextAndSelection
-  ): Promise<ExportToLanguageMode> {
-    return this._client.sendRequest(
-      ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
-      params
-    );
-  }
-
-  async getNamespaceForSelection(
-    params: PlaygroundTextAndSelection
-  ): Promise<ExportToLanguageNamespace> {
-    return this._client.sendRequest(
-      ServerCommands.GET_NAMESPACE_FOR_SELECTION,
-      params
-    );
   }
 
   async activeConnectionChanged({

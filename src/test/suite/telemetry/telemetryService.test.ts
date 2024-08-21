@@ -73,28 +73,11 @@ suite('Telemetry Controller Test Suite', () => {
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
-        ._languageServerController,
-      'getNamespaceForSelection',
-      sandbox.fake.resolves({
-        collectionName: 'coll',
-        databaseName: 'db',
-      })
-    );
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getMongoClientConnectionOptions',
       sandbox.fake.returns('mongodb://localhost')
     );
     sandbox.stub(vscode.window, 'showErrorMessage');
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
-      'getTranspiledContent',
-      sandbox.fake.resolves({
-        namespace: 'db.coll',
-        expressio: '{}',
-      })
-    );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.replace(
       testTelemetryService,
@@ -314,56 +297,6 @@ suite('Telemetry Controller Test Suite', () => {
         properties: {
           screen: 'helpPanel',
           link_id: 'linkId',
-          extension_version: version,
-        },
-      })
-    );
-  });
-
-  test('track query exported to language', function () {
-    testTelemetryService.trackQueryExported({
-      language: 'python',
-      with_import_statements: false,
-      with_builders: false,
-      with_driver_syntax: false,
-    });
-
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Query Exported',
-        properties: {
-          language: 'python',
-          with_import_statements: false,
-          with_builders: false,
-          with_driver_syntax: false,
-          extension_version: version,
-        },
-      })
-    );
-  });
-
-  test('track aggregation exported to language', () => {
-    testTelemetryService.trackAggregationExported({
-      language: 'java',
-      num_stages: 1,
-      with_import_statements: false,
-      with_builders: false,
-      with_driver_syntax: false,
-    });
-
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Aggregation Exported',
-        properties: {
-          language: 'java',
-          num_stages: 1,
-          with_import_statements: false,
-          with_builders: false,
-          with_driver_syntax: false,
           extension_version: version,
         },
       })

@@ -3,7 +3,6 @@ import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './playgroundDiagnosticsCodeActionProvider';
 import type ConnectionController from '../connectionController';
@@ -99,7 +98,6 @@ export default class EditorsController {
   _telemetryService: TelemetryService;
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
 
@@ -111,7 +109,6 @@ export default class EditorsController {
     telemetryService,
     playgroundResultViewProvider,
     activeConnectionCodeLensProvider,
-    exportToLanguageCodeLensProvider,
     playgroundSelectedCodeActionProvider,
     playgroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider,
@@ -123,7 +120,6 @@ export default class EditorsController {
     telemetryService: TelemetryService;
     playgroundResultViewProvider: PlaygroundResultProvider;
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
     playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
@@ -151,7 +147,6 @@ export default class EditorsController {
     });
     this._playgroundResultViewProvider = playgroundResultViewProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
-    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._collectionDocumentsCodeLensProvider =
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore
@@ -416,14 +411,6 @@ export default class EditorsController {
       vscode.languages.registerCodeLensProvider(
         { language: 'javascript' },
         this._activeConnectionCodeLensProvider
-      )
-    );
-    this._context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(
-        {
-          scheme: PLAYGROUND_RESULT_SCHEME,
-        },
-        this._exportToLanguageCodeLensProvider
       )
     );
     this._context.subscriptions.push(

@@ -11,11 +11,7 @@ import type { Document, Filter, FindOptions } from 'mongodb';
 
 import type { StorageController } from '../../storage';
 
-import type {
-  ShellEvaluateResult,
-  ExportToLanguageNamespace,
-} from '../../types/playgroundType';
-import { ExportToLanguageMode } from '../../types/playgroundType';
+import type { ShellEvaluateResult } from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
 class ExtensionContextStub implements vscode.ExtensionContext {
@@ -351,14 +347,6 @@ class LanguageServerControllerStub {
         language: 'plaintext',
       },
     });
-  }
-
-  getExportToLanguageMode(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageMode> {
-    return Promise.resolve(ExportToLanguageMode.OTHER);
-  }
-
-  getNamespaceForSelection(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageNamespace> {
-    return Promise.resolve({ databaseName: null, collectionName: null });
   }
 
   activeConnectionChanged(/* params: {

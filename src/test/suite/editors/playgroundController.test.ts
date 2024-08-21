@@ -12,8 +12,6 @@ import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensP
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
-import { ExportToLanguageMode } from '../../../types/playgroundType';
 import type { LanguageServerController } from '../../../language';
 import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
@@ -51,7 +49,6 @@ suite('Playground Controller Test Suite', function () {
   let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   let testPlaygroundResultProvider: PlaygroundResultProvider;
   let testActiveDBCodeLensProvider: ActiveDBCodeLensProvider;
-  let testExportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   let testCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
@@ -81,8 +78,6 @@ suite('Playground Controller Test Suite', function () {
     testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
       testConnectionController
     );
-    testExportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
     testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
     languageServerControllerStub = new LanguageServerControllerStub(
@@ -96,7 +91,6 @@ suite('Playground Controller Test Suite', function () {
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
       activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
-      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
@@ -351,50 +345,11 @@ suite('Playground Controller Test Suite', function () {
           statusView: testStatusView,
           playgroundResultViewProvider: testPlaygroundResultProvider,
           activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
-          exportToLanguageCodeLensProvider:
-            testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
         });
 
         expect(playgroundController._activeTextEditor).to.deep.equal(
           mockActiveTestEditor
-        );
-      });
-
-      test('exportToLanguage thrown an error for invalid syntax', async () => {
-        const playgroundController = new PlaygroundController({
-          connectionController: testConnectionController,
-          languageServerController: languageServerControllerStub,
-          telemetryService: testTelemetryService,
-          statusView: testStatusView,
-          playgroundResultViewProvider: testPlaygroundResultProvider,
-          activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
-          exportToLanguageCodeLensProvider:
-            testExportToLanguageCodeLensProvider,
-          playgroundSelectedCodeActionProvider: testCodeActionProvider,
-        });
-        const textFromEditor = 'var x = { name: qwerty }';
-        const selection = {
-          start: { line: 0, character: 8 },
-          end: { line: 0, character: 24 },
-        } as vscode.Selection;
-        const mode = ExportToLanguageMode.OTHER;
-        const activeTextEditor = {
-          document: { getText: () => textFromEditor },
-        } as vscode.TextEditor;
-
-        playgroundController._selectedText = '{ name: qwerty }';
-        playgroundController._playgroundSelectedCodeActionProvider.selection =
-          selection;
-        playgroundController._playgroundSelectedCodeActionProvider.mode = mode;
-        playgroundController._activeTextEditor = activeTextEditor;
-
-        await playgroundController.exportToLanguage('csharp');
-
-        const expectedMessage =
-          "Unable to export to csharp language: Symbol 'qwerty' is undefined";
-        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
-          expectedMessage
         );
       });
 

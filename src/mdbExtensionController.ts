@@ -23,8 +23,6 @@ import {
   PlaygroundsExplorer,
   HelpExplorer,
 } from './explorer';
-import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
-import { ExportToLanguages } from './types/playgroundType';
 import EXTENSION_COMMANDS from './commands';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
@@ -62,7 +60,6 @@ export default class MDBExtensionController implements vscode.Disposable {
   _playgroundResultViewProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -99,8 +96,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this._activeConnectionCodeLensProvider =
       new ActiveConnectionCodeLensProvider(this._connectionController);
-    this._exportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
     this._playgroundSelectedCodeActionProvider =
       new PlaygroundSelectedCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
@@ -112,7 +107,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       statusView: this._statusView,
       playgroundResultViewProvider: this._playgroundResultViewProvider,
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
-      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
     });
@@ -124,7 +118,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
       playgroundResultViewProvider: this._playgroundResultViewProvider,
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
-      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
       playgroundDiagnosticsCodeActionProvider:
@@ -214,40 +207,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
       (data) => this._playgroundController.fixAllInvalidInteractiveSyntax(data)
-    );
-
-    // ------ EXPORT TO LANGUAGE ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.PYTHON)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.JAVA)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.CSHARP)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.JAVASCRIPT)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.RUBY)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_GO, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.GO)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.RUST)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.PHP)
-    );
-
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
-      (exportToLanguageAddons) =>
-        this._playgroundController.changeExportToLanguageAddons(
-          exportToLanguageAddons
-        )
     );
 
     // ------ DOCUMENTS ------ //
