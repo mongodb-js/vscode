@@ -1174,6 +1174,7 @@
     "process": "^0.11.10",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.7.0",
+    "source-map-support": "^0.5.21",
     "stream-browserify": "^3.0.0",
     "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
