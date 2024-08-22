@@ -3,7 +3,6 @@ import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
 
-import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import { LanguageServerController } from '../../../language';
@@ -50,10 +49,6 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
         TEST_DATABASE_URI
       );
 
-      const activeConnectionCodeLensProvider =
-        new ActiveConnectionCodeLensProvider(
-          mdbTestExtension.testExtensionController._connectionController
-        );
       const testExportToLanguageCodeLensProvider =
         new ExportToLanguageCodeLensProvider();
 
@@ -69,7 +64,6 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           playgroundResultViewProvider:
             mdbTestExtension.testExtensionController
               ._playgroundResultViewProvider,
-          activeConnectionCodeLensProvider,
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
