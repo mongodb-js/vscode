@@ -825,7 +825,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._storageController.get(StorageVariables.GLOBAL_SURVEY_SHOWN) ===
       surveyId;
 
-    // Show the overview page when it hasn't been show to the
+    // Show the survey when it hasn't been show to the
     // user yet, and they have saved connections
     // -> they haven't just started using this extension
     if (
