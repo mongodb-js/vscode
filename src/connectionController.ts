@@ -435,7 +435,12 @@ export default class ConnectionController {
     this._currentConnectionId = connectionId;
     this._connectionAttempt = null;
     this._connectingConnectionId = null;
+
+    this._connections[connectionId].lastUsed = new Date();
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    await this._connectionStorage.saveConnection(
+      this._connections[connectionId]
+    );
 
     // Send metrics to Segment
     this.sendTelemetry(dataService, connectionType);

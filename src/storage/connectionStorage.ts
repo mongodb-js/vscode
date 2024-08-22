@@ -23,6 +23,7 @@ export interface StoreConnectionInfo {
   storageLocation: StorageLocation;
   secretStorageLocation?: SecretStorageLocationType;
   connectionOptions?: ConnectionOptions;
+  lastUsed?: Date; // Date and time when the connection was last used, i.e. connected with.
 }
 
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
