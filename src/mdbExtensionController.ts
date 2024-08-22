@@ -33,7 +33,9 @@ import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
-import TelemetryService from './telemetry/telemetryService';
+import TelemetryService, {
+  TelemetryEventTypes,
+} from './telemetry/telemetryService';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
@@ -845,6 +847,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     if (result?.title === action) {
       void vscode.env.openExternal(vscode.Uri.parse(link));
+      this._telemetryService.track(TelemetryEventTypes.SURVEY_CLICKED, {
+        survey_id: surveyId,
+      });
+    } else {
+      this._telemetryService.track(TelemetryEventTypes.SURVEY_DISMISSED, {
+        survey_id: surveyId,
+      });
     }
 
     // whether action was taken or the prompt dismissed, we won't show this again
