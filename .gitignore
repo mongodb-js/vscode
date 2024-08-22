@@ -10,3 +10,4 @@ constants.json
 .env
 .eslintcache
 .sbom
+src/test/ai-accuracy-tests/test-results.html
