@@ -77,6 +77,10 @@ type ConnectionEditedTelemetryEventProperties = {
   success: boolean;
 };
 
+type SurveyActionProperties = {
+  survey_id: string;
+};
+
 type SavedConnectionsLoadedProperties = {
   // Total number of connections saved on disk
   saved_connections: number;
@@ -102,7 +106,8 @@ export type TelemetryEventProperties =
   | PlaygroundSavedTelemetryEventProperties
   | PlaygroundLoadedTelemetryEventProperties
   | KeytarSecretsMigrationFailedProperties
-  | SavedConnectionsLoadedProperties;
+  | SavedConnectionsLoadedProperties
+  | SurveyActionProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -120,6 +125,8 @@ export enum TelemetryEventTypes {
   PLAYGROUND_CREATED = 'Playground Created',
   KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
   SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
+  SURVEY_CLICKED = 'Survey link clicked',
+  SURVEY_DISMISSED = 'Survey prompt dismissed',
 }
 
 /**
