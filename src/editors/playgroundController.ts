@@ -6,7 +6,6 @@ import vm from 'vm';
 import os from 'os';
 import transpiler from 'bson-transpilers';
 
-import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import type PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
 import type ConnectionController from '../connectionController';
 import { DataServiceEventTypes } from '../connectionController';
@@ -127,11 +126,11 @@ export default class PlaygroundController {
 
   _isPartialRun = false;
 
-  private _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   private _playgroundResultViewColumn?: vscode.ViewColumn;
   private _playgroundResultTextDocument?: vscode.TextDocument;
   private _statusView: StatusView;
   private _playgroundResultViewProvider: PlaygroundResultProvider;
+  private _activeConnectionChangedHandler: () => void;
 
   private _codeToEvaluate = '';
 
@@ -141,7 +140,6 @@ export default class PlaygroundController {
     telemetryService,
     statusView,
     playgroundResultViewProvider,
-    activeConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider,
     playgroundSelectedCodeActionProvider,
   }: {
@@ -150,7 +148,6 @@ export default class PlaygroundController {
     telemetryService: TelemetryService;
     statusView: StatusView;
     playgroundResultViewProvider: PlaygroundResultProvider;
-    activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   }) {
@@ -160,16 +157,16 @@ export default class PlaygroundController {
     this._telemetryService = telemetryService;
     this._statusView = statusView;
     this._playgroundResultViewProvider = playgroundResultViewProvider;
-    this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._playgroundSelectedCodeActionProvider =
       playgroundSelectedCodeActionProvider;
 
+    this._activeConnectionChangedHandler = () => {
+      void this._activeConnectionChanged();
+    };
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      () => {
-        void this._activeConnectionChanged();
-      }
+      this._activeConnectionChangedHandler
     );
 
     const onDidChangeActiveTextEditor = (
@@ -189,9 +186,6 @@ export default class PlaygroundController {
 
       if (isPlaygroundEditor) {
         this._activeTextEditor = editor;
-        this._activeConnectionCodeLensProvider.setActiveTextEditor(
-          this._activeTextEditor
-        );
         this._playgroundSelectedCodeActionProvider.setActiveTextEditor(
           this._activeTextEditor
         );
@@ -269,8 +263,6 @@ export default class PlaygroundController {
     const dataService = this._connectionController.getActiveDataService();
     const connectionId = this._connectionController.getActiveConnectionId();
     let mongoClientOption;
-
-    this._activeConnectionCodeLensProvider.refresh();
 
     if (dataService && connectionId) {
       mongoClientOption =
@@ -893,9 +885,7 @@ export default class PlaygroundController {
   deactivate(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      () => {
-        // No action is required after removing the listener.
-      }
+      this._activeConnectionChangedHandler
     );
   }
 }

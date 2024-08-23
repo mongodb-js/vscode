@@ -113,7 +113,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
       statusView: this._statusView,
       playgroundResultViewProvider: this._playgroundResultViewProvider,
-      activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
@@ -878,5 +877,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryService.deactivate();
     this._editorsController.deactivate();
     this._webviewController.deactivate();
+    this._activeConnectionCodeLensProvider.deactivate();
+    this._connectionController.deactivate();
   }
 }
