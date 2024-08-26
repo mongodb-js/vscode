@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import chaiAsPromised from 'chai-as-promised';
 
-import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
@@ -51,7 +50,6 @@ suite('Playground Controller Test Suite', function () {
   let testConnectionController: ConnectionController;
   let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   let testPlaygroundResultProvider: PlaygroundResultProvider;
-  let testActiveDBCodeLensProvider: ActiveDBCodeLensProvider;
   let testExportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   let testCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   let languageServerControllerStub: LanguageServerController;
@@ -80,9 +78,6 @@ suite('Playground Controller Test Suite', function () {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
-      testConnectionController
-    );
     testExportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider();
     testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
@@ -100,7 +95,6 @@ suite('Playground Controller Test Suite', function () {
       telemetryService: testTelemetryService,
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
-      activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
       participantController: testParticipantController,
@@ -356,7 +350,6 @@ suite('Playground Controller Test Suite', function () {
           telemetryService: testTelemetryService,
           statusView: testStatusView,
           playgroundResultViewProvider: testPlaygroundResultProvider,
-          activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
@@ -375,7 +368,6 @@ suite('Playground Controller Test Suite', function () {
           telemetryService: testTelemetryService,
           statusView: testStatusView,
           playgroundResultViewProvider: testPlaygroundResultProvider,
-          activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,

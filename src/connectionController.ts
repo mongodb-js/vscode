@@ -806,6 +806,10 @@ export default class ConnectionController {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
+  deactivate() {
+    this.eventEmitter.removeAllListeners();
+  }
+
   closeConnectionStringInput() {
     this._connectionStringInputCancellationToken?.cancel();
   }

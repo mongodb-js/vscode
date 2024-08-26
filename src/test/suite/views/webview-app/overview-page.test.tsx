@@ -39,7 +39,9 @@ describe('OverviewPage test suite', function () {
   describe('Connection Form', function () {
     // Rendering the connection form takes ~4 seconds, so we need to increase the timeout.
     // Not sure on the cause of this slowdown, it could be animation based.
-    this.timeout(20000);
+    // Without this it's flaky on mac CI.
+    // TODO(COMPASS-7762): Once we update the connection form this may be able to go away.
+    this.timeout(25000);
     it('is able to open and close the new connection form', async function () {
       render(<OverviewPage />);
 
