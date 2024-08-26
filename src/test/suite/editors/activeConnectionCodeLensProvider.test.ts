@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
+import path from 'path';
 
 import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import ConnectionController from '../../../connectionController';
@@ -11,8 +12,6 @@ import { StorageController } from '../../../storage';
 import { ExtensionContextStub } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-
-const expect = chai.expect;
 
 suite('Active Connection CodeLens Provider Test Suite', () => {
   const extensionContextStub = new ExtensionContextStub();
@@ -42,19 +41,23 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   });
 
   suite('the MongoDB playground in JS', () => {
+    const mockFileName = path.join('nonexistent', 'playground-test.mongodb.js');
+    const mockDocumentUri = vscode.Uri.from({
+      path: mockFileName,
+      scheme: 'untitled',
+    });
+    const mockTextDoc: vscode.TextDocument = {
+      uri: mockDocumentUri,
+    } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
+
     suite('user is not connected', () => {
       beforeEach(() => {
-        testCodeLensProvider.setActiveTextEditor(
-          vscode.window.activeTextEditor
-        );
         const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
-        const fakeIsPlayground = sandbox.fake.returns(true);
-        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       test('show disconnected message in code lenses', () => {
-        const codeLens = testCodeLensProvider.provideCodeLenses();
+        const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
@@ -89,16 +92,11 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         } as unknown as DataService;
 
         testConnectionController.setActiveDataService(activeDataServiceStub);
-        testCodeLensProvider.setActiveTextEditor(
-          vscode.window.activeTextEditor
-        );
         sandbox.replace(
           testConnectionController,
           'getActiveConnectionName',
           sandbox.fake.returns('fakeName')
         );
-        const fakeIsPlayground = sandbox.fake.returns(true);
-        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       test('show active connection in code lenses', () => {
@@ -109,7 +107,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
             url: TEST_DATABASE_URI,
           })
         );
-        const codeLens = testCodeLensProvider.provideCodeLenses();
+        const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
@@ -131,7 +129,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
             url: `${TEST_DATABASE_URI}/fakeDBName`,
           })
         );
-        const codeLens = testCodeLensProvider.provideCodeLenses();
+        const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
         expect(codeLens[0].command?.title).to.be.equal(
@@ -147,16 +145,23 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   });
 
   suite('the regular JS file', () => {
+    const mockFileName = path.join('nonexistent', 'playground-test.js');
+    const mockDocumentUri = vscode.Uri.from({
+      path: mockFileName,
+      scheme: 'untitled',
+    });
+    const mockTextDoc: vscode.TextDocument = {
+      uri: mockDocumentUri,
+    } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
+
     suite('user is not connected', () => {
       beforeEach(() => {
         const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
-        const fakeIsPlayground = sandbox.fake.returns(false);
-        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
       test('show not show the active connection code lenses', () => {
-        const codeLens = testCodeLensProvider.provideCodeLenses();
+        const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(0);
@@ -191,12 +196,10 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getActiveConnectionName',
           sandbox.fake.returns('fakeName')
         );
-        const fakeIsPlayground = sandbox.fake.returns(false);
-        sandbox.replace(testCodeLensProvider, 'isPlayground', fakeIsPlayground);
       });
 
-      test('show not show the active connection code lensess', () => {
-        const codeLens = testCodeLensProvider.provideCodeLenses();
+      test('show not show the active connection code lenses', () => {
+        const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(0);

@@ -8,7 +8,6 @@ import type { SinonStub } from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import chaiAsPromised from 'chai-as-promised';
 
-import ActiveDBCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
@@ -52,9 +51,6 @@ suite('Language Server Controller Test Suite', () => {
     testConnectionController,
     testEditDocumentCodeLensProvider
   );
-  const testActiveDBCodeLensProvider = new ActiveDBCodeLensProvider(
-    testConnectionController
-  );
   const testExportToLanguageCodeLensProvider =
     new ExportToLanguageCodeLensProvider();
   const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
@@ -79,7 +75,6 @@ suite('Language Server Controller Test Suite', () => {
       telemetryService: testTelemetryService,
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
-      activeConnectionCodeLensProvider: testActiveDBCodeLensProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
       participantController: testParticipantController,

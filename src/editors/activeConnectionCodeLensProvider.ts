@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
-import type { TextEditor } from 'vscode';
+
 import EXTENSION_COMMANDS from '../commands';
 import type ConnectionController from '../connectionController';
 import { isPlayground } from '../utils/playground';
 import { getDBFromConnectionString } from '../utils/connection-string-db';
+import { DataServiceEventTypes } from '../connectionController';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider
@@ -11,35 +12,29 @@ export default class ActiveConnectionCodeLensProvider
   _connectionController: ConnectionController;
   _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
-  activeTextEditor?: TextEditor;
+  _activeConnectionChangedHandler: () => void;
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
   constructor(connectionController: ConnectionController) {
     this._connectionController = connectionController;
-    this.activeTextEditor = vscode.window.activeTextEditor;
 
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
+
+    this._activeConnectionChangedHandler = () => {
+      this._onDidChangeCodeLenses.fire();
+    };
+    this._connectionController.addEventListener(
+      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      this._activeConnectionChangedHandler
+    );
   }
 
-  setActiveTextEditor(activeTextEditor?: TextEditor) {
-    this.activeTextEditor = activeTextEditor;
-    this._onDidChangeCodeLenses.fire();
-  }
-
-  refresh(): void {
-    this._onDidChangeCodeLenses.fire();
-  }
-
-  isPlayground(): boolean {
-    return isPlayground(this.activeTextEditor?.document.uri);
-  }
-
-  provideCodeLenses(): vscode.CodeLens[] {
-    if (!this.isPlayground()) {
+  provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
+    if (!isPlayground(document.uri)) {
       return [];
     }
 
@@ -68,5 +63,12 @@ export default class ActiveConnectionCodeLensProvider
     };
 
     return [codeLens];
+  }
+
+  deactivate() {
+    this._connectionController.removeEventListener(
+      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      this._activeConnectionChangedHandler
+    );
   }
 }
