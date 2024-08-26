@@ -44,6 +44,7 @@ suite('Participant Controller Test Suite', function () {
   let chatContextStub;
   let chatStreamStub;
   let chatTokenStub;
+  let sendRequestStub;
 
   beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
@@ -78,6 +79,14 @@ suite('Participant Controller Test Suite', function () {
       onCancellationRequested: () => {},
     };
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
+    sendRequestStub = sinon.fake.resolves({
+      text: [
+        '```javascript\n' +
+          "use('dbOne');\n" +
+          "db.getCollection('collOne').find({ name: 'example' });\n" +
+          '```',
+      ],
+    });
     sinon.replace(
       vscode.lm,
       'selectChatModels',
@@ -90,15 +99,7 @@ suite('Participant Controller Test Suite', function () {
           name: 'GPT 4o (date)',
           maxInputTokens: 16211,
           countTokens: () => {},
-          sendRequest: () =>
-            Promise.resolve({
-              text: [
-                '```javascript\n' +
-                  "use('dbOne');\n" +
-                  "db.getCollection('collOne').find({ name: 'example' });\n" +
-                  '```',
-              ],
-            }),
+          sendRequest: sendRequestStub,
         },
       ])
     );
@@ -330,6 +331,13 @@ suite('Participant Controller Test Suite', function () {
               url: TEST_DATABASE_URI,
               options: {},
             }),
+            sample: () =>
+              Promise.resolve([
+                {
+                  _id: '66b3408a60da951fc354743e',
+                  field: { subField: '66b3408a60da951fc354743e' },
+                },
+              ]),
             once: sinon.stub(),
           } as unknown as DataService)
       );
@@ -434,6 +442,29 @@ suite('Participant Controller Test Suite', function () {
               testParticipantController._chatResult?.metadata.responseContent
             ).to.include(
               "db.getCollection('collOne').find({ name: 'example' });"
+            );
+          });
+
+          test('includes a collection schema', async function () {
+            sinon
+              .stub(testParticipantController, '_queryGenerationState')
+              .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+            const chatRequestMock = {
+              prompt: 'find all docs by a name example',
+              command: 'query',
+              references: [],
+            };
+            await testParticipantController.chatHandler(
+              chatRequestMock,
+              chatContextStub,
+              chatStreamStub,
+              chatTokenStub
+            );
+            const messages = sendRequestStub.firstCall.args[0];
+            expect(messages[0].content).to.include(
+              'Collection schema:\n' +
+                '_id: String\n' +
+                'field.subField: String\n'
             );
           });
         });
