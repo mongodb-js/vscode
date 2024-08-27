@@ -958,9 +958,9 @@ suite('Connection Controller Test Suite', function () {
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
-        useSystemCA: undefined,
+        applyProxyToOIDC: false,
         authMechanismProperties: {},
-        oidc: {},
+        oidc: { customHttpOptions: {} },
         productDocsLink:
           'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
         productName: 'mongodb-vscode',
