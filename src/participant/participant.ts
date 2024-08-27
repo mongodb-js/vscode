@@ -616,15 +616,14 @@ export default class ParticipantController {
   }
 
   _shouldFetchCollectionSchema(): boolean {
-    if (this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
-      return true;
-    }
-
-    return false;
+    return this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA;
   }
 
   async _fetchCollectionSchema(abortSignal?: AbortSignal): Promise<undefined> {
+    if (this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA) {
+      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
+    }
+
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService || !this._databaseName || !this._collectionName) {
       return;
