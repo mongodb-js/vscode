@@ -6,9 +6,11 @@ export class QueryPrompt {
   static getAssistantPrompt({
     databaseName = 'mongodbVSCodeCopilotDB',
     collectionName = 'test',
+    schema,
   }: {
     databaseName?: string;
     collectionName?: string;
+    schema?: string;
   }): vscode.LanguageModelChatMessage {
     const prompt = `You are a MongoDB expert.
 
@@ -38,6 +40,12 @@ db.getCollection('').find({
 
 Database name: ${databaseName}
 Collection name: ${collectionName}
+${
+  schema
+    ? `Collection schema:
+${schema}`
+    : ''
+}
 
 MongoDB command to specify database:
 use('');
@@ -61,6 +69,7 @@ Concisely explain the code snippet you have generated.`;
     request,
     databaseName,
     collectionName,
+    schema,
   }: {
     request: {
       prompt: string;
@@ -68,9 +77,10 @@ Concisely explain the code snippet you have generated.`;
     context: vscode.ChatContext;
     databaseName?: string;
     collectionName?: string;
+    schema?: string;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
-      QueryPrompt.getAssistantPrompt({ databaseName, collectionName }),
+      QueryPrompt.getAssistantPrompt({ databaseName, collectionName, schema }),
       ...getHistoryMessages({ context }),
       QueryPrompt.getUserPrompt(request.prompt),
     ];
