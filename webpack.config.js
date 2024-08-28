@@ -61,7 +61,6 @@ module.exports = (env, argv) => {
       // Electron:
       electron: 'electron',
       '@electron/remote': '@electron/remote',
-      'hadron-ipc': 'hadron-ipc',
 
       // MongoDB node driver externals:
       snappy: 'snappy',
@@ -70,7 +69,6 @@ module.exports = (env, argv) => {
       'win-export-certificate-and-key': 'win-export-certificate-and-key',
       'os-dns-native': 'os-dns-native',
       'mongodb-client-encryption': 'mongodb-client-encryption',
-      'compass-preferences-model': 'compass-preferences-model',
       '@mongodb-js/zstd': '@mongodb-js/zstd',
       'gcp-metadata': 'gcp-metadata',
       encoding: 'encoding',
