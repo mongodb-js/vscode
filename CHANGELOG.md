@@ -1,8 +1,12 @@
 # Change Log
 
-## [v1.8.0](https://github.com/mongodb-js/vscode/releases/tag/untagged-c7ca5259a23476a10b0b) - null
+## [v1.8.0](https://github.com/mongodb-js/vscode/releases/tag/v1.8.0) - 2024-08-29
 
-Edit the release notes before publishing.
+## What's Changed
+* feat: show survey VSCODE-562 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/780
+* fix(editors): don't show connect code lens on regular js files VSCODE-538 by @Anemy in https://github.com/mongodb-js/vscode/pull/789
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.7.0...v1.8.0
 
 
 ## [v1.7.0](https://github.com/mongodb-js/vscode/releases/tag/v1.7.0) - 2024-08-01
