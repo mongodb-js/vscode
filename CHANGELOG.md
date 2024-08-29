@@ -1,5 +1,10 @@
 # Change Log
 
+## [v1.8.0](https://github.com/mongodb-js/vscode/releases/tag/untagged-c7ca5259a23476a10b0b) - null
+
+Edit the release notes before publishing.
+
+
 ## [v1.7.0](https://github.com/mongodb-js/vscode/releases/tag/v1.7.0) - 2024-08-01
 
 ## What's Changed
@@ -435,14 +440,5 @@ To dig deeper please feel free to follow the links mentioned below:
 
 - Removed custom font in overview page (#192)
 - Removed sql pipeline stage operator (#211)
-
-
-## [v0.2.1](https://github.com/mongodb-js/vscode/releases/tag/0.2.1) - 2020-10-20
-
-### Added
-
-- Added the ability to use print() and console.log() in playgrounds [#184](https://github.com/mongodb-js/vscode/pull/184)
-- Added an overview page (more to come on this in future versions) [#178](https://github.com/mongodb-js/vscode/pull/178)
-- Added a tooltip to fields in a collection's schema to show types found in the sampling for that field [#179](https://github.com/mongodb-js/vscode/pull/179)
 
 
