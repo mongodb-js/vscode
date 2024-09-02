@@ -1,5 +1,23 @@
 # Change Log
 
+## [v1.8.1](https://github.com/mongodb-js/vscode/releases/tag/v1.8.1) - 2024-09-02
+
+## What's Changed
+* fix: cannot find module electron VSCODE-598 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/799
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.8.0...v1.8.1
+
+
+## [v1.8.0](https://github.com/mongodb-js/vscode/releases/tag/v1.8.0) - 2024-08-29
+
+## What's Changed
+* feat: show survey VSCODE-562 by @paula-stacho in https://github.com/mongodb-js/vscode/pull/780
+* fix(editors): don't show connect code lens on regular js files VSCODE-538 by @Anemy in https://github.com/mongodb-js/vscode/pull/789
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.7.0...v1.8.0
+
+
 ## [v1.7.0](https://github.com/mongodb-js/vscode/releases/tag/v1.7.0) - 2024-08-01
 
 ## What's Changed
@@ -406,43 +424,5 @@ To dig deeper please feel free to follow the links mentioned below:
 - Fix opening documents with a binary `_id` from the explorer panel (VSCODE-118, #220)
 - Fixed playground log output panel to not display when a playground is open and when a playground is run and there was no log output (#234)
 - Fixed code lenses for partial playground executions sometimes being missing (VSCODE-226, #243)
-
-
-## [v0.3.0](https://github.com/mongodb-js/vscode/releases/tag/v0.3.0) - 2020-11-24
-
-### Added
-
-- Added a resources panel to the overview page (VSCODE-168, #208)
-- Added a button to change currently connected connection name in overview page (VSCODE-189, #191)
-
-### Changed
-
-- Moved playground output to the editor, logs remain in the output section (VSCODE-177, #198)
-- Playground results are now displayed in EJSON or text (VSCODE-203, #206)
-- Connect commands route to overview page instead of directly to connection form (VSCODE-170, #210)
-- Connection form shows in modal in overview page (VSCODE-173, #190)
-- Index creation template now uses `createIndex` instead of `ensureIndex` (#205)
-
-### Fixed
-
-- Fix x509 username being required in connection string building and parsing (VSCODE-202, #203)
-- Fix viewing documents Binary UUID _ids (VSCODE-118, #213)
-- Fix opening mongodb shell on windows with git bash (VSCODE-200, #201)
-- Fix opening mongodb shell on windows with an ssl file with a space in it (#201)
-- Fix password encoding of connection strings when copying connection string and opening in mongodb shell (VSCODE-198, #207)
-
-### Removed
-
-- Removed custom font in overview page (#192)
-- Removed sql pipeline stage operator (#211)
-
-
-## [v0.2.1](https://github.com/mongodb-js/vscode/releases/tag/0.2.1) - 2020-10-20
-
-### Added
-
-- Added the ability to use print() and console.log() in playgrounds [#184](https://github.com/mongodb-js/vscode/pull/184)
-- Added an overview page (more to come on this in future versions) [#178](https://github.com/mongodb-js/vscode/pull/178)
-- Added a tooltip to fields in a collection's schema to show types found in the sampling for that field [#179](https://github.com/mongodb-js/vscode/pull/179)
 
 
