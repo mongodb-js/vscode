@@ -1,8 +1,12 @@
 # Change Log
 
-## [v1.8.1](https://github.com/mongodb-js/vscode/releases/tag/untagged-ee46789398aad6df957f) - null
+## [v1.8.1](https://github.com/mongodb-js/vscode/releases/tag/v1.8.1) - 2024-09-02
 
-Edit the release notes before publishing.
+## What's Changed
+* fix: cannot find module electron VSCODE-598 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/799
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.8.0...v1.8.1
 
 
 ## [v1.8.0](https://github.com/mongodb-js/vscode/releases/tag/v1.8.0) - 2024-08-29
