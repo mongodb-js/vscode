@@ -324,7 +324,7 @@ suite('Playground Controller Test Suite', function () {
           sandbox.fake.rejects(false)
         );
 
-        const result = await testPlaygroundController.evaluateWithCancelModal(
+        const result = await testPlaygroundController._evaluateWithCancelModal(
           ''
         );
 
@@ -394,12 +394,12 @@ suite('Playground Controller Test Suite', function () {
         beforeEach(function () {
           sandbox.replace(
             testPlaygroundController,
-            'evaluateWithCancelModal',
+            '_evaluateWithCancelModal',
             sandbox.stub().resolves({ result: '123' })
           );
           sandbox.replace(
             testPlaygroundController,
-            'openInResultPane',
+            '_openInResultPane',
             sandbox.stub()
           );
         });

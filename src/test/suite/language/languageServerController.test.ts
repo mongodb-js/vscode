@@ -168,7 +168,7 @@ suite('Language Server Controller Test Suite', () => {
     test('clear output channel when evaluating', async () => {
       sandbox.replace(
         testPlaygroundController,
-        'evaluateWithCancelModal',
+        '_evaluateWithCancelModal',
         sandbox.stub().resolves({
           result: '123',
         })

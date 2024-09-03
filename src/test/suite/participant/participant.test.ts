@@ -12,7 +12,7 @@ import ParticipantController, {
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
-import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
+import { ExtensionContextStub } from '../stubs';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
@@ -21,11 +21,6 @@ import {
   StorageLocation,
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
-import PlaygroundController from '../../../editors/playgroundController';
-import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
-import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
-import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 
 const loadedConnection = {
   id: 'id',
@@ -46,12 +41,6 @@ suite('Participant Controller Test Suite', function () {
   let testStatusView: StatusView;
   let testTelemetryService: TelemetryService;
   let testParticipantController: ParticipantController;
-  let testLanguageServerController: LanguageServerControllerStub;
-  let testPlaygroundController: PlaygroundController;
-  let testPlaygroundResultProvider: PlaygroundResultProvider;
-  let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-  let testExportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
-  let testCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   let chatContextStub;
   let chatStreamStub;
   let chatTokenStub;
@@ -69,33 +58,9 @@ suite('Participant Controller Test Suite', function () {
       storageController: testStorageController,
       telemetryService: testTelemetryService,
     });
-    testLanguageServerController = new LanguageServerControllerStub(
-      extensionContextStub,
-      testStorageController
-    );
-    testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
-    );
-    testPlaygroundResultProvider = new PlaygroundResultProvider(
-      testConnectionController,
-      testEditDocumentCodeLensProvider
-    );
-    testExportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
-    testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
-    testPlaygroundController = new PlaygroundController({
-      connectionController: testConnectionController,
-      languageServerController: testLanguageServerController,
-      telemetryService: testTelemetryService,
-      statusView: testStatusView,
-      playgroundResultViewProvider: testPlaygroundResultProvider,
-      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
-      playgroundSelectedCodeActionProvider: testCodeActionProvider,
-    });
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
       storageController: testStorageController,
-      playgroundController: testPlaygroundController,
     });
     chatContextStub = {
       history: [
