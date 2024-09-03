@@ -12,11 +12,6 @@ import type { PlaygroundResult } from '../../../types/playgroundType';
 import { ExportToLanguageMode } from '../../../types/playgroundType';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub } from '../stubs';
-import ParticipantController from '../../../participant/participant';
-import ConnectionController from '../../../connectionController';
-import StatusView from '../../../views/statusView';
-import StorageController from '../../../storage/storageController';
-import TelemetryService from '../../../telemetry/telemetryService';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -37,30 +32,8 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
   suite('the MongoDB playground in JS', () => {
     const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
     const sandbox = sinon.createSandbox();
-    let testStorageController: StorageController;
-    let testTelemetryService: TelemetryService;
-    let testStatusView: StatusView;
-    let testConnectionController: ConnectionController;
-    let testParticipantController: ParticipantController;
 
     beforeEach(async () => {
-      testStorageController = new StorageController(extensionContextStub);
-      testTelemetryService = new TelemetryService(
-        testStorageController,
-        extensionContextStub
-      );
-      testStatusView = new StatusView(extensionContextStub);
-      testConnectionController = new ConnectionController({
-        statusView: testStatusView,
-        storageController: testStorageController,
-        telemetryService: testTelemetryService,
-      });
-
-      testParticipantController = new ParticipantController({
-        connectionController: testConnectionController,
-        storageController: testStorageController,
-      });
-
       sandbox.replace(
         mdbTestExtension.testExtensionController,
         '_languageServerController',
@@ -94,13 +67,12 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
-          participantController: testParticipantController,
         });
 
       const fakeOpenPlaygroundResult = sandbox.fake();
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
-        '_openPlaygroundResult',
+        'openInResultPane',
         fakeOpenPlaygroundResult
       );
 

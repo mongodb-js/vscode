@@ -44,7 +44,6 @@ import {
   isPlayground,
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
-import type ParticipantController from '../participant/participant';
 
 const log = createLogger('playground controller');
 
@@ -132,10 +131,7 @@ export default class PlaygroundController {
   private _playgroundResultTextDocument?: vscode.TextDocument;
   private _statusView: StatusView;
   private _playgroundResultViewProvider: PlaygroundResultProvider;
-  private _participantController: ParticipantController;
   private _activeConnectionChangedHandler: () => void;
-
-  private _codeToEvaluate = '';
 
   constructor({
     connectionController,
@@ -145,7 +141,6 @@ export default class PlaygroundController {
     playgroundResultViewProvider,
     exportToLanguageCodeLensProvider,
     playgroundSelectedCodeActionProvider,
-    participantController,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
@@ -154,7 +149,6 @@ export default class PlaygroundController {
     playgroundResultViewProvider: PlaygroundResultProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
-    participantController: ParticipantController;
   }) {
     this._connectionController = connectionController;
     this._activeTextEditor = vscode.window.activeTextEditor;
@@ -165,7 +159,6 @@ export default class PlaygroundController {
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._playgroundSelectedCodeActionProvider =
       playgroundSelectedCodeActionProvider;
-    this._participantController = participantController;
 
     this._activeConnectionChangedHandler = () => {
       void this._activeConnectionChanged();
@@ -489,7 +482,9 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  async _evaluateWithCancelModal(): Promise<ShellEvaluateResult> {
+  async evaluateWithCancelModal(
+    codeToEvaluate: string
+  ): Promise<ShellEvaluateResult> {
     if (!this._connectionController.isCurrentlyConnected()) {
       throw new Error(
         'Please connect to a database before running a playground.'
@@ -513,7 +508,7 @@ export default class PlaygroundController {
 
           // Run all playground scripts.
           const result: ShellEvaluateResult = await this._evaluate(
-            this._codeToEvaluate
+            codeToEvaluate
           );
 
           return result;
@@ -528,10 +523,8 @@ export default class PlaygroundController {
     }
   }
 
-  async _openPlaygroundResult(): Promise<void> {
-    this._playgroundResultViewProvider.setPlaygroundResult(
-      this._playgroundResult
-    );
+  async openInResultPane(result: PlaygroundResult): Promise<void> {
+    this._playgroundResultViewProvider.setPlaygroundResult(result);
 
     if (!this._playgroundResultTextDocument) {
       await this._openResultAsVirtualDocument();
@@ -542,7 +535,7 @@ export default class PlaygroundController {
     await this._showResultAsVirtualDocument();
 
     if (this._playgroundResultTextDocument) {
-      const language = this._playgroundResult?.language || 'plaintext';
+      const language = result?.language || 'plaintext';
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,
@@ -579,7 +572,7 @@ export default class PlaygroundController {
     }
   }
 
-  async _evaluatePlayground(): Promise<boolean> {
+  async _evaluatePlayground(text: string): Promise<boolean> {
     const shouldConfirmRunAll = vscode.workspace
       .getConfiguration('mdb')
       .get('confirmRunAll');
@@ -606,15 +599,14 @@ export default class PlaygroundController {
     }
 
     const evaluateResponse: ShellEvaluateResult =
-      await this._evaluateWithCancelModal();
+      await this.evaluateWithCancelModal(text);
 
     if (!evaluateResponse || !evaluateResponse.result) {
       return false;
     }
 
     this._playgroundResult = evaluateResponse.result;
-
-    await this._openPlaygroundResult();
+    await this.openInResultPane(this._playgroundResult);
 
     return true;
   }
@@ -629,9 +621,8 @@ export default class PlaygroundController {
     }
 
     this._isPartialRun = true;
-    this._codeToEvaluate = this._selectedText;
 
-    return this._evaluatePlayground();
+    return this._evaluatePlayground(this._selectedText || '');
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
@@ -647,9 +638,8 @@ export default class PlaygroundController {
     }
 
     this._isPartialRun = false;
-    this._codeToEvaluate = this._getAllText();
 
-    return this._evaluatePlayground();
+    return this._evaluatePlayground(this._getAllText());
   }
 
   runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
@@ -666,19 +656,20 @@ export default class PlaygroundController {
 
     const selections = this._activeTextEditor.selections;
 
+    let codeToEvaluate;
     if (
       !selections ||
       !Array.isArray(selections) ||
       (selections.length === 1 && this._getSelectedText(selections[0]) === '')
     ) {
       this._isPartialRun = false;
-      this._codeToEvaluate = this._getAllText();
+      codeToEvaluate = this._getAllText();
     } else if (this._selectedText) {
       this._isPartialRun = true;
-      this._codeToEvaluate = this._selectedText;
+      codeToEvaluate = this._selectedText;
     }
 
-    return this._evaluatePlayground();
+    return this._evaluatePlayground(codeToEvaluate);
   }
 
   async fixThisInvalidInteractiveSyntax({
@@ -815,11 +806,6 @@ export default class PlaygroundController {
     return { namespace, expression };
   }
 
-  async evaluateParticipantQuery({ text }: { text: string }): Promise<boolean> {
-    this._codeToEvaluate = text;
-    return this._evaluatePlayground();
-  }
-
   async _transpile(): Promise<boolean> {
     const { selectedText, importStatements, driverSyntax, builders, language } =
       this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
@@ -896,7 +882,7 @@ export default class PlaygroundController {
       }
       /* eslint-enable camelcase */
 
-      await this._openPlaygroundResult();
+      await this.openInResultPane(this._playgroundResult);
     } catch (error) {
       log.error(`Export to the '${language}' language failed`, error);
       const printableError = formatError(error);

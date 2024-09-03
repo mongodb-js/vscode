@@ -8,8 +8,6 @@ const template = `/* global use, db */
 // Use 'console.log()' to print to the debug output.
 // For more documentation on playgrounds please refer to
 // https://www.mongodb.com/docs/mongodb-vscode/playgrounds/
-// Select the database to use.
-use('CURRENT_DATABASE');
 PLAYGROUND_CONTENT
 `;
 
