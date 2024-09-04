@@ -1,5 +1,6 @@
 import assert from 'assert';
 import util from 'util';
+import type { Document } from 'mongodb';
 
 import type { Fixtures } from './fixtures/fixture-loader';
 import { getRunnableContentFromString } from '../../participant/participant';

@@ -8,7 +8,7 @@ import util from 'util';
 import os from 'os';
 import * as vscode from 'vscode';
 
-import { loadFixturesToDB } from './fixtures/fixture-loader';
+import { loadFixturesToDB, reloadFixture } from './fixtures/fixture-loader';
 import type { Fixtures } from './fixtures/fixture-loader';
 import { AIBackend } from './ai-backend';
 import { GenericPrompt } from '../../participant/prompts/generic';
@@ -27,12 +27,17 @@ type AssertProps = {
   responseContent: string;
   connectionString: string;
   fixtures: Fixtures;
+  mongoClient: MongoClient;
 };
 
 type TestCase = {
   testCase: string;
   type: 'generic' | 'query' | 'namespace';
   userInput: string;
+  // Some tests can edit the documents in a collection.
+  // As we want tests to run in isolation this flag will cause the fixture
+  // to be reloaded on each run of the tests so subsequent tests are not impacted.
+  reloadFixtureOnEachRun?: boolean;
   databaseName?: string;
   collectionName?: string;
   accuracyThresholdOverride?: number;
@@ -59,6 +64,31 @@ const testCases: TestCase[] = [
 
       const number = totalResponse.match(/\d+/);
       expect(number?.[0]).to.equal('5');
+    },
+  },
+  {
+    testCase: 'Slightly complex updateOne',
+    type: 'query',
+    databaseName: 'CookBook',
+    collectionName: 'recipes',
+    reloadFixtureOnEachRun: true,
+    only: true,
+    userInput:
+      "Update the Beef Wellington recipe to have its preparation time 150 minutes and set the difficulty level to 'Very Hard'",
+    assertResult: async ({
+      responseContent,
+      connectionString,
+      mongoClient,
+      fixtures,
+    }: AssertProps) => {
+      await runCodeInMessage(responseContent, connectionString);
+      const documents = await mongoClient
+        .db('CookBook')
+        .collection('recipes')
+        .find()
+        .toArray();
+
+      expect(documents).to.deep.equal(fixtures.CookBook.recipes);
     },
   },
 ];
@@ -270,6 +300,18 @@ describe('AI Accuracy Tests', function () {
 
         for (let i = 0; i < numberOfRunsPerTest; i++) {
           let success = false;
+
+          if (testCase.reloadFixtureOnEachRun) {
+            await reloadFixture({
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              db: testCase.databaseName!,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              coll: testCase.collectionName!,
+              mongoClient,
+              fixtures,
+            });
+          }
+
           const startTime = Date.now();
           try {
             const responseContent = await runTest({
@@ -283,6 +325,7 @@ describe('AI Accuracy Tests', function () {
               responseContent: responseContent.content,
               connectionString,
               fixtures,
+              mongoClient,
             });
 
             successFullRunStats.push({
