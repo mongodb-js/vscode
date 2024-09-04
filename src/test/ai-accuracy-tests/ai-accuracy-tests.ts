@@ -72,7 +72,6 @@ const testCases: TestCase[] = [
     databaseName: 'CookBook',
     collectionName: 'recipes',
     reloadFixtureOnEachRun: true,
-    only: true,
     userInput:
       "Update the Beef Wellington recipe to have its preparation time 150 minutes and set the difficulty level to 'Very Hard'",
     assertResult: async ({
