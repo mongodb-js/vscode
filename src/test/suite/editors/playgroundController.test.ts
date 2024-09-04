@@ -21,7 +21,6 @@ import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
-import ParticipantController from '../../../participant/participant';
 
 const expect = chai.expect;
 
@@ -56,7 +55,6 @@ suite('Playground Controller Test Suite', function () {
   let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
   let sandbox: sinon.SinonSandbox;
-  let testParticipantController: ParticipantController;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -85,10 +83,6 @@ suite('Playground Controller Test Suite', function () {
       extensionContextStub,
       testStorageController
     );
-    testParticipantController = new ParticipantController({
-      connectionController: testConnectionController,
-      storageController: testStorageController,
-    });
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
@@ -97,7 +91,6 @@ suite('Playground Controller Test Suite', function () {
       playgroundResultViewProvider: testPlaygroundResultProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
-      participantController: testParticipantController,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(testTelemetryService, 'trackNewConnection');
@@ -331,8 +324,9 @@ suite('Playground Controller Test Suite', function () {
           sandbox.fake.rejects(false)
         );
 
-        const result =
-          await testPlaygroundController._evaluateWithCancelModal();
+        const result = await testPlaygroundController._evaluateWithCancelModal(
+          ''
+        );
 
         expect(result).to.deep.equal({ result: undefined });
       });
@@ -353,7 +347,6 @@ suite('Playground Controller Test Suite', function () {
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
-          participantController: testParticipantController,
         });
 
         expect(playgroundController._activeTextEditor).to.deep.equal(
@@ -371,7 +364,6 @@ suite('Playground Controller Test Suite', function () {
           exportToLanguageCodeLensProvider:
             testExportToLanguageCodeLensProvider,
           playgroundSelectedCodeActionProvider: testCodeActionProvider,
-          participantController: testParticipantController,
         });
         const textFromEditor = 'var x = { name: qwerty }';
         const selection = {
@@ -407,7 +399,7 @@ suite('Playground Controller Test Suite', function () {
           );
           sandbox.replace(
             testPlaygroundController,
-            '_openPlaygroundResult',
+            '_openInResultPane',
             sandbox.stub()
           );
         });

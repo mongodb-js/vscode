@@ -18,13 +18,15 @@ export function getHistoryMessages({
       messages.push(vscode.LanguageModelChatMessage.User(historyItem.prompt));
     }
 
-    if (
-      historyItem.participant === CHAT_PARTICIPANT_ID &&
-      historyItem instanceof vscode.ChatResponseTurn
-    ) {
+    if (historyItem instanceof vscode.ChatResponseTurn) {
       let res = '';
       for (const fragment of historyItem.response) {
-        res += fragment;
+        if (
+          fragment instanceof vscode.ChatResponseMarkdownPart &&
+          historyItem.result.metadata?.responseContent
+        ) {
+          res += fragment.value.value;
+        }
       }
       // eslint-disable-next-line new-cap
       messages.push(vscode.LanguageModelChatMessage.Assistant(res));

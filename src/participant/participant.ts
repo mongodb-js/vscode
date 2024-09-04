@@ -60,7 +60,7 @@ export function getRunnableContentFromString(text: string) {
     matchedJSresponseContent && matchedJSresponseContent.length > 1
       ? matchedJSresponseContent[1]
       : '';
-  return code;
+  return code.trim();
 }
 
 export default class ParticipantController {
@@ -723,7 +723,7 @@ export default class ParticipantController {
       vscode.ChatResponseStream,
       vscode.CancellationToken
     ]
-  ): Promise<void> {
+  ): Promise<ChatResult | undefined> {
     const [request, , stream] = args;
 
     if (!request.prompt || request.prompt.trim().length === 0) {
@@ -731,7 +731,7 @@ export default class ParticipantController {
       for (const msg of messages) {
         stream.markdown(msg);
       }
-      return;
+      return { metadata: {} };
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
@@ -752,13 +752,14 @@ export default class ParticipantController {
 
     if (request.command === 'query') {
       this._chatResult = await this.handleQueryRequest(...args);
-      return;
     } else if (request.command === 'docs') {
       // TODO(VSCODE-570): Implement this.
     } else if (request.command === 'schema') {
       // TODO(VSCODE-571): Implement this.
+    } else {
+      this._chatResult = await this.handleGenericRequest(...args);
     }
 
-    this._chatResult = await this.handleGenericRequest(...args);
+    return this._chatResult;
   }
 }

@@ -125,7 +125,7 @@ suite('Participant Controller Test Suite', function () {
       '```';
     const code = getRunnableContentFromString(text);
     expect(code).to.be.equal(
-      "\nuse('test');\ndb.getCollection('test').find({ name: 'Shika' });\n"
+      "use('test');\ndb.getCollection('test').find({ name: 'Shika' });"
     );
   });
 

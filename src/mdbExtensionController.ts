@@ -109,10 +109,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       new PlaygroundSelectedCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
-    this._participantController = new ParticipantController({
-      connectionController: this._connectionController,
-      storageController: this._storageController,
-    });
     this._playgroundController = new PlaygroundController({
       connectionController: this._connectionController,
       languageServerController: this._languageServerController,
@@ -122,7 +118,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
-      participantController: this._participantController,
+    });
+    this._participantController = new ParticipantController({
+      connectionController: this._connectionController,
+      storageController: this._storageController,
     });
     this._editorsController = new EditorsController({
       context,
@@ -302,11 +301,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
       () => {
-        return this._playgroundController.evaluateParticipantQuery({
-          text:
-            this._participantController._chatResult?.metadata
-              ?.responseContent || '',
-        });
+        return this._playgroundController.evaluateParticipantQuery(
+          this._participantController._chatResult?.metadata?.responseContent ||
+            ''
+        );
       }
     );
     this.registerCommand(
