@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { getSimplifiedSchema } from 'mongodb-schema';
+import type { Document } from 'bson';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -12,7 +13,7 @@ import { CHAT_PARTICIPANT_ID, CHAT_PARTICIPANT_MODEL } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
-import { formatSampleDocuments } from './sampleDocuments';
+import { getSimplifiedSampleDocuments } from './sampleDocuments';
 
 const log = createLogger('participant');
 
@@ -24,7 +25,7 @@ export enum QUERY_GENERATION_STATE {
   FETCH_SCHEMA = 'FETCH_SCHEMA',
 }
 
-const NUM_DOCUMENTS_TO_SAMPLE = 4;
+const NUM_DOCUMENTS_TO_SAMPLE = 3;
 
 interface ChatResult extends vscode.ChatResult {
   metadata: {
@@ -54,7 +55,7 @@ export function parseForDatabaseAndCollectionName(text: string): {
   return { databaseName, collectionName };
 }
 
-export function getRunnableContentFromString(text: string) {
+export function getRunnableContentFromString(text: string): string {
   const matchedJSresponseContent = text.match(/```javascript((.|\n)*)```/);
 
   const code =
@@ -73,7 +74,8 @@ export default class ParticipantController {
   _databaseName?: string;
   _collectionName?: string;
   _schema?: string;
-  _sampleDocuments?: string;
+  _sampleDocuments?: Document[];
+  _maxInputTokens?: number;
 
   constructor({
     connectionController,
@@ -86,7 +88,7 @@ export default class ParticipantController {
     this._storageController = storageController;
   }
 
-  _setDatabaseName(name: string | undefined) {
+  _setDatabaseName(name: string | undefined): void {
     if (
       this._queryGenerationState === QUERY_GENERATION_STATE.DEFAULT &&
       this._databaseName !== name
@@ -96,7 +98,7 @@ export default class ParticipantController {
     this._databaseName = name;
   }
 
-  _setCollectionName(name: string | undefined) {
+  _setCollectionName(name: string | undefined): void {
     if (
       this._queryGenerationState === QUERY_GENERATION_STATE.DEFAULT &&
       this._collectionName !== name
@@ -106,7 +108,7 @@ export default class ParticipantController {
     this._collectionName = name;
   }
 
-  createParticipant(context: vscode.ExtensionContext) {
+  createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
     // Chat participants appear as top-level options in the chat input
     // when you type `@`, and can contribute sub-commands in the chat input
     // that appear when you type `/`.
@@ -125,8 +127,8 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  getParticipant(context: vscode.ExtensionContext) {
-    return this._participant || this.createParticipant(context);
+  getParticipant(): vscode.ChatParticipant | undefined {
+    return this._participant;
   }
 
   async handleEmptyQueryRequest(): Promise<(string | vscode.MarkdownString)[]> {
@@ -205,6 +207,14 @@ export default class ParticipantController {
         family: CHAT_PARTICIPANT_MODEL,
       });
       if (model) {
+        if (!this._maxInputTokens) {
+          // Model becomes available only after the first request to Copilot.
+          // Since we do not want to exhaust the context window with the first request,
+          // This is ok to start with the MAX_TOTAL_PROMPT_LENGTH placeholder,
+          // and then updated with the real maxInputTokens when the value is available.
+          this._maxInputTokens = model.maxInputTokens;
+        }
+
         const chatResponse = await model.sendRequest(messages, {}, token);
         for await (const fragment of chatResponse.text) {
           responseContent += fragment;
@@ -655,7 +665,7 @@ export default class ParticipantController {
         .get('useSampleDocsInCopilot');
 
       if (useSampleDocsInCopilot) {
-        this._sampleDocuments = formatSampleDocuments(sampleDocuments);
+        this._sampleDocuments = getSimplifiedSampleDocuments(sampleDocuments);
       }
     } catch (err: any) {
       this._schema = undefined;
@@ -707,6 +717,7 @@ export default class ParticipantController {
       collectionName: this._collectionName,
       schema: this._schema,
       sampleDocuments: this._sampleDocuments,
+      maxInputTokens: this._maxInputTokens,
     });
     const responseContent = await this.getChatResponseContent({
       messages,

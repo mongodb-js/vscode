@@ -1104,7 +1104,7 @@
         "mdb.useSampleDocsInCopilot": {
           "type": "boolean",
           "default": false,
-          "description": "Enable sending sample field values with the participant query command."
+          "description": "Enable sending sample field values with the VSCode copilot chat @MongoDB participant /query command."
         },
         "mdb.confirmDeleteDocument": {
           "type": "boolean",

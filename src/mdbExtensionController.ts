@@ -151,6 +151,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._helpExplorer.activateHelpTreeView(this._telemetryService);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
     this._telemetryService.activateSegmentAnalytics();
+    this._participantController.createParticipant(this._context);
 
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
@@ -332,11 +333,13 @@ export default class MDBExtensionController implements vscode.Disposable {
 
       return commandHandler(args);
     };
-
-    this._context.subscriptions.push(
-      this._participantController.getParticipant(this._context),
-      vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
-    );
+    const participant = this._participantController.getParticipant();
+    if (participant) {
+      this._context.subscriptions.push(
+        participant,
+        vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
+      );
+    }
   };
 
   registerCommand = (
@@ -778,7 +781,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerAtlasStreamsTreeViewCommands();
   }
 
-  registerAtlasStreamsTreeViewCommands() {
+  registerAtlasStreamsTreeViewCommands(): void {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_ADD_STREAM_PROCESSOR,
       async (element: ConnectionTreeItem): Promise<boolean> => {

@@ -27,17 +27,24 @@ import {
   MAX_TOTAL_PROMPT_LENGTH,
 } from '../../../participant/prompts/query';
 
-function generateObjectByStringifiedLength(targetLength: number) {
-  const obj = {};
-  let i = 1;
-
-  // Keep adding fields until the stringified object reaches the desired length.
-  while (JSON.stringify(obj, null, 2).length < targetLength) {
-    obj[i] = i;
-    i++;
+function generateSampleDocumentsByLength(
+  targetLength: number
+): { [key: string]: number }[] {
+  const defaultAssistantPrompt = QueryPrompt.getAssistantPrompt({}).content
+    .length;
+  const maxDocumentLength = targetLength - defaultAssistantPrompt;
+  const arr: { [key: string]: number }[] = [];
+  let j = 1;
+  for (let i = 0; i < 3; i++) {
+    const obj = {};
+    // Keep adding fields until the stringified object reaches the desired length.
+    while (JSON.stringify(obj, null, 2).length < maxDocumentLength) {
+      obj[`${j}`] = j;
+      j++;
+    }
+    arr.push(obj);
   }
-
-  return obj;
+  return arr;
 }
 
 const loadedConnection = {
@@ -94,7 +101,7 @@ suite('Participant Controller Test Suite', function () {
       button: sinon.fake(),
     };
     chatTokenStub = {
-      onCancellationRequested: () => {},
+      onCancellationRequested: sinon.fake(),
     };
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
     sendRequestStub = sinon.fake.resolves({
@@ -116,7 +123,7 @@ suite('Participant Controller Test Suite', function () {
           version: 'gpt-4o-date',
           name: 'GPT 4o (date)',
           maxInputTokens: 16211,
-          countTokens: () => {},
+          countTokens: sinon.fake(),
           sendRequest: sendRequestStub,
         },
       ])
@@ -543,7 +550,7 @@ suite('Participant Controller Test Suite', function () {
               );
               const messages = sendRequestStub.firstCall.args[0];
               expect(messages[0].content).to.include(
-                'Sample socuments: [\n' +
+                'Sample documents: [\n' +
                   '  {\n' +
                   "    _id: ObjectId('63ed1d522d8573fa5c203660'),\n" +
                   '    field: {\n' +
@@ -559,18 +566,15 @@ suite('Participant Controller Test Suite', function () {
               );
             });
 
-            test('does not include sample documents when prompt is too long', async function () {
+            test('includes 1 sample documents when 3 make prompt too long', async function () {
               sinon
                 .stub(testParticipantController, '_queryGenerationState')
                 .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
-
-              const defaultAssistantPrompt = QueryPrompt.getAssistantPrompt({})
-                .content.length;
-              sampleStub.resolves([
-                generateObjectByStringifiedLength(
-                  MAX_TOTAL_PROMPT_LENGTH - defaultAssistantPrompt
-                ),
-              ]);
+              sampleStub.resolves(
+                generateSampleDocumentsByLength(
+                  MAX_TOTAL_PROMPT_LENGTH / 3 // Only 3 documents together reach the limit.
+                )
+              );
               const chatRequestMock = {
                 prompt: 'find all docs by a name example',
                 command: 'query',
@@ -583,7 +587,31 @@ suite('Participant Controller Test Suite', function () {
                 chatTokenStub
               );
               const messages = sendRequestStub.firstCall.args[0];
-              expect(messages[0].content).to.not.include('Sample socuments');
+              expect(messages[0].content).to.include('Sample documents');
+            });
+
+            test('does not include sample documents when prompt is too long', async function () {
+              sinon
+                .stub(testParticipantController, '_queryGenerationState')
+                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+              sampleStub.resolves(
+                generateSampleDocumentsByLength(
+                  MAX_TOTAL_PROMPT_LENGTH // Each document is larger than the limit.
+                )
+              );
+              const chatRequestMock = {
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              };
+              await testParticipantController.chatHandler(
+                chatRequestMock,
+                chatContextStub,
+                chatStreamStub,
+                chatTokenStub
+              );
+              const messages = sendRequestStub.firstCall.args[0];
+              expect(messages[0].content).to.not.include('Sample documents');
             });
           });
 
@@ -604,7 +632,7 @@ suite('Participant Controller Test Suite', function () {
                 chatTokenStub
               );
               const messages = sendRequestStub.firstCall.args[0];
-              expect(messages[0].content).to.not.include('Sample socuments');
+              expect(messages[0].content).to.not.include('Sample documents');
             });
           });
         });

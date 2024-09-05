@@ -1,16 +1,11 @@
 import type { Document } from 'bson';
-import { toJSString } from 'mongodb-query-parser';
 
 const MAX_ARRAY_LENGTH_OF_SAMPLE_DOCUMENT_VALUE = 3;
 
 const MAX_STRING_LENGTH_OF_SAMPLE_DOCUMENT_VALUE = 20;
 
-export function formatSampleDocuments(obj: Document) {
-  return toJSString(format(obj));
-}
-
-function format(obj: Document) {
-  function truncate(value) {
+export function getSimplifiedSampleDocuments(obj: Document[]): Document[] {
+  function truncate(value: any): any {
     if (typeof value === 'string') {
       return value.slice(0, MAX_STRING_LENGTH_OF_SAMPLE_DOCUMENT_VALUE);
     } else if (typeof value === 'object' && value !== null) {

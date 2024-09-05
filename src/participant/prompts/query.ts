@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import type { Document } from 'bson';
+import { toJSString } from 'mongodb-query-parser';
 
 import { getHistoryMessages } from './history';
 
@@ -10,11 +12,13 @@ export class QueryPrompt {
     collectionName = 'test',
     schema,
     sampleDocuments,
+    maxInputTokens = MAX_TOTAL_PROMPT_LENGTH,
   }: {
     databaseName?: string;
     collectionName?: string;
     schema?: string;
-    sampleDocuments?: string;
+    sampleDocuments?: Document[];
+    maxInputTokens?: number;
   }): vscode.LanguageModelChatMessage {
     let prompt = `You are a MongoDB expert.
 
@@ -58,11 +62,17 @@ db.getCollection('');\n\n`;
     if (schema) {
       prompt += `Collection schema: ${schema}\n`;
     }
-    if (
-      sampleDocuments &&
-      prompt.length + sampleDocuments.length < MAX_TOTAL_PROMPT_LENGTH
-    ) {
-      prompt += `Sample socuments: ${sampleDocuments}\n`;
+    if (sampleDocuments) {
+      let docs = toJSString(sampleDocuments);
+      // First check the length of all stringified sample documents.
+      // If the resulting prompt is too large, proceed with only 1 sample document.
+      if (prompt.length + docs.length > maxInputTokens) {
+        docs = toJSString([sampleDocuments[0]]);
+      }
+      // Add sample documents to the prompt only when it fits in the context window.
+      if (prompt.length + docs.length <= maxInputTokens) {
+        prompt += `Sample documents: ${docs}\n`;
+      }
     }
 
     // eslint-disable-next-line new-cap
@@ -81,6 +91,7 @@ db.getCollection('');\n\n`;
     collectionName,
     schema,
     sampleDocuments,
+    maxInputTokens,
   }: {
     request: {
       prompt: string;
@@ -89,7 +100,8 @@ db.getCollection('');\n\n`;
     databaseName?: string;
     collectionName?: string;
     schema?: string;
-    sampleDocuments?: string;
+    sampleDocuments?: Document[];
+    maxInputTokens?: number;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
       QueryPrompt.getAssistantPrompt({
@@ -97,6 +109,7 @@ db.getCollection('');\n\n`;
         collectionName,
         schema,
         sampleDocuments,
+        maxInputTokens,
       }),
       ...getHistoryMessages({ context }),
       QueryPrompt.getUserPrompt(request.prompt),

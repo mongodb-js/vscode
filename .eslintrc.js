@@ -63,6 +63,12 @@ module.exports = {
           'error',
           { prefer: 'type-imports' },
         ],
+        '@typescript-eslint/explicit-function-return-type': [
+          'warn',
+          {
+            allowHigherOrderFunctions: true,
+          },
+        ],
       },
       parserOptions: {
         project: ['./tsconfig.json'], // Specify it only for TypeScript files.
