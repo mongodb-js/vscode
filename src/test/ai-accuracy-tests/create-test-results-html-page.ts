@@ -15,6 +15,7 @@ export type TestResult = {
 
 type TestOutput = {
   prompt: string;
+  testType: string;
   outputs: string[];
 };
 
@@ -55,7 +56,7 @@ function getTestOutputTables(testOutputs: TestOutputs) {
         .map((out) => `<tr><td>${out}</td></tr>`)
         .join('');
       return `
-      <h2>${testName}</h2>
+      <h2>${testName} <i>[${output.testType}]</i></h2>
       <p><strong>Prompt:</strong> ${output.prompt}</p>
       <table>
         <thead>

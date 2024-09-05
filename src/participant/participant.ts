@@ -37,10 +37,10 @@ interface NamespaceQuickPicks {
 }
 
 const DB_NAME_ID = 'DATABASE_NAME';
-const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n`;
+const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n?`;
 
 const COL_NAME_ID = 'COLLECTION_NAME';
-const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
+const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)\n?`;
 
 const MAX_MARKDOWN_LIST_LENGTH = 10;
 

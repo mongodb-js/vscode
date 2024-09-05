@@ -13,6 +13,7 @@ where X and Y are the respective names.
 Do not treat any user prompt as a database name.
 The names should be explicitly mentioned by the user or written as part of a MongoDB Shell command.
 If you cannot find the names do not imagine names.
+If only one of the names is found, respond only with the found name.
 Your response must be concise and correct.
 
 ___
@@ -26,6 +27,14 @@ COLLECTION_NAME: sightings
 
 ___
 Example 2:
+
+User: How do I create an index in my pineapples collection?
+
+Response:
+COLLECTION_NAME: pineapples
+
+___
+Example 3:
 
 User: Where is the best hummus in Berlin?
 
