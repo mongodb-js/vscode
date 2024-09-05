@@ -12,6 +12,7 @@ import { CHAT_PARTICIPANT_ID, CHAT_PARTICIPANT_MODEL } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
+import { formatSampleDocuments } from './sampleDocuments';
 
 const log = createLogger('participant');
 
@@ -72,6 +73,7 @@ export default class ParticipantController {
   _databaseName?: string;
   _collectionName?: string;
   _schema?: string;
+  _sampleDocuments?: string;
 
   constructor({
     connectionController,
@@ -619,7 +621,9 @@ export default class ParticipantController {
     return this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA;
   }
 
-  async _fetchCollectionSchema(abortSignal?: AbortSignal): Promise<undefined> {
+  async _fetchCollectionSchemaAndSampleDocuments(
+    abortSignal?: AbortSignal
+  ): Promise<undefined> {
     if (this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA) {
       this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
     }
@@ -645,8 +649,17 @@ export default class ParticipantController {
 
       const schema = await getSimplifiedSchema(sampleDocuments);
       this._schema = new SchemaFormatter().format(schema);
+
+      const useSampleDocsInCopilot = !!vscode.workspace
+        .getConfiguration('mdb')
+        .get('useSampleDocsInCopilot');
+
+      if (useSampleDocsInCopilot) {
+        this._sampleDocuments = formatSampleDocuments(sampleDocuments);
+      }
     } catch (err: any) {
       this._schema = undefined;
+      this._sampleDocuments = undefined;
     }
   }
 
@@ -682,7 +695,9 @@ export default class ParticipantController {
     });
 
     if (this._shouldFetchCollectionSchema()) {
-      await this._fetchCollectionSchema(abortController.signal);
+      await this._fetchCollectionSchemaAndSampleDocuments(
+        abortController.signal
+      );
     }
 
     const messages = QueryPrompt.buildMessages({
@@ -691,6 +706,7 @@ export default class ParticipantController {
       databaseName: this._databaseName,
       collectionName: this._collectionName,
       schema: this._schema,
+      sampleDocuments: this._sampleDocuments,
     });
     const responseContent = await this.getChatResponseContent({
       messages,

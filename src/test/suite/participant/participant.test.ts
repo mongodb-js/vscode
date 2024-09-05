@@ -3,6 +3,7 @@ import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
+import { ObjectId, Int32 } from 'bson';
 
 import ParticipantController, {
   parseForDatabaseAndCollectionName,
@@ -21,6 +22,23 @@ import {
   StorageLocation,
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
+import {
+  QueryPrompt,
+  MAX_TOTAL_PROMPT_LENGTH,
+} from '../../../participant/prompts/query';
+
+function generateObjectByStringifiedLength(targetLength: number) {
+  const obj = {};
+  let i = 1;
+
+  // Keep adding fields until the stringified object reaches the desired length.
+  while (JSON.stringify(obj, null, 2).length < targetLength) {
+    obj[i] = i;
+    i++;
+  }
+
+  return obj;
+}
 
 const loadedConnection = {
   id: 'id',
@@ -293,7 +311,10 @@ suite('Participant Controller Test Suite', function () {
   });
 
   suite('when connected', function () {
+    let sampleStub;
+
     beforeEach(function () {
+      sampleStub = sinon.stub();
       sinon.replace(
         testParticipantController._connectionController,
         'getActiveDataService',
@@ -331,13 +352,7 @@ suite('Participant Controller Test Suite', function () {
               url: TEST_DATABASE_URI,
               options: {},
             }),
-            sample: () =>
-              Promise.resolve([
-                {
-                  _id: '66b3408a60da951fc354743e',
-                  field: { subField: '66b3408a60da951fc354743e' },
-                },
-              ]),
+            sample: sampleStub,
             once: sinon.stub(),
           } as unknown as DataService)
       );
@@ -449,6 +464,16 @@ suite('Participant Controller Test Suite', function () {
             sinon
               .stub(testParticipantController, '_queryGenerationState')
               .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+            sampleStub.resolves([
+              {
+                _id: new ObjectId('63ed1d522d8573fa5c203660'),
+                field: {
+                  stringField:
+                    'There was a house cat who finally got the chance to do what it had always wanted to do.',
+                  arrayField: [new Int32('1')],
+                },
+              },
+            ]);
             const chatRequestMock = {
               prompt: 'find all docs by a name example',
               command: 'query',
@@ -462,10 +487,125 @@ suite('Participant Controller Test Suite', function () {
             );
             const messages = sendRequestStub.firstCall.args[0];
             expect(messages[0].content).to.include(
-              'Collection schema:\n' +
-                '_id: String\n' +
-                'field.subField: String\n'
+              'Collection schema: _id: ObjectId\n' +
+                'field.stringField: String\n' +
+                'field.arrayField: Array<Int32>\n'
             );
+          });
+
+          suite('useSampleDocsInCopilot setting is true', function () {
+            beforeEach(async () => {
+              await vscode.workspace
+                .getConfiguration('mdb')
+                .update('useSampleDocsInCopilot', true);
+            });
+
+            afterEach(async () => {
+              await vscode.workspace
+                .getConfiguration('mdb')
+                .update('useSampleDocsInCopilot', false);
+            });
+
+            test('includes sample documents', async function () {
+              sinon
+                .stub(testParticipantController, '_queryGenerationState')
+                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+              sampleStub.resolves([
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203660'),
+                  field: {
+                    stringField:
+                      'There was a house cat who finally got the chance to do what it had always wanted to do.',
+                    arrayField: [
+                      new Int32('1'),
+                      new Int32('2'),
+                      new Int32('3'),
+                      new Int32('4'),
+                      new Int32('5'),
+                      new Int32('6'),
+                      new Int32('7'),
+                      new Int32('8'),
+                      new Int32('9'),
+                    ],
+                  },
+                },
+              ]);
+              const chatRequestMock = {
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              };
+              await testParticipantController.chatHandler(
+                chatRequestMock,
+                chatContextStub,
+                chatStreamStub,
+                chatTokenStub
+              );
+              const messages = sendRequestStub.firstCall.args[0];
+              expect(messages[0].content).to.include(
+                'Sample socuments: [\n' +
+                  '  {\n' +
+                  "    _id: ObjectId('63ed1d522d8573fa5c203660'),\n" +
+                  '    field: {\n' +
+                  "      stringField: 'There was a house ca',\n" +
+                  '      arrayField: [\n' +
+                  "        NumberInt('1'),\n" +
+                  "        NumberInt('2'),\n" +
+                  "        NumberInt('3')\n" +
+                  '      ]\n' +
+                  '    }\n' +
+                  '  }\n' +
+                  ']\n'
+              );
+            });
+
+            test('does not include sample documents when prompt is too long', async function () {
+              sinon
+                .stub(testParticipantController, '_queryGenerationState')
+                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+
+              const defaultAssistantPrompt = QueryPrompt.getAssistantPrompt({})
+                .content.length;
+              sampleStub.resolves([
+                generateObjectByStringifiedLength(
+                  MAX_TOTAL_PROMPT_LENGTH - defaultAssistantPrompt
+                ),
+              ]);
+              const chatRequestMock = {
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              };
+              await testParticipantController.chatHandler(
+                chatRequestMock,
+                chatContextStub,
+                chatStreamStub,
+                chatTokenStub
+              );
+              const messages = sendRequestStub.firstCall.args[0];
+              expect(messages[0].content).to.not.include('Sample socuments');
+            });
+          });
+
+          suite('useSampleDocsInCopilot setting is false', function () {
+            test('does not include sample documents', async function () {
+              sinon
+                .stub(testParticipantController, '_queryGenerationState')
+                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+              const chatRequestMock = {
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              };
+              await testParticipantController.chatHandler(
+                chatRequestMock,
+                chatContextStub,
+                chatStreamStub,
+                chatTokenStub
+              );
+              const messages = sendRequestStub.firstCall.args[0];
+              expect(messages[0].content).to.not.include('Sample socuments');
+            });
           });
         });
 

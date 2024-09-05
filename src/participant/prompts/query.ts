@@ -2,17 +2,21 @@ import * as vscode from 'vscode';
 
 import { getHistoryMessages } from './history';
 
+export const MAX_TOTAL_PROMPT_LENGTH = 10000;
+
 export class QueryPrompt {
   static getAssistantPrompt({
     databaseName = 'mongodbVSCodeCopilotDB',
     collectionName = 'test',
     schema,
+    sampleDocuments,
   }: {
     databaseName?: string;
     collectionName?: string;
     schema?: string;
+    sampleDocuments?: string;
   }): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert.
+    let prompt = `You are a MongoDB expert.
 
 Your task is to help the user craft MongoDB queries and aggregation pipelines that perform their task.
 Keep your response concise.
@@ -22,6 +26,8 @@ You can imagine the schema.
 Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.
 You can use only the following MongoDB Shell commands: use, aggregate, bulkWrite, countDocuments, findOneAndReplace,
 findOneAndUpdate, insert, insertMany, insertOne, remove, replaceOne, update, updateMany, updateOne.
+
+Concisely explain the code snippet you have generated.
 
 Example 1:
 use('');
@@ -38,22 +44,26 @@ db.getCollection('').find({
   date: { $gte: new Date('2014-04-04'), $lt: new Date('2014-04-05') }
 }).count();
 
-Database name: ${databaseName}
-Collection name: ${collectionName}
-${
-  schema
-    ? `Collection schema:
-${schema}`
-    : ''
-}
-
 MongoDB command to specify database:
 use('');
 
 MongoDB command to specify collection:
-db.getCollection('')
-
-Concisely explain the code snippet you have generated.`;
+db.getCollection('');\n\n`;
+    if (databaseName) {
+      prompt += `Database name: ${databaseName}\n`;
+    }
+    if (collectionName) {
+      prompt += `Collection name: ${collectionName}\n`;
+    }
+    if (schema) {
+      prompt += `Collection schema: ${schema}\n`;
+    }
+    if (
+      sampleDocuments &&
+      prompt.length + sampleDocuments.length < MAX_TOTAL_PROMPT_LENGTH
+    ) {
+      prompt += `Sample socuments: ${sampleDocuments}\n`;
+    }
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);
@@ -70,6 +80,7 @@ Concisely explain the code snippet you have generated.`;
     databaseName,
     collectionName,
     schema,
+    sampleDocuments,
   }: {
     request: {
       prompt: string;
@@ -78,9 +89,15 @@ Concisely explain the code snippet you have generated.`;
     databaseName?: string;
     collectionName?: string;
     schema?: string;
+    sampleDocuments?: string;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
-      QueryPrompt.getAssistantPrompt({ databaseName, collectionName, schema }),
+      QueryPrompt.getAssistantPrompt({
+        databaseName,
+        collectionName,
+        schema,
+        sampleDocuments,
+      }),
       ...getHistoryMessages({ context }),
       QueryPrompt.getUserPrompt(request.prompt),
     ];
