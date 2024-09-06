@@ -1,25 +1,21 @@
 import * as vscode from 'vscode';
 import type { Document } from 'bson';
-import { toJSString } from 'mongodb-query-parser';
 
 import { getHistoryMessages } from './history';
-
-export const MAX_TOTAL_PROMPT_LENGTH = 10000;
+import { getStringifiedSampleDocuments } from '../sampleDocuments';
 
 export class QueryPrompt {
-  static getAssistantPrompt({
+  static async getAssistantPrompt({
     databaseName = 'mongodbVSCodeCopilotDB',
     collectionName = 'test',
     schema,
     sampleDocuments,
-    maxInputTokens = MAX_TOTAL_PROMPT_LENGTH,
   }: {
     databaseName?: string;
     collectionName?: string;
     schema?: string;
     sampleDocuments?: Document[];
-    maxInputTokens?: number;
-  }): vscode.LanguageModelChatMessage {
+  }): Promise<vscode.LanguageModelChatMessage> {
     let prompt = `You are a MongoDB expert.
 
 Your task is to help the user craft MongoDB queries and aggregation pipelines that perform their task.
@@ -63,16 +59,10 @@ db.getCollection('');\n\n`;
       prompt += `Collection schema: ${schema}\n`;
     }
     if (sampleDocuments) {
-      let docs = toJSString(sampleDocuments);
-      // First check the length of all stringified sample documents.
-      // If the resulting prompt is too large, proceed with only 1 sample document.
-      if (prompt.length + docs.length > maxInputTokens) {
-        docs = toJSString([sampleDocuments[0]]);
-      }
-      // Add sample documents to the prompt only when it fits in the context window.
-      if (prompt.length + docs.length <= maxInputTokens) {
-        prompt += `Sample documents: ${docs}\n`;
-      }
+      prompt += await getStringifiedSampleDocuments({
+        sampleDocuments,
+        prompt,
+      });
     }
 
     // eslint-disable-next-line new-cap
@@ -84,14 +74,13 @@ db.getCollection('');\n\n`;
     return vscode.LanguageModelChatMessage.User(prompt);
   }
 
-  static buildMessages({
+  static async buildMessages({
     context,
     request,
     databaseName,
     collectionName,
     schema,
     sampleDocuments,
-    maxInputTokens,
   }: {
     request: {
       prompt: string;
@@ -101,15 +90,13 @@ db.getCollection('');\n\n`;
     collectionName?: string;
     schema?: string;
     sampleDocuments?: Document[];
-    maxInputTokens?: number;
-  }): vscode.LanguageModelChatMessage[] {
+  }): Promise<vscode.LanguageModelChatMessage[]> {
     const messages = [
-      QueryPrompt.getAssistantPrompt({
+      await QueryPrompt.getAssistantPrompt({
         databaseName,
         collectionName,
         schema,
         sampleDocuments,
-        maxInputTokens,
       }),
       ...getHistoryMessages({ context }),
       QueryPrompt.getUserPrompt(request.prompt),

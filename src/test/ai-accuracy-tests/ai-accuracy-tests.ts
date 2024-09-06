@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { loadFixturesToDB } from './fixtures/fixture-loader';
 import type { Fixtures } from './fixtures/fixture-loader';
 import { AIBackend } from './ai-backend';
+import type { ChatCompletion } from './ai-backend';
 import { GenericPrompt } from '../../participant/prompts/generic';
 import { QueryPrompt } from '../../participant/prompts/query';
 import {
@@ -50,7 +51,7 @@ const testCases: TestCase[] = [
     assertResult: async ({
       responseContent,
       connectionString,
-    }: AssertProps) => {
+    }: AssertProps): Promise<void> => {
       const result = await runCodeInMessage(responseContent, connectionString);
 
       const totalResponse = `${result.printOutput.join('')}${
@@ -89,7 +90,7 @@ async function pushResultsToDB({
   anyFailedAccuracyThreshold: boolean;
   runTimeMS: number;
   httpErrors: number;
-}) {
+}): Promise<void> {
   const client = new MongoClient(
     process.env.AI_ACCURACY_RESULTS_MONGODB_CONNECTION_STRING || ''
   );
@@ -125,7 +126,9 @@ async function pushResultsToDB({
   }
 }
 
-const buildMessages = (testCase: TestCase) => {
+const buildMessages = async (
+  testCase: TestCase
+): Promise<vscode.LanguageModelChatMessage[]> => {
   switch (testCase.type) {
     case 'generic':
       return GenericPrompt.buildMessages({
@@ -134,7 +137,7 @@ const buildMessages = (testCase: TestCase) => {
       });
 
     case 'query':
-      return QueryPrompt.buildMessages({
+      return await QueryPrompt.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
         databaseName: testCase.databaseName,
@@ -158,8 +161,8 @@ async function runTest({
 }: {
   testCase: TestCase;
   aiBackend: AIBackend;
-}) {
-  const messages = buildMessages(testCase);
+}): Promise<ChatCompletion> {
+  const messages = await buildMessages(testCase);
   const chatCompletion = await aiBackend.runAIChatCompletionGeneration({
     messages: messages.map((message) => ({
       ...message,

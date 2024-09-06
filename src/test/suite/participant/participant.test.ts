@@ -22,30 +22,10 @@ import {
   StorageLocation,
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
-import {
-  QueryPrompt,
-  MAX_TOTAL_PROMPT_LENGTH,
-} from '../../../participant/prompts/query';
 
-function generateSampleDocumentsByLength(
-  targetLength: number
-): { [key: string]: number }[] {
-  const defaultAssistantPrompt = QueryPrompt.getAssistantPrompt({}).content
-    .length;
-  const maxDocumentLength = targetLength - defaultAssistantPrompt;
-  const arr: { [key: string]: number }[] = [];
-  let j = 1;
-  for (let i = 0; i < 3; i++) {
-    const obj = {};
-    // Keep adding fields until the stringified object reaches the desired length.
-    while (JSON.stringify(obj, null, 2).length < maxDocumentLength) {
-      obj[`${j}`] = j;
-      j++;
-    }
-    arr.push(obj);
-  }
-  return arr;
-}
+// The Copilot's model in not available in tests,
+// therefore we need to mock its methods and returning values.
+export const MAX_TOTAL_PROMPT_LENGTH = 16000;
 
 const loadedConnection = {
   id: 'id',
@@ -69,6 +49,7 @@ suite('Participant Controller Test Suite', function () {
   let chatContextStub;
   let chatStreamStub;
   let chatTokenStub;
+  let countTokensStub;
   let sendRequestStub;
 
   beforeEach(function () {
@@ -103,6 +84,7 @@ suite('Participant Controller Test Suite', function () {
     chatTokenStub = {
       onCancellationRequested: sinon.fake(),
     };
+    countTokensStub = sinon.stub();
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
     sendRequestStub = sinon.fake.resolves({
       text: [
@@ -122,8 +104,8 @@ suite('Participant Controller Test Suite', function () {
           family: 'gpt-4o',
           version: 'gpt-4o-date',
           name: 'GPT 4o (date)',
-          maxInputTokens: 16211,
-          countTokens: sinon.fake(),
+          maxInputTokens: MAX_TOTAL_PROMPT_LENGTH,
+          countTokens: countTokensStub,
           sendRequest: sendRequestStub,
         },
       ])
@@ -513,10 +495,72 @@ suite('Participant Controller Test Suite', function () {
                 .update('useSampleDocsInCopilot', false);
             });
 
-            test('includes sample documents', async function () {
+            test('includes 3 sample documents as an array', async function () {
               sinon
                 .stub(testParticipantController, '_queryGenerationState')
                 .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+              countTokensStub.resolves(MAX_TOTAL_PROMPT_LENGTH);
+              sampleStub.resolves([
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203661'),
+                  field: {
+                    stringField: 'Text 1',
+                  },
+                },
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203662'),
+                  field: {
+                    stringField: 'Text 2',
+                  },
+                },
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203663'),
+                  field: {
+                    stringField: 'Text 3',
+                  },
+                },
+              ]);
+              const chatRequestMock = {
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              };
+              await testParticipantController.chatHandler(
+                chatRequestMock,
+                chatContextStub,
+                chatStreamStub,
+                chatTokenStub
+              );
+              const messages = sendRequestStub.firstCall.args[0];
+              expect(messages[0].content).to.include(
+                'Sample documents: [\n' +
+                  '  {\n' +
+                  "    _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
+                  '    field: {\n' +
+                  "      stringField: 'Text 1'\n" +
+                  '    }\n' +
+                  '  },\n' +
+                  '  {\n' +
+                  "    _id: ObjectId('63ed1d522d8573fa5c203662'),\n" +
+                  '    field: {\n' +
+                  "      stringField: 'Text 2'\n" +
+                  '    }\n' +
+                  '  },\n' +
+                  '  {\n' +
+                  "    _id: ObjectId('63ed1d522d8573fa5c203663'),\n" +
+                  '    field: {\n' +
+                  "      stringField: 'Text 3'\n" +
+                  '    }\n' +
+                  '  }\n' +
+                  ']\n'
+              );
+            });
+
+            test('includes 1 sample document as an object', async function () {
+              sinon
+                .stub(testParticipantController, '_queryGenerationState')
+                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
+              countTokensStub.resolves(MAX_TOTAL_PROMPT_LENGTH);
               sampleStub.resolves([
                 {
                   _id: new ObjectId('63ed1d522d8573fa5c203660'),
@@ -550,19 +594,17 @@ suite('Participant Controller Test Suite', function () {
               );
               const messages = sendRequestStub.firstCall.args[0];
               expect(messages[0].content).to.include(
-                'Sample documents: [\n' +
-                  '  {\n' +
-                  "    _id: ObjectId('63ed1d522d8573fa5c203660'),\n" +
-                  '    field: {\n' +
-                  "      stringField: 'There was a house ca',\n" +
-                  '      arrayField: [\n' +
-                  "        NumberInt('1'),\n" +
-                  "        NumberInt('2'),\n" +
-                  "        NumberInt('3')\n" +
-                  '      ]\n' +
-                  '    }\n' +
+                'Sample document: {\n' +
+                  "  _id: ObjectId('63ed1d522d8573fa5c203660'),\n" +
+                  '  field: {\n' +
+                  "    stringField: 'There was a house ca',\n" +
+                  '    arrayField: [\n' +
+                  "      NumberInt('1'),\n" +
+                  "      NumberInt('2'),\n" +
+                  "      NumberInt('3')\n" +
+                  '    ]\n' +
                   '  }\n' +
-                  ']\n'
+                  '}\n'
               );
             });
 
@@ -570,11 +612,28 @@ suite('Participant Controller Test Suite', function () {
               sinon
                 .stub(testParticipantController, '_queryGenerationState')
                 .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
-              sampleStub.resolves(
-                generateSampleDocumentsByLength(
-                  MAX_TOTAL_PROMPT_LENGTH / 3 // Only 3 documents together reach the limit.
-                )
-              );
+              countTokensStub.onCall(0).resolves(MAX_TOTAL_PROMPT_LENGTH + 1);
+              countTokensStub.onCall(1).resolves(MAX_TOTAL_PROMPT_LENGTH);
+              sampleStub.resolves([
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203661'),
+                  field: {
+                    stringField: 'Text 1',
+                  },
+                },
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203662'),
+                  field: {
+                    stringField: 'Text 2',
+                  },
+                },
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203663'),
+                  field: {
+                    stringField: 'Text 3',
+                  },
+                },
+              ]);
               const chatRequestMock = {
                 prompt: 'find all docs by a name example',
                 command: 'query',
@@ -587,18 +646,42 @@ suite('Participant Controller Test Suite', function () {
                 chatTokenStub
               );
               const messages = sendRequestStub.firstCall.args[0];
-              expect(messages[0].content).to.include('Sample documents');
+              expect(messages[0].content).to.include(
+                'Sample document: {\n' +
+                  "  _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
+                  '  field: {\n' +
+                  "    stringField: 'Text 1'\n" +
+                  '  }\n' +
+                  '}\n'
+              );
             });
 
-            test('does not include sample documents when prompt is too long', async function () {
+            test('does not include sample documents when even 1 makes prompt too long', async function () {
               sinon
                 .stub(testParticipantController, '_queryGenerationState')
                 .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
-              sampleStub.resolves(
-                generateSampleDocumentsByLength(
-                  MAX_TOTAL_PROMPT_LENGTH // Each document is larger than the limit.
-                )
-              );
+              countTokensStub.onCall(0).resolves(MAX_TOTAL_PROMPT_LENGTH + 1);
+              countTokensStub.onCall(1).resolves(MAX_TOTAL_PROMPT_LENGTH + 1);
+              sampleStub.resolves([
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203661'),
+                  field: {
+                    stringField: 'Text 1',
+                  },
+                },
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203662'),
+                  field: {
+                    stringField: 'Text 2',
+                  },
+                },
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203663'),
+                  field: {
+                    stringField: 'Text 3',
+                  },
+                },
+              ]);
               const chatRequestMock = {
                 prompt: 'find all docs by a name example',
                 command: 'query',

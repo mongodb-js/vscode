@@ -9,11 +9,12 @@ import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
 import { GenericPrompt } from './prompts/generic';
-import { CHAT_PARTICIPANT_ID, CHAT_PARTICIPANT_MODEL } from './constants';
+import { CHAT_PARTICIPANT_ID } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
+import { getCopilotModel } from './model';
 
 const log = createLogger('participant');
 
@@ -22,6 +23,7 @@ export enum QUERY_GENERATION_STATE {
   ASK_TO_CONNECT = 'ASK_TO_CONNECT',
   ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
   ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
+  CHANGE_DATABASE_NAME = 'CHANGE_DATABASE_NAME',
   FETCH_SCHEMA = 'FETCH_SCHEMA',
 }
 
@@ -75,7 +77,6 @@ export default class ParticipantController {
   _collectionName?: string;
   _schema?: string;
   _sampleDocuments?: Document[];
-  _maxInputTokens?: number;
 
   constructor({
     connectionController,
@@ -93,7 +94,8 @@ export default class ParticipantController {
       this._queryGenerationState === QUERY_GENERATION_STATE.DEFAULT &&
       this._databaseName !== name
     ) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.FETCH_SCHEMA;
+      this._queryGenerationState = QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME;
+      this._collectionName = undefined;
     }
     this._databaseName = name;
   }
@@ -200,28 +202,17 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<string> {
+    const model = await getCopilotModel();
     let responseContent = '';
-    try {
-      const [model] = await vscode.lm.selectChatModels({
-        vendor: 'copilot',
-        family: CHAT_PARTICIPANT_MODEL,
-      });
-      if (model) {
-        if (!this._maxInputTokens) {
-          // Model becomes available only after the first request to Copilot.
-          // Since we do not want to exhaust the context window with the first request,
-          // This is ok to start with the MAX_TOTAL_PROMPT_LENGTH placeholder,
-          // and then updated with the real maxInputTokens when the value is available.
-          this._maxInputTokens = model.maxInputTokens;
-        }
-
+    if (model) {
+      try {
         const chatResponse = await model.sendRequest(messages, {}, token);
         for await (const fragment of chatResponse.text) {
           responseContent += fragment;
         }
+      } catch (err) {
+        this.handleError(err, stream);
       }
-    } catch (err) {
-      this.handleError(err, stream);
     }
 
     return responseContent;
@@ -498,14 +489,17 @@ export default class ParticipantController {
       ![
         QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME,
         QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME,
+        QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME,
       ].includes(this._queryGenerationState)
     ) {
       return false;
     }
 
     if (
-      this._queryGenerationState ===
-      QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME
+      [
+        QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME,
+        QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME,
+      ].includes(this._queryGenerationState)
     ) {
       this._setDatabaseName(prompt);
       if (!this._collectionName) {
@@ -710,14 +704,13 @@ export default class ParticipantController {
       );
     }
 
-    const messages = QueryPrompt.buildMessages({
+    const messages = await QueryPrompt.buildMessages({
       request,
       context,
       databaseName: this._databaseName,
       collectionName: this._collectionName,
       schema: this._schema,
       sampleDocuments: this._sampleDocuments,
-      maxInputTokens: this._maxInputTokens,
     });
     const responseContent = await this.getChatResponseContent({
       messages,
