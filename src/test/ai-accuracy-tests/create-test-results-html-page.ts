@@ -23,7 +23,7 @@ export type TestOutputs = {
   [testName: string]: TestOutput;
 };
 
-function getTestResultsTable(testResults: TestResult[]) {
+function getTestResultsTable(testResults: TestResult[]): string {
   const headers = Object.keys(testResults[0])
     .map((key) => `<th>${key}</th>`)
     .join('');
@@ -49,7 +49,7 @@ function getTestResultsTable(testResults: TestResult[]) {
 `;
 }
 
-function getTestOutputTables(testOutputs: TestOutputs) {
+function getTestOutputTables(testOutputs: TestOutputs): string {
   const outputTables = Object.entries(testOutputs)
     .map(([testName, output]) => {
       const outputRows = output.outputs

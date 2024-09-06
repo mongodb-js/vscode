@@ -8,19 +8,29 @@ const vscodeMock = {
     User: UserRole,
   },
   LanguageModelChatMessage: {
-    Assistant: (content, name?: string) => ({
+    Assistant: (content, name?: string): unknown => ({
       name,
       content,
       role: AssistantRole,
     }),
-    User: (content: string, name?: string) => ({
+    User: (content: string, name?: string): unknown => ({
       content,
       name,
       role: UserRole,
     }),
   },
   window: {
-    createOutputChannel: () => {},
+    createOutputChannel: (): void => {},
+  },
+  lm: {
+    selectChatModels: (): unknown => [
+      {
+        countTokens: (input: string): number => {
+          return input.length;
+        },
+        maxInputTokens: 10_000,
+      },
+    ],
   },
 };
 
