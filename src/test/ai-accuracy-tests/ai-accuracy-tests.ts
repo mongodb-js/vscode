@@ -131,6 +131,15 @@ const queryTestCases: TestCase[] = [
       mongoClient,
       fixtures,
     }: AssertProps) => {
+      const documentsBefore = await mongoClient
+        .db('CookBook')
+        .collection('recipes')
+        .find()
+        .toArray();
+      expect(documentsBefore).to.deep.equal(
+        fixtures.CookBook.recipes.documents
+      );
+
       await runCodeInMessage(responseContent, connectionString);
       const documents = await mongoClient
         .db('CookBook')
@@ -183,6 +192,12 @@ const queryTestCases: TestCase[] = [
       connectionString,
       mongoClient,
     }: AssertProps) => {
+      const indexesBefore = await mongoClient
+        .db('FarmData')
+        .collection('Pineapples')
+        .listIndexes()
+        .toArray();
+      expect(indexesBefore.length).to.equal(1);
       await runCodeInMessage(responseContent, connectionString);
 
       const indexes = await mongoClient
