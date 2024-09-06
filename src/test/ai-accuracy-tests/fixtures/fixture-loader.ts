@@ -2,6 +2,7 @@ import type { Document, MongoClient } from 'mongodb';
 import { getSimplifiedSchema } from 'mongodb-schema';
 
 import type { Fixture } from './fixture-type';
+import antiques from './antiques';
 import pets from './pets';
 import pineapples from './pineapples';
 import recipes from './recipes';
@@ -19,6 +20,7 @@ export type Fixtures = {
 
 type LoadableFixture = (() => Fixture) | Fixture;
 const fixturesToLoad: LoadableFixture[] = [
+  antiques,
   pets,
   pineapples,
   recipes,
@@ -62,7 +64,7 @@ export async function reloadFixture({
   coll: string;
   mongoClient: MongoClient;
   fixtures: Fixtures;
-}) {
+}): Promise<void> {
   await mongoClient.db(db).collection(coll).drop();
   const { documents } = fixtures[db][coll];
   await mongoClient.db(db).collection(coll).insertMany(documents);

@@ -54,8 +54,10 @@ export const runCodeInMessage = async (
   };
 };
 
-export const isDeepStrictEqualTo = (expected: unknown) => (actual: unknown) =>
-  assert.deepStrictEqual(actual, expected);
+export const isDeepStrictEqualTo =
+  (expected: unknown) =>
+  (actual: unknown): void =>
+    assert.deepStrictEqual(actual, expected);
 
 export const isDeepStrictEqualToFixtures =
   (
@@ -64,13 +66,14 @@ export const isDeepStrictEqualToFixtures =
     fixtures: Fixtures,
     comparator: (document: Document) => boolean
   ) =>
-  (actual: unknown) => {
+  (actual: unknown): void => {
     const expected = fixtures[db][coll].documents.filter(comparator);
     assert.deepStrictEqual(actual, expected);
   };
 
 export const anyOf =
-  (assertions: ((result: unknown) => void)[]) => (actual: unknown) => {
+  (assertions: ((result: unknown) => void)[]) =>
+  (actual: unknown): void => {
     const errors: Error[] = [];
     for (const assertion of assertions) {
       try {

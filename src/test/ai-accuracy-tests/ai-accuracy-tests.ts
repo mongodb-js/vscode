@@ -25,6 +25,9 @@ import { parseForDatabaseAndCollectionName } from '../../participant/participant
 
 const numberOfRunsPerTest = 1;
 
+// When true, we will log the entire prompt we send to the model for each test.
+const DEBUG_PROMPTS = process.env.DEBUG_PROMPTS === 'true';
+
 type AssertProps = {
   responseContent: string;
   connectionString: string;
@@ -42,6 +45,7 @@ type TestCase = {
   reloadFixtureOnEachRun?: boolean;
   databaseName?: string;
   collectionName?: string;
+  includeSampleDocuments?: boolean;
   accuracyThresholdOverride?: number;
   assertResult: (props: AssertProps) => Promise<void> | void;
   only?: boolean; // Translates to mocha's it.only so only this test will run.
@@ -53,7 +57,7 @@ const namespaceTestCases: TestCase[] = [
     type: 'namespace',
     userInput:
       'How many documents are in the tempReadings collection in the pools database?',
-    assertResult: ({ responseContent }: AssertProps) => {
+    assertResult: ({ responseContent }: AssertProps): void => {
       const namespace = parseForDatabaseAndCollectionName(responseContent);
 
       expect(namespace.databaseName).to.equal('pools');
@@ -64,7 +68,7 @@ const namespaceTestCases: TestCase[] = [
     testCase: 'No namespace included in basic query',
     type: 'namespace',
     userInput: 'How many documents are in the collection?',
-    assertResult: ({ responseContent }: AssertProps) => {
+    assertResult: ({ responseContent }: AssertProps): void => {
       const namespace = parseForDatabaseAndCollectionName(responseContent);
 
       expect(namespace.databaseName).to.equal(undefined);
@@ -76,7 +80,7 @@ const namespaceTestCases: TestCase[] = [
     type: 'namespace',
     userInput:
       'How do I create a new user with read write permissions on the orders collection?',
-    assertResult: ({ responseContent }: AssertProps) => {
+    assertResult: ({ responseContent }: AssertProps): void => {
       const namespace = parseForDatabaseAndCollectionName(responseContent);
 
       expect(namespace.databaseName).to.equal(undefined);
@@ -88,7 +92,7 @@ const namespaceTestCases: TestCase[] = [
     type: 'namespace',
     userInput:
       'How do I create a new user with read write permissions on the orders db?',
-    assertResult: ({ responseContent }: AssertProps) => {
+    assertResult: ({ responseContent }: AssertProps): void => {
       const namespace = parseForDatabaseAndCollectionName(responseContent);
 
       expect(namespace.databaseName).to.equal('orders');
@@ -131,7 +135,7 @@ const queryTestCases: TestCase[] = [
       connectionString,
       mongoClient,
       fixtures,
-    }: AssertProps) => {
+    }: AssertProps): Promise<void> => {
       const documentsBefore = await mongoClient
         .db('CookBook')
         .collection('recipes')
@@ -172,7 +176,7 @@ const queryTestCases: TestCase[] = [
     assertResult: async ({
       responseContent,
       connectionString,
-    }: AssertProps) => {
+    }: AssertProps): Promise<void> => {
       const output = await runCodeInMessage(responseContent, connectionString);
 
       expect(output.data?.result?.content[0]).to.deep.equal({
@@ -192,7 +196,7 @@ const queryTestCases: TestCase[] = [
       responseContent,
       connectionString,
       mongoClient,
-    }: AssertProps) => {
+    }: AssertProps): Promise<void> => {
       const indexesBefore = await mongoClient
         .db('FarmData')
         .collection('Pineapples')
@@ -211,6 +215,27 @@ const queryTestCases: TestCase[] = [
       expect(
         indexes.filter((index) => index.name !== '_id_')[0]?.key
       ).to.have.keys(['harvestedDate', 'sweetnessScale']);
+    },
+  },
+  {
+    testCase: 'Aggregation with an or or $in, with sample docs',
+    type: 'query',
+    only: true,
+    databaseName: 'Antiques',
+    collectionName: 'items',
+    includeSampleDocuments: true,
+    reloadFixtureOnEachRun: true,
+    userInput:
+      'which collectors specialize only in mint items? and are located in London or New York? an array of their names in a field called collectors',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+
+      expect(output.data?.result?.content?.[0].collectors).to.have.lengthOf(2);
+      expect(output.data?.result?.content[0].collectors).to.include('John Doe');
+      expect(output.data?.result?.content[0].collectors).to.include('Monkey');
     },
   },
 ];
@@ -309,6 +334,13 @@ const buildMessages = async ({
                 ]?.schema,
             }
           : {}),
+        ...(testCase.includeSampleDocuments
+          ? {
+              sampleDocuments: fixtures[testCase.databaseName as string][
+                testCase.collectionName as string
+              ].documents.slice(0, 3),
+            }
+          : {}),
       });
 
     case 'namespace':
@@ -335,6 +367,10 @@ async function runTest({
     testCase,
     fixtures,
   });
+  if (DEBUG_PROMPTS) {
+    console.log('Messages to send to chat completion:');
+    console.log(messages);
+  }
   const chatCompletion = await aiBackend.runAIChatCompletionGeneration({
     messages: messages.map((message) => ({
       ...message,
