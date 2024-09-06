@@ -708,35 +708,35 @@
         },
         {
           "command": "mdb.exportToRuby",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.exportToPython",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.exportToJava",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.exportToCsharp",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.exportToNode",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.exportToGo",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.exportToRust",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.exportToPHP",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
+          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false && mdb.canExportToLanguage"
         },
         {
           "command": "mdb.refreshPlaygroundsFromTreeView",

@@ -14,6 +14,13 @@ export default class PlaygroundSelectedCodeActionProvider
   mode?: ExportToLanguageMode;
   activeTextEditor?: TextEditor;
 
+  get canExportToLanguage(): boolean {
+    return (
+      this.mode == ExportToLanguageMode.QUERY ||
+      this.mode == ExportToLanguageMode.AGGREGATION
+    );
+  }
+
   static readonly providedCodeActionKinds = [vscode.CodeActionKind.QuickFix];
 
   constructor() {
@@ -41,6 +48,11 @@ export default class PlaygroundSelectedCodeActionProvider
     this.selection = selection;
     this.mode = mode;
     this._onDidChangeCodeCodeAction.fire();
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.canExportToLanguage',
+      this.canExportToLanguage
+    );
   }
 
   isPlayground(): boolean {
@@ -64,10 +76,7 @@ export default class PlaygroundSelectedCodeActionProvider
     };
     codeActions.push(runSelectedPlaygroundBlockCommand);
 
-    if (
-      this.mode === ExportToLanguageMode.QUERY ||
-      this.mode === ExportToLanguageMode.AGGREGATION
-    ) {
+    if (this.canExportToLanguage) {
       const exportToPythonCommand = new vscode.CodeAction(
         'Export To Python 3',
         vscode.CodeActionKind.Empty
