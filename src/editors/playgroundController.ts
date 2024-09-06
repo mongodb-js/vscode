@@ -599,7 +599,7 @@ export default class PlaygroundController {
 
     await this._openInResultPane(evaluateResponse.result);
 
-    return Promise.resolve(true);
+    return true;
   }
 
   async _evaluatePlayground(text: string): Promise<boolean> {
@@ -684,17 +684,11 @@ export default class PlaygroundController {
       return Promise.resolve(false);
     }
 
-    const selections = this._activeTextEditor.selections;
-
-    let codeToEvaluate;
-    if (
-      !selections ||
-      !Array.isArray(selections) ||
-      (selections.length === 1 && this._getSelectedText(selections[0]) === '')
-    ) {
+    let codeToEvaluate = '';
+    if (!this._selectedText) {
       this._isPartialRun = false;
       codeToEvaluate = this._getAllText();
-    } else if (this._selectedText) {
+    } else {
       this._isPartialRun = true;
       codeToEvaluate = this._selectedText;
     }

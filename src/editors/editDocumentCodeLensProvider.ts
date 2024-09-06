@@ -33,7 +33,7 @@ export default class EditDocumentCodeLensProvider
     content: Document;
     namespace: string | null;
     uri: vscode.Uri;
-  }) {
+  }): void {
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     resultCodeLensesInfo = this._updateCodeLensesForCursor({
@@ -44,7 +44,7 @@ export default class EditDocumentCodeLensProvider
     this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
   }
 
-  updateCodeLensesForPlayground(playgroundResult: PlaygroundResult) {
+  updateCodeLensesForPlayground(playgroundResult: PlaygroundResult): void {
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 

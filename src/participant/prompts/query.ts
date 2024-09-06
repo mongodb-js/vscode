@@ -1,18 +1,22 @@
 import * as vscode from 'vscode';
+import type { Document } from 'bson';
 
 import { getHistoryMessages } from './history';
+import { getStringifiedSampleDocuments } from '../sampleDocuments';
 
 export class QueryPrompt {
-  static getAssistantPrompt({
+  static async getAssistantPrompt({
     databaseName = 'mongodbVSCodeCopilotDB',
     collectionName = 'test',
     schema,
+    sampleDocuments,
   }: {
     databaseName?: string;
     collectionName?: string;
     schema?: string;
-  }): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert.
+    sampleDocuments?: Document[];
+  }): Promise<vscode.LanguageModelChatMessage> {
+    let prompt = `You are a MongoDB expert.
 
 Your task is to help the user craft MongoDB queries and aggregation pipelines that perform their task.
 Keep your response concise.
@@ -22,6 +26,8 @@ You can imagine the schema.
 Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.
 You can use only the following MongoDB Shell commands: use, aggregate, bulkWrite, countDocuments, findOneAndReplace,
 findOneAndUpdate, insert, insertMany, insertOne, remove, replaceOne, update, updateMany, updateOne.
+
+Concisely explain the code snippet you have generated.
 
 Example 1:
 use('');
@@ -38,22 +44,26 @@ db.getCollection('').find({
   date: { $gte: new Date('2014-04-04'), $lt: new Date('2014-04-05') }
 }).count();
 
-Database name: ${databaseName}
-Collection name: ${collectionName}
-${
-  schema
-    ? `Collection schema:
-${schema}`
-    : ''
-}
-
 MongoDB command to specify database:
 use('');
 
 MongoDB command to specify collection:
-db.getCollection('')
-
-Concisely explain the code snippet you have generated.`;
+db.getCollection('');\n\n`;
+    if (databaseName) {
+      prompt += `Database name: ${databaseName}\n`;
+    }
+    if (collectionName) {
+      prompt += `Collection name: ${collectionName}\n`;
+    }
+    if (schema) {
+      prompt += `Collection schema: ${schema}\n`;
+    }
+    if (sampleDocuments) {
+      prompt += await getStringifiedSampleDocuments({
+        sampleDocuments,
+        prompt,
+      });
+    }
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);
@@ -64,12 +74,13 @@ Concisely explain the code snippet you have generated.`;
     return vscode.LanguageModelChatMessage.User(prompt);
   }
 
-  static buildMessages({
+  static async buildMessages({
     context,
     request,
     databaseName,
     collectionName,
     schema,
+    sampleDocuments,
   }: {
     request: {
       prompt: string;
@@ -78,9 +89,15 @@ Concisely explain the code snippet you have generated.`;
     databaseName?: string;
     collectionName?: string;
     schema?: string;
-  }): vscode.LanguageModelChatMessage[] {
+    sampleDocuments?: Document[];
+  }): Promise<vscode.LanguageModelChatMessage[]> {
     const messages = [
-      QueryPrompt.getAssistantPrompt({ databaseName, collectionName, schema }),
+      await QueryPrompt.getAssistantPrompt({
+        databaseName,
+        collectionName,
+        schema,
+        sampleDocuments,
+      }),
       ...getHistoryMessages({ context }),
       QueryPrompt.getUserPrompt(request.prompt),
     ];

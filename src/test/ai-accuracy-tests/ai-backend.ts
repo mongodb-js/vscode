@@ -4,7 +4,7 @@ import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/compl
 import { CHAT_PARTICIPANT_MODEL } from '../../participant/constants';
 
 let openai: OpenAI;
-function getOpenAIClient() {
+function getOpenAIClient(): OpenAI {
   if (!openai) {
     openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -22,7 +22,7 @@ type ChatMessage = {
 };
 type ChatMessages = ChatMessage[];
 
-type ChatCompletion = {
+export type ChatCompletion = {
   content: string;
   usageStats: {
     promptTokens: number;
