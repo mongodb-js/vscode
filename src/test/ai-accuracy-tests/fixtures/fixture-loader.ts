@@ -1,17 +1,29 @@
 import type { Document, MongoClient } from 'mongodb';
+import { getSimplifiedSchema } from 'mongodb-schema';
 
 import type { Fixture } from './fixture-type';
+import pets from './pets';
+import pineapples from './pineapples';
 import recipes from './recipes';
 import getUFOSightingsFixture from './ufo';
+import { SchemaFormatter } from '../../../participant/schema';
 
 export type Fixtures = {
   [dbName: string]: {
-    [colName: string]: Document[];
+    [colName: string]: {
+      documents: Document[];
+      schema: string; // Result of formatted simplified schema.
+    };
   };
 };
 
 type LoadableFixture = (() => Fixture) | Fixture;
-const fixturesToLoad: LoadableFixture[] = [recipes, getUFOSightingsFixture];
+const fixturesToLoad: LoadableFixture[] = [
+  pets,
+  pineapples,
+  recipes,
+  getUFOSightingsFixture,
+];
 
 export async function loadFixturesToDB({
   mongoClient,
@@ -25,7 +37,15 @@ export async function loadFixturesToDB({
     const { db, coll, documents } =
       typeof fixtureToLoad === 'function' ? fixtureToLoad() : fixtureToLoad;
 
-    fixtures[db] = { [coll]: documents };
+    const unformattedSchema = await getSimplifiedSchema(documents);
+    const schema = new SchemaFormatter().format(unformattedSchema);
+
+    fixtures[db] = {
+      [coll]: {
+        documents,
+        schema,
+      },
+    };
     await mongoClient.db(db).collection(coll).insertMany(documents);
   }
 
@@ -44,6 +64,6 @@ export async function reloadFixture({
   fixtures: Fixtures;
 }) {
   await mongoClient.db(db).collection(coll).drop();
-  const documents = fixtures[db][coll];
+  const { documents } = fixtures[db][coll];
   await mongoClient.db(db).collection(coll).insertMany(documents);
 }

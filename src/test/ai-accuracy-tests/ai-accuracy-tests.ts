@@ -20,6 +20,7 @@ import {
 } from './create-test-results-html-page';
 import { NamespacePrompt } from '../../participant/prompts/namespace';
 import { runCodeInMessage } from './assertions';
+import { parseForDatabaseAndCollectionName } from '../../participant/participant';
 
 const numberOfRunsPerTest = 1;
 
@@ -45,7 +46,57 @@ type TestCase = {
   only?: boolean; // Translates to mocha's it.only so only this test will run.
 };
 
-const testCases: TestCase[] = [
+const namespaceTestCases: TestCase[] = [
+  {
+    testCase: 'Namespace included in query',
+    type: 'namespace',
+    userInput:
+      'How many documents are in the tempReadings collection in the pools database?',
+    assertResult: ({ responseContent }: AssertProps) => {
+      const namespace = parseForDatabaseAndCollectionName(responseContent);
+
+      expect(namespace.databaseName).to.equal('pools');
+      expect(namespace.collectionName).to.equal('tempReadings');
+    },
+  },
+  {
+    testCase: 'No namespace included in basic query',
+    type: 'namespace',
+    userInput: 'How many documents are in the collection?',
+    assertResult: ({ responseContent }: AssertProps) => {
+      const namespace = parseForDatabaseAndCollectionName(responseContent);
+
+      expect(namespace.databaseName).to.equal(undefined);
+      expect(namespace.collectionName).to.equal(undefined);
+    },
+  },
+  {
+    testCase: 'Only collection mentioned in query',
+    type: 'namespace',
+    userInput:
+      'How do I create a new user with read write permissions on the orders collection?',
+    assertResult: ({ responseContent }: AssertProps) => {
+      const namespace = parseForDatabaseAndCollectionName(responseContent);
+
+      expect(namespace.databaseName).to.equal(undefined);
+      expect(namespace.collectionName).to.equal('orders');
+    },
+  },
+  {
+    testCase: 'Only database mentioned in query',
+    type: 'namespace',
+    userInput:
+      'How do I create a new user with read write permissions on the orders db?',
+    assertResult: ({ responseContent }: AssertProps) => {
+      const namespace = parseForDatabaseAndCollectionName(responseContent);
+
+      expect(namespace.databaseName).to.equal('orders');
+      expect(namespace.collectionName).to.equal(undefined);
+    },
+  },
+];
+
+const queryTestCases: TestCase[] = [
   {
     testCase: 'Basic query',
     type: 'query',
@@ -80,6 +131,15 @@ const testCases: TestCase[] = [
       mongoClient,
       fixtures,
     }: AssertProps) => {
+      const documentsBefore = await mongoClient
+        .db('CookBook')
+        .collection('recipes')
+        .find()
+        .toArray();
+      expect(documentsBefore).to.deep.equal(
+        fixtures.CookBook.recipes.documents
+      );
+
       await runCodeInMessage(responseContent, connectionString);
       const documents = await mongoClient
         .db('CookBook')
@@ -87,10 +147,74 @@ const testCases: TestCase[] = [
         .find()
         .toArray();
 
-      expect(documents).to.deep.equal(fixtures.CookBook.recipes);
+      expect(documents).to.deep.equal(
+        fixtures.CookBook.recipes.documents.map((doc) => {
+          if (doc.title === 'Beef Wellington') {
+            return {
+              ...doc,
+              preparationTime: 150,
+              difficulty: 'Very Hard',
+            };
+          }
+          return doc;
+        })
+      );
+    },
+  },
+  {
+    testCase: 'Aggregation with averaging and filtering',
+    type: 'query',
+    databaseName: 'pets',
+    collectionName: 'competition-results',
+    userInput:
+      'What is the average score for dogs competing in the best costume category? Put it in a field called "avgScore"',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps) => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+
+      expect(output.data?.result?.content[0]).to.deep.equal({
+        avgScore: 9.3,
+      });
+    },
+  },
+  {
+    testCase: 'Create an index',
+    type: 'query',
+    databaseName: 'FarmData',
+    collectionName: 'Pineapples',
+    reloadFixtureOnEachRun: true,
+    userInput:
+      'How to index the harvested date and sweetness to speed up requests for sweet pineapples harvested after a specific date?',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+      mongoClient,
+    }: AssertProps) => {
+      const indexesBefore = await mongoClient
+        .db('FarmData')
+        .collection('Pineapples')
+        .listIndexes()
+        .toArray();
+      expect(indexesBefore.length).to.equal(1);
+      await runCodeInMessage(responseContent, connectionString);
+
+      const indexes = await mongoClient
+        .db('FarmData')
+        .collection('Pineapples')
+        .listIndexes()
+        .toArray();
+
+      expect(indexes.length).to.equal(2);
+      expect(
+        indexes.filter((index) => index.name !== '_id_')[0]?.key
+      ).to.have.keys(['harvestedDate', 'sweetnessScale']);
     },
   },
 ];
+
+const testCases: TestCase[] = [...namespaceTestCases, ...queryTestCases];
 
 const projectRoot = path.join(__dirname, '..', '..', '..');
 
@@ -154,7 +278,13 @@ async function pushResultsToDB({
   }
 }
 
-const buildMessages = (testCase: TestCase) => {
+const buildMessages = ({
+  testCase,
+  fixtures,
+}: {
+  testCase: TestCase;
+  fixtures: Fixtures;
+}) => {
   switch (testCase.type) {
     case 'generic':
       return GenericPrompt.buildMessages({
@@ -168,6 +298,16 @@ const buildMessages = (testCase: TestCase) => {
         context: { history: [] },
         databaseName: testCase.databaseName,
         collectionName: testCase.collectionName,
+        ...(fixtures[testCase.databaseName as string]?.[
+          testCase.collectionName as string
+        ]?.schema
+          ? {
+              schema:
+                fixtures[testCase.databaseName as string]?.[
+                  testCase.collectionName as string
+                ]?.schema,
+            }
+          : {}),
       });
 
     case 'namespace':
@@ -184,11 +324,16 @@ const buildMessages = (testCase: TestCase) => {
 async function runTest({
   testCase,
   aiBackend,
+  fixtures,
 }: {
   testCase: TestCase;
   aiBackend: AIBackend;
+  fixtures: Fixtures;
 }) {
-  const messages = buildMessages(testCase);
+  const messages = buildMessages({
+    testCase,
+    fixtures,
+  });
   const chatCompletion = await aiBackend.runAIChatCompletionGeneration({
     messages: messages.map((message) => ({
       ...message,
@@ -294,6 +439,7 @@ describe('AI Accuracy Tests', function () {
         const accuracyThreshold = testCase.accuracyThresholdOverride ?? 0.8;
         testOutputs[testCase.testCase] = {
           prompt: testCase.userInput,
+          testType: testCase.type,
           outputs: [],
         };
 
@@ -316,6 +462,7 @@ describe('AI Accuracy Tests', function () {
             const responseContent = await runTest({
               testCase,
               aiBackend,
+              fixtures,
             });
             testOutputs[testCase.testCase].outputs.push(
               responseContent.content

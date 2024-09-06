@@ -65,7 +65,7 @@ export const isDeepStrictEqualToFixtures =
     comparator: (document: Document) => boolean
   ) =>
   (actual: unknown) => {
-    const expected = fixtures[db][coll].filter(comparator);
+    const expected = fixtures[db][coll].documents.filter(comparator);
     assert.deepStrictEqual(actual, expected);
   };
 
