@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
+import type { SinonSpy } from 'sinon';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
@@ -51,10 +52,16 @@ suite('Participant Controller Test Suite', function () {
   let chatTokenStub;
   let countTokensStub;
   let sendRequestStub;
+  let fakeTelemetryTrack: SinonSpy;
+
+  const sandbox = sinon.createSandbox();
 
   beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
     testStatusView = new StatusView(extensionContextStub);
+
+    fakeTelemetryTrack = sandbox.spy();
+
     testTelemetryService = new TelemetryService(
       testStorageController,
       extensionContextStub
@@ -67,6 +74,7 @@ suite('Participant Controller Test Suite', function () {
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
       storageController: testStorageController,
+      telemetryService: testTelemetryService,
     });
     chatContextStub = {
       history: [
@@ -110,6 +118,8 @@ suite('Participant Controller Test Suite', function () {
         },
       ])
     );
+
+    sinon.replace(testTelemetryService, 'track', fakeTelemetryTrack);
   });
 
   afterEach(function () {
@@ -873,6 +883,30 @@ suite('Participant Controller Test Suite', function () {
           });
         });
       });
+    });
+  });
+
+  suite.only('telemetry', function () {
+    test('reports user feedback', function () {
+      testParticipantController.handleUserFeedback({
+        kind: vscode.ChatResultFeedbackKind.Helpful,
+        result: {
+          metadata: {
+            responseType: 'connections',
+          },
+        },
+        unhelpfulReason: undefined,
+      });
+
+      sinon.assert.calledOnce(fakeTelemetryTrack);
+      expect(fakeTelemetryTrack.lastCall.args[0]).to.be.equal(
+        'Participant Feedback'
+      );
+
+      const properties = fakeTelemetryTrack.lastCall.args[1];
+      expect(properties.feedback).to.be.equal('positive');
+      expect(properties.reason).to.be.undefined;
+      expect(properties.response_type).to.be.equal('connections');
     });
   });
 });

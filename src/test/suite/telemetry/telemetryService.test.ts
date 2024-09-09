@@ -14,6 +14,7 @@ import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { DatabaseTreeItem, DocumentTreeItem } from '../../../explorer';
 import { DataServiceStub } from '../stubs';
+import { chatResultFeedbackKindToTelemetryValue } from '../../../telemetry/telemetryService';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -749,5 +750,23 @@ suite('Telemetry Controller Test Suite', () => {
         },
       })
     );
+  });
+
+  function enumKeys<
+    TEnum extends object,
+    TKey extends keyof TEnum = keyof TEnum
+  >(obj: TEnum): TKey[] {
+    return Object.keys(obj).filter((k) => Number.isNaN(k)) as TKey[];
+  }
+
+  test('ChatResultFeedbackKind to TelemetryFeedbackKind maps all values', () => {
+    for (const kind of enumKeys(vscode.ChatResultFeedbackKind)) {
+      expect(
+        chatResultFeedbackKindToTelemetryValue(
+          vscode.ChatResultFeedbackKind[kind]
+        ),
+        `Expect ${kind} to produce a concrete telemetry value`
+      ).to.not.be.undefined;
+    }
   });
 });

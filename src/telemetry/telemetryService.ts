@@ -93,7 +93,36 @@ type SavedConnectionsLoadedProperties = {
   connections_with_secrets_in_secret_storage: number;
 };
 
-export type TelemetryEventProperties =
+type TelemetryFeedbackKind = 'positive' | 'negative' | undefined;
+export type ParticipantResponseType =
+  | 'query'
+  | 'schema'
+  | 'docs'
+  | 'generic'
+  | 'empty'
+  | 'connections'
+  | 'namespaces';
+
+type ParticipantFeedbackProperties = {
+  feedback: TelemetryFeedbackKind;
+  response_type: ParticipantResponseType;
+  reason?: String;
+};
+
+export function chatResultFeedbackKindToTelemetryValue(
+  kind: vscode.ChatResultFeedbackKind
+): TelemetryFeedbackKind {
+  switch (kind) {
+    case vscode.ChatResultFeedbackKind.Helpful:
+      return 'positive';
+    case vscode.ChatResultFeedbackKind.Unhelpful:
+      return 'negative';
+    default:
+      return undefined;
+  }
+}
+
+type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
   | ExtensionCommandRunTelemetryEventProperties
@@ -107,7 +136,8 @@ export type TelemetryEventProperties =
   | PlaygroundLoadedTelemetryEventProperties
   | KeytarSecretsMigrationFailedProperties
   | SavedConnectionsLoadedProperties
-  | SurveyActionProperties;
+  | SurveyActionProperties
+  | ParticipantFeedbackProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -127,6 +157,7 @@ export enum TelemetryEventTypes {
   SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
   SURVEY_CLICKED = 'Survey link clicked',
   SURVEY_DISMISSED = 'Survey prompt dismissed',
+  PARTICIPANT_FEEDBACK = 'Participant Feedback',
 }
 
 /**
@@ -215,7 +246,7 @@ export default class TelemetryService {
     return true;
   }
 
-  _segmentAnalyticsTrack(segmentProperties: SegmentProperties) {
+  _segmentAnalyticsTrack(segmentProperties: SegmentProperties): void {
     if (!this._isTelemetryFeatureEnabled()) {
       return;
     }
@@ -377,5 +408,9 @@ export default class TelemetryService {
       TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
       keytarSecretsMigrationFailedProps
     );
+  }
+
+  trackCopilotParticipantFeedback(props: ParticipantFeedbackProperties): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_FEEDBACK, props);
   }
 }

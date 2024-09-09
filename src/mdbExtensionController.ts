@@ -122,6 +122,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
       storageController: this._storageController,
+      telemetryService: this._telemetryService,
     });
     this._editorsController = new EditorsController({
       context,

@@ -15,6 +15,9 @@ import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
+import { chatResultFeedbackKindToTelemetryValue } from '../telemetry/telemetryService';
+import type { ParticipantResponseType } from '../telemetry/telemetryService';
+import type TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('participant');
 
@@ -32,6 +35,7 @@ const NUM_DOCUMENTS_TO_SAMPLE = 3;
 interface ChatResult extends vscode.ChatResult {
   metadata: {
     responseContent?: string;
+    responseType: ParticipantResponseType;
   };
 }
 
@@ -68,6 +72,7 @@ export default class ParticipantController {
   _participant?: vscode.ChatParticipant;
   _connectionController: ConnectionController;
   _storageController: StorageController;
+  _telemetryService: TelemetryService;
   _queryGenerationState?: QUERY_GENERATION_STATE;
   _chatResult?: ChatResult;
   _databaseName?: string;
@@ -78,12 +83,15 @@ export default class ParticipantController {
   constructor({
     connectionController,
     storageController,
+    telemetryService,
   }: {
     connectionController: ConnectionController;
     storageController: StorageController;
+    telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
+    this._telemetryService = telemetryService;
   }
 
   _setDatabaseName(name: string | undefined): void {
@@ -123,6 +131,7 @@ export default class ParticipantController {
     log.info('Chat Participant Created', {
       participantId: this._participant?.id,
     });
+    this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
     return this._participant;
   }
 
@@ -249,11 +258,11 @@ export default class ParticipantController {
         command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
         title: vscode.l10n.t('Open in playground'),
       });
-
-      return { metadata: { responseContent: runnableContent } };
     }
 
-    return { metadata: {} };
+    return {
+      metadata: { responseContent: runnableContent, responseType: 'generic' },
+    };
   }
 
   async connectWithParticipant(id?: string): Promise<boolean> {
@@ -562,10 +571,7 @@ export default class ParticipantController {
     return true;
   }
 
-  async _askForNamespace(
-    request: vscode.ChatRequest,
-    stream: vscode.ChatResponseStream
-  ): Promise<undefined> {
+  async _askForNamespace(stream: vscode.ChatResponseStream): Promise<void> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
@@ -595,8 +601,6 @@ export default class ParticipantController {
       this._queryGenerationState =
         QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
     }
-
-    return;
   }
 
   _shouldAskToConnectIfNotConnected(
@@ -676,7 +680,11 @@ export default class ParticipantController {
     this._ifNewChatResetQueryGenerationState(context);
 
     if (this._shouldAskToConnectIfNotConnected(stream)) {
-      return { metadata: {} };
+      return {
+        metadata: {
+          responseType: 'connections',
+        },
+      };
     }
 
     const shouldAskForNamespace = await this._shouldAskForNamespace(
@@ -686,8 +694,8 @@ export default class ParticipantController {
       token
     );
     if (shouldAskForNamespace) {
-      await this._askForNamespace(request, stream);
-      return { metadata: {} };
+      await this._askForNamespace(stream);
+      return { metadata: { responseType: 'namespaces' } };
     }
 
     const abortController = new AbortController();
@@ -730,7 +738,9 @@ export default class ParticipantController {
       });
     }
 
-    return { metadata: { responseContent: runnableContent } };
+    return {
+      metadata: { responseContent: runnableContent, responseType: 'query' },
+    };
   }
 
   async chatHandler(
@@ -748,7 +758,7 @@ export default class ParticipantController {
       for (const msg of messages) {
         stream.markdown(msg);
       }
-      return { metadata: {} };
+      return { metadata: { responseType: 'empty' } };
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
@@ -778,5 +788,13 @@ export default class ParticipantController {
     }
 
     return this._chatResult;
+  }
+
+  handleUserFeedback(feedback: vscode.ChatResultFeedback): void {
+    this._telemetryService.trackCopilotParticipantFeedback({
+      feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
+      reason: feedback.unhelpfulReason,
+      response_type: (feedback.result as ChatResult)?.metadata.responseType,
+    });
   }
 }
