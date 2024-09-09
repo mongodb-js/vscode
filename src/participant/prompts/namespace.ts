@@ -64,8 +64,8 @@ No names found.
     context: vscode.ChatContext;
   }): vscode.LanguageModelChatMessage[] {
     const messages = [
-      NamespacePrompt.getAssistantPrompt(),
       ...getHistoryMessages({ context }),
+      NamespacePrompt.getAssistantPrompt(),
       NamespacePrompt.getUserPrompt(request.prompt),
     ];
 

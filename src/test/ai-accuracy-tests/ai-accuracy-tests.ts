@@ -220,11 +220,9 @@ const queryTestCases: TestCase[] = [
   {
     testCase: 'Aggregation with an or or $in, with sample docs',
     type: 'query',
-    only: true,
     databaseName: 'Antiques',
     collectionName: 'items',
     includeSampleDocuments: true,
-    reloadFixtureOnEachRun: true,
     userInput:
       'which collectors specialize only in mint items? and are located in London or New York? an array of their names in a field called collectors',
     assertResult: async ({

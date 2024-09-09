@@ -21,6 +21,13 @@ Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
     return vscode.LanguageModelChatMessage.User(prompt);
   }
 
+  static getEmptyRequestResponse(): string {
+    // TODO(VSCODE-572): Generic empty response handler
+    return vscode.l10n.t(
+      'Ask anything about MongoDB, from writing queries to questions about your cluster.'
+    );
+  }
+
   static buildMessages({
     context,
     request,
