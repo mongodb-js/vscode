@@ -322,6 +322,7 @@ const buildMessages = async ({
         context: { history: [] },
         databaseName: testCase.databaseName,
         collectionName: testCase.collectionName,
+        connectionNames: [],
         ...(fixtures[testCase.databaseName as string]?.[
           testCase.collectionName as string
         ]?.schema
@@ -345,6 +346,7 @@ const buildMessages = async ({
       return NamespacePrompt.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
+        connectionNames: [],
       });
 
     default:

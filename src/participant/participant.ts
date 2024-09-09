@@ -431,25 +431,12 @@ export default class ParticipantController {
     databaseName: string | undefined;
     collectionName: string | undefined;
   }> {
-    // Parse the context to see if we already have a database and collection name.
-    const namespaceFromChatHistory =
-      getLatestDatabaseAndCollectionFromChatHistory({
-        context,
-        request,
-      });
-    if (
-      namespaceFromChatHistory.databaseName &&
-      namespaceFromChatHistory.collectionName
-    ) {
-      return {
-        databaseName: namespaceFromChatHistory.databaseName,
-        collectionName: namespaceFromChatHistory.collectionName,
-      };
-    }
-
     const messagesWithNamespace = NamespacePrompt.buildMessages({
       context,
       request,
+      connectionNames: this._connectionController
+        .getSavedConnections()
+        .map((connection) => connection.name),
     });
     const responseContentWithNamespace = await this.getChatResponseContent({
       messages: messagesWithNamespace,
@@ -459,6 +446,29 @@ export default class ParticipantController {
     const namespace = parseForDatabaseAndCollectionName(
       responseContentWithNamespace
     );
+
+    if (!namespace.databaseName || !namespace.collectionName) {
+      // Parse the context to see if we already have a database and collection name.
+      const namespaceFromChatHistory =
+        getLatestDatabaseAndCollectionFromChatHistory({
+          context,
+          request,
+        });
+      if (
+        namespaceFromChatHistory.databaseName &&
+        namespaceFromChatHistory.collectionName
+      ) {
+        // If the model fails to find the namespace, however we have it in the chat history,
+        // then use that.
+        // We prioritize the model's response over the history as the user could be asking
+        // about a different namespace in their most recent message and we wouldn't
+        // want to default in that case.
+        return {
+          databaseName: namespaceFromChatHistory.databaseName,
+          collectionName: namespaceFromChatHistory.collectionName,
+        };
+      }
+    }
 
     return {
       databaseName: namespace.databaseName,
@@ -586,7 +596,11 @@ export default class ParticipantController {
   ): Promise<vscode.ChatResult> {
     if (!request.prompt || request.prompt.trim().length === 0) {
       stream.markdown(QueryPrompt.getEmptyRequestResponse());
-      return { metadata: {} };
+      return {
+        metadata: {
+          isEmptyResponse: true,
+        },
+      };
     }
 
     if (!this._connectionController.getActiveDataService()) {
@@ -632,6 +646,9 @@ export default class ParticipantController {
       databaseName,
       collectionName,
       schema,
+      connectionNames: this._connectionController
+        .getSavedConnections()
+        .map((connection) => connection.name),
       ...(useSampleDocsInCopilot ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
@@ -677,7 +694,11 @@ export default class ParticipantController {
       (!request.prompt || request.prompt.trim().length === 0)
     ) {
       stream.markdown(GenericPrompt.getEmptyRequestResponse());
-      return { metadata: {} };
+      return {
+        metadata: {
+          isEmptyResponse: true,
+        },
+      };
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
