@@ -243,8 +243,7 @@ export default class ParticipantController {
   async getDatabaseQuickPicks(): Promise<NamespaceQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      // TODO: Ask to connect.
-      // this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+      // TODO: Ask to connect when the user disconnected.
       return [];
     }
 
@@ -259,7 +258,7 @@ export default class ParticipantController {
     }
   }
 
-  async _selectDatabaseWithCommandPalette(): Promise<string | undefined> {
+  async _selectDatabaseWithQuickPick(): Promise<string | undefined> {
     const databases = await this.getDatabaseQuickPicks();
     const selectedQuickPickItem = await vscode.window.showQuickPick(databases, {
       placeHolder: 'Select a database...',
@@ -267,7 +266,6 @@ export default class ParticipantController {
     return selectedQuickPickItem?.data;
   }
 
-  // TODO: Better name passing and handling of multi select
   async selectDatabaseWithParticipant({
     databaseName: _databaseName,
   }: {
@@ -275,7 +273,7 @@ export default class ParticipantController {
   }): Promise<boolean> {
     let databaseName: string | undefined = _databaseName;
     if (!databaseName) {
-      databaseName = await this._selectDatabaseWithCommandPalette();
+      databaseName = await this._selectDatabaseWithQuickPick();
       if (!databaseName) {
         return false;
       }
@@ -314,7 +312,7 @@ export default class ParticipantController {
     }
   }
 
-  async _selectCollectionWithCommandPalette(
+  async _selectCollectionWithQuickPick(
     databaseName: string
   ): Promise<string | undefined> {
     const collections = await this.getCollectionQuickPicks(databaseName);
@@ -337,9 +335,7 @@ export default class ParticipantController {
   }): Promise<boolean> {
     let collectionName: string | undefined = _collectionName;
     if (!collectionName) {
-      collectionName = await this._selectCollectionWithCommandPalette(
-        databaseName
-      );
+      collectionName = await this._selectCollectionWithQuickPick(databaseName);
       if (!collectionName) {
         return false;
       }
