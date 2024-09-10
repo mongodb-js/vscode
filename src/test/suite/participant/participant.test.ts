@@ -54,13 +54,11 @@ suite('Participant Controller Test Suite', function () {
   let sendRequestStub;
   let telemetryTrackStub: SinonSpy;
 
-  const sandbox = sinon.createSandbox();
-
   beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
     testStatusView = new StatusView(extensionContextStub);
 
-    telemetryTrackStub = sandbox.stub();
+    telemetryTrackStub = sinon.stub();
 
     testTelemetryService = new TelemetryService(
       testStorageController,
