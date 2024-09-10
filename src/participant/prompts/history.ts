@@ -2,6 +2,9 @@ import * as vscode from 'vscode';
 
 import { CHAT_PARTICIPANT_ID } from '../constants';
 
+// When passing the history to the model we only want contextual messages
+// to be passed. This function parses through the history and returns
+// the messages that are valuable to keep.
 // eslint-disable-next-line complexity
 export function getHistoryMessages({
   connectionNames,
@@ -11,9 +14,6 @@ export function getHistoryMessages({
   context: vscode.ChatContext;
 }): vscode.LanguageModelChatMessage[] {
   const messages: vscode.LanguageModelChatMessage[] = [];
-
-  console.log('context history', context.history);
-  // TODO: Only use the latest messages about connection, database, and collection.
 
   for (const historyItem of context.history) {
     if (
@@ -64,8 +64,7 @@ export function getHistoryMessages({
   return messages;
 }
 
-// TODO: A user could mistakenly write one of these which would mess up our parsing.
-// We could possible mistake the command for the database or collection name.
+// A user could mistakenly write one of these which would mess up our parsing.
 // To fix this we either need to pass metadata with the command, which
 // is doesn't look like it possible, or we need to have a more complex
 // message key, like using a special symbol for this regex (although a user could

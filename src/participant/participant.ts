@@ -130,8 +130,6 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<string> {
-    console.log('send messages to chat model:', messages);
-
     const model = await getCopilotModel();
     let responseContent = '';
     if (model) {
@@ -144,7 +142,6 @@ export default class ParticipantController {
         this.handleError(err, stream);
       }
     }
-    console.log('model chat response content:', responseContent);
 
     return responseContent;
   }
@@ -195,9 +192,6 @@ export default class ParticipantController {
   }
 
   async connectWithParticipant(id?: string): Promise<boolean> {
-    // TODO: connecting... ?
-    // Currently no visual feedback except the action bar at the bottom.
-
     if (!id) {
       const didChangeActiveConnection =
         await this._connectionController.changeActiveConnection();
@@ -243,7 +237,10 @@ export default class ParticipantController {
   async getDatabaseQuickPicks(): Promise<NamespaceQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      // TODO: Ask to connect when the user disconnected.
+      // Run a blank command to get the user to connect first.
+      void vscode.commands.executeCommand('workbench.action.chat.open', {
+        query: '@MongoDB /query',
+      });
       return [];
     }
 
@@ -280,14 +277,7 @@ export default class ParticipantController {
     }
 
     return vscode.commands.executeCommand('workbench.action.chat.open', {
-      // TODO: We could use a separate handler like /query-database
-      // TODO: We need a way to better pass metadata here.
-      // A user could mistakenly write one of these which would mess up our parsing.
-      // We could possible mistake the command for the database or collection name.
-      // To fix this we either need to pass metadata with the command, which
-      // is doesn't look like it possible, or we need to have a more complex
-      // message key, like using a special symbol for this regex (although a user could
-      // copy paste this themselves and get into another weird state).
+      // Add a database name message to the chat so future messages know which namespace to use.
       query: `@MongoDB /query ${databaseNameInCommandResponseKey}${databaseName}`,
     });
   }
@@ -297,7 +287,10 @@ export default class ParticipantController {
   ): Promise<NamespaceQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      // TODO: Ask to connect if they disconnected.
+      // Run a blank command to get the user to connect first.
+      void vscode.commands.executeCommand('workbench.action.chat.open', {
+        query: '@MongoDB /query',
+      });
       return [];
     }
 
@@ -325,7 +318,6 @@ export default class ParticipantController {
     return selectedQuickPickItem?.data;
   }
 
-  // TODO: Pass in database name also.
   async selectCollectionWithParticipant({
     databaseName,
     collectionName: _collectionName,
@@ -342,7 +334,6 @@ export default class ParticipantController {
     }
 
     return vscode.commands.executeCommand('workbench.action.chat.open', {
-      // query: `@MongoDB /query ${collectionName}`,
       query: `@MongoDB /query ${collectionNameInCommandResponseKey}${collectionName}`,
     });
   }
@@ -360,7 +351,6 @@ export default class ParticipantController {
           createMarkdownLink({
             commandId: 'mdb.selectDatabaseWithParticipant',
             data: {
-              // TODO: Connection id?
               databaseName: db.name,
             },
             name: db.name,
@@ -520,17 +510,6 @@ export default class ParticipantController {
     stream.markdown(
       "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
     );
-    // TODO: I think Alena already confirmed, can we use the anchor method instead of the markdown?
-    // It would make the streaming not show the html symbols.
-    // const savedConnections = this._connectionController
-    //   .getSavedConnections();
-    // if (savedConnections.length > 0) {
-    //   const commandURI = vscode.Uri.parse(`command:mdb.connectWithParticipant?${encodeURIComponent('["' + savedConnections[0].id + '"]')}`);
-    //   stream.anchor(
-    //     commandURI,
-    //     'test anchor Connect to a cluster'
-    //   );
-    // }
 
     for (const item of tree) {
       stream.markdown(item);
@@ -594,6 +573,10 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
+    if (!this._connectionController.getActiveDataService()) {
+      return this._askToConnect(stream);
+    }
+
     if (!request.prompt || request.prompt.trim().length === 0) {
       stream.markdown(QueryPrompt.getEmptyRequestResponse());
       return {
@@ -601,10 +584,6 @@ export default class ParticipantController {
           isEmptyResponse: true,
         },
       };
-    }
-
-    if (!this._connectionController.getActiveDataService()) {
-      return this._askToConnect(stream);
     }
 
     // We "prompt chain" to handle the query requests.

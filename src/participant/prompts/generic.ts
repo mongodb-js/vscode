@@ -33,7 +33,6 @@ Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
     request,
   }: {
     request: {
-      // vscode.ChatRequest
       prompt: string;
     };
     context: vscode.ChatContext;
