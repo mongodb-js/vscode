@@ -17,7 +17,7 @@ jobs:
     name: Rebuild changelog
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # don't checkout a detached HEAD, is important to have a real base
           # branch when creating a PR
