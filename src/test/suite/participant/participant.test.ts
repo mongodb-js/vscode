@@ -52,7 +52,7 @@ suite('Participant Controller Test Suite', function () {
   let chatTokenStub;
   let countTokensStub;
   let sendRequestStub;
-  let fakeTelemetryTrack: SinonSpy;
+  let telemetryTrackStub: SinonSpy;
 
   const sandbox = sinon.createSandbox();
 
@@ -60,7 +60,7 @@ suite('Participant Controller Test Suite', function () {
     testStorageController = new StorageController(extensionContextStub);
     testStatusView = new StatusView(extensionContextStub);
 
-    fakeTelemetryTrack = sandbox.spy();
+    telemetryTrackStub = sandbox.stub();
 
     testTelemetryService = new TelemetryService(
       testStorageController,
@@ -119,7 +119,7 @@ suite('Participant Controller Test Suite', function () {
       ])
     );
 
-    sinon.replace(testTelemetryService, 'track', fakeTelemetryTrack);
+    sinon.replace(testTelemetryService, 'track', telemetryTrackStub);
   });
 
   afterEach(function () {
@@ -886,27 +886,60 @@ suite('Participant Controller Test Suite', function () {
     });
   });
 
-  suite.only('telemetry', function () {
-    test('reports user feedback', function () {
+  suite('telemetry', function () {
+    test('reports positive user feedback', function () {
       testParticipantController.handleUserFeedback({
         kind: vscode.ChatResultFeedbackKind.Helpful,
         result: {
           metadata: {
             responseType: 'connections',
+            responseContent: '```creditCardNumber: 1234-5678-9012-3456```',
           },
         },
-        unhelpfulReason: undefined,
       });
 
-      sinon.assert.calledOnce(fakeTelemetryTrack);
-      expect(fakeTelemetryTrack.lastCall.args[0]).to.be.equal(
+      sinon.assert.calledOnce(telemetryTrackStub);
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
         'Participant Feedback'
       );
 
-      const properties = fakeTelemetryTrack.lastCall.args[1];
+      const properties = telemetryTrackStub.lastCall.args[1];
       expect(properties.feedback).to.be.equal('positive');
       expect(properties.reason).to.be.undefined;
       expect(properties.response_type).to.be.equal('connections');
+
+      // Ensure we're not leaking the response content into the telemetry payload
+      expect(JSON.stringify(properties))
+        .to.not.include('creditCardNumber')
+        .and.not.include('1234-5678-9012-3456');
+    });
+
+    test('reports negative user feedback', function () {
+      testParticipantController.handleUserFeedback({
+        kind: vscode.ChatResultFeedbackKind.Unhelpful,
+        result: {
+          metadata: {
+            responseType: 'query',
+            responseContent: 'SSN: 123456789',
+          },
+        },
+        unhelpfulReason: 'incompleteCode',
+      });
+
+      sinon.assert.calledOnce(telemetryTrackStub);
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
+        'Participant Feedback'
+      );
+
+      const properties = telemetryTrackStub.lastCall.args[1];
+      expect(properties.feedback).to.be.equal('negative');
+      expect(properties.reason).to.be.equal('incompleteCode');
+      expect(properties.response_type).to.be.equal('query');
+
+      // Ensure we're not leaking the response content into the telemetry payload
+      expect(JSON.stringify(properties))
+        .to.not.include('SSN')
+        .and.not.include('123456789');
     });
   });
 });
