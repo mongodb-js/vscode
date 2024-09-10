@@ -48,19 +48,20 @@ suite('Participant Controller Test Suite', function () {
   let testTelemetryService: TelemetryService;
   let testParticipantController: ParticipantController;
   let chatContextStub;
-  let chatStreamStub;
+  let chatStreamStub: {
+    markdown: sinon.SinonSpy;
+    button: sinon.SinonSpy;
+  };
   let chatTokenStub;
   let countTokensStub;
   let sendRequestStub;
   let telemetryTrackStub: SinonSpy;
 
-  const sandbox = sinon.createSandbox();
-
   beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
     testStatusView = new StatusView(extensionContextStub);
 
-    telemetryTrackStub = sandbox.stub();
+    telemetryTrackStub = sinon.stub();
 
     testTelemetryService = new TelemetryService(
       testStorageController,
@@ -383,16 +384,41 @@ suite('Participant Controller Test Suite', function () {
         );
         const welcomeMessage = chatStreamStub.markdown.firstCall.args[0];
         expect(welcomeMessage).to.include('Welcome to MongoDB Participant!');
+
+        sinon.assert.calledOnce(telemetryTrackStub);
+        expect(telemetryTrackStub.lastCall.args[0]).to.equal(
+          'Participant Welcome Shown'
+        );
+        expect(telemetryTrackStub.lastCall.args[1]).to.be.undefined;
+
+        telemetryTrackStub
+          .getCalls()
+          .map((call) => call.args[0])
+          .filter((arg) => arg === 'Participant Welcome Shown').length;
       });
     });
 
     suite('when has been shown a welcome message already', function () {
+      const expectWelcomeTelemetryNotReported = (): void => {
+        const didReportWelcomeScreen =
+          telemetryTrackStub
+            .getCalls()
+            .map((call) => call.args[0])
+            .filter((arg) => arg === 'Participant Welcome Shown').length !== 0;
+        expect(didReportWelcomeScreen).to.be.false;
+      };
+
       beforeEach(function () {
         sinon.replace(
           testParticipantController._storageController,
           'get',
           sinon.fake.returns(true)
         );
+      });
+
+      afterEach(function () {
+        // Ensure welcome message is not shown again
+        chatStreamStub.markdown;
       });
 
       suite('generic command', function () {
@@ -417,6 +443,8 @@ suite('Participant Controller Test Suite', function () {
           ).to.include(
             "db.getCollection('collOne').find({ name: 'example' });"
           );
+
+          expectWelcomeTelemetryNotReported();
         });
       });
 
