@@ -139,8 +139,12 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  async handleEmptyQueryRequest(): Promise<(string | vscode.MarkdownString)[]> {
+  async handleEmptyQueryRequest(): Promise<{
+    messages: (string | vscode.MarkdownString)[];
+    responseType: ParticipantResponseType;
+  }> {
     const messages: (string | vscode.MarkdownString)[] = [];
+    let responseType: ParticipantResponseType;
     switch (this._queryGenerationState) {
       case QUERY_GENERATION_STATE.ASK_TO_CONNECT:
         messages.push(
@@ -149,6 +153,7 @@ export default class ParticipantController {
           )
         );
         messages.push(...this.getConnectionsTree());
+        responseType = 'connections';
         break;
       case QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME:
         messages.push(
@@ -157,6 +162,7 @@ export default class ParticipantController {
           )
         );
         messages.push(...(await this.getDatabasesTree()));
+        responseType = 'namespace';
         break;
       case QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME:
         messages.push(
@@ -165,6 +171,7 @@ export default class ParticipantController {
           )
         );
         messages.push(...(await this.getCollectionTree()));
+        responseType = 'namespace';
         break;
       default:
         messages.push(
@@ -172,8 +179,10 @@ export default class ParticipantController {
             'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
           )
         );
+        responseType = 'empty_prompt';
+        break;
     }
-    return messages;
+    return { messages, responseType };
   }
 
   handleError(err: any, stream: vscode.ChatResponseStream): void {
@@ -695,7 +704,7 @@ export default class ParticipantController {
     );
     if (shouldAskForNamespace) {
       await this._askForNamespace(stream);
-      return { metadata: { responseType: 'namespaces' } };
+      return { metadata: { responseType: 'namespace' } };
     }
 
     const abortController = new AbortController();
@@ -754,11 +763,11 @@ export default class ParticipantController {
     const [request, , stream] = args;
 
     if (!request.prompt || request.prompt.trim().length === 0) {
-      const messages = await this.handleEmptyQueryRequest();
+      const { messages, responseType } = await this.handleEmptyQueryRequest();
       for (const msg of messages) {
         stream.markdown(msg);
       }
-      return { metadata: { responseType: 'empty' } };
+      return { metadata: { responseType } };
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(

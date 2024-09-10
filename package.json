@@ -33,7 +33,6 @@
     "theme": "dark"
   },
   "enabledApiProposals": [
-    "chatVariableResolver",
     "chatParticipantAdditions"
   ],
   "license": "SEE LICENSE IN LICENSE.txt",

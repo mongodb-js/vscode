@@ -37,7 +37,7 @@ npm run watch
 
 ### Using Proposed API
 
-The vscode extension will occasionally need to use [proposed API](https://code.visualstudio.com/api/advanced-topics/using-proposed-api) that haven't been promoted to stable yet. To enable an API proposal, add it to the `enabledApiProposals` section in `package.json`, then run `npx @vscode/dts dev` to install the type definitions for the API you want to enable.
+The vscode extension will occasionally need to use [proposed API](https://code.visualstudio.com/api/advanced-topics/using-proposed-api) that haven't been promoted to stable yet. To enable an API proposal, add it to the `enabledApiProposals` section in `package.json`, then run `cd src/vscode-dts && npx @vscode/dts dev` to install the type definitions for the API you want to enable.
 
 **Note**: Using proposed API is only possible during local development and will prevent publishing the extension.
 

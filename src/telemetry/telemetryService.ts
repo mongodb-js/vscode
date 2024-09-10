@@ -99,9 +99,9 @@ export type ParticipantResponseType =
   | 'schema'
   | 'docs'
   | 'generic'
-  | 'empty'
+  | 'empty_prompt'
   | 'connections'
-  | 'namespaces';
+  | 'namespace';
 
 type ParticipantFeedbackProperties = {
   feedback: TelemetryFeedbackKind;
