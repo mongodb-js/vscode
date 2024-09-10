@@ -30,7 +30,7 @@ runs:
     # Default Python (3.12) doesn't have support for distutils because of
     # which the dep install fails constantly on macos
     # https://github.com/nodejs/node-gyp/issues/2869
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
@@ -107,7 +107,7 @@ runs:
       shell: bash
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: VSIX built on ${{ runner.os }}
         path: |
