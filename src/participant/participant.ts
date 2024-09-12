@@ -9,7 +9,13 @@ import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
 import { GenericPrompt } from './prompts/generic';
-import { CHAT_PARTICIPANT_ID } from './constants';
+import {
+  AskToConnectChatResult,
+  CHAT_PARTICIPANT_ID,
+  EmptyRequestChatResult,
+  NamespaceRequestChatResult,
+  RunnableChatResult,
+} from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
@@ -185,7 +191,7 @@ export default class ParticipantController {
         arguments: [commandArgs],
       });
 
-      return { metadata: { responseContent: runnableContent } };
+      return new RunnableChatResult(runnableContent);
     }
 
     return { metadata: {} };
@@ -437,32 +443,23 @@ export default class ParticipantController {
       responseContentWithNamespace
     );
 
-    if (!namespace.databaseName || !namespace.collectionName) {
-      // Parse the context to see if we already have a database and collection name.
-      const namespaceFromChatHistory =
-        getLatestDatabaseAndCollectionFromChatHistory({
-          context,
-          request,
-        });
-      if (
-        namespaceFromChatHistory.databaseName &&
-        namespaceFromChatHistory.collectionName
-      ) {
-        // If the model fails to find the namespace, however we have it in the chat history,
-        // then use that.
-        // We prioritize the model's response over the history as the user could be asking
-        // about a different namespace in their most recent message and we wouldn't
-        // want to default in that case.
-        return {
-          databaseName: namespaceFromChatHistory.databaseName,
-          collectionName: namespaceFromChatHistory.collectionName,
-        };
-      }
-    }
+    // Parse the context to see if we already have a database and collection name.
+    const namespaceFromChatHistory =
+      getLatestDatabaseAndCollectionFromChatHistory({
+        context,
+        request,
+      });
 
+    // If the model fails to find the namespace, however we have it in the chat history,
+    // then use that.
+    // We prioritize the model's response over the history as the user could be asking
+    // about a different namespace in their most recent message and we wouldn't
+    // want to default in that case.
     return {
-      databaseName: namespace.databaseName,
-      collectionName: namespace.collectionName,
+      databaseName:
+        namespace.databaseName ?? namespaceFromChatHistory.databaseName,
+      collectionName:
+        namespace.collectionName ?? namespaceFromChatHistory.collectionName,
     };
   }
 
@@ -496,13 +493,10 @@ export default class ParticipantController {
       }
     }
 
-    return {
-      metadata: {
-        askForNamespace: true,
-        databaseName,
-        collectionName,
-      },
-    };
+    return new NamespaceRequestChatResult({
+      databaseName,
+      collectionName,
+    });
   }
 
   _askToConnect(stream: vscode.ChatResponseStream): vscode.ChatResult {
@@ -514,11 +508,7 @@ export default class ParticipantController {
     for (const item of tree) {
       stream.markdown(item);
     }
-    return {
-      metadata: {
-        askToConnect: true,
-      },
-    };
+    return new AskToConnectChatResult();
   }
 
   // The sample documents returned from this are simplified (strings and arrays shortened).
@@ -579,11 +569,7 @@ export default class ParticipantController {
 
     if (!request.prompt || request.prompt.trim().length === 0) {
       stream.markdown(QueryPrompt.getEmptyRequestResponse());
-      return {
-        metadata: {
-          isEmptyResponse: true,
-        },
-      };
+      return new EmptyRequestChatResult();
     }
 
     // We "prompt chain" to handle the query requests.
@@ -655,7 +641,7 @@ export default class ParticipantController {
       });
     }
 
-    return { metadata: { responseContent: runnableContent } };
+    return new RunnableChatResult(runnableContent);
   }
 
   async chatHandler(
@@ -673,11 +659,7 @@ export default class ParticipantController {
       (!request.prompt || request.prompt.trim().length === 0)
     ) {
       stream.markdown(GenericPrompt.getEmptyRequestResponse());
-      return {
-        metadata: {
-          isEmptyResponse: true,
-        },
-      };
+      return new EmptyRequestChatResult();
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
