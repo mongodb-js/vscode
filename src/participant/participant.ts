@@ -22,11 +22,6 @@ import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
-import {
-  collectionNameInCommandResponseKey,
-  databaseNameInCommandResponseKey,
-  getLatestDatabaseAndCollectionFromChatHistory,
-} from './prompts/history';
 
 const log = createLogger('participant');
 
@@ -284,7 +279,7 @@ export default class ParticipantController {
 
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       // Add a database name message to the chat so future messages know which namespace to use.
-      query: `@MongoDB /query ${databaseNameInCommandResponseKey}${databaseName}`,
+      query: `@MongoDB /query ${databaseName}`,
     });
   }
 
@@ -340,7 +335,7 @@ export default class ParticipantController {
     }
 
     return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${collectionNameInCommandResponseKey}${collectionName}`,
+      query: `@MongoDB /query ${collectionName}`,
     });
   }
 
@@ -443,23 +438,9 @@ export default class ParticipantController {
       responseContentWithNamespace
     );
 
-    // Parse the context to see if we already have a database and collection name.
-    const namespaceFromChatHistory =
-      getLatestDatabaseAndCollectionFromChatHistory({
-        context,
-        request,
-      });
-
-    // If the model fails to find the namespace, however we have it in the chat history,
-    // then use that.
-    // We prioritize the model's response over the history as the user could be asking
-    // about a different namespace in their most recent message and we wouldn't
-    // want to default in that case.
     return {
-      databaseName:
-        namespace.databaseName ?? namespaceFromChatHistory.databaseName,
-      collectionName:
-        namespace.collectionName ?? namespaceFromChatHistory.collectionName,
+      databaseName: namespace.databaseName,
+      collectionName: namespace.collectionName,
     };
   }
 

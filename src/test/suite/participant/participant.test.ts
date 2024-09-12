@@ -707,7 +707,10 @@ suite('Participant Controller Test Suite', function () {
               databaseName: undefined,
             });
 
-            chatRequestMock.prompt = 'Database: dbOne';
+            chatRequestMock.prompt = 'dbOne';
+            sendRequestStub.onCall(1).resolves({
+              text: ['DATABASE_NAME: dbOne\n'],
+            });
             const chatResult2 = await testParticipantController.chatHandler(
               chatRequestMock,
               {
@@ -763,7 +766,10 @@ suite('Participant Controller Test Suite', function () {
               databaseName: 'dbOne',
             });
 
-            chatRequestMock.prompt = 'Collection: collOne';
+            chatRequestMock.prompt = 'collOne';
+            sendRequestStub.onCall(2).resolves({
+              text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
+            });
             const chatResult3 = await testParticipantController.chatHandler(
               chatRequestMock,
               {
@@ -800,7 +806,7 @@ suite('Participant Controller Test Suite', function () {
                   Object.assign(
                     Object.create(vscode.ChatRequestTurn.prototype),
                     {
-                      prompt: 'Database: dbOne',
+                      prompt: 'dbOne',
                       command: 'query',
                       references: [],
                       participant: CHAT_PARTICIPANT_ID,
