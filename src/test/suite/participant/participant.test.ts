@@ -744,7 +744,7 @@ suite('Participant Controller Test Suite', function () {
             const askForCollMessage =
               chatStreamStub.markdown.getCall(12).args[0];
             expect(askForCollMessage).to.include(
-              'Which collection would you like to query within this database?'
+              'Which collection would you like to query within dbOne?'
             );
             const listCollsMessage =
               chatStreamStub.markdown.getCall(13).args[0];
@@ -814,7 +814,7 @@ suite('Participant Controller Test Suite', function () {
                         {
                           value: {
                             value:
-                              'Which collection would you like to query within this database?',
+                              'Which collection would you like to query within dbOne?',
                           } as vscode.MarkdownString,
                         },
                       ],

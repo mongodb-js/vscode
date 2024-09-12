@@ -176,7 +176,7 @@ export default class ParticipantController {
     stream.markdown(responseContent);
 
     const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent && runnableContent.trim().length) {
+    if (runnableContent) {
       const commandArgs: RunParticipantQueryCommandArgs = {
         runnableContent,
       };
@@ -486,7 +486,7 @@ export default class ParticipantController {
     } else if (!collectionName) {
       const tree = await this.getCollectionTree(databaseName);
       stream.markdown(
-        'Which collection would you like to query within this database?\n\n'
+        `Which collection would you like to query within ${databaseName}?\n\n`
       );
       for (const item of tree) {
         stream.markdown(item);
@@ -546,8 +546,14 @@ export default class ParticipantController {
       const unformattedSchema = await getSimplifiedSchema(sampleDocuments);
       const schema = new SchemaFormatter().format(unformattedSchema);
 
+      const useSampleDocsInCopilot = !!vscode.workspace
+        .getConfiguration('mdb')
+        .get('useSampleDocsInCopilot');
+
       return {
-        sampleDocuments: getSimplifiedSampleDocuments(sampleDocuments),
+        sampleDocuments: useSampleDocsInCopilot
+          ? getSimplifiedSampleDocuments(sampleDocuments)
+          : undefined,
         schema,
       };
     } catch (err: any) {
@@ -602,9 +608,6 @@ export default class ParticipantController {
         collectionName,
       });
 
-    const useSampleDocsInCopilot = !!vscode.workspace
-      .getConfiguration('mdb')
-      .get('useSampleDocsInCopilot');
     const messages = await QueryPrompt.buildMessages({
       request,
       context,
@@ -614,7 +617,7 @@ export default class ParticipantController {
       connectionNames: this._connectionController
         .getSavedConnections()
         .map((connection) => connection.name),
-      ...(useSampleDocsInCopilot ? { sampleDocuments } : {}),
+      ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
       messages,
@@ -625,7 +628,7 @@ export default class ParticipantController {
     stream.markdown(responseContent);
 
     const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent && runnableContent.trim().length) {
+    if (runnableContent) {
       const commandArgs: RunParticipantQueryCommandArgs = {
         runnableContent,
       };

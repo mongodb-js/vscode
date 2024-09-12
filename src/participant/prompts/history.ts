@@ -103,7 +103,7 @@ export function getLatestDatabaseAndCollectionFromChatHistory({
     )?.[1];
     collectionName = collectionNameMatch ?? collectionName;
 
-    if (databaseName && collectionName) {
+    if (databaseName) {
       return {
         databaseName,
         collectionName,
@@ -136,7 +136,10 @@ export function getLatestDatabaseAndCollectionFromChatHistory({
           ?.collectionName ?? collectionName;
     }
 
-    if (databaseName && collectionName) {
+    if (databaseName) {
+      // When we find a database name we return.
+      // This is so that if the user had previously specified a namespace
+      // but then changed their database we don't use the old collection.
       return {
         databaseName,
         collectionName,
