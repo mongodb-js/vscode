@@ -15,6 +15,7 @@ import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
+import { DocsChatbotAIService } from './docsChatbotAIService';
 
 const log = createLogger('participant');
 
@@ -74,6 +75,7 @@ export default class ParticipantController {
   _collectionName?: string;
   _schema?: string;
   _sampleDocuments?: Document[];
+  _docsChatbotAIService: DocsChatbotAIService;
 
   constructor({
     connectionController,
@@ -84,6 +86,7 @@ export default class ParticipantController {
   }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
+    this._docsChatbotAIService = new DocsChatbotAIService();
   }
 
   _setDatabaseName(name: string | undefined): void {
@@ -283,12 +286,12 @@ export default class ParticipantController {
     name: string;
   }): vscode.MarkdownString {
     const commandQuery = query ? `?%5B%22${query}%22%5D` : '';
-    const connName = new vscode.MarkdownString(
+    const link = new vscode.MarkdownString(
       `- <a href="command:${commandId}${commandQuery}">${name}</a>\n`
     );
-    connName.supportHtml = true;
-    connName.isTrusted = { enabledCommands: [commandId] };
-    return connName;
+    link.supportHtml = true;
+    link.isTrusted = { enabledCommands: [commandId] };
+    return link;
   }
 
   getConnectionsTree(): vscode.MarkdownString[] {
@@ -733,6 +736,66 @@ export default class ParticipantController {
     return { metadata: { responseContent: runnableContent } };
   }
 
+  async getDocumentationFromUserInput(message: string): Promise<{
+    content: string;
+    references?: {
+      url: string;
+      title: string;
+    }[];
+  }> {
+    try {
+      const conversation =
+        await this._docsChatbotAIService.createConversation();
+      const response = await this._docsChatbotAIService.addMessage({
+        message,
+        conversationId: conversation._id,
+      });
+      return {
+        content: response.content,
+        references: response.references?.map((ref) => ({
+          url: ref.url,
+          title: ref.title,
+        })),
+      };
+    } catch (error) {
+      const errorMessage =
+        // eslint-disable-next-line no-nested-ternary
+        typeof error === 'string'
+          ? error
+          : error instanceof Error
+          ? error.message
+          : 'Сonversation вailed.';
+      throw new Error(errorMessage);
+    }
+  }
+
+  async handleDocsRequest(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<ChatResult> {
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
+
+    const response = await this.getDocumentationFromUserInput(request.prompt);
+
+    stream.markdown(response.content);
+    if (response.references) {
+      for (const ref of response.references) {
+        const link = new vscode.MarkdownString(
+          `- <a href="${ref.url}">${ref.title}</a>\n`
+        );
+        link.supportHtml = true;
+        stream.markdown(link);
+      }
+    }
+
+    return { metadata: { responseContent: response.content } };
+  }
+
   async chatHandler(
     ...args: [
       vscode.ChatRequest,
@@ -770,7 +833,7 @@ export default class ParticipantController {
     if (request.command === 'query') {
       this._chatResult = await this.handleQueryRequest(...args);
     } else if (request.command === 'docs') {
-      // TODO(VSCODE-570): Implement this.
+      this._chatResult = await this.handleDocsRequest(...args);
     } else if (request.command === 'schema') {
       // TODO(VSCODE-571): Implement this.
     } else {
