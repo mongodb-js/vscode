@@ -783,7 +783,7 @@ suite('Participant Controller Test Suite', function () {
             sendRequestStub.onCall(2).resolves({
               text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
             });
-            const chatResult3 = await testParticipantController.chatHandler(
+            await testParticipantController.chatHandler(
               chatRequestMock,
               {
                 history: [
@@ -857,6 +857,16 @@ suite('Participant Controller Test Suite', function () {
             expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
               command: 'mdb.runParticipantQuery',
               title: '▶️ Run',
+              arguments: [
+                {
+                  runnableContent:
+                    "use('dbOne');\ndb.getCollection('collOne').find({ name: 'example' });",
+                },
+              ],
+            });
+            expect(chatStreamStub?.button.getCall(1).args[0]).to.deep.equal({
+              command: 'mdb.openParticipantQueryInPlayground',
+              title: 'Open in playground',
               arguments: [
                 {
                   runnableContent:
