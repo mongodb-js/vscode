@@ -274,6 +274,7 @@ export default class ParticipantController {
       }
     }
 
+    // TODO(VSCODE-607): Set the database name in the chat store.
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       // Add a database name message to the chat so future messages know which namespace to use.
       query: `@MongoDB /query ${databaseName}`,
@@ -331,6 +332,7 @@ export default class ParticipantController {
       }
     }
 
+    // TODO(VSCODE-607): Set the collection name in the chat store.
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       query: `@MongoDB /query ${collectionName}`,
     });
@@ -434,6 +436,9 @@ export default class ParticipantController {
     const namespace = parseForDatabaseAndCollectionName(
       responseContentWithNamespace
     );
+
+    // TODO(VSCODE-607): See if there's a namespace set in the
+    // chat metadata we can fallback to if the model didn't find it.
 
     return {
       databaseName: namespace.databaseName,
