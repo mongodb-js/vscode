@@ -1,7 +1,6 @@
 import type { Reference, VerifiedAnswer } from 'mongodb-rag-core';
 
-const MONGODB_DOCS_CHATBOT_BASE_URI =
-  process.env.MONGODB_DOCS_CHATBOT_BASE_URI || 'http://localhost:3000';
+const MONGODB_DOCS_CHATBOT_BASE_URI = 'http://localhost:3000/';
 
 const DEFAULT_HEADERS = {
   origin: MONGODB_DOCS_CHATBOT_BASE_URI,
@@ -88,14 +87,12 @@ export type ConversationServiceConfig = {
 };
 
 export class DocsChatbotAIService {
-  constructor() {}
-
   private getUrl(path: string): string {
-    return MONGODB_DOCS_CHATBOT_BASE_URI + path;
+    return MONGODB_DOCS_CHATBOT_BASE_URI + 'api/v1' + path;
   }
 
   async createConversation(): Promise<any> {
-    const path = '/api/v1/conversations';
+    const path = '/conversations';
     const resp = await fetch(this.getUrl(path), {
       headers: DEFAULT_HEADERS,
       method: 'POST',
@@ -124,7 +121,7 @@ export class DocsChatbotAIService {
     conversationId: string;
     message: string;
   }): Promise<MessageData> {
-    const path = `/api/v1/conversations/${conversationId}/messages`;
+    const path = `/conversations/${conversationId}/messages`;
     const resp = await fetch(this.getUrl(path), {
       headers: {
         ...DEFAULT_HEADERS,

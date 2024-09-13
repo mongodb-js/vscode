@@ -33,6 +33,7 @@ const NUM_DOCUMENTS_TO_SAMPLE = 3;
 interface ChatResult extends vscode.ChatResult {
   metadata: {
     responseContent?: string;
+    conversationId?: string;
   };
 }
 
@@ -736,7 +737,14 @@ export default class ParticipantController {
     return { metadata: { responseContent: runnableContent } };
   }
 
-  async getDocumentationFromUserInput(message: string): Promise<{
+  async getDocumentationFromUserInput({
+    message,
+    conversationId,
+  }: {
+    message: string;
+    conversationId: string;
+  }): Promise<{
+    conversationId: string;
     content: string;
     references?: {
       url: string;
@@ -744,13 +752,18 @@ export default class ParticipantController {
     }[];
   }> {
     try {
-      const conversation =
-        await this._docsChatbotAIService.createConversation();
+      if (!conversationId) {
+        const conversation =
+          await this._docsChatbotAIService.createConversation();
+        conversationId = conversation.conversationId;
+      }
+
       const response = await this._docsChatbotAIService.addMessage({
         message,
-        conversationId: conversation._id,
+        conversationId,
       });
       return {
+        conversationId,
         content: response.content,
         references: response.references?.map((ref) => ({
           url: ref.url,
@@ -780,7 +793,21 @@ export default class ParticipantController {
       abortController.abort();
     });
 
-    const response = await this.getDocumentationFromUserInput(request.prompt);
+    const historyWithConversationId = context.history.find((historyItem) => {
+      return (
+        historyItem.participant === CHAT_PARTICIPANT_ID &&
+        historyItem instanceof vscode.ChatResponseTurn &&
+        historyItem.result.metadata?.conversationId
+      );
+    });
+    const conversationId = historyWithConversationId
+      ? (historyWithConversationId as vscode.ChatResponseTurn).result.metadata
+          ?.conversationId
+      : undefined;
+    const response = await this.getDocumentationFromUserInput({
+      message: request.prompt,
+      conversationId,
+    });
 
     stream.markdown(response.content);
     if (response.references) {
@@ -793,7 +820,12 @@ export default class ParticipantController {
       }
     }
 
-    return { metadata: { responseContent: response.content } };
+    return {
+      metadata: {
+        responseContent: response.content,
+        conversationId: response.conversationId,
+      },
+    };
   }
 
   async chatHandler(
