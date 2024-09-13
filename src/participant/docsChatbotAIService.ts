@@ -2,9 +2,14 @@ import type { Reference, VerifiedAnswer } from 'mongodb-rag-core';
 
 const MONGODB_DOCS_CHATBOT_BASE_URI = 'http://localhost:3000/';
 
+const MONGODB_DOCS_CHATBOT_API_VERSION = 'v1';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../../package.json');
+
 const DEFAULT_HEADERS = {
   origin: MONGODB_DOCS_CHATBOT_BASE_URI,
-  'User-Agent': 'mongodb-vscode/version',
+  'User-Agent': `mongodb-vscode/${version}`,
 };
 
 export type Role = 'user' | 'assistant';
@@ -34,32 +39,6 @@ export type AssistantMessageMetadata = {
   };
 };
 
-export const CUSTOM_REQUEST_ORIGIN_HEADER = 'X-Request-Origin';
-
-export function getCustomRequestOrigin(): string | undefined {
-  if (typeof window !== 'undefined') {
-    return window.location.href;
-  }
-  return undefined;
-}
-
-export class RetriableError<Data extends object = object> extends Error {
-  retryAfter: number;
-  data?: Data;
-
-  constructor(
-    message: string,
-    config: { retryAfter?: number; data?: Data } = {}
-  ) {
-    const { retryAfter = 1000, data } = config;
-    super(message);
-    this.name = 'RetriableError';
-    this.message = message;
-    this.retryAfter = retryAfter;
-    this.data = data;
-  }
-}
-
 export class TimeoutError<Data extends object = object> extends Error {
   data?: Data;
 
@@ -70,25 +49,9 @@ export class TimeoutError<Data extends object = object> extends Error {
   }
 }
 
-/**
-  Options to include with every fetch request made by the ConversationService.
-  This can be used to set headers, etc.
- */
-export type ConversationFetchOptions = Omit<
-  RequestInit,
-  'body' | 'method' | 'headers' | 'signal'
-> & {
-  headers?: Headers;
-};
-
-export type ConversationServiceConfig = {
-  serverUrl: string;
-  fetchOptions?: ConversationFetchOptions;
-};
-
 export class DocsChatbotAIService {
   private getUrl(path: string): string {
-    return MONGODB_DOCS_CHATBOT_BASE_URI + 'api/v1' + path;
+    return `${MONGODB_DOCS_CHATBOT_BASE_URI}api/${MONGODB_DOCS_CHATBOT_API_VERSION}${path}`;
   }
 
   async createConversation(): Promise<any> {
