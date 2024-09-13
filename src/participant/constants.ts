@@ -37,18 +37,6 @@ export class EmptyRequestChatResult implements vscode.ChatResult {
   }
 }
 
-export class RunnableChatResult implements vscode.ChatResult {
-  readonly metadata: {
-    responseContent: string;
-  };
-
-  constructor(responseContent: string) {
-    this.metadata = {
-      responseContent,
-    };
-  }
-}
-
 export class AskToConnectChatResult implements vscode.ChatResult {
   readonly metadata: {
     askToConnect: true;

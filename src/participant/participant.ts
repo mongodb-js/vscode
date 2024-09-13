@@ -14,7 +14,6 @@ import {
   CHAT_PARTICIPANT_ID,
   EmptyRequestChatResult,
   NamespaceRequestChatResult,
-  RunnableChatResult,
 } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
@@ -185,8 +184,6 @@ export default class ParticipantController {
         title: vscode.l10n.t('Open in playground'),
         arguments: [commandArgs],
       });
-
-      return new RunnableChatResult(runnableContent);
     }
 
     return { metadata: {} };
@@ -625,7 +622,7 @@ export default class ParticipantController {
       });
     }
 
-    return new RunnableChatResult(runnableContent);
+    return { metadata: {} };
   }
 
   async chatHandler(

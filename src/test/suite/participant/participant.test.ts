@@ -376,15 +376,22 @@ suite('Participant Controller Test Suite', function () {
             command: undefined,
             references: [],
           };
-          const chatResult = await testParticipantController.chatHandler(
+          await testParticipantController.chatHandler(
             chatRequestMock,
             chatContextStub,
             chatStreamStub,
             chatTokenStub
           );
-          expect(chatResult?.metadata).to.deep.equal({
-            responseContent:
-              "use('dbOne');\ndb.getCollection('collOne').find({ name: 'example' });",
+
+          expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
+            command: 'mdb.runParticipantQuery',
+            title: '▶️ Run',
+            arguments: [
+              {
+                runnableContent:
+                  "use('dbOne');\ndb.getCollection('collOne').find({ name: 'example' });",
+              },
+            ],
           });
         });
       });
@@ -403,15 +410,21 @@ suite('Participant Controller Test Suite', function () {
               command: 'query',
               references: [],
             };
-            const chatResult = await testParticipantController.chatHandler(
+            await testParticipantController.chatHandler(
               chatRequestMock,
               chatContextStub,
               chatStreamStub,
               chatTokenStub
             );
-            expect(chatResult?.metadata).to.deep.equal({
-              responseContent:
-                "use('dbOne');\ndb.getCollection('collOne').find({ name: 'example' });",
+            expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
+              command: 'mdb.runParticipantQuery',
+              title: '▶️ Run',
+              arguments: [
+                {
+                  runnableContent:
+                    "use('dbOne');\ndb.getCollection('collOne').find({ name: 'example' });",
+                },
+              ],
             });
           });
 
@@ -840,9 +853,16 @@ suite('Participant Controller Test Suite', function () {
               chatTokenStub
             );
 
-            expect(chatResult3?.metadata).to.deep.equal({
-              responseContent:
-                "use('dbOne');\ndb.getCollection('collOne').find({ name: 'example' });",
+            expect(chatStreamStub?.button.callCount).to.equal(2);
+            expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
+              command: 'mdb.runParticipantQuery',
+              title: '▶️ Run',
+              arguments: [
+                {
+                  runnableContent:
+                    "use('dbOne');\ndb.getCollection('collOne').find({ name: 'example' });",
+                },
+              ],
             });
           });
         });
