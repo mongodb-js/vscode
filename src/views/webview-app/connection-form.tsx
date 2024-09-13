@@ -49,17 +49,16 @@ const ConnectionForm: React.FunctionComponent<
     open: boolean;
     connectionErrorMessage: string;
   } & Pick<
-    ComponentProps<typeof CompassConnectionForm>,
-    'onConnectClicked' | 'onSaveConnectionClicked' | 'initialConnectionInfo'
+    Parameters<typeof CompassConnectionForm>[0],
+    'onSaveAndConnectClicked' | 'initialConnectionInfo'
   >
 > = ({
   initialConnectionInfo,
   connectionErrorMessage,
   isConnecting,
   onCancelConnectClicked,
-  onConnectClicked,
   onClose,
-  onSaveConnectionClicked,
+  onSaveAndConnectClicked,
   open,
 }) => {
   const darkMode = useDarkMode();
@@ -89,8 +88,7 @@ const ConnectionForm: React.FunctionComponent<
       )}
       <div data-testid="connection-form-modal" className={formContainerStyles}>
         <CompassConnectionForm
-          onConnectClicked={onConnectClicked}
-          onSaveConnectionClicked={onSaveConnectionClicked}
+          onSaveAndConnectClicked={onSaveAndConnectClicked}
           initialConnectionInfo={initialConnectionInfo}
           preferences={{
             showFavoriteActions: false,
@@ -105,6 +103,9 @@ const ConnectionForm: React.FunctionComponent<
             showOIDCAuth: true,
             showKerberosAuth: false,
             showCSFLE: false,
+            saveAndConnectLabel: 'Save & Connect',
+            showHelpCardsInForm: false,
+            showPersonalisationForm: false,
           }}
           connectionErrorMessage={connectionErrorMessage}
         />
