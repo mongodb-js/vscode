@@ -28,7 +28,7 @@ interface ChatResult extends vscode.ChatResult {
       databaseName?: string;
       collectionName?: string;
     };
-    schema?: string;
+    sampleDocuments?: Document[];
   };
 }
 
@@ -640,31 +640,25 @@ export default class ParticipantController {
       );
     }
 
-    const schema = sampleDocuments
-      ? new SchemaFormatter().format(await getSimplifiedSchema(sampleDocuments))
-      : undefined;
-
     const useSampleDocsInCopilot = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useSampleDocsInCopilot');
-    sampleDocuments =
-      sampleDocuments && useSampleDocsInCopilot
-        ? getSimplifiedSampleDocuments(sampleDocuments)
-        : undefined;
 
     const messages = await QueryPrompt.buildMessages({
       request,
       context,
       databaseName: namespace.databaseName,
       collectionName: namespace.collectionName,
-      schema,
-      sampleDocuments,
+      schema: sampleDocuments
+        ? new SchemaFormatter().format(
+            await getSimplifiedSchema(sampleDocuments)
+          )
+        : undefined,
+      sampleDocuments:
+        sampleDocuments && useSampleDocsInCopilot
+          ? getSimplifiedSampleDocuments(sampleDocuments)
+          : undefined,
     });
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const util = require('util');
-    console.log('messages----------------------');
-    console.log(`${util.inspect(messages)}`);
-    console.log('----------------------');
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,
@@ -685,7 +679,13 @@ export default class ParticipantController {
       });
     }
 
-    return { metadata: { responseContent: runnableContent, namespace } };
+    return {
+      metadata: {
+        responseContent: runnableContent,
+        namespace,
+        sampleDocuments,
+      },
+    };
   }
 
   async chatHandler(
