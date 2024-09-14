@@ -8,7 +8,7 @@ import { ObjectId, Int32 } from 'bson';
 import ParticipantController, {
   parseForDatabaseAndCollectionName,
   getRunnableContentFromString,
-  QUERY_GENERATION_STATE,
+  SELECT_NAMESPACE,
 } from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
@@ -183,7 +183,7 @@ suite('Participant Controller Test Suite', function () {
       );
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
-        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
+        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against. Please select a cluster to connect by clicking on an item in the connections list."
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
       expect(listConnectionsMessage.value).to.include(
@@ -196,9 +196,6 @@ suite('Participant Controller Test Suite', function () {
       expect(
         testParticipantController._chatResult?.metadata.responseContent
       ).to.be.eql(undefined);
-      expect(testParticipantController._queryGenerationState).to.be.eql(
-        QUERY_GENERATION_STATE.ASK_TO_CONNECT
-      );
     });
 
     test('shows only 10 connections with the show more option', async function () {
@@ -224,7 +221,7 @@ suite('Participant Controller Test Suite', function () {
       );
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
-        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
+        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against. Please select a cluster to connect by clicking on an item in the connections list."
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
       expect(listConnectionsMessage.value).to.include(
@@ -238,9 +235,6 @@ suite('Participant Controller Test Suite', function () {
       expect(
         testParticipantController._chatResult?.metadata.responseContent
       ).to.be.eql(undefined);
-      expect(testParticipantController._queryGenerationState).to.be.eql(
-        QUERY_GENERATION_STATE.ASK_TO_CONNECT
-      );
     });
 
     test('handles empty connection name', async function () {
@@ -256,9 +250,6 @@ suite('Participant Controller Test Suite', function () {
         chatStreamStub,
         chatTokenStub
       );
-      expect(testParticipantController._queryGenerationState).to.be.eql(
-        QUERY_GENERATION_STATE.ASK_TO_CONNECT
-      );
 
       chatRequestMock.prompt = '';
       await testParticipantController.chatHandler(
@@ -270,7 +261,7 @@ suite('Participant Controller Test Suite', function () {
 
       const emptyMessage = chatStreamStub.markdown.getCall(3).args[0];
       expect(emptyMessage).to.include(
-        'Please select a cluster to connect by clicking on an item in the connections list.'
+        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against. Please select a cluster to connect by clicking on an item in the connections list."
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(4).args[0];
       expect(listConnectionsMessage.value).to.include(
@@ -283,9 +274,6 @@ suite('Participant Controller Test Suite', function () {
       expect(
         testParticipantController._chatResult?.metadata.responseContent
       ).to.be.eql(undefined);
-      expect(testParticipantController._queryGenerationState).to.be.eql(
-        QUERY_GENERATION_STATE.ASK_TO_CONNECT
-      );
     });
 
     test('calls connect by id for an existing connection', async function () {
@@ -392,9 +380,6 @@ suite('Participant Controller Test Suite', function () {
             command: undefined,
             references: [],
           };
-          expect(testParticipantController._queryGenerationState).to.be.equal(
-            undefined
-          );
           expect(testParticipantController._chatResult).to.be.equal(undefined);
           await testParticipantController.chatHandler(
             chatRequestMock,
@@ -413,15 +398,13 @@ suite('Participant Controller Test Suite', function () {
       suite('query command', function () {
         suite('known namespace', function () {
           beforeEach(function () {
-            sinon
-              .stub(testParticipantController, '_databaseName')
-              .value('dbOne');
-            sinon
-              .stub(testParticipantController, '_collectionName')
-              .value('collOne');
-            sinon
-              .stub(testParticipantController, '_shouldAskForNamespace')
-              .resolves(false);
+            sinon.stub(testParticipantController, '_findNamespace').resolves({
+              namespace: {
+                databaseName: 'dbOne',
+                collectionName: 'collOne',
+              },
+              namespaceHasChanged: false,
+            });
           });
 
           test('generates a query', async function () {
@@ -430,9 +413,6 @@ suite('Participant Controller Test Suite', function () {
               command: 'query',
               references: [],
             };
-            expect(testParticipantController._queryGenerationState).to.be.equal(
-              undefined
-            );
             expect(testParticipantController._chatResult).to.be.equal(
               undefined
             );
@@ -450,9 +430,6 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('includes a collection schema', async function () {
-            sinon
-              .stub(testParticipantController, '_queryGenerationState')
-              .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
             sampleStub.resolves([
               {
                 _id: new ObjectId('63ed1d522d8573fa5c203660'),
@@ -496,9 +473,6 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('includes 3 sample documents as an array', async function () {
-              sinon
-                .stub(testParticipantController, '_queryGenerationState')
-                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
               countTokensStub.resolves(MAX_TOTAL_PROMPT_LENGTH);
               sampleStub.resolves([
                 {
@@ -557,9 +531,6 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('includes 1 sample document as an object', async function () {
-              sinon
-                .stub(testParticipantController, '_queryGenerationState')
-                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
               countTokensStub.resolves(MAX_TOTAL_PROMPT_LENGTH);
               sampleStub.resolves([
                 {
@@ -609,9 +580,6 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('includes 1 sample documents when 3 make prompt too long', async function () {
-              sinon
-                .stub(testParticipantController, '_queryGenerationState')
-                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
               countTokensStub.onCall(0).resolves(MAX_TOTAL_PROMPT_LENGTH + 1);
               countTokensStub.onCall(1).resolves(MAX_TOTAL_PROMPT_LENGTH);
               sampleStub.resolves([
@@ -657,9 +625,6 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('does not include sample documents when even 1 makes prompt too long', async function () {
-              sinon
-                .stub(testParticipantController, '_queryGenerationState')
-                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
               countTokensStub.onCall(0).resolves(MAX_TOTAL_PROMPT_LENGTH + 1);
               countTokensStub.onCall(1).resolves(MAX_TOTAL_PROMPT_LENGTH + 1);
               sampleStub.resolves([
@@ -700,9 +665,6 @@ suite('Participant Controller Test Suite', function () {
 
           suite('useSampleDocsInCopilot setting is false', function () {
             test('does not include sample documents', async function () {
-              sinon
-                .stub(testParticipantController, '_queryGenerationState')
-                .value(QUERY_GENERATION_STATE.FETCH_SCHEMA);
               const chatRequestMock = {
                 prompt: 'find all docs by a name example',
                 command: 'query',
@@ -721,15 +683,33 @@ suite('Participant Controller Test Suite', function () {
         });
 
         suite('unknown namespace', function () {
+          let findNamespaceStub;
+          let isSelectingNamespaceStub;
+
+          beforeEach(() => {
+            findNamespaceStub = sinon.stub(
+              testParticipantController,
+              '_findNamespace'
+            );
+            isSelectingNamespaceStub = sinon.stub(
+              testParticipantController,
+              '_isSelectingNamespace'
+            );
+          });
+
           test('asks for a namespace and generates a query', async function () {
+            findNamespaceStub.resolves({
+              namespace: {
+                databaseName: undefined,
+                collectionName: undefined,
+              },
+              namespaceHasChanged: false,
+            });
             const chatRequestMock = {
               prompt: 'find all docs by a name example',
               command: 'query',
               references: [],
             };
-            expect(testParticipantController._queryGenerationState).to.be.equal(
-              undefined
-            );
             await testParticipantController.chatHandler(
               chatRequestMock,
               chatContextStub,
@@ -753,11 +733,17 @@ suite('Participant Controller Test Suite', function () {
             expect(
               testParticipantController._chatResult?.metadata.responseContent
             ).to.be.eql(undefined);
-            expect(testParticipantController._queryGenerationState).to.be.eql(
-              QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME
-            );
 
+            findNamespaceStub.resolves({
+              namespace: {
+                databaseName: 'dbOne',
+                collectionName: undefined,
+              },
+              namespaceHasChanged: true,
+            });
+            isSelectingNamespaceStub.value(SELECT_NAMESPACE.COLLECTION);
             chatRequestMock.prompt = 'dbOne';
+
             await testParticipantController.chatHandler(
               chatRequestMock,
               chatContextStub,
@@ -765,9 +751,6 @@ suite('Participant Controller Test Suite', function () {
               chatTokenStub
             );
 
-            expect(testParticipantController._databaseName).to.be.equal(
-              'dbOne'
-            );
             const askForCollMessage =
               chatStreamStub.markdown.getCall(12).args[0];
             expect(askForCollMessage).to.include(
@@ -776,21 +759,25 @@ suite('Participant Controller Test Suite', function () {
             const listCollsMessage =
               chatStreamStub.markdown.getCall(13).args[0];
             expect(listCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22collOne%22%5D">collOne</a>'
+              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522collectionName%2522%253A%2522collOne%2522%252C%2522databaseName%2522%253A%2522dbOne%2522%257D%22%5D">collOne</a>'
             );
             const showMoreCollsMessage =
               chatStreamStub.markdown.getCall(23).args[0];
             expect(showMoreCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant">Show more</a>'
+              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522databaseName%2522%253A%2522dbOne%2522%257D%22%5D">Show more</a>'
             );
             expect(chatStreamStub.markdown.callCount).to.be.eql(24);
             expect(
               testParticipantController._chatResult?.metadata.responseContent
             ).to.be.eql(undefined);
-            expect(testParticipantController._queryGenerationState).to.be.eql(
-              QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME
-            );
 
+            findNamespaceStub.resolves({
+              namespace: {
+                databaseName: 'dbOne',
+                collectionName: 'collOne',
+              },
+              namespaceHasChanged: true,
+            });
             chatRequestMock.prompt = 'collOne';
             await testParticipantController.chatHandler(
               chatRequestMock,
@@ -799,9 +786,6 @@ suite('Participant Controller Test Suite', function () {
               chatTokenStub
             );
 
-            expect(testParticipantController._collectionName).to.be.equal(
-              'collOne'
-            );
             expect(
               testParticipantController._chatResult?.metadata.responseContent
             ).to.include(
@@ -810,10 +794,14 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('handles empty database name', async function () {
-            sinon
-              .stub(testParticipantController, '_queryGenerationState')
-              .value(QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME);
-
+            findNamespaceStub.resolves({
+              namespace: {
+                databaseName: undefined,
+                collectionName: undefined,
+              },
+              namespaceHasChanged: false,
+            });
+            isSelectingNamespaceStub.value(SELECT_NAMESPACE.DATABASE);
             const chatRequestMock = {
               prompt: '',
               command: 'query',
@@ -834,19 +822,17 @@ suite('Participant Controller Test Suite', function () {
             expect(listDBsMessage.value).to.include(
               '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22dbOne%22%5D">dbOne</a>'
             );
-            expect(testParticipantController._queryGenerationState).to.be.eql(
-              QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME
-            );
           });
 
           test('handles empty collection name', async function () {
-            sinon
-              .stub(testParticipantController, '_queryGenerationState')
-              .value(QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME);
-            sinon
-              .stub(testParticipantController, '_databaseName')
-              .value('dbOne');
-
+            findNamespaceStub.resolves({
+              namespace: {
+                databaseName: 'dbOne',
+                collectionName: undefined,
+              },
+              namespaceHasChanged: false,
+            });
+            isSelectingNamespaceStub.value(SELECT_NAMESPACE.COLLECTION);
             const chatRequestMock = {
               prompt: '',
               command: 'query',
@@ -865,10 +851,7 @@ suite('Participant Controller Test Suite', function () {
             );
             const listCollsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22collOne%22%5D">collOne</a>'
-            );
-            expect(testParticipantController._queryGenerationState).to.be.eql(
-              QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME
+              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522collectionName%2522%253A%2522collOne%2522%252C%2522databaseName%2522%253A%2522dbOne%2522%257D%22%5D">collOne</a>'
             );
           });
         });

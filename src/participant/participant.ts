@@ -111,41 +111,6 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  handleEmptyQueryRequest(): (string | vscode.MarkdownString)[] {
-    const messages: (string | vscode.MarkdownString)[] = [];
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      messages.push(
-        vscode.l10n.t(
-          'Please select a cluster to connect by clicking on an item in the connections list.'
-        )
-      );
-      messages.push(...this.getConnectionsTree());
-    }
-    /* if (!this._databaseName) {
-      messages.push(
-        vscode.l10n.t(
-          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
-        )
-      );
-      messages.push(...(await this.getDatabasesTree()));
-    }
-    if (!this._collectionName) {
-      messages.push(
-        vscode.l10n.t(
-          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
-        )
-      );
-      messages.push(...(await this.getCollectionTree()));
-    } */
-    messages.push(
-      vscode.l10n.t(
-        'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
-      )
-    );
-    return messages;
-  }
-
   handleError(err: any, stream: vscode.ChatResponseStream): void {
     // Making the chat request might fail because
     // - model does not exist
@@ -201,6 +166,15 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
+    if (request.prompt.trim().length === 0) {
+      stream.markdown(
+        vscode.l10n.t(
+          'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
+        )
+      );
+      return { metadata: {} };
+    }
+
     const messages = GenericPrompt.buildMessages({
       request,
       context,
@@ -536,6 +510,7 @@ export default class ParticipantController {
   }
 
   async _askForNamespace(
+    prompt: string,
     namespace: {
       databaseName?: string;
       collectionName?: string;
@@ -547,17 +522,37 @@ export default class ParticipantController {
     // Users can then select a value by clicking on an item in the list.
     if (!namespace.databaseName) {
       const tree = await this.getDatabasesTree();
-      stream.markdown(
-        'What is the name of the database you would like this query to run against?\n\n'
-      );
+      if (prompt.trim().length === 0) {
+        stream.markdown(
+          vscode.l10n.t(
+            'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
+          )
+        );
+      } else {
+        stream.markdown(
+          vscode.l10n.t(
+            'What is the name of the database you would like this query to run against?\n\n'
+          )
+        );
+      }
       for (const item of tree) {
         stream.markdown(item);
       }
     } else if (!namespace.collectionName) {
       const tree = await this.getCollectionTree(namespace.databaseName);
-      stream.markdown(
-        'Which collection would you like to query within this database?\n\n'
-      );
+      if (prompt.trim().length === 0) {
+        stream.markdown(
+          vscode.l10n.t(
+            'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+          )
+        );
+      } else {
+        stream.markdown(
+          vscode.l10n.t(
+            'Which collection would you like to query within this database?\n\n'
+          )
+        );
+      }
       for (const item of tree) {
         stream.markdown(item);
       }
@@ -565,6 +560,7 @@ export default class ParticipantController {
   }
 
   _shouldAskToConnectIfNotConnected(
+    prompt: string,
     stream: vscode.ChatResponseStream
   ): boolean {
     const dataService = this._connectionController.getActiveDataService();
@@ -574,7 +570,9 @@ export default class ParticipantController {
 
     const tree = this.getConnectionsTree();
     stream.markdown(
-      "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
+      vscode.l10n.t(
+        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against. Please select a cluster to connect by clicking on an item in the connections list.\n\n"
+      )
     );
     for (const item of tree) {
       stream.markdown(item);
@@ -614,6 +612,7 @@ export default class ParticipantController {
   }
 
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.
+  // eslint-disable-next-line complexity
   async handleQueryRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
@@ -624,7 +623,7 @@ export default class ParticipantController {
     // when a command other than /query is called, as it disrupts the flow.
     this._ifNewChatResetQueryGenerationState(context);
 
-    if (this._shouldAskToConnectIfNotConnected(stream)) {
+    if (this._shouldAskToConnectIfNotConnected(request.prompt, stream)) {
       return { metadata: {} };
     }
 
@@ -636,8 +635,17 @@ export default class ParticipantController {
     );
 
     if (!namespace.databaseName || !namespace.collectionName) {
-      await this._askForNamespace(namespace, stream);
+      await this._askForNamespace(request.prompt, namespace, stream);
       return { metadata: { namespace } };
+    }
+
+    if (request.prompt.trim().length === 0) {
+      stream.markdown(
+        vscode.l10n.t(
+          'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
+        )
+      );
+      return { metadata: {} };
     }
 
     const abortController = new AbortController();
@@ -710,15 +718,6 @@ export default class ParticipantController {
     ]
   ): Promise<ChatResult | undefined> {
     const [request, , stream] = args;
-
-    if (!request.prompt || request.prompt.trim().length === 0) {
-      const messages = this.handleEmptyQueryRequest();
-      for (const msg of messages) {
-        stream.markdown(msg);
-      }
-      return { metadata: {} };
-    }
-
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
       StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
     );
