@@ -15,23 +15,20 @@ import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
+import { createMarkdownLink } from './markdown';
 
 const log = createLogger('participant');
-
-export enum QUERY_GENERATION_STATE {
-  DEFAULT = 'DEFAULT',
-  ASK_TO_CONNECT = 'ASK_TO_CONNECT',
-  ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
-  ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
-  CHANGE_DATABASE_NAME = 'CHANGE_DATABASE_NAME',
-  FETCH_SCHEMA = 'FETCH_SCHEMA',
-}
 
 const NUM_DOCUMENTS_TO_SAMPLE = 3;
 
 interface ChatResult extends vscode.ChatResult {
   metadata: {
     responseContent?: string;
+    namespace?: {
+      databaseName?: string;
+      collectionName?: string;
+    };
+    schema?: string;
   };
 }
 
@@ -68,12 +65,7 @@ export default class ParticipantController {
   _participant?: vscode.ChatParticipant;
   _connectionController: ConnectionController;
   _storageController: StorageController;
-  _queryGenerationState?: QUERY_GENERATION_STATE;
   _chatResult?: ChatResult;
-  _databaseName?: string;
-  _collectionName?: string;
-  _schema?: string;
-  _sampleDocuments?: Document[];
 
   constructor({
     connectionController,
@@ -84,27 +76,6 @@ export default class ParticipantController {
   }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
-  }
-
-  _setDatabaseName(name: string | undefined): void {
-    if (
-      this._queryGenerationState === QUERY_GENERATION_STATE.DEFAULT &&
-      this._databaseName !== name
-    ) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME;
-      this._collectionName = undefined;
-    }
-    this._databaseName = name;
-  }
-
-  _setCollectionName(name: string | undefined): void {
-    if (
-      this._queryGenerationState === QUERY_GENERATION_STATE.DEFAULT &&
-      this._collectionName !== name
-    ) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.FETCH_SCHEMA;
-    }
-    this._collectionName = name;
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -130,40 +101,38 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  async handleEmptyQueryRequest(): Promise<(string | vscode.MarkdownString)[]> {
+  handleEmptyQueryRequest(): (string | vscode.MarkdownString)[] {
     const messages: (string | vscode.MarkdownString)[] = [];
-    switch (this._queryGenerationState) {
-      case QUERY_GENERATION_STATE.ASK_TO_CONNECT:
-        messages.push(
-          vscode.l10n.t(
-            'Please select a cluster to connect by clicking on an item in the connections list.'
-          )
-        );
-        messages.push(...this.getConnectionsTree());
-        break;
-      case QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME:
-        messages.push(
-          vscode.l10n.t(
-            'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
-          )
-        );
-        messages.push(...(await this.getDatabasesTree()));
-        break;
-      case QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME:
-        messages.push(
-          vscode.l10n.t(
-            'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
-          )
-        );
-        messages.push(...(await this.getCollectionTree()));
-        break;
-      default:
-        messages.push(
-          vscode.l10n.t(
-            'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
-          )
-        );
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      messages.push(
+        vscode.l10n.t(
+          'Please select a cluster to connect by clicking on an item in the connections list.'
+        )
+      );
+      messages.push(...this.getConnectionsTree());
     }
+    /* if (!this._databaseName) {
+      messages.push(
+        vscode.l10n.t(
+          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
+        )
+      );
+      messages.push(...(await this.getDatabasesTree()));
+    }
+    if (!this._collectionName) {
+      messages.push(
+        vscode.l10n.t(
+          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+        )
+      );
+      messages.push(...(await this.getCollectionTree()));
+    } */
+    messages.push(
+      vscode.l10n.t(
+        'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
+      )
+    );
     return messages;
   }
 
@@ -264,31 +233,9 @@ export default class ParticipantController {
     }
 
     const connectionName = this._connectionController.getActiveConnectionName();
-    if (connectionName) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
-    }
-
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       query: `@MongoDB /query ${connectionName}`,
     });
-  }
-
-  _createMarkdownLink({
-    commandId,
-    query,
-    name,
-  }: {
-    commandId: string;
-    query?: string;
-    name: string;
-  }): vscode.MarkdownString {
-    const commandQuery = query ? `?%5B%22${query}%22%5D` : '';
-    const connName = new vscode.MarkdownString(
-      `- <a href="command:${commandId}${commandQuery}">${name}</a>\n`
-    );
-    connName.supportHtml = true;
-    connName.isTrusted = { enabledCommands: [commandId] };
-    return connName;
   }
 
   getConnectionsTree(): vscode.MarkdownString[] {
@@ -302,13 +249,13 @@ export default class ParticipantController {
         })
         .slice(0, MAX_MARKDOWN_LIST_LENGTH)
         .map((conn: LoadedConnection) =>
-          this._createMarkdownLink({
+          createMarkdownLink({
             commandId: 'mdb.connectWithParticipant',
-            query: conn.id,
+            data: conn.id,
             name: conn.name,
           })
         ),
-      this._createMarkdownLink({
+      createMarkdownLink({
         commandId: 'mdb.connectWithParticipant',
         name: 'Show more',
       }),
@@ -318,7 +265,6 @@ export default class ParticipantController {
   async getDatabaseQuickPicks(): Promise<NamespaceQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
       return [];
     }
 
@@ -342,31 +288,28 @@ export default class ParticipantController {
   }
 
   async selectDatabaseWithParticipant(name: string): Promise<boolean> {
-    if (!name) {
-      const selectedName = await this._selectDatabaseWithCommandPalette();
-      this._setDatabaseName(selectedName);
-    } else {
-      this._setDatabaseName(name);
+    let selectedName: string | undefined = name;
+    if (!selectedName) {
+      selectedName = await this._selectDatabaseWithCommandPalette();
     }
-
+    if (!selectedName) {
+      return false;
+    }
     return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${this._databaseName || ''}`,
+      query: `@MongoDB /query ${selectedName || ''}`,
     });
   }
 
-  async getCollectionQuickPicks(): Promise<NamespaceQuickPicks[]> {
-    if (!this._databaseName) {
-      return [];
-    }
-
+  async getCollectionQuickPicks(
+    databaseName: string
+  ): Promise<NamespaceQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
       return [];
     }
 
     try {
-      const collections = await dataService.listCollections(this._databaseName);
+      const collections = await dataService.listCollections(databaseName);
       return collections.map((db) => ({
         label: db.name,
         data: db.name,
@@ -376,8 +319,10 @@ export default class ParticipantController {
     }
   }
 
-  async _selectCollectionWithCommandPalette(): Promise<string | undefined> {
-    const collections = await this.getCollectionQuickPicks();
+  async _selectCollectionWithCommandPalette(
+    databaseName: string
+  ): Promise<string | undefined> {
+    const collections = await this.getCollectionQuickPicks(databaseName);
     const selectedQuickPickItem = await vscode.window.showQuickPick(
       collections,
       {
@@ -387,23 +332,25 @@ export default class ParticipantController {
     return selectedQuickPickItem?.data;
   }
 
-  async selectCollectionWithParticipant(name: string): Promise<boolean> {
-    if (!name) {
-      const selectedName = await this._selectCollectionWithCommandPalette();
-      this._setCollectionName(selectedName);
-    } else {
-      this._setCollectionName(name);
+  async selectCollectionWithParticipant(_data: string): Promise<boolean> {
+    const data = JSON.parse(decodeURIComponent(_data));
+    let selectedName: string | undefined = data.collectionName;
+    if (!data.collectionName) {
+      selectedName = await this._selectCollectionWithCommandPalette(
+        data.databaseName
+      );
     }
-
+    if (!selectedName) {
+      return false;
+    }
     return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${this._collectionName || ''}`,
+      query: `@MongoDB /query ${selectedName || ''}`,
     });
   }
 
   async getDatabasesTree(): Promise<vscode.MarkdownString[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
       return [];
     }
 
@@ -411,15 +358,15 @@ export default class ParticipantController {
       const databases = await dataService.listDatabases();
       return [
         ...databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((db) =>
-          this._createMarkdownLink({
+          createMarkdownLink({
             commandId: 'mdb.selectDatabaseWithParticipant',
-            query: db.name,
+            data: db.name,
             name: db.name,
           })
         ),
         ...(databases.length > MAX_MARKDOWN_LIST_LENGTH
           ? [
-              this._createMarkdownLink({
+              createMarkdownLink({
                 commandId: 'mdb.selectDatabaseWithParticipant',
                 name: 'Show more',
               }),
@@ -432,31 +379,38 @@ export default class ParticipantController {
     }
   }
 
-  async getCollectionTree(): Promise<vscode.MarkdownString[]> {
-    if (!this._databaseName) {
+  async getCollectionTree(
+    databaseName?: string
+  ): Promise<vscode.MarkdownString[]> {
+    if (!databaseName) {
       return [];
     }
 
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
       return [];
     }
 
     try {
-      const collections = await dataService.listCollections(this._databaseName);
+      const collections = await dataService.listCollections(databaseName);
       return [
         ...collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((coll) =>
-          this._createMarkdownLink({
+          createMarkdownLink({
             commandId: 'mdb.selectCollectionWithParticipant',
-            query: coll.name,
+            data: {
+              collectionName: coll.name,
+              databaseName,
+            },
             name: coll.name,
           })
         ),
         ...(collections.length > MAX_MARKDOWN_LIST_LENGTH
           ? [
-              this._createMarkdownLink({
+              createMarkdownLink({
                 commandId: 'mdb.selectCollectionWithParticipant',
+                data: {
+                  databaseName,
+                },
                 name: 'Show more',
               }),
             ]
@@ -473,109 +427,112 @@ export default class ParticipantController {
       (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
     );
     if (isNewChat) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
       this._chatResult = undefined;
-      this._setDatabaseName(undefined);
-      this._setCollectionName(undefined);
     }
   }
 
-  _waitingForUserToProvideNamespace(prompt: string): boolean {
-    if (
-      !this._queryGenerationState ||
-      ![
-        QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME,
-        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME,
-        QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME,
-      ].includes(this._queryGenerationState)
-    ) {
-      return false;
-    }
-
-    if (
-      [
-        QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME,
-        QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME,
-      ].includes(this._queryGenerationState)
-    ) {
-      this._setDatabaseName(prompt);
-      if (!this._collectionName) {
-        this._queryGenerationState =
-          QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
-        return true;
-      }
-      return false;
-    }
-
-    if (
-      this._queryGenerationState ===
-      QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME
-    ) {
-      this._setCollectionName(prompt);
-      if (!this._databaseName) {
-        this._queryGenerationState =
-          QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
-        return true;
-      }
-      this._queryGenerationState = QUERY_GENERATION_STATE.FETCH_SCHEMA;
-      return false;
-    }
-
-    return false;
+  _findSampleDocuments(context: vscode.ChatContext): Document[] | undefined {
+    const historyWithSampleDocuments = context.history
+      .filter((historyItem) => {
+        return (
+          historyItem.participant === CHAT_PARTICIPANT_ID &&
+          historyItem instanceof vscode.ChatResponseTurn &&
+          historyItem.result.metadata?.sampleDocuments
+        );
+      })
+      .pop();
+    const sampleDocuments: Document[] | undefined = historyWithSampleDocuments
+      ? (historyWithSampleDocuments as vscode.ChatResponseTurn).result.metadata
+          ?.namespace
+      : undefined;
+    return sampleDocuments;
   }
 
-  async _shouldAskForNamespace(
+  async _findNamespace(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
-  ): Promise<boolean> {
-    if (this._waitingForUserToProvideNamespace(request.prompt)) {
-      return true;
+  ): Promise<{
+    databaseName?: string;
+    collectionName?: string;
+  }> {
+    const historyWithNamespace = context.history
+      .filter((historyItem) => {
+        return (
+          historyItem.participant === CHAT_PARTICIPANT_ID &&
+          historyItem instanceof vscode.ChatResponseTurn &&
+          historyItem.result.metadata?.namespace
+        );
+      })
+      .pop();
+    const namespace: {
+      databaseName?: string;
+      collectionName?: string;
+    } = historyWithNamespace
+      ? (historyWithNamespace as vscode.ChatResponseTurn).result.metadata
+          ?.namespace
+      : {
+          databaseName: undefined,
+          collectionName: undefined,
+        };
+
+    const dataService = this._connectionController.getActiveDataService();
+    if (dataService) {
+      try {
+        const databases = await dataService.listDatabases();
+        const newDatabaseName = databases.find(
+          (db) => db.name === request.prompt
+        )?.name;
+        if (newDatabaseName) {
+          namespace.databaseName = newDatabaseName;
+        } else if (namespace.databaseName) {
+          const collections = await dataService.listCollections(
+            namespace.databaseName
+          );
+          const newCollectionName = collections.find(
+            (db) => db.name === request.prompt
+          )?.name;
+          if (newCollectionName) {
+            namespace.collectionName = newCollectionName;
+          }
+        }
+      } catch (error) {
+        // Do nothing.
+      }
     }
 
-    if (this._databaseName && this._collectionName) {
-      return false;
+    if (!namespace.databaseName || !namespace.collectionName) {
+      const messagesWithNamespace = NamespacePrompt.buildMessages({
+        context,
+        request,
+      });
+      const responseContentWithNamespace = await this.getChatResponseContent({
+        messages: messagesWithNamespace,
+        stream,
+        token,
+      });
+      const namespaceFromPrompt = parseForDatabaseAndCollectionName(
+        responseContentWithNamespace
+      );
+      namespace.databaseName = namespaceFromPrompt.databaseName;
+      namespace.collectionName = namespaceFromPrompt.collectionName;
     }
 
-    const messagesWithNamespace = NamespacePrompt.buildMessages({
-      context,
-      request,
-    });
-    const responseContentWithNamespace = await this.getChatResponseContent({
-      messages: messagesWithNamespace,
-      stream,
-      token,
-    });
-    const namespace = parseForDatabaseAndCollectionName(
-      responseContentWithNamespace
-    );
-
-    this._setDatabaseName(namespace.databaseName || this._databaseName);
-    this._setCollectionName(namespace.collectionName || this._collectionName);
-
-    if (namespace.databaseName && namespace.collectionName) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.FETCH_SCHEMA;
-      return false;
-    }
-
-    return true;
+    return namespace;
   }
 
   async _askForNamespace(
-    request: vscode.ChatRequest,
+    namespace: {
+      databaseName?: string;
+      collectionName?: string;
+    },
     stream: vscode.ChatResponseStream
-  ): Promise<undefined> {
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
-      return;
-    }
-
+  ): Promise<void> {
     // If no database or collection name is found in the user prompt,
     // we retrieve the available namespaces from the current connection.
     // Users can then select a value by clicking on an item in the list.
-    if (!this._databaseName) {
+    if (!namespace.databaseName) {
       const tree = await this.getDatabasesTree();
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
@@ -583,20 +540,15 @@ export default class ParticipantController {
       for (const item of tree) {
         stream.markdown(item);
       }
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
-    } else if (!this._collectionName) {
-      const tree = await this.getCollectionTree();
+    } else if (!namespace.collectionName) {
+      const tree = await this.getCollectionTree(namespace.databaseName);
       stream.markdown(
         'Which collection would you like to query within this database?\n\n'
       );
       for (const item of tree) {
         stream.markdown(item);
       }
-      this._queryGenerationState =
-        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
     }
-
-    return;
   }
 
   _shouldAskToConnectIfNotConnected(
@@ -614,30 +566,25 @@ export default class ParticipantController {
     for (const item of tree) {
       stream.markdown(item);
     }
-    this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
     return true;
   }
 
-  _shouldFetchCollectionSchema(): boolean {
-    return this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA;
-  }
-
-  async _fetchCollectionSchemaAndSampleDocuments(
+  async _fetchSampleDocuments(
+    namespace: {
+      databaseName?: string;
+      collectionName?: string;
+    },
     abortSignal?: AbortSignal
-  ): Promise<undefined> {
-    if (this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
-    }
-
+  ): Promise<Document[] | undefined> {
     const dataService = this._connectionController.getActiveDataService();
-    if (!dataService || !this._databaseName || !this._collectionName) {
+    if (!dataService || !namespace.databaseName || !namespace.collectionName) {
       return;
     }
 
     try {
-      const sampleDocuments =
+      return (
         (await dataService?.sample?.(
-          `${this._databaseName}.${this._collectionName}`,
+          `${namespace.databaseName}.${namespace.collectionName}`,
           {
             query: {},
             size: NUM_DOCUMENTS_TO_SAMPLE,
@@ -646,21 +593,10 @@ export default class ParticipantController {
           {
             abortSignal,
           }
-        )) || [];
-
-      const schema = await getSimplifiedSchema(sampleDocuments);
-      this._schema = new SchemaFormatter().format(schema);
-
-      const useSampleDocsInCopilot = !!vscode.workspace
-        .getConfiguration('mdb')
-        .get('useSampleDocsInCopilot');
-
-      if (useSampleDocsInCopilot) {
-        this._sampleDocuments = getSimplifiedSampleDocuments(sampleDocuments);
-      }
+        )) || []
+      );
     } catch (err: any) {
-      this._schema = undefined;
-      this._sampleDocuments = undefined;
+      return;
     }
   }
 
@@ -679,15 +615,16 @@ export default class ParticipantController {
       return { metadata: {} };
     }
 
-    const shouldAskForNamespace = await this._shouldAskForNamespace(
+    const namespace = await this._findNamespace(
       request,
       context,
       stream,
       token
     );
-    if (shouldAskForNamespace) {
-      await this._askForNamespace(request, stream);
-      return { metadata: {} };
+
+    if (!namespace.databaseName || !namespace.collectionName) {
+      await this._askForNamespace(namespace, stream);
+      return { metadata: { namespace } };
     }
 
     const abortController = new AbortController();
@@ -695,20 +632,39 @@ export default class ParticipantController {
       abortController.abort();
     });
 
-    if (this._shouldFetchCollectionSchema()) {
-      await this._fetchCollectionSchemaAndSampleDocuments(
+    let sampleDocuments = this._findSampleDocuments(context);
+    if (!sampleDocuments) {
+      sampleDocuments = await this._fetchSampleDocuments(
+        namespace,
         abortController.signal
       );
     }
 
+    const schema = sampleDocuments
+      ? new SchemaFormatter().format(await getSimplifiedSchema(sampleDocuments))
+      : undefined;
+
+    const useSampleDocsInCopilot = !!vscode.workspace
+      .getConfiguration('mdb')
+      .get('useSampleDocsInCopilot');
+    sampleDocuments =
+      sampleDocuments && useSampleDocsInCopilot
+        ? getSimplifiedSampleDocuments(sampleDocuments)
+        : undefined;
+
     const messages = await QueryPrompt.buildMessages({
       request,
       context,
-      databaseName: this._databaseName,
-      collectionName: this._collectionName,
-      schema: this._schema,
-      sampleDocuments: this._sampleDocuments,
+      databaseName: namespace.databaseName,
+      collectionName: namespace.collectionName,
+      schema,
+      sampleDocuments,
     });
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const util = require('util');
+    console.log('messages----------------------');
+    console.log(`${util.inspect(messages)}`);
+    console.log('----------------------');
     const responseContent = await this.getChatResponseContent({
       messages,
       stream,
@@ -716,7 +672,6 @@ export default class ParticipantController {
     });
 
     stream.markdown(responseContent);
-    this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
 
     const runnableContent = getRunnableContentFromString(responseContent);
     if (runnableContent && runnableContent.trim().length) {
@@ -730,7 +685,7 @@ export default class ParticipantController {
       });
     }
 
-    return { metadata: { responseContent: runnableContent } };
+    return { metadata: { responseContent: runnableContent, namespace } };
   }
 
   async chatHandler(
@@ -744,7 +699,7 @@ export default class ParticipantController {
     const [request, , stream] = args;
 
     if (!request.prompt || request.prompt.trim().length === 0) {
-      const messages = await this.handleEmptyQueryRequest();
+      const messages = this.handleEmptyQueryRequest();
       for (const msg of messages) {
         stream.markdown(msg);
       }
