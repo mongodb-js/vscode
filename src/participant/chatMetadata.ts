@@ -11,11 +11,6 @@ export class ChatMetadataStore {
 
   constructor() {}
 
-  // TODO: On each message with chat, we ensure there's a chat id.
-  // If there's not, we create a new chat metadata object and store it.
-  // If there is a chat id, then we check if there's a metadata object
-  // for it. We'll update or create one depending.
-
   setChatMetadata(chatId: string, metadata: ChatMetadata): void {
     this._chats[chatId] = metadata;
   }
