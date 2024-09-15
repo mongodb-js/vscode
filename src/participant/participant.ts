@@ -21,6 +21,7 @@ import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
+import { ChatMetadataStore } from './chatMetadata';
 
 const log = createLogger('participant');
 
@@ -63,6 +64,7 @@ export default class ParticipantController {
   _participant?: vscode.ChatParticipant;
   _connectionController: ConnectionController;
   _storageController: StorageController;
+  _chatMetadataStore: ChatMetadataStore;
 
   constructor({
     connectionController,
@@ -73,6 +75,7 @@ export default class ParticipantController {
   }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
+    this._chatMetadataStore = new ChatMetadataStore();
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -186,7 +189,13 @@ export default class ParticipantController {
       });
     }
 
-    return { metadata: {} };
+    return {
+      metadata: {
+        chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+          context.history
+        ),
+      },
+    };
   }
 
   async connectWithParticipant(id?: string): Promise<boolean> {
@@ -262,8 +271,10 @@ export default class ParticipantController {
   }
 
   async selectDatabaseWithParticipant({
+    chatId,
     databaseName: _databaseName,
   }: {
+    chatId: string;
     databaseName: string;
   }): Promise<boolean> {
     let databaseName: string | undefined = _databaseName;
@@ -274,7 +285,9 @@ export default class ParticipantController {
       }
     }
 
-    // TODO(VSCODE-607): Set the database name in the chat store.
+    this._chatMetadataStore.setChatMetadata(chatId, {
+      databaseName: databaseName,
+    });
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       // Add a database name message to the chat so future messages know which namespace to use.
       query: `@MongoDB /query ${databaseName}`,
@@ -318,9 +331,11 @@ export default class ParticipantController {
   }
 
   async selectCollectionWithParticipant({
+    chatId,
     databaseName,
     collectionName: _collectionName,
   }: {
+    chatId: string;
     databaseName: string;
     collectionName?: string;
   }): Promise<boolean> {
@@ -332,13 +347,18 @@ export default class ParticipantController {
       }
     }
 
-    // TODO(VSCODE-607): Set the collection name in the chat store.
+    this._chatMetadataStore.setChatMetadata(chatId, {
+      databaseName: databaseName,
+      collectionName: collectionName,
+    });
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       query: `@MongoDB /query ${collectionName}`,
     });
   }
 
-  async getDatabasesTree(): Promise<vscode.MarkdownString[]> {
+  async getDatabasesTree(
+    context: vscode.ChatContext
+  ): Promise<vscode.MarkdownString[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       return [];
@@ -351,6 +371,9 @@ export default class ParticipantController {
           createMarkdownLink({
             commandId: 'mdb.selectDatabaseWithParticipant',
             data: {
+              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                context.history
+              ),
               databaseName: db.name,
             },
             name: db.name,
@@ -359,6 +382,11 @@ export default class ParticipantController {
         ...(databases.length > MAX_MARKDOWN_LIST_LENGTH
           ? [
               createMarkdownLink({
+                data: {
+                  chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                    context.history
+                  ),
+                },
                 commandId: 'mdb.selectDatabaseWithParticipant',
                 name: 'Show more',
               }),
@@ -372,7 +400,8 @@ export default class ParticipantController {
   }
 
   async getCollectionTree(
-    databaseName: string
+    databaseName: string,
+    context: vscode.ChatContext
   ): Promise<vscode.MarkdownString[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
@@ -386,6 +415,9 @@ export default class ParticipantController {
           createMarkdownLink({
             commandId: 'mdb.selectCollectionWithParticipant',
             data: {
+              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                context.history
+              ),
               databaseName,
               collectionName: coll.name,
             },
@@ -396,6 +428,11 @@ export default class ParticipantController {
           ? [
               createMarkdownLink({
                 commandId: 'mdb.selectCollectionWithParticipant',
+                data: {
+                  chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                    context.history
+                  ),
+                },
                 name: 'Show more',
               }),
             ]
@@ -437,20 +474,29 @@ export default class ParticipantController {
       responseContentWithNamespace
     );
 
-    // TODO(VSCODE-607): See if there's a namespace set in the
+    // See if there's a namespace set in the
     // chat metadata we can fallback to if the model didn't find it.
+    const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+      context.history
+    );
+    const {
+      databaseName: databaseNameFromMetadata,
+      collectionName: collectionNameFromMetadata,
+    } = this._chatMetadataStore.getChatMetadata(chatId) ?? {};
 
     return {
-      databaseName: namespace.databaseName,
-      collectionName: namespace.collectionName,
+      databaseName: namespace.databaseName ?? databaseNameFromMetadata,
+      collectionName: namespace.collectionName ?? collectionNameFromMetadata,
     };
   }
 
   async _askForNamespace({
+    context,
     databaseName,
     collectionName,
     stream,
   }: {
+    context: vscode.ChatContext;
     databaseName: string | undefined;
     collectionName: string | undefined;
     stream: vscode.ChatResponseStream;
@@ -459,7 +505,7 @@ export default class ParticipantController {
     // we retrieve the available namespaces from the current connection.
     // Users can then select a value by clicking on an item in the list.
     if (!databaseName) {
-      const tree = await this.getDatabasesTree();
+      const tree = await this.getDatabasesTree(context);
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
       );
@@ -467,7 +513,7 @@ export default class ParticipantController {
         stream.markdown(item);
       }
     } else if (!collectionName) {
-      const tree = await this.getCollectionTree(databaseName);
+      const tree = await this.getCollectionTree(databaseName, context);
       stream.markdown(
         `Which collection would you like to query within ${databaseName}?\n\n`
       );
@@ -479,10 +525,14 @@ export default class ParticipantController {
     return new NamespaceRequestChatResult({
       databaseName,
       collectionName,
+      history: context.history,
     });
   }
 
-  _askToConnect(stream: vscode.ChatResponseStream): vscode.ChatResult {
+  _askToConnect(
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream
+  ): vscode.ChatResult {
     const tree = this.getConnectionsTree();
     stream.markdown(
       "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
@@ -491,7 +541,7 @@ export default class ParticipantController {
     for (const item of tree) {
       stream.markdown(item);
     }
-    return new AskToConnectChatResult();
+    return new AskToConnectChatResult(context.history);
   }
 
   // The sample documents returned from this are simplified (strings and arrays shortened).
@@ -553,12 +603,12 @@ export default class ParticipantController {
     token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
     if (!this._connectionController.getActiveDataService()) {
-      return this._askToConnect(stream);
+      return this._askToConnect(context, stream);
     }
 
     if (!request.prompt || request.prompt.trim().length === 0) {
       stream.markdown(QueryPrompt.getEmptyRequestResponse());
-      return new EmptyRequestChatResult();
+      return new EmptyRequestChatResult(context.history);
     }
 
     // We "prompt chain" to handle the query requests.
@@ -573,6 +623,7 @@ export default class ParticipantController {
     });
     if (!databaseName || !collectionName) {
       return await this._askForNamespace({
+        context,
         databaseName,
         collectionName,
         stream,
@@ -645,7 +696,7 @@ export default class ParticipantController {
       (!request.prompt || request.prompt.trim().length === 0)
     ) {
       stream.markdown(GenericPrompt.getEmptyRequestResponse());
-      return new EmptyRequestChatResult();
+      return new EmptyRequestChatResult(args[1].history);
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(

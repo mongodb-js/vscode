@@ -94,13 +94,13 @@ db.getCollection('');\n\n`;
     connectionNames: string[];
   }): Promise<vscode.LanguageModelChatMessage[]> {
     const messages = [
-      ...getHistoryMessages({ context, connectionNames }),
       await QueryPrompt.getAssistantPrompt({
         databaseName,
         collectionName,
         schema,
         sampleDocuments,
       }),
+      ...getHistoryMessages({ context, connectionNames }),
       QueryPrompt.getUserPrompt(request.prompt),
     ];
 

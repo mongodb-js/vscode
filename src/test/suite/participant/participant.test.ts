@@ -192,8 +192,13 @@ suite('Participant Controller Test Suite', function () {
       expect(showMoreMessage.value).to.include(
         '- <a href="command:mdb.connectWithParticipant">Show more</a>'
       );
-      expect(chatResult?.metadata).to.deep.equal({
+      expect(chatResult?.metadata?.chatId.length).to.equal(36);
+      expect({
+        ...chatResult?.metadata,
+        chatId: undefined,
+      }).to.deep.equal({
         askToConnect: true,
+        chatId: undefined,
       });
     });
 
@@ -231,8 +236,13 @@ suite('Participant Controller Test Suite', function () {
         '- <a href="command:mdb.connectWithParticipant">Show more</a>'
       );
       expect(chatStreamStub.markdown.callCount).to.be.eql(12);
-      expect(chatResult?.metadata).to.deep.equal({
+      expect(chatResult?.metadata?.chatId.length).to.equal(36);
+      expect({
+        ...chatResult?.metadata,
+        chatId: undefined,
+      }).to.deep.equal({
         askToConnect: true,
+        chatId: undefined,
       });
     });
 
@@ -270,8 +280,13 @@ suite('Participant Controller Test Suite', function () {
       expect(showMoreMessage.value).to.include(
         '- <a href="command:mdb.connectWithParticipant">Show more</a>'
       );
-      expect(chatResult?.metadata).to.deep.equal({
+      expect(chatResult?.metadata?.chatId.length).to.equal(36);
+      expect({
+        ...chatResult?.metadata,
+        chatId: undefined,
+      }).to.deep.equal({
         askToConnect: true,
+        chatId: undefined,
       });
     });
 
@@ -706,18 +721,28 @@ suite('Participant Controller Test Suite', function () {
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listDBsMessage.value).to.include(
-              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522databaseName%2522%253A%2522dbOne%2522%257D%22%5D">dbOne</a>'
+              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId'
+            );
+            expect(listDBsMessage.value).to.include(
+              'databaseName%2522%253A%2522dbOne%2522%257D%22%5D">dbOne</a>'
             );
             const showMoreDBsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreDBsMessage.value).to.include(
-              '- <a href="command:mdb.selectDatabaseWithParticipant">Show more</a>'
+              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId%252'
             );
+            expect(showMoreDBsMessage.value).to.include('">Show more</a>');
             expect(chatStreamStub.markdown.callCount).to.be.eql(12);
-            expect(chatResult?.metadata).to.deep.equal({
+            const firstChatId = chatResult?.metadata?.chatId;
+            expect(chatResult?.metadata?.chatId.length).to.equal(36);
+            expect({
+              ...chatResult?.metadata,
+              chatId: undefined,
+            }).to.deep.equal({
               askForNamespace: true,
               collectionName: undefined,
               databaseName: undefined,
+              chatId: undefined,
             });
 
             chatRequestMock.prompt = 'dbOne';
@@ -734,23 +759,27 @@ suite('Participant Controller Test Suite', function () {
                     references: [],
                     participant: CHAT_PARTICIPANT_ID,
                   } as vscode.ChatRequestTurn,
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: {
-                          value:
-                            'What is the name of the database you would like this query to run against?',
-                        } as vscode.MarkdownString,
+                  Object.assign(
+                    Object.create(vscode.ChatResponseTurn.prototype),
+                    {
+                      participant: CHAT_PARTICIPANT_ID,
+                      response: [
+                        {
+                          value: {
+                            value:
+                              'What is the name of the database you would like this query to run against?',
+                          } as vscode.MarkdownString,
+                        },
+                      ],
+                      command: 'query',
+                      result: {
+                        metadata: {
+                          askForNamespace: true,
+                          chatId: firstChatId,
+                        },
                       },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        askForNamespace: true,
-                      },
-                    },
-                  } as vscode.ChatResponseTurn,
+                    } as vscode.ChatResponseTurn
+                  ),
                 ],
               },
               chatStreamStub,
@@ -765,18 +794,27 @@ suite('Participant Controller Test Suite', function () {
             const listCollsMessage =
               chatStreamStub.markdown.getCall(13).args[0];
             expect(listCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522databaseName%2522%253A%2522dbOne%2522%252C%2522collectionName%2522%253A%2522collOne%2522%257D%22%5D">collOne</a>'
+              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
+            );
+            expect(listCollsMessage.value).to.include(
+              '52C%2522collectionName%2522%253A%2522collOne%2522%257D%22%5D">collOne</a>'
             );
             const showMoreCollsMessage =
               chatStreamStub.markdown.getCall(23).args[0];
             expect(showMoreCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant">Show more</a>'
+              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
             );
+            expect(showMoreCollsMessage.value).to.include('">Show more</a>');
             expect(chatStreamStub.markdown.callCount).to.be.eql(24);
-            expect(chatResult2?.metadata).to.deep.equal({
+            expect(chatResult2?.metadata?.chatId).to.equal(firstChatId);
+            expect({
+              ...chatResult?.metadata,
+              chatId: undefined,
+            }).to.deep.equal({
               askForNamespace: true,
               collectionName: undefined,
-              databaseName: 'dbOne',
+              databaseName: undefined,
+              chatId: undefined,
             });
 
             chatRequestMock.prompt = 'collOne';
@@ -843,6 +881,7 @@ suite('Participant Controller Test Suite', function () {
                           askForNamespace: true,
                           databaseName: 'dbOne',
                           collectionName: 'collOne',
+                          chatId: firstChatId,
                         },
                       },
                     }

@@ -318,6 +318,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       (_data?: string) => {
         const data = _data ? JSON.parse(decodeURIComponent(_data)) : {};
         return this._participantController.selectDatabaseWithParticipant({
+          chatId: data?.chatId,
           databaseName: data?.databaseName,
         });
       }
@@ -327,6 +328,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       (_data?: string) => {
         const data = _data ? JSON.parse(decodeURIComponent(_data)) : {};
         return this._participantController.selectCollectionWithParticipant({
+          chatId: data?.chatId,
           databaseName: data?.databaseName,
           collectionName: data?.collectionName,
         });
