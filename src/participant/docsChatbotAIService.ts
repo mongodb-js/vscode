@@ -78,7 +78,7 @@ export class DocsChatbotAIService {
     });
   }
 
-  async _fetch({
+  async _fetch<T = unknown>({
     uri,
     method,
     body,
@@ -88,7 +88,7 @@ export class DocsChatbotAIService {
     method: string;
     body?: string;
     headers?: { [key: string]: string };
-  }): Promise<any> {
+  }): Promise<T> {
     const resp = await fetch(uri, {
       headers: {
         origin: this.getServerBaseUri(),
@@ -129,11 +129,11 @@ export class DocsChatbotAIService {
     message: string;
   }): Promise<MessageData> {
     const uri = this.getUri(`/conversations/${conversationId}/messages`);
-    return (await this._fetch({
+    return await this._fetch({
       uri,
       method: 'POST',
       body: JSON.stringify({ message }),
       headers: { 'Content-Type': 'application/json' },
-    })) as MessageData;
+    });
   }
 }
