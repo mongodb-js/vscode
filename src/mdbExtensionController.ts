@@ -294,7 +294,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
       ({ runnableContent }: RunParticipantQueryCommandArgs) => {
         return this._playgroundController.createPlaygroundFromParticipantQuery({
-          text: runnableContent || '',
+          text: runnableContent,
         });
       }
     );
@@ -302,7 +302,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
       ({ runnableContent }: RunParticipantQueryCommandArgs) => {
         return this._playgroundController.evaluateParticipantQuery(
-          runnableContent || ''
+          runnableContent
         );
       }
     );

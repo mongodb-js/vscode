@@ -124,6 +124,19 @@ export default class ParticipantController {
     }
   }
 
+  /**
+   * In order to get access to the model, and to write more messages to the chat after
+   * an async event that occurs after we've already completed our response, we need
+   * to be handling a chat request. This could be when a user clicks a button or link
+   * in the chat. To work around this, we can write a message as the user, which will
+   * trigger the chat handler and give us access to the model.
+   */
+  writeChatMessageAsUser(message: string): Thenable<unknown> {
+    return vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: `@MongoDB ${message}`,
+    });
+  }
+
   async getChatResponseContent({
     messages,
     stream,
@@ -212,9 +225,9 @@ export default class ParticipantController {
 
     const connectionName = this._connectionController.getActiveConnectionName();
 
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${connectionName}`,
-    });
+    return this.writeChatMessageAsUser(
+      `/query ${connectionName}`
+    ) as Promise<boolean>;
   }
 
   getConnectionsTree(): vscode.MarkdownString[] {
@@ -229,13 +242,13 @@ export default class ParticipantController {
         .slice(0, MAX_MARKDOWN_LIST_LENGTH)
         .map((conn: LoadedConnection) =>
           createMarkdownLink({
-            commandId: 'mdb.connectWithParticipant',
+            commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
             data: conn.id,
             name: conn.name,
           })
         ),
       createMarkdownLink({
-        commandId: 'mdb.connectWithParticipant',
+        commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
         name: 'Show more',
       }),
     ];
@@ -245,9 +258,7 @@ export default class ParticipantController {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
-      void vscode.commands.executeCommand('workbench.action.chat.open', {
-        query: '@MongoDB /query',
-      });
+      void this.writeChatMessageAsUser('/query');
       return [];
     }
 
@@ -275,7 +286,7 @@ export default class ParticipantController {
     databaseName: _databaseName,
   }: {
     chatId: string;
-    databaseName: string;
+    databaseName?: string;
   }): Promise<boolean> {
     let databaseName: string | undefined = _databaseName;
     if (!databaseName) {
@@ -288,10 +299,11 @@ export default class ParticipantController {
     this._chatMetadataStore.setChatMetadata(chatId, {
       databaseName: databaseName,
     });
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      // Add a database name message to the chat so future messages know which namespace to use.
-      query: `@MongoDB /query ${databaseName}`,
-    });
+
+    // Add a database name message to the chat so future messages know which namespace to use.
+    return this.writeChatMessageAsUser(
+      `/query ${databaseName}`
+    ) as Promise<boolean>;
   }
 
   async getCollectionQuickPicks(
@@ -300,9 +312,7 @@ export default class ParticipantController {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
-      void vscode.commands.executeCommand('workbench.action.chat.open', {
-        query: '@MongoDB /query',
-      });
+      void this.writeChatMessageAsUser('/query');
       return [];
     }
 
@@ -351,9 +361,9 @@ export default class ParticipantController {
       databaseName: databaseName,
       collectionName: collectionName,
     });
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${collectionName}`,
-    });
+    return this.writeChatMessageAsUser(
+      `/query ${collectionName}`
+    ) as Promise<boolean>;
   }
 
   async getDatabasesTree(
@@ -369,7 +379,7 @@ export default class ParticipantController {
       return [
         ...databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((db) =>
           createMarkdownLink({
-            commandId: 'mdb.selectDatabaseWithParticipant',
+            commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
             data: {
               chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
                 context.history
@@ -387,7 +397,7 @@ export default class ParticipantController {
                     context.history
                   ),
                 },
-                commandId: 'mdb.selectDatabaseWithParticipant',
+                commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
                 name: 'Show more',
               }),
             ]
@@ -413,7 +423,7 @@ export default class ParticipantController {
       return [
         ...collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((coll) =>
           createMarkdownLink({
-            commandId: 'mdb.selectCollectionWithParticipant',
+            commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
             data: {
               chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
                 context.history
@@ -427,7 +437,8 @@ export default class ParticipantController {
         ...(collections.length > MAX_MARKDOWN_LIST_LENGTH
           ? [
               createMarkdownLink({
-                commandId: 'mdb.selectCollectionWithParticipant',
+                commandId:
+                  EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
                 data: {
                   chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
                     context.history
