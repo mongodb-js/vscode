@@ -112,17 +112,15 @@ export default class ParticipantController {
         docsChatbotBaseUriFileLocation,
         'utf8'
       );
-      const constants = JSON.parse(constantsFile) as {
-        docsChatbotBaseUri: string;
+      const { docsChatbotBaseUri } = JSON.parse(constantsFile) as {
+        docsChatbotBaseUri?: string;
       };
-
-      log.info('docsChatbotBaseUri was found', {
-        type: typeof constants.docsChatbotBaseUri,
-      });
-
-      return constants.docsChatbotBaseUri;
+      return docsChatbotBaseUri;
     } catch (error) {
-      log.error('docsChatbotBaseUri was not found', error);
+      log.error(
+        'Failed to read docsChatbotBaseUri from the constants file',
+        error
+      );
       return;
     }
   }
@@ -830,6 +828,8 @@ export default class ParticipantController {
       abortController.abort();
     });
 
+    // TODO: update this part when the PR with chatId is merged
+    // https://github.com/mongodb-js/vscode/pull/810
     const historyWithConversationId = context.history.find((historyItem) => {
       return (
         historyItem.participant === CHAT_PARTICIPANT_ID &&

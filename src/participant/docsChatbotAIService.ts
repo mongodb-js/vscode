@@ -39,16 +39,6 @@ export type AssistantMessageMetadata = {
   };
 };
 
-export class TimeoutError<Data extends object = object> extends Error {
-  data?: Data;
-
-  constructor(message: string) {
-    super(message);
-    this.name = 'TimeoutError';
-    this.message = message;
-  }
-}
-
 export class DocsChatbotAIService {
   _serverBaseUri?: string;
 

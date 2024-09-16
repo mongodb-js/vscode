@@ -162,13 +162,12 @@ export default class TelemetryService {
       );
       // eslint-disable-next-line no-sync
       const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
-      const constants = JSON.parse(constantsFile) as { segmentKey: string };
-
-      log.info('segmentKey was found', { type: typeof constants.segmentKey });
-
-      return constants.segmentKey;
+      const { segmentKey } = JSON.parse(constantsFile) as {
+        segmentKey?: string;
+      };
+      return segmentKey;
     } catch (error) {
-      log.error('SegmentKey was not found', error);
+      log.error('Failed to read segmentKey from the constants file', error);
       return;
     }
   }

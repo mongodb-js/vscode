@@ -13,12 +13,12 @@ suite('DocsChatbotAIService Test Suite', function () {
   });
 
   suite('when serverBaseUri is missing', function () {
-    test('does not crash the extension on launch', () => {
+    test('DocsChatbotAIService constructor does not throw', () => {
       const docsChatbotAIService = new DocsChatbotAIService();
       expect(docsChatbotAIService._serverBaseUri).to.be.undefined;
     });
 
-    test('throws if serverBaseUri is not set', async () => {
+    test('createConversation throws if serverBaseUri is not set', async () => {
       const docsChatbotAIService = new DocsChatbotAIService();
       try {
         await docsChatbotAIService.createConversation();
