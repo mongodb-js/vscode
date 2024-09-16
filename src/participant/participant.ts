@@ -263,7 +263,9 @@ export default class ParticipantController {
     }
 
     try {
-      const databases = await dataService.listDatabases();
+      const databases = await dataService.listDatabases({
+        nameOnly: true,
+      });
       return databases.map((db) => ({
         label: db.name,
         data: db.name,
@@ -374,7 +376,9 @@ export default class ParticipantController {
     }
 
     try {
-      const databases = await dataService.listDatabases();
+      const databases = await dataService.listDatabases({
+        nameOnly: true,
+      });
       return [
         ...databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((db) =>
           createMarkdownLink({
