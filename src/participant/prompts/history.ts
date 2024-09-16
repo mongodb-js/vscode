@@ -1,37 +1,70 @@
 import * as vscode from 'vscode';
+import type {
+  AskToConnectChatResult,
+  EmptyRequestChatResult,
+  NamespaceRequestChatResult,
+} from '../constants';
 
-import { CHAT_PARTICIPANT_ID } from '../constants';
-
+// When passing the history to the model we only want contextual messages
+// to be passed. This function parses through the history and returns
+// the messages that are valuable to keep.
+// eslint-disable-next-line complexity
 export function getHistoryMessages({
+  connectionNames,
   context,
 }: {
+  connectionNames?: string[]; // Used to scrape the connecting messages from the history.
   context: vscode.ChatContext;
 }): vscode.LanguageModelChatMessage[] {
   const messages: vscode.LanguageModelChatMessage[] = [];
 
-  context.history.map((historyItem) => {
-    if (
-      historyItem.participant === CHAT_PARTICIPANT_ID &&
-      historyItem instanceof vscode.ChatRequestTurn
-    ) {
+  for (const historyItem of context.history) {
+    if (historyItem instanceof vscode.ChatRequestTurn) {
+      if (
+        historyItem.prompt?.trim().length === 0 ||
+        connectionNames?.includes(historyItem.prompt)
+      ) {
+        // When the message is empty or a connection name then we skip it.
+        // It's probably going to be the response to the connect step.
+        continue;
+      }
+
       // eslint-disable-next-line new-cap
       messages.push(vscode.LanguageModelChatMessage.User(historyItem.prompt));
     }
 
     if (historyItem instanceof vscode.ChatResponseTurn) {
-      let res = '';
+      let message = '';
+
+      if (
+        (historyItem.result as EmptyRequestChatResult).metadata?.intent ===
+          'emptyRequest' ||
+        (historyItem.result as AskToConnectChatResult).metadata?.intent ===
+          'askToConnect'
+      ) {
+        // Skip a response to an empty user prompt message or connect message.
+        continue;
+      }
+
       for (const fragment of historyItem.response) {
-        if (
-          fragment instanceof vscode.ChatResponseMarkdownPart &&
-          historyItem.result.metadata?.responseContent
-        ) {
-          res += fragment.value.value;
+        if (fragment instanceof vscode.ChatResponseMarkdownPart) {
+          message += fragment.value.value;
+
+          if (
+            (historyItem.result as NamespaceRequestChatResult).metadata
+              ?.intent === 'askForNamespace'
+          ) {
+            // When the message is the assistant asking for part of a namespace,
+            // we only want to include the question asked, not the user's
+            // database and collection names in the history item.
+            break;
+          }
         }
       }
       // eslint-disable-next-line new-cap
-      messages.push(vscode.LanguageModelChatMessage.Assistant(res));
+      messages.push(vscode.LanguageModelChatMessage.Assistant(message));
     }
-  });
+  }
 
   return messages;
 }

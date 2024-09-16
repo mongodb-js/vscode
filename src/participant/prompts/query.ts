@@ -81,6 +81,7 @@ db.getCollection('');\n\n`;
     collectionName,
     schema,
     sampleDocuments,
+    connectionNames,
   }: {
     request: {
       prompt: string;
@@ -90,6 +91,7 @@ db.getCollection('');\n\n`;
     collectionName?: string;
     schema?: string;
     sampleDocuments?: Document[];
+    connectionNames: string[];
   }): Promise<vscode.LanguageModelChatMessage[]> {
     const messages = [
       await QueryPrompt.getAssistantPrompt({
@@ -98,10 +100,16 @@ db.getCollection('');\n\n`;
         schema,
         sampleDocuments,
       }),
-      ...getHistoryMessages({ context }),
+      ...getHistoryMessages({ context, connectionNames }),
       QueryPrompt.getUserPrompt(request.prompt),
     ];
 
     return messages;
+  }
+
+  static getEmptyRequestResponse(): string {
+    return vscode.l10n.t(
+      'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
+    );
   }
 }
