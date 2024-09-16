@@ -1,18 +1,18 @@
 import type { Reference, VerifiedAnswer } from 'mongodb-rag-core';
 
-const MONGODB_DOCS_CHATBOT_BASE_URI = 'http://localhost:3000/';
-
 const MONGODB_DOCS_CHATBOT_API_VERSION = 'v1';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../package.json');
 
-const DEFAULT_HEADERS = {
-  origin: MONGODB_DOCS_CHATBOT_BASE_URI,
-  'User-Agent': `mongodb-vscode/${version}`,
-};
-
 export type Role = 'user' | 'assistant';
+
+export type ConversationData = {
+  _id: string;
+  createdAt: string;
+  messages: MessageData[];
+  conversationId: string;
+};
 
 export type MessageData = {
   id: string;
@@ -50,26 +50,70 @@ export class TimeoutError<Data extends object = object> extends Error {
 }
 
 export class DocsChatbotAIService {
-  private getUrl(path: string): string {
-    return `${MONGODB_DOCS_CHATBOT_BASE_URI}api/${MONGODB_DOCS_CHATBOT_API_VERSION}${path}`;
+  _serverBaseUri?: string;
+
+  constructor(serverBaseUri?: string) {
+    this._serverBaseUri = serverBaseUri;
   }
 
-  async createConversation(): Promise<any> {
-    const path = '/conversations';
-    const resp = await fetch(this.getUrl(path), {
-      headers: DEFAULT_HEADERS,
+  private getServerBaseUri(): string {
+    if (!this._serverBaseUri) {
+      throw new Error(
+        'You must define a serverBaseUri for the DocsChatbotAIService'
+      );
+    }
+    return this._serverBaseUri;
+  }
+
+  private getUri(path: string): string {
+    const serverBaseUri = this.getServerBaseUri();
+    return `${serverBaseUri}api/${MONGODB_DOCS_CHATBOT_API_VERSION}${path}`;
+  }
+
+  async createConversation(): Promise<ConversationData> {
+    const uri = this.getUri('/conversation');
+    return this._fetch({
+      uri,
       method: 'POST',
     });
-    const conversation = await resp.json();
+  }
+
+  async _fetch({
+    uri,
+    method,
+    body,
+    headers,
+  }: {
+    uri: string;
+    method: string;
+    body?: string;
+    headers?: { [key: string]: string };
+  }): Promise<any> {
+    const resp = await fetch(uri, {
+      headers: {
+        origin: this.getServerBaseUri(),
+        'User-Agent': `mongodb-vscode/${version}`,
+        ...headers,
+      },
+      method,
+      ...(body && { body }),
+    });
+
+    let conversation;
+    try {
+      conversation = await resp.json();
+    } catch (error) {
+      throw new Error('Internal server error');
+    }
+
     if (resp.status === 400) {
       throw new Error(`Bad request: ${conversation.error}`);
     }
     if (resp.status === 429) {
-      // TODO: Handle rate limiting
       throw new Error(`Rate limited: ${conversation.error}`);
     }
     if (resp.status >= 500) {
-      throw new Error(`Server error: ${conversation.error}`);
+      throw new Error(`Internal server error: ${conversation.error}`);
     }
     return {
       ...conversation,
@@ -84,31 +128,12 @@ export class DocsChatbotAIService {
     conversationId: string;
     message: string;
   }): Promise<MessageData> {
-    const path = `/conversations/${conversationId}/messages`;
-    const resp = await fetch(this.getUrl(path), {
-      headers: {
-        ...DEFAULT_HEADERS,
-        'Content-Type': 'application/json',
-      },
+    const uri = this.getUri(`/conversations/${conversationId}/messages`);
+    return (await this._fetch({
+      uri,
       method: 'POST',
       body: JSON.stringify({ message }),
-    });
-    const data = await resp.json();
-    if (resp.status === 400) {
-      throw new Error(data.error);
-    }
-    if (resp.status === 404) {
-      throw new Error(`Conversation not found: ${data.error}`);
-    }
-    if (resp.status === 429) {
-      throw new Error(`Rate limited: ${data.error}`);
-    }
-    if (resp.status === 504) {
-      throw new TimeoutError(data.error);
-    }
-    if (resp.status >= 500) {
-      throw new Error(`Server error: ${data.error}`);
-    }
-    return data;
+      headers: { 'Content-Type': 'application/json' },
+    })) as MessageData;
   }
 }

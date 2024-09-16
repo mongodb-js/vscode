@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { getSimplifiedSchema } from 'mongodb-schema';
 import type { Document } from 'bson';
+import { config } from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -68,6 +71,7 @@ export function getRunnableContentFromString(text: string): string {
 
 export default class ParticipantController {
   _participant?: vscode.ChatParticipant;
+  _context: vscode.ExtensionContext;
   _connectionController: ConnectionController;
   _storageController: StorageController;
   _queryGenerationState?: QUERY_GENERATION_STATE;
@@ -81,13 +85,46 @@ export default class ParticipantController {
   constructor({
     connectionController,
     storageController,
+    context,
   }: {
     connectionController: ConnectionController;
     storageController: StorageController;
+    context: vscode.ExtensionContext;
   }) {
+    this._context = context;
     this._connectionController = connectionController;
     this._storageController = storageController;
-    this._docsChatbotAIService = new DocsChatbotAIService();
+
+    const docsChatbotBaseUri = this._readDocsChatbotBaseUri();
+    this._docsChatbotAIService = new DocsChatbotAIService(docsChatbotBaseUri);
+  }
+
+  private _readDocsChatbotBaseUri(): string | undefined {
+    config({ path: path.join(this._context.extensionPath, '.env') });
+
+    try {
+      const docsChatbotBaseUriFileLocation = path.join(
+        this._context.extensionPath,
+        './constants.json'
+      );
+      // eslint-disable-next-line no-sync
+      const constantsFile = fs.readFileSync(
+        docsChatbotBaseUriFileLocation,
+        'utf8'
+      );
+      const constants = JSON.parse(constantsFile) as {
+        docsChatbotBaseUri: string;
+      };
+
+      log.info('docsChatbotBaseUri was found', {
+        type: typeof constants.docsChatbotBaseUri,
+      });
+
+      return constants.docsChatbotBaseUri;
+    } catch (error) {
+      log.error('docsChatbotBaseUri was not found', error);
+      return;
+    }
   }
 
   _setDatabaseName(name: string | undefined): void {
@@ -755,7 +792,7 @@ export default class ParticipantController {
       if (!conversationId) {
         const conversation =
           await this._docsChatbotAIService.createConversation();
-        conversationId = conversation.conversationId;
+        conversationId = conversation._id;
       }
 
       const response = await this._docsChatbotAIService.addMessage({
@@ -823,7 +860,9 @@ export default class ParticipantController {
     return {
       metadata: {
         responseContent: response.content,
-        conversationId: response.conversationId,
+        ...(response.conversationId && {
+          conversationId: response.conversationId,
+        }),
       },
     };
   }

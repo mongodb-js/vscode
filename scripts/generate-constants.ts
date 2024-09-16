@@ -9,15 +9,22 @@ import { promisify } from 'util';
 
 const writeFile = promisify(fs.writeFile);
 const ROOT_DIR = path.join(__dirname, '..');
-const ui = ora('Generate constants keyfile').start();
+const ui = ora('Generate constants file').start();
 
 config({ path: resolve(__dirname, '../.env') });
 
 (async () => {
-  if (process.env.SEGMENT_KEY) {
+  if (process.env.SEGMENT_KEY || process.env.MONGODB_DOCS_CHATBOT_BASE_URI) {
     await writeFile(
       `${ROOT_DIR}/constants.json`,
-      JSON.stringify({ segmentKey: process.env.SEGMENT_KEY }, null, 2)
+      JSON.stringify(
+        {
+          segmentKey: process.env.SEGMENT_KEY,
+          docsChatbotBaseUri: process.env.MONGODB_DOCS_CHATBOT_BASE_URI,
+        },
+        null,
+        2
+      )
     );
     ui.succeed('Generated segment constants file');
   } else {

@@ -164,7 +164,7 @@ export default class TelemetryService {
       const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
       const constants = JSON.parse(constantsFile) as { segmentKey: string };
 
-      log.info('SegmentKey was found', { type: typeof constants.segmentKey });
+      log.info('segmentKey was found', { type: typeof constants.segmentKey });
 
       return constants.segmentKey;
     } catch (error) {
@@ -215,7 +215,7 @@ export default class TelemetryService {
     return true;
   }
 
-  _segmentAnalyticsTrack(segmentProperties: SegmentProperties) {
+  _segmentAnalyticsTrack(segmentProperties: SegmentProperties): void {
     if (!this._isTelemetryFeatureEnabled()) {
       return;
     }
@@ -250,7 +250,7 @@ export default class TelemetryService {
   async _getConnectionTelemetryProperties(
     dataService: DataService,
     connectionType: ConnectionTypes
-  ) {
+  ): Promise<NewConnectionTelemetryEventProperties> {
     return await getConnectionTelemetryProperties(dataService, connectionType);
   }
 
@@ -298,7 +298,9 @@ export default class TelemetryService {
     return 'other';
   }
 
-  getTelemetryUserIdentity() {
+  getTelemetryUserIdentity(): {
+    anonymousId: string;
+  } {
     return {
       anonymousId: this._segmentAnonymousId,
     };
@@ -363,7 +365,7 @@ export default class TelemetryService {
 
   trackSavedConnectionsLoaded(
     savedConnectionsLoadedProps: SavedConnectionsLoadedProperties
-  ) {
+  ): void {
     this.track(
       TelemetryEventTypes.SAVED_CONNECTIONS_LOADED,
       savedConnectionsLoadedProps
@@ -372,7 +374,7 @@ export default class TelemetryService {
 
   trackKeytarSecretsMigrationFailed(
     keytarSecretsMigrationFailedProps: KeytarSecretsMigrationFailedProperties
-  ) {
+  ): void {
     this.track(
       TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
       keytarSecretsMigrationFailedProps
