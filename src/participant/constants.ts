@@ -7,7 +7,7 @@ export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 export class NamespaceRequestChatResult implements vscode.ChatResult {
   readonly metadata: {
     chatId: string;
-    askForNamespace: true;
+    intent: 'askForNamespace';
     databaseName?: string | undefined;
     collectionName?: string | undefined;
   };
@@ -23,7 +23,7 @@ export class NamespaceRequestChatResult implements vscode.ChatResult {
   }) {
     this.metadata = {
       chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
-      askForNamespace: true,
+      intent: 'askForNamespace',
       databaseName,
       collectionName,
     };
@@ -33,7 +33,7 @@ export class NamespaceRequestChatResult implements vscode.ChatResult {
 export class EmptyRequestChatResult implements vscode.ChatResult {
   readonly metadata: {
     chatId: string;
-    isEmptyResponse: true;
+    intent: 'emptyRequest';
   };
 
   constructor(
@@ -41,7 +41,7 @@ export class EmptyRequestChatResult implements vscode.ChatResult {
   ) {
     this.metadata = {
       chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
-      isEmptyResponse: true,
+      intent: 'emptyRequest',
     };
   }
 }
@@ -49,7 +49,7 @@ export class EmptyRequestChatResult implements vscode.ChatResult {
 export class AskToConnectChatResult implements vscode.ChatResult {
   readonly metadata: {
     chatId: string;
-    askToConnect: true;
+    intent: 'askToConnect';
   };
 
   constructor(
@@ -57,7 +57,7 @@ export class AskToConnectChatResult implements vscode.ChatResult {
   ) {
     this.metadata = {
       chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
-      askToConnect: true,
+      intent: 'askToConnect',
     };
   }
 }

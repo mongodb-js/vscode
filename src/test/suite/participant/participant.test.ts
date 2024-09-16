@@ -197,7 +197,7 @@ suite('Participant Controller Test Suite', function () {
         ...chatResult?.metadata,
         chatId: undefined,
       }).to.deep.equal({
-        askToConnect: true,
+        intent: 'askToConnect',
         chatId: undefined,
       });
     });
@@ -241,7 +241,7 @@ suite('Participant Controller Test Suite', function () {
         ...chatResult?.metadata,
         chatId: undefined,
       }).to.deep.equal({
-        askToConnect: true,
+        intent: 'askToConnect',
         chatId: undefined,
       });
     });
@@ -285,7 +285,7 @@ suite('Participant Controller Test Suite', function () {
         ...chatResult?.metadata,
         chatId: undefined,
       }).to.deep.equal({
-        askToConnect: true,
+        intent: 'askToConnect',
         chatId: undefined,
       });
     });
@@ -739,7 +739,7 @@ suite('Participant Controller Test Suite', function () {
               ...chatResult?.metadata,
               chatId: undefined,
             }).to.deep.equal({
-              askForNamespace: true,
+              intent: 'askForNamespace',
               collectionName: undefined,
               databaseName: undefined,
               chatId: undefined,
@@ -774,7 +774,7 @@ suite('Participant Controller Test Suite', function () {
                       command: 'query',
                       result: {
                         metadata: {
-                          askForNamespace: true,
+                          intent: 'askForNamespace',
                           chatId: firstChatId,
                         },
                       },
@@ -811,7 +811,7 @@ suite('Participant Controller Test Suite', function () {
               ...chatResult?.metadata,
               chatId: undefined,
             }).to.deep.equal({
-              askForNamespace: true,
+              intent: 'askForNamespace',
               collectionName: undefined,
               databaseName: undefined,
               chatId: undefined,
@@ -849,7 +849,7 @@ suite('Participant Controller Test Suite', function () {
                       command: 'query',
                       result: {
                         metadata: {
-                          askForNamespace: true,
+                          intent: 'askForNamespace',
                         },
                       },
                     }
@@ -878,7 +878,7 @@ suite('Participant Controller Test Suite', function () {
                       command: 'query',
                       result: {
                         metadata: {
-                          askForNamespace: true,
+                          intent: 'askForNamespace',
                           databaseName: 'dbOne',
                           collectionName: 'collOne',
                           chatId: firstChatId,
@@ -946,7 +946,7 @@ suite('Participant Controller Test Suite', function () {
                       command: 'query',
                       result: {
                         metadata: {
-                          askForNamespace: true,
+                          intent: 'askForNamespace',
                           chatId: 'pineapple',
                         },
                       },
@@ -978,7 +978,7 @@ suite('Participant Controller Test Suite', function () {
               ...chatResult?.metadata,
               chatId: undefined,
             }).to.deep.equal({
-              askForNamespace: true,
+              intent: 'askForNamespace',
               collectionName: undefined,
               databaseName: undefined,
               chatId: undefined,
@@ -1019,7 +1019,7 @@ suite('Participant Controller Test Suite', function () {
                       command: 'query',
                       result: {
                         metadata: {
-                          askForNamespace: true,
+                          intent: 'askForNamespace',
                         },
                       },
                     }
@@ -1048,7 +1048,7 @@ suite('Participant Controller Test Suite', function () {
                       command: 'query',
                       result: {
                         metadata: {
-                          askForNamespace: true,
+                          intent: 'askForNamespace',
                           databaseName: 'dbOne',
                           collectionName: undefined,
                           chatId: 'pineapple',
@@ -1082,7 +1082,7 @@ suite('Participant Controller Test Suite', function () {
               ...chatResult?.metadata,
               chatId: undefined,
             }).to.deep.equal({
-              askForNamespace: true,
+              intent: 'askForNamespace',
               collectionName: undefined,
               databaseName: 'dbOne',
               chatId: undefined,

@@ -37,9 +37,10 @@ export function getHistoryMessages({
       let message = '';
 
       if (
-        (historyItem.result as EmptyRequestChatResult).metadata
-          ?.isEmptyResponse ||
-        (historyItem.result as AskToConnectChatResult).metadata?.askToConnect
+        (historyItem.result as EmptyRequestChatResult).metadata?.intent ===
+          'emptyRequest' ||
+        (historyItem.result as AskToConnectChatResult).metadata?.intent ===
+          'askToConnect'
       ) {
         // Skip a response to an empty user prompt message or connect message.
         continue;
@@ -51,7 +52,7 @@ export function getHistoryMessages({
 
           if (
             (historyItem.result as NamespaceRequestChatResult).metadata
-              ?.askForNamespace
+              ?.intent === 'askForNamespace'
           ) {
             // When the message is the assistant asking for part of a namespace,
             // we only want to include the question asked, not the user's

@@ -615,8 +615,8 @@ export default class ParticipantController {
     const lastMessageMetaData: vscode.ChatResponseTurn | undefined = context
       .history[context.history.length - 1] as vscode.ChatResponseTurn;
     if (
-      !(lastMessageMetaData?.result as NamespaceRequestChatResult)?.metadata
-        ?.askForNamespace
+      (lastMessageMetaData?.result as NamespaceRequestChatResult)?.metadata
+        ?.intent !== 'askForNamespace'
     ) {
       stream.markdown(GenericPrompt.getEmptyRequestResponse());
       return new EmptyRequestChatResult(context.history);
