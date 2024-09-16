@@ -300,7 +300,6 @@ export default class ParticipantController {
       databaseName: databaseName,
     });
 
-    // Add a database name message to the chat so future messages know which namespace to use.
     return this.writeChatMessageAsUser(
       `/query ${databaseName}`
     ) as Promise<boolean>;

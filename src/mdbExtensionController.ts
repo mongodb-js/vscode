@@ -315,22 +315,22 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-      (_data?: string) => {
-        const data = _data ? JSON.parse(decodeURIComponent(_data)) : {};
+      (_data: string) => {
+        const data = JSON.parse(decodeURIComponent(_data));
         return this._participantController.selectDatabaseWithParticipant({
-          chatId: data?.chatId,
-          databaseName: data?.databaseName,
+          chatId: data.chatId,
+          databaseName: data.databaseName,
         });
       }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
-      (_data?: string) => {
-        const data = _data ? JSON.parse(decodeURIComponent(_data)) : {};
+      (_data: string) => {
+        const data = JSON.parse(decodeURIComponent(_data));
         return this._participantController.selectCollectionWithParticipant({
-          chatId: data?.chatId,
-          databaseName: data?.databaseName,
-          collectionName: data?.collectionName,
+          chatId: data.chatId,
+          databaseName: data.databaseName,
+          collectionName: data.collectionName,
         });
       }
     );
