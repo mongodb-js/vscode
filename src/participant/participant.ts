@@ -595,6 +595,56 @@ export default class ParticipantController {
     }
   }
 
+  async handleEmptyQueryRequest({
+    context,
+    stream,
+  }: {
+    context: vscode.ChatContext;
+    stream: vscode.ChatResponseStream;
+  }): Promise<vscode.ChatResult> {
+    const lastMessageMetaData: vscode.ChatResponseTurn | undefined = context
+      .history[context.history.length - 1] as vscode.ChatResponseTurn;
+    if (
+      !(lastMessageMetaData?.result as NamespaceRequestChatResult)?.metadata
+        ?.askForNamespace
+    ) {
+      stream.markdown(GenericPrompt.getEmptyRequestResponse());
+      return new EmptyRequestChatResult(context.history);
+    }
+
+    // When the last message was asking for a database or collection name,
+    // we re-ask the question.
+    let tree: vscode.MarkdownString[];
+    const databaseName = (
+      lastMessageMetaData.result as NamespaceRequestChatResult
+    ).metadata.databaseName;
+    if (databaseName) {
+      stream.markdown(
+        vscode.l10n.t(
+          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+        )
+      );
+      tree = await this.getCollectionTree(databaseName, context);
+    } else {
+      stream.markdown(
+        vscode.l10n.t(
+          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
+        )
+      );
+      tree = await this.getDatabasesTree(context);
+    }
+
+    for (const item of tree) {
+      stream.markdown(item);
+    }
+
+    return new NamespaceRequestChatResult({
+      databaseName,
+      collectionName: undefined,
+      history: context.history,
+    });
+  }
+
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.
   async handleQueryRequest(
     request: vscode.ChatRequest,
@@ -607,8 +657,10 @@ export default class ParticipantController {
     }
 
     if (!request.prompt || request.prompt.trim().length === 0) {
-      stream.markdown(QueryPrompt.getEmptyRequestResponse());
-      return new EmptyRequestChatResult(context.history);
+      return this.handleEmptyQueryRequest({
+        context,
+        stream,
+      });
     }
 
     // We "prompt chain" to handle the query requests.

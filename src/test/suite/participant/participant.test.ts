@@ -914,6 +914,180 @@ suite('Participant Controller Test Suite', function () {
               ],
             });
           });
+
+          test('handles empty database name', async function () {
+            const chatRequestMock = {
+              prompt: '',
+              command: 'query',
+              references: [],
+            };
+            const chatResult = await testParticipantController.chatHandler(
+              chatRequestMock,
+              {
+                history: [
+                  {
+                    prompt: 'find all docs by a name example',
+                    command: 'query',
+                    references: [],
+                    participant: CHAT_PARTICIPANT_ID,
+                  } as vscode.ChatRequestTurn,
+                  Object.assign(
+                    Object.create(vscode.ChatResponseTurn.prototype),
+                    {
+                      participant: CHAT_PARTICIPANT_ID,
+                      response: [
+                        {
+                          value: {
+                            value:
+                              'What is the name of the database you would like this query to run against?',
+                          } as vscode.MarkdownString,
+                        },
+                      ],
+                      command: 'query',
+                      result: {
+                        metadata: {
+                          askForNamespace: true,
+                          chatId: 'pineapple',
+                        },
+                      },
+                    } as vscode.ChatResponseTurn
+                  ),
+                ],
+              },
+              chatStreamStub,
+              chatTokenStub
+            );
+
+            const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
+            expect(emptyMessage).to.include(
+              'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
+            );
+            const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
+            expect(listDBsMessage.value).to.include(
+              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId'
+            );
+            expect(listDBsMessage.value).to.include(
+              'databaseName%2522%253A%2522dbOne%2522%257D%22%5D">dbOne</a>'
+            );
+            const showMoreDBsMessage =
+              chatStreamStub.markdown.getCall(11).args[0];
+            expect(showMoreDBsMessage.value).to.include(
+              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId%252'
+            );
+            expect({
+              ...chatResult?.metadata,
+              chatId: undefined,
+            }).to.deep.equal({
+              askForNamespace: true,
+              collectionName: undefined,
+              databaseName: undefined,
+              chatId: undefined,
+            });
+          });
+
+          test('handles empty collection name', async function () {
+            const chatRequestMock = {
+              prompt: '',
+              command: 'query',
+              references: [],
+            };
+            const chatResult = await testParticipantController.chatHandler(
+              chatRequestMock,
+              {
+                history: [
+                  Object.assign(
+                    Object.create(vscode.ChatRequestTurn.prototype),
+                    {
+                      prompt: 'find all docs by a name example',
+                      command: 'query',
+                      references: [],
+                      participant: CHAT_PARTICIPANT_ID,
+                    }
+                  ),
+                  Object.assign(
+                    Object.create(vscode.ChatResponseTurn.prototype),
+                    {
+                      participant: CHAT_PARTICIPANT_ID,
+                      response: [
+                        {
+                          value: {
+                            value:
+                              'Which database would you like to query within this database?',
+                          } as vscode.MarkdownString,
+                        },
+                      ],
+                      command: 'query',
+                      result: {
+                        metadata: {
+                          askForNamespace: true,
+                        },
+                      },
+                    }
+                  ),
+                  Object.assign(
+                    Object.create(vscode.ChatRequestTurn.prototype),
+                    {
+                      prompt: 'dbOne',
+                      command: 'query',
+                      references: [],
+                      participant: CHAT_PARTICIPANT_ID,
+                    }
+                  ),
+                  Object.assign(
+                    Object.create(vscode.ChatResponseTurn.prototype),
+                    {
+                      participant: CHAT_PARTICIPANT_ID,
+                      response: [
+                        {
+                          value: {
+                            value:
+                              'Which collection would you like to query within dbOne?',
+                          } as vscode.MarkdownString,
+                        },
+                      ],
+                      command: 'query',
+                      result: {
+                        metadata: {
+                          askForNamespace: true,
+                          databaseName: 'dbOne',
+                          collectionName: undefined,
+                          chatId: 'pineapple',
+                        },
+                      },
+                    }
+                  ),
+                ],
+              },
+              chatStreamStub,
+              chatTokenStub
+            );
+
+            const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
+            expect(emptyMessage).to.include(
+              'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+            );
+            const listCollsMessage = chatStreamStub.markdown.getCall(1).args[0];
+            expect(listCollsMessage.value).to.include(
+              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
+            );
+            expect(listCollsMessage.value).to.include(
+              '52C%2522collectionName%2522%253A%2522collOne%2522%257D%22%5D">collOne</a>'
+            );
+            const showMoreCollsMessage =
+              chatStreamStub.markdown.getCall(1).args[0];
+            expect(showMoreCollsMessage.value).to.include(
+              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
+            );
+            expect({
+              ...chatResult?.metadata,
+              chatId: undefined,
+            }).to.deep.equal({
+              askForNamespace: true,
+              collectionName: undefined,
+              databaseName: 'dbOne',
+              chatId: undefined,
+            });
+          });
         });
       });
     });
