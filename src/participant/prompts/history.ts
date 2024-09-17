@@ -33,12 +33,12 @@ export function getHistoryMessages({
       let message = '';
 
       // Skip a response to an empty user prompt message or connect message.
-      const promptsToSkip: ParticipantResponseType[] = [
+      const responseTypesToSkip: ParticipantResponseType[] = [
         'emptyRequest',
         'askToConnect',
       ];
       if (
-        promptsToSkip.indexOf(
+        responseTypesToSkip.indexOf(
           (historyItem.result as ChatResult)?.metadata.intent
         ) > -1
       ) {
