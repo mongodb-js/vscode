@@ -1107,7 +1107,7 @@ suite('Participant Controller Test Suite', function () {
         kind: vscode.ChatResultFeedbackKind.Helpful,
         result: {
           metadata: {
-            responseType: 'connections',
+            intent: 'askToConnect',
             responseContent: '```creditCardNumber: 1234-5678-9012-3456```',
           },
         },
@@ -1121,7 +1121,7 @@ suite('Participant Controller Test Suite', function () {
       const properties = telemetryTrackStub.lastCall.args[1];
       expect(properties.feedback).to.be.equal('positive');
       expect(properties.reason).to.be.undefined;
-      expect(properties.response_type).to.be.equal('connections');
+      expect(properties.response_type).to.be.equal('askToConnect');
 
       // Ensure we're not leaking the response content into the telemetry payload
       expect(JSON.stringify(properties))
@@ -1134,7 +1134,7 @@ suite('Participant Controller Test Suite', function () {
         kind: vscode.ChatResultFeedbackKind.Unhelpful,
         result: {
           metadata: {
-            responseType: 'query',
+            intent: 'query',
             responseContent: 'SSN: 123456789',
           },
         },
