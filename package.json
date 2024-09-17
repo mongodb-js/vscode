@@ -94,6 +94,11 @@
             "name": "query",
             "isSticky": true,
             "description": "Ask how to write MongoDB queries or pipelines. For example, you can ask: \"Show me all the documents where the address contains the word street\"."
+          },
+          {
+            "name": "schema",
+            "isSticky": true,
+            "description": "Analyze a collection's schema."
           }
         ]
       }
@@ -171,6 +176,10 @@
       {
         "command": "mdb.selectCollectionWithParticipant",
         "title": "MongoDB: Select Collection with Participant"
+      },
+      {
+        "command": "mdb.participantViewRawSchemaOutput",
+        "title": "MongoDB: View Raw Schema JSON Output"
       },
       {
         "command": "mdb.connectWithParticipant",
@@ -740,6 +749,10 @@
         },
         {
           "command": "mdb.selectCollectionWithParticipant",
+          "when": "false"
+        },
+        {
+          "command": "mdb.participantViewRawSchemaOutput",
           "when": "false"
         },
         {

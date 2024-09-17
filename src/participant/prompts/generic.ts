@@ -46,3 +46,7 @@ Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
     return messages;
   }
 }
+
+export function isPromptEmpty(request: vscode.ChatRequest): boolean {
+  return !request.prompt || request.prompt.trim().length === 0;
+}

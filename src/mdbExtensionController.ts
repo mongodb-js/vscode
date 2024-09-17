@@ -44,6 +44,7 @@ import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
 import type { RunParticipantQueryCommandArgs } from './participant/participant';
 import ParticipantController from './participant/participant';
+import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -308,30 +309,37 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
-      (id?: string) =>
-        this._participantController.connectWithParticipant(
-          id ? decodeURIComponent(id) : id
-        )
+      (_data: string) => {
+        const data = JSON.parse(decodeURIComponent(_data));
+        return this._participantController.connectWithParticipant(data);
+      }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
       (_data: string) => {
         const data = JSON.parse(decodeURIComponent(_data));
-        return this._participantController.selectDatabaseWithParticipant({
-          chatId: data.chatId,
-          databaseName: data.databaseName,
-        });
+        return this._participantController.selectDatabaseWithParticipant(data);
       }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
       (_data: string) => {
         const data = JSON.parse(decodeURIComponent(_data));
-        return this._participantController.selectCollectionWithParticipant({
-          chatId: data.chatId,
-          databaseName: data.databaseName,
-          collectionName: data.collectionName,
+        return this._participantController.selectCollectionWithParticipant(
+          data
+        );
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
+      async ({ schema }: OpenSchemaCommandArgs) => {
+        const document = await vscode.workspace.openTextDocument({
+          language: 'json',
+          content: schema,
         });
+        await vscode.window.showTextDocument(document, { preview: true });
+
+        return !!document;
       }
     );
   };

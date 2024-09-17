@@ -6,6 +6,8 @@ export function createMarkdownLink({
   name,
 }: {
   commandId: string;
+  // TODO: Create types for this data so we can also then use them on the extension
+  // controller when we parse the result.
   data?:
     | {
         [field: string]: any;

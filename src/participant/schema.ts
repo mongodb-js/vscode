@@ -22,13 +22,13 @@ export class SchemaFormatter {
   private processSchemaTypeList(
     prefix: string,
     pTypes: SimplifiedSchemaType[]
-  ) {
+  ): void {
     if (pTypes.length !== 0) {
       this.processSchemaType(prefix, pTypes[0]);
     }
   }
 
-  private processSchemaType(prefix: string, pType: SimplifiedSchemaType) {
+  private processSchemaType(prefix: string, pType: SimplifiedSchemaType): void {
     const bsonType = pType.bsonType;
     if (bsonType === 'Document') {
       const fields = (pType as SimplifiedSchemaDocumentType).fields;
@@ -67,7 +67,7 @@ export class SchemaFormatter {
     this.addToFormattedSchemaString(prefix + ': ' + bsonType);
   }
 
-  private processDocumentType(prefix: string, pDoc: SimplifiedSchema) {
+  private processDocumentType(prefix: string, pDoc: SimplifiedSchema): void {
     if (!pDoc) {
       return;
     }
@@ -93,7 +93,7 @@ export class SchemaFormatter {
     }
   }
 
-  addToFormattedSchemaString(fieldAndType: string) {
+  addToFormattedSchemaString(fieldAndType: string): void {
     if (this.schemaString.length > 0) {
       this.schemaString += '\n';
     }

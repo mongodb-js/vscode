@@ -291,12 +291,14 @@ suite('Participant Controller Test Suite', function () {
     });
 
     test('calls connect by id for an existing connection', async function () {
-      await testParticipantController.connectWithParticipant('123');
+      await testParticipantController.connectWithParticipant({
+        id: '123',
+      });
       expect(connectWithConnectionIdStub).to.have.been.calledWithExactly('123');
     });
 
     test('calls connect with uri for a new connection', async function () {
-      await testParticipantController.connectWithParticipant();
+      await testParticipantController.connectWithParticipant({});
       expect(changeActiveConnectionStub).to.have.been.called;
     });
   });

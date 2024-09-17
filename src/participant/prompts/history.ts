@@ -68,3 +68,16 @@ export function getHistoryMessages({
 
   return messages;
 }
+
+export function doesLastMessageAskForNamespace(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): boolean {
+  const lastMessageMetaData: vscode.ChatResponseTurn | undefined = history[
+    history.length - 1
+  ] as vscode.ChatResponseTurn;
+
+  return (
+    (lastMessageMetaData?.result as NamespaceRequestChatResult)?.metadata
+      ?.intent === 'askForNamespace'
+  );
+}
