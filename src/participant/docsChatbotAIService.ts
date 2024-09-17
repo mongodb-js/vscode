@@ -88,7 +88,6 @@ export class DocsChatbotAIService {
       method,
       ...(body && { body }),
     });
-
     let conversation;
     try {
       conversation = await resp.json();
@@ -97,13 +96,15 @@ export class DocsChatbotAIService {
     }
 
     if (resp.status === 400) {
-      throw new Error(`Bad request: ${conversation.error}`);
+      throw new Error(`[Docs chatbot] Bad request: ${conversation.error}`);
     }
     if (resp.status === 429) {
-      throw new Error(`Rate limited: ${conversation.error}`);
+      throw new Error(`[Docs chatbot] Rate limited: ${conversation.error}`);
     }
     if (resp.status >= 500) {
-      throw new Error(`Internal server error: ${conversation.error}`);
+      throw new Error(
+        `[Docs chatbot] Internal server error: ${conversation.error}`
+      );
     }
     return {
       ...conversation,

@@ -33,6 +33,8 @@ export enum QUERY_GENERATION_STATE {
 
 const NUM_DOCUMENTS_TO_SAMPLE = 3;
 
+const MONGODB_DOCS_LINK = 'https://www.mongodb.com/docs/';
+
 interface ChatResult extends vscode.ChatResult {
   metadata: {
     responseContent?: string;
@@ -786,43 +788,32 @@ export default class ParticipantController {
       title: string;
     }[];
   }> {
-    try {
-      if (!conversationId) {
-        const conversation =
-          await this._docsChatbotAIService.createConversation();
-        conversationId = conversation._id;
-      }
+    const conversation = await this._docsChatbotAIService.createConversation();
+    conversationId = conversation._id;
 
-      const response = await this._docsChatbotAIService.addMessage({
-        message,
-        conversationId,
-      });
-      return {
-        conversationId,
-        content: response.content,
-        references: response.references?.map((ref) => ({
-          url: ref.url,
-          title: ref.title,
-        })),
-      };
-    } catch (error) {
-      const errorMessage =
-        // eslint-disable-next-line no-nested-ternary
-        typeof error === 'string'
-          ? error
-          : error instanceof Error
-          ? error.message
-          : 'Сonversation вailed.';
-      throw new Error(errorMessage);
-    }
+    const response = await this._docsChatbotAIService.addMessage({
+      message,
+      conversationId,
+    });
+    return {
+      conversationId,
+      content: response.content,
+      references: response.references?.map((ref) => ({
+        url: ref.url,
+        title: ref.title,
+      })),
+    };
   }
 
   async handleDocsRequest(
-    request: vscode.ChatRequest,
-    context: vscode.ChatContext,
-    stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    ...args: [
+      vscode.ChatRequest,
+      vscode.ChatContext,
+      vscode.ChatResponseStream,
+      vscode.CancellationToken
+    ]
   ): Promise<ChatResult> {
+    const [request, context, stream, token] = args;
     const abortController = new AbortController();
     token.onCancellationRequested(() => {
       abortController.abort();
@@ -837,18 +828,65 @@ export default class ParticipantController {
         historyItem.result.metadata?.conversationId
       );
     });
-    const conversationId = historyWithConversationId
+    let conversationId = historyWithConversationId
       ? (historyWithConversationId as vscode.ChatResponseTurn).result.metadata
           ?.conversationId
       : undefined;
-    const response = await this.getDocumentationFromUserInput({
-      message: request.prompt,
-      conversationId,
-    });
 
-    stream.markdown(response.content);
-    if (response.references) {
-      for (const ref of response.references) {
+    let responseContent;
+    let responseReferences;
+    try {
+      const response = await this.getDocumentationFromUserInput({
+        message: request.prompt,
+        conversationId,
+      });
+      responseContent = response.content;
+      responseReferences = response.references;
+      conversationId = response.conversationId;
+    } catch (error) {
+      log.error(error);
+
+      // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
+      // the MongoDB documentation link for users to go to our documentation site directly.
+      const messages = GenericPrompt.buildMessages({
+        request,
+        context,
+      });
+
+      const abortController = new AbortController();
+      token.onCancellationRequested(() => {
+        abortController.abort();
+      });
+      responseContent = await this.getChatResponseContent({
+        messages,
+        stream,
+        token,
+      });
+      responseReferences = [
+        {
+          url: MONGODB_DOCS_LINK,
+          title: 'View MongoDB documentation',
+        },
+      ];
+    }
+
+    stream.markdown(responseContent);
+
+    const runnableContent = getRunnableContentFromString(responseContent);
+    if (runnableContent && runnableContent.trim().length) {
+      stream.button({
+        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+        title: vscode.l10n.t('▶️ Run'),
+      });
+
+      stream.button({
+        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+        title: vscode.l10n.t('Open in playground'),
+      });
+    }
+
+    if (responseReferences) {
+      for (const ref of responseReferences) {
         const link = new vscode.MarkdownString(
           `- <a href="${ref.url}">${ref.title}</a>\n`
         );
@@ -859,10 +897,8 @@ export default class ParticipantController {
 
     return {
       metadata: {
-        responseContent: response.content,
-        ...(response.conversationId && {
-          conversationId: response.conversationId,
-        }),
+        responseContent,
+        ...(conversationId && { conversationId }),
       },
     };
   }
