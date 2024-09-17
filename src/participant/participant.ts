@@ -9,43 +9,40 @@ import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
 import { GenericPrompt } from './prompts/generic';
-import { CHAT_PARTICIPANT_ID } from './constants';
+import {
+  CHAT_PARTICIPANT_ID,
+  genericRequestChatResult,
+  emptyRequestChatResult,
+  askToConnectChatResult,
+  queryRequestChatResult,
+  namespaceRequestChatResult,
+} from './constants';
+import type { ChatResult } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
+import { createMarkdownLink } from './markdown';
+import { ChatMetadataStore } from './chatMetadata';
 import { chatResultFeedbackKindToTelemetryValue } from '../telemetry/telemetryService';
-import type { ParticipantResponseType } from '../telemetry/telemetryService';
 import type TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('participant');
 
-export enum QUERY_GENERATION_STATE {
-  DEFAULT = 'DEFAULT',
-  ASK_TO_CONNECT = 'ASK_TO_CONNECT',
-  ASK_FOR_DATABASE_NAME = 'ASK_FOR_DATABASE_NAME',
-  ASK_FOR_COLLECTION_NAME = 'ASK_FOR_COLLECTION_NAME',
-  CHANGE_DATABASE_NAME = 'CHANGE_DATABASE_NAME',
-  FETCH_SCHEMA = 'FETCH_SCHEMA',
-}
-
 const NUM_DOCUMENTS_TO_SAMPLE = 3;
-
-interface ChatResult extends vscode.ChatResult {
-  metadata: {
-    responseContent?: string;
-    responseType: ParticipantResponseType;
-  };
-}
 
 interface NamespaceQuickPicks {
   label: string;
   data: string;
 }
 
-const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)\n?`;
-const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)\n?`;
+export type RunParticipantQueryCommandArgs = {
+  runnableContent: string;
+};
+
+const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)`;
+const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
 
 const MAX_MARKDOWN_LIST_LENGTH = 10;
 
@@ -72,13 +69,8 @@ export default class ParticipantController {
   _participant?: vscode.ChatParticipant;
   _connectionController: ConnectionController;
   _storageController: StorageController;
+  _chatMetadataStore: ChatMetadataStore;
   _telemetryService: TelemetryService;
-  _queryGenerationState?: QUERY_GENERATION_STATE;
-  _chatResult?: ChatResult;
-  _databaseName?: string;
-  _collectionName?: string;
-  _schema?: string;
-  _sampleDocuments?: Document[];
 
   constructor({
     connectionController,
@@ -91,28 +83,8 @@ export default class ParticipantController {
   }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
+    this._chatMetadataStore = new ChatMetadataStore();
     this._telemetryService = telemetryService;
-  }
-
-  _setDatabaseName(name: string | undefined): void {
-    if (
-      this._queryGenerationState === QUERY_GENERATION_STATE.DEFAULT &&
-      this._databaseName !== name
-    ) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME;
-      this._collectionName = undefined;
-    }
-    this._databaseName = name;
-  }
-
-  _setCollectionName(name: string | undefined): void {
-    if (
-      this._queryGenerationState === QUERY_GENERATION_STATE.DEFAULT &&
-      this._collectionName !== name
-    ) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.FETCH_SCHEMA;
-    }
-    this._collectionName = name;
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -139,43 +111,6 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  async handleEmptyQueryRequest(): Promise<(string | vscode.MarkdownString)[]> {
-    const messages: (string | vscode.MarkdownString)[] = [];
-    switch (this._queryGenerationState) {
-      case QUERY_GENERATION_STATE.ASK_TO_CONNECT:
-        messages.push(
-          vscode.l10n.t(
-            'Please select a cluster to connect by clicking on an item in the connections list.'
-          )
-        );
-        messages.push(...this.getConnectionsTree());
-        break;
-      case QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME:
-        messages.push(
-          vscode.l10n.t(
-            'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
-          )
-        );
-        messages.push(...(await this.getDatabasesTree()));
-        break;
-      case QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME:
-        messages.push(
-          vscode.l10n.t(
-            'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
-          )
-        );
-        messages.push(...(await this.getCollectionTree()));
-        break;
-      default:
-        messages.push(
-          vscode.l10n.t(
-            'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
-          )
-        );
-    }
-    return messages;
-  }
-
   handleError(err: any, stream: vscode.ChatResponseStream): void {
     // Making the chat request might fail because
     // - model does not exist
@@ -197,6 +132,19 @@ export default class ParticipantController {
       // Re-throw other errors so they show up in the UI.
       throw err;
     }
+  }
+
+  /**
+   * In order to get access to the model, and to write more messages to the chat after
+   * an async event that occurs after we've already completed our response, we need
+   * to be handling a chat request. This could be when a user clicks a button or link
+   * in the chat. To work around this, we can write a message as the user, which will
+   * trigger the chat handler and give us access to the model.
+   */
+  writeChatMessageAsUser(message: string): Thenable<unknown> {
+    return vscode.commands.executeCommand('workbench.action.chat.open', {
+      query: `@MongoDB ${message}`,
+    });
   }
 
   async getChatResponseContent({
@@ -248,56 +196,42 @@ export default class ParticipantController {
     stream.markdown(responseContent);
 
     const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent && runnableContent.trim().length) {
+    if (runnableContent) {
+      const commandArgs: RunParticipantQueryCommandArgs = {
+        runnableContent,
+      };
       stream.button({
         command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
         title: vscode.l10n.t('▶️ Run'),
+        arguments: [commandArgs],
       });
-
       stream.button({
         command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
         title: vscode.l10n.t('Open in playground'),
+        arguments: [commandArgs],
       });
     }
 
-    return {
-      metadata: { responseContent: runnableContent, responseType: 'generic' },
-    };
+    return genericRequestChatResult(context.history);
   }
 
   async connectWithParticipant(id?: string): Promise<boolean> {
     if (!id) {
-      await this._connectionController.changeActiveConnection();
+      const didChangeActiveConnection =
+        await this._connectionController.changeActiveConnection();
+      if (!didChangeActiveConnection) {
+        // If they don't choose a connection then we can't proceed;
+        return false;
+      }
     } else {
       await this._connectionController.connectWithConnectionId(id);
     }
 
     const connectionName = this._connectionController.getActiveConnectionName();
-    if (connectionName) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
-    }
 
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${connectionName}`,
-    });
-  }
-
-  _createMarkdownLink({
-    commandId,
-    query,
-    name,
-  }: {
-    commandId: string;
-    query?: string;
-    name: string;
-  }): vscode.MarkdownString {
-    const commandQuery = query ? `?%5B%22${query}%22%5D` : '';
-    const connName = new vscode.MarkdownString(
-      `- <a href="command:${commandId}${commandQuery}">${name}</a>\n`
-    );
-    connName.supportHtml = true;
-    connName.isTrusted = { enabledCommands: [commandId] };
-    return connName;
+    return this.writeChatMessageAsUser(
+      `/query ${connectionName}`
+    ) as Promise<boolean>;
   }
 
   getConnectionsTree(): vscode.MarkdownString[] {
@@ -311,14 +245,14 @@ export default class ParticipantController {
         })
         .slice(0, MAX_MARKDOWN_LIST_LENGTH)
         .map((conn: LoadedConnection) =>
-          this._createMarkdownLink({
-            commandId: 'mdb.connectWithParticipant',
-            query: conn.id,
+          createMarkdownLink({
+            commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+            data: conn.id,
             name: conn.name,
           })
         ),
-      this._createMarkdownLink({
-        commandId: 'mdb.connectWithParticipant',
+      createMarkdownLink({
+        commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
         name: 'Show more',
       }),
     ];
@@ -327,12 +261,15 @@ export default class ParticipantController {
   async getDatabaseQuickPicks(): Promise<NamespaceQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+      // Run a blank command to get the user to connect first.
+      void this.writeChatMessageAsUser('/query');
       return [];
     }
 
     try {
-      const databases = await dataService.listDatabases();
+      const databases = await dataService.listDatabases({
+        nameOnly: true,
+      });
       return databases.map((db) => ({
         label: db.name,
         data: db.name,
@@ -342,7 +279,7 @@ export default class ParticipantController {
     }
   }
 
-  async _selectDatabaseWithCommandPalette(): Promise<string | undefined> {
+  async _selectDatabaseWithQuickPick(): Promise<string | undefined> {
     const databases = await this.getDatabaseQuickPicks();
     const selectedQuickPickItem = await vscode.window.showQuickPick(databases, {
       placeHolder: 'Select a database...',
@@ -350,32 +287,42 @@ export default class ParticipantController {
     return selectedQuickPickItem?.data;
   }
 
-  async selectDatabaseWithParticipant(name: string): Promise<boolean> {
-    if (!name) {
-      const selectedName = await this._selectDatabaseWithCommandPalette();
-      this._setDatabaseName(selectedName);
-    } else {
-      this._setDatabaseName(name);
+  async selectDatabaseWithParticipant({
+    chatId,
+    databaseName: _databaseName,
+  }: {
+    chatId: string;
+    databaseName?: string;
+  }): Promise<boolean> {
+    let databaseName: string | undefined = _databaseName;
+    if (!databaseName) {
+      databaseName = await this._selectDatabaseWithQuickPick();
+      if (!databaseName) {
+        return false;
+      }
     }
 
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${this._databaseName || ''}`,
+    this._chatMetadataStore.setChatMetadata(chatId, {
+      databaseName: databaseName,
     });
+
+    return this.writeChatMessageAsUser(
+      `/query ${databaseName}`
+    ) as Promise<boolean>;
   }
 
-  async getCollectionQuickPicks(): Promise<NamespaceQuickPicks[]> {
-    if (!this._databaseName) {
-      return [];
-    }
-
+  async getCollectionQuickPicks(
+    databaseName: string
+  ): Promise<NamespaceQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
+      // Run a blank command to get the user to connect first.
+      void this.writeChatMessageAsUser('/query');
       return [];
     }
 
     try {
-      const collections = await dataService.listCollections(this._databaseName);
+      const collections = await dataService.listCollections(databaseName);
       return collections.map((db) => ({
         label: db.name,
         data: db.name,
@@ -385,8 +332,10 @@ export default class ParticipantController {
     }
   }
 
-  async _selectCollectionWithCommandPalette(): Promise<string | undefined> {
-    const collections = await this.getCollectionQuickPicks();
+  async _selectCollectionWithQuickPick(
+    databaseName: string
+  ): Promise<string | undefined> {
+    const collections = await this.getCollectionQuickPicks(databaseName);
     const selectedQuickPickItem = await vscode.window.showQuickPick(
       collections,
       {
@@ -396,40 +345,66 @@ export default class ParticipantController {
     return selectedQuickPickItem?.data;
   }
 
-  async selectCollectionWithParticipant(name: string): Promise<boolean> {
-    if (!name) {
-      const selectedName = await this._selectCollectionWithCommandPalette();
-      this._setCollectionName(selectedName);
-    } else {
-      this._setCollectionName(name);
+  async selectCollectionWithParticipant({
+    chatId,
+    databaseName,
+    collectionName: _collectionName,
+  }: {
+    chatId: string;
+    databaseName: string;
+    collectionName?: string;
+  }): Promise<boolean> {
+    let collectionName: string | undefined = _collectionName;
+    if (!collectionName) {
+      collectionName = await this._selectCollectionWithQuickPick(databaseName);
+      if (!collectionName) {
+        return false;
+      }
     }
 
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB /query ${this._collectionName || ''}`,
+    this._chatMetadataStore.setChatMetadata(chatId, {
+      databaseName: databaseName,
+      collectionName: collectionName,
     });
+    return this.writeChatMessageAsUser(
+      `/query ${collectionName}`
+    ) as Promise<boolean>;
   }
 
-  async getDatabasesTree(): Promise<vscode.MarkdownString[]> {
+  async getDatabasesTree(
+    context: vscode.ChatContext
+  ): Promise<vscode.MarkdownString[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
       return [];
     }
 
     try {
-      const databases = await dataService.listDatabases();
+      const databases = await dataService.listDatabases({
+        nameOnly: true,
+      });
       return [
         ...databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((db) =>
-          this._createMarkdownLink({
-            commandId: 'mdb.selectDatabaseWithParticipant',
-            query: db.name,
+          createMarkdownLink({
+            commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+            data: {
+              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                context.history
+              ),
+              databaseName: db.name,
+            },
             name: db.name,
           })
         ),
         ...(databases.length > MAX_MARKDOWN_LIST_LENGTH
           ? [
-              this._createMarkdownLink({
-                commandId: 'mdb.selectDatabaseWithParticipant',
+              createMarkdownLink({
+                data: {
+                  chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                    context.history
+                  ),
+                },
+                commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
                 name: 'Show more',
               }),
             ]
@@ -441,31 +416,41 @@ export default class ParticipantController {
     }
   }
 
-  async getCollectionTree(): Promise<vscode.MarkdownString[]> {
-    if (!this._databaseName) {
-      return [];
-    }
-
+  async getCollectionTree(
+    databaseName: string,
+    context: vscode.ChatContext
+  ): Promise<vscode.MarkdownString[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
       return [];
     }
 
     try {
-      const collections = await dataService.listCollections(this._databaseName);
+      const collections = await dataService.listCollections(databaseName);
       return [
         ...collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((coll) =>
-          this._createMarkdownLink({
-            commandId: 'mdb.selectCollectionWithParticipant',
-            query: coll.name,
+          createMarkdownLink({
+            commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+            data: {
+              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                context.history
+              ),
+              databaseName,
+              collectionName: coll.name,
+            },
             name: coll.name,
           })
         ),
         ...(collections.length > MAX_MARKDOWN_LIST_LENGTH
           ? [
-              this._createMarkdownLink({
-                commandId: 'mdb.selectCollectionWithParticipant',
+              createMarkdownLink({
+                commandId:
+                  EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+                data: {
+                  chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                    context.history
+                  ),
+                },
                 name: 'Show more',
               }),
             ]
@@ -477,79 +462,26 @@ export default class ParticipantController {
     }
   }
 
-  _ifNewChatResetQueryGenerationState(context: vscode.ChatContext): void {
-    const isNewChat = !context.history.find(
-      (historyItem) => historyItem.participant === CHAT_PARTICIPANT_ID
-    );
-    if (isNewChat) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
-      this._chatResult = undefined;
-      this._setDatabaseName(undefined);
-      this._setCollectionName(undefined);
-    }
-  }
-
-  _waitingForUserToProvideNamespace(prompt: string): boolean {
-    if (
-      !this._queryGenerationState ||
-      ![
-        QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME,
-        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME,
-        QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME,
-      ].includes(this._queryGenerationState)
-    ) {
-      return false;
-    }
-
-    if (
-      [
-        QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME,
-        QUERY_GENERATION_STATE.CHANGE_DATABASE_NAME,
-      ].includes(this._queryGenerationState)
-    ) {
-      this._setDatabaseName(prompt);
-      if (!this._collectionName) {
-        this._queryGenerationState =
-          QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
-        return true;
-      }
-      return false;
-    }
-
-    if (
-      this._queryGenerationState ===
-      QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME
-    ) {
-      this._setCollectionName(prompt);
-      if (!this._databaseName) {
-        this._queryGenerationState =
-          QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
-        return true;
-      }
-      this._queryGenerationState = QUERY_GENERATION_STATE.FETCH_SCHEMA;
-      return false;
-    }
-
-    return false;
-  }
-
-  async _shouldAskForNamespace(
-    request: vscode.ChatRequest,
-    context: vscode.ChatContext,
-    stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
-  ): Promise<boolean> {
-    if (this._waitingForUserToProvideNamespace(request.prompt)) {
-      return true;
-    }
-
-    if (this._databaseName && this._collectionName) {
-      return false;
-    }
-
+  async _getNamespaceFromChat({
+    request,
+    context,
+    stream,
+    token,
+  }: {
+    request: vscode.ChatRequest;
+    context: vscode.ChatContext;
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<{
+    databaseName: string | undefined;
+    collectionName: string | undefined;
+  }> {
     const messagesWithNamespace = NamespacePrompt.buildMessages({
       context,
       request,
+      connectionNames: this._connectionController
+        .getSavedConnections()
+        .map((connection) => connection.name),
     });
     const responseContentWithNamespace = await this.getChatResponseContent({
       messages: messagesWithNamespace,
@@ -560,88 +492,98 @@ export default class ParticipantController {
       responseContentWithNamespace
     );
 
-    this._setDatabaseName(namespace.databaseName || this._databaseName);
-    this._setCollectionName(namespace.collectionName || this._collectionName);
+    // See if there's a namespace set in the
+    // chat metadata we can fallback to if the model didn't find it.
+    const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+      context.history
+    );
+    const {
+      databaseName: databaseNameFromMetadata,
+      collectionName: collectionNameFromMetadata,
+    } = this._chatMetadataStore.getChatMetadata(chatId) ?? {};
 
-    if (namespace.databaseName && namespace.collectionName) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.FETCH_SCHEMA;
-      return false;
-    }
-
-    return true;
+    return {
+      databaseName: namespace.databaseName ?? databaseNameFromMetadata,
+      collectionName: namespace.collectionName ?? collectionNameFromMetadata,
+    };
   }
 
-  async _askForNamespace(stream: vscode.ChatResponseStream): Promise<void> {
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
-      return;
-    }
-
+  async _askForNamespace({
+    context,
+    databaseName,
+    collectionName,
+    stream,
+  }: {
+    context: vscode.ChatContext;
+    databaseName: string | undefined;
+    collectionName: string | undefined;
+    stream: vscode.ChatResponseStream;
+  }): Promise<ChatResult> {
     // If no database or collection name is found in the user prompt,
     // we retrieve the available namespaces from the current connection.
     // Users can then select a value by clicking on an item in the list.
-    if (!this._databaseName) {
-      const tree = await this.getDatabasesTree();
+    if (!databaseName) {
+      const tree = await this.getDatabasesTree(context);
       stream.markdown(
         'What is the name of the database you would like this query to run against?\n\n'
       );
       for (const item of tree) {
         stream.markdown(item);
       }
-      this._queryGenerationState = QUERY_GENERATION_STATE.ASK_FOR_DATABASE_NAME;
-    } else if (!this._collectionName) {
-      const tree = await this.getCollectionTree();
+    } else if (!collectionName) {
+      const tree = await this.getCollectionTree(databaseName, context);
       stream.markdown(
-        'Which collection would you like to query within this database?\n\n'
+        `Which collection would you like to query within ${databaseName}?\n\n`
       );
       for (const item of tree) {
         stream.markdown(item);
       }
-      this._queryGenerationState =
-        QUERY_GENERATION_STATE.ASK_FOR_COLLECTION_NAME;
     }
+
+    return namespaceRequestChatResult({
+      databaseName,
+      collectionName,
+      history: context.history,
+    });
   }
 
-  _shouldAskToConnectIfNotConnected(
+  _askToConnect(
+    context: vscode.ChatContext,
     stream: vscode.ChatResponseStream
-  ): boolean {
-    const dataService = this._connectionController.getActiveDataService();
-    if (dataService) {
-      return false;
-    }
-
+  ): ChatResult {
     const tree = this.getConnectionsTree();
     stream.markdown(
       "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
     );
+
     for (const item of tree) {
       stream.markdown(item);
     }
-    this._queryGenerationState = QUERY_GENERATION_STATE.ASK_TO_CONNECT;
-    return true;
+    return askToConnectChatResult(context.history);
   }
 
-  _shouldFetchCollectionSchema(): boolean {
-    return this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA;
-  }
-
-  async _fetchCollectionSchemaAndSampleDocuments(
-    abortSignal?: AbortSignal
-  ): Promise<undefined> {
-    if (this._queryGenerationState === QUERY_GENERATION_STATE.FETCH_SCHEMA) {
-      this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
-    }
-
+  // The sample documents returned from this are simplified (strings and arrays shortened).
+  async _fetchCollectionSchemaAndSampleDocuments({
+    abortSignal,
+    databaseName,
+    collectionName,
+  }: {
+    abortSignal;
+    databaseName: string;
+    collectionName: string;
+  }): Promise<{
+    schema?: string;
+    sampleDocuments?: Document[];
+  }> {
     const dataService = this._connectionController.getActiveDataService();
-    if (!dataService || !this._databaseName || !this._collectionName) {
-      return;
+    if (!dataService) {
+      return {};
     }
 
     try {
       const sampleDocuments =
         (await dataService?.sample?.(
-          `${this._databaseName}.${this._collectionName}`,
+          `${databaseName}.${collectionName}`,
           {
             query: {},
             size: NUM_DOCUMENTS_TO_SAMPLE,
@@ -652,20 +594,69 @@ export default class ParticipantController {
           }
         )) || [];
 
-      const schema = await getSimplifiedSchema(sampleDocuments);
-      this._schema = new SchemaFormatter().format(schema);
+      const unformattedSchema = await getSimplifiedSchema(sampleDocuments);
+      const schema = new SchemaFormatter().format(unformattedSchema);
 
       const useSampleDocsInCopilot = !!vscode.workspace
         .getConfiguration('mdb')
         .get('useSampleDocsInCopilot');
 
-      if (useSampleDocsInCopilot) {
-        this._sampleDocuments = getSimplifiedSampleDocuments(sampleDocuments);
-      }
+      return {
+        sampleDocuments: useSampleDocsInCopilot
+          ? getSimplifiedSampleDocuments(sampleDocuments)
+          : undefined,
+        schema,
+      };
     } catch (err: any) {
-      this._schema = undefined;
-      this._sampleDocuments = undefined;
+      log.error('Unable to fetch schema and sample documents', err);
+      return {};
     }
+  }
+
+  async handleEmptyQueryRequest({
+    context,
+    stream,
+  }: {
+    context: vscode.ChatContext;
+    stream: vscode.ChatResponseStream;
+  }): Promise<ChatResult> {
+    const lastMessageMetaData: vscode.ChatResponseTurn | undefined = context
+      .history[context.history.length - 1] as vscode.ChatResponseTurn;
+    const lastMessageResult = lastMessageMetaData?.result as ChatResult;
+    if (lastMessageResult?.metadata?.intent !== 'askForNamespace') {
+      stream.markdown(GenericPrompt.getEmptyRequestResponse());
+      return emptyRequestChatResult(context.history);
+    }
+
+    // When the last message was asking for a database or collection name,
+    // we re-ask the question.
+    let tree: vscode.MarkdownString[];
+    const databaseName = lastMessageResult.metadata.databaseName;
+    if (databaseName) {
+      stream.markdown(
+        vscode.l10n.t(
+          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+        )
+      );
+      tree = await this.getCollectionTree(databaseName, context);
+    } else {
+      stream.markdown(
+        vscode.l10n.t(
+          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
+        )
+      );
+      tree = await this.getDatabasesTree(context);
+    }
+
+    for (const item of tree) {
+      stream.markdown(item);
+    }
+
+    return namespaceRequestChatResult({
+      databaseName,
+      collectionName: undefined,
+      history: context.history,
+    });
   }
 
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.
@@ -675,27 +666,34 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
-    // TODO: Reset this._queryGenerationState to QUERY_GENERATION_STATE.DEFAULT
-    // when a command other than /query is called, as it disrupts the flow.
-    this._ifNewChatResetQueryGenerationState(context);
-
-    if (this._shouldAskToConnectIfNotConnected(stream)) {
-      return {
-        metadata: {
-          responseType: 'connections',
-        },
-      };
+    if (!this._connectionController.getActiveDataService()) {
+      return this._askToConnect(context, stream);
     }
 
-    const shouldAskForNamespace = await this._shouldAskForNamespace(
+    if (!request.prompt || request.prompt.trim().length === 0) {
+      return this.handleEmptyQueryRequest({
+        context,
+        stream,
+      });
+    }
+
+    // We "prompt chain" to handle the query requests.
+    // First we ask the model to parse for the database and collection name.
+    // If they exist, we can then use them in our final completion.
+    // When they don't exist we ask the user for them.
+    const { databaseName, collectionName } = await this._getNamespaceFromChat({
       request,
       context,
       stream,
-      token
-    );
-    if (shouldAskForNamespace) {
-      await this._askForNamespace(stream);
-      return { metadata: { responseType: 'namespaces' } };
+      token,
+    });
+    if (!databaseName || !collectionName) {
+      return await this._askForNamespace({
+        context,
+        databaseName,
+        collectionName,
+        stream,
+      });
     }
 
     const abortController = new AbortController();
@@ -703,19 +701,23 @@ export default class ParticipantController {
       abortController.abort();
     });
 
-    if (this._shouldFetchCollectionSchema()) {
-      await this._fetchCollectionSchemaAndSampleDocuments(
-        abortController.signal
-      );
-    }
+    const { schema, sampleDocuments } =
+      await this._fetchCollectionSchemaAndSampleDocuments({
+        abortSignal: abortController.signal,
+        databaseName,
+        collectionName,
+      });
 
     const messages = await QueryPrompt.buildMessages({
       request,
       context,
-      databaseName: this._databaseName,
-      collectionName: this._collectionName,
-      schema: this._schema,
-      sampleDocuments: this._sampleDocuments,
+      databaseName,
+      collectionName,
+      schema,
+      connectionNames: this._connectionController
+        .getSavedConnections()
+        .map((connection) => connection.name),
+      ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
       messages,
@@ -724,23 +726,25 @@ export default class ParticipantController {
     });
 
     stream.markdown(responseContent);
-    this._queryGenerationState = QUERY_GENERATION_STATE.DEFAULT;
 
     const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent && runnableContent.trim().length) {
+    if (runnableContent) {
+      const commandArgs: RunParticipantQueryCommandArgs = {
+        runnableContent,
+      };
       stream.button({
         command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
         title: vscode.l10n.t('▶️ Run'),
+        arguments: [commandArgs],
       });
       stream.button({
         command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
         title: vscode.l10n.t('Open in playground'),
+        arguments: [commandArgs],
       });
     }
 
-    return {
-      metadata: { responseContent: runnableContent, responseType: 'query' },
-    };
+    return queryRequestChatResult(context.history);
   }
 
   async chatHandler(
@@ -753,12 +757,12 @@ export default class ParticipantController {
   ): Promise<ChatResult | undefined> {
     const [request, , stream] = args;
 
-    if (!request.prompt || request.prompt.trim().length === 0) {
-      const messages = await this.handleEmptyQueryRequest();
-      for (const msg of messages) {
-        stream.markdown(msg);
-      }
-      return { metadata: { responseType: 'empty' } };
+    if (
+      !request.command &&
+      (!request.prompt || request.prompt.trim().length === 0)
+    ) {
+      stream.markdown(GenericPrompt.getEmptyRequestResponse());
+      return emptyRequestChatResult(args[1].history);
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
@@ -778,23 +782,20 @@ export default class ParticipantController {
     }
 
     if (request.command === 'query') {
-      this._chatResult = await this.handleQueryRequest(...args);
+      return await this.handleQueryRequest(...args);
     } else if (request.command === 'docs') {
       // TODO(VSCODE-570): Implement this.
     } else if (request.command === 'schema') {
       // TODO(VSCODE-571): Implement this.
-    } else {
-      this._chatResult = await this.handleGenericRequest(...args);
     }
-
-    return this._chatResult;
+    return await this.handleGenericRequest(...args);
   }
 
   handleUserFeedback(feedback: vscode.ChatResultFeedback): void {
     this._telemetryService.trackCopilotParticipantFeedback({
       feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
       reason: feedback.unhelpfulReason,
-      response_type: (feedback.result as ChatResult)?.metadata.responseType,
+      response_type: (feedback.result as ChatResult)?.metadata.intent,
     });
   }
 }

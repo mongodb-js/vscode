@@ -12,6 +12,7 @@ import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
 import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
+import type { ParticipantResponseType } from '../participant/constants';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -94,14 +95,6 @@ type SavedConnectionsLoadedProperties = {
 };
 
 type TelemetryFeedbackKind = 'positive' | 'negative' | undefined;
-export type ParticipantResponseType =
-  | 'query'
-  | 'schema'
-  | 'docs'
-  | 'generic'
-  | 'empty'
-  | 'connections'
-  | 'namespaces';
 
 type ParticipantFeedbackProperties = {
   feedback: TelemetryFeedbackKind;

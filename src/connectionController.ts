@@ -1054,7 +1054,7 @@ export default class ConnectionController {
     );
 
     if (!selectedQuickPickItem) {
-      return true;
+      return false;
     }
 
     if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
@@ -1062,7 +1062,7 @@ export default class ConnectionController {
     }
 
     if (!selectedQuickPickItem.data.connectionId) {
-      return true;
+      return false;
     }
 
     const { successfullyConnected } = await this.connectWithConnectionId(
