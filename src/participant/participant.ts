@@ -92,6 +92,9 @@ export default class ParticipantController {
     this._docsChatbotAIService = new DocsChatbotAIService(docsChatbotBaseUri);
   }
 
+  // To integrate with the MongoDB documentation chatbot,
+  // set the MONGODB_DOCS_CHATBOT_BASE_URI environment variable when running the extension from a branch.
+  // This variable is automatically injected during the .vsix build process via GitHub Actions.
   private _readDocsChatbotBaseUri(): string | undefined {
     config({ path: path.join(this._context.extensionPath, '.env') });
 

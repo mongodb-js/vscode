@@ -1091,6 +1091,29 @@ suite('Participant Controller Test Suite', function () {
           });
         });
       });
+
+      suite('docs command', function () {
+        beforeEach(function () {
+          sendRequestStub.onCall(0).resolves({
+            text: ['connection info'],
+          });
+        });
+
+        test('falls back to the generic command when docs chatbot api is not available', async function () {
+          const chatRequestMock = {
+            prompt: 'how to connect to mongodb',
+            command: 'docs',
+            references: [],
+          };
+          await testParticipantController.chatHandler(
+            chatRequestMock,
+            chatContextStub,
+            chatStreamStub,
+            chatTokenStub
+          );
+          expect(sendRequestStub).to.have.been.called;
+        });
+      });
     });
   });
 });
