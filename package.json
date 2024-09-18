@@ -33,7 +33,7 @@
     "theme": "dark"
   },
   "enabledApiProposals": [
-    "chatVariableResolver"
+    "chatParticipantAdditions"
   ],
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./dist/extension.js",
@@ -1211,7 +1211,6 @@
     "@types/chai": "^4.3.17",
     "@types/debug": "^4.1.12",
     "@types/glob": "^7.2.0",
-    "@types/jest": "^26.0.24",
     "@types/micromatch": "^4.0.9",
     "@types/mkdirp": "^2.0.0",
     "@types/mocha": "^8.2.3",
