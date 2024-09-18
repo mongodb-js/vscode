@@ -92,7 +92,7 @@ export class DocsChatbotAIService {
     try {
       conversation = await resp.json();
     } catch (error) {
-      throw new Error('Internal server error');
+      throw new Error('[Docs chatbot] Internal server error');
     }
 
     if (resp.status === 400) {
