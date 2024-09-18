@@ -25,7 +25,10 @@ import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
 import { ChatMetadataStore } from './chatMetadata';
-import { chatResultFeedbackKindToTelemetryValue } from '../telemetry/telemetryService';
+import {
+  chatResultFeedbackKindToTelemetryValue,
+  TelemetryEventTypes,
+} from '../telemetry/telemetryService';
 import type TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('participant');
@@ -775,7 +778,12 @@ export default class ParticipantController {
   Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
   Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.\n\n`)
       );
-      void this._storageController.update(
+
+      this._telemetryService.track(
+        TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+      );
+
+      await this._storageController.update(
         StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
         true
       );
