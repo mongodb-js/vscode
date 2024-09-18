@@ -42,6 +42,7 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
+import type { RunParticipantQueryCommandArgs } from './participant/participant';
 import ParticipantController from './participant/participant';
 
 // This class is the top-level controller for our extension.
@@ -292,36 +293,47 @@ export default class MDBExtensionController implements vscode.Disposable {
     // ------ CHAT PARTICIPANT ------ //
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-      () => {
+      ({ runnableContent }: RunParticipantQueryCommandArgs) => {
         return this._playgroundController.createPlaygroundFromParticipantQuery({
-          text:
-            this._participantController._chatResult?.metadata
-              ?.responseContent || '',
+          text: runnableContent,
         });
       }
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-      () => {
+      ({ runnableContent }: RunParticipantQueryCommandArgs) => {
         return this._playgroundController.evaluateParticipantQuery(
-          this._participantController._chatResult?.metadata?.responseContent ||
-            ''
+          runnableContent
         );
       }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
-      (id: string) => this._participantController.connectWithParticipant(id)
+      (id?: string) =>
+        this._participantController.connectWithParticipant(
+          id ? decodeURIComponent(id) : id
+        )
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-      (name: string) =>
-        this._participantController.selectDatabaseWithParticipant(name)
+      (_data: string) => {
+        const data = JSON.parse(decodeURIComponent(_data));
+        return this._participantController.selectDatabaseWithParticipant({
+          chatId: data.chatId,
+          databaseName: data.databaseName,
+        });
+      }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
-      (name: string) =>
-        this._participantController.selectCollectionWithParticipant(name)
+      (_data: string) => {
+        const data = JSON.parse(decodeURIComponent(_data));
+        return this._participantController.selectCollectionWithParticipant({
+          chatId: data.chatId,
+          databaseName: data.databaseName,
+          collectionName: data.collectionName,
+        });
+      }
     );
   };
 

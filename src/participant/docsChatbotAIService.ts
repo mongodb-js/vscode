@@ -61,7 +61,7 @@ export class DocsChatbotAIService {
   }
 
   async createConversation(): Promise<ConversationData> {
-    const uri = this.getUri('/conversation');
+    const uri = this.getUri('/conversations');
     return this._fetch({
       uri,
       method: 'POST',
