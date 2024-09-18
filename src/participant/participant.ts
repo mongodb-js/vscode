@@ -12,11 +12,15 @@ import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
 import { GenericPrompt } from './prompts/generic';
+import type { ChatResult } from './constants';
 import {
-  AskToConnectChatResult,
+  askToConnectChatResult,
   CHAT_PARTICIPANT_ID,
-  EmptyRequestChatResult,
-  NamespaceRequestChatResult,
+  emptyRequestChatResult,
+  genericRequestChatResult,
+  namespaceRequestChatResult,
+  queryRequestChatResult,
+  docsRequestChatResult,
 } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
@@ -26,6 +30,8 @@ import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
 import { ChatMetadataStore } from './chatMetadata';
 import { DocsChatbotAIService } from './docsChatbotAIService';
+import { chatResultFeedbackKindToTelemetryValue } from '../telemetry/telemetryService';
+import type TelemetryService from '../telemetry/telemetryService';
 
 const log = createLogger('participant');
 
@@ -73,20 +79,24 @@ export default class ParticipantController {
   _storageController: StorageController;
   _chatMetadataStore: ChatMetadataStore;
   _docsChatbotAIService: DocsChatbotAIService;
+  _telemetryService: TelemetryService;
 
   constructor({
     context,
     connectionController,
     storageController,
+    telemetryService,
   }: {
     context: vscode.ExtensionContext;
     connectionController: ConnectionController;
     storageController: StorageController;
+    telemetryService: TelemetryService;
   }) {
     this._context = context;
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._chatMetadataStore = new ChatMetadataStore();
+    this._telemetryService = telemetryService;
 
     const docsChatbotBaseUri = this._readDocsChatbotBaseUri();
     this._docsChatbotAIService = new DocsChatbotAIService(docsChatbotBaseUri);
@@ -137,6 +147,7 @@ export default class ParticipantController {
     log.info('Chat Participant Created', {
       participantId: this._participant?.id,
     });
+    this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
     return this._participant;
   }
 
@@ -211,7 +222,7 @@ export default class ParticipantController {
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
-  ): Promise<vscode.ChatResult> {
+  ): Promise<ChatResult> {
     const messages = GenericPrompt.buildMessages({
       request,
       context,
@@ -245,13 +256,7 @@ export default class ParticipantController {
       });
     }
 
-    return {
-      metadata: {
-        chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-          context.history
-        ),
-      },
-    };
+    return genericRequestChatResult(context.history);
   }
 
   async connectWithParticipant(id?: string): Promise<boolean> {
@@ -557,7 +562,7 @@ export default class ParticipantController {
     databaseName: string | undefined;
     collectionName: string | undefined;
     stream: vscode.ChatResponseStream;
-  }): Promise<vscode.ChatResult> {
+  }): Promise<ChatResult> {
     // If no database or collection name is found in the user prompt,
     // we retrieve the available namespaces from the current connection.
     // Users can then select a value by clicking on an item in the list.
@@ -579,7 +584,7 @@ export default class ParticipantController {
       }
     }
 
-    return new NamespaceRequestChatResult({
+    return namespaceRequestChatResult({
       databaseName,
       collectionName,
       history: context.history,
@@ -589,7 +594,7 @@ export default class ParticipantController {
   _askToConnect(
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream
-  ): vscode.ChatResult {
+  ): ChatResult {
     const tree = this.getConnectionsTree();
     stream.markdown(
       "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
@@ -598,7 +603,7 @@ export default class ParticipantController {
     for (const item of tree) {
       stream.markdown(item);
     }
-    return new AskToConnectChatResult(context.history);
+    return askToConnectChatResult(context.history);
   }
 
   // The sample documents returned from this are simplified (strings and arrays shortened).
@@ -658,23 +663,19 @@ export default class ParticipantController {
   }: {
     context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
-  }): Promise<vscode.ChatResult> {
+  }): Promise<ChatResult> {
     const lastMessageMetaData: vscode.ChatResponseTurn | undefined = context
       .history[context.history.length - 1] as vscode.ChatResponseTurn;
-    if (
-      (lastMessageMetaData?.result as NamespaceRequestChatResult)?.metadata
-        ?.intent !== 'askForNamespace'
-    ) {
+    const lastMessage = lastMessageMetaData?.result as ChatResult;
+    if (lastMessage?.metadata?.intent !== 'askForNamespace') {
       stream.markdown(GenericPrompt.getEmptyRequestResponse());
-      return new EmptyRequestChatResult(context.history);
+      return emptyRequestChatResult(context.history);
     }
 
     // When the last message was asking for a database or collection name,
     // we re-ask the question.
     let tree: vscode.MarkdownString[];
-    const databaseName = (
-      lastMessageMetaData.result as NamespaceRequestChatResult
-    ).metadata.databaseName;
+    const databaseName = lastMessage.metadata.databaseName;
     if (databaseName) {
       stream.markdown(
         vscode.l10n.t(
@@ -695,7 +696,7 @@ export default class ParticipantController {
       stream.markdown(item);
     }
 
-    return new NamespaceRequestChatResult({
+    return namespaceRequestChatResult({
       databaseName,
       collectionName: undefined,
       history: context.history,
@@ -708,7 +709,7 @@ export default class ParticipantController {
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
-  ): Promise<vscode.ChatResult> {
+  ): Promise<ChatResult> {
     if (!this._connectionController.getActiveDataService()) {
       return this._askToConnect(context, stream);
     }
@@ -787,7 +788,7 @@ export default class ParticipantController {
       });
     }
 
-    return { metadata: {} };
+    return queryRequestChatResult(context.history);
   }
 
   async handleDocsRequest(
@@ -797,7 +798,7 @@ export default class ParticipantController {
       vscode.ChatResponseStream,
       vscode.CancellationToken
     ]
-  ): Promise<vscode.ChatResult> {
+  ): Promise<ChatResult> {
     const [request, context, stream, token] = args;
     const abortController = new AbortController();
     token.onCancellationRequested(() => {
@@ -881,12 +882,7 @@ export default class ParticipantController {
       }
     }
 
-    return {
-      metadata: {
-        responseContent,
-        chatId,
-      },
-    };
+    return docsRequestChatResult(chatId);
   }
 
   async chatHandler(
@@ -896,7 +892,7 @@ export default class ParticipantController {
       vscode.ChatResponseStream,
       vscode.CancellationToken
     ]
-  ): Promise<vscode.ChatResult | undefined> {
+  ): Promise<ChatResult | undefined> {
     const [request, , stream] = args;
 
     if (
@@ -904,7 +900,7 @@ export default class ParticipantController {
       (!request.prompt || request.prompt.trim().length === 0)
     ) {
       stream.markdown(GenericPrompt.getEmptyRequestResponse());
-      return new EmptyRequestChatResult(args[1].history);
+      return emptyRequestChatResult(args[1].history);
     }
 
     const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
@@ -931,5 +927,13 @@ export default class ParticipantController {
       // TODO(VSCODE-571): Implement this.
     }
     return await this.handleGenericRequest(...args);
+  }
+
+  handleUserFeedback(feedback: vscode.ChatResultFeedback): void {
+    this._telemetryService.trackCopilotParticipantFeedback({
+      feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
+      reason: feedback.unhelpfulReason,
+      response_type: (feedback.result as ChatResult)?.metadata.intent,
+    });
   }
 }

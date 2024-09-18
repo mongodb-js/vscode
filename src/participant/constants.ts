@@ -4,60 +4,91 @@ import { ChatMetadataStore } from './chatMetadata';
 export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
 
-export class NamespaceRequestChatResult implements vscode.ChatResult {
-  readonly metadata: {
-    chatId: string;
-    intent: 'askForNamespace';
-    databaseName?: string | undefined;
-    collectionName?: string | undefined;
-  };
+export type ParticipantResponseType =
+  | 'query'
+  | 'schema'
+  | 'docs'
+  | 'generic'
+  | 'emptyRequest'
+  | 'askToConnect'
+  | 'askForNamespace';
 
-  constructor({
-    databaseName,
-    collectionName,
-    history,
-  }: {
-    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>;
-    databaseName: string | undefined;
-    collectionName: string | undefined;
-  }) {
-    this.metadata = {
+interface Metadata {
+  intent: Exclude<ParticipantResponseType, 'askForNamespace'>;
+  chatId: string;
+}
+
+interface AskForNamespaceMetadata {
+  intent: 'askForNamespace';
+  chatId: string;
+  databaseName?: string | undefined;
+  collectionName?: string | undefined;
+}
+
+export interface ChatResult extends vscode.ChatResult {
+  readonly metadata: Metadata | AskForNamespaceMetadata;
+}
+
+export function namespaceRequestChatResult({
+  databaseName,
+  collectionName,
+  history,
+}: {
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>;
+  databaseName: string | undefined;
+  collectionName: string | undefined;
+}): ChatResult {
+  return {
+    metadata: {
       chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
       intent: 'askForNamespace',
       databaseName,
       collectionName,
-    };
-  }
+    },
+  };
 }
 
-export class EmptyRequestChatResult implements vscode.ChatResult {
-  readonly metadata: {
-    chatId: string;
-    intent: 'emptyRequest';
-  };
-
-  constructor(
-    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
-  ) {
-    this.metadata = {
+function createChatResult(
+  intent: ParticipantResponseType,
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return {
+    metadata: {
+      intent,
       chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
-      intent: 'emptyRequest',
-    };
-  }
+    },
+  };
 }
 
-export class AskToConnectChatResult implements vscode.ChatResult {
-  readonly metadata: {
-    chatId: string;
-    intent: 'askToConnect';
-  };
+export function emptyRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('emptyRequest', history);
+}
 
-  constructor(
-    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
-  ) {
-    this.metadata = {
-      chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
-      intent: 'askToConnect',
-    };
-  }
+export function askToConnectChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('askToConnect', history);
+}
+
+export function genericRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('generic', history);
+}
+
+export function queryRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('query', history);
+}
+
+export function docsRequestChatResult(chatId: string): ChatResult {
+  return {
+    metadata: {
+      chatId,
+      intent: 'docs',
+    },
+  };
 }

@@ -1,9 +1,5 @@
 import * as vscode from 'vscode';
-import type {
-  AskToConnectChatResult,
-  EmptyRequestChatResult,
-  NamespaceRequestChatResult,
-} from '../constants';
+import type { ChatResult, ParticipantResponseType } from '../constants';
 
 // When passing the history to the model we only want contextual messages
 // to be passed. This function parses through the history and returns
@@ -36,13 +32,16 @@ export function getHistoryMessages({
     if (historyItem instanceof vscode.ChatResponseTurn) {
       let message = '';
 
+      // Skip a response to an empty user prompt message or connect message.
+      const responseTypesToSkip: ParticipantResponseType[] = [
+        'emptyRequest',
+        'askToConnect',
+      ];
       if (
-        (historyItem.result as EmptyRequestChatResult).metadata?.intent ===
-          'emptyRequest' ||
-        (historyItem.result as AskToConnectChatResult).metadata?.intent ===
-          'askToConnect'
+        responseTypesToSkip.indexOf(
+          (historyItem.result as ChatResult)?.metadata.intent
+        ) > -1
       ) {
-        // Skip a response to an empty user prompt message or connect message.
         continue;
       }
 
@@ -51,8 +50,8 @@ export function getHistoryMessages({
           message += fragment.value.value;
 
           if (
-            (historyItem.result as NamespaceRequestChatResult).metadata
-              ?.intent === 'askForNamespace'
+            (historyItem.result as ChatResult)?.metadata.intent ===
+            'askForNamespace'
           ) {
             // When the message is the assistant asking for part of a namespace,
             // we only want to include the question asked, not the user's
