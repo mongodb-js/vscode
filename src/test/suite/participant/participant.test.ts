@@ -1057,19 +1057,57 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('docs command', function () {
+        const initialFetch = global.fetch;
+        let fetchStub;
+
+        afterEach(function () {
+          global.fetch = initialFetch;
+          sinon.restore();
+        });
+
         beforeEach(function () {
+          fetchStub = sinon.stub().resolves({
+            status: 200,
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                _id: '650b4b260f975ef031016c8a',
+                messages: [],
+              }),
+          });
+          global.fetch = fetchStub;
           sendRequestStub.onCall(0).resolves({
             text: ['connection info'],
           });
         });
 
-        test('falls back to the generic command when docs chatbot api is not available', async function () {
+        test('uses docs chatbot when it is available', async function () {
+          sinon.replace(
+            testParticipantController,
+            '_readDocsChatbotBaseUri',
+            sinon.stub().resolves('url')
+          );
+          await testParticipantController.createDocsChatbot(
+            extensionContextStub
+          );
           const chatRequestMock = {
             prompt: 'how to connect to mongodb',
             command: 'docs',
             references: [],
           };
           await invokeChatHandler(chatRequestMock);
+          expect(fetchStub).to.have.been.called;
+          expect(sendRequestStub).to.have.not.been.called;
+        });
+
+        test('falls back to the copilot model when docs chatbot api is not available', async function () {
+          const chatRequestMock = {
+            prompt: 'how to connect to mongodb',
+            command: 'docs',
+            references: [],
+          };
+          await invokeChatHandler(chatRequestMock);
+          expect(fetchStub).to.have.not.been.called;
           expect(sendRequestStub).to.have.been.called;
         });
       });

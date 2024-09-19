@@ -102,7 +102,7 @@ export default class ParticipantController {
   // To integrate with the MongoDB documentation chatbot,
   // set the MONGODB_DOCS_CHATBOT_BASE_URI environment variable when running the extension from a branch.
   // This variable is automatically injected during the .vsix build process via GitHub Actions.
-  private async _readDocsChatbotBaseUri(
+  async _readDocsChatbotBaseUri(
     context: vscode.ExtensionContext
   ): Promise<string | undefined> {
     config({ path: path.join(context.extensionPath, '.env') });
@@ -220,7 +220,7 @@ export default class ParticipantController {
     return responseContent;
   }
 
-  _streamRunnableContentToPlayground({
+  _streamRunnableContentActions({
     responseContent,
     stream,
   }: {
@@ -268,7 +268,7 @@ export default class ParticipantController {
     });
     stream.markdown(responseContent);
 
-    this._streamRunnableContentToPlayground({
+    this._streamRunnableContentActions({
       responseContent,
       stream,
     });
@@ -788,7 +788,7 @@ export default class ParticipantController {
 
     stream.markdown(responseContent);
 
-    this._streamRunnableContentToPlayground({
+    this._streamRunnableContentActions({
       responseContent,
       stream,
     });
@@ -913,7 +913,7 @@ export default class ParticipantController {
 
     if (docsResult.responseContent) {
       stream.markdown(docsResult.responseContent);
-      this._streamRunnableContentToPlayground({
+      this._streamRunnableContentActions({
         responseContent: docsResult.responseContent,
         stream,
       });
