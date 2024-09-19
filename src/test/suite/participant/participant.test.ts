@@ -14,8 +14,11 @@ import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import { ExtensionContextStub } from '../stubs';
-import TelemetryService from '../../../telemetry/telemetryService';
+import TelemetryService, {
+  TelemetryEventTypes,
+} from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import type { ChatResult } from '../../../participant/constants';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
 import {
   SecretStorageLocation,
@@ -46,12 +49,25 @@ suite('Participant Controller Test Suite', function () {
   let testStatusView: StatusView;
   let testTelemetryService: TelemetryService;
   let testParticipantController: ParticipantController;
-  let chatContextStub;
-  let chatStreamStub;
+  let chatContextStub: vscode.ChatContext;
+  let chatStreamStub: {
+    markdown: sinon.SinonSpy;
+    button: sinon.SinonSpy;
+  };
   let chatTokenStub;
   let countTokensStub;
   let sendRequestStub;
   let telemetryTrackStub: SinonSpy;
+
+  const invokeChatHandler = async (
+    request: vscode.ChatRequest
+  ): Promise<ChatResult | undefined> =>
+    testParticipantController.chatHandler(
+      request,
+      chatContextStub,
+      chatStreamStub as unknown as vscode.ChatResponseStream,
+      chatTokenStub
+    );
 
   beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
@@ -78,7 +94,8 @@ suite('Participant Controller Test Suite', function () {
         {
           participant: CHAT_PARTICIPANT_ID,
           prompt: 'hi',
-          response: 'hello',
+          response: [new vscode.ChatResponseMarkdownPart('hello')],
+          result: {},
         },
       ],
     };
@@ -182,12 +199,7 @@ suite('Participant Controller Test Suite', function () {
         command: 'query',
         references: [],
       };
-      const chatResult = await testParticipantController.chatHandler(
-        chatRequestMock,
-        chatContextStub,
-        chatStreamStub,
-        chatTokenStub
-      );
+      const chatResult = await invokeChatHandler(chatRequestMock);
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
         "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
@@ -225,12 +237,7 @@ suite('Participant Controller Test Suite', function () {
         command: 'query',
         references: [],
       };
-      const chatResult = await testParticipantController.chatHandler(
-        chatRequestMock,
-        chatContextStub,
-        chatStreamStub,
-        chatTokenStub
-      );
+      const chatResult = await invokeChatHandler(chatRequestMock);
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
         "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
@@ -261,20 +268,10 @@ suite('Participant Controller Test Suite', function () {
         command: 'query',
         references: [],
       };
-      const chatResult = await testParticipantController.chatHandler(
-        chatRequestMock,
-        chatContextStub,
-        chatStreamStub,
-        chatTokenStub
-      );
+      const chatResult = await invokeChatHandler(chatRequestMock);
 
       chatRequestMock.prompt = '';
-      await testParticipantController.chatHandler(
-        chatRequestMock,
-        chatContextStub,
-        chatStreamStub,
-        chatTokenStub
-      );
+      await invokeChatHandler(chatRequestMock);
 
       const emptyMessage = chatStreamStub.markdown.getCall(3).args[0];
       expect(emptyMessage).to.include(
@@ -372,14 +369,22 @@ suite('Participant Controller Test Suite', function () {
           command: 'query',
           references: [],
         };
-        await testParticipantController.chatHandler(
-          chatRequestMock,
-          chatContextStub,
-          chatStreamStub,
-          chatTokenStub
-        );
+        await invokeChatHandler(chatRequestMock);
         const welcomeMessage = chatStreamStub.markdown.firstCall.args[0];
         expect(welcomeMessage).to.include('Welcome to MongoDB Participant!');
+
+        sinon.assert.calledOnce(telemetryTrackStub);
+        expect(telemetryTrackStub.lastCall.args[0]).to.equal(
+          TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+        );
+        expect(telemetryTrackStub.lastCall.args[1]).to.be.undefined;
+
+        telemetryTrackStub
+          .getCalls()
+          .map((call) => call.args[0])
+          .filter(
+            (arg) => arg === TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+          ).length;
       });
     });
 
@@ -392,6 +397,29 @@ suite('Participant Controller Test Suite', function () {
         );
       });
 
+      afterEach(function () {
+        // Ensure welcome message is not shown again
+        const welcomeMessages = chatStreamStub.markdown
+          .getCalls()
+          .map((call) => call.args[0])
+          .filter(
+            (message) =>
+              typeof message === 'string' &&
+              message.includes('Welcome to MongoDB Participant!')
+          );
+        expect(welcomeMessages).to.be.empty;
+
+        // Ensure we haven't reported the welcome screen to telemetry
+        const telemetryEvents = telemetryTrackStub
+          .getCalls()
+          .map((call) => call.args[0])
+          .filter(
+            (arg) => arg === TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+          );
+
+        expect(telemetryEvents).to.be.empty;
+      });
+
       suite('generic command', function () {
         test('generates a query', async function () {
           const chatRequestMock = {
@@ -399,12 +427,7 @@ suite('Participant Controller Test Suite', function () {
             command: undefined,
             references: [],
           };
-          await testParticipantController.chatHandler(
-            chatRequestMock,
-            chatContextStub,
-            chatStreamStub,
-            chatTokenStub
-          );
+          await invokeChatHandler(chatRequestMock);
 
           expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
             command: 'mdb.runParticipantQuery',
@@ -433,12 +456,7 @@ suite('Participant Controller Test Suite', function () {
               command: 'query',
               references: [],
             };
-            await testParticipantController.chatHandler(
-              chatRequestMock,
-              chatContextStub,
-              chatStreamStub,
-              chatTokenStub
-            );
+            await invokeChatHandler(chatRequestMock);
             expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
               command: 'mdb.runParticipantQuery',
               title: '▶️ Run',
@@ -467,12 +485,7 @@ suite('Participant Controller Test Suite', function () {
               command: 'query',
               references: [],
             };
-            await testParticipantController.chatHandler(
-              chatRequestMock,
-              chatContextStub,
-              chatStreamStub,
-              chatTokenStub
-            );
+            await invokeChatHandler(chatRequestMock);
             const messages = sendRequestStub.secondCall.args[0];
             expect(messages[0].content).to.include(
               'Collection schema: _id: ObjectId\n' +
@@ -521,12 +534,7 @@ suite('Participant Controller Test Suite', function () {
                 command: 'query',
                 references: [],
               };
-              await testParticipantController.chatHandler(
-                chatRequestMock,
-                chatContextStub,
-                chatStreamStub,
-                chatTokenStub
-              );
+              await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[0].content).to.include(
                 'Sample documents: [\n' +
@@ -579,12 +587,7 @@ suite('Participant Controller Test Suite', function () {
                 command: 'query',
                 references: [],
               };
-              await testParticipantController.chatHandler(
-                chatRequestMock,
-                chatContextStub,
-                chatStreamStub,
-                chatTokenStub
-              );
+              await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[0].content).to.include(
                 'Sample document: {\n' +
@@ -631,12 +634,7 @@ suite('Participant Controller Test Suite', function () {
                 command: 'query',
                 references: [],
               };
-              await testParticipantController.chatHandler(
-                chatRequestMock,
-                chatContextStub,
-                chatStreamStub,
-                chatTokenStub
-              );
+              await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[0].content).to.include(
                 'Sample document: {\n' +
@@ -680,12 +678,7 @@ suite('Participant Controller Test Suite', function () {
                 command: 'query',
                 references: [],
               };
-              await testParticipantController.chatHandler(
-                chatRequestMock,
-                chatContextStub,
-                chatStreamStub,
-                chatTokenStub
-              );
+              await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[0].content).to.not.include('Sample documents');
             });
@@ -698,12 +691,7 @@ suite('Participant Controller Test Suite', function () {
                 command: 'query',
                 references: [],
               };
-              await testParticipantController.chatHandler(
-                chatRequestMock,
-                chatContextStub,
-                chatStreamStub,
-                chatTokenStub
-              );
+              await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[0].content).to.not.include('Sample documents');
             });
@@ -717,12 +705,7 @@ suite('Participant Controller Test Suite', function () {
               command: 'query',
               references: [],
             };
-            const chatResult = await testParticipantController.chatHandler(
-              chatRequestMock,
-              chatContextStub,
-              chatStreamStub,
-              chatTokenStub
-            );
+            const chatResult = await invokeChatHandler(chatRequestMock);
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(askForDBMessage).to.include(
               'What is the name of the database you would like this query to run against?'
@@ -757,42 +740,40 @@ suite('Participant Controller Test Suite', function () {
             sendRequestStub.onCall(1).resolves({
               text: ['DATABASE_NAME: dbOne\n'],
             });
-            const chatResult2 = await testParticipantController.chatHandler(
-              chatRequestMock,
-              {
-                history: [
+
+            chatContextStub = {
+              history: [
+                {
+                  prompt: 'find all docs by a name example',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                } as vscode.ChatRequestTurn,
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
                   {
-                    prompt: 'find all docs by a name example',
-                    command: 'query',
-                    references: [],
                     participant: CHAT_PARTICIPANT_ID,
-                  } as vscode.ChatRequestTurn,
-                  Object.assign(
-                    Object.create(vscode.ChatResponseTurn.prototype),
-                    {
-                      participant: CHAT_PARTICIPANT_ID,
-                      response: [
-                        {
-                          value: {
-                            value:
-                              'What is the name of the database you would like this query to run against?',
-                          } as vscode.MarkdownString,
-                        },
-                      ],
-                      command: 'query',
-                      result: {
-                        metadata: {
-                          intent: 'askForNamespace',
-                          chatId: firstChatId,
-                        },
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'What is the name of the database you would like this query to run against?',
+                        } as vscode.MarkdownString,
                       },
-                    } as vscode.ChatResponseTurn
-                  ),
-                ],
-              },
-              chatStreamStub,
-              chatTokenStub
-            );
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        chatId: firstChatId,
+                      },
+                    },
+                  } as vscode.ChatResponseTurn
+                ),
+              ],
+            };
+
+            const chatResult2 = await invokeChatHandler(chatRequestMock);
 
             const askForCollMessage =
               chatStreamStub.markdown.getCall(12).args[0];
@@ -829,76 +810,66 @@ suite('Participant Controller Test Suite', function () {
             sendRequestStub.onCall(2).resolves({
               text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
             });
-            await testParticipantController.chatHandler(
-              chatRequestMock,
-              {
-                history: [
-                  Object.assign(
-                    Object.create(vscode.ChatRequestTurn.prototype),
-                    {
-                      prompt: 'find all docs by a name example',
-                      command: 'query',
-                      references: [],
-                      participant: CHAT_PARTICIPANT_ID,
-                    }
-                  ),
-                  Object.assign(
-                    Object.create(vscode.ChatResponseTurn.prototype),
-                    {
-                      participant: CHAT_PARTICIPANT_ID,
-                      response: [
-                        {
-                          value: {
-                            value:
-                              'Which database would you like to query within this database?',
-                          } as vscode.MarkdownString,
-                        },
-                      ],
-                      command: 'query',
-                      result: {
-                        metadata: {
-                          intent: 'askForNamespace',
-                        },
+            chatContextStub = {
+              history: [
+                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+                  prompt: 'find all docs by a name example',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                }),
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
+                  {
+                    participant: CHAT_PARTICIPANT_ID,
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'Which database would you like to query within this database?',
+                        } as vscode.MarkdownString,
                       },
-                    }
-                  ),
-                  Object.assign(
-                    Object.create(vscode.ChatRequestTurn.prototype),
-                    {
-                      prompt: 'dbOne',
-                      command: 'query',
-                      references: [],
-                      participant: CHAT_PARTICIPANT_ID,
-                    }
-                  ),
-                  Object.assign(
-                    Object.create(vscode.ChatResponseTurn.prototype),
-                    {
-                      participant: CHAT_PARTICIPANT_ID,
-                      response: [
-                        {
-                          value: {
-                            value:
-                              'Which collection would you like to query within dbOne?',
-                          } as vscode.MarkdownString,
-                        },
-                      ],
-                      command: 'query',
-                      result: {
-                        metadata: {
-                          intent: 'askForNamespace',
-                          databaseName: 'dbOne',
-                          collectionName: 'collOne',
-                          chatId: firstChatId,
-                        },
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
                       },
-                    }
-                  ),
-                ],
-              },
-              chatStreamStub,
-              chatTokenStub
-            );
+                    },
+                  }
+                ),
+                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+                  prompt: 'dbOne',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                }),
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
+                  {
+                    participant: CHAT_PARTICIPANT_ID,
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'Which collection would you like to query within dbOne?',
+                        } as vscode.MarkdownString,
+                      },
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        databaseName: 'dbOne',
+                        collectionName: 'collOne',
+                        chatId: firstChatId,
+                      },
+                    },
+                  }
+                ),
+              ],
+            };
+            await invokeChatHandler(chatRequestMock);
 
             expect(chatStreamStub?.button.callCount).to.equal(2);
             expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
@@ -929,42 +900,38 @@ suite('Participant Controller Test Suite', function () {
               command: 'query',
               references: [],
             };
-            const chatResult = await testParticipantController.chatHandler(
-              chatRequestMock,
-              {
-                history: [
+            chatContextStub = {
+              history: [
+                {
+                  prompt: 'find all docs by a name example',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                } as vscode.ChatRequestTurn,
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
                   {
-                    prompt: 'find all docs by a name example',
-                    command: 'query',
-                    references: [],
                     participant: CHAT_PARTICIPANT_ID,
-                  } as vscode.ChatRequestTurn,
-                  Object.assign(
-                    Object.create(vscode.ChatResponseTurn.prototype),
-                    {
-                      participant: CHAT_PARTICIPANT_ID,
-                      response: [
-                        {
-                          value: {
-                            value:
-                              'What is the name of the database you would like this query to run against?',
-                          } as vscode.MarkdownString,
-                        },
-                      ],
-                      command: 'query',
-                      result: {
-                        metadata: {
-                          intent: 'askForNamespace',
-                          chatId: 'pineapple',
-                        },
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'What is the name of the database you would like this query to run against?',
+                        } as vscode.MarkdownString,
                       },
-                    } as vscode.ChatResponseTurn
-                  ),
-                ],
-              },
-              chatStreamStub,
-              chatTokenStub
-            );
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        chatId: 'pineapple',
+                      },
+                    },
+                  } as vscode.ChatResponseTurn
+                ),
+              ],
+            };
+            const chatResult = await invokeChatHandler(chatRequestMock);
 
             const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(emptyMessage).to.include(
@@ -999,76 +966,66 @@ suite('Participant Controller Test Suite', function () {
               command: 'query',
               references: [],
             };
-            const chatResult = await testParticipantController.chatHandler(
-              chatRequestMock,
-              {
-                history: [
-                  Object.assign(
-                    Object.create(vscode.ChatRequestTurn.prototype),
-                    {
-                      prompt: 'find all docs by a name example',
-                      command: 'query',
-                      references: [],
-                      participant: CHAT_PARTICIPANT_ID,
-                    }
-                  ),
-                  Object.assign(
-                    Object.create(vscode.ChatResponseTurn.prototype),
-                    {
-                      participant: CHAT_PARTICIPANT_ID,
-                      response: [
-                        {
-                          value: {
-                            value:
-                              'Which database would you like to query within this database?',
-                          } as vscode.MarkdownString,
-                        },
-                      ],
-                      command: 'query',
-                      result: {
-                        metadata: {
-                          intent: 'askForNamespace',
-                        },
+            chatContextStub = {
+              history: [
+                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+                  prompt: 'find all docs by a name example',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                }),
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
+                  {
+                    participant: CHAT_PARTICIPANT_ID,
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'Which database would you like to query within this database?',
+                        } as vscode.MarkdownString,
                       },
-                    }
-                  ),
-                  Object.assign(
-                    Object.create(vscode.ChatRequestTurn.prototype),
-                    {
-                      prompt: 'dbOne',
-                      command: 'query',
-                      references: [],
-                      participant: CHAT_PARTICIPANT_ID,
-                    }
-                  ),
-                  Object.assign(
-                    Object.create(vscode.ChatResponseTurn.prototype),
-                    {
-                      participant: CHAT_PARTICIPANT_ID,
-                      response: [
-                        {
-                          value: {
-                            value:
-                              'Which collection would you like to query within dbOne?',
-                          } as vscode.MarkdownString,
-                        },
-                      ],
-                      command: 'query',
-                      result: {
-                        metadata: {
-                          intent: 'askForNamespace',
-                          databaseName: 'dbOne',
-                          collectionName: undefined,
-                          chatId: 'pineapple',
-                        },
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
                       },
-                    }
-                  ),
-                ],
-              },
-              chatStreamStub,
-              chatTokenStub
-            );
+                    },
+                  }
+                ),
+                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+                  prompt: 'dbOne',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                }),
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
+                  {
+                    participant: CHAT_PARTICIPANT_ID,
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'Which collection would you like to query within dbOne?',
+                        } as vscode.MarkdownString,
+                      },
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        databaseName: 'dbOne',
+                        collectionName: undefined,
+                        chatId: 'pineapple',
+                      },
+                    },
+                  }
+                ),
+              ],
+            };
+            const chatResult = await invokeChatHandler(chatRequestMock);
 
             const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(emptyMessage).to.include(
