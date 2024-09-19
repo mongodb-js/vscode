@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { getSimplifiedSchema } from 'mongodb-schema';
 import type { Document } from 'bson';
+import { config } from 'dotenv';
+import path from 'path';
+import { promises as fs } from 'fs';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -17,6 +20,7 @@ import {
   genericRequestChatResult,
   namespaceRequestChatResult,
   queryRequestChatResult,
+  docsRequestChatResult,
 } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
@@ -25,15 +29,19 @@ import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
 import { ChatMetadataStore } from './chatMetadata';
+import { DocsChatbotAIService } from './docsChatbotAIService';
 import {
   chatResultFeedbackKindToTelemetryValue,
   TelemetryEventTypes,
 } from '../telemetry/telemetryService';
 import type TelemetryService from '../telemetry/telemetryService';
+import type { Reference } from 'mongodb-rag-core';
 
 const log = createLogger('participant');
 
 const NUM_DOCUMENTS_TO_SAMPLE = 3;
+
+const MONGODB_DOCS_LINK = 'https://www.mongodb.com/docs/';
 
 interface NamespaceQuickPicks {
   label: string;
@@ -73,6 +81,7 @@ export default class ParticipantController {
   _connectionController: ConnectionController;
   _storageController: StorageController;
   _chatMetadataStore: ChatMetadataStore;
+  _docsChatbotAIService?: DocsChatbotAIService;
   _telemetryService: TelemetryService;
 
   constructor({
@@ -88,6 +97,37 @@ export default class ParticipantController {
     this._storageController = storageController;
     this._chatMetadataStore = new ChatMetadataStore();
     this._telemetryService = telemetryService;
+  }
+
+  // To integrate with the MongoDB documentation chatbot,
+  // set the MONGODB_DOCS_CHATBOT_BASE_URI environment variable when running the extension from a branch.
+  // This variable is automatically injected during the .vsix build process via GitHub Actions.
+  async _readDocsChatbotBaseUri(
+    context: vscode.ExtensionContext
+  ): Promise<string | undefined> {
+    config({ path: path.join(context.extensionPath, '.env') });
+
+    try {
+      const docsChatbotBaseUriFileLocation = path.join(
+        context.extensionPath,
+        './constants.json'
+      );
+      // eslint-disable-next-line no-sync
+      const constantsFile = await fs.readFile(
+        docsChatbotBaseUriFileLocation,
+        'utf8'
+      );
+      const { docsChatbotBaseUri } = JSON.parse(constantsFile) as {
+        docsChatbotBaseUri?: string;
+      };
+      return docsChatbotBaseUri;
+    } catch (error) {
+      log.error(
+        'Failed to read docsChatbotBaseUri from the constants file',
+        error
+      );
+      return;
+    }
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -108,6 +148,11 @@ export default class ParticipantController {
     });
     this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
     return this._participant;
+  }
+
+  async createDocsChatbot(context: vscode.ExtensionContext): Promise<void> {
+    const docsChatbotBaseUri = await this._readDocsChatbotBaseUri(context);
+    this._docsChatbotAIService = new DocsChatbotAIService(docsChatbotBaseUri);
   }
 
   getParticipant(): vscode.ChatParticipant | undefined {
@@ -175,6 +220,31 @@ export default class ParticipantController {
     return responseContent;
   }
 
+  _streamRunnableContentActions({
+    responseContent,
+    stream,
+  }: {
+    responseContent: string;
+    stream: vscode.ChatResponseStream;
+  }): void {
+    const runnableContent = getRunnableContentFromString(responseContent);
+    if (runnableContent) {
+      const commandArgs: RunParticipantQueryCommandArgs = {
+        runnableContent,
+      };
+      stream.button({
+        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+        title: vscode.l10n.t('▶️ Run'),
+        arguments: [commandArgs],
+      });
+      stream.button({
+        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+        title: vscode.l10n.t('Open in playground'),
+        arguments: [commandArgs],
+      });
+    }
+  }
+
   // @MongoDB what is mongodb?
   async handleGenericRequest(
     request: vscode.ChatRequest,
@@ -198,22 +268,10 @@ export default class ParticipantController {
     });
     stream.markdown(responseContent);
 
-    const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent) {
-      const commandArgs: RunParticipantQueryCommandArgs = {
-        runnableContent,
-      };
-      stream.button({
-        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-        title: vscode.l10n.t('▶️ Run'),
-        arguments: [commandArgs],
-      });
-      stream.button({
-        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-        title: vscode.l10n.t('Open in playground'),
-        arguments: [commandArgs],
-      });
-    }
+    this._streamRunnableContentActions({
+      responseContent,
+      stream,
+    });
 
     return genericRequestChatResult(context.history);
   }
@@ -730,24 +788,148 @@ export default class ParticipantController {
 
     stream.markdown(responseContent);
 
-    const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent) {
-      const commandArgs: RunParticipantQueryCommandArgs = {
-        runnableContent,
-      };
-      stream.button({
-        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-        title: vscode.l10n.t('▶️ Run'),
-        arguments: [commandArgs],
-      });
-      stream.button({
-        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-        title: vscode.l10n.t('Open in playground'),
-        arguments: [commandArgs],
+    this._streamRunnableContentActions({
+      responseContent,
+      stream,
+    });
+
+    return queryRequestChatResult(context.history);
+  }
+
+  async _handleDocsRequestWithChatbot({
+    docsChatbotAIService,
+    prompt,
+    chatId,
+  }: {
+    docsChatbotAIService: DocsChatbotAIService;
+    prompt: string;
+    chatId: string;
+  }): Promise<{
+    responseContent: string;
+    responseReferences?: Reference[];
+  }> {
+    let { docsChatbotConversationId } =
+      this._chatMetadataStore.getChatMetadata(chatId) ?? {};
+    if (!docsChatbotConversationId) {
+      const conversation = await docsChatbotAIService.createConversation();
+      docsChatbotConversationId = conversation._id;
+      this._chatMetadataStore.setChatMetadata(chatId, {
+        docsChatbotConversationId,
       });
     }
 
-    return queryRequestChatResult(context.history);
+    const response = await docsChatbotAIService.addMessage({
+      message: prompt,
+      conversationId: docsChatbotConversationId,
+    });
+
+    return {
+      responseContent: response.content,
+      responseReferences: response.references,
+    };
+  }
+
+  async _handleDocsRequestWithCopilot(
+    ...args: [
+      vscode.ChatRequest,
+      vscode.ChatContext,
+      vscode.ChatResponseStream,
+      vscode.CancellationToken
+    ]
+  ): Promise<{
+    responseContent: string;
+    responseReferences?: Reference[];
+  }> {
+    const [request, context, stream, token] = args;
+    const messages = GenericPrompt.buildMessages({
+      request,
+      context,
+    });
+
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
+    const responseContent = await this.getChatResponseContent({
+      messages,
+      stream,
+      token,
+    });
+    const responseReferences = [
+      {
+        url: MONGODB_DOCS_LINK,
+        title: 'View MongoDB documentation',
+      },
+    ];
+
+    return {
+      responseContent,
+      responseReferences,
+    };
+  }
+
+  async handleDocsRequest(
+    ...args: [
+      vscode.ChatRequest,
+      vscode.ChatContext,
+      vscode.ChatResponseStream,
+      vscode.CancellationToken
+    ]
+  ): Promise<ChatResult> {
+    const [request, context, stream, token] = args;
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
+
+    const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+      context.history
+    );
+
+    let docsChatbotHasThrownError = false;
+    let docsResult: {
+      responseContent?: string;
+      responseReferences?: Reference[];
+    } = {};
+
+    if (this._docsChatbotAIService) {
+      try {
+        docsResult = await this._handleDocsRequestWithChatbot({
+          docsChatbotAIService: this._docsChatbotAIService,
+          prompt: request.prompt,
+          chatId,
+        });
+      } catch (error) {
+        // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
+        // the MongoDB documentation link for users to go to our documentation site directly.
+        docsChatbotHasThrownError = true;
+        log.error(error);
+      }
+    }
+
+    if (!this._docsChatbotAIService || docsChatbotHasThrownError) {
+      docsResult = await this._handleDocsRequestWithCopilot(...args);
+    }
+
+    if (docsResult.responseContent) {
+      stream.markdown(docsResult.responseContent);
+      this._streamRunnableContentActions({
+        responseContent: docsResult.responseContent,
+        stream,
+      });
+    }
+
+    if (docsResult.responseReferences) {
+      for (const ref of docsResult.responseReferences) {
+        const link = new vscode.MarkdownString(
+          `- <a href="${ref.url}">${ref.title}</a>\n`
+        );
+        link.supportHtml = true;
+        stream.markdown(link);
+      }
+    }
+
+    return docsRequestChatResult(chatId);
   }
 
   async chatHandler(
@@ -792,7 +974,7 @@ export default class ParticipantController {
     if (request.command === 'query') {
       return await this.handleQueryRequest(...args);
     } else if (request.command === 'docs') {
-      // TODO(VSCODE-570): Implement this.
+      return await this.handleDocsRequest(...args);
     } else if (request.command === 'schema') {
       // TODO(VSCODE-571): Implement this.
     }

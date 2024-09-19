@@ -83,3 +83,12 @@ export function queryRequestChatResult(
 ): ChatResult {
   return createChatResult('query', history);
 }
+
+export function docsRequestChatResult(chatId: string): ChatResult {
+  return {
+    metadata: {
+      chatId,
+      intent: 'docs',
+    },
+  };
+}

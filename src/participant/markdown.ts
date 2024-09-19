@@ -23,10 +23,10 @@ export function createMarkdownLink({
       )
     : undefined;
   const commandQueryString = data ? `?${encodedData}` : '';
-  const connName = new vscode.MarkdownString(
+  const link = new vscode.MarkdownString(
     `- <a href="command:${commandId}${commandQueryString}">${name}</a>\n`
   );
-  connName.supportHtml = true;
-  connName.isTrusted = { enabledCommands: [commandId] };
-  return connName;
+  link.supportHtml = true;
+  link.isTrusted = { enabledCommands: [commandId] };
+  return link;
 }
