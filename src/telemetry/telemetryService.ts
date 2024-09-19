@@ -151,6 +151,7 @@ export enum TelemetryEventTypes {
   SURVEY_CLICKED = 'Survey link clicked',
   SURVEY_DISMISSED = 'Survey prompt dismissed',
   PARTICIPANT_FEEDBACK = 'Participant Feedback',
+  PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
 }
 
 /**
