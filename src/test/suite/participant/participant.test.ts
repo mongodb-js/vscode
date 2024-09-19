@@ -69,7 +69,6 @@ suite('Participant Controller Test Suite', function () {
       telemetryService: testTelemetryService,
     });
     testParticipantController = new ParticipantController({
-      context: extensionContextStub,
       connectionController: testConnectionController,
       storageController: testStorageController,
       telemetryService: testTelemetryService,

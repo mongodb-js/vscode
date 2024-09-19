@@ -5,16 +5,16 @@ const MONGODB_DOCS_CHATBOT_API_VERSION = 'v1';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../package.json');
 
-export type Role = 'user' | 'assistant';
+type Role = 'user' | 'assistant';
 
-export type ConversationData = {
+type ConversationData = {
   _id: string;
   createdAt: string;
   messages: MessageData[];
   conversationId: string;
 };
 
-export type MessageData = {
+type MessageData = {
   id: string;
   role: Role;
   content: string;
@@ -25,7 +25,7 @@ export type MessageData = {
   metadata?: AssistantMessageMetadata;
 };
 
-export type AssistantMessageMetadata = {
+type AssistantMessageMetadata = {
   [k: string]: unknown;
 
   /**
