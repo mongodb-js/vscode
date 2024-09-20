@@ -1,5 +1,7 @@
 import type { Reference, VerifiedAnswer } from 'mongodb-rag-core';
 
+const MONGODB_DOCS_CHATBOT_BASE_URI = 'https://knowledge.mongodb.com/';
+
 const MONGODB_DOCS_CHATBOT_API_VERSION = 'v1';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -40,35 +42,19 @@ type AssistantMessageMetadata = {
 };
 
 export class DocsChatbotAIService {
-  _serverBaseUri?: string;
+  _serverBaseUri: string;
 
-  constructor(serverBaseUri?: string) {
-    this._serverBaseUri = serverBaseUri;
-  }
-
-  private getServerBaseUri(): string {
-    if (!this._serverBaseUri) {
-      throw new Error(
-        'You must define a serverBaseUri for the DocsChatbotAIService'
-      );
-    }
-    return this._serverBaseUri;
+  constructor() {
+    this._serverBaseUri =
+      process.env.MONGODB_DOCS_CHATBOT_BASE_URI_OVERRIDE ||
+      MONGODB_DOCS_CHATBOT_BASE_URI;
   }
 
   private getUri(path: string): string {
-    const serverBaseUri = this.getServerBaseUri();
-    return `${serverBaseUri}api/${MONGODB_DOCS_CHATBOT_API_VERSION}${path}`;
+    return `${this._serverBaseUri}api/${MONGODB_DOCS_CHATBOT_API_VERSION}${path}`;
   }
 
-  async createConversation(): Promise<ConversationData> {
-    const uri = this.getUri('/conversations');
-    return this._fetch({
-      uri,
-      method: 'POST',
-    });
-  }
-
-  async _fetch<T = unknown>({
+  async _fetch({
     uri,
     method,
     body,
@@ -78,37 +64,49 @@ export class DocsChatbotAIService {
     method: string;
     body?: string;
     headers?: { [key: string]: string };
-  }): Promise<T> {
-    const resp = await fetch(uri, {
+  }): Promise<Response> {
+    return fetch(uri, {
       headers: {
-        origin: this.getServerBaseUri(),
+        origin: this._serverBaseUri,
         'User-Agent': `mongodb-vscode/${version}`,
         ...headers,
       },
       method,
       ...(body && { body }),
     });
-    let conversation;
+  }
+
+  async createConversation(): Promise<ConversationData> {
+    const uri = this.getUri('/conversations');
+    const res = await this._fetch({
+      uri,
+      method: 'POST',
+    });
+
+    let data;
     try {
-      conversation = await resp.json();
+      data = await res.json();
     } catch (error) {
       throw new Error('[Docs chatbot] Internal server error');
     }
 
-    if (resp.status === 400) {
-      throw new Error(`[Docs chatbot] Bad request: ${conversation.error}`);
+    if (res.status === 400) {
+      throw new Error(`[Docs chatbot] Bad request: ${data.error}`);
     }
-    if (resp.status === 429) {
-      throw new Error(`[Docs chatbot] Rate limited: ${conversation.error}`);
+    if (res.status === 429) {
+      throw new Error(`[Docs chatbot] Rate limited: ${data.error}`);
     }
-    if (resp.status >= 500) {
+    if (res.status >= 500) {
       throw new Error(
-        `[Docs chatbot] Internal server error: ${conversation.error}`
+        `[Docs chatbot] Internal server error: ${
+          data.error ? data.error : `${res.status} - ${res.statusText}}`
+        }`
       );
     }
+
     return {
-      ...conversation,
-      conversationId: conversation._id,
+      ...data,
+      conversationId: data._id,
     };
   }
 
@@ -120,11 +118,79 @@ export class DocsChatbotAIService {
     message: string;
   }): Promise<MessageData> {
     const uri = this.getUri(`/conversations/${conversationId}/messages`);
-    return await this._fetch({
+    const res = await this._fetch({
       uri,
       method: 'POST',
       body: JSON.stringify({ message }),
       headers: { 'Content-Type': 'application/json' },
     });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (error) {
+      throw new Error('[Docs chatbot] Internal server error');
+    }
+
+    if (res.status === 400) {
+      throw new Error(`[Docs chatbot] Bad request: ${data.error}`);
+    }
+    if (res.status === 404) {
+      throw new Error(`[Docs chatbot] Conversation not found: ${data.error}`);
+    }
+    if (res.status === 429) {
+      throw new Error(`[Docs chatbot] Rate limited: ${data.error}`);
+    }
+    if (res.status === 504) {
+      throw new Error(`[Docs chatbot] Timeout: ${data.error}`);
+    }
+    if (res.status >= 500) {
+      throw new Error(
+        `[Docs chatbot] Internal server error: ${
+          data.error ? data.error : `${res.status} - ${res.statusText}}`
+        }`
+      );
+    }
+
+    return data;
+  }
+
+  async rateMessage({
+    conversationId,
+    messageId,
+    rating,
+  }: {
+    conversationId: string;
+    messageId: string;
+    rating: boolean;
+  }): Promise<boolean> {
+    const uri = this.getUri(
+      `/conversations/${conversationId}/messages/${messageId}/rating`
+    );
+    const res = await this._fetch({
+      uri,
+      method: 'POST',
+      body: JSON.stringify({ rating }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (res.status === 204) {
+      return rating;
+    }
+
+    let data;
+    if (res.status >= 400) {
+      try {
+        data = await res.json();
+      } catch (error) {
+        throw new Error(`[Docs chatbot] Internal server error: ${error}`);
+      }
+    }
+
+    throw new Error(
+      `[Docs chatbot] Internal server error: ${
+        data.error ? data.error : `${res.status} - ${res.statusText}}`
+      }`
+    );
   }
 }

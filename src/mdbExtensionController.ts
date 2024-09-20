@@ -155,7 +155,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryService.activateSegmentAnalytics();
     this._participantController.createParticipant(this._context);
 
-    await this._participantController.createDocsChatbot(this._context);
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
 
