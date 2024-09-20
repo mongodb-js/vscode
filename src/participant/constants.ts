@@ -84,6 +84,15 @@ export function queryRequestChatResult(
   return createChatResult('query', history);
 }
 
+export function docsRequestChatResult(chatId: string): ChatResult {
+  return {
+    metadata: {
+      chatId,
+      intent: 'docs',
+    },
+  };
+}
+
 export function schemaRequestChatResult(
   history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
 ): ChatResult {

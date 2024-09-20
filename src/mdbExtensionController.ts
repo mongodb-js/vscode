@@ -156,6 +156,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryService.activateSegmentAnalytics();
     this._participantController.createParticipant(this._context);
 
+    await this._participantController.createDocsChatbot(this._context);
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
 
@@ -310,22 +311,19 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
-      (_data: string) => {
-        const data = JSON.parse(decodeURIComponent(_data));
+      (data: any) => {
         return this._participantController.connectWithParticipant(data);
       }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-      (_data: string) => {
-        const data = JSON.parse(decodeURIComponent(_data));
+      (data: any) => {
         return this._participantController.selectDatabaseWithParticipant(data);
       }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
-      (_data: string) => {
-        const data = JSON.parse(decodeURIComponent(_data));
+      (data: any) => {
         return this._participantController.selectCollectionWithParticipant(
           data
         );

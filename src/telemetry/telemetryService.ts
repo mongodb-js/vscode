@@ -151,6 +151,7 @@ export enum TelemetryEventTypes {
   SURVEY_CLICKED = 'Survey link clicked',
   SURVEY_DISMISSED = 'Survey prompt dismissed',
   PARTICIPANT_FEEDBACK = 'Participant Feedback',
+  PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
 }
 
 /**
@@ -186,13 +187,12 @@ export default class TelemetryService {
       );
       // eslint-disable-next-line no-sync
       const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
-      const constants = JSON.parse(constantsFile) as { segmentKey: string };
-
-      log.info('SegmentKey was found', { type: typeof constants.segmentKey });
-
-      return constants.segmentKey;
+      const { segmentKey } = JSON.parse(constantsFile) as {
+        segmentKey?: string;
+      };
+      return segmentKey;
     } catch (error) {
-      log.error('SegmentKey was not found', error);
+      log.error('Failed to read segmentKey from the constants file', error);
       return;
     }
   }
@@ -274,7 +274,7 @@ export default class TelemetryService {
   async _getConnectionTelemetryProperties(
     dataService: DataService,
     connectionType: ConnectionTypes
-  ) {
+  ): Promise<NewConnectionTelemetryEventProperties> {
     return await getConnectionTelemetryProperties(dataService, connectionType);
   }
 
@@ -322,7 +322,9 @@ export default class TelemetryService {
     return 'other';
   }
 
-  getTelemetryUserIdentity() {
+  getTelemetryUserIdentity(): {
+    anonymousId: string;
+  } {
     return {
       anonymousId: this._segmentAnonymousId,
     };
@@ -387,7 +389,7 @@ export default class TelemetryService {
 
   trackSavedConnectionsLoaded(
     savedConnectionsLoadedProps: SavedConnectionsLoadedProperties
-  ) {
+  ): void {
     this.track(
       TelemetryEventTypes.SAVED_CONNECTIONS_LOADED,
       savedConnectionsLoadedProps
@@ -396,7 +398,7 @@ export default class TelemetryService {
 
   trackKeytarSecretsMigrationFailed(
     keytarSecretsMigrationFailedProps: KeytarSecretsMigrationFailedProperties
-  ) {
+  ): void {
     this.track(
       TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
       keytarSecretsMigrationFailedProps
