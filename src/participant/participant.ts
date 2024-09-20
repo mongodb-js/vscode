@@ -567,6 +567,7 @@ export default class ParticipantController {
                   chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
                     context.history
                   ),
+                  databaseName,
                 },
                 name: 'Show more',
               }),
@@ -733,6 +734,12 @@ export default class ParticipantController {
           abortSignal,
         }
       );
+
+      if (!sampleDocuments) {
+        return {
+          amountOfDocumentsSampled: 0,
+        };
+      }
 
       let schema: string;
       if (schemaFormat === 'simplified') {
