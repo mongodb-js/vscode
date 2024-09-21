@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { getHistoryMessages } from './history';
+import type { ChatResult } from '../constants';
 
 export const DB_NAME_ID = 'DATABASE_NAME';
 export const COL_NAME_ID = 'COLLECTION_NAME';
@@ -64,20 +65,22 @@ No names found.
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
     let userPrompt = request.prompt;
-    if (
-      connectionNames.includes(request.prompt) &&
-      (context.history[context.history.length - 1] as vscode.ChatResponseTurn)
-        ?.result?.metadata?.askToConnect
-    ) {
-      // Go through the history in reverse order to find the last user message.
-      for (let i = historyMessages.length - 1; i >= 0; i--) {
-        if (
-          historyMessages[i].role === vscode.LanguageModelChatMessageRole.User
-        ) {
-          userPrompt = historyMessages[i].content;
-          // Remove the item from the history messages array.
-          historyMessages = historyMessages.slice(0, i);
-          break;
+    if (connectionNames.includes(request.prompt)) {
+      const previousResponse = context.history[
+        context.history.length - 1
+      ] as vscode.ChatResponseTurn;
+      const intent = (previousResponse?.result as ChatResult).metadata.intent;
+      if (intent === 'askToConnect') {
+        // Go through the history in reverse order to find the last user message.
+        for (let i = historyMessages.length - 1; i >= 0; i--) {
+          if (
+            historyMessages[i].role === vscode.LanguageModelChatMessageRole.User
+          ) {
+            userPrompt = historyMessages[i].content;
+            // Remove the item from the history messages array.
+            historyMessages = historyMessages.slice(0, i);
+            break;
+          }
         }
       }
     }
