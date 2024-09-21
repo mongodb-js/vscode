@@ -32,6 +32,7 @@ import { ChatMetadataStore } from './chatMetadata';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import {
   chatResultFeedbackKindToTelemetryValue,
+  ParticipantErrorTypes,
   TelemetryEventTypes,
 } from '../telemetry/telemetryService';
 import type TelemetryService from '../telemetry/telemetryService';
@@ -159,27 +160,45 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  handleError(err: any, stream: vscode.ChatResponseStream): void {
+  handleError(err: any, command: string): never {
+    let errorCode: string | undefined;
+    let errorName: ParticipantErrorTypes;
     // Making the chat request might fail because
     // - model does not exist
     // - user consent not given
     // - quote limits exceeded
     if (err instanceof vscode.LanguageModelError) {
-      log.error(err.message, err.code, err.cause);
-      if (
-        err.cause instanceof Error &&
-        err.cause.message.includes('off_topic')
-      ) {
-        stream.markdown(
-          vscode.l10n.t(
-            "I'm sorry, I can only explain computer science concepts.\n\n"
-          )
-        );
-      }
-    } else {
-      // Re-throw other errors so they show up in the UI.
-      throw err;
+      errorCode = err.code;
     }
+
+    if (err instanceof Error) {
+      // Unwrap the error if a cause is provided
+      err = err.cause || err;
+    }
+
+    const message: string = err.message || err.toString();
+
+    if (message.includes('off_topic')) {
+      errorName = ParticipantErrorTypes.CHAT_MODEL_OFF_TOPIC;
+    } else if (message.includes('Filtered by Responsible AI Service')) {
+      errorName = ParticipantErrorTypes.FILTERED;
+    } else if (message.includes('Prompt failed validation')) {
+      errorName = ParticipantErrorTypes.INVALID_PROMPT;
+    } else {
+      errorName = ParticipantErrorTypes.OTHER;
+    }
+
+    this._telemetryService.track(
+      TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
+      {
+        command,
+        error_code: errorCode,
+        error_name: errorName,
+      }
+    );
+
+    // Re-throw other errors so they show up in the UI.
+    throw err;
   }
 
   /**
@@ -197,23 +216,17 @@ export default class ParticipantController {
 
   async getChatResponseContent({
     messages,
-    stream,
     token,
   }: {
     messages: vscode.LanguageModelChatMessage[];
-    stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<string> {
     const model = await getCopilotModel();
     let responseContent = '';
     if (model) {
-      try {
-        const chatResponse = await model.sendRequest(messages, {}, token);
-        for await (const fragment of chatResponse.text) {
-          responseContent += fragment;
-        }
-      } catch (err) {
-        this.handleError(err, stream);
+      const chatResponse = await model.sendRequest(messages, {}, token);
+      for await (const fragment of chatResponse.text) {
+        responseContent += fragment;
       }
     }
 
@@ -263,7 +276,6 @@ export default class ParticipantController {
     });
     const responseContent = await this.getChatResponseContent({
       messages,
-      stream,
       token,
     });
     stream.markdown(responseContent);
@@ -526,12 +538,10 @@ export default class ParticipantController {
   async _getNamespaceFromChat({
     request,
     context,
-    stream,
     token,
   }: {
     request: vscode.ChatRequest;
     context: vscode.ChatContext;
-    stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<{
     databaseName: string | undefined;
@@ -546,7 +556,6 @@ export default class ParticipantController {
     });
     const responseContentWithNamespace = await this.getChatResponseContent({
       messages: messagesWithNamespace,
-      stream,
       token,
     });
     const namespace = parseForDatabaseAndCollectionName(
@@ -745,7 +754,6 @@ export default class ParticipantController {
     const { databaseName, collectionName } = await this._getNamespaceFromChat({
       request,
       context,
-      stream,
       token,
     });
     if (!databaseName || !collectionName) {
@@ -782,7 +790,6 @@ export default class ParticipantController {
     });
     const responseContent = await this.getChatResponseContent({
       messages,
-      stream,
       token,
     });
 
@@ -840,7 +847,7 @@ export default class ParticipantController {
     responseContent: string;
     responseReferences?: Reference[];
   }> {
-    const [request, context, stream, token] = args;
+    const [request, context, , token] = args;
     const messages = GenericPrompt.buildMessages({
       request,
       context,
@@ -852,7 +859,6 @@ export default class ParticipantController {
     });
     const responseContent = await this.getChatResponseContent({
       messages,
-      stream,
       token,
     });
     const responseReferences = [
@@ -939,46 +945,49 @@ export default class ParticipantController {
       vscode.ChatResponseStream,
       vscode.CancellationToken
     ]
-  ): Promise<ChatResult | undefined> {
+  ): Promise<ChatResult> {
     const [request, , stream] = args;
-
-    if (
-      !request.command &&
-      (!request.prompt || request.prompt.trim().length === 0)
-    ) {
-      stream.markdown(GenericPrompt.getEmptyRequestResponse());
-      return emptyRequestChatResult(args[1].history);
-    }
-
-    const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
-      StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
-    );
-    if (!hasBeenShownWelcomeMessageAlready) {
-      stream.markdown(
-        vscode.l10n.t(`
+    try {
+      const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
+        StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
+      );
+      if (!hasBeenShownWelcomeMessageAlready) {
+        stream.markdown(
+          vscode.l10n.t(`
   Welcome to MongoDB Participant!\n\n
   Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
   Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.\n\n`)
-      );
+        );
 
-      this._telemetryService.track(
-        TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
-      );
+        this._telemetryService.track(
+          TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+        );
 
-      await this._storageController.update(
-        StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
-        true
-      );
+        await this._storageController.update(
+          StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
+          true
+        );
+      }
+
+      switch (request.command) {
+        case 'query':
+          return await this.handleQueryRequest(...args);
+        case 'docs':
+          return await this.handleDocsRequest(...args);
+        case 'schema':
+          // TODO(VSCODE-571): Implement this.
+          return await this.handleGenericRequest(...args);
+        default:
+          if (!request.prompt?.trim()) {
+            stream.markdown(GenericPrompt.getEmptyRequestResponse());
+            return emptyRequestChatResult(args[1].history);
+          }
+
+          return await this.handleGenericRequest(...args);
+      }
+    } catch (e) {
+      this.handleError(e, request.command || 'generic');
     }
-
-    if (request.command === 'query') {
-      return await this.handleQueryRequest(...args);
-    } else if (request.command === 'docs') {
-      return await this.handleDocsRequest(...args);
-    } else if (request.command === 'schema') {
-      // TODO(VSCODE-571): Implement this.
-    }
-    return await this.handleGenericRequest(...args);
   }
 
   handleUserFeedback(feedback: vscode.ChatResultFeedback): void {

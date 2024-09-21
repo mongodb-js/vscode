@@ -1169,5 +1169,60 @@ suite('Participant Controller Test Suite', function () {
         .to.not.include('SSN')
         .and.not.include('123456789');
     });
+
+    test('reports error', function () {
+      const err = Error('Filtered by Responsible AI Service');
+      expect(() => testParticipantController.handleError(err, 'query')).throws(
+        'Filtered by Responsible AI Service'
+      );
+      sinon.assert.calledOnce(telemetryTrackStub);
+
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
+        'Participant Response Failed'
+      );
+
+      const properties = telemetryTrackStub.lastCall.args[1];
+      expect(properties.command).to.be.equal('query');
+      expect(properties.error_code).to.be.undefined;
+      expect(properties.error_name).to.be.equal(
+        'Filtered by Responsible AI Service'
+      );
+    });
+
+    test('reports nested error', function () {
+      const err = new Error('Parent error');
+      err.cause = Error('This message is flagged as off topic: off_topic.');
+      expect(() => testParticipantController.handleError(err, 'docs')).throws(
+        'off_topic'
+      );
+      sinon.assert.calledOnce(telemetryTrackStub);
+
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
+        'Participant Response Failed'
+      );
+
+      const properties = telemetryTrackStub.lastCall.args[1];
+      expect(properties.command).to.be.equal('docs');
+      expect(properties.error_code).to.be.undefined;
+      expect(properties.error_name).to.be.equal('Chat Model Off Topic');
+    });
+
+    test('Reports error code when available', function () {
+      // eslint-disable-next-line new-cap
+      const err = vscode.LanguageModelError.NotFound('Model not found');
+      expect(() => testParticipantController.handleError(err, 'schema')).throws(
+        'Model not found'
+      );
+      sinon.assert.calledOnce(telemetryTrackStub);
+
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
+        'Participant Response Failed'
+      );
+
+      const properties = telemetryTrackStub.lastCall.args[1];
+      expect(properties.command).to.be.equal('schema');
+      expect(properties.error_code).to.be.equal('NotFound');
+      expect(properties.error_name).to.be.equal('Other');
+    });
   });
 });
