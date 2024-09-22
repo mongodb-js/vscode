@@ -16,14 +16,7 @@ config({ path: resolve(__dirname, '../.env') });
 (async () => {
   await writeFile(
     `${ROOT_DIR}/constants.json`,
-    JSON.stringify(
-      {
-        segmentKey: process.env.SEGMENT_KEY,
-        docsChatbotBaseUri: process.env.MONGODB_DOCS_CHATBOT_BASE_URI,
-      },
-      null,
-      2
-    )
+    JSON.stringify({ segmentKey: process.env.SEGMENT_KEY }, null, 2)
   );
   ui.succeed('The constants file has been generated');
 })().catch((error) => {

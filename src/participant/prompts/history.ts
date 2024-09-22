@@ -39,7 +39,7 @@ export function getHistoryMessages({
       ];
       if (
         responseTypesToSkip.indexOf(
-          (historyItem.result as ChatResult)?.metadata.intent
+          (historyItem.result as ChatResult)?.metadata?.intent
         ) > -1
       ) {
         continue;
@@ -50,7 +50,7 @@ export function getHistoryMessages({
           message += fragment.value.value;
 
           if (
-            (historyItem.result as ChatResult)?.metadata.intent ===
+            (historyItem.result as ChatResult)?.metadata?.intent ===
             'askForNamespace'
           ) {
             // When the message is the assistant asking for part of a namespace,

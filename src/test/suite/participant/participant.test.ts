@@ -1228,12 +1228,18 @@ Schema:
         const initialFetch = global.fetch;
         let fetchStub;
 
+        beforeEach(function () {
+          sendRequestStub.onCall(0).resolves({
+            text: ['connection info'],
+          });
+        });
+
         afterEach(function () {
           global.fetch = initialFetch;
           sinon.restore();
         });
 
-        beforeEach(function () {
+        test('uses docs chatbot result if available', async function () {
           fetchStub = sinon.stub().resolves({
             status: 200,
             ok: true,
@@ -1244,20 +1250,6 @@ Schema:
               }),
           });
           global.fetch = fetchStub;
-          sendRequestStub.onCall(0).resolves({
-            text: ['connection info'],
-          });
-        });
-
-        test('uses docs chatbot when it is available', async function () {
-          sinon.replace(
-            testParticipantController,
-            '_readDocsChatbotBaseUri',
-            sinon.stub().resolves('url')
-          );
-          await testParticipantController.createDocsChatbot(
-            extensionContextStub
-          );
           const chatRequestMock = {
             prompt: 'how to connect to mongodb',
             command: 'docs',
@@ -1268,14 +1260,20 @@ Schema:
           expect(sendRequestStub).to.have.not.been.called;
         });
 
-        test('falls back to the copilot model when docs chatbot api is not available', async function () {
+        test('falls back to the copilot model when docs chatbot result is not available', async function () {
+          fetchStub = sinon.stub().resolves({
+            status: 500,
+            ok: false,
+            statusText: 'Internal Server Error',
+            json: () => Promise.reject(new Error('invalid json')),
+          });
+          global.fetch = fetchStub;
           const chatRequestMock = {
             prompt: 'how to connect to mongodb',
             command: 'docs',
             references: [],
           };
           await invokeChatHandler(chatRequestMock);
-          expect(fetchStub).to.have.not.been.called;
           expect(sendRequestStub).to.have.been.called;
         });
       });
@@ -1283,8 +1281,8 @@ Schema:
   });
 
   suite('telemetry', function () {
-    test('reports positive user feedback', function () {
-      testParticipantController.handleUserFeedback({
+    test('reports positive user feedback', async function () {
+      await testParticipantController.handleUserFeedback({
         kind: vscode.ChatResultFeedbackKind.Helpful,
         result: {
           metadata: {
@@ -1310,8 +1308,8 @@ Schema:
         .and.not.include('1234-5678-9012-3456');
     });
 
-    test('reports negative user feedback', function () {
-      testParticipantController.handleUserFeedback({
+    test('reports negative user feedback', async function () {
+      await testParticipantController.handleUserFeedback({
         kind: vscode.ChatResultFeedbackKind.Unhelpful,
         result: {
           metadata: {
@@ -1336,6 +1334,61 @@ Schema:
       expect(JSON.stringify(properties))
         .to.not.include('SSN')
         .and.not.include('123456789');
+    });
+
+    test('reports error', function () {
+      const err = Error('Filtered by Responsible AI Service');
+      expect(() => testParticipantController.handleError(err, 'query')).throws(
+        'Filtered by Responsible AI Service'
+      );
+      sinon.assert.calledOnce(telemetryTrackStub);
+
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
+        'Participant Response Failed'
+      );
+
+      const properties = telemetryTrackStub.lastCall.args[1];
+      expect(properties.command).to.be.equal('query');
+      expect(properties.error_code).to.be.undefined;
+      expect(properties.error_name).to.be.equal(
+        'Filtered by Responsible AI Service'
+      );
+    });
+
+    test('reports nested error', function () {
+      const err = new Error('Parent error');
+      err.cause = Error('This message is flagged as off topic: off_topic.');
+      expect(() => testParticipantController.handleError(err, 'docs')).throws(
+        'off_topic'
+      );
+      sinon.assert.calledOnce(telemetryTrackStub);
+
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
+        'Participant Response Failed'
+      );
+
+      const properties = telemetryTrackStub.lastCall.args[1];
+      expect(properties.command).to.be.equal('docs');
+      expect(properties.error_code).to.be.undefined;
+      expect(properties.error_name).to.be.equal('Chat Model Off Topic');
+    });
+
+    test('Reports error code when available', function () {
+      // eslint-disable-next-line new-cap
+      const err = vscode.LanguageModelError.NotFound('Model not found');
+      expect(() => testParticipantController.handleError(err, 'schema')).throws(
+        'Model not found'
+      );
+      sinon.assert.calledOnce(telemetryTrackStub);
+
+      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
+        'Participant Response Failed'
+      );
+
+      const properties = telemetryTrackStub.lastCall.args[1];
+      expect(properties.command).to.be.equal('schema');
+      expect(properties.error_code).to.be.equal('NotFound');
+      expect(properties.error_name).to.be.equal('Other');
     });
   });
 });

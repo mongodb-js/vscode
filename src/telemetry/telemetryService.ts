@@ -102,6 +102,12 @@ type ParticipantFeedbackProperties = {
   reason?: String;
 };
 
+type ParticipantResponseFailedProperties = {
+  command: string;
+  error_code?: string;
+  error_name: string;
+};
+
 export function chatResultFeedbackKindToTelemetryValue(
   kind: vscode.ChatResultFeedbackKind
 ): TelemetryFeedbackKind {
@@ -130,7 +136,8 @@ type TelemetryEventProperties =
   | KeytarSecretsMigrationFailedProperties
   | SavedConnectionsLoadedProperties
   | SurveyActionProperties
-  | ParticipantFeedbackProperties;
+  | ParticipantFeedbackProperties
+  | ParticipantResponseFailedProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -152,6 +159,14 @@ export enum TelemetryEventTypes {
   SURVEY_DISMISSED = 'Survey prompt dismissed',
   PARTICIPANT_FEEDBACK = 'Participant Feedback',
   PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
+  PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
+}
+
+export enum ParticipantErrorTypes {
+  CHAT_MODEL_OFF_TOPIC = 'Chat Model Off Topic',
+  INVALID_PROMPT = 'Invalid Prompt',
+  FILTERED = 'Filtered by Responsible AI Service',
+  OTHER = 'Other',
 }
 
 /**
@@ -322,9 +337,7 @@ export default class TelemetryService {
     return 'other';
   }
 
-  getTelemetryUserIdentity(): {
-    anonymousId: string;
-  } {
+  getTelemetryUserIdentity(): { anonymousId: string } {
     return {
       anonymousId: this._segmentAnonymousId,
     };

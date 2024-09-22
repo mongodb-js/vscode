@@ -16,6 +16,7 @@ export type ParticipantResponseType =
 interface Metadata {
   intent: Exclude<ParticipantResponseType, 'askForNamespace'>;
   chatId: string;
+  docsChatbotMessageId?: string;
 }
 
 interface AskForNamespaceMetadata {
@@ -84,11 +85,18 @@ export function queryRequestChatResult(
   return createChatResult('query', history);
 }
 
-export function docsRequestChatResult(chatId: string): ChatResult {
+export function docsRequestChatResult({
+  chatId,
+  docsChatbotMessageId,
+}: {
+  chatId: string;
+  docsChatbotMessageId?: string;
+}): ChatResult {
   return {
     metadata: {
       chatId,
       intent: 'docs',
+      docsChatbotMessageId,
     },
   };
 }

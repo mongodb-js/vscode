@@ -42,7 +42,10 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
-import type { RunParticipantQueryCommandArgs } from './participant/participant';
+import type {
+  ParticipantCommand,
+  RunParticipantQueryCommandArgs,
+} from './participant/participant';
 import ParticipantController from './participant/participant';
 import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
 
@@ -156,7 +159,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryService.activateSegmentAnalytics();
     this._participantController.createParticipant(this._context);
 
-    await this._participantController.createDocsChatbot(this._context);
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
 
@@ -311,13 +313,17 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
-      (data: any) => {
+      (data: { id?: string; command?: string }) => {
         return this._participantController.connectWithParticipant(data);
       }
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-      (data: any) => {
+      (data: {
+        chatId: string;
+        command: ParticipantCommand;
+        databaseName?: string;
+      }) => {
         return this._participantController.selectDatabaseWithParticipant(data);
       }
     );
