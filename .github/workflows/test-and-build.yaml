@@ -36,7 +36,6 @@ jobs:
         uses: ./.github/workflows/actions/test-and-build
         with:
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
-          MONGODB_DOCS_CHATBOT_BASE_URI: ${{ secrets.MONGODB_DOCS_CHATBOT_BASE_URI_PROD }}
           ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}

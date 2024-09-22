@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
 import { getSimplifiedSchema } from 'mongodb-schema';
 import type { Document } from 'bson';
-import { config } from 'dotenv';
-import path from 'path';
-import { promises as fs } from 'fs';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -82,7 +79,7 @@ export default class ParticipantController {
   _connectionController: ConnectionController;
   _storageController: StorageController;
   _chatMetadataStore: ChatMetadataStore;
-  _docsChatbotAIService?: DocsChatbotAIService;
+  _docsChatbotAIService: DocsChatbotAIService;
   _telemetryService: TelemetryService;
 
   constructor({
@@ -98,37 +95,7 @@ export default class ParticipantController {
     this._storageController = storageController;
     this._chatMetadataStore = new ChatMetadataStore();
     this._telemetryService = telemetryService;
-  }
-
-  // To integrate with the MongoDB documentation chatbot,
-  // set the MONGODB_DOCS_CHATBOT_BASE_URI environment variable when running the extension from a branch.
-  // This variable is automatically injected during the .vsix build process via GitHub Actions.
-  async _readDocsChatbotBaseUri(
-    context: vscode.ExtensionContext
-  ): Promise<string | undefined> {
-    config({ path: path.join(context.extensionPath, '.env') });
-
-    try {
-      const docsChatbotBaseUriFileLocation = path.join(
-        context.extensionPath,
-        './constants.json'
-      );
-      // eslint-disable-next-line no-sync
-      const constantsFile = await fs.readFile(
-        docsChatbotBaseUriFileLocation,
-        'utf8'
-      );
-      const { docsChatbotBaseUri } = JSON.parse(constantsFile) as {
-        docsChatbotBaseUri?: string;
-      };
-      return docsChatbotBaseUri;
-    } catch (error) {
-      log.error(
-        'Failed to read docsChatbotBaseUri from the constants file',
-        error
-      );
-      return;
-    }
+    this._docsChatbotAIService = new DocsChatbotAIService();
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -144,16 +111,11 @@ export default class ParticipantController {
       'images',
       'mongodb.png'
     );
-    log.info('Chat Participant Created', {
+    log.info('Chat participant created', {
       participantId: this._participant?.id,
     });
     this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
     return this._participant;
-  }
-
-  async createDocsChatbot(context: vscode.ExtensionContext): Promise<void> {
-    const docsChatbotBaseUri = await this._readDocsChatbotBaseUri(context);
-    this._docsChatbotAIService = new DocsChatbotAIService(docsChatbotBaseUri);
   }
 
   getParticipant(): vscode.ChatParticipant | undefined {
@@ -804,35 +766,43 @@ export default class ParticipantController {
   }
 
   async _handleDocsRequestWithChatbot({
-    docsChatbotAIService,
     prompt,
     chatId,
   }: {
-    docsChatbotAIService: DocsChatbotAIService;
     prompt: string;
     chatId: string;
   }): Promise<{
     responseContent: string;
     responseReferences?: Reference[];
+    docsChatbotMessageId: string;
   }> {
     let { docsChatbotConversationId } =
       this._chatMetadataStore.getChatMetadata(chatId) ?? {};
     if (!docsChatbotConversationId) {
-      const conversation = await docsChatbotAIService.createConversation();
+      const conversation =
+        await this._docsChatbotAIService.createConversation();
       docsChatbotConversationId = conversation._id;
       this._chatMetadataStore.setChatMetadata(chatId, {
         docsChatbotConversationId,
       });
+      log.info('Docs chatbot created for chatId', chatId);
     }
 
-    const response = await docsChatbotAIService.addMessage({
+    const response = await this._docsChatbotAIService.addMessage({
       message: prompt,
       conversationId: docsChatbotConversationId,
+    });
+
+    log.info('Docs chatbot message sent', {
+      chatId,
+      docsChatbotConversationId,
+      docsChatbotMessageId: response.id,
     });
 
     return {
       responseContent: response.content,
       responseReferences: response.references,
+      docsChatbotMessageId: response.id,
     };
   }
 
@@ -891,29 +861,21 @@ export default class ParticipantController {
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
       context.history
     );
-
-    let docsChatbotHasThrownError = false;
     let docsResult: {
       responseContent?: string;
       responseReferences?: Reference[];
+      docsChatbotMessageId?: string;
     } = {};
 
-    if (this._docsChatbotAIService) {
-      try {
-        docsResult = await this._handleDocsRequestWithChatbot({
-          docsChatbotAIService: this._docsChatbotAIService,
-          prompt: request.prompt,
-          chatId,
-        });
-      } catch (error) {
-        // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
-        // the MongoDB documentation link for users to go to our documentation site directly.
-        docsChatbotHasThrownError = true;
-        log.error(error);
-      }
-    }
-
-    if (!this._docsChatbotAIService || docsChatbotHasThrownError) {
+    try {
+      docsResult = await this._handleDocsRequestWithChatbot({
+        prompt: request.prompt,
+        chatId,
+      });
+    } catch (error) {
+      // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
+      // the MongoDB documentation link for users to go to our documentation site directly.
+      log.error(error);
       docsResult = await this._handleDocsRequestWithCopilot(...args);
     }
 
@@ -935,7 +897,10 @@ export default class ParticipantController {
       }
     }
 
-    return docsRequestChatResult(chatId);
+    return docsRequestChatResult({
+      chatId,
+      docsChatbotMessageId: docsResult.docsChatbotMessageId,
+    });
   }
 
   async chatHandler(
@@ -990,7 +955,39 @@ export default class ParticipantController {
     }
   }
 
-  handleUserFeedback(feedback: vscode.ChatResultFeedback): void {
+  async _rateDocsChatbotMessage(
+    feedback: vscode.ChatResultFeedback
+  ): Promise<void> {
+    const chatId = feedback.result.metadata?.chatId;
+    if (!chatId) {
+      return;
+    }
+
+    const { docsChatbotConversationId } =
+      this._chatMetadataStore.getChatMetadata(chatId) ?? {};
+    if (
+      !docsChatbotConversationId ||
+      !feedback.result.metadata?.docsChatbotMessageId
+    ) {
+      return;
+    }
+
+    try {
+      const rating = await this._docsChatbotAIService.rateMessage({
+        conversationId: docsChatbotConversationId,
+        messageId: feedback.result.metadata?.docsChatbotMessageId,
+        rating: !!feedback.kind,
+      });
+      log.info('Docs chatbot rating sent', rating);
+    } catch (error) {
+      log.error(error);
+    }
+  }
+
+  async handleUserFeedback(feedback: vscode.ChatResultFeedback): Promise<void> {
+    if (feedback.result.metadata?.intent === 'docs') {
+      await this._rateDocsChatbotMessage(feedback);
+    }
     this._telemetryService.trackCopilotParticipantFeedback({
       feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
       reason: feedback.unhelpfulReason,

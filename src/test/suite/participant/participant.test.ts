@@ -1060,12 +1060,18 @@ suite('Participant Controller Test Suite', function () {
         const initialFetch = global.fetch;
         let fetchStub;
 
+        beforeEach(function () {
+          sendRequestStub.onCall(0).resolves({
+            text: ['connection info'],
+          });
+        });
+
         afterEach(function () {
           global.fetch = initialFetch;
           sinon.restore();
         });
 
-        beforeEach(function () {
+        test('uses docs chatbot result if available', async function () {
           fetchStub = sinon.stub().resolves({
             status: 200,
             ok: true,
@@ -1076,20 +1082,6 @@ suite('Participant Controller Test Suite', function () {
               }),
           });
           global.fetch = fetchStub;
-          sendRequestStub.onCall(0).resolves({
-            text: ['connection info'],
-          });
-        });
-
-        test('uses docs chatbot when it is available', async function () {
-          sinon.replace(
-            testParticipantController,
-            '_readDocsChatbotBaseUri',
-            sinon.stub().resolves('url')
-          );
-          await testParticipantController.createDocsChatbot(
-            extensionContextStub
-          );
           const chatRequestMock = {
             prompt: 'how to connect to mongodb',
             command: 'docs',
@@ -1100,14 +1092,20 @@ suite('Participant Controller Test Suite', function () {
           expect(sendRequestStub).to.have.not.been.called;
         });
 
-        test('falls back to the copilot model when docs chatbot api is not available', async function () {
+        test('falls back to the copilot model when docs chatbot result is not available', async function () {
+          fetchStub = sinon.stub().resolves({
+            status: 500,
+            ok: false,
+            statusText: 'Internal Server Error',
+            json: () => Promise.reject(new Error('invalid json')),
+          });
+          global.fetch = fetchStub;
           const chatRequestMock = {
             prompt: 'how to connect to mongodb',
             command: 'docs',
             references: [],
           };
           await invokeChatHandler(chatRequestMock);
-          expect(fetchStub).to.have.not.been.called;
           expect(sendRequestStub).to.have.been.called;
         });
       });
@@ -1115,8 +1113,8 @@ suite('Participant Controller Test Suite', function () {
   });
 
   suite('telemetry', function () {
-    test('reports positive user feedback', function () {
-      testParticipantController.handleUserFeedback({
+    test('reports positive user feedback', async function () {
+      await testParticipantController.handleUserFeedback({
         kind: vscode.ChatResultFeedbackKind.Helpful,
         result: {
           metadata: {
@@ -1142,8 +1140,8 @@ suite('Participant Controller Test Suite', function () {
         .and.not.include('1234-5678-9012-3456');
     });
 
-    test('reports negative user feedback', function () {
-      testParticipantController.handleUserFeedback({
+    test('reports negative user feedback', async function () {
+      await testParticipantController.handleUserFeedback({
         kind: vscode.ChatResultFeedbackKind.Unhelpful,
         result: {
           metadata: {
