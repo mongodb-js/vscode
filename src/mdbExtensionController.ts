@@ -114,6 +114,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       new PlaygroundSelectedCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
+    this._participantController = new ParticipantController({
+      connectionController: this._connectionController,
+      storageController: this._storageController,
+      telemetryService: this._telemetryService,
+    });
     this._playgroundController = new PlaygroundController({
       connectionController: this._connectionController,
       languageServerController: this._languageServerController,
@@ -123,11 +128,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
-    });
-    this._participantController = new ParticipantController({
-      connectionController: this._connectionController,
-      storageController: this._storageController,
-      telemetryService: this._telemetryService,
+      participantController: this._participantController,
     });
     this._editorsController = new EditorsController({
       context,
@@ -232,6 +233,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
+    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_RUN_CODE_IN_PLAYGROUND, () =>
+      this._playgroundController.runCodeInPlayground()
     );
 
     this.registerCommand(

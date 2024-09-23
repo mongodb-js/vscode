@@ -44,6 +44,7 @@ import {
   isPlayground,
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
+import type ParticipantController from '../participant/participant';
 
 const log = createLogger('playground controller');
 
@@ -124,6 +125,7 @@ export default class PlaygroundController {
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
   _telemetryService: TelemetryService;
+  _participantController?: ParticipantController;
 
   _isPartialRun = false;
 
@@ -141,6 +143,7 @@ export default class PlaygroundController {
     playgroundResultViewProvider,
     exportToLanguageCodeLensProvider,
     playgroundSelectedCodeActionProvider,
+    participantController,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
@@ -149,6 +152,7 @@ export default class PlaygroundController {
     playgroundResultViewProvider: PlaygroundResultProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+    participantController?: ParticipantController;
   }) {
     this._connectionController = connectionController;
     this._activeTextEditor = vscode.window.activeTextEditor;
@@ -159,6 +163,7 @@ export default class PlaygroundController {
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._playgroundSelectedCodeActionProvider =
       playgroundSelectedCodeActionProvider;
+    this._participantController = participantController;
 
     this._activeConnectionChangedHandler = () => {
       void this._activeConnectionChanged();
@@ -694,6 +699,83 @@ export default class PlaygroundController {
     }
 
     return this._evaluatePlayground(codeToEvaluate);
+  }
+
+  async runCodeInPlayground(): Promise<boolean> {
+    const code = this._selectedText || this._getAllText();
+
+    if (!this._participantController?._participant) {
+      void vscode.window.showErrorMessage(
+        'The MongoDB participant is not available.'
+      );
+
+      return Promise.resolve(false);
+    }
+
+    try {
+      const progressResult = await vscode.window.withProgress(
+        {
+          location: ProgressLocation.Notification,
+          title: 'Exporting code to a playground...',
+          cancellable: true,
+        },
+        async (progress, token) => {
+          token.onCancellationRequested(() => {
+            // If a user clicked the cancel button terminate all playground scripts.
+            this._languageServerController.cancelAll();
+
+            return { result: undefined };
+          });
+
+          const abortController = new AbortController();
+          token.onCancellationRequested(() => {
+            abortController.abort();
+          });
+          const messages = [
+            // eslint-disable-next-line new-cap
+            vscode.LanguageModelChatMessage.Assistant(
+              'You are MongoDB expert and can convert any proggramming language to the MongoDB Shell syntax. Take a user promt as an input string and translate it to the MongoDB Shell language.'
+            ),
+            // eslint-disable-next-line new-cap
+            vscode.LanguageModelChatMessage.User(code),
+          ];
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const util = require('util');
+          console.log('messages----------------------');
+          console.log(`${util.inspect(messages)}`);
+          console.log('----------------------');
+          return await this._participantController?.getChatResponseContent({
+            messages,
+            token,
+          });
+        }
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const util = require('util');
+      console.log('progressResult----------------------');
+      console.log(`${util.inspect(progressResult)}`);
+      console.log('----------------------');
+
+      if (progressResult?.includes("Sorry, I can't assist with that.")) {
+        void vscode.window.showErrorMessage("Sorry, I can't assist with that.");
+        return Promise.resolve(false);
+      }
+
+      if (progressResult) {
+        await this.createPlaygroundFromParticipantQuery({
+          text: progressResult,
+        });
+      }
+
+      return Promise.resolve(true);
+    } catch (error) {
+      log.error(
+        'Exporting code to a playground with cancel modal failed',
+        error
+      );
+      return Promise.resolve(false);
+    }
   }
 
   async fixThisInvalidInteractiveSyntax({
