@@ -54,7 +54,7 @@
     "test": "npm run test-webview && npm run test-extension",
     "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "test-webview": "mocha -r ts-node/register --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
-    "ai-accuracy-tests": "mocha -r ts-node/register --file ./src/test/ai-accuracy-tests/test-setup.ts ./src/test/ai-accuracy-tests/ai-accuracy-tests.ts",
+    "ai-accuracy-tests": "env TS_NODE_FILES=true mocha -r ts-node/register --file ./src/test/ai-accuracy-tests/test-setup.ts ./src/test/ai-accuracy-tests/ai-accuracy-tests.ts --files",
     "analyze-bundle": "webpack --mode production --analyze",
     "vscode:prepublish": "npm run clean && npm run compile:constants && npm run compile:resources && webpack --mode production",
     "check": "npm run lint && npm run depcheck",

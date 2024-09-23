@@ -508,7 +508,7 @@ suite('Participant Controller Test Suite', function () {
             };
             await invokeChatHandler(chatRequestMock);
             const messages = sendRequestStub.secondCall.args[0];
-            expect(messages[0].content).to.include(
+            expect(messages[1].content).to.include(
               'Collection schema: _id: ObjectId\n' +
                 'field.stringField: String\n' +
                 'field.arrayField: Array<Int32>\n'
@@ -557,7 +557,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.include(
+              expect(messages[1].content).to.include(
                 'Sample documents: [\n' +
                   '  {\n' +
                   "    _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
@@ -610,7 +610,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.include(
+              expect(messages[1].content).to.include(
                 'Sample document: {\n' +
                   "  _id: ObjectId('63ed1d522d8573fa5c203660'),\n" +
                   '  field: {\n' +
@@ -657,7 +657,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.include(
+              expect(messages[1].content).to.include(
                 'Sample document: {\n' +
                   "  _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
                   '  field: {\n' +
@@ -701,7 +701,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.not.include('Sample documents');
+              expect(messages[1].content).to.not.include('Sample documents');
             });
           });
 
@@ -714,7 +714,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.not.include('Sample documents');
+              expect(messages[1].content).to.not.include('Sample documents');
             });
           });
         });
