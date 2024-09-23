@@ -5,12 +5,15 @@ import { getHistoryMessages } from './history';
 export class GenericPrompt {
   static getAssistantPrompt(): vscode.LanguageModelChatMessage {
     const prompt = `You are a MongoDB expert.
-Your task is to help the user craft MongoDB queries and aggregation pipelines that perform their task.
-Keep your response concise.
-You should suggest queries that are performant and correct.
-Respond with markdown, suggest code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
-You can imagine the schema, collection, and database name.
-Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
+Your task is to help the user with MongoDB related questions.
+When applicable, you may suggest MongoDB code, queries, and aggregation pipelines that perform their task.
+Rules:
+1. Keep your response concise.
+2. You should suggest code that is performant and correct.
+3. Respond with markdown.
+4. When relevant, provide code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
+5. Use MongoDB shell syntax for code unless the user requests a specific language.
+6. If you require additional information to provide a response, ask the user for it.`;
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);
@@ -22,7 +25,6 @@ Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
   }
 
   static getEmptyRequestResponse(): string {
-    // TODO(VSCODE-572): Generic empty response handler
     return vscode.l10n.t(
       'Ask anything about MongoDB, from writing queries to questions about your cluster.'
     );

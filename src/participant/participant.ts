@@ -20,6 +20,7 @@ import {
   queryRequestChatResult,
   docsRequestChatResult,
   schemaRequestChatResult,
+  createCancelledRequestChatResult,
 } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
@@ -41,6 +42,7 @@ import {
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
+import { IntentPrompt, type PromptIntent } from './prompts/intent';
 
 const log = createLogger('participant');
 
@@ -229,8 +231,15 @@ export default class ParticipantController {
     }
   }
 
-  // @MongoDB what is mongodb?
-  async handleGenericRequest(
+  _handleCancelledRequest({
+    context,
+  }: {
+    context: vscode.ChatContext;
+  }): ChatResult {
+    return createCancelledRequestChatResult(context.history);
+  }
+
+  async _handleRoutedGenericRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
@@ -241,10 +250,6 @@ export default class ParticipantController {
       context,
     });
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
     const responseContent = await this.getChatResponseContent({
       messages,
       token,
@@ -257,6 +262,91 @@ export default class ParticipantController {
     });
 
     return genericRequestChatResult(context.history);
+  }
+
+  async _routeRequestToHandler({
+    context,
+    promptIntent,
+    request,
+    stream,
+    token,
+  }: {
+    context: vscode.ChatContext;
+    promptIntent: Omit<PromptIntent, 'Default'>;
+    request: vscode.ChatRequest;
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<ChatResult> {
+    switch (promptIntent) {
+      case 'Query':
+        return this.handleQueryRequest(request, context, stream, token);
+      case 'Docs':
+        return this.handleDocsRequest(request, context, stream, token);
+      case 'Schema':
+        return this.handleSchemaRequest(request, context, stream, token);
+      case 'Code':
+        return this.handleQueryRequest(request, context, stream, token);
+      default:
+        return this._handleRoutedGenericRequest(
+          request,
+          context,
+          stream,
+          token
+        );
+    }
+  }
+
+  async _getIntentFromChatRequest({
+    context,
+    request,
+    token,
+  }: {
+    context: vscode.ChatContext;
+    request: vscode.ChatRequest;
+    token: vscode.CancellationToken;
+  }): Promise<PromptIntent> {
+    const messages = IntentPrompt.buildMessages({
+      request,
+      context,
+    });
+
+    const responseContent = await this.getChatResponseContent({
+      messages,
+      token,
+    });
+
+    return IntentPrompt.getIntentFromModelResponse(responseContent);
+  }
+
+  async handleGenericRequest(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<ChatResult> {
+    // We "prompt chain" to handle the generic requests.
+    // First we ask the model to parse for intent.
+    // If there is an intent, we can route it to one of the handlers (/commands).
+    // When there is no intention or it's generic we handle it with a generic handler.
+    const promptIntent = await this._getIntentFromChatRequest({
+      context,
+      request,
+      token,
+    });
+
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+      });
+    }
+
+    return this._routeRequestToHandler({
+      context,
+      promptIntent,
+      request,
+      stream,
+      token,
+    });
   }
 
   async connectWithParticipant({
@@ -670,17 +760,17 @@ export default class ParticipantController {
   // The sample documents returned from this are simplified (strings and arrays shortened).
   // The sample documents are only returned when a user has the setting enabled.
   async _fetchCollectionSchemaAndSampleDocuments({
-    abortSignal,
     databaseName,
     collectionName,
     amountOfDocumentsToSample = NUM_DOCUMENTS_TO_SAMPLE,
     schemaFormat = 'simplified',
+    token,
   }: {
-    abortSignal;
     databaseName: string;
     collectionName: string;
     amountOfDocumentsToSample?: number;
     schemaFormat?: 'simplified' | 'full';
+    token: vscode.CancellationToken;
   }): Promise<{
     schema?: string;
     sampleDocuments?: Document[];
@@ -693,6 +783,11 @@ export default class ParticipantController {
       };
     }
 
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
+
     try {
       const sampleDocuments = await dataService.sample(
         `${databaseName}.${collectionName}`,
@@ -702,7 +797,7 @@ export default class ParticipantController {
         },
         { promoteValues: false },
         {
-          abortSignal,
+          abortSignal: abortController.signal,
         }
       );
 
@@ -836,10 +931,11 @@ export default class ParticipantController {
       });
     }
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+      });
+    }
 
     stream.push(
       new vscode.ChatResponseProgressPart(
@@ -856,11 +952,11 @@ export default class ParticipantController {
         amountOfDocumentsSampled, // There can be fewer than the amount we attempt to sample.
         schema,
       } = await this._fetchCollectionSchemaAndSampleDocuments({
-        abortSignal: abortController.signal,
         databaseName,
         schemaFormat: 'full',
         collectionName,
         amountOfDocumentsToSample: DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT,
+        token,
       }));
 
       if (!schema || amountOfDocumentsSampled === 0) {
@@ -958,19 +1054,20 @@ export default class ParticipantController {
       });
     }
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+      });
+    }
 
     let schema: string | undefined;
     let sampleDocuments: Document[] | undefined;
     try {
       ({ schema, sampleDocuments } =
         await this._fetchCollectionSchemaAndSampleDocuments({
-          abortSignal: abortController.signal,
           databaseName,
           collectionName,
+          token,
         }));
     } catch (e) {
       // When an error fetching the collection schema or sample docs occurs,
@@ -1067,10 +1164,6 @@ export default class ParticipantController {
       context,
     });
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
     const responseContent = await this.getChatResponseContent({
       messages,
       token,
@@ -1096,11 +1189,7 @@ export default class ParticipantController {
       vscode.CancellationToken
     ]
   ): Promise<ChatResult> {
-    const [request, context, stream, token] = args;
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
+    const [request, context, stream] = args;
 
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
       context.history

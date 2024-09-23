@@ -10,6 +10,7 @@ export type ParticipantResponseType =
   | 'docs'
   | 'generic'
   | 'emptyRequest'
+  | 'cancelledRequest'
   | 'askToConnect'
   | 'askForNamespace';
 
@@ -59,6 +60,12 @@ function createChatResult(
       chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
     },
   };
+}
+
+export function createCancelledRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('cancelledRequest', history);
 }
 
 export function emptyRequestChatResult(
