@@ -700,7 +700,7 @@ export default class ParticipantController {
           query: {},
           size: amountOfDocumentsToSample,
         },
-        { promoteValues: false },
+        { promoteValues: false, maxTimeMS: 10_000 },
         {
           abortSignal,
         }
