@@ -1120,6 +1120,14 @@ export default class ParticipantController {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
       log.error(error);
+      this._telemetryService.track(
+        TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
+        {
+          command: 'docs',
+          error_name: ParticipantErrorTypes.DOCS_CHATBOT_API,
+        }
+      );
+
       docsResult = await this._handleDocsRequestWithCopilot(...args);
     }
 

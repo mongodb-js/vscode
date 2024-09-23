@@ -64,7 +64,7 @@ suite('Participant Controller Test Suite', function () {
   };
   let chatTokenStub;
   let countTokensStub;
-  let sendRequestStub;
+  let sendRequestStub: sinon.SinonStub;
   let telemetryTrackStub: SinonSpy;
 
   const invokeChatHandler = async (
@@ -399,13 +399,6 @@ suite('Participant Controller Test Suite', function () {
           TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
         );
         expect(telemetryTrackStub.lastCall.args[1]).to.be.undefined;
-
-        telemetryTrackStub
-          .getCalls()
-          .map((call) => call.args[0])
-          .filter(
-            (arg) => arg === TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
-          ).length;
       });
     });
 
@@ -1226,7 +1219,7 @@ Schema:
 
       suite('docs command', function () {
         const initialFetch = global.fetch;
-        let fetchStub;
+        let fetchStub: sinon.SinonStub;
 
         beforeEach(function () {
           sendRequestStub.onCall(0).resolves({
@@ -1275,6 +1268,16 @@ Schema:
           };
           await invokeChatHandler(chatRequestMock);
           expect(sendRequestStub).to.have.been.called;
+
+          // Expect the error to be reported through the telemetry service
+          sinon.assert.calledOnce(telemetryTrackStub);
+          expect(telemetryTrackStub.lastCall.args[0]).to.equal(
+            TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED
+          );
+
+          const properties = telemetryTrackStub.lastCall.args[1];
+          expect(properties.command).to.equal('docs');
+          expect(properties.error_name).to.equal('Docs Chatbot API Issue');
         });
       });
     });
