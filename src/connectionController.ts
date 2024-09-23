@@ -79,7 +79,12 @@ function isOIDCAuth(connectionString: string): boolean {
 // Exported for testing.
 export function getNotifyDeviceFlowForConnectionAttempt(
   connectionOptions: ConnectionOptions
-) {
+):
+  | ((deviceFlowInformation: {
+      verificationUrl: string;
+      userCode: string;
+    }) => void)
+  | undefined {
   const isOIDCConnectionAttempt = isOIDCAuth(
     connectionOptions.connectionString
   );
@@ -97,7 +102,7 @@ export function getNotifyDeviceFlowForConnectionAttempt(
     }: {
       verificationUrl: string;
       userCode: string;
-    }) => {
+    }): void => {
       void vscode.window.showInformationMessage(
         `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`
       );
@@ -381,7 +386,7 @@ export default class ConnectionController {
           ...cloneDeep(connectionOptions.oidc),
           openBrowser: browserAuthCommand
             ? { command: browserAuthCommand }
-            : async ({ signal, url }) => {
+            : async ({ signal, url }): Promise<void> => {
                 try {
                   await openLink(url);
                 } catch (err) {
@@ -469,7 +474,7 @@ export default class ConnectionController {
   }
 
   // Used to re-authenticate with OIDC.
-  async _reauthenticationHandler() {
+  async _reauthenticationHandler(): Promise<void> {
     const removeConfirmationResponse =
       await vscode.window.showInformationMessage(
         'You need to re-authenticate to the database in order to continue.',
@@ -488,7 +493,7 @@ export default class ConnectionController {
   }: {
     connectionInfo: LoadedConnection;
     dataService: DataService;
-  }) {
+  }): Promise<void> {
     if (connectionInfo.storageLocation === 'NONE') {
       return;
     }
@@ -513,7 +518,7 @@ export default class ConnectionController {
 
     // ?. because mocks in tests don't provide it
     dataService.on?.('connectionInfoSecretsChanged', () => {
-      void (async () => {
+      void (async (): Promise<void> => {
         try {
           if (
             !vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')
@@ -546,7 +551,7 @@ export default class ConnectionController {
     });
   }
 
-  cancelConnectionAttempt() {
+  cancelConnectionAttempt(): void {
     this._connectionAttempt?.cancelConnectionAttempt();
   }
 
@@ -806,11 +811,11 @@ export default class ConnectionController {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  deactivate() {
+  deactivate(): void {
     this.eventEmitter.removeAllListeners();
   }
 
-  closeConnectionStringInput() {
+  closeConnectionStringInput(): void {
     this._connectionStringInputCancellationToken?.cancel();
   }
 
@@ -905,7 +910,7 @@ export default class ConnectionController {
     return connectionStringData.toString();
   }
 
-  isConnectedToAtlasStreams() {
+  isConnectedToAtlasStreams(): boolean {
     return (
       this.isCurrentlyConnected() &&
       isAtlasStream(this.getActiveConnectionString())
@@ -927,7 +932,7 @@ export default class ConnectionController {
     return connectionString;
   }
 
-  getActiveDataService() {
+  getActiveDataService(): DataService | null {
     return this._activeDataService;
   }
 

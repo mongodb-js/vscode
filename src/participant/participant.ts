@@ -1134,7 +1134,7 @@ export default class ParticipantController {
     if (docsResult.responseReferences) {
       for (const ref of docsResult.responseReferences) {
         const link = new vscode.MarkdownString(
-          `- <a href="${ref.url}">${ref.title}</a>\n`
+          `- [${ref.title}](${ref.url})\n`
         );
         link.supportHtml = true;
         stream.markdown(link);
