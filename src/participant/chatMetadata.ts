@@ -20,6 +20,11 @@ export class ChatMetadataStore {
     return this._chats[chatId];
   }
 
+  // Exposed for stubbing in tests.
+  static createNewChatId(): string {
+    return uuidv4();
+  }
+
   static getChatIdFromHistoryOrNewChatId(
     history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
   ): string {
@@ -32,6 +37,6 @@ export class ChatMetadataStore {
       }
     }
 
-    return uuidv4();
+    return ChatMetadataStore.createNewChatId();
   }
 }

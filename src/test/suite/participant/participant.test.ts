@@ -25,6 +25,7 @@ import {
   StorageLocation,
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
+import { ChatMetadataStore } from '../../../participant/chatMetadata';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -36,6 +37,12 @@ const loadedConnection = {
   storageLocation: StorageLocation.NONE,
   secretStorageLocation: SecretStorageLocation.SecretStorage,
   connectionOptions: { connectionString: 'mongodb://localhost' },
+};
+
+const testChatId = 'test-chat-id';
+
+const encodeStringify = (obj: Record<string, any>): string => {
+  return encodeURIComponent(JSON.stringify(obj));
 };
 
 suite('Participant Controller Test Suite', function () {
@@ -51,6 +58,7 @@ suite('Participant Controller Test Suite', function () {
   let testParticipantController: ParticipantController;
   let chatContextStub: vscode.ChatContext;
   let chatStreamStub: {
+    push: sinon.SinonSpy;
     markdown: sinon.SinonSpy;
     button: sinon.SinonSpy;
   };
@@ -84,6 +92,7 @@ suite('Participant Controller Test Suite', function () {
       storageController: testStorageController,
       telemetryService: testTelemetryService,
     });
+    sinon.replace(ChatMetadataStore, 'createNewChatId', () => testChatId);
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
       storageController: testStorageController,
@@ -100,6 +109,7 @@ suite('Participant Controller Test Suite', function () {
       ],
     };
     chatStreamStub = {
+      push: sinon.fake(),
       markdown: sinon.fake(),
       button: sinon.fake(),
     };
@@ -205,14 +215,17 @@ suite('Participant Controller Test Suite', function () {
         "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
+      const expectedContent = encodeStringify({ id: 'id', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        '- <a href="command:mdb.connectWithParticipant?%5B%22id%22%5D">localhost</a>'
+        `- <a href="command:mdb.connectWithParticipant?${expectedContent}">localhost</a>`
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(2).args[0];
       expect(showMoreMessage.value).to.include(
-        '- <a href="command:mdb.connectWithParticipant">Show more</a>'
+        `- <a href="command:mdb.connectWithParticipant?${encodeStringify({
+          command: '/query',
+        })}">Show more</a>`
       );
-      expect(chatResult?.metadata?.chatId.length).to.equal(36);
+      expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
       expect({
         ...chatResult?.metadata,
         chatId: undefined,
@@ -243,15 +256,18 @@ suite('Participant Controller Test Suite', function () {
         "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
+      const expectedContent = encodeStringify({ id: 'id0', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        '- <a href="command:mdb.connectWithParticipant?%5B%22id0%22%5D">localhost0</a>'
+        `- <a href="command:mdb.connectWithParticipant?${expectedContent}">localhost0</a>`
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(11).args[0];
       expect(showMoreMessage.value).to.include(
-        '- <a href="command:mdb.connectWithParticipant">Show more</a>'
+        `- <a href="command:mdb.connectWithParticipant?${encodeStringify({
+          command: '/query',
+        })}">Show more</a>`
       );
       expect(chatStreamStub.markdown.callCount).to.be.eql(12);
-      expect(chatResult?.metadata?.chatId.length).to.equal(36);
+      expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
       expect({
         ...chatResult?.metadata,
         chatId: undefined,
@@ -278,14 +294,17 @@ suite('Participant Controller Test Suite', function () {
         "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against"
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(4).args[0];
+      const expectedContent = encodeStringify({ id: 'id', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        '- <a href="command:mdb.connectWithParticipant?%5B%22id%22%5D">localhost</a>'
+        `- <a href="command:mdb.connectWithParticipant?${expectedContent}">localhost</a>`
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(5).args[0];
       expect(showMoreMessage.value).to.include(
-        '- <a href="command:mdb.connectWithParticipant">Show more</a>'
+        `- <a href="command:mdb.connectWithParticipant?${encodeStringify({
+          command: '/query',
+        })}">Show more</a>`
       );
-      expect(chatResult?.metadata?.chatId.length).to.equal(36);
+      expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
       expect({
         ...chatResult?.metadata,
         chatId: undefined,
@@ -296,12 +315,14 @@ suite('Participant Controller Test Suite', function () {
     });
 
     test('calls connect by id for an existing connection', async function () {
-      await testParticipantController.connectWithParticipant('123');
+      await testParticipantController.connectWithParticipant({
+        id: '123',
+      });
       expect(connectWithConnectionIdStub).to.have.been.calledWithExactly('123');
     });
 
     test('calls connect with uri for a new connection', async function () {
-      await testParticipantController.connectWithParticipant();
+      await testParticipantController.connectWithParticipant({});
       expect(changeActiveConnectionStub).to.have.been.called;
     });
   });
@@ -711,21 +732,27 @@ suite('Participant Controller Test Suite', function () {
               'What is the name of the database you would like this query to run against?'
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
+            const expectedContent = encodeStringify({
+              command: '/query',
+              chatId: testChatId,
+              databaseName: 'dbOne',
+            });
             expect(listDBsMessage.value).to.include(
-              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId'
-            );
-            expect(listDBsMessage.value).to.include(
-              'databaseName%2522%253A%2522dbOne%2522%257D%22%5D">dbOne</a>'
+              `- <a href="command:mdb.selectDatabaseWithParticipant?${expectedContent}">dbOne</a>`
             );
             const showMoreDBsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreDBsMessage.value).to.include(
-              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId%252'
+              `- <a href="command:mdb.selectDatabaseWithParticipant?${encodeStringify(
+                { command: '/query', chatId: testChatId }
+              )}">Show more</a>`
             );
-            expect(showMoreDBsMessage.value).to.include('">Show more</a>');
+            expect(showMoreDBsMessage.value).to.include('"');
             expect(chatStreamStub.markdown.callCount).to.be.eql(12);
             const firstChatId = chatResult?.metadata?.chatId;
-            expect(chatResult?.metadata?.chatId.length).to.equal(36);
+            expect(chatResult?.metadata?.chatId.length).to.equal(
+              testChatId.length
+            );
             expect({
               ...chatResult?.metadata,
               chatId: undefined,
@@ -778,22 +805,30 @@ suite('Participant Controller Test Suite', function () {
             const askForCollMessage =
               chatStreamStub.markdown.getCall(12).args[0];
             expect(askForCollMessage).to.include(
-              'Which collection would you like to query within dbOne?'
+              'Which collection would you like to use within dbOne?'
             );
             const listCollsMessage =
               chatStreamStub.markdown.getCall(13).args[0];
+            const expectedCollsContent = encodeStringify({
+              command: '/query',
+              chatId: testChatId,
+              databaseName: 'dbOne',
+              collectionName: 'collOne',
+            });
             expect(listCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
-            );
-            expect(listCollsMessage.value).to.include(
-              '52C%2522collectionName%2522%253A%2522collOne%2522%257D%22%5D">collOne</a>'
+              `- <a href="command:mdb.selectCollectionWithParticipant?${expectedCollsContent}">collOne</a>`
             );
             const showMoreCollsMessage =
               chatStreamStub.markdown.getCall(23).args[0];
             expect(showMoreCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
+              `- <a href="command:mdb.selectCollectionWithParticipant?${encodeStringify(
+                {
+                  command: '/query',
+                  chatId: testChatId,
+                  databaseName: 'dbOne',
+                }
+              )}">Show more</a>`
             );
-            expect(showMoreCollsMessage.value).to.include('">Show more</a>');
             expect(chatStreamStub.markdown.callCount).to.be.eql(24);
             expect(chatResult2?.metadata?.chatId).to.equal(firstChatId);
             expect({
@@ -939,15 +974,23 @@ suite('Participant Controller Test Suite', function () {
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listDBsMessage.value).to.include(
-              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId'
-            );
-            expect(listDBsMessage.value).to.include(
-              'databaseName%2522%253A%2522dbOne%2522%257D%22%5D">dbOne</a>'
+              `- <a href="command:mdb.selectDatabaseWithParticipant?${encodeStringify(
+                {
+                  command: '/query',
+                  chatId: 'pineapple',
+                  databaseName: 'dbOne',
+                }
+              )}">dbOne</a>`
             );
             const showMoreDBsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreDBsMessage.value).to.include(
-              '- <a href="command:mdb.selectDatabaseWithParticipant?%5B%22%257B%2522chatId%252'
+              `- <a href="command:mdb.selectDatabaseWithParticipant?${encodeStringify(
+                {
+                  command: '/query',
+                  chatId: 'pineapple',
+                }
+              )}">Show more</a>`
             );
             expect({
               ...chatResult?.metadata,
@@ -1033,15 +1076,25 @@ suite('Participant Controller Test Suite', function () {
             );
             const listCollsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
-            );
-            expect(listCollsMessage.value).to.include(
-              '52C%2522collectionName%2522%253A%2522collOne%2522%257D%22%5D">collOne</a>'
+              `- <a href="command:mdb.selectCollectionWithParticipant?${encodeStringify(
+                {
+                  command: '/query',
+                  chatId: 'pineapple',
+                  databaseName: 'dbOne',
+                  collectionName: 'collOne',
+                }
+              )}">collOne</a>`
             );
             const showMoreCollsMessage =
-              chatStreamStub.markdown.getCall(1).args[0];
+              chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreCollsMessage.value).to.include(
-              '- <a href="command:mdb.selectCollectionWithParticipant?%5B%22%257B%2522chatId%2522%253A%2522'
+              `- <a href="command:mdb.selectCollectionWithParticipant?${encodeStringify(
+                {
+                  command: '/query',
+                  chatId: 'pineapple',
+                  databaseName: 'dbOne',
+                }
+              )}">Show more</a>`
             );
             expect({
               ...chatResult?.metadata,
@@ -1052,6 +1105,121 @@ suite('Participant Controller Test Suite', function () {
               databaseName: 'dbOne',
               chatId: undefined,
             });
+          });
+        });
+      });
+
+      suite('schema command', function () {
+        suite('known namespace from running namespace LLM', function () {
+          beforeEach(function () {
+            sendRequestStub.onCall(0).resolves({
+              text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
+            });
+          });
+
+          test('shows a button to view the json output', async function () {
+            const chatRequestMock = {
+              prompt: '',
+              command: 'schema',
+              references: [],
+            };
+            sampleStub.resolves([
+              {
+                _id: new ObjectId('63ed1d522d8573fa5c203660'),
+              },
+            ]);
+            await invokeChatHandler(chatRequestMock);
+            const expectedSchema = `{
+  "count": 1,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
+      ],
+      "count": 1,
+      "type": "ObjectId",
+      "probability": 1,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 1,
+          "probability": 1,
+          "bsonType": "ObjectId"
+        }
+      ]
+    }
+  ]
+}`;
+            expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
+              command: 'mdb.participantViewRawSchemaOutput',
+              title: 'Open JSON Output',
+              arguments: [
+                {
+                  schema: expectedSchema,
+                },
+              ],
+            });
+          });
+
+          test("includes the collection's schema in the request", async function () {
+            sampleStub.resolves([
+              {
+                _id: new ObjectId('63ed1d522d8573fa5c203660'),
+                field: {
+                  stringField:
+                    'There was a house cat who finally got the chance to do what it had always wanted to do.',
+                  arrayField: [new Int32('1')],
+                },
+              },
+              {
+                _id: new ObjectId('63ed1d522d8573fa5c203660'),
+                field: {
+                  stringField: 'Pineapple.',
+                  arrayField: [new Int32('166')],
+                },
+              },
+            ]);
+            const chatRequestMock = {
+              prompt: '',
+              command: 'schema',
+              references: [],
+            };
+            await invokeChatHandler(chatRequestMock);
+            const messages = sendRequestStub.secondCall.args[0];
+            expect(messages[0].content).to.include(
+              'Amount of documents sampled: 2'
+            );
+            expect(messages[1].content).to.include(
+              `Database name: dbOne
+Collection name: collOne
+Schema:
+{
+  "count": 2,
+  "fields": [`
+            );
+            expect(messages[1].content).to.include(`"name": "arrayField",
+              "path": [
+                "field",
+                "arrayField"
+              ],`);
+          });
+
+          test('prints a message when no documents are found', async function () {
+            sampleStub.resolves([]);
+            const chatRequestMock = {
+              prompt: '',
+              command: 'schema',
+              references: [],
+            };
+            await invokeChatHandler(chatRequestMock);
+            expect(chatStreamStub?.markdown.getCall(0).args[0]).to.include(
+              'Unable to generate a schema from the collection, no documents found.'
+            );
           });
         });
       });

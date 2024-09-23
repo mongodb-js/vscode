@@ -82,6 +82,7 @@ enum EXTENSION_COMMANDS {
   CONNECT_WITH_PARTICIPANT = 'mdb.connectWithParticipant',
   SELECT_DATABASE_WITH_PARTICIPANT = 'mdb.selectDatabaseWithParticipant',
   SELECT_COLLECTION_WITH_PARTICIPANT = 'mdb.selectCollectionWithParticipant',
+  PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT = 'mdb.participantViewRawSchemaOutput',
 }
 
 export default EXTENSION_COMMANDS;

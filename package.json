@@ -99,6 +99,11 @@
             "name": "docs",
             "isSticky": true,
             "description": "Ask MongoDB-related questions and find answers in the official documentation."
+          },
+          {
+            "name": "schema",
+            "isSticky": true,
+            "description": "Analyze a collection's schema."
           }
         ]
       }
@@ -176,6 +181,10 @@
       {
         "command": "mdb.selectCollectionWithParticipant",
         "title": "MongoDB: Select Collection with Participant"
+      },
+      {
+        "command": "mdb.participantViewRawSchemaOutput",
+        "title": "MongoDB: View Raw Schema JSON Output"
       },
       {
         "command": "mdb.connectWithParticipant",
@@ -745,6 +754,10 @@
         },
         {
           "command": "mdb.selectCollectionWithParticipant",
+          "when": "false"
+        },
+        {
+          "command": "mdb.participantViewRawSchemaOutput",
           "when": "false"
         },
         {

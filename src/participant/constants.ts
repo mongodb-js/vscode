@@ -100,3 +100,9 @@ export function docsRequestChatResult({
     },
   };
 }
+
+export function schemaRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('schema', history);
+}
