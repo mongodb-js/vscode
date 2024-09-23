@@ -20,6 +20,7 @@ import {
   queryRequestChatResult,
   docsRequestChatResult,
   schemaRequestChatResult,
+  createCancelledRequestChatResult,
 } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
@@ -241,10 +242,6 @@ export default class ParticipantController {
       context,
     });
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
     const responseContent = await this.getChatResponseContent({
       messages,
       token,
@@ -667,20 +664,32 @@ export default class ParticipantController {
     return askToConnectChatResult(context.history);
   }
 
+  _handleCancelledRequest({
+    context,
+    stream,
+  }: {
+    context: vscode.ChatContext;
+    stream: vscode.ChatResponseStream;
+  }): ChatResult {
+    stream.markdown('\nRequest cancelled.');
+
+    return createCancelledRequestChatResult(context.history);
+  }
+
   // The sample documents returned from this are simplified (strings and arrays shortened).
   // The sample documents are only returned when a user has the setting enabled.
   async _fetchCollectionSchemaAndSampleDocuments({
-    abortSignal,
     databaseName,
     collectionName,
     amountOfDocumentsToSample = NUM_DOCUMENTS_TO_SAMPLE,
     schemaFormat = 'simplified',
+    token,
   }: {
-    abortSignal;
     databaseName: string;
     collectionName: string;
     amountOfDocumentsToSample?: number;
     schemaFormat?: 'simplified' | 'full';
+    token: vscode.CancellationToken;
   }): Promise<{
     schema?: string;
     sampleDocuments?: Document[];
@@ -693,6 +702,11 @@ export default class ParticipantController {
       };
     }
 
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
+
     try {
       const sampleDocuments = await dataService.sample(
         `${databaseName}.${collectionName}`,
@@ -702,7 +716,7 @@ export default class ParticipantController {
         },
         { promoteValues: false },
         {
-          abortSignal,
+          abortSignal: abortController.signal,
         }
       );
 
@@ -836,10 +850,12 @@ export default class ParticipantController {
       });
     }
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+        stream,
+      });
+    }
 
     stream.push(
       new vscode.ChatResponseProgressPart(
@@ -856,11 +872,11 @@ export default class ParticipantController {
         amountOfDocumentsSampled, // There can be fewer than the amount we attempt to sample.
         schema,
       } = await this._fetchCollectionSchemaAndSampleDocuments({
-        abortSignal: abortController.signal,
         databaseName,
         schemaFormat: 'full',
         collectionName,
         amountOfDocumentsToSample: DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT,
+        token,
       }));
 
       if (!schema || amountOfDocumentsSampled === 0) {
@@ -958,19 +974,21 @@ export default class ParticipantController {
       });
     }
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+        stream,
+      });
+    }
 
     let schema: string | undefined;
     let sampleDocuments: Document[] | undefined;
     try {
       ({ schema, sampleDocuments } =
         await this._fetchCollectionSchemaAndSampleDocuments({
-          abortSignal: abortController.signal,
           databaseName,
           collectionName,
+          token,
         }));
     } catch (e) {
       // When an error fetching the collection schema or sample docs occurs,
@@ -1012,9 +1030,11 @@ export default class ParticipantController {
   async _handleDocsRequestWithChatbot({
     prompt,
     chatId,
+    token,
   }: {
     prompt: string;
     chatId: string;
+    token: vscode.CancellationToken;
   }): Promise<{
     responseContent: string;
     responseReferences?: Reference[];
@@ -1022,9 +1042,14 @@ export default class ParticipantController {
   }> {
     let { docsChatbotConversationId } =
       this._chatMetadataStore.getChatMetadata(chatId) ?? {};
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
     if (!docsChatbotConversationId) {
-      const conversation =
-        await this._docsChatbotAIService.createConversation();
+      const conversation = await this._docsChatbotAIService.createConversation({
+        signal: abortController.signal,
+      });
       docsChatbotConversationId = conversation._id;
       this._chatMetadataStore.setChatMetadata(chatId, {
         docsChatbotConversationId,
@@ -1035,6 +1060,7 @@ export default class ParticipantController {
     const response = await this._docsChatbotAIService.addMessage({
       message: prompt,
       conversationId: docsChatbotConversationId,
+      signal: abortController.signal,
     });
 
     log.info('Docs chatbot message sent', {
@@ -1067,10 +1093,6 @@ export default class ParticipantController {
       context,
     });
 
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
     const responseContent = await this.getChatResponseContent({
       messages,
       token,
@@ -1096,11 +1118,7 @@ export default class ParticipantController {
       vscode.CancellationToken
     ]
   ): Promise<ChatResult> {
-    const [request, context, stream, token] = args;
-    const abortController = new AbortController();
-    token.onCancellationRequested(() => {
-      abortController.abort();
-    });
+    const [request, context, stream] = args;
 
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
       context.history
@@ -1115,11 +1133,20 @@ export default class ParticipantController {
       docsResult = await this._handleDocsRequestWithChatbot({
         prompt: request.prompt,
         chatId,
+        token: args[3],
       });
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
       log.error(error);
+
+      if (args[3].isCancellationRequested) {
+        return this._handleCancelledRequest({
+          context,
+          stream: args[2],
+        });
+      }
+
       this._telemetryService.track(
         TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
         {
