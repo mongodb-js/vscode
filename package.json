@@ -284,7 +284,7 @@
       },
       {
         "command": "mdb.exportCodeToPlayground",
-        "title": "Run Code in Playground"
+        "title": "Export Code to Playground"
       },
       {
         "command": "mdb.exportToPython",
