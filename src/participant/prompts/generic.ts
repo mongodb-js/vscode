@@ -41,13 +41,11 @@ Rules:
     };
     context: vscode.ChatContext;
   }): vscode.LanguageModelChatMessage[] {
-    const messages = [
+    return [
       GenericPrompt.getAssistantPrompt(),
       ...getHistoryMessages({ context }),
       GenericPrompt.getUserPrompt(request.prompt),
     ];
-
-    return messages;
   }
 }
 

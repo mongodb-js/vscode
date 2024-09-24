@@ -53,13 +53,11 @@ Docs
     };
     context: vscode.ChatContext;
   }): vscode.LanguageModelChatMessage[] {
-    const messages = [
+    return [
       IntentPrompt.getAssistantPrompt(),
       ...getHistoryMessages({ context }),
       IntentPrompt.getUserPrompt(request.prompt),
     ];
-
-    return messages;
   }
 
   static getIntentFromModelResponse(response: string): PromptIntent {
