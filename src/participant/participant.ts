@@ -1118,7 +1118,7 @@ export default class ParticipantController {
       vscode.CancellationToken
     ]
   ): Promise<ChatResult> {
-    const [request, context, stream] = args;
+    const [request, context, stream, token] = args;
 
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
       context.history
@@ -1133,17 +1133,17 @@ export default class ParticipantController {
       docsResult = await this._handleDocsRequestWithChatbot({
         prompt: request.prompt,
         chatId,
-        token: args[3],
+        token,
       });
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
       log.error(error);
 
-      if (args[3].isCancellationRequested) {
+      if (token.isCancellationRequested) {
         return this._handleCancelledRequest({
           context,
-          stream: args[2],
+          stream,
         });
       }
 

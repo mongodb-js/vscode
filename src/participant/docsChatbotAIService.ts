@@ -54,7 +54,7 @@ export class DocsChatbotAIService {
     return `${this._serverBaseUri}api/${MONGODB_DOCS_CHATBOT_API_VERSION}${path}`;
   }
 
-  async _fetch({
+  _fetch({
     uri,
     method,
     body,
@@ -67,7 +67,7 @@ export class DocsChatbotAIService {
     body?: string;
     headers?: { [key: string]: string };
   }): Promise<Response> {
-    return await fetch(uri, {
+    return fetch(uri, {
       headers: {
         origin: this._serverBaseUri,
         'User-Agent': `mongodb-vscode/${version}`,
