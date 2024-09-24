@@ -1,14 +1,22 @@
 import * as vscode from 'vscode';
 
-import { getHistoryMessages } from './history';
 import type { ChatResult } from '../constants';
+import type { PromptArgsBase } from './promptBase';
+import { PromptBase } from './promptBase';
 
-export const DB_NAME_ID = 'DATABASE_NAME';
-export const COL_NAME_ID = 'COLLECTION_NAME';
+const DB_NAME_ID = 'DATABASE_NAME';
+const COL_NAME_ID = 'COLLECTION_NAME';
 
-export class NamespacePrompt {
-  static getAssistantPrompt(): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert.
+const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)`;
+const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
+
+interface NamespacePromptArgs extends PromptArgsBase {
+  connectionNames: string[];
+}
+
+export class NamespacePrompt extends PromptBase<NamespacePromptArgs> {
+  protected getAssistantPrompt(): string {
+    return `You are a MongoDB expert.
 Parse all user messages to find a database name and a collection name.
 Respond in the format:
 ${DB_NAME_ID}: X
@@ -39,44 +47,31 @@ User: Where is the best hummus in Berlin?
 Response:
 No names found.
 `;
-
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.Assistant(prompt);
   }
 
-  static getUserPrompt(prompt: string): vscode.LanguageModelChatMessage {
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(prompt);
+  protected getUserPrompt(args: NamespacePromptArgs): Promise<string> {
+    return Promise.resolve(args.request.prompt);
   }
 
-  static buildMessages({
-    context,
-    request,
-    connectionNames,
-  }: {
-    request: {
-      prompt: string;
-    };
-    context: vscode.ChatContext;
-    connectionNames: string[];
-  }): vscode.LanguageModelChatMessage[] {
-    let historyMessages = getHistoryMessages({ context, connectionNames });
+  async buildMessages(
+    args: NamespacePromptArgs
+  ): Promise<vscode.LanguageModelChatMessage[]> {
+    let historyMessages = this.getHistoryMessages(args);
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
-    let userPrompt = request.prompt;
-    if (connectionNames.includes(request.prompt)) {
-      const previousResponse = context.history[
-        context.history.length - 1
+    if (args.connectionNames.includes(args.request.prompt)) {
+      const previousResponse = args.context.history[
+        args.context.history.length - 1
       ] as vscode.ChatResponseTurn;
-      const intent = (previousResponse?.result as ChatResult).metadata.intent;
+      const intent = (previousResponse?.result as ChatResult)?.metadata.intent;
       if (intent === 'askToConnect') {
         // Go through the history in reverse order to find the last user message.
         for (let i = historyMessages.length - 1; i >= 0; i--) {
           if (
             historyMessages[i].role === vscode.LanguageModelChatMessageRole.User
           ) {
-            userPrompt = historyMessages[i].content;
+            args.request.prompt = historyMessages[i].content;
             // Remove the item from the history messages array.
             historyMessages = historyMessages.slice(0, i);
             break;
@@ -85,12 +80,21 @@ No names found.
       }
     }
 
-    const messages = [
-      NamespacePrompt.getAssistantPrompt(),
+    return [
+      // eslint-disable-next-line new-cap
+      vscode.LanguageModelChatMessage.Assistant(this.getAssistantPrompt()),
       ...historyMessages,
-      NamespacePrompt.getUserPrompt(userPrompt),
+      // eslint-disable-next-line new-cap
+      vscode.LanguageModelChatMessage.User(await this.getUserPrompt(args)),
     ];
+  }
 
-    return messages;
+  extractDatabaseAndCollectionNameFromResponse(text: string): {
+    databaseName?: string;
+    collectionName?: string;
+  } {
+    const databaseName = text.match(DB_NAME_REGEX)?.[1].trim();
+    const collectionName = text.match(COL_NAME_REGEX)?.[1].trim();
+    return { databaseName, collectionName };
   }
 }

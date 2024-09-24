@@ -7,7 +7,6 @@ import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
 
 import ParticipantController, {
-  parseForDatabaseAndCollectionName,
   getRunnableContentFromString,
 } from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
@@ -26,6 +25,7 @@ import {
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
+import { Prompts } from '../../../participant/prompts';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -153,7 +153,7 @@ suite('Participant Controller Test Suite', function () {
   test('parses a returned by ai text for database and collection name', function () {
     const text = 'DATABASE_NAME: my  \nCOLLECTION_NAME: cats';
     const { databaseName, collectionName } =
-      parseForDatabaseAndCollectionName(text);
+      Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(text);
     expect(databaseName).to.be.equal('my');
     expect(collectionName).to.be.equal('cats');
   });

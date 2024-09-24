@@ -15,9 +15,8 @@ export type ParticipantResponseType =
   | 'askForNamespace';
 
 interface Metadata {
-  intent: Exclude<ParticipantResponseType, 'askForNamespace'>;
+  intent: Exclude<ParticipantResponseType, 'askForNamespace' | 'docs'>;
   chatId: string;
-  docsChatbotMessageId?: string;
 }
 
 interface AskForNamespaceMetadata {
@@ -27,8 +26,14 @@ interface AskForNamespaceMetadata {
   collectionName?: string | undefined;
 }
 
+interface DocsRequestMetadata {
+  intent: 'docs';
+  chatId: string;
+  docsChatbotMessageId?: string;
+}
+
 export interface ChatResult extends vscode.ChatResult {
-  readonly metadata: Metadata | AskForNamespaceMetadata;
+  readonly metadata: Metadata | AskForNamespaceMetadata | DocsRequestMetadata;
 }
 
 export function namespaceRequestChatResult({
