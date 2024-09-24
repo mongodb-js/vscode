@@ -231,14 +231,6 @@ export default class ParticipantController {
     }
   }
 
-  _handleCancelledRequest({
-    context,
-  }: {
-    context: vscode.ChatContext;
-  }): ChatResult {
-    return createCancelledRequestChatResult(context.history);
-  }
-
   async _handleRoutedGenericRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
@@ -337,6 +329,7 @@ export default class ParticipantController {
     if (token.isCancellationRequested) {
       return this._handleCancelledRequest({
         context,
+        stream,
       });
     }
 
@@ -539,24 +532,30 @@ export default class ParticipantController {
     ) as Promise<boolean>;
   }
 
-  async getDatabasesTree({
+  async renderDatabasesTree({
     command,
     context,
+    stream,
   }: {
     command: ParticipantCommand;
     context: vscode.ChatContext;
-  }): Promise<vscode.MarkdownString[]> {
+    stream: vscode.ChatResponseStream;
+  }): Promise<void> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      return [];
+      return;
     }
+
+    stream.push(
+      new vscode.ChatResponseProgressPart('Fetching database names...')
+    );
 
     try {
       const databases = await dataService.listDatabases({
         nameOnly: true,
       });
-      return [
-        ...databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((db) =>
+      databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((db) =>
+        stream.markdown(
           createMarkdownLink({
             commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
             data: {
@@ -568,46 +567,54 @@ export default class ParticipantController {
             },
             name: db.name,
           })
-        ),
-        ...(databases.length > MAX_MARKDOWN_LIST_LENGTH
-          ? [
-              createMarkdownLink({
-                data: {
-                  command,
-                  chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-                    context.history
-                  ),
-                },
-                commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-                name: 'Show more',
-              }),
-            ]
-          : []),
-      ];
+        )
+      );
+      if (databases.length > MAX_MARKDOWN_LIST_LENGTH) {
+        stream.markdown(
+          createMarkdownLink({
+            data: {
+              command,
+              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                context.history
+              ),
+            },
+            commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+            name: 'Show more',
+          })
+        );
+      }
     } catch (error) {
+      log.error('Unable to fetch databases:', error);
+
       // Users can always do this manually when asked to provide a database name.
-      return [];
+      return;
     }
   }
 
-  async getCollectionTree({
+  async renderCollectionsTree({
     command,
     context,
     databaseName,
+    stream,
   }: {
     command: ParticipantCommand;
     databaseName: string;
     context: vscode.ChatContext;
-  }): Promise<vscode.MarkdownString[]> {
+    stream: vscode.ChatResponseStream;
+  }): Promise<void> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      return [];
+      return;
     }
+
+    stream.push(
+      new vscode.ChatResponseProgressPart('Fetching collection names...')
+    );
 
     try {
       const collections = await dataService.listCollections(databaseName);
-      return [
-        ...collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).map((coll) =>
+      collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((coll) =>
+        stream.markdown(
           createMarkdownLink({
             commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
             data: {
@@ -620,27 +627,28 @@ export default class ParticipantController {
             },
             name: coll.name,
           })
-        ),
-        ...(collections.length > MAX_MARKDOWN_LIST_LENGTH
-          ? [
-              createMarkdownLink({
-                commandId:
-                  EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
-                data: {
-                  command,
-                  chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-                    context.history
-                  ),
-                  databaseName,
-                },
-                name: 'Show more',
-              }),
-            ]
-          : []),
-      ];
+        )
+      );
+      if (collections.length > MAX_MARKDOWN_LIST_LENGTH) {
+        stream.markdown(
+          createMarkdownLink({
+            commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+            data: {
+              command,
+              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+                context.history
+              ),
+              databaseName,
+            },
+            name: 'Show more',
+          })
+        );
+      }
     } catch (error) {
+      log.error('Unable to fetch collections:', error);
+
       // Users can always do this manually when asked to provide a collection name.
-      return [];
+      return;
     }
   }
 
@@ -704,30 +712,26 @@ export default class ParticipantController {
     // we retrieve the available namespaces from the current connection.
     // Users can then select a value by clicking on an item in the list.
     if (!databaseName) {
-      const tree = await this.getDatabasesTree({
-        command,
-        context,
-      });
       stream.markdown(
         `What is the name of the database you would like${
           command === '/query' ? ' this query' : ''
         } to run against?\n\n`
       );
-      for (const item of tree) {
-        stream.markdown(item);
-      }
-    } else if (!collectionName) {
-      const tree = await this.getCollectionTree({
+      await this.renderDatabasesTree({
         command,
-        databaseName,
         context,
+        stream,
       });
+    } else if (!collectionName) {
       stream.markdown(
         `Which collection would you like to use within ${databaseName}?\n\n`
       );
-      for (const item of tree) {
-        stream.markdown(item);
-      }
+      await this.renderCollectionsTree({
+        command,
+        databaseName,
+        context,
+        stream,
+      });
     }
 
     return namespaceRequestChatResult({
@@ -757,6 +761,18 @@ export default class ParticipantController {
     return askToConnectChatResult(context.history);
   }
 
+  _handleCancelledRequest({
+    context,
+    stream,
+  }: {
+    context: vscode.ChatContext;
+    stream: vscode.ChatResponseStream;
+  }): ChatResult {
+    stream.markdown('\nRequest cancelled.');
+
+    return createCancelledRequestChatResult(context.history);
+  }
+
   // The sample documents returned from this are simplified (strings and arrays shortened).
   // The sample documents are only returned when a user has the setting enabled.
   async _fetchCollectionSchemaAndSampleDocuments({
@@ -765,12 +781,14 @@ export default class ParticipantController {
     amountOfDocumentsToSample = NUM_DOCUMENTS_TO_SAMPLE,
     schemaFormat = 'simplified',
     token,
+    stream,
   }: {
     databaseName: string;
     collectionName: string;
     amountOfDocumentsToSample?: number;
     schemaFormat?: 'simplified' | 'full';
     token: vscode.CancellationToken;
+    stream: vscode.ChatResponseStream;
   }): Promise<{
     schema?: string;
     sampleDocuments?: Document[];
@@ -782,6 +800,12 @@ export default class ParticipantController {
         amountOfDocumentsSampled: 0,
       };
     }
+
+    stream.push(
+      new vscode.ChatResponseProgressPart(
+        'Fetching documents and analyzing schema...'
+      )
+    );
 
     const abortController = new AbortController();
     token.onCancellationRequested(() => {
@@ -795,7 +819,7 @@ export default class ParticipantController {
           query: {},
           size: amountOfDocumentsToSample,
         },
-        { promoteValues: false },
+        { promoteValues: false, maxTimeMS: 10_000 },
         {
           abortSignal: abortController.signal,
         }
@@ -830,7 +854,7 @@ export default class ParticipantController {
         amountOfDocumentsSampled: sampleDocuments.length,
       };
     } catch (err: any) {
-      log.error('Unable to fetch schema and sample documents', err);
+      log.error('Unable to fetch schema and sample documents:', err);
       throw err;
     }
   }
@@ -854,7 +878,6 @@ export default class ParticipantController {
 
     // When the last message was asking for a database or collection name,
     // we re-ask the question.
-    let tree: vscode.MarkdownString[];
     const databaseName = lastMessage.metadata.databaseName;
     if (databaseName) {
       stream.markdown(
@@ -862,10 +885,11 @@ export default class ParticipantController {
           'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
         )
       );
-      tree = await this.getCollectionTree({
+      await this.renderCollectionsTree({
         command,
         databaseName,
         context,
+        stream,
       });
     } else {
       stream.markdown(
@@ -873,14 +897,11 @@ export default class ParticipantController {
           'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
         )
       );
-      tree = await this.getDatabasesTree({
+      await this.renderDatabasesTree({
         command,
         context,
+        stream,
       });
-    }
-
-    for (const item of tree) {
-      stream.markdown(item);
     }
 
     return namespaceRequestChatResult({
@@ -934,6 +955,7 @@ export default class ParticipantController {
     if (token.isCancellationRequested) {
       return this._handleCancelledRequest({
         context,
+        stream,
       });
     }
 
@@ -957,6 +979,7 @@ export default class ParticipantController {
         collectionName,
         amountOfDocumentsToSample: DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT,
         token,
+        stream,
       }));
 
       if (!schema || amountOfDocumentsSampled === 0) {
@@ -1057,6 +1080,7 @@ export default class ParticipantController {
     if (token.isCancellationRequested) {
       return this._handleCancelledRequest({
         context,
+        stream,
       });
     }
 
@@ -1068,6 +1092,7 @@ export default class ParticipantController {
           databaseName,
           collectionName,
           token,
+          stream,
         }));
     } catch (e) {
       // When an error fetching the collection schema or sample docs occurs,
@@ -1075,7 +1100,7 @@ export default class ParticipantController {
       // we do want to notify the user.
       stream.markdown(
         vscode.l10n.t(
-          'An error occurred while fetching the collection schema and sample documents.\nThe generated query will not be able to reference your data.'
+          'An error occurred while fetching the collection schema and sample documents.\nThe generated query will not be able to reference the shape of your data.'
         )
       );
     }
@@ -1109,19 +1134,32 @@ export default class ParticipantController {
   async _handleDocsRequestWithChatbot({
     prompt,
     chatId,
+    token,
+    stream,
   }: {
     prompt: string;
     chatId: string;
+    token: vscode.CancellationToken;
+    stream: vscode.ChatResponseStream;
   }): Promise<{
     responseContent: string;
     responseReferences?: Reference[];
     docsChatbotMessageId: string;
   }> {
+    stream.push(
+      new vscode.ChatResponseProgressPart('Consulting MongoDB documentation...')
+    );
+
     let { docsChatbotConversationId } =
       this._chatMetadataStore.getChatMetadata(chatId) ?? {};
+    const abortController = new AbortController();
+    token.onCancellationRequested(() => {
+      abortController.abort();
+    });
     if (!docsChatbotConversationId) {
-      const conversation =
-        await this._docsChatbotAIService.createConversation();
+      const conversation = await this._docsChatbotAIService.createConversation({
+        signal: abortController.signal,
+      });
       docsChatbotConversationId = conversation._id;
       this._chatMetadataStore.setChatMetadata(chatId, {
         docsChatbotConversationId,
@@ -1132,6 +1170,7 @@ export default class ParticipantController {
     const response = await this._docsChatbotAIService.addMessage({
       message: prompt,
       conversationId: docsChatbotConversationId,
+      signal: abortController.signal,
     });
 
     log.info('Docs chatbot message sent', {
@@ -1189,7 +1228,7 @@ export default class ParticipantController {
       vscode.CancellationToken
     ]
   ): Promise<ChatResult> {
-    const [request, context, stream] = args;
+    const [request, context, stream, token] = args;
 
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
       context.history
@@ -1204,11 +1243,29 @@ export default class ParticipantController {
       docsResult = await this._handleDocsRequestWithChatbot({
         prompt: request.prompt,
         chatId,
+        token,
+        stream,
       });
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
       log.error(error);
+
+      if (token.isCancellationRequested) {
+        return this._handleCancelledRequest({
+          context,
+          stream,
+        });
+      }
+
+      this._telemetryService.track(
+        TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
+        {
+          command: 'docs',
+          error_name: ParticipantErrorTypes.DOCS_CHATBOT_API,
+        }
+      );
+
       docsResult = await this._handleDocsRequestWithCopilot(...args);
     }
 
@@ -1252,9 +1309,9 @@ export default class ParticipantController {
       if (!hasBeenShownWelcomeMessageAlready) {
         stream.markdown(
           vscode.l10n.t(`
-  Welcome to MongoDB Participant!\n\n
-  Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
-  Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.\n\n`)
+Welcome to MongoDB Participant!\n\n
+Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
+Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.\n\n`)
         );
 
         this._telemetryService.track(

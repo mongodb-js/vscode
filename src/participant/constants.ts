@@ -50,6 +50,12 @@ export function namespaceRequestChatResult({
   };
 }
 
+export function createCancelledRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('cancelledRequest', history);
+}
+
 function createChatResult(
   intent: ParticipantResponseType,
   history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
@@ -60,12 +66,6 @@ function createChatResult(
       chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(history),
     },
   };
-}
-
-export function createCancelledRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
-): ChatResult {
-  return createChatResult('cancelledRequest', history);
 }
 
 export function emptyRequestChatResult(

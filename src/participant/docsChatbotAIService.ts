@@ -54,14 +54,16 @@ export class DocsChatbotAIService {
     return `${this._serverBaseUri}api/${MONGODB_DOCS_CHATBOT_API_VERSION}${path}`;
   }
 
-  async _fetch({
+  _fetch({
     uri,
     method,
     body,
+    signal,
     headers,
   }: {
     uri: string;
     method: string;
+    signal?: AbortSignal;
     body?: string;
     headers?: { [key: string]: string };
   }): Promise<Response> {
@@ -72,15 +74,21 @@ export class DocsChatbotAIService {
         ...headers,
       },
       method,
+      signal,
       ...(body && { body }),
     });
   }
 
-  async createConversation(): Promise<ConversationData> {
+  async createConversation({
+    signal,
+  }: {
+    signal: AbortSignal;
+  }): Promise<ConversationData> {
     const uri = this.getUri('/conversations');
     const res = await this._fetch({
       uri,
       method: 'POST',
+      signal,
     });
 
     let data;
@@ -113,9 +121,11 @@ export class DocsChatbotAIService {
   async addMessage({
     conversationId,
     message,
+    signal,
   }: {
     conversationId: string;
     message: string;
+    signal: AbortSignal;
   }): Promise<MessageData> {
     const uri = this.getUri(`/conversations/${conversationId}/messages`);
     const res = await this._fetch({
@@ -123,6 +133,7 @@ export class DocsChatbotAIService {
       method: 'POST',
       body: JSON.stringify({ message }),
       headers: { 'Content-Type': 'application/json' },
+      signal,
     });
 
     let data;

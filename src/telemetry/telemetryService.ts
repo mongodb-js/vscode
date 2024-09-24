@@ -105,7 +105,7 @@ type ParticipantFeedbackProperties = {
 type ParticipantResponseFailedProperties = {
   command: string;
   error_code?: string;
-  error_name: string;
+  error_name: ParticipantErrorTypes;
 };
 
 export function chatResultFeedbackKindToTelemetryValue(
@@ -167,6 +167,7 @@ export enum ParticipantErrorTypes {
   INVALID_PROMPT = 'Invalid Prompt',
   FILTERED = 'Filtered by Responsible AI Service',
   OTHER = 'Other',
+  DOCS_CHATBOT_API = 'Docs Chatbot API Issue',
 }
 
 /**
