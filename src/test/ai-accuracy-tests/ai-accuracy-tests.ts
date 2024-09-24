@@ -20,7 +20,7 @@ import {
   type TestResult,
 } from './create-test-results-html-page';
 import { NamespacePrompt } from '../../participant/prompts/namespace';
-import { runCodeInMessage } from './assertions';
+import { anyOf, runCodeInMessage } from './assertions';
 import { parseForDatabaseAndCollectionName } from '../../participant/participant';
 import { IntentPrompt } from '../../participant/prompts/intent';
 
@@ -313,12 +313,41 @@ const genericTestCases: (TestCase & {
       const output = await runCodeInMessage(responseContent, connectionString);
       const printOutput = output.printOutput.join('');
 
-      expect(printOutput).to.include('Antiques');
-      expect(printOutput).to.not.include('UFO');
-      expect(printOutput).to.not.include('CookBook');
-      expect(printOutput).to.not.include('pets');
-      expect(printOutput).to.not.include('FarmData');
-      expect(printOutput).to.include('8192'); // The size of the Antiques database.
+      // Don't check the name since they're all the base 8192.
+      expect(printOutput).to.include('8192');
+    },
+  },
+  {
+    testCase: 'Code question with database, collection, and fields named',
+    type: 'generic',
+    userInput:
+      'How many sightings happened in the "year" "2020" and "2021"? database "UFO" collection "sightings". code to just return the one total number. also, the year is a string',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+      anyOf([
+        (): void => {
+          expect(output.printOutput.join('')).to.equal('2');
+        },
+        (): void => {
+          expect(output.data?.result?.content).to.equal('2');
+        },
+        (): void => {
+          expect(output.data?.result?.content).to.equal(2);
+        },
+        (): void => {
+          expect(
+            Object.entries(output.data?.result?.content[0])[0][1]
+          ).to.equal(2);
+        },
+        (): void => {
+          expect(
+            Object.entries(output.data?.result?.content[0])[0][1]
+          ).to.equal('2');
+        },
+      ])(null);
     },
   },
 ];
