@@ -28,7 +28,9 @@ suite('DocsChatbotAIService Test Suite', function () {
         }),
     });
     global.fetch = fetchStub;
-    const conversation = await docsChatbotAIService.createConversation();
+    const conversation = await docsChatbotAIService.createConversation({
+      signal: new AbortController().signal,
+    });
     expect(conversation._id).to.be.eql('650b4b260f975ef031016c8a');
   });
 
@@ -42,10 +44,25 @@ suite('DocsChatbotAIService Test Suite', function () {
     global.fetch = fetchStub;
 
     try {
-      await docsChatbotAIService.createConversation();
+      await docsChatbotAIService.createConversation({
+        signal: new AbortController().signal,
+      });
       expect.fail('It must fail with the server error');
     } catch (error) {
       expect((error as Error).message).to.include('Internal server error');
+    }
+  });
+
+  test('throws when aborted', async () => {
+    try {
+      const abortController = new AbortController();
+      abortController.abort();
+      await docsChatbotAIService.createConversation({
+        signal: abortController.signal,
+      });
+      expect.fail('It must fail with the server error');
+    } catch (error) {
+      expect((error as Error).message).to.include('This operation was aborted');
     }
   });
 
@@ -59,7 +76,9 @@ suite('DocsChatbotAIService Test Suite', function () {
     global.fetch = fetchStub;
 
     try {
-      await docsChatbotAIService.createConversation();
+      await docsChatbotAIService.createConversation({
+        signal: new AbortController().signal,
+      });
       expect.fail('It must fail with the bad request error');
     } catch (error) {
       expect((error as Error).message).to.include('Bad request');
@@ -76,7 +95,9 @@ suite('DocsChatbotAIService Test Suite', function () {
     global.fetch = fetchStub;
 
     try {
-      await docsChatbotAIService.createConversation();
+      await docsChatbotAIService.createConversation({
+        signal: new AbortController().signal,
+      });
       expect.fail('It must fail with the rate limited error');
     } catch (error) {
       expect((error as Error).message).to.include('Rate limited');
@@ -95,6 +116,7 @@ suite('DocsChatbotAIService Test Suite', function () {
       await docsChatbotAIService.addMessage({
         conversationId: '650b4b260f975ef031016c8a',
         message: 'what is mongosh?',
+        signal: new AbortController().signal,
       });
       expect.fail('It must fail with the timeout error');
     } catch (error) {

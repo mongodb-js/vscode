@@ -66,7 +66,7 @@ suite('Participant Controller Test Suite', function () {
   };
   let chatTokenStub;
   let countTokensStub;
-  let sendRequestStub;
+  let sendRequestStub: sinon.SinonStub;
   let telemetryTrackStub: SinonSpy;
 
   const invokeChatHandler = async (
@@ -219,13 +219,13 @@ suite('Participant Controller Test Suite', function () {
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
       const expectedContent = encodeStringify({ id: 'id', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        `- <a href="command:mdb.connectWithParticipant?${expectedContent}">localhost</a>`
+        `- [localhost](command:mdb.connectWithParticipant?${expectedContent})`
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(2).args[0];
       expect(showMoreMessage.value).to.include(
-        `- <a href="command:mdb.connectWithParticipant?${encodeStringify({
+        `- [Show more](command:mdb.connectWithParticipant?${encodeStringify({
           command: '/query',
-        })}">Show more</a>`
+        })})`
       );
       expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
       expect({
@@ -260,13 +260,13 @@ suite('Participant Controller Test Suite', function () {
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
       const expectedContent = encodeStringify({ id: 'id0', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        `- <a href="command:mdb.connectWithParticipant?${expectedContent}">localhost0</a>`
+        `- [localhost0](command:mdb.connectWithParticipant?${expectedContent})`
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(11).args[0];
       expect(showMoreMessage.value).to.include(
-        `- <a href="command:mdb.connectWithParticipant?${encodeStringify({
+        `- [Show more](command:mdb.connectWithParticipant?${encodeStringify({
           command: '/query',
-        })}">Show more</a>`
+        })})`
       );
       expect(chatStreamStub.markdown.callCount).to.be.eql(12);
       expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
@@ -298,13 +298,13 @@ suite('Participant Controller Test Suite', function () {
       const listConnectionsMessage = chatStreamStub.markdown.getCall(4).args[0];
       const expectedContent = encodeStringify({ id: 'id', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        `- <a href="command:mdb.connectWithParticipant?${expectedContent}">localhost</a>`
+        `- [localhost](command:mdb.connectWithParticipant?${expectedContent})`
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(5).args[0];
       expect(showMoreMessage.value).to.include(
-        `- <a href="command:mdb.connectWithParticipant?${encodeStringify({
+        `- [Show more](command:mdb.connectWithParticipant?${encodeStringify({
           command: '/query',
-        })}">Show more</a>`
+        })})`
       );
       expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
       expect({
@@ -401,13 +401,6 @@ suite('Participant Controller Test Suite', function () {
           TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
         );
         expect(telemetryTrackStub.lastCall.args[1]).to.be.undefined;
-
-        telemetryTrackStub
-          .getCalls()
-          .map((call) => call.args[0])
-          .filter(
-            (arg) => arg === TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
-          ).length;
       });
     });
 
@@ -740,16 +733,15 @@ suite('Participant Controller Test Suite', function () {
               databaseName: 'dbOne',
             });
             expect(listDBsMessage.value).to.include(
-              `- <a href="command:mdb.selectDatabaseWithParticipant?${expectedContent}">dbOne</a>`
+              `- [dbOne](command:mdb.selectDatabaseWithParticipant?${expectedContent})`
             );
             const showMoreDBsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreDBsMessage.value).to.include(
-              `- <a href="command:mdb.selectDatabaseWithParticipant?${encodeStringify(
+              `- [Show more](command:mdb.selectDatabaseWithParticipant?${encodeStringify(
                 { command: '/query', chatId: testChatId }
-              )}">Show more</a>`
+              )})`
             );
-            expect(showMoreDBsMessage.value).to.include('"');
             expect(chatStreamStub.markdown.callCount).to.be.eql(12);
             const firstChatId = chatResult?.metadata?.chatId;
             expect(chatResult?.metadata?.chatId.length).to.equal(
@@ -818,18 +810,18 @@ suite('Participant Controller Test Suite', function () {
               collectionName: 'collOne',
             });
             expect(listCollsMessage.value).to.include(
-              `- <a href="command:mdb.selectCollectionWithParticipant?${expectedCollsContent}">collOne</a>`
+              `- [collOne](command:mdb.selectCollectionWithParticipant?${expectedCollsContent})`
             );
             const showMoreCollsMessage =
               chatStreamStub.markdown.getCall(23).args[0];
             expect(showMoreCollsMessage.value).to.include(
-              `- <a href="command:mdb.selectCollectionWithParticipant?${encodeStringify(
+              `- [Show more](command:mdb.selectCollectionWithParticipant?${encodeStringify(
                 {
                   command: '/query',
                   chatId: testChatId,
                   databaseName: 'dbOne',
                 }
-              )}">Show more</a>`
+              )})`
             );
             expect(chatStreamStub.markdown.callCount).to.be.eql(24);
             expect(chatResult2?.metadata?.chatId).to.equal(firstChatId);
@@ -976,23 +968,23 @@ suite('Participant Controller Test Suite', function () {
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listDBsMessage.value).to.include(
-              `- <a href="command:mdb.selectDatabaseWithParticipant?${encodeStringify(
+              `- [dbOne](command:mdb.selectDatabaseWithParticipant?${encodeStringify(
                 {
                   command: '/query',
                   chatId: 'pineapple',
                   databaseName: 'dbOne',
                 }
-              )}">dbOne</a>`
+              )})`
             );
             const showMoreDBsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreDBsMessage.value).to.include(
-              `- <a href="command:mdb.selectDatabaseWithParticipant?${encodeStringify(
+              `- [Show more](command:mdb.selectDatabaseWithParticipant?${encodeStringify(
                 {
                   command: '/query',
                   chatId: 'pineapple',
                 }
-              )}">Show more</a>`
+              )})`
             );
             expect({
               ...chatResult?.metadata,
@@ -1078,25 +1070,25 @@ suite('Participant Controller Test Suite', function () {
             );
             const listCollsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listCollsMessage.value).to.include(
-              `- <a href="command:mdb.selectCollectionWithParticipant?${encodeStringify(
+              `- [collOne](command:mdb.selectCollectionWithParticipant?${encodeStringify(
                 {
                   command: '/query',
                   chatId: 'pineapple',
                   databaseName: 'dbOne',
                   collectionName: 'collOne',
                 }
-              )}">collOne</a>`
+              )})`
             );
             const showMoreCollsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreCollsMessage.value).to.include(
-              `- <a href="command:mdb.selectCollectionWithParticipant?${encodeStringify(
+              `- [Show more](command:mdb.selectCollectionWithParticipant?${encodeStringify(
                 {
                   command: '/query',
                   chatId: 'pineapple',
                   databaseName: 'dbOne',
                 }
-              )}">Show more</a>`
+              )})`
             );
             expect({
               ...chatResult?.metadata,
@@ -1228,7 +1220,7 @@ Schema:
 
       suite('docs command', function () {
         const initialFetch = global.fetch;
-        let fetchStub;
+        let fetchStub: sinon.SinonStub;
 
         beforeEach(function () {
           sendRequestStub.onCall(0).resolves({
@@ -1277,6 +1269,16 @@ Schema:
           };
           await invokeChatHandler(chatRequestMock);
           expect(sendRequestStub).to.have.been.called;
+
+          // Expect the error to be reported through the telemetry service
+          sinon.assert.calledOnce(telemetryTrackStub);
+          expect(telemetryTrackStub.lastCall.args[0]).to.equal(
+            TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED
+          );
+
+          const properties = telemetryTrackStub.lastCall.args[1];
+          expect(properties.command).to.equal('docs');
+          expect(properties.error_name).to.equal('Docs Chatbot API Issue');
         });
       });
 
