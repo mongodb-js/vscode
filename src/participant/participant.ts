@@ -10,6 +10,7 @@ import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
 import { GenericPrompt, isPromptEmpty } from './prompts/generic';
+import { EportToPlaygroundPrompt } from './prompts/exportToPlayground';
 import type { ChatResult } from './constants';
 import {
   askToConnectChatResult,
@@ -1145,6 +1146,78 @@ export default class ParticipantController {
       chatId,
       docsChatbotMessageId: docsResult.docsChatbotMessageId,
     });
+  }
+
+  async runCodeInPlayground(): Promise<boolean> {
+    const activeTextEditor = vscode.window.activeTextEditor;
+    if (!activeTextEditor) {
+      void vscode.window.showErrorMessage('Active editor not found.');
+      return Promise.resolve(false);
+    }
+
+    const sortedSelections = Array.from(activeTextEditor.selections).sort(
+      (a, b) => a.start.compareTo(b.start)
+    );
+    const selectedText = sortedSelections
+      .map((selection) => activeTextEditor.document.getText(selection))
+      .join('\n');
+
+    const code =
+      selectedText || activeTextEditor.document.getText().trim() || '';
+
+    if (!this._participant) {
+      void vscode.window.showErrorMessage(
+        'The MongoDB participant is not available.'
+      );
+
+      return Promise.resolve(false);
+    }
+
+    try {
+      const progressResult = await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Exporting code to a playground...',
+          cancellable: true,
+        },
+        async (progress, token) => {
+          const abortController = new AbortController();
+          token.onCancellationRequested(() => {
+            abortController.abort();
+          });
+          const messages = EportToPlaygroundPrompt.buildMessages(code);
+          return await this.getChatResponseContent({
+            messages,
+            token,
+          });
+        }
+      );
+
+      if (progressResult?.includes("Sorry, I can't assist with that.")) {
+        void vscode.window.showErrorMessage("Sorry, I can't assist with that.");
+        return Promise.resolve(false);
+      }
+
+      if (progressResult) {
+        const runnableContent = getRunnableContentFromString(progressResult);
+        if (progressResult) {
+          await vscode.commands.executeCommand(
+            EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+            {
+              runnableContent,
+            }
+          );
+        }
+      }
+
+      return Promise.resolve(true);
+    } catch (error) {
+      log.error(
+        'Exporting code to a playground with cancel modal failed',
+        error
+      );
+      return Promise.resolve(false);
+    }
   }
 
   async chatHandler(
