@@ -1204,7 +1204,7 @@ export default class ParticipantController {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (!activeTextEditor) {
       await vscode.window.showErrorMessage('Active editor not found.');
-      return Promise.resolve(false);
+      return false;
     }
 
     const sortedSelections = Array.from(activeTextEditor.selections).sort(
@@ -1223,26 +1223,24 @@ export default class ParticipantController {
           cancellable: true,
         },
         async (progress, token): Promise<string | undefined> => {
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          return new Promise(async (resolve, reject) => {
-            token.onCancellationRequested(() => {
-              void vscode.window.showInformationMessage(
-                'The running export to a playground operation was canceled.'
-              );
-              return reject();
-            });
-
-            const messages = ExportToPlaygroundPrompt.buildMessages(code);
-            try {
-              const responseContent = await this.getChatResponseContent({
-                messages,
-                token,
-              });
-              return resolve(responseContent);
-            } catch (error) {
-              return reject(error);
-            }
+          token.onCancellationRequested(async () => {
+            await vscode.window.showInformationMessage(
+              'The running export to a playground operation was canceled.'
+            );
           });
+
+          const messages = ExportToPlaygroundPrompt.buildMessages(code);
+          return Promise.race([
+            this.getChatResponseContent({
+              messages,
+              token,
+            }),
+            new Promise<undefined>((resolve) =>
+              token.onCancellationRequested(() => {
+                resolve(undefined);
+              })
+            ),
+          ]);
         }
       );
 

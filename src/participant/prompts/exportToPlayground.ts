@@ -5,7 +5,7 @@ export class ExportToPlaygroundPrompt {
     const prompt = `You are a MongoDB expert.
 Your task is to help the user build MongoDB queries and aggregation pipelines that perform their task.
 You convert user's code written in any programming language to the MongoDB Shell syntax.
-Take a user promt as an input string and translate it to the MongoDB Shell language.
+Take a user prompt as an input string and translate it to the MongoDB Shell language.
 Keep your response concise.
 You should suggest queries that are performant and correct.
 Respond with markdown, suggest code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.

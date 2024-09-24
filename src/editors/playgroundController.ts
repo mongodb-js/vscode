@@ -499,22 +499,20 @@ export default class PlaygroundController {
           cancellable: true,
         },
         async (progress, token): Promise<ShellEvaluateResult> => {
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          return new Promise(async (resolve, reject) => {
-            token.onCancellationRequested(() => {
-              // If a user clicked the cancel button terminate all playground scripts.
-              this._languageServerController.cancelAll();
-              return resolve({ result: undefined });
-            });
-
-            try {
-              // Run all playground scripts.
-              const result = await this._evaluate(codeToEvaluate);
-              return resolve(result);
-            } catch (error) {
-              return reject(error);
-            }
+          token.onCancellationRequested(() => {
+            // If the user clicks the cancel button,
+            // terminate all processes running on the language server.
+            this._languageServerController.cancelAll();
           });
+
+          return Promise.race([
+            this._evaluate(codeToEvaluate),
+            new Promise<{ result: undefined }>((resolve) =>
+              token.onCancellationRequested(() => {
+                resolve({ result: undefined });
+              })
+            ),
+          ]);
         }
       );
     } catch (error) {
