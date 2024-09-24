@@ -26,6 +26,8 @@ import {
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
+import { getFullRange } from '../suggestTestHelpers';
+import { isPlayground } from '../../../utils/playground';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -1275,6 +1277,105 @@ Schema:
           };
           await invokeChatHandler(chatRequestMock);
           expect(sendRequestStub).to.have.been.called;
+        });
+      });
+
+      suite('export to playground', function () {
+        beforeEach(async function () {
+          await vscode.commands.executeCommand(
+            'workbench.action.files.newUntitledFile'
+          );
+        });
+
+        afterEach(async function () {
+          await vscode.commands.executeCommand(
+            'workbench.action.closeActiveEditor'
+          );
+        });
+
+        test('exports all code to a playground', async function () {
+          this.timeout(20000);
+          const editor = vscode.window.activeTextEditor;
+          if (!editor) {
+            throw new Error('Window active text editor is undefined');
+          }
+
+          const testDocumentUri = editor.document.uri;
+          const edit = new vscode.WorkspaceEdit();
+          const code = `
+  InsertOneResult result = collection.insertOne(new Document()
+    .append("_id", new ObjectId())
+    .append("title", "Ski Bloopers")
+    .append("genres", Arrays.asList("Documentary", "Comedy")));
+  System.out.println("Success! Inserted document id: " + result.getInsertedId());
+`;
+          edit.replace(testDocumentUri, getFullRange(editor.document), code);
+          await vscode.workspace.applyEdit(edit);
+          sendRequestStub.onCall(0).resolves({
+            text: [
+              '```javascript\n' +
+                'db.collection.insertOne({\n' +
+                '_id: new ObjectId(),\n' +
+                'title: "Ski Bloopers",' +
+                'genres: ["Documentary", "Comedy"]' +
+                '});\n' +
+                'print("Success! Inserted document id: " + result.insertedId);' +
+                '```',
+            ],
+          });
+          await testParticipantController.runCodeInPlayground();
+          const messages = sendRequestStub.firstCall.args[0];
+          expect(messages[1].content).to.include('System.out.println');
+          expect(
+            isPlayground(vscode.window.activeTextEditor?.document.uri)
+          ).to.be.eql(true);
+          expect(vscode.window.activeTextEditor?.document.getText()).to.include(
+            'Inserted document id'
+          );
+        });
+
+        test('exports selected lines of code to a playground', async function () {
+          const editor = vscode.window.activeTextEditor;
+          if (!editor) {
+            throw new Error('Window active text editor is undefined');
+          }
+
+          const testDocumentUri = editor.document.uri;
+          const edit = new vscode.WorkspaceEdit();
+          const code = `
+  InsertOneResult result = collection.insertOne(new Document()
+    .append("_id", new ObjectId())
+    .append("title", "Ski Bloopers")
+    .append("genres", Arrays.asList("Documentary", "Comedy")));
+  System.out.println("Success! Inserted document id: " + result.getInsertedId());
+`;
+          edit.replace(testDocumentUri, getFullRange(editor.document), code);
+          await vscode.workspace.applyEdit(edit);
+          const position = editor.selection.active;
+          const startPosition = position.with(0, 0);
+          const endPosition = position.with(3, 63);
+          const newSelection = new vscode.Selection(startPosition, endPosition);
+          editor.selection = newSelection;
+          sendRequestStub.onCall(0).resolves({
+            text: [
+              '```javascript\n' +
+                'db.collection.insertOne({\n' +
+                '_id: new ObjectId(),\n' +
+                'title: "Ski Bloopers",' +
+                'genres: ["Documentary", "Comedy"]' +
+                '});\n' +
+                '```',
+            ],
+          });
+          await testParticipantController.runCodeInPlayground();
+          const messages = sendRequestStub.firstCall.args[0];
+          expect(messages[1].content).to.not.include('System.out.println');
+          expect(
+            isPlayground(vscode.window.activeTextEditor?.document.uri)
+          ).to.be.eql(true);
+          expect(
+            vscode.window.activeTextEditor?.document.getText()
+          ).to.not.include('Inserted document id');
         });
       });
     });

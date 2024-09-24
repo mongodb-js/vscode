@@ -1165,14 +1165,6 @@ export default class ParticipantController {
     const code =
       selectedText || activeTextEditor.document.getText().trim() || '';
 
-    if (!this._participant) {
-      void vscode.window.showErrorMessage(
-        'The MongoDB participant is not available.'
-      );
-
-      return Promise.resolve(false);
-    }
-
     try {
       const progressResult = await vscode.window.withProgress(
         {
@@ -1181,10 +1173,6 @@ export default class ParticipantController {
           cancellable: true,
         },
         async (progress, token) => {
-          const abortController = new AbortController();
-          token.onCancellationRequested(() => {
-            abortController.abort();
-          });
           const messages = EportToPlaygroundPrompt.buildMessages(code);
           return await this.getChatResponseContent({
             messages,
