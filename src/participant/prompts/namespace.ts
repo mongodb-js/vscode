@@ -49,20 +49,22 @@ No names found.
 `;
   }
 
-  protected getUserPrompt(args: NamespacePromptArgs): Promise<string> {
-    return Promise.resolve(args.request.prompt);
+  protected getUserPrompt({ request }: NamespacePromptArgs): Promise<string> {
+    return Promise.resolve(request.prompt);
   }
 
-  async buildMessages(
-    args: NamespacePromptArgs
-  ): Promise<vscode.LanguageModelChatMessage[]> {
-    let historyMessages = this.getHistoryMessages(args);
+  async buildMessages({
+    connectionNames,
+    context,
+    request,
+  }: NamespacePromptArgs): Promise<vscode.LanguageModelChatMessage[]> {
+    let historyMessages = this.getHistoryMessages({ connectionNames, context });
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
-    if (args.connectionNames.includes(args.request.prompt)) {
-      const previousResponse = args.context.history[
-        args.context.history.length - 1
+    if (connectionNames.includes(request.prompt)) {
+      const previousResponse = context.history[
+        context.history.length - 1
       ] as vscode.ChatResponseTurn;
       const intent = (previousResponse?.result as ChatResult)?.metadata.intent;
       if (intent === 'askToConnect') {
@@ -71,7 +73,7 @@ No names found.
           if (
             historyMessages[i].role === vscode.LanguageModelChatMessageRole.User
           ) {
-            args.request.prompt = historyMessages[i].content;
+            request.prompt = historyMessages[i].content;
             // Remove the item from the history messages array.
             historyMessages = historyMessages.slice(0, i);
             break;
@@ -85,7 +87,9 @@ No names found.
       vscode.LanguageModelChatMessage.Assistant(this.getAssistantPrompt()),
       ...historyMessages,
       // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.User(await this.getUserPrompt(args)),
+      vscode.LanguageModelChatMessage.User(
+        await this.getUserPrompt({ connectionNames, context, request })
+      ),
     ];
   }
 
