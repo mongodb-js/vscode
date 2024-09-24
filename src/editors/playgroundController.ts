@@ -492,33 +492,33 @@ export default class PlaygroundController {
     }
 
     try {
-      const progressResult = await vscode.window.withProgress(
+      return await vscode.window.withProgress(
         {
           location: ProgressLocation.Notification,
           title: 'Running MongoDB playground...',
           cancellable: true,
         },
-        async (progress, token) => {
-          token.onCancellationRequested(() => {
-            // If a user clicked the cancel button terminate all playground scripts.
-            this._languageServerController.cancelAll();
+        async (progress, token): Promise<ShellEvaluateResult> => {
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          return new Promise(async (resolve, reject) => {
+            token.onCancellationRequested(() => {
+              // If a user clicked the cancel button terminate all playground scripts.
+              this._languageServerController.cancelAll();
+              return resolve({ result: undefined });
+            });
 
-            return { result: undefined };
+            try {
+              // Run all playground scripts.
+              const result = await this._evaluate(codeToEvaluate);
+              return resolve(result);
+            } catch (error) {
+              return reject(error);
+            }
           });
-
-          // Run all playground scripts.
-          const result: ShellEvaluateResult = await this._evaluate(
-            codeToEvaluate
-          );
-
-          return result;
         }
       );
-
-      return progressResult;
     } catch (error) {
       log.error('Evaluating playground with cancel modal failed', error);
-
       return { result: undefined };
     }
   }

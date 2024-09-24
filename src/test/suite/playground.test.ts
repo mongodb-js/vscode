@@ -87,7 +87,7 @@ suite('Playground', function () {
       .update('confirmRunAll', false);
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     disposeAll(_disposables);
     sandbox.restore();

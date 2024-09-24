@@ -10,7 +10,7 @@ import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
 import { GenericPrompt, isPromptEmpty } from './prompts/generic';
-import { EportToPlaygroundPrompt } from './prompts/exportToPlayground';
+import { ExportToPlaygroundPrompt } from './prompts/exportToPlayground';
 import type { ChatResult } from './constants';
 import {
   askToConnectChatResult,
@@ -43,6 +43,7 @@ import {
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
+import formatError from '../utils/formatError';
 
 const log = createLogger('participant');
 
@@ -133,7 +134,7 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  handleError(err: any, command: string): never {
+  handleError(err: any, command: string): void {
     let errorCode: string | undefined;
     let errorName: ParticipantErrorTypes;
     // Making the chat request might fail because
@@ -169,9 +170,6 @@ export default class ParticipantController {
         error_name: errorName,
       }
     );
-
-    // Re-throw other errors so they show up in the UI.
-    throw err;
   }
 
   /**
@@ -1205,7 +1203,7 @@ export default class ParticipantController {
   async exportCodeToPlayground(): Promise<boolean> {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (!activeTextEditor) {
-      void vscode.window.showErrorMessage('Active editor not found.');
+      await vscode.window.showErrorMessage('Active editor not found.');
       return Promise.resolve(false);
     }
 
@@ -1215,10 +1213,8 @@ export default class ParticipantController {
     const selectedText = sortedSelections
       .map((selection) => activeTextEditor.document.getText(selection))
       .join('\n');
-
     const code =
       selectedText || activeTextEditor.document.getText().trim() || '';
-
     try {
       const progressResult = await vscode.window.withProgress(
         {
@@ -1226,11 +1222,26 @@ export default class ParticipantController {
           title: 'Exporting code to a playground...',
           cancellable: true,
         },
-        async (progress, token) => {
-          const messages = EportToPlaygroundPrompt.buildMessages(code);
-          return await this.getChatResponseContent({
-            messages,
-            token,
+        async (progress, token): Promise<string | undefined> => {
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          return new Promise(async (resolve, reject) => {
+            token.onCancellationRequested(() => {
+              void vscode.window.showInformationMessage(
+                'The running export to a playground operation was canceled.'
+              );
+              return reject();
+            });
+
+            const messages = ExportToPlaygroundPrompt.buildMessages(code);
+            try {
+              const responseContent = await this.getChatResponseContent({
+                messages,
+                token,
+              });
+              return resolve(responseContent);
+            } catch (error) {
+              return reject(error);
+            }
           });
         }
       );
@@ -1242,7 +1253,7 @@ export default class ParticipantController {
 
       if (progressResult) {
         const runnableContent = getRunnableContentFromString(progressResult);
-        if (progressResult) {
+        if (runnableContent) {
           await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
             {
@@ -1254,9 +1265,11 @@ export default class ParticipantController {
 
       return Promise.resolve(true);
     } catch (error) {
-      log.error(
-        'Exporting code to a playground with cancel modal failed',
-        error
+      this.handleError(error, 'exportToPlayground');
+      await vscode.window.showErrorMessage(
+        `An error occurred exporting to a playground: ${
+          formatError(error).message
+        }`
       );
       return Promise.resolve(false);
     }
@@ -1310,6 +1323,8 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       }
     } catch (e) {
       this.handleError(e, request.command || 'generic');
+      // Re-throw other errors so they show up in the UI.
+      throw e;
     }
   }
 
