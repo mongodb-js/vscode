@@ -283,7 +283,7 @@
         }
       },
       {
-        "command": "mdb.runCodeInPlayground",
+        "command": "mdb.exportCodeToPlayground",
         "title": "Run Code in Playground"
       },
       {
@@ -753,7 +753,7 @@
       ],
       "mdb.copilot": [
         {
-          "command": "mdb.runCodeInPlayground"
+          "command": "mdb.exportCodeToPlayground"
         }
       ],
       "editor/context": [
@@ -964,7 +964,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.runCodeInPlayground",
+          "command": "mdb.exportCodeToPlayground",
           "when": "false"
         },
         {

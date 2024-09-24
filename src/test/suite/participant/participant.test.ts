@@ -1323,7 +1323,7 @@ Schema:
                 '```',
             ],
           });
-          await testParticipantController.runCodeInPlayground();
+          await testParticipantController.exportCodeToPlayground();
           const messages = sendRequestStub.firstCall.args[0];
           expect(messages[1].content).to.include('System.out.println');
           expect(
@@ -1367,7 +1367,7 @@ Schema:
                 '```',
             ],
           });
-          await testParticipantController.runCodeInPlayground();
+          await testParticipantController.exportCodeToPlayground();
           const messages = sendRequestStub.firstCall.args[0];
           expect(messages[1].content).to.not.include('System.out.println');
           expect(

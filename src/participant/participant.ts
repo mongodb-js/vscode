@@ -1148,7 +1148,7 @@ export default class ParticipantController {
     });
   }
 
-  async runCodeInPlayground(): Promise<boolean> {
+  async exportCodeToPlayground(): Promise<boolean> {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (!activeTextEditor) {
       void vscode.window.showErrorMessage('Active editor not found.');
