@@ -416,8 +416,8 @@ const buildMessages = async ({
       return await QueryPrompt.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
-        databaseName: testCase.databaseName,
-        collectionName: testCase.collectionName,
+        databaseName: testCase.databaseName ?? 'test',
+        collectionName: testCase.collectionName ?? 'test',
         connectionNames: [],
         ...(fixtures[testCase.databaseName as string]?.[
           testCase.collectionName as string
