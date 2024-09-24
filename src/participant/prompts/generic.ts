@@ -13,7 +13,9 @@ Rules:
 3. Respond with markdown.
 4. When relevant, provide code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
 5. Use MongoDB shell syntax for code unless the user requests a specific language.
-6. If you require additional information to provide a response, ask the user for it.`;
+6. If you require additional information to provide a response, ask the user for it.
+7. When specifying a database, use the MongoDB syntax use('databaseName').
+`;
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);

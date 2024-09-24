@@ -959,12 +959,6 @@ export default class ParticipantController {
       });
     }
 
-    stream.push(
-      new vscode.ChatResponseProgressPart(
-        'Fetching documents and analyzing schema...'
-      )
-    );
-
     let sampleDocuments: Document[] | undefined;
     let amountOfDocumentsSampled: number;
     let schema: string | undefined;

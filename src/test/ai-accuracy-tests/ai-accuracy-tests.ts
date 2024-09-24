@@ -22,6 +22,7 @@ import {
 import { NamespacePrompt } from '../../participant/prompts/namespace';
 import { runCodeInMessage } from './assertions';
 import { parseForDatabaseAndCollectionName } from '../../participant/participant';
+import { IntentPrompt } from '../../participant/prompts/intent';
 
 const numberOfRunsPerTest = 1;
 
@@ -37,7 +38,7 @@ type AssertProps = {
 
 type TestCase = {
   testCase: string;
-  type: 'generic' | 'query' | 'namespace';
+  type: 'intent' | 'generic' | 'query' | 'namespace';
   userInput: string;
   // Some tests can edit the documents in a collection.
   // As we want tests to run in isolation this flag will cause the fixture
@@ -51,7 +52,9 @@ type TestCase = {
   only?: boolean; // Translates to mocha's it.only so only this test will run.
 };
 
-const namespaceTestCases: TestCase[] = [
+const namespaceTestCases: (TestCase & {
+  type: 'namespace';
+})[] = [
   {
     testCase: 'Namespace included in query',
     type: 'namespace',
@@ -101,7 +104,9 @@ const namespaceTestCases: TestCase[] = [
   },
 ];
 
-const queryTestCases: TestCase[] = [
+const queryTestCases: (TestCase & {
+  type: 'query';
+})[] = [
   {
     testCase: 'Basic query',
     type: 'query',
@@ -238,7 +243,92 @@ const queryTestCases: TestCase[] = [
   },
 ];
 
-const testCases: TestCase[] = [...namespaceTestCases, ...queryTestCases];
+const intentTestCases: (TestCase & {
+  type: 'intent';
+})[] = [
+  {
+    testCase: 'Docs intent',
+    type: 'intent',
+    userInput:
+      'Where can I find more information on how to connect to MongoDB?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Docs');
+    },
+  },
+  {
+    testCase: 'Docs intent 2',
+    type: 'intent',
+    userInput: 'What are the options when creating an aggregation cursor?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Docs');
+    },
+  },
+  {
+    testCase: 'Query intent',
+    type: 'intent',
+    userInput:
+      'which collectors specialize only in mint items? and are located in London or New York? an array of their names in a field called collectors',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Query');
+    },
+  },
+  {
+    testCase: 'Schema intent',
+    type: 'intent',
+    userInput: 'What do the documents in the collection pineapple look like?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Schema');
+    },
+  },
+  {
+    testCase: 'Default/Generic intent 1',
+    type: 'intent',
+    userInput: 'How can I connect to MongoDB?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Default');
+    },
+  },
+  {
+    testCase: 'Default/Generic intent 2',
+    type: 'intent',
+    userInput: 'What is the size breakdown of all of the databases?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Default');
+    },
+  },
+];
+
+const genericTestCases: (TestCase & {
+  type: 'generic';
+})[] = [
+  {
+    testCase: 'Database meta data question',
+    type: 'generic',
+    userInput:
+      'How do I print the name and size of the largest database? Using the print function',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+      const printOutput = output.printOutput.join('');
+
+      expect(printOutput).to.include('Antiques');
+      expect(printOutput).to.not.include('UFO');
+      expect(printOutput).to.not.include('CookBook');
+      expect(printOutput).to.not.include('pets');
+      expect(printOutput).to.not.include('FarmData');
+      expect(printOutput).to.include('8192'); // The size of the Antiques database.
+    },
+  },
+];
+
+const testCases: TestCase[] = [
+  ...namespaceTestCases,
+  ...queryTestCases,
+  ...intentTestCases,
+  ...genericTestCases,
+];
 
 const projectRoot = path.join(__dirname, '..', '..', '..');
 
@@ -310,6 +400,12 @@ const buildMessages = async ({
   fixtures: Fixtures;
 }): Promise<vscode.LanguageModelChatMessage[]> => {
   switch (testCase.type) {
+    case 'intent':
+      return IntentPrompt.buildMessages({
+        request: { prompt: testCase.userInput },
+        context: { history: [] },
+      });
+
     case 'generic':
       return GenericPrompt.buildMessages({
         request: { prompt: testCase.userInput },
