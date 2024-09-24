@@ -10,6 +10,7 @@ export type ParticipantResponseType =
   | 'docs'
   | 'generic'
   | 'emptyRequest'
+  | 'cancelledRequest'
   | 'askToConnect'
   | 'askForNamespace';
 
@@ -47,6 +48,12 @@ export function namespaceRequestChatResult({
       collectionName,
     },
   };
+}
+
+export function createCancelledRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+): ChatResult {
+  return createChatResult('cancelledRequest', history);
 }
 
 function createChatResult(
