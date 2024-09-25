@@ -241,6 +241,43 @@ const queryTestCases: (TestCase & {
       expect(output.data?.result?.content[0].collectors).to.include('Monkey');
     },
   },
+  {
+    testCase: 'Complex aggregation with string and number manipulation',
+    type: 'query',
+    databaseName: 'CookBook',
+    collectionName: 'recipes',
+    userInput:
+      'what percentage of recipes have "salt" in their ingredients? "ingredients" is a field ' +
+      'with an array of strings of the ingredients. Only consider recipes ' +
+      'that have the "difficulty Medium or Easy. Return is as a string named "saltPercentage" like ' +
+      '"75%", rounded to the nearest whole number.',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+
+      anyOf([
+        (): void => {
+          const lines = responseContent.trim().split('\n');
+          const lastLine = lines[lines.length - 1];
+
+          expect(lastLine).to.include('saltPercentage');
+          expect(output.data?.result?.content).to.include('67%');
+        },
+        (): void => {
+          expect(output.printOutput[output.printOutput.length - 1]).to.equal(
+            "{ saltPercentage: '67%' }"
+          );
+        },
+        (): void => {
+          expect(output.data?.result?.content[0].saltPercentage).to.equal(
+            '67%'
+          );
+        },
+      ])(null);
+    },
+  },
 ];
 
 const intentTestCases: (TestCase & {
@@ -348,6 +385,23 @@ const genericTestCases: (TestCase & {
           ).to.equal('2');
         },
       ])(null);
+    },
+  },
+  {
+    testCase: 'Complex aggregation code generation',
+    type: 'generic',
+    userInput:
+      'what percentage of recipes have "salt" in their ingredients? "ingredients" is a field ' +
+      'with an array of strings of the ingredients. Only consider recipes ' +
+      'that have the "difficulty Medium or Easy. Return is as a string named "saltPercentage" like ' +
+      '"75%", rounded to the nearest whole number. db CookBook, collection recipes',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+
+      expect(output.data?.result?.content[0].saltPercentage).to.equal('67%');
     },
   },
 ];
@@ -588,12 +642,14 @@ describe('AI Accuracy Tests', function () {
 
     testFunction(
       `should pass for input: "${testCase.userInput}" if average accuracy is above threshold`,
-      // eslint-disable-next-line no-loop-func
+      // eslint-disable-next-line no-loop-func, complexity
       async function () {
         console.log(`Starting test run of ${testCase.testCase}.`);
 
         const testRunDidSucceed: boolean[] = [];
-        const successFullRunStats: {
+        // Successful and unsuccessful runs are both tracked as long as the model
+        // returns a response.
+        const runStats: {
           promptTokens: number;
           completionTokens: number;
           executionTimeMS: number;
@@ -620,12 +676,15 @@ describe('AI Accuracy Tests', function () {
           }
 
           const startTime = Date.now();
+          let responseContent: ChatCompletion | undefined;
+          let executionTimeMS = 0;
           try {
-            const responseContent = await runTest({
+            responseContent = await runTest({
               testCase,
               aiBackend,
               fixtures,
             });
+            executionTimeMS = Date.now() - startTime;
             testOutputs[testCase.testCase].outputs.push(
               responseContent.content
             );
@@ -636,11 +695,6 @@ describe('AI Accuracy Tests', function () {
               mongoClient,
             });
 
-            successFullRunStats.push({
-              completionTokens: responseContent.usageStats.completionTokens,
-              promptTokens: responseContent.usageStats.promptTokens,
-              executionTimeMS: Date.now() - startTime,
-            });
             success = true;
 
             console.log(
@@ -651,6 +705,18 @@ describe('AI Accuracy Tests', function () {
               `Test run of ${testCase.testCase}. Run ${i} of ${numberOfRunsPerTest} failed with error:`,
               err
             );
+          }
+
+          if (
+            responseContent &&
+            responseContent?.usageStats?.completionTokens > 0 &&
+            executionTimeMS !== 0
+          ) {
+            runStats.push({
+              completionTokens: responseContent.usageStats.completionTokens,
+              promptTokens: responseContent.usageStats.promptTokens,
+              executionTimeMS,
+            });
           }
 
           testRunDidSucceed.push(success);
@@ -673,21 +739,19 @@ describe('AI Accuracy Tests', function () {
           Accuracy: averageAccuracy,
           Pass: didFail ? '✗' : '✓',
           'Avg Execution Time (ms)':
-            successFullRunStats.length > 0
-              ? successFullRunStats.reduce((a, b) => a + b.executionTimeMS, 0) /
-                successFullRunStats.length
+            runStats.length > 0
+              ? runStats.reduce((a, b) => a + b.executionTimeMS, 0) /
+                runStats.length
               : 0,
           'Avg Prompt Tokens':
-            successFullRunStats.length > 0
-              ? successFullRunStats.reduce((a, b) => a + b.promptTokens, 0) /
-                successFullRunStats.length
+            runStats.length > 0
+              ? runStats.reduce((a, b) => a + b.promptTokens, 0) /
+                runStats.length
               : 0,
           'Avg Completion Tokens':
-            successFullRunStats.length > 0
-              ? successFullRunStats.reduce(
-                  (a, b) => a + b.completionTokens,
-                  0
-                ) / successFullRunStats.length
+            runStats.length > 0
+              ? runStats.reduce((a, b) => a + b.completionTokens, 0) /
+                runStats.length
               : 0,
         });
 
