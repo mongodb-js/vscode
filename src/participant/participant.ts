@@ -38,6 +38,7 @@ import {
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
+import type { PromptResult } from './prompts/promptBase';
 
 const log = createLogger('participant');
 
@@ -171,19 +172,21 @@ export default class ParticipantController {
   }
 
   async getChatResponseContent({
-    messages,
+    prompt,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    prompt: PromptResult;
     token: vscode.CancellationToken;
   }): Promise<string> {
     const model = await getCopilotModel();
     let responseContent = '';
     if (model) {
-      const chatResponse = await model.sendRequest(messages, {}, token);
+      const chatResponse = await model.sendRequest(prompt.messages, {}, token);
       for await (const fragment of chatResponse.text) {
         responseContent += fragment;
       }
+
+      this._telemetryService.trackCopilotParticipantPrompt(prompt.stats);
     }
 
     return responseContent;
@@ -221,14 +224,14 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
-    const messages = await Prompts.generic.buildMessages({
+    const prompt = await Prompts.generic.buildMessages({
       request,
       context,
       connectionNames: this._getConnectionNames(),
     });
 
     const responseContent = await this.getChatResponseContent({
-      messages,
+      prompt,
       token,
     });
     stream.markdown(responseContent);
@@ -569,7 +572,7 @@ export default class ParticipantController {
       connectionNames: this._getConnectionNames(),
     });
     const responseContentWithNamespace = await this.getChatResponseContent({
-      messages: messagesWithNamespace,
+      prompt: messagesWithNamespace,
       token,
     });
     const { databaseName, collectionName } =
@@ -904,7 +907,7 @@ export default class ParticipantController {
       return schemaRequestChatResult(context.history);
     }
 
-    const messages = await Prompts.schema.buildMessages({
+    const prompt = await Prompts.schema.buildMessages({
       request,
       context,
       databaseName,
@@ -915,7 +918,7 @@ export default class ParticipantController {
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
-      messages,
+      prompt,
       token,
     });
     stream.markdown(responseContent);
@@ -1008,7 +1011,7 @@ export default class ParticipantController {
       );
     }
 
-    const messages = await Prompts.query.buildMessages({
+    const prompt = await Prompts.query.buildMessages({
       request,
       context,
       databaseName,
@@ -1018,7 +1021,7 @@ export default class ParticipantController {
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
-      messages,
+      prompt,
       token,
     });
 
@@ -1099,14 +1102,14 @@ export default class ParticipantController {
     responseReferences?: Reference[];
   }> {
     const [request, context, , token] = args;
-    const messages = await Prompts.generic.buildMessages({
+    const prompt = await Prompts.generic.buildMessages({
       request,
       context,
       connectionNames: this._getConnectionNames(),
     });
 
     const responseContent = await this.getChatResponseContent({
-      messages,
+      prompt,
       token,
     });
     const responseReferences = [

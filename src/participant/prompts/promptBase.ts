@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { ChatResult, ParticipantResponseType } from '../constants';
+import type { ParticipantPromptProperties } from '../../telemetry/telemetryService';
 
 export interface PromptArgsBase {
   request: {
@@ -10,14 +11,37 @@ export interface PromptArgsBase {
   connectionNames: string[];
 }
 
+export interface UserPromptResponse {
+  prompt: string;
+  hasSampleDocs: boolean;
+}
+
+export interface PromptResult {
+  messages: vscode.LanguageModelChatMessage[];
+  stats: ParticipantPromptProperties;
+}
+
+export interface UserPromptResponse {
+  prompt: string;
+  hasSampleDocs: boolean;
+}
+
+export interface PromptResult {
+  messages: vscode.LanguageModelChatMessage[];
+  stats: ParticipantPromptProperties;
+}
+
 export abstract class PromptBase<TArgs extends PromptArgsBase> {
   protected abstract getAssistantPrompt(args: TArgs): string;
 
-  protected getUserPrompt(args: TArgs): Promise<string> {
-    return Promise.resolve(args.request.prompt);
+  protected getUserPrompt(args: TArgs): Promise<UserPromptResponse> {
+    return Promise.resolve({
+      prompt: args.request.prompt,
+      hasSampleDocs: false,
+    });
   }
 
-  async buildMessages(args: TArgs): Promise<vscode.LanguageModelChatMessage[]> {
+  async buildMessages(args: TArgs): Promise<PromptResult> {
     let historyMessages = this.getHistoryMessages(args);
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
@@ -49,13 +73,35 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       }
     }
 
-    return [
+    const { prompt, hasSampleDocs } = await this.getUserPrompt(args);
+    const messages = [
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.Assistant(this.getAssistantPrompt(args)),
       ...historyMessages,
       // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.User(await this.getUserPrompt(args)),
+      vscode.LanguageModelChatMessage.User(prompt),
     ];
+
+    return {
+      messages,
+      stats: this.getStats(messages, args, hasSampleDocs),
+    };
+  }
+
+  protected getStats(
+    messages: vscode.LanguageModelChatMessage[],
+    { request }: TArgs,
+    hasSampleDocs: boolean
+  ): ParticipantPromptProperties {
+    return {
+      total_message_length: messages.reduce(
+        (acc, message) => acc + message.content.length,
+        0
+      ),
+      user_input_length: request.prompt.length,
+      has_sample_documents: hasSampleDocs,
+      command: request.command || 'generic',
+    };
   }
 
   // When passing the history to the model we only want contextual messages
