@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { getHistoryMessages } from './history';
+import { codeBlockIdentifier } from '../constants';
 
 export class GenericPrompt {
   static getAssistantPrompt(): vscode.LanguageModelChatMessage {
@@ -8,9 +9,9 @@ export class GenericPrompt {
 Your task is to help the user craft MongoDB queries and aggregation pipelines that perform their task.
 Keep your response concise.
 You should suggest queries that are performant and correct.
-Respond with markdown, suggest code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
+Respond with markdown, suggest code in a Markdown code block that begins with ${codeBlockIdentifier.start} and ends with ${codeBlockIdentifier.end}.
 You can imagine the schema, collection, and database name.
-Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
+Respond in MongoDB shell syntax using the ${codeBlockIdentifier.start} code block syntax.`;
 
     // eslint-disable-next-line new-cap
     return vscode.LanguageModelChatMessage.Assistant(prompt);

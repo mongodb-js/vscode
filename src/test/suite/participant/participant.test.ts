@@ -8,7 +8,6 @@ import { ObjectId, Int32 } from 'bson';
 
 import ParticipantController, {
   parseForDatabaseAndCollectionName,
-  getRunnableContentFromString,
 } from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
@@ -156,18 +155,6 @@ suite('Participant Controller Test Suite', function () {
       parseForDatabaseAndCollectionName(text);
     expect(databaseName).to.be.equal('my');
     expect(collectionName).to.be.equal('cats');
-  });
-
-  test('parses a returned by ai text for code blocks', function () {
-    const text =
-      '```javascript\n' +
-      "use('test');\n" +
-      "db.getCollection('test').find({ name: 'Shika' });\n" +
-      '```';
-    const code = getRunnableContentFromString(text);
-    expect(code).to.be.equal(
-      "use('test');\ndb.getCollection('test').find({ name: 'Shika' });"
-    );
   });
 
   suite('when not connected', function () {

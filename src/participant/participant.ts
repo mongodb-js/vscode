@@ -21,6 +21,7 @@ import {
   docsRequestChatResult,
   schemaRequestChatResult,
   createCancelledRequestChatResult,
+  codeBlockIdentifier,
 } from './constants';
 import { QueryPrompt } from './prompts/query';
 import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
@@ -42,6 +43,7 @@ import {
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
+import { processStreamWithInsertionsOnIdentifier } from './streamParsing';
 
 const log = createLogger('participant');
 
@@ -72,16 +74,6 @@ export function parseForDatabaseAndCollectionName(text: string): {
   const databaseName = text.match(DB_NAME_REGEX)?.[1].trim();
   const collectionName = text.match(COL_NAME_REGEX)?.[1].trim();
   return { databaseName, collectionName };
-}
-
-export function getRunnableContentFromString(text: string): string {
-  const matchedJSresponseContent = text.match(/```javascript((.|\n)*)```/);
-
-  const code =
-    matchedJSresponseContent && matchedJSresponseContent.length > 1
-      ? matchedJSresponseContent[1]
-      : '';
-  return code.trim();
 }
 
 export default class ParticipantController {
@@ -186,6 +178,96 @@ export default class ParticipantController {
     });
   }
 
+  async _getChatResponse({
+    messages,
+    token,
+  }: {
+    messages: vscode.LanguageModelChatMessage[];
+    token: vscode.CancellationToken;
+  }): Promise<vscode.LanguageModelChatResponse> {
+    const model = await getCopilotModel();
+
+    if (!model) {
+      throw new Error('Copilot model not found');
+    }
+
+    return await model.sendRequest(messages, {}, token);
+  }
+
+  async streamChatResponse({
+    messages,
+    stream,
+    token,
+  }: {
+    messages: vscode.LanguageModelChatMessage[];
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<void> {
+    const chatResponse = await this._getChatResponse({
+      messages,
+      token,
+    });
+    for await (const fragment of chatResponse.text) {
+      stream.markdown(fragment);
+    }
+  }
+
+  _streamCodeBlockActions({
+    runnableContent,
+    stream,
+  }: {
+    runnableContent: string;
+    stream: vscode.ChatResponseStream;
+  }): void {
+    runnableContent = runnableContent.trim();
+
+    if (!runnableContent) {
+      return;
+    }
+
+    const commandArgs: RunParticipantQueryCommandArgs = {
+      runnableContent,
+    };
+    stream.button({
+      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+      title: vscode.l10n.t('▶️ Run'),
+      arguments: [commandArgs],
+    });
+    stream.button({
+      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+      title: vscode.l10n.t('Open in playground'),
+      arguments: [commandArgs],
+    });
+  }
+
+  async streamChatResponseContentWithCodeActions({
+    messages,
+    stream,
+    token,
+  }: {
+    messages: vscode.LanguageModelChatMessage[];
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<void> {
+    const chatResponse = await this._getChatResponse({
+      messages,
+      token,
+    });
+
+    await processStreamWithInsertionsOnIdentifier({
+      processStreamFragment: (fragment: string) => {
+        stream.markdown(fragment);
+      },
+      onIdentifierStreamed: (content: string) => {
+        this._streamCodeBlockActions({ runnableContent: content, stream });
+      },
+      inputIterable: chatResponse.text,
+      identifier: codeBlockIdentifier,
+    });
+  }
+
+  // This will stream all of the response content and create a string from it.
+  // It should only be used when the entire response is needed at one time.
   async getChatResponseContent({
     messages,
     token,
@@ -193,41 +275,16 @@ export default class ParticipantController {
     messages: vscode.LanguageModelChatMessage[];
     token: vscode.CancellationToken;
   }): Promise<string> {
-    const model = await getCopilotModel();
     let responseContent = '';
-    if (model) {
-      const chatResponse = await model.sendRequest(messages, {}, token);
-      for await (const fragment of chatResponse.text) {
-        responseContent += fragment;
-      }
+    const chatResponse = await this._getChatResponse({
+      messages,
+      token,
+    });
+    for await (const fragment of chatResponse.text) {
+      responseContent += fragment;
     }
 
     return responseContent;
-  }
-
-  _streamRunnableContentActions({
-    responseContent,
-    stream,
-  }: {
-    responseContent: string;
-    stream: vscode.ChatResponseStream;
-  }): void {
-    const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent) {
-      const commandArgs: RunParticipantQueryCommandArgs = {
-        runnableContent,
-      };
-      stream.button({
-        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-        title: vscode.l10n.t('▶️ Run'),
-        arguments: [commandArgs],
-      });
-      stream.button({
-        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-        title: vscode.l10n.t('Open in playground'),
-        arguments: [commandArgs],
-      });
-    }
   }
 
   // @MongoDB what is mongodb?
@@ -242,14 +299,9 @@ export default class ParticipantController {
       context,
     });
 
-    const responseContent = await this.getChatResponseContent({
+    await this.streamChatResponseContentWithCodeActions({
       messages,
       token,
-    });
-    stream.markdown(responseContent);
-
-    this._streamRunnableContentActions({
-      responseContent,
       stream,
     });
 
@@ -919,11 +971,11 @@ export default class ParticipantController {
         .map((connection) => connection.name),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
-    const responseContent = await this.getChatResponseContent({
+    await this.streamChatResponse({
       messages,
+      stream,
       token,
     });
-    stream.markdown(responseContent);
 
     stream.button({
       command: EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
@@ -1024,16 +1076,11 @@ export default class ParticipantController {
         .map((connection) => connection.name),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
-    const responseContent = await this.getChatResponseContent({
+
+    await this.streamChatResponseContentWithCodeActions({
       messages,
-      token,
-    });
-
-    stream.markdown(responseContent);
-
-    this._streamRunnableContentActions({
-      responseContent,
       stream,
+      token,
     });
 
     return queryRequestChatResult(context.history);
@@ -1101,31 +1148,40 @@ export default class ParticipantController {
       vscode.ChatResponseStream,
       vscode.CancellationToken
     ]
-  ): Promise<{
-    responseContent: string;
-    responseReferences?: Reference[];
-  }> {
-    const [request, context, , token] = args;
+  ): Promise<void> {
+    const [request, context, stream, token] = args;
     const messages = GenericPrompt.buildMessages({
       request,
       context,
     });
 
-    const responseContent = await this.getChatResponseContent({
+    await this.streamChatResponseContentWithCodeActions({
       messages,
+      stream,
       token,
     });
-    const responseReferences = [
-      {
+
+    this._streamResponseReference({
+      reference: {
         url: MONGODB_DOCS_LINK,
         title: 'View MongoDB documentation',
       },
-    ];
+      stream,
+    });
+  }
 
-    return {
-      responseContent,
-      responseReferences,
-    };
+  _streamResponseReference({
+    reference,
+    stream,
+  }: {
+    reference: Reference;
+    stream: vscode.ChatResponseStream;
+  }): void {
+    const link = new vscode.MarkdownString(
+      `- [${reference.title}](${reference.url})\n`
+    );
+    link.supportHtml = true;
+    stream.markdown(link);
   }
 
   async handleDocsRequest(
@@ -1154,6 +1210,19 @@ export default class ParticipantController {
         token,
         stream,
       });
+
+      if (docsResult.responseReferences) {
+        for (const reference of docsResult.responseReferences) {
+          this._streamResponseReference({
+            reference,
+            stream,
+          });
+        }
+      }
+
+      if (docsResult.responseContent) {
+        stream.markdown(docsResult.responseContent);
+      }
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
@@ -1174,25 +1243,7 @@ export default class ParticipantController {
         }
       );
 
-      docsResult = await this._handleDocsRequestWithCopilot(...args);
-    }
-
-    if (docsResult.responseContent) {
-      stream.markdown(docsResult.responseContent);
-      this._streamRunnableContentActions({
-        responseContent: docsResult.responseContent,
-        stream,
-      });
-    }
-
-    if (docsResult.responseReferences) {
-      for (const ref of docsResult.responseReferences) {
-        const link = new vscode.MarkdownString(
-          `- [${ref.title}](${ref.url})\n`
-        );
-        link.supportHtml = true;
-        stream.markdown(link);
-      }
+      await this._handleDocsRequestWithCopilot(...args);
     }
 
     return docsRequestChatResult({
