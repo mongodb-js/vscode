@@ -18,6 +18,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
   }
 
   async buildMessages(args: TArgs): Promise<vscode.LanguageModelChatMessage[]> {
+    let historyMessages = this.getHistoryMessages(args);
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
@@ -39,6 +40,9 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
                 prompt: (history[i] as vscode.ChatRequestTurn).prompt,
               },
             };
+
+            // Remove the item from the history messages array.
+            historyMessages = historyMessages.slice(0, i);
             break;
           }
         }
@@ -48,7 +52,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
     return [
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.Assistant(this.getAssistantPrompt(args)),
-      ...this.getHistoryMessages(args),
+      ...historyMessages,
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.User(await this.getUserPrompt(args)),
     ];
