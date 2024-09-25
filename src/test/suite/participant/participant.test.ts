@@ -1424,7 +1424,7 @@ Schema:
       );
     });
 
-    test.only('removes askForConnect messages from history', async function () {
+    test('removes askForConnect messages from history', async function () {
       // The user is responding to an `askToConnect` message, so the prompt is just the
       // name of the connection
       const chatRequestMock = {
