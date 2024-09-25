@@ -321,14 +321,14 @@ suite('Playground Controller Test Suite', function () {
         sandbox.replace(
           testPlaygroundController,
           '_evaluate',
-          sandbox.fake.rejects(false)
+          sandbox.fake.resolves(null)
         );
 
         const result = await testPlaygroundController._evaluateWithCancelModal(
           ''
         );
 
-        expect(result).to.deep.equal({ result: undefined });
+        expect(result).to.deep.equal(null);
       });
 
       test('playground controller loads the active editor on start', () => {

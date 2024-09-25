@@ -1246,7 +1246,7 @@ export default class ParticipantController {
 
       if (progressResult?.includes("Sorry, I can't assist with that.")) {
         void vscode.window.showErrorMessage("Sorry, I can't assist with that.");
-        return Promise.resolve(false);
+        return false;
       }
 
       if (progressResult) {
@@ -1261,7 +1261,7 @@ export default class ParticipantController {
         }
       }
 
-      return Promise.resolve(true);
+      return true;
     } catch (error) {
       this.handleError(error, 'exportToPlayground');
       await vscode.window.showErrorMessage(
@@ -1269,7 +1269,7 @@ export default class ParticipantController {
           formatError(error).message
         }`
       );
-      return Promise.resolve(false);
+      return false;
     }
   }
 

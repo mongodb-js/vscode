@@ -62,7 +62,7 @@ let dummySandbox;
 // TODO: this function was copied from the compass-export-to-language module
 // https://github.com/mongodb-js/compass/blob/7c4bc0789a7b66c01bb7ba63955b3b11ed40c094/packages/compass-export-to-language/src/modules/count-aggregation-stages-in-string.js
 // and should be updated as well when the better solution for the problem will be found.
-const countAggregationStagesInString = (str: string) => {
+const countAggregationStagesInString = (str: string): number => {
   if (!dummySandbox) {
     dummySandbox = vm.createContext(Object.create(null), {
       codeGeneration: { strings: false, wasm: false },
@@ -160,7 +160,7 @@ export default class PlaygroundController {
     this._playgroundSelectedCodeActionProvider =
       playgroundSelectedCodeActionProvider;
 
-    this._activeConnectionChangedHandler = () => {
+    this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();
     };
     this._connectionController.addEventListener(
@@ -170,7 +170,7 @@ export default class PlaygroundController {
 
     const onDidChangeActiveTextEditor = (
       editor: vscode.TextEditor | undefined
-    ) => {
+    ): void => {
       if (editor?.document.uri.scheme === PLAYGROUND_RESULT_SCHEME) {
         this._playgroundResultViewColumn = editor.viewColumn;
         this._playgroundResultTextDocument = editor?.document;
@@ -438,7 +438,10 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
-  async _evaluate(codeToEvaluate: string): Promise<ShellEvaluateResult> {
+  async _evaluate(
+    codeToEvaluate: string,
+    token?: vscode.CancellationToken
+  ): Promise<ShellEvaluateResult> {
     const connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
@@ -449,13 +452,14 @@ export default class PlaygroundController {
 
     this._statusView.showMessage('Getting results...');
 
-    let result: ShellEvaluateResult;
+    let result: ShellEvaluateResult = null;
     try {
       // Send a request to the language server to execute scripts from a playground.
       result = await this._languageServerController.evaluate({
         codeToEvaluate,
         connectionId,
         filePath: vscode.window.activeTextEditor?.document.uri.fsPath,
+        token,
       });
     } catch (error) {
       const msg =
@@ -491,34 +495,21 @@ export default class PlaygroundController {
       );
     }
 
-    try {
-      return await vscode.window.withProgress(
-        {
-          location: ProgressLocation.Notification,
-          title: 'Running MongoDB playground...',
-          cancellable: true,
-        },
-        async (progress, token): Promise<ShellEvaluateResult> => {
-          token.onCancellationRequested(() => {
-            // If the user clicks the cancel button,
-            // terminate all processes running on the language server.
-            this._languageServerController.cancelAll();
-          });
-
-          return Promise.race([
-            this._evaluate(codeToEvaluate),
-            new Promise<{ result: undefined }>((resolve) =>
-              token.onCancellationRequested(() => {
-                resolve({ result: undefined });
-              })
-            ),
-          ]);
-        }
-      );
-    } catch (error) {
-      log.error('Evaluating playground with cancel modal failed', error);
-      return { result: undefined };
-    }
+    return await vscode.window.withProgress(
+      {
+        location: ProgressLocation.Notification,
+        title: 'Running MongoDB playground...',
+        cancellable: true,
+      },
+      async (progress, token): Promise<ShellEvaluateResult> => {
+        token.onCancellationRequested(() => {
+          // If the user clicks the cancel button,
+          // terminate all processes running on the language server.
+          this._languageServerController.cancelAll();
+        });
+        return this._evaluate(codeToEvaluate, token);
+      }
+    );
   }
 
   async _openInResultPane(result: PlaygroundResult): Promise<void> {
@@ -698,7 +689,7 @@ export default class PlaygroundController {
     documentUri,
     range,
     fix,
-  }: ThisDiagnosticFix) {
+  }: ThisDiagnosticFix): Promise<boolean> {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(documentUri, range, fix);
     await vscode.workspace.applyEdit(edit);
@@ -708,7 +699,7 @@ export default class PlaygroundController {
   async fixAllInvalidInteractiveSyntax({
     documentUri,
     diagnostics,
-  }: AllDiagnosticFixes) {
+  }: AllDiagnosticFixes): Promise<boolean> {
     const edit = new vscode.WorkspaceEdit();
 
     for (const { range, fix } of diagnostics) {

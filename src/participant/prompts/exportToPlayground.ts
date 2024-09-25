@@ -21,11 +21,9 @@ Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
   }
 
   static buildMessages(prompt: string): vscode.LanguageModelChatMessage[] {
-    const messages = [
+    return [
       ExportToPlaygroundPrompt.getAssistantPrompt(),
       ExportToPlaygroundPrompt.getUserPrompt(prompt),
     ];
-
-    return messages;
   }
 }

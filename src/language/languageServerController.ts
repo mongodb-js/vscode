@@ -5,11 +5,7 @@ import type {
   LanguageClientOptions,
   ServerOptions,
 } from 'vscode-languageclient/node';
-import {
-  LanguageClient,
-  TransportKind,
-  CancellationTokenSource,
-} from 'vscode-languageclient/node';
+import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 import type { ExtensionContext } from 'vscode';
 import { workspace } from 'vscode';
 import util from 'util';
@@ -32,7 +28,6 @@ const log = createLogger('language server controller');
  */
 export default class LanguageServerController {
   _context: ExtensionContext;
-  _source?: CancellationTokenSource;
   _isExecutingInProgress = false;
   _client: LanguageClient;
   _currentConnectionId: string | null = null;
@@ -190,12 +185,7 @@ export default class LanguageServerController {
       inputLength: playgroundExecuteParameters.codeToEvaluate.length,
     });
     this._isExecutingInProgress = true;
-
     this._consoleOutputChannel.clear();
-
-    // Instantiate a new CancellationTokenSource object
-    // that generates a cancellation token for each run of a playground.
-    this._source = new CancellationTokenSource();
 
     // Send a request with a cancellation token
     // to the language server instance to execute scripts from a playground
@@ -203,7 +193,7 @@ export default class LanguageServerController {
     const res: ShellEvaluateResult = await this._client.sendRequest(
       ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
       playgroundExecuteParameters,
-      this._source.token
+      playgroundExecuteParameters.token
     );
 
     this._isExecutingInProgress = false;
@@ -279,7 +269,6 @@ export default class LanguageServerController {
     // the onCancellationRequested event will be fired,
     // and IsCancellationRequested will return true.
     if (this._isExecutingInProgress) {
-      this._source?.cancel();
       this._isExecutingInProgress = false;
     }
   }
