@@ -440,7 +440,7 @@ export default class PlaygroundController {
 
   async _evaluate(
     codeToEvaluate: string,
-    token?: vscode.CancellationToken
+    token: vscode.CancellationToken
   ): Promise<ShellEvaluateResult> {
     const connectionId = this._connectionController.getActiveConnectionId();
 
@@ -455,12 +455,14 @@ export default class PlaygroundController {
     let result: ShellEvaluateResult = null;
     try {
       // Send a request to the language server to execute scripts from a playground.
-      result = await this._languageServerController.evaluate({
-        codeToEvaluate,
-        connectionId,
-        filePath: vscode.window.activeTextEditor?.document.uri.fsPath,
-        token,
-      });
+      result = await this._languageServerController.evaluate(
+        {
+          codeToEvaluate,
+          connectionId,
+          filePath: vscode.window.activeTextEditor?.document.uri.fsPath,
+        },
+        token
+      );
     } catch (error) {
       const msg =
         'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.';

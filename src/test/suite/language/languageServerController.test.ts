@@ -107,9 +107,10 @@ suite('Language Server Controller Test Suite', () => {
 
   test('cancel a long-running script', async () => {
     expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
-
-    await languageServerControllerStub.evaluate({
-      codeToEvaluate: `
+    const source = new vscode.CancellationTokenSource();
+    await languageServerControllerStub.evaluate(
+      {
+        codeToEvaluate: `
         const names = [
           "flour",
           "butter",
@@ -126,8 +127,10 @@ suite('Language Server Controller Test Suite', () => {
         });
         currentName
       `,
-      connectionId: 'pineapple',
-    });
+        connectionId: 'pineapple',
+      },
+      source.token
+    );
 
     languageServerControllerStub.cancelAll();
     expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
@@ -176,13 +179,17 @@ suite('Language Server Controller Test Suite', () => {
 
       expect(outputChannelClearStub).to.not.be.called;
 
-      await languageServerControllerStub.evaluate({
-        codeToEvaluate: `
+      const source = new vscode.CancellationTokenSource();
+      await languageServerControllerStub.evaluate(
+        {
+          codeToEvaluate: `
           print('test');
           console.log({ pineapple: 'yes' });
         `,
-        connectionId: 'pineapple',
-      });
+          connectionId: 'pineapple',
+        },
+        source.token
+      );
 
       expect(outputChannelClearStub).to.be.calledOnce;
     });

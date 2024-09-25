@@ -1016,7 +1016,7 @@
     "submenus": [
       {
         "id": "mdb.copilot",
-        "label": "MongoDB Copilot"
+        "label": "MongoDB Copilot Participant"
       }
     ],
     "keybindings": [

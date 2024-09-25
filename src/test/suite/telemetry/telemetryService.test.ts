@@ -235,7 +235,8 @@ suite('Telemetry Controller Test Suite', () => {
   test('track playground code executed event', async () => {
     const testPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
-    await testPlaygroundController._evaluate('show dbs');
+    const source = new vscode.CancellationTokenSource();
+    await testPlaygroundController._evaluate('show dbs', source.token);
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
       sinon.match({

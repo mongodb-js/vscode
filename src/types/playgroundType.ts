@@ -20,7 +20,6 @@ export type PlaygroundEvaluateParams = {
   codeToEvaluate: string;
   connectionId: string;
   filePath?: string;
-  token?: vscode.CancellationToken;
 };
 
 export interface ExportToLanguageAddons {

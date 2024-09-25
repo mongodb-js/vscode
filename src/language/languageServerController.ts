@@ -177,7 +177,8 @@ export default class LanguageServerController {
   }
 
   async evaluate(
-    playgroundExecuteParameters: PlaygroundEvaluateParams
+    playgroundExecuteParameters: PlaygroundEvaluateParams,
+    token: vscode.CancellationToken
   ): Promise<ShellEvaluateResult> {
     log.info('Running a playground...', {
       connectionId: playgroundExecuteParameters.connectionId,
@@ -193,7 +194,7 @@ export default class LanguageServerController {
     const res: ShellEvaluateResult = await this._client.sendRequest(
       ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
       playgroundExecuteParameters,
-      playgroundExecuteParameters.token
+      token
     );
 
     this._isExecutingInProgress = false;
