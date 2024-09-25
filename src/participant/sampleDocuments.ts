@@ -32,9 +32,9 @@ export async function getStringifiedSampleDocuments({
   sampleDocuments,
 }: {
   prompt: string;
-  sampleDocuments: Document[];
+  sampleDocuments?: Document[];
 }): Promise<string> {
-  if (!sampleDocuments.length) {
+  if (!sampleDocuments?.length) {
     return '';
   }
 
@@ -44,9 +44,8 @@ export async function getStringifiedSampleDocuments({
   }
 
   let additionToPrompt: Document[] | Document = sampleDocuments;
-  let promptInputTokens = await model.countTokens(
-    prompt + toJSString(sampleDocuments)
-  );
+  let promptInputTokens =
+    (await model.countTokens(prompt + toJSString(sampleDocuments))) || 0;
 
   // First check the length of all stringified sample documents.
   // If the resulting prompt is too large, proceed with only 1 sample document.
@@ -59,11 +58,14 @@ export async function getStringifiedSampleDocuments({
   }
 
   const stringifiedDocuments = toJSString(additionToPrompt);
-  promptInputTokens = await model.countTokens(prompt + stringifiedDocuments);
+
+  // TODO: model.countTokens will sometimes return undefined - at least in tests. We should investigate why.
+  promptInputTokens =
+    (await model.countTokens(prompt + stringifiedDocuments)) || 0;
 
   // Add sample documents to the prompt only when it fits in the context window.
   if (promptInputTokens <= model.maxInputTokens) {
-    return `Sample document${
+    return `\nSample document${
       Array.isArray(additionToPrompt) ? 's' : ''
     }: ${stringifiedDocuments}\n`;
   }

@@ -224,6 +224,7 @@ export default class ParticipantController {
     const messages = await Prompts.generic.buildMessages({
       request,
       context,
+      connectionNames: this._getConnectionNames(),
     });
 
     const responseContent = await this.getChatResponseContent({
@@ -565,9 +566,7 @@ export default class ParticipantController {
     const messagesWithNamespace = await Prompts.namespace.buildMessages({
       context,
       request,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
     });
     const responseContentWithNamespace = await this.getChatResponseContent({
       messages: messagesWithNamespace,
@@ -912,9 +911,7 @@ export default class ParticipantController {
       amountOfDocumentsSampled,
       collectionName,
       schema,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
@@ -1017,9 +1014,7 @@ export default class ParticipantController {
       databaseName,
       collectionName,
       schema,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
@@ -1107,6 +1102,7 @@ export default class ParticipantController {
     const messages = await Prompts.generic.buildMessages({
       request,
       context,
+      connectionNames: this._getConnectionNames(),
     });
 
     const responseContent = await this.getChatResponseContent({
@@ -1288,5 +1284,11 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       reason: feedback.unhelpfulReason,
       response_type: (feedback.result as ChatResult)?.metadata.intent,
     });
+  }
+
+  _getConnectionNames(): string[] {
+    return this._connectionController
+      .getSavedConnections()
+      .map((connection) => connection.name);
   }
 }

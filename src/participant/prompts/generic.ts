@@ -13,10 +13,6 @@ You can imagine the schema, collection, and database name.
 Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
   }
 
-  protected getUserPrompt(args: PromptArgsBase): Promise<string> {
-    return Promise.resolve(args.request.prompt);
-  }
-
   public getEmptyRequestResponse(): string {
     // TODO(VSCODE-572): Generic empty response handler
     return vscode.l10n.t(

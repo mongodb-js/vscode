@@ -4,20 +4,51 @@ import type { ChatResult, ParticipantResponseType } from '../constants';
 export interface PromptArgsBase {
   request: {
     prompt: string;
+    command?: string;
   };
   context: vscode.ChatContext;
+  connectionNames: string[];
 }
 
 export abstract class PromptBase<TArgs extends PromptArgsBase> {
   protected abstract getAssistantPrompt(args: TArgs): string;
 
-  protected abstract getUserPrompt(args: TArgs): Promise<string>;
+  protected getUserPrompt(args: TArgs): Promise<string> {
+    return Promise.resolve(args.request.prompt);
+  }
 
   async buildMessages(args: TArgs): Promise<vscode.LanguageModelChatMessage[]> {
+    // If the current user's prompt is a connection name, and the last
+    // message was to connect. We want to use the last
+    // message they sent before the connection name as their prompt.
+    if (args.connectionNames.includes(args.request.prompt)) {
+      const history = args.context.history;
+      const previousResponse = history[
+        history.length - 1
+      ] as vscode.ChatResponseTurn;
+      const intent = (previousResponse?.result as ChatResult)?.metadata.intent;
+      if (intent === 'askToConnect') {
+        // Go through the history in reverse order to find the last user message.
+        for (let i = history.length - 1; i >= 0; i--) {
+          if (history[i] instanceof vscode.ChatRequestTurn) {
+            // Rewrite the arguments so that the prompt is the last user message from history
+            args = {
+              ...args,
+              request: {
+                ...args.request,
+                prompt: (history[i] as vscode.ChatRequestTurn).prompt,
+              },
+            };
+            break;
+          }
+        }
+      }
+    }
+
     return [
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.Assistant(this.getAssistantPrompt(args)),
-      ...this.getHistoryMessages({ context: args.context }),
+      ...this.getHistoryMessages(args),
       // eslint-disable-next-line new-cap
       vscode.LanguageModelChatMessage.User(await this.getUserPrompt(args)),
     ];
@@ -31,7 +62,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
     connectionNames,
     context,
   }: {
-    connectionNames?: string[]; // Used to scrape the connecting messages from the history.
+    connectionNames: string[]; // Used to scrape the connecting messages from the history.
     context: vscode.ChatContext;
   }): vscode.LanguageModelChatMessage[] {
     const messages: vscode.LanguageModelChatMessage[] = [];

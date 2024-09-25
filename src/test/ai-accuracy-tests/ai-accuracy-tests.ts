@@ -323,6 +323,7 @@ const buildMessages = async ({
       return Prompts.generic.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
+        connectionNames: [],
       });
 
     case 'query':
