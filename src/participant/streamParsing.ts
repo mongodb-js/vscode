@@ -114,22 +114,10 @@ class FragmentMatcher {
       // We haven't matched the start identifier yet, so try and do that
       const startIndex = this._startMatcher.match(fragment);
       if (startIndex !== -1) {
-        let endIndex = this._endMatcher.match(fragment.slice(startIndex));
-        if (endIndex !== -1) {
-          // This is the case where both the start and the end identifiers are contained in the same fragment.
-          // In this case, we emit the content between the two identifiers and continue processing the rest of the fragment.
-
-          // endIndex is relative to the slice, so we need to add startIndex to it.
-          endIndex = startIndex + endIndex;
-
-          this._matchedContent = fragment.slice(startIndex, endIndex);
-          this._contentMatched();
-          this.process(fragment.slice(endIndex));
-        } else {
-          // If we only matched the start, we add the partial fragment to the matched content and
-          // wait for another fragment to complete the match.
-          this._matchedContent = fragment.slice(startIndex);
-        }
+        // We found a match for the start identifier - update `_matchedContent` to an empty string
+        // and recursively call `process` with the remainder of the fragment.
+        this._matchedContent = '';
+        this.process(fragment.slice(startIndex));
       }
     } else {
       const endIndex = this._endMatcher.match(fragment);
@@ -139,6 +127,8 @@ class FragmentMatcher {
         this._contentMatched();
         this.process(fragment.slice(endIndex));
       } else {
+        // We haven't matched the end yet - append the fragment to the matched content and wait
+        // for a future fragment to contain the end identifier.
         this._matchedContent += fragment;
       }
     }
