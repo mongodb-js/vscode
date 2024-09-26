@@ -21,16 +21,6 @@ export interface PromptResult {
   stats: ParticipantPromptProperties;
 }
 
-export interface UserPromptResponse {
-  prompt: string;
-  hasSampleDocs: boolean;
-}
-
-export interface PromptResult {
-  messages: vscode.LanguageModelChatMessage[];
-  stats: ParticipantPromptProperties;
-}
-
 export abstract class PromptBase<TArgs extends PromptArgsBase> {
   protected abstract getAssistantPrompt(args: TArgs): string;
 

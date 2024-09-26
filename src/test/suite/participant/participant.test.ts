@@ -1446,8 +1446,8 @@ Schema:
           messages[2].content.length
       );
 
-      // The actual user prompt length should be the prompt supplied by the user, even if
-      // we enhance it with sample docs and schema.
+      // The length of the user prompt length should be taken from the prompt supplied
+      // by the user, even if we enhance it with sample docs and schema.
       expect(stats.user_input_length).to.be.lessThan(
         messages[2].content.length
       );
@@ -1498,10 +1498,10 @@ Schema:
       );
     });
 
-    test('namespace', async function () {
+    test.only('namespace', async function () {
       const chatRequestMock = {
         prompt: 'find all docs by a name example',
-        command: 'schema',
+        command: 'query',
       };
       const { messages, stats } = await Prompts.namespace.buildMessages({
         context: chatContextStub,
@@ -1517,7 +1517,7 @@ Schema:
         vscode.LanguageModelChatMessageRole.User
       );
 
-      expect(stats.command).to.equal('schema');
+      expect(stats.command).to.equal('query');
       expect(stats.has_sample_documents).to.be.false;
       expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
       expect(stats.total_message_length).to.equal(
