@@ -1498,7 +1498,7 @@ Schema:
       );
     });
 
-    test.only('namespace', async function () {
+    test('namespace', async function () {
       const chatRequestMock = {
         prompt: 'find all docs by a name example',
         command: 'query',
