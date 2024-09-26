@@ -14,6 +14,11 @@ export type ParticipantResponseType =
   | 'askToConnect'
   | 'askForNamespace';
 
+export const codeBlockIdentifier = {
+  start: '```javascript',
+  end: '```',
+};
+
 interface Metadata {
   intent: Exclude<ParticipantResponseType, 'askForNamespace' | 'docs'>;
   chatId: string;

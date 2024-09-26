@@ -3,9 +3,11 @@ import util from 'util';
 import type { Document } from 'mongodb';
 
 import type { Fixtures } from './fixtures/fixture-loader';
-import { getRunnableContentFromString } from '../../participant/participant';
 import { execute } from '../../language/worker';
 import type { ShellEvaluateResult } from '../../types/playgroundType';
+import { asyncIterableFromArray } from '../suite/participant/asyncIterableFromArray';
+import { codeBlockIdentifier } from '../../participant/constants';
+import { processStreamWithIdentifiers } from '../../participant/streamParsing';
 
 export const runCodeInMessage = async (
   message: string,
@@ -15,7 +17,18 @@ export const runCodeInMessage = async (
   data: ShellEvaluateResult;
   error: any;
 }> => {
-  const codeToEvaluate = getRunnableContentFromString(message);
+  // We only run the last code block passed.
+  let codeToEvaluate = '';
+  await processStreamWithIdentifiers({
+    processStreamFragment: () => {
+      /* no-op */
+    },
+    onStreamIdentifier: (codeBlockContent: string): void => {
+      codeToEvaluate = codeBlockContent;
+    },
+    inputIterable: asyncIterableFromArray<string>([message]),
+    identifier: codeBlockIdentifier,
+  });
 
   if (codeToEvaluate.trim().length === 0) {
     throw new Error(`no code found in message: ${message}`);

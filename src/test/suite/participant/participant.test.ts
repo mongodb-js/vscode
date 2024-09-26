@@ -6,9 +6,7 @@ import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
 
-import ParticipantController, {
-  getRunnableContentFromString,
-} from '../../../participant/participant';
+import ParticipantController from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
@@ -187,18 +185,6 @@ suite('Participant Controller Test Suite', function () {
       Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(text);
     expect(databaseName).to.be.equal('my');
     expect(collectionName).to.be.equal('cats');
-  });
-
-  test('parses a returned by ai text for code blocks', function () {
-    const text =
-      '```javascript\n' +
-      "use('test');\n" +
-      "db.getCollection('test').find({ name: 'Shika' });\n" +
-      '```';
-    const code = getRunnableContentFromString(text);
-    expect(code).to.be.equal(
-      "use('test');\ndb.getCollection('test').find({ name: 'Shika' });"
-    );
   });
 
   suite('when not connected', function () {
@@ -470,14 +456,71 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('generic command', function () {
-        test('generates a query', async function () {
+        suite('when the intent is recognized', function () {
+          beforeEach(function () {
+            sendRequestStub.onCall(0).resolves({
+              text: ['Schema'],
+            });
+          });
+
+          test('routes to the appropriate handler', async function () {
+            const chatRequestMock = {
+              prompt:
+                'what is the shape of the documents in the pineapple collection?',
+              command: undefined,
+              references: [],
+            };
+            const res = await invokeChatHandler(chatRequestMock);
+
+            expect(sendRequestStub).to.have.been.calledTwice;
+            const intentRequest = sendRequestStub.firstCall.args[0];
+            expect(intentRequest).to.have.length(2);
+            expect(intentRequest[0].content).to.include(
+              'Your task is to help guide a conversation with a user to the correct handler.'
+            );
+            expect(intentRequest[1].content).to.equal(
+              'what is the shape of the documents in the pineapple collection?'
+            );
+            const genericRequest = sendRequestStub.secondCall.args[0];
+            expect(genericRequest).to.have.length(2);
+            expect(genericRequest[0].content).to.include(
+              'Parse all user messages to find a database name and a collection name.'
+            );
+            expect(genericRequest[1].content).to.equal(
+              'what is the shape of the documents in the pineapple collection?'
+            );
+
+            expect(res?.metadata.intent).to.equal('askForNamespace');
+          });
+        });
+
+        test('default handler asks for intent and shows code run actions', async function () {
           const chatRequestMock = {
             prompt: 'how to find documents in my collection?',
             command: undefined,
             references: [],
           };
-          await invokeChatHandler(chatRequestMock);
+          const res = await invokeChatHandler(chatRequestMock);
 
+          expect(sendRequestStub).to.have.been.calledTwice;
+          const intentRequest = sendRequestStub.firstCall.args[0];
+          expect(intentRequest).to.have.length(2);
+          expect(intentRequest[0].content).to.include(
+            'Your task is to help guide a conversation with a user to the correct handler.'
+          );
+          expect(intentRequest[1].content).to.equal(
+            'how to find documents in my collection?'
+          );
+          const genericRequest = sendRequestStub.secondCall.args[0];
+          expect(genericRequest).to.have.length(2);
+          expect(genericRequest[0].content).to.include(
+            'Your task is to help the user with MongoDB related questions.'
+          );
+          expect(genericRequest[1].content).to.equal(
+            'how to find documents in my collection?'
+          );
+
+          expect(res?.metadata.intent).to.equal('generic');
           expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
             command: 'mdb.runParticipantQuery',
             title: '▶️ Run',

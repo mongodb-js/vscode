@@ -3,6 +3,7 @@ import type { Document } from 'bson';
 
 import { getStringifiedSampleDocuments } from '../sampleDocuments';
 import type { PromptArgsBase, UserPromptResponse } from './promptBase';
+import { codeBlockIdentifier } from '../constants';
 import { PromptBase } from './promptBase';
 
 interface QueryPromptArgs extends PromptArgsBase {
@@ -19,15 +20,15 @@ export class QueryPrompt extends PromptBase<QueryPromptArgs> {
 Your task is to help the user craft MongoDB shell syntax code to perform their task.
 Keep your response concise.
 You must suggest code that is performant and correct.
-Respond with markdown, write code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
-Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.
+Respond with markdown, write code in a Markdown code block that begins with ${codeBlockIdentifier.start} and ends with ${codeBlockIdentifier.end}.
+Respond in MongoDB shell syntax using the ${codeBlockIdentifier.start} code block syntax.
 
 Concisely explain the code snippet you have generated.
 
 Example 1:
 User: Documents in the orders db, sales collection, where the date is in 2014 and group the total sales for each product.
 Response:
-\`\`\`javascript
+${codeBlockIdentifier.start}
 use('orders');
 db.getCollection('sales').aggregate([
   // Find all of the sales that occurred in 2014.
@@ -35,15 +36,15 @@ db.getCollection('sales').aggregate([
   // Group the total sales for each product.
   { $group: { _id: '$item', totalSaleAmount: { $sum: { $multiply: [ '$price', '$quantity' ] } } } }
 ]);
-\`\`\`
+${codeBlockIdentifier.end}
 
 Example 2:
 User: How do I create an index on the name field in my users collection?.
 Response:
-\`\`\`javascript
+${codeBlockIdentifier.start}
 use('test');
 db.getCollection('users').createIndex({ name: 1 });
-\`\`\`
+${codeBlockIdentifier.end}
 
 MongoDB command to specify database:
 use('');
