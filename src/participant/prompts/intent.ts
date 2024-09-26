@@ -1,12 +1,11 @@
-import * as vscode from 'vscode';
-
-import { getHistoryMessages } from './history';
+import type { PromptArgsBase } from './promptBase';
+import { PromptBase } from './promptBase';
 
 export type PromptIntent = 'Query' | 'Schema' | 'Docs' | 'Default';
 
-export class IntentPrompt {
-  static getAssistantPrompt(): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert.
+export class IntentPrompt extends PromptBase<PromptArgsBase> {
+  protected getAssistantPrompt(): string {
+    return `You are a MongoDB expert.
 Your task is to help guide a conversation with a user to the correct handler.
 You will be provided a conversation and your task is to determine the intent of the user.
 The intent handlers are:
@@ -32,32 +31,7 @@ Example:
 User:
 What is $vectorSearch?
 Response:
-Docs
-`;
-
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.Assistant(prompt);
-  }
-
-  static getUserPrompt(prompt: string): vscode.LanguageModelChatMessage {
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(prompt);
-  }
-
-  static buildMessages({
-    context,
-    request,
-  }: {
-    request: {
-      prompt: string;
-    };
-    context: vscode.ChatContext;
-  }): vscode.LanguageModelChatMessage[] {
-    return [
-      IntentPrompt.getAssistantPrompt(),
-      ...getHistoryMessages({ context }),
-      IntentPrompt.getUserPrompt(request.prompt),
-    ];
+Docs`;
   }
 
   static getIntentFromModelResponse(response: string): PromptIntent {

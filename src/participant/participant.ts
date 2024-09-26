@@ -9,7 +9,7 @@ import type { LoadedConnection } from '../storage/connectionStorage';
 import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
-import { GenericPrompt, isPromptEmpty } from './prompts/generic';
+import { Prompts } from './prompts';
 import type { ChatResult } from './constants';
 import {
   askToConnectChatResult,
@@ -22,18 +22,14 @@ import {
   schemaRequestChatResult,
   createCancelledRequestChatResult,
 } from './constants';
-import { QueryPrompt } from './prompts/query';
-import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
 import { ChatMetadataStore } from './chatMetadata';
-import { doesLastMessageAskForNamespace } from './prompts/history';
 import {
   DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT,
   type OpenSchemaCommandArgs,
-  SchemaPrompt,
 } from './prompts/schema';
 import {
   chatResultFeedbackKindToTelemetryValue,
@@ -59,21 +55,9 @@ export type RunParticipantQueryCommandArgs = {
   runnableContent: string;
 };
 
-const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)`;
-const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
-
 export type ParticipantCommand = '/query' | '/schema' | '/docs';
 
 const MAX_MARKDOWN_LIST_LENGTH = 10;
-
-export function parseForDatabaseAndCollectionName(text: string): {
-  databaseName?: string;
-  collectionName?: string;
-} {
-  const databaseName = text.match(DB_NAME_REGEX)?.[1].trim();
-  const collectionName = text.match(COL_NAME_REGEX)?.[1].trim();
-  return { databaseName, collectionName };
-}
 
 export function getRunnableContentFromString(text: string): string {
   const matchedJSresponseContent = text.match(/```javascript((.|\n)*)```/);
@@ -237,9 +221,10 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
-    const messages = GenericPrompt.buildMessages({
+    const messages = await Prompts.generic.buildMessages({
       request,
       context,
+      connectionNames: this._getConnectionNames(),
     });
 
     const responseContent = await this.getChatResponseContent({
@@ -297,7 +282,8 @@ export default class ParticipantController {
     request: vscode.ChatRequest;
     token: vscode.CancellationToken;
   }): Promise<PromptIntent> {
-    const messages = IntentPrompt.buildMessages({
+    const messages = await Prompts.intent.buildMessages({
+      connectionNames: this._getConnectionNames(),
       request,
       context,
     });
@@ -664,20 +650,19 @@ export default class ParticipantController {
     databaseName: string | undefined;
     collectionName: string | undefined;
   }> {
-    const messagesWithNamespace = NamespacePrompt.buildMessages({
+    const messagesWithNamespace = await Prompts.namespace.buildMessages({
       context,
       request,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
     });
     const responseContentWithNamespace = await this.getChatResponseContent({
       messages: messagesWithNamespace,
       token,
     });
-    const namespace = parseForDatabaseAndCollectionName(
-      responseContentWithNamespace
-    );
+    const { databaseName, collectionName } =
+      Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+        responseContentWithNamespace
+      );
 
     // See if there's a namespace set in the
     // chat metadata we can fallback to if the model didn't find it.
@@ -690,8 +675,8 @@ export default class ParticipantController {
     } = this._chatMetadataStore.getChatMetadata(chatId) ?? {};
 
     return {
-      databaseName: namespace.databaseName ?? databaseNameFromMetadata,
-      collectionName: namespace.collectionName ?? collectionNameFromMetadata,
+      databaseName: databaseName || databaseNameFromMetadata,
+      collectionName: collectionName || collectionNameFromMetadata,
     };
   }
 
@@ -739,6 +724,19 @@ export default class ParticipantController {
       collectionName,
       history: context.history,
     });
+  }
+
+  _doesLastMessageAskForNamespace(
+    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  ): boolean {
+    const lastMessageMetaData = history[
+      history.length - 1
+    ] as vscode.ChatResponseTurn;
+
+    return (
+      (lastMessageMetaData?.result as ChatResult)?.metadata?.intent ===
+      'askForNamespace'
+    );
   }
 
   _askToConnect({
@@ -872,7 +870,7 @@ export default class ParticipantController {
       .history[context.history.length - 1] as vscode.ChatResponseTurn;
     const lastMessage = lastMessageMetaData?.result as ChatResult;
     if (lastMessage?.metadata?.intent !== 'askForNamespace') {
-      stream.markdown(GenericPrompt.getEmptyRequestResponse());
+      stream.markdown(Prompts.generic.getEmptyRequestResponse());
       return emptyRequestChatResult(context.history);
     }
 
@@ -927,8 +925,8 @@ export default class ParticipantController {
     }
 
     if (
-      isPromptEmpty(request) &&
-      doesLastMessageAskForNamespace(context.history)
+      Prompts.isPromptEmpty(request) &&
+      this._doesLastMessageAskForNamespace(context.history)
     ) {
       return this.handleEmptyNamespaceMessage({
         command: '/schema',
@@ -993,16 +991,14 @@ export default class ParticipantController {
       return schemaRequestChatResult(context.history);
     }
 
-    const messages = SchemaPrompt.buildMessages({
+    const messages = await Prompts.schema.buildMessages({
       request,
       context,
       databaseName,
       amountOfDocumentsSampled,
       collectionName,
       schema,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
@@ -1039,8 +1035,8 @@ export default class ParticipantController {
       });
     }
 
-    if (isPromptEmpty(request)) {
-      if (doesLastMessageAskForNamespace(context.history)) {
+    if (Prompts.isPromptEmpty(request)) {
+      if (this._doesLastMessageAskForNamespace(context.history)) {
         return this.handleEmptyNamespaceMessage({
           command: '/query',
           context,
@@ -1048,7 +1044,7 @@ export default class ParticipantController {
         });
       }
 
-      stream.markdown(QueryPrompt.getEmptyRequestResponse());
+      stream.markdown(Prompts.query.emptyRequestResponse);
       return emptyRequestChatResult(context.history);
     }
 
@@ -1099,15 +1095,13 @@ export default class ParticipantController {
       );
     }
 
-    const messages = await QueryPrompt.buildMessages({
+    const messages = await Prompts.query.buildMessages({
       request,
       context,
       databaseName,
       collectionName,
       schema,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     const responseContent = await this.getChatResponseContent({
@@ -1192,9 +1186,10 @@ export default class ParticipantController {
     responseReferences?: Reference[];
   }> {
     const [request, context, , token] = args;
-    const messages = GenericPrompt.buildMessages({
+    const messages = await Prompts.generic.buildMessages({
       request,
       context,
+      connectionNames: this._getConnectionNames(),
     });
 
     const responseContent = await this.getChatResponseContent({
@@ -1327,7 +1322,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
           return await this.handleSchemaRequest(...args);
         default:
           if (!request.prompt?.trim()) {
-            stream.markdown(GenericPrompt.getEmptyRequestResponse());
+            stream.markdown(Prompts.generic.getEmptyRequestResponse());
             return emptyRequestChatResult(args[1].history);
           }
 
@@ -1376,5 +1371,11 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       reason: feedback.unhelpfulReason,
       response_type: (feedback.result as ChatResult)?.metadata.intent,
     });
+  }
+
+  _getConnectionNames(): string[] {
+    return this._connectionController
+      .getSavedConnections()
+      .map((connection) => connection.name);
   }
 }

@@ -1,12 +1,21 @@
 import * as vscode from 'vscode';
 import type { Document } from 'bson';
 
-import { getHistoryMessages } from './history';
 import { getStringifiedSampleDocuments } from '../sampleDocuments';
+import type { PromptArgsBase } from './promptBase';
+import { PromptBase } from './promptBase';
 
-export class QueryPrompt {
-  static getAssistantPrompt(): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert.
+interface QueryPromptArgs extends PromptArgsBase {
+  databaseName: string;
+  collectionName: string;
+  schema?: string;
+  sampleDocuments?: Document[];
+  connectionNames: string[];
+}
+
+export class QueryPrompt extends PromptBase<QueryPromptArgs> {
+  protected getAssistantPrompt(): string {
+    return `You are a MongoDB expert.
 Your task is to help the user craft MongoDB shell syntax code to perform their task.
 Keep your response concise.
 You must suggest code that is performant and correct.
@@ -41,24 +50,16 @@ use('');
 
 MongoDB command to specify collection:
 db.getCollection('');\n`;
-
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.Assistant(prompt);
   }
 
-  static async getUserPrompt({
+  async getUserPrompt({
     databaseName = 'mongodbVSCodeCopilotDB',
     collectionName = 'test',
-    prompt,
+    request,
     schema,
     sampleDocuments,
-  }: {
-    databaseName: string;
-    collectionName: string;
-    prompt: string;
-    schema?: string;
-    sampleDocuments?: Document[];
-  }): Promise<vscode.LanguageModelChatMessage> {
+  }: QueryPromptArgs): Promise<string> {
+    let prompt = request.prompt;
     prompt += `\nDatabase name: ${databaseName}\n`;
     prompt += `Collection name: ${collectionName}\n`;
     if (schema) {
@@ -71,45 +72,10 @@ db.getCollection('');\n`;
       });
     }
 
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(prompt);
+    return prompt;
   }
 
-  static async buildMessages({
-    context,
-    request,
-    databaseName,
-    collectionName,
-    schema,
-    sampleDocuments,
-    connectionNames,
-  }: {
-    request: {
-      prompt: string;
-    };
-    context: vscode.ChatContext;
-    databaseName: string;
-    collectionName: string;
-    schema?: string;
-    sampleDocuments?: Document[];
-    connectionNames: string[];
-  }): Promise<vscode.LanguageModelChatMessage[]> {
-    const messages = [
-      QueryPrompt.getAssistantPrompt(),
-      ...getHistoryMessages({ context, connectionNames }),
-      await QueryPrompt.getUserPrompt({
-        databaseName,
-        collectionName,
-        prompt: request.prompt,
-        schema,
-        sampleDocuments,
-      }),
-    ];
-
-    return messages;
-  }
-
-  static getEmptyRequestResponse(): string {
+  get emptyRequestResponse(): string {
     return vscode.l10n.t(
       'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
     );
