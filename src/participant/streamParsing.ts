@@ -3,7 +3,7 @@ function escapeRegex(str: string): string {
 }
 
 /**
- * This function, provided an stream of text fragments, will stream the
+ * This function, provided a stream of text fragments, will stream the
  * content to the provided stream and call the onIdentifierStreamed function
  * when an identifier is streamed. This is useful for inserting code actions
  * into a chat response, whenever a code block has been written.
