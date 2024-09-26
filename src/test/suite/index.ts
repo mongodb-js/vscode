@@ -6,8 +6,27 @@ import path from 'path';
 import MDBExtensionController from '../../mdbExtensionController';
 import { ExtensionContextStub } from './stubs';
 import { mdbTestExtension } from './stubbableMdbExtension';
+import { onExit } from 'signal-exit';
+
+import { TEST_DATABASE_PORT } from './dbTestHelper';
+import os from 'os';
+import { MongoCluster } from 'mongodb-runner';
+
+async function startTestMongoDBServer() {
+  console.error('Starting MongoDB server on port', TEST_DATABASE_PORT);
+  return await MongoCluster.start({
+    topology: 'standalone',
+    tmpDir: path.join(os.tmpdir(), 'vscode-test-mongodb-runner'),
+    args: ['--port', TEST_DATABASE_PORT],
+  });
+}
 
 export async function run(): Promise<void> {
+  const testMongoDBServer = await startTestMongoDBServer();
+  onExit(() => {
+    void testMongoDBServer?.close();
+  });
+
   const reporterOptions = {
     spec: '-',
     'mocha-junit-reporter': path.join(__dirname, './test-results.xml'),

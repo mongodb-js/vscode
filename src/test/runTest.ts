@@ -1,32 +1,10 @@
 /* eslint-disable no-console */
 import path from 'path';
 import { runTests } from '@vscode/test-electron';
-import { MongoCluster } from 'mongodb-runner';
-import os from 'os';
-
-import { TEST_DATABASE_PORT } from './suite/dbTestHelper';
 
 // More information on vscode specific tests: https://github.com/microsoft/vscode-test
 
-async function startTestMongoDBServer() {
-  console.log('Starting MongoDB server on port', TEST_DATABASE_PORT);
-  return await MongoCluster.start({
-    topology: 'standalone',
-    tmpDir: path.join(os.tmpdir(), 'vscode-test-mongodb-runner'),
-    args: ['--port', TEST_DATABASE_PORT],
-  });
-}
-
-let testMongoDBServer: MongoCluster;
-
-function cleanup() {
-  console.log('Stopping MongoDB server on port', TEST_DATABASE_PORT);
-  void testMongoDBServer?.close();
-}
-
 async function main(): Promise<any> {
-  testMongoDBServer = await startTestMongoDBServer();
-
   // The folder containing the Extension Manifest package.json
   // Passed to `--extensionDevelopmentPath`
   const extensionDevelopmentPath = path.join(__dirname, '../../');
@@ -44,27 +22,7 @@ async function main(): Promise<any> {
     extensionTestsPath,
     launchArgs: [testWorkspace, '--disable-extensions'],
   });
-
-  cleanup();
 }
-
-process.once('SIGINT', () => {
-  console.log('Process was interrupted. Cleaning-up and exiting.');
-  cleanup();
-  process.kill(process.pid, 'SIGINT');
-});
-
-process.once('SIGTERM', () => {
-  console.log('Process was terminated. Cleaning-up and exiting.');
-  cleanup();
-  process.kill(process.pid, 'SIGTERM');
-});
-
-process.once('uncaughtException', (err: Error) => {
-  console.log('Uncaught exception. Cleaning-up and exiting.');
-  cleanup();
-  throw err;
-});
 
 process.on('unhandledRejection', (err: Error) => {
   if (!err.message.match('Test run failed with code 1')?.[0]) {
@@ -74,7 +32,6 @@ process.on('unhandledRejection', (err: Error) => {
     console.error(err.stack || err.message || err);
   }
 
-  cleanup();
   process.exitCode = 1;
 });
 
