@@ -40,6 +40,7 @@ import {
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
 import { processStreamWithInsertionsOnIdentifier } from './streamParsing';
+import type { PromptIntent } from './prompts/intent';
 
 const log = createLogger('participant');
 
@@ -271,8 +272,7 @@ export default class ParticipantController {
     return responseContent;
   }
 
-  // @MongoDB what is mongodb?
-  async handleGenericRequest(
+  async _handleRoutedGenericRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
@@ -291,6 +291,93 @@ export default class ParticipantController {
     });
 
     return genericRequestChatResult(context.history);
+  }
+
+  async _routeRequestToHandler({
+    context,
+    promptIntent,
+    request,
+    stream,
+    token,
+  }: {
+    context: vscode.ChatContext;
+    promptIntent: Omit<PromptIntent, 'Default'>;
+    request: vscode.ChatRequest;
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<ChatResult> {
+    switch (promptIntent) {
+      case 'Query':
+        return this.handleQueryRequest(request, context, stream, token);
+      case 'Docs':
+        return this.handleDocsRequest(request, context, stream, token);
+      case 'Schema':
+        return this.handleSchemaRequest(request, context, stream, token);
+      case 'Code':
+        return this.handleQueryRequest(request, context, stream, token);
+      default:
+        return this._handleRoutedGenericRequest(
+          request,
+          context,
+          stream,
+          token
+        );
+    }
+  }
+
+  async _getIntentFromChatRequest({
+    context,
+    request,
+    token,
+  }: {
+    context: vscode.ChatContext;
+    request: vscode.ChatRequest;
+    token: vscode.CancellationToken;
+  }): Promise<PromptIntent> {
+    const messages = await Prompts.intent.buildMessages({
+      connectionNames: this._getConnectionNames(),
+      request,
+      context,
+    });
+
+    const responseContent = await this.getChatResponseContent({
+      messages,
+      token,
+    });
+
+    return Prompts.intent.getIntentFromModelResponse(responseContent);
+  }
+
+  async handleGenericRequest(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<ChatResult> {
+    // We "prompt chain" to handle the generic requests.
+    // First we ask the model to parse for intent.
+    // If there is an intent, we can route it to one of the handlers (/commands).
+    // When there is no intention or it's generic we handle it with a generic handler.
+    const promptIntent = await this._getIntentFromChatRequest({
+      context,
+      request,
+      token,
+    });
+
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+        stream,
+      });
+    }
+
+    return this._routeRequestToHandler({
+      context,
+      promptIntent,
+      request,
+      stream,
+      token,
+    });
   }
 
   async connectWithParticipant({
