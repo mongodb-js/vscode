@@ -13,8 +13,7 @@ import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import { ExtensionContextStub } from '../stubs';
-import type {
-  ParticipantPromptProperties } from '../../../telemetry/telemetryService';
+import type { ParticipantPromptProperties } from '../../../telemetry/telemetryService';
 import TelemetryService, {
   TelemetryEventTypes,
 } from '../../../telemetry/telemetryService';
@@ -49,7 +48,7 @@ const encodeStringify = (obj: Record<string, any>): string => {
   return encodeURIComponent(JSON.stringify(obj));
 };
 
-suite.only('Participant Controller Test Suite', function () {
+suite('Participant Controller Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
 
   // The test extension runner.
@@ -81,21 +80,32 @@ suite.only('Participant Controller Test Suite', function () {
       chatTokenStub
     );
 
-  const assertCommandTelemetry = (command: string, chatRequest: vscode.ChatRequest, { expectSampleDocs = false }): void => {
+  const assertCommandTelemetry = (
+    command: string,
+    chatRequest: vscode.ChatRequest,
+    { expectSampleDocs = false }
+  ): void => {
     expect(telemetryTrackStub).to.have.called;
-    expect(telemetryTrackStub.lastCall.args[0]).to.equal('Participant Prompt Submitted');
+    expect(telemetryTrackStub.lastCall.args[0]).to.equal(
+      'Participant Prompt Submitted'
+    );
 
-    const properties = telemetryTrackStub.lastCall.args[1] as ParticipantPromptProperties;
+    const properties = telemetryTrackStub.lastCall
+      .args[1] as ParticipantPromptProperties;
 
     expect(properties.command).to.equal(command);
     expect(properties.has_sample_documents).to.equal(expectSampleDocs);
 
     // Total message length includes participant as well as user prompt
-    expect(properties.total_message_length).to.be.greaterThan(properties.user_input_length);
+    expect(properties.total_message_length).to.be.greaterThan(
+      properties.user_input_length
+    );
 
     // User prompt length should be at least equal to the supplied user prompt, but my occasionally
     // be greater - e.g. when we enhance the context.
-    expect(properties.user_input_length).to.be.greaterThanOrEqual(chatRequest.prompt.length);
+    expect(properties.user_input_length).to.be.greaterThanOrEqual(
+      chatRequest.prompt.length
+    );
   };
 
   beforeEach(function () {
@@ -421,7 +431,9 @@ suite.only('Participant Controller Test Suite', function () {
           TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
         );
         expect(telemetryTrackStub.firstCall.args[1]).to.be.undefined;
-        assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: false });
+        assertCommandTelemetry('query', chatRequestMock, {
+          expectSampleDocs: false,
+        });
       });
     });
 
@@ -477,7 +489,9 @@ suite.only('Participant Controller Test Suite', function () {
             ],
           });
 
-          assertCommandTelemetry('generic', chatRequestMock, { expectSampleDocs: false });
+          assertCommandTelemetry('generic', chatRequestMock, {
+            expectSampleDocs: false,
+          });
         });
       });
 
@@ -507,7 +521,9 @@ suite.only('Participant Controller Test Suite', function () {
               ],
             });
 
-            assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: false });
+            assertCommandTelemetry('query', chatRequestMock, {
+              expectSampleDocs: false,
+            });
           });
 
           test('includes a collection schema', async function () {
@@ -534,7 +550,9 @@ suite.only('Participant Controller Test Suite', function () {
                 'field.arrayField: Array<Int32>\n'
             );
 
-            assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: false });
+            assertCommandTelemetry('query', chatRequestMock, {
+              expectSampleDocs: false,
+            });
           });
 
           suite('useSampleDocsInCopilot setting is true', function () {
@@ -602,7 +620,9 @@ suite.only('Participant Controller Test Suite', function () {
                   ']\n'
               );
 
-              assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: true });
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: true,
+              });
             });
 
             test('includes 1 sample document as an object', async function () {
@@ -648,7 +668,9 @@ suite.only('Participant Controller Test Suite', function () {
                   '}\n'
               );
 
-              assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: true });
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: true,
+              });
             });
 
             test('includes 1 sample documents when 3 make prompt too long', async function () {
@@ -692,7 +714,9 @@ suite.only('Participant Controller Test Suite', function () {
                   '}\n'
               );
 
-              assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: true });
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: true,
+              });
             });
 
             test('does not include sample documents when even 1 makes prompt too long', async function () {
@@ -731,7 +755,9 @@ suite.only('Participant Controller Test Suite', function () {
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[1].content).to.not.include('Sample documents');
 
-              assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: false });
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: false,
+              });
             });
           });
 
@@ -746,7 +772,9 @@ suite.only('Participant Controller Test Suite', function () {
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[1].content).to.not.include('Sample documents');
 
-              assertCommandTelemetry('query', chatRequestMock, { expectSampleDocs: false });
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: false,
+              });
             });
           });
         });
@@ -1506,7 +1534,8 @@ Schema:
       };
 
       // This is the prompt of the user prior to us asking them to connect
-      const expectedPrompt = 'give me the count of all people in the prod database';
+      const expectedPrompt =
+        'give me the count of all people in the prod database';
 
       chatContextStub = {
         history: [
