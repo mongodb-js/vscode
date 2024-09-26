@@ -12,16 +12,13 @@ import { loadFixturesToDB, reloadFixture } from './fixtures/fixture-loader';
 import type { Fixtures } from './fixtures/fixture-loader';
 import { AIBackend } from './ai-backend';
 import type { ChatCompletion } from './ai-backend';
-import { GenericPrompt } from '../../participant/prompts/generic';
-import { QueryPrompt } from '../../participant/prompts/query';
 import {
   createTestResultsHTMLPage,
   type TestOutputs,
   type TestResult,
 } from './create-test-results-html-page';
-import { NamespacePrompt } from '../../participant/prompts/namespace';
 import { runCodeInMessage } from './assertions';
-import { parseForDatabaseAndCollectionName } from '../../participant/participant';
+import { Prompts } from '../../participant/prompts';
 
 const numberOfRunsPerTest = 1;
 
@@ -58,7 +55,10 @@ const namespaceTestCases: TestCase[] = [
     userInput:
       'How many documents are in the tempReadings collection in the pools database?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal('pools');
       expect(namespace.collectionName).to.equal('tempReadings');
@@ -69,7 +69,10 @@ const namespaceTestCases: TestCase[] = [
     type: 'namespace',
     userInput: 'How many documents are in the collection?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal(undefined);
       expect(namespace.collectionName).to.equal(undefined);
@@ -81,7 +84,10 @@ const namespaceTestCases: TestCase[] = [
     userInput:
       'How do I create a new user with read write permissions on the orders collection?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal(undefined);
       expect(namespace.collectionName).to.equal('orders');
@@ -93,7 +99,10 @@ const namespaceTestCases: TestCase[] = [
     userInput:
       'How do I create a new user with read write permissions on the orders db?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal('orders');
       expect(namespace.collectionName).to.equal(undefined);
@@ -311,13 +320,14 @@ const buildMessages = async ({
 }): Promise<vscode.LanguageModelChatMessage[]> => {
   switch (testCase.type) {
     case 'generic':
-      return GenericPrompt.buildMessages({
+      return Prompts.generic.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
+        connectionNames: [],
       });
 
     case 'query':
-      return await QueryPrompt.buildMessages({
+      return await Prompts.query.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
         databaseName: testCase.databaseName ?? 'test',
@@ -343,7 +353,7 @@ const buildMessages = async ({
       });
 
     case 'namespace':
-      return NamespacePrompt.buildMessages({
+      return Prompts.namespace.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
         connectionNames: [],

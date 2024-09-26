@@ -7,7 +7,6 @@ import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
 
 import ParticipantController, {
-  parseForDatabaseAndCollectionName,
   getRunnableContentFromString,
 } from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
@@ -26,6 +25,9 @@ import {
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
+import { Prompts } from '../../../participant/prompts';
+import { createMarkdownLink } from '../../../participant/markdown';
+import EXTENSION_COMMANDS from '../../../commands';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -153,7 +155,7 @@ suite('Participant Controller Test Suite', function () {
   test('parses a returned by ai text for database and collection name', function () {
     const text = 'DATABASE_NAME: my  \nCOLLECTION_NAME: cats';
     const { databaseName, collectionName } =
-      parseForDatabaseAndCollectionName(text);
+      Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(text);
     expect(databaseName).to.be.equal('my');
     expect(collectionName).to.be.equal('cats');
   });
@@ -1279,6 +1281,219 @@ Schema:
           expect(properties.error_name).to.equal('Docs Chatbot API Issue');
         });
       });
+    });
+  });
+
+  suite('prompt builders', function () {
+    test('generic', async function () {
+      const chatRequestMock = {
+        prompt: 'find all docs by a name example',
+      };
+      const messages = await Prompts.generic.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        connectionNames: [],
+      });
+
+      expect(messages).to.have.lengthOf(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+    });
+
+    test('query', async function () {
+      const chatRequestMock = {
+        prompt:
+          'how do I find the number of people whose name starts with "P"?',
+        command: 'query',
+      };
+
+      chatContextStub = {
+        history: [
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: 'give me the count of all people in the prod database',
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+        ],
+      };
+      const messages = await Prompts.query.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        collectionName: 'people',
+        connectionNames: ['localhost', 'atlas'],
+        databaseName: 'prod',
+        sampleDocuments: [
+          {
+            _id: new ObjectId(),
+            name: 'Peter',
+          },
+          {
+            _id: new ObjectId(),
+            name: 'John',
+          },
+        ],
+        schema: `
+          {
+            _id: ObjectId,
+            name: String
+          }
+        `,
+      });
+
+      expect(messages).to.have.lengthOf(3);
+
+      // Assistant prompt
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+
+      // History
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+      expect(messages[1].content).to.equal(
+        'give me the count of all people in the prod database'
+      );
+
+      // Actual user prompt
+      expect(messages[2].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+    });
+
+    test('schema', async function () {
+      const chatRequestMock = {
+        prompt: 'find all docs by a name example',
+        command: 'schema',
+      };
+
+      const databaseName = 'dbOne';
+      const collectionName = 'collOne';
+      const schema = `
+          {
+            _id: ObjectId,
+            name: String
+          }
+        `;
+      const messages = await Prompts.schema.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        amountOfDocumentsSampled: 3,
+        collectionName,
+        databaseName,
+        schema,
+        connectionNames: [],
+      });
+
+      expect(messages).to.have.lengthOf(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+      expect(messages[0].content).to.include('Amount of documents sampled: 3');
+
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+      expect(messages[1].content).to.include(databaseName);
+      expect(messages[1].content).to.include(collectionName);
+      expect(messages[1].content).to.include(schema);
+    });
+
+    test('namespace', async function () {
+      const chatRequestMock = {
+        prompt: 'find all docs by a name example',
+        command: 'query',
+      };
+      const messages = await Prompts.namespace.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        connectionNames: [],
+      });
+
+      expect(messages).to.have.lengthOf(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+    });
+
+    test('removes askForConnect messages from history', async function () {
+      // The user is responding to an `askToConnect` message, so the prompt is just the
+      // name of the connection
+      const chatRequestMock = {
+        prompt: 'localhost',
+        command: 'query',
+      };
+
+      chatContextStub = {
+        history: [
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: 'give me the count of all people in the prod database',
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+            participant: CHAT_PARTICIPANT_ID,
+            response: [
+              {
+                value: {
+                  value: `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
+
+                    ${createMarkdownLink({
+                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+                      name: 'localhost',
+                      data: {},
+                    })}
+                    ${createMarkdownLink({
+                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+                      name: 'atlas',
+                      data: {},
+                    })}`,
+                } as vscode.MarkdownString,
+              },
+            ],
+            command: 'query',
+            result: {
+              metadata: {
+                intent: 'askToConnect',
+                chatId: 'abc',
+              },
+            },
+          }),
+        ],
+      };
+
+      const messages = await Prompts.query.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        collectionName: 'people',
+        connectionNames: ['localhost', 'atlas'],
+        databaseName: 'prod',
+        sampleDocuments: [],
+      });
+
+      expect(messages.length).to.equal(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+
+      // We don't expect history because we're removing the askForConnect message as well
+      // as the user response to it. Therefore the actual user prompt should be the first
+      // message that we supplied in the history.
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+      expect(messages[1].content).to.contain(
+        'give me the count of all people in the prod database'
+      );
     });
   });
 
