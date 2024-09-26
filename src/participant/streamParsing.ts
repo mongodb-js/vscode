@@ -34,7 +34,7 @@ export async function processStreamWithInsertionsOnIdentifier({
     contentSinceLastIdentifier += fragment;
 
     let lastIndex = 0;
-    let match;
+    let match: RegExpExecArray | null;
     while ((match = regex.exec(contentSinceLastIdentifier)) !== null) {
       const endIndex = regex.lastIndex;
 
