@@ -4,18 +4,18 @@ function escapeRegex(str: string): string {
 
 /**
  * This function, provided a stream of text fragments, will stream the
- * content to the provided stream and call the onIdentifierStreamed function
+ * content to the provided stream and call the onStreamIdentifier function
  * when an identifier is streamed. This is useful for inserting code actions
  * into a chat response, whenever a code block has been written.
  */
-export async function processStreamWithInsertionsOnIdentifier({
+export async function processStreamWithIdentifiers({
   processStreamFragment,
-  onIdentifierStreamed,
+  onStreamIdentifier,
   inputIterable,
   identifier,
 }: {
   processStreamFragment: (fragment: string) => void;
-  onIdentifierStreamed: (content: string) => void;
+  onStreamIdentifier: (content: string) => void;
   inputIterable: AsyncIterable<string>;
   identifier: {
     start: string;
@@ -46,7 +46,7 @@ export async function processStreamWithInsertionsOnIdentifier({
       processStreamFragment(contentToStream);
 
       const identifierContent = match[1];
-      onIdentifierStreamed(identifierContent);
+      onStreamIdentifier(identifierContent);
 
       lastIndex = endIndex;
     }

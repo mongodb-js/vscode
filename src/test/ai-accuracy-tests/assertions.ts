@@ -7,7 +7,7 @@ import { execute } from '../../language/worker';
 import type { ShellEvaluateResult } from '../../types/playgroundType';
 import { asyncIterableFromArray } from '../suite/participant/asyncIterableFromArray';
 import { codeBlockIdentifier } from '../../participant/constants';
-import { processStreamWithInsertionsOnIdentifier } from '../../participant/streamParsing';
+import { processStreamWithIdentifiers } from '../../participant/streamParsing';
 
 export const runCodeInMessage = async (
   message: string,
@@ -19,11 +19,11 @@ export const runCodeInMessage = async (
 }> => {
   // We only run the last code block passed.
   let codeToEvaluate = '';
-  await processStreamWithInsertionsOnIdentifier({
+  await processStreamWithIdentifiers({
     processStreamFragment: () => {
       /* no-op */
     },
-    onIdentifierStreamed: (codeBlockContent: string): void => {
+    onStreamIdentifier: (codeBlockContent: string): void => {
       codeToEvaluate = codeBlockContent;
     },
     inputIterable: asyncIterableFromArray<string>([message]),

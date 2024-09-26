@@ -39,7 +39,7 @@ import {
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
-import { processStreamWithInsertionsOnIdentifier } from './streamParsing';
+import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 
 const log = createLogger('participant');
@@ -239,11 +239,11 @@ export default class ParticipantController {
       token,
     });
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment: (fragment: string) => {
         stream.markdown(fragment);
       },
-      onIdentifierStreamed: (content: string) => {
+      onStreamIdentifier: (content: string) => {
         this._streamCodeBlockActions({ runnableContent: content, stream });
       },
       inputIterable: chatResponse.text,

@@ -1,7 +1,7 @@
 import { beforeEach } from 'mocha';
 import { expect } from 'chai';
 
-import { processStreamWithInsertionsOnIdentifier } from '../../../participant/streamParsing';
+import { processStreamWithIdentifiers } from '../../../participant/streamParsing';
 import { asyncIterableFromArray } from './asyncIterableFromArray';
 
 const defaultCodeBlockIdentifier = {
@@ -9,7 +9,7 @@ const defaultCodeBlockIdentifier = {
   end: '```',
 };
 
-suite('processStreamWithInsertionsOnIdentifier', () => {
+suite('processStreamWithIdentifiers', () => {
   let fragmentsProcessed: string[] = [];
   let identifiersStreamed: string[] = [];
 
@@ -17,7 +17,7 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
     fragmentsProcessed.push(fragment);
   };
 
-  const onIdentifierStreamed = (content: string): void => {
+  const onStreamIdentifier = (content: string): void => {
     identifiersStreamed.push(content);
   };
 
@@ -27,9 +27,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
   });
 
   test('empty', async () => {
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable: asyncIterableFromArray<string>([]),
       identifier: defaultCodeBlockIdentifier,
     });
@@ -43,9 +43,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
     const inputFragments = inputText.match(/.{1,5}/g) || [];
     const inputIterable = asyncIterableFromArray<string>(inputFragments);
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier: defaultCodeBlockIdentifier,
     });
@@ -67,9 +67,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
 
     const inputIterable = asyncIterableFromArray<string>(inputFragments);
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier: {
         start: '```javascript',
@@ -89,9 +89,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
 
     const inputIterable = asyncIterableFromArray<string>(inputFragments);
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier: defaultCodeBlockIdentifier,
     });
@@ -107,9 +107,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
 
     const inputIterable = asyncIterableFromArray<string>(inputFragments);
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier: defaultCodeBlockIdentifier,
     });
@@ -134,9 +134,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
 
     const identifier = { start: '```js', end: '```' };
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier,
     });
@@ -162,9 +162,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
 
     const identifier = { start: '```js', end: '```' };
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier,
     });
@@ -187,9 +187,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
     const inputIterable = asyncIterableFromArray<string>(inputFragments);
     const identifier = { start: '```js', end: '```' };
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier,
     });
@@ -206,9 +206,9 @@ suite('processStreamWithInsertionsOnIdentifier', () => {
     const inputIterable = asyncIterableFromArray<string>(inputFragments);
     const identifier = { start: '```js', end: '```' };
 
-    await processStreamWithInsertionsOnIdentifier({
+    await processStreamWithIdentifiers({
       processStreamFragment,
-      onIdentifierStreamed,
+      onStreamIdentifier,
       inputIterable,
       identifier,
     });
