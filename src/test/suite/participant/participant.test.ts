@@ -6,9 +6,7 @@ import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
 
-import ParticipantController, {
-  getRunnableContentFromString,
-} from '../../../participant/participant';
+import ParticipantController from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
@@ -158,18 +156,6 @@ suite('Participant Controller Test Suite', function () {
       Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(text);
     expect(databaseName).to.be.equal('my');
     expect(collectionName).to.be.equal('cats');
-  });
-
-  test('parses a returned by ai text for code blocks', function () {
-    const text =
-      '```javascript\n' +
-      "use('test');\n" +
-      "db.getCollection('test').find({ name: 'Shika' });\n" +
-      '```';
-    const code = getRunnableContentFromString(text);
-    expect(code).to.be.equal(
-      "use('test');\ndb.getCollection('test').find({ name: 'Shika' });"
-    );
   });
 
   suite('when not connected', function () {

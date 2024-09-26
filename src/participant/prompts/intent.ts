@@ -34,7 +34,7 @@ Response:
 Docs`;
   }
 
-  static getIntentFromModelResponse(response: string): PromptIntent {
+  getIntentFromModelResponse(response: string): PromptIntent {
     response = response.trim();
     switch (response) {
       case 'Query':

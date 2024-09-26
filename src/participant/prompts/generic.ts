@@ -3,6 +3,8 @@ import * as vscode from 'vscode';
 import type { PromptArgsBase } from './promptBase';
 import { PromptBase } from './promptBase';
 
+import { codeBlockIdentifier } from '../constants';
+
 export class GenericPrompt extends PromptBase<PromptArgsBase> {
   protected getAssistantPrompt(): string {
     return `You are a MongoDB expert.
@@ -12,7 +14,7 @@ Rules:
 1. Keep your response concise.
 2. You should suggest code that is performant and correct.
 3. Respond with markdown.
-4. When relevant, provide code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
+4. When relevant, provide code in a Markdown code block that begins with ${codeBlockIdentifier.start} and ends with ${codeBlockIdentifier.end}
 5. Use MongoDB shell syntax for code unless the user requests a specific language.
 6. If you require additional information to provide a response, ask the user for it.
 7. When specifying a database, use the MongoDB syntax use('databaseName').`;
