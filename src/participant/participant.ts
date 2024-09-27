@@ -140,7 +140,6 @@ export default class ParticipantController {
 
     log.error('Participant encountered an error', {
       command,
-      err,
       error_code: errorCode,
       error_name: errorName,
     });
@@ -185,12 +184,11 @@ export default class ParticipantController {
     }
 
     log.info('Sending request to model', {
-      truncatedMessages: messages.map(
-        (message: vscode.LanguageModelChatMessage) =>
-          util.inspect({
-            role: message.role,
-            content: message.content.slice(0, 50),
-          })
+      messages: messages.map((message: vscode.LanguageModelChatMessage) =>
+        util.inspect({
+          role: message.role,
+          contentLength: message.content.length,
+        })
       ),
     });
 
@@ -261,11 +259,11 @@ export default class ParticipantController {
       token,
     });
 
-    let responseText = '';
+    let responseLength = '';
     let codeBlocksInResponse = 0;
     await processStreamWithIdentifiers({
       processStreamFragment: (fragment: string) => {
-        responseText += fragment;
+        responseLength += fragment.length;
         stream.markdown(fragment);
       },
       onStreamIdentifier: (content: string) => {
@@ -277,7 +275,7 @@ export default class ParticipantController {
     });
 
     log.info('Streamed response to chat', {
-      responseText,
+      responseLength: responseLength,
       codeBlocksInResponse,
     });
   }
