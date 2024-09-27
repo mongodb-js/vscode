@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import type { Document } from 'bson';
 
 import { getStringifiedSampleDocuments } from '../sampleDocuments';
+import type { PromptArgsBase, UserPromptResponse } from './promptBase';
 import { codeBlockIdentifier } from '../constants';
-import type { PromptArgsBase } from './promptBase';
 import { PromptBase } from './promptBase';
 
 interface QueryPromptArgs extends PromptArgsBase {
@@ -59,21 +59,23 @@ db.getCollection('');\n`;
     request,
     schema,
     sampleDocuments,
-  }: QueryPromptArgs): Promise<string> {
+  }: QueryPromptArgs): Promise<UserPromptResponse> {
     let prompt = request.prompt;
     prompt += `\nDatabase name: ${databaseName}\n`;
     prompt += `Collection name: ${collectionName}\n`;
     if (schema) {
       prompt += `Collection schema: ${schema}\n`;
     }
-    if (sampleDocuments) {
-      prompt += await getStringifiedSampleDocuments({
-        sampleDocuments,
-        prompt,
-      });
-    }
 
-    return prompt;
+    const sampleDocumentsPrompt = await getStringifiedSampleDocuments({
+      sampleDocuments,
+      prompt,
+    });
+
+    return {
+      prompt: `${prompt}${sampleDocumentsPrompt}`,
+      hasSampleDocs: !!sampleDocumentsPrompt,
+    };
   }
 
   get emptyRequestResponse(): string {

@@ -40,6 +40,7 @@ import {
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
+import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 
@@ -171,10 +172,10 @@ export default class ParticipantController {
   }
 
   async _getChatResponse({
-    messages,
+    modelInput,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     token: vscode.CancellationToken;
   }): Promise<vscode.LanguageModelChatResponse> {
     const model = await getCopilotModel();
@@ -184,15 +185,21 @@ export default class ParticipantController {
     }
 
     log.info('Sending request to model', {
-      messages: messages.map((message: vscode.LanguageModelChatMessage) =>
-        util.inspect({
-          role: message.role,
-          contentLength: message.content.length,
-        })
+      messages: modelInput.messages.map(
+        (message: vscode.LanguageModelChatMessage) =>
+          util.inspect({
+            role: message.role,
+            contentLength: message.content.length,
+          })
       ),
     });
+    this._telemetryService.trackCopilotParticipantPrompt(modelInput.stats);
 
-    const modelResponse = await model.sendRequest(messages, {}, token);
+    const modelResponse = await model.sendRequest(
+      modelInput.messages,
+      {},
+      token
+    );
 
     log.info('Model response received');
 
@@ -200,16 +207,16 @@ export default class ParticipantController {
   }
 
   async streamChatResponse({
-    messages,
+    modelInput,
     stream,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<void> {
     const chatResponse = await this._getChatResponse({
-      messages,
+      modelInput,
       token,
     });
     for await (const fragment of chatResponse.text) {
@@ -246,16 +253,16 @@ export default class ParticipantController {
   }
 
   async streamChatResponseContentWithCodeActions({
-    messages,
+    modelInput,
     stream,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<void> {
     const chatResponse = await this._getChatResponse({
-      messages,
+      modelInput,
       token,
     });
 
@@ -283,15 +290,15 @@ export default class ParticipantController {
   // This will stream all of the response content and create a string from it.
   // It should only be used when the entire response is needed at one time.
   async getChatResponseContent({
-    messages,
+    modelInput,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     token: vscode.CancellationToken;
   }): Promise<string> {
     let responseContent = '';
     const chatResponse = await this._getChatResponse({
-      messages,
+      modelInput,
       token,
     });
     for await (const fragment of chatResponse.text) {
@@ -307,14 +314,14 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
-    const messages = await Prompts.generic.buildMessages({
+    const modelInput = await Prompts.generic.buildMessages({
       request,
       context,
       connectionNames: this._getConnectionNames(),
     });
 
     await this.streamChatResponseContentWithCodeActions({
-      messages,
+      modelInput,
       token,
       stream,
     });
@@ -363,14 +370,14 @@ export default class ParticipantController {
     request: vscode.ChatRequest;
     token: vscode.CancellationToken;
   }): Promise<PromptIntent> {
-    const messages = await Prompts.intent.buildMessages({
+    const modelInput = await Prompts.intent.buildMessages({
       connectionNames: this._getConnectionNames(),
       request,
       context,
     });
 
     const responseContent = await this.getChatResponseContent({
-      messages,
+      modelInput,
       token,
     });
 
@@ -754,18 +761,20 @@ export default class ParticipantController {
 
     // When there's no user message content we can
     // skip the request to the model. This would happen with /schema.
-    if (Prompts.doMessagesContainUserInput(messagesWithNamespace)) {
+    if (Prompts.doMessagesContainUserInput(messagesWithNamespace.messages)) {
       // VSCODE-626: When there's an empty message sent to the ai model,
       // it currently errors (not on insiders, only main VSCode).
       // Here we're defaulting to have some content as a workaround.
       // TODO: Remove this when the issue is fixed.
-      messagesWithNamespace[messagesWithNamespace.length - 1].content =
-        messagesWithNamespace[
-          messagesWithNamespace.length - 1
+      messagesWithNamespace.messages[
+        messagesWithNamespace.messages.length - 1
+      ].content =
+        messagesWithNamespace.messages[
+          messagesWithNamespace.messages.length - 1
         ].content.trim() || 'see previous messages';
 
       const responseContentWithNamespace = await this.getChatResponseContent({
-        messages: messagesWithNamespace,
+        modelInput: messagesWithNamespace,
         token,
       });
       ({ databaseName, collectionName } =
@@ -1108,7 +1117,7 @@ export default class ParticipantController {
       return schemaRequestChatResult(context.history);
     }
 
-    const messages = await Prompts.schema.buildMessages({
+    const modelInput = await Prompts.schema.buildMessages({
       request,
       context,
       databaseName,
@@ -1119,7 +1128,7 @@ export default class ParticipantController {
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
     await this.streamChatResponse({
-      messages,
+      modelInput,
       stream,
       token,
     });
@@ -1212,7 +1221,7 @@ export default class ParticipantController {
       );
     }
 
-    const messages = await Prompts.query.buildMessages({
+    const modelInput = await Prompts.query.buildMessages({
       request,
       context,
       databaseName,
@@ -1223,7 +1232,7 @@ export default class ParticipantController {
     });
 
     await this.streamChatResponseContentWithCodeActions({
-      messages,
+      modelInput,
       stream,
       token,
     });
@@ -1295,14 +1304,14 @@ export default class ParticipantController {
     ]
   ): Promise<void> {
     const [request, context, stream, token] = args;
-    const messages = await Prompts.generic.buildMessages({
+    const modelInput = await Prompts.generic.buildMessages({
       request,
       context,
       connectionNames: this._getConnectionNames(),
     });
 
     await this.streamChatResponseContentWithCodeActions({
-      messages,
+      modelInput,
       stream,
       token,
     });
@@ -1482,9 +1491,18 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     if (feedback.result.metadata?.intent === 'docs') {
       await this._rateDocsChatbotMessage(feedback);
     }
+
+    // unhelpfulReason is available in insider builds and is accessed through
+    // https://github.com/microsoft/vscode/blob/main/src/vscode-dts/vscode.proposed.chatParticipantAdditions.d.ts
+    // Since this is a proposed API, we can't depend on it being available, which is why
+    // we're dynamically checking for it.
+    const unhelpfulReason =
+      'unhelpfulReason' in feedback
+        ? (feedback.unhelpfulReason as string)
+        : undefined;
     this._telemetryService.trackCopilotParticipantFeedback({
       feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
-      reason: feedback.unhelpfulReason,
+      reason: unhelpfulReason,
       response_type: (feedback.result as ChatResult)?.metadata.intent,
     });
   }
