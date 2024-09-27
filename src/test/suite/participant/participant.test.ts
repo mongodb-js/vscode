@@ -1578,7 +1578,7 @@ Schema:
           },
         },
         unhelpfulReason: 'incompleteCode',
-      });
+      } as vscode.ChatResultFeedback);
 
       sinon.assert.calledOnce(telemetryTrackStub);
       expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(

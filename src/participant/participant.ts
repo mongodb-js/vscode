@@ -1417,9 +1417,18 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     if (feedback.result.metadata?.intent === 'docs') {
       await this._rateDocsChatbotMessage(feedback);
     }
+
+    // unhelpfulReason is available in insider builds and is accessed through
+    // https://github.com/microsoft/vscode/blob/main/src/vscode-dts/vscode.proposed.chatParticipantAdditions.d.ts
+    // Since this is a proposed API, we can't depend on it being available, which is why
+    // we're dynamically checking for it.
+    const unhelpfulReason =
+      'unhelpfulReason' in feedback
+        ? (feedback.unhelpfulReason as string)
+        : undefined;
     this._telemetryService.trackCopilotParticipantFeedback({
       feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
-      reason: feedback.unhelpfulReason,
+      reason: unhelpfulReason,
       response_type: (feedback.result as ChatResult)?.metadata.intent,
     });
   }
