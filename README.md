@@ -79,7 +79,7 @@ Connect to Atlas Stream Processing instances and develop stream processors using
 
 ### MongoDB Copilot Participant
 
-Use a natural language to interact with your clusters and generate MongoDB-related code through GitHub Copilot Chat in VS Code.
+Use natural language to interact with your clusters and generate MongoDB-related code with GitHub Copilot Chat in VS Code.
 
 _Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) extension. By using Copilot Chat you agree to [GitHub Copilot chat preview terms](https://docs.github.com/en/copilot/responsible-use-of-github-copilot-features/responsible-use-of-github-copilot-chat-in-your-ide). Find more details about the MongoDB GenAI Features in the [FAQ](https://www.mongodb.com/docs/generative-ai-faq/)._
 
