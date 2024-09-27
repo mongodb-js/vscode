@@ -406,7 +406,7 @@ export default class ParticipantController {
     });
 
     log.info('Received intent response from model', {
-      responseContent,
+      responseContentLength: responseContent.length,
     });
 
     return Prompts.intent.getIntentFromModelResponse(responseContent);
