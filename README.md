@@ -85,7 +85,7 @@ _Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https:
 
 #### How to use the MongoDB Participant
 
-1. Enter @MongoDB in the chat input field to start a conversation with the MongoDB Participant.
+1. Enter `@MongoDB` in the chat input field to start a conversation with the MongoDB Participant.
 
 ![MongoDB Participant](resources/screenshots/mongodb-participant.png)
 
