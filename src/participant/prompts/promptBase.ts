@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import type { ChatResult, ParticipantResponseType } from '../constants';
-import type { ParticipantPromptProperties } from '../../telemetry/telemetryService';
+import type {
+  InternalPromptPurpose,
+  ParticipantPromptProperties,
+} from '../../telemetry/telemetryService';
 
 export interface PromptArgsBase {
   request: {
@@ -16,13 +19,17 @@ export interface UserPromptResponse {
   hasSampleDocs: boolean;
 }
 
-export interface PromptResult {
+export interface ModelInput {
   messages: vscode.LanguageModelChatMessage[];
   stats: ParticipantPromptProperties;
 }
 
 export abstract class PromptBase<TArgs extends PromptArgsBase> {
   protected abstract getAssistantPrompt(args: TArgs): string;
+
+  protected get internalPurposeForTelemetry(): InternalPromptPurpose {
+    return undefined;
+  }
 
   protected getUserPrompt(args: TArgs): Promise<UserPromptResponse> {
     return Promise.resolve({
@@ -31,7 +38,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
     });
   }
 
-  async buildMessages(args: TArgs): Promise<PromptResult> {
+  async buildMessages(args: TArgs): Promise<ModelInput> {
     let historyMessages = this.getHistoryMessages(args);
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
@@ -80,7 +87,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
 
   protected getStats(
     messages: vscode.LanguageModelChatMessage[],
-    { request }: TArgs,
+    { request, context }: TArgs,
     hasSampleDocs: boolean
   ): ParticipantPromptProperties {
     return {
@@ -91,6 +98,8 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       user_input_length: request.prompt.length,
       has_sample_documents: hasSampleDocs,
       command: request.command || 'generic',
+      history_length: context.history.length,
+      internal_purpose: this.internalPurposeForTelemetry,
     };
   }
 

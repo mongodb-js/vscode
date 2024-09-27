@@ -11,7 +11,10 @@ import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import { ExtensionContextStub } from '../stubs';
-import type { ParticipantPromptProperties } from '../../../telemetry/telemetryService';
+import type {
+  InternalPromptPurpose,
+  ParticipantPromptProperties,
+} from '../../../telemetry/telemetryService';
 import TelemetryService, {
   TelemetryEventTypes,
 } from '../../../telemetry/telemetryService';
@@ -81,18 +84,28 @@ suite('Participant Controller Test Suite', function () {
   const assertCommandTelemetry = (
     command: string,
     chatRequest: vscode.ChatRequest,
-    { expectSampleDocs = false }
+    {
+      expectSampleDocs = false,
+      callIndex = 0,
+      expectedCallCount,
+      expectedInternalPurpose = undefined,
+    }: {
+      expectSampleDocs?: boolean;
+      callIndex: number;
+      expectedCallCount: number;
+      expectedInternalPurpose?: InternalPromptPurpose;
+    }
   ): void => {
-    expect(telemetryTrackStub).to.have.called;
-    expect(telemetryTrackStub.lastCall.args[0]).to.equal(
-      'Participant Prompt Submitted'
-    );
+    expect(telemetryTrackStub.callCount).to.equal(expectedCallCount);
 
-    const properties = telemetryTrackStub.lastCall
-      .args[1] as ParticipantPromptProperties;
+    const call = telemetryTrackStub.getCalls()[callIndex];
+    expect(call.args[0]).to.equal('Participant Prompt Submitted');
+
+    const properties = call.args[1] as ParticipantPromptProperties;
 
     expect(properties.command).to.equal(command);
     expect(properties.has_sample_documents).to.equal(expectSampleDocs);
+    expect(properties.history_length).to.equal(chatContextStub.history.length);
 
     // Total message length includes participant as well as user prompt
     expect(properties.total_message_length).to.be.greaterThan(
@@ -104,6 +117,7 @@ suite('Participant Controller Test Suite', function () {
     expect(properties.user_input_length).to.be.greaterThanOrEqual(
       chatRequest.prompt.length
     );
+    expect(properties.internal_purpose).to.equal(expectedInternalPurpose);
   };
 
   beforeEach(function () {
@@ -418,7 +432,9 @@ suite('Participant Controller Test Suite', function () {
         );
         expect(telemetryTrackStub.firstCall.args[1]).to.be.undefined;
         assertCommandTelemetry('query', chatRequestMock, {
-          expectSampleDocs: false,
+          callIndex: 1,
+          expectedCallCount: 2,
+          expectedInternalPurpose: 'namespace',
         });
       });
     });
@@ -533,7 +549,14 @@ suite('Participant Controller Test Suite', function () {
           });
 
           assertCommandTelemetry('generic', chatRequestMock, {
-            expectSampleDocs: false,
+            expectedCallCount: 2,
+            callIndex: 0,
+            expectedInternalPurpose: 'intent',
+          });
+
+          assertCommandTelemetry('generic', chatRequestMock, {
+            expectedCallCount: 2,
+            callIndex: 1,
           });
         });
       });
@@ -565,7 +588,14 @@ suite('Participant Controller Test Suite', function () {
             });
 
             assertCommandTelemetry('query', chatRequestMock, {
-              expectSampleDocs: false,
+              callIndex: 0,
+              expectedCallCount: 2,
+              expectedInternalPurpose: 'namespace',
+            });
+
+            assertCommandTelemetry('query', chatRequestMock, {
+              callIndex: 1,
+              expectedCallCount: 2,
             });
           });
 
@@ -594,7 +624,14 @@ suite('Participant Controller Test Suite', function () {
             );
 
             assertCommandTelemetry('query', chatRequestMock, {
-              expectSampleDocs: false,
+              callIndex: 0,
+              expectedCallCount: 2,
+              expectedInternalPurpose: 'namespace',
+            });
+
+            assertCommandTelemetry('query', chatRequestMock, {
+              callIndex: 1,
+              expectedCallCount: 2,
             });
           });
 
@@ -664,7 +701,15 @@ suite('Participant Controller Test Suite', function () {
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
                 expectSampleDocs: true,
+                callIndex: 1,
+                expectedCallCount: 2,
               });
             });
 
@@ -712,7 +757,15 @@ suite('Participant Controller Test Suite', function () {
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
                 expectSampleDocs: true,
+                callIndex: 1,
+                expectedCallCount: 2,
               });
             });
 
@@ -758,7 +811,15 @@ suite('Participant Controller Test Suite', function () {
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
                 expectSampleDocs: true,
+                callIndex: 1,
+                expectedCallCount: 2,
               });
             });
 
@@ -799,7 +860,14 @@ suite('Participant Controller Test Suite', function () {
               expect(messages[1].content).to.not.include('Sample documents');
 
               assertCommandTelemetry('query', chatRequestMock, {
-                expectSampleDocs: false,
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 1,
+                expectedCallCount: 2,
               });
             });
           });
@@ -816,7 +884,14 @@ suite('Participant Controller Test Suite', function () {
               expect(messages[1].content).to.not.include('Sample documents');
 
               assertCommandTelemetry('query', chatRequestMock, {
-                expectSampleDocs: false,
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 1,
+                expectedCallCount: 2,
               });
             });
           });

@@ -1,3 +1,4 @@
+import type { InternalPromptPurpose } from '../../telemetry/telemetryService';
 import type { PromptArgsBase } from './promptBase';
 import { PromptBase } from './promptBase';
 
@@ -46,5 +47,9 @@ Docs`;
       default:
         return 'Default';
     }
+  }
+
+  protected get internalPurposeForTelemetry(): InternalPromptPurpose {
+    return 'intent';
   }
 }

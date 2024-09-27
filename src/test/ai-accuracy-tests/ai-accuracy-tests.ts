@@ -19,7 +19,7 @@ import {
 } from './create-test-results-html-page';
 import { anyOf, runCodeInMessage } from './assertions';
 import { Prompts } from '../../participant/prompts';
-import type { PromptResult } from '../../participant/prompts/promptBase';
+import type { ModelInput } from '../../participant/prompts/promptBase';
 
 const numberOfRunsPerTest = 1;
 
@@ -490,7 +490,7 @@ const buildMessages = async ({
 }: {
   testCase: TestCase;
   fixtures: Fixtures;
-}): Promise<PromptResult> => {
+}): Promise<ModelInput> => {
   switch (testCase.type) {
     case 'intent':
       return Prompts.intent.buildMessages({

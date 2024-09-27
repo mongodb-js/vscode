@@ -108,11 +108,15 @@ type ParticipantResponseFailedProperties = {
   error_name: ParticipantErrorTypes;
 };
 
+export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
+
 export type ParticipantPromptProperties = {
   command: string;
   user_input_length: number;
   total_message_length: number;
   has_sample_documents: boolean;
+  history_length: number;
+  internal_purpose: InternalPromptPurpose;
 };
 
 export function chatResultFeedbackKindToTelemetryValue(
