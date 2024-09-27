@@ -97,7 +97,6 @@ _Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https:
 - `/query` is a participant command, which generates queries from a natural language against a connected MongoDB cluster. It generates both queries and aggregation depending on the complexity of the request. It utilizes schema to reduce model hallucinations. It providing code actions to either open the query in a playground or directly run the query from the Copilot chat interface.
 - `/schema` is a participant command, which analyzes and returns information about a collection's schema.
 
-
 ## Extension Settings
 
 | Setting | Description | Default |
