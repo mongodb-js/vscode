@@ -1,3 +1,4 @@
+import type { InternalPromptPurpose } from '../../telemetry/telemetryService';
 import type { PromptArgsBase } from './promptBase';
 import { PromptBase } from './promptBase';
 
@@ -49,5 +50,9 @@ No names found.
     const databaseName = text.match(DB_NAME_REGEX)?.[1].trim();
     const collectionName = text.match(COL_NAME_REGEX)?.[1].trim();
     return { databaseName, collectionName };
+  }
+
+  protected get internalPurposeForTelemetry(): InternalPromptPurpose {
+    return 'namespace';
   }
 }

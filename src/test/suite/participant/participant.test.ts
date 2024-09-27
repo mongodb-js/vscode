@@ -11,6 +11,10 @@ import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import { ExtensionContextStub } from '../stubs';
+import type {
+  InternalPromptPurpose,
+  ParticipantPromptProperties,
+} from '../../../telemetry/telemetryService';
 import TelemetryService, {
   TelemetryEventTypes,
 } from '../../../telemetry/telemetryService';
@@ -76,6 +80,45 @@ suite('Participant Controller Test Suite', function () {
       chatStreamStub as unknown as vscode.ChatResponseStream,
       chatTokenStub
     );
+
+  const assertCommandTelemetry = (
+    command: string,
+    chatRequest: vscode.ChatRequest,
+    {
+      expectSampleDocs = false,
+      callIndex = 0,
+      expectedCallCount,
+      expectedInternalPurpose = undefined,
+    }: {
+      expectSampleDocs?: boolean;
+      callIndex: number;
+      expectedCallCount: number;
+      expectedInternalPurpose?: InternalPromptPurpose;
+    }
+  ): void => {
+    expect(telemetryTrackStub.callCount).to.equal(expectedCallCount);
+
+    const call = telemetryTrackStub.getCalls()[callIndex];
+    expect(call.args[0]).to.equal('Participant Prompt Submitted');
+
+    const properties = call.args[1] as ParticipantPromptProperties;
+
+    expect(properties.command).to.equal(command);
+    expect(properties.has_sample_documents).to.equal(expectSampleDocs);
+    expect(properties.history_size).to.equal(chatContextStub.history.length);
+
+    // Total message length includes participant as well as user prompt
+    expect(properties.total_message_length).to.be.greaterThan(
+      properties.user_input_length
+    );
+
+    // User prompt length should be at least equal to the supplied user prompt, but my occasionally
+    // be greater - e.g. when we enhance the context.
+    expect(properties.user_input_length).to.be.greaterThanOrEqual(
+      chatRequest.prompt.length
+    );
+    expect(properties.internal_purpose).to.equal(expectedInternalPurpose);
+  };
 
   beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
@@ -382,11 +425,17 @@ suite('Participant Controller Test Suite', function () {
         const welcomeMessage = chatStreamStub.markdown.firstCall.args[0];
         expect(welcomeMessage).to.include('Welcome to MongoDB Participant!');
 
-        sinon.assert.calledOnce(telemetryTrackStub);
-        expect(telemetryTrackStub.lastCall.args[0]).to.equal(
+        // Once to report welcome screen shown, second time to track the user prompt
+        expect(telemetryTrackStub).to.have.been.calledTwice;
+        expect(telemetryTrackStub.firstCall.args[0]).to.equal(
           TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
         );
-        expect(telemetryTrackStub.lastCall.args[1]).to.be.undefined;
+        expect(telemetryTrackStub.firstCall.args[1]).to.be.undefined;
+        assertCommandTelemetry('query', chatRequestMock, {
+          callIndex: 1,
+          expectedCallCount: 2,
+          expectedInternalPurpose: 'namespace',
+        });
       });
     });
 
@@ -498,6 +547,17 @@ suite('Participant Controller Test Suite', function () {
               },
             ],
           });
+
+          assertCommandTelemetry('generic', chatRequestMock, {
+            expectedCallCount: 2,
+            callIndex: 0,
+            expectedInternalPurpose: 'intent',
+          });
+
+          assertCommandTelemetry('generic', chatRequestMock, {
+            expectedCallCount: 2,
+            callIndex: 1,
+          });
         });
       });
 
@@ -526,6 +586,17 @@ suite('Participant Controller Test Suite', function () {
                 },
               ],
             });
+
+            assertCommandTelemetry('query', chatRequestMock, {
+              callIndex: 0,
+              expectedCallCount: 2,
+              expectedInternalPurpose: 'namespace',
+            });
+
+            assertCommandTelemetry('query', chatRequestMock, {
+              callIndex: 1,
+              expectedCallCount: 2,
+            });
           });
 
           test('includes a collection schema', async function () {
@@ -551,6 +622,17 @@ suite('Participant Controller Test Suite', function () {
                 'field.stringField: String\n' +
                 'field.arrayField: Array<Int32>\n'
             );
+
+            assertCommandTelemetry('query', chatRequestMock, {
+              callIndex: 0,
+              expectedCallCount: 2,
+              expectedInternalPurpose: 'namespace',
+            });
+
+            assertCommandTelemetry('query', chatRequestMock, {
+              callIndex: 1,
+              expectedCallCount: 2,
+            });
           });
 
           suite('useSampleDocsInCopilot setting is true', function () {
@@ -617,6 +699,18 @@ suite('Participant Controller Test Suite', function () {
                   '  }\n' +
                   ']\n'
               );
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: true,
+                callIndex: 1,
+                expectedCallCount: 2,
+              });
             });
 
             test('includes 1 sample document as an object', async function () {
@@ -661,6 +755,18 @@ suite('Participant Controller Test Suite', function () {
                   '  }\n' +
                   '}\n'
               );
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: true,
+                callIndex: 1,
+                expectedCallCount: 2,
+              });
             });
 
             test('includes 1 sample documents when 3 make prompt too long', async function () {
@@ -703,6 +809,18 @@ suite('Participant Controller Test Suite', function () {
                   '  }\n' +
                   '}\n'
               );
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                expectSampleDocs: true,
+                callIndex: 1,
+                expectedCallCount: 2,
+              });
             });
 
             test('does not include sample documents when even 1 makes prompt too long', async function () {
@@ -740,6 +858,17 @@ suite('Participant Controller Test Suite', function () {
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[1].content).to.not.include('Sample documents');
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 1,
+                expectedCallCount: 2,
+              });
             });
           });
 
@@ -753,6 +882,17 @@ suite('Participant Controller Test Suite', function () {
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
               expect(messages[1].content).to.not.include('Sample documents');
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 0,
+                expectedCallCount: 2,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('query', chatRequestMock, {
+                callIndex: 1,
+                expectedCallCount: 2,
+              });
             });
           });
         });
@@ -1314,12 +1454,12 @@ Schema:
           expect(sendRequestStub).to.have.been.called;
 
           // Expect the error to be reported through the telemetry service
-          sinon.assert.calledOnce(telemetryTrackStub);
-          expect(telemetryTrackStub.lastCall.args[0]).to.equal(
+          expect(telemetryTrackStub).to.have.been.calledTwice;
+          expect(telemetryTrackStub.firstCall.args[0]).to.equal(
             TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED
           );
 
-          const properties = telemetryTrackStub.lastCall.args[1];
+          const properties = telemetryTrackStub.firstCall.args[1];
           expect(properties.command).to.equal('docs');
           expect(properties.error_name).to.equal('Docs Chatbot API Issue');
         });
@@ -1332,7 +1472,7 @@ Schema:
       const chatRequestMock = {
         prompt: 'find all docs by a name example',
       };
-      const messages = await Prompts.generic.buildMessages({
+      const { messages, stats } = await Prompts.generic.buildMessages({
         context: chatContextStub,
         request: chatRequestMock,
         connectionNames: [],
@@ -1344,6 +1484,13 @@ Schema:
       );
       expect(messages[1].role).to.equal(
         vscode.LanguageModelChatMessageRole.User
+      );
+
+      expect(stats.command).to.equal('generic');
+      expect(stats.has_sample_documents).to.be.false;
+      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
+      expect(stats.total_message_length).to.equal(
+        messages[0].content.length + messages[1].content.length
       );
     });
 
@@ -1364,7 +1511,7 @@ Schema:
           }),
         ],
       };
-      const messages = await Prompts.query.buildMessages({
+      const { messages, stats } = await Prompts.query.buildMessages({
         context: chatContextStub,
         request: chatRequestMock,
         collectionName: 'people',
@@ -1407,6 +1554,21 @@ Schema:
       expect(messages[2].role).to.equal(
         vscode.LanguageModelChatMessageRole.User
       );
+
+      expect(stats.command).to.equal('query');
+      expect(stats.has_sample_documents).to.be.true;
+      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
+      expect(stats.total_message_length).to.equal(
+        messages[0].content.length +
+          messages[1].content.length +
+          messages[2].content.length
+      );
+
+      // The length of the user prompt length should be taken from the prompt supplied
+      // by the user, even if we enhance it with sample docs and schema.
+      expect(stats.user_input_length).to.be.lessThan(
+        messages[2].content.length
+      );
     });
 
     test('schema', async function () {
@@ -1423,7 +1585,7 @@ Schema:
             name: String
           }
         `;
-      const messages = await Prompts.schema.buildMessages({
+      const { messages, stats } = await Prompts.schema.buildMessages({
         context: chatContextStub,
         request: chatRequestMock,
         amountOfDocumentsSampled: 3,
@@ -1445,6 +1607,13 @@ Schema:
       expect(messages[1].content).to.include(databaseName);
       expect(messages[1].content).to.include(collectionName);
       expect(messages[1].content).to.include(schema);
+
+      expect(stats.command).to.equal('schema');
+      expect(stats.has_sample_documents).to.be.false;
+      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
+      expect(stats.total_message_length).to.equal(
+        messages[0].content.length + messages[1].content.length
+      );
     });
 
     test('namespace', async function () {
@@ -1452,7 +1621,7 @@ Schema:
         prompt: 'find all docs by a name example',
         command: 'query',
       };
-      const messages = await Prompts.namespace.buildMessages({
+      const { messages, stats } = await Prompts.namespace.buildMessages({
         context: chatContextStub,
         request: chatRequestMock,
         connectionNames: [],
@@ -1465,6 +1634,13 @@ Schema:
       expect(messages[1].role).to.equal(
         vscode.LanguageModelChatMessageRole.User
       );
+
+      expect(stats.command).to.equal('query');
+      expect(stats.has_sample_documents).to.be.false;
+      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
+      expect(stats.total_message_length).to.equal(
+        messages[0].content.length + messages[1].content.length
+      );
     });
 
     test('removes askForConnect messages from history', async function () {
@@ -1475,10 +1651,14 @@ Schema:
         command: 'query',
       };
 
+      // This is the prompt of the user prior to us asking them to connect
+      const expectedPrompt =
+        'give me the count of all people in the prod database';
+
       chatContextStub = {
         history: [
           Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: 'give me the count of all people in the prod database',
+            prompt: expectedPrompt,
             command: 'query',
             references: [],
             participant: CHAT_PARTICIPANT_ID,
@@ -1514,7 +1694,7 @@ Schema:
         ],
       };
 
-      const messages = await Prompts.query.buildMessages({
+      const { messages, stats } = await Prompts.query.buildMessages({
         context: chatContextStub,
         request: chatRequestMock,
         collectionName: 'people',
@@ -1534,8 +1714,18 @@ Schema:
       expect(messages[1].role).to.equal(
         vscode.LanguageModelChatMessageRole.User
       );
-      expect(messages[1].content).to.contain(
-        'give me the count of all people in the prod database'
+      expect(messages[1].content).to.contain(expectedPrompt);
+
+      expect(stats.command).to.equal('query');
+      expect(stats.has_sample_documents).to.be.false;
+      expect(stats.user_input_length).to.equal(expectedPrompt.length);
+      expect(stats.total_message_length).to.equal(
+        messages[0].content.length + messages[1].content.length
+      );
+
+      // The prompt builder may add extra info, but we're only reporting the actual user input
+      expect(stats.user_input_length).to.be.lessThan(
+        messages[1].content.length
       );
     });
   });

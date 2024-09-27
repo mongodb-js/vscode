@@ -1,3 +1,4 @@
+import type { UserPromptResponse } from './promptBase';
 import { PromptBase, type PromptArgsBase } from './promptBase';
 
 export const DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT = 100;
@@ -11,7 +12,6 @@ export interface SchemaPromptArgs extends PromptArgsBase {
   collectionName: string;
   schema: string;
   amountOfDocumentsSampled: number;
-  connectionNames: string[];
 }
 
 export class SchemaPrompt extends PromptBase<SchemaPromptArgs> {
@@ -30,13 +30,16 @@ Amount of documents sampled: ${amountOfDocumentsSampled}.`;
     collectionName,
     request,
     schema,
-  }: SchemaPromptArgs): Promise<string> {
+  }: SchemaPromptArgs): Promise<UserPromptResponse> {
     const prompt = request.prompt;
-    return Promise.resolve(`${
-      prompt ? `The user provided additional information: "${prompt}"\n` : ''
-    }Database name: ${databaseName}
+    return Promise.resolve({
+      prompt: `${
+        prompt ? `The user provided additional information: "${prompt}"\n` : ''
+      }Database name: ${databaseName}
 Collection name: ${collectionName}
 Schema:
-${schema}`);
+${schema}`,
+      hasSampleDocs: false,
+    });
   }
 }
