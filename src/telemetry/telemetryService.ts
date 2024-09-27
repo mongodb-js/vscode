@@ -115,7 +115,7 @@ export type ParticipantPromptProperties = {
   user_input_length: number;
   total_message_length: number;
   has_sample_documents: boolean;
-  history_length: number;
+  history_size: number;
   internal_purpose: InternalPromptPurpose;
 };
 

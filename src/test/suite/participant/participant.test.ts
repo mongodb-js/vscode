@@ -105,7 +105,7 @@ suite('Participant Controller Test Suite', function () {
 
     expect(properties.command).to.equal(command);
     expect(properties.has_sample_documents).to.equal(expectSampleDocs);
-    expect(properties.history_length).to.equal(chatContextStub.history.length);
+    expect(properties.history_size).to.equal(chatContextStub.history.length);
 
     // Total message length includes participant as well as user prompt
     expect(properties.total_message_length).to.be.greaterThan(

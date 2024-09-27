@@ -98,7 +98,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       user_input_length: request.prompt.length,
       has_sample_documents: hasSampleDocs,
       command: request.command || 'generic',
-      history_length: context.history.length,
+      history_size: context.history.length,
       internal_purpose: this.internalPurposeForTelemetry,
     };
   }
