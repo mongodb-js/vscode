@@ -9,8 +9,7 @@ import type { LoadedConnection } from '../storage/connectionStorage';
 import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
-import { GenericPrompt, isPromptEmpty } from './prompts/generic';
-import { ExportToPlaygroundPrompt } from './prompts/exportToPlayground';
+import { Prompts } from './prompts';
 import type { ChatResult } from './constants';
 import {
   askToConnectChatResult,
@@ -22,19 +21,16 @@ import {
   docsRequestChatResult,
   schemaRequestChatResult,
   createCancelledRequestChatResult,
+  codeBlockIdentifier,
 } from './constants';
-import { QueryPrompt } from './prompts/query';
-import { COL_NAME_ID, DB_NAME_ID, NamespacePrompt } from './prompts/namespace';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
 import { ChatMetadataStore } from './chatMetadata';
-import { doesLastMessageAskForNamespace } from './prompts/history';
 import {
   DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT,
   type OpenSchemaCommandArgs,
-  SchemaPrompt,
 } from './prompts/schema';
 import {
   chatResultFeedbackKindToTelemetryValue,
@@ -44,6 +40,8 @@ import {
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
 import formatError from '../utils/formatError';
+import { processStreamWithIdentifiers } from './streamParsing';
+import type { PromptIntent } from './prompts/intent';
 
 const log = createLogger('participant');
 
@@ -60,31 +58,9 @@ export type RunParticipantQueryCommandArgs = {
   runnableContent: string;
 };
 
-const DB_NAME_REGEX = `${DB_NAME_ID}: (.*)`;
-const COL_NAME_REGEX = `${COL_NAME_ID}: (.*)`;
-
 export type ParticipantCommand = '/query' | '/schema' | '/docs';
 
 const MAX_MARKDOWN_LIST_LENGTH = 10;
-
-export function parseForDatabaseAndCollectionName(text: string): {
-  databaseName?: string;
-  collectionName?: string;
-} {
-  const databaseName = text.match(DB_NAME_REGEX)?.[1].trim();
-  const collectionName = text.match(COL_NAME_REGEX)?.[1].trim();
-  return { databaseName, collectionName };
-}
-
-export function getRunnableContentFromString(text: string): string {
-  const matchedJSresponseContent = text.match(/```javascript((.|\n)*)```/);
-
-  const code =
-    matchedJSresponseContent && matchedJSresponseContent.length > 1
-      ? matchedJSresponseContent[1]
-      : '';
-  return code.trim();
-}
 
 export default class ParticipantController {
   _participant?: vscode.ChatParticipant;
@@ -147,6 +123,120 @@ export default class ParticipantController {
     });
   }
 
+  async _getChatResponse({
+    messages,
+    token,
+  }: {
+    messages: vscode.LanguageModelChatMessage[];
+    token: vscode.CancellationToken;
+  }): Promise<vscode.LanguageModelChatResponse> {
+    const model = await getCopilotModel();
+
+    if (!model) {
+      throw new Error('Copilot model not found');
+    }
+
+    return await model.sendRequest(messages, {}, token);
+  }
+
+  async streamChatResponse({
+    messages,
+    stream,
+    token,
+  }: {
+    messages: vscode.LanguageModelChatMessage[];
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<void> {
+    const chatResponse = await this._getChatResponse({
+      messages,
+      token,
+    });
+    for await (const fragment of chatResponse.text) {
+      stream.markdown(fragment);
+    }
+  }
+
+  _streamCodeBlockActions({
+    runnableContent,
+    stream,
+  }: {
+    runnableContent: string;
+    stream: vscode.ChatResponseStream;
+  }): void {
+    runnableContent = runnableContent.trim();
+
+    if (!runnableContent) {
+      return;
+    }
+
+    const commandArgs: RunParticipantQueryCommandArgs = {
+      runnableContent,
+    };
+    stream.button({
+      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+      title: vscode.l10n.t('▶️ Run'),
+      arguments: [commandArgs],
+    });
+    stream.button({
+      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+      title: vscode.l10n.t('Open in playground'),
+      arguments: [commandArgs],
+    });
+  }
+
+  async streamChatResponseContentToPlayground({
+    messages,
+    token,
+  }: {
+    messages: vscode.LanguageModelChatMessage[];
+    token: vscode.CancellationToken;
+  }): Promise<string | null> {
+    const chatResponse = await this._getChatResponse({
+      messages,
+      token,
+    });
+
+    const runnableContent: string[] = [];
+    await processStreamWithIdentifiers({
+      processStreamFragment: () => {},
+      onStreamIdentifier: (content: string) => {
+        runnableContent.push(content.trim());
+      },
+      inputIterable: chatResponse.text,
+      identifier: codeBlockIdentifier,
+    });
+    return runnableContent.length ? runnableContent.join('') : null;
+  }
+
+  async streamChatResponseContentWithCodeActions({
+    messages,
+    stream,
+    token,
+  }: {
+    messages: vscode.LanguageModelChatMessage[];
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<void> {
+    const chatResponse = await this._getChatResponse({
+      messages,
+      token,
+    });
+
+    await processStreamWithIdentifiers({
+      processStreamFragment: (fragment: string) => {
+        stream.markdown(fragment);
+      },
+      onStreamIdentifier: (content: string) => {
+        this._streamCodeBlockActions({ runnableContent: content, stream });
+      },
+      inputIterable: chatResponse.text,
+      identifier: codeBlockIdentifier,
+    });
+  }
+
+  // This will stream all of the response content and create a string from it.
+  // It should only be used when the entire response is needed at one time.
   async getChatResponseContent({
     messages,
     token,
@@ -154,51 +244,82 @@ export default class ParticipantController {
     messages: vscode.LanguageModelChatMessage[];
     token: vscode.CancellationToken;
   }): Promise<string> {
-    const model = await getCopilotModel();
     let responseContent = '';
-    if (model) {
-      const chatResponse = await model.sendRequest(messages, {}, token);
-      for await (const fragment of chatResponse.text) {
-        responseContent += fragment;
-      }
+    const chatResponse = await this._getChatResponse({
+      messages,
+      token,
+    });
+    for await (const fragment of chatResponse.text) {
+      responseContent += fragment;
     }
 
     return responseContent;
   }
 
-  _streamRunnableContentActions({
-    responseContent,
-    stream,
-  }: {
-    responseContent: string;
-    stream: vscode.ChatResponseStream;
-  }): void {
-    const runnableContent = getRunnableContentFromString(responseContent);
-    if (runnableContent) {
-      const commandArgs: RunParticipantQueryCommandArgs = {
-        runnableContent,
-      };
-      stream.button({
-        command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-        title: vscode.l10n.t('▶️ Run'),
-        arguments: [commandArgs],
-      });
-      stream.button({
-        command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-        title: vscode.l10n.t('Open in playground'),
-        arguments: [commandArgs],
-      });
-    }
-  }
-
-  // @MongoDB what is mongodb?
-  async handleGenericRequest(
+  async _handleRoutedGenericRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
-    const messages = GenericPrompt.buildMessages({
+    const messages = await Prompts.generic.buildMessages({
+      request,
+      context,
+      connectionNames: this._getConnectionNames(),
+    });
+
+    await this.streamChatResponseContentWithCodeActions({
+      messages,
+      token,
+      stream,
+    });
+
+    return genericRequestChatResult(context.history);
+  }
+
+  async _routeRequestToHandler({
+    context,
+    promptIntent,
+    request,
+    stream,
+    token,
+  }: {
+    context: vscode.ChatContext;
+    promptIntent: Omit<PromptIntent, 'Default'>;
+    request: vscode.ChatRequest;
+    stream: vscode.ChatResponseStream;
+    token: vscode.CancellationToken;
+  }): Promise<ChatResult> {
+    switch (promptIntent) {
+      case 'Query':
+        return this.handleQueryRequest(request, context, stream, token);
+      case 'Docs':
+        return this.handleDocsRequest(request, context, stream, token);
+      case 'Schema':
+        return this.handleSchemaRequest(request, context, stream, token);
+      case 'Code':
+        return this.handleQueryRequest(request, context, stream, token);
+      default:
+        return this._handleRoutedGenericRequest(
+          request,
+          context,
+          stream,
+          token
+        );
+    }
+  }
+
+  async _getIntentFromChatRequest({
+    context,
+    request,
+    token,
+  }: {
+    context: vscode.ChatContext;
+    request: vscode.ChatRequest;
+    token: vscode.CancellationToken;
+  }): Promise<PromptIntent> {
+    const messages = await Prompts.intent.buildMessages({
+      connectionNames: this._getConnectionNames(),
       request,
       context,
     });
@@ -207,14 +328,40 @@ export default class ParticipantController {
       messages,
       token,
     });
-    stream.markdown(responseContent);
 
-    this._streamRunnableContentActions({
-      responseContent,
-      stream,
+    return Prompts.intent.getIntentFromModelResponse(responseContent);
+  }
+
+  async handleGenericRequest(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<ChatResult> {
+    // We "prompt chain" to handle the generic requests.
+    // First we ask the model to parse for intent.
+    // If there is an intent, we can route it to one of the handlers (/commands).
+    // When there is no intention or it's generic we handle it with a generic handler.
+    const promptIntent = await this._getIntentFromChatRequest({
+      context,
+      request,
+      token,
     });
 
-    return genericRequestChatResult(context.history);
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+        stream,
+      });
+    }
+
+    return this._routeRequestToHandler({
+      context,
+      promptIntent,
+      request,
+      stream,
+      token,
+    });
   }
 
   async connectWithParticipant({
@@ -539,20 +686,19 @@ export default class ParticipantController {
     databaseName: string | undefined;
     collectionName: string | undefined;
   }> {
-    const messagesWithNamespace = NamespacePrompt.buildMessages({
+    const messagesWithNamespace = await Prompts.namespace.buildMessages({
       context,
       request,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
     });
     const responseContentWithNamespace = await this.getChatResponseContent({
       messages: messagesWithNamespace,
       token,
     });
-    const namespace = parseForDatabaseAndCollectionName(
-      responseContentWithNamespace
-    );
+    const { databaseName, collectionName } =
+      Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+        responseContentWithNamespace
+      );
 
     // See if there's a namespace set in the
     // chat metadata we can fallback to if the model didn't find it.
@@ -565,8 +711,8 @@ export default class ParticipantController {
     } = this._chatMetadataStore.getChatMetadata(chatId) ?? {};
 
     return {
-      databaseName: namespace.databaseName ?? databaseNameFromMetadata,
-      collectionName: namespace.collectionName ?? collectionNameFromMetadata,
+      databaseName: databaseName || databaseNameFromMetadata,
+      collectionName: collectionName || collectionNameFromMetadata,
     };
   }
 
@@ -614,6 +760,19 @@ export default class ParticipantController {
       collectionName,
       history: context.history,
     });
+  }
+
+  _doesLastMessageAskForNamespace(
+    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  ): boolean {
+    const lastMessageMetaData = history[
+      history.length - 1
+    ] as vscode.ChatResponseTurn;
+
+    return (
+      (lastMessageMetaData?.result as ChatResult)?.metadata?.intent ===
+      'askForNamespace'
+    );
   }
 
   _askToConnect({
@@ -747,7 +906,7 @@ export default class ParticipantController {
       .history[context.history.length - 1] as vscode.ChatResponseTurn;
     const lastMessage = lastMessageMetaData?.result as ChatResult;
     if (lastMessage?.metadata?.intent !== 'askForNamespace') {
-      stream.markdown(GenericPrompt.getEmptyRequestResponse());
+      stream.markdown(Prompts.generic.getEmptyRequestResponse());
       return emptyRequestChatResult(context.history);
     }
 
@@ -802,8 +961,8 @@ export default class ParticipantController {
     }
 
     if (
-      isPromptEmpty(request) &&
-      doesLastMessageAskForNamespace(context.history)
+      Prompts.isPromptEmpty(request) &&
+      this._doesLastMessageAskForNamespace(context.history)
     ) {
       return this.handleEmptyNamespaceMessage({
         command: '/schema',
@@ -868,23 +1027,21 @@ export default class ParticipantController {
       return schemaRequestChatResult(context.history);
     }
 
-    const messages = SchemaPrompt.buildMessages({
+    const messages = await Prompts.schema.buildMessages({
       request,
       context,
       databaseName,
       amountOfDocumentsSampled,
       collectionName,
       schema,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
-    const responseContent = await this.getChatResponseContent({
+    await this.streamChatResponse({
       messages,
+      stream,
       token,
     });
-    stream.markdown(responseContent);
 
     stream.button({
       command: EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
@@ -914,8 +1071,8 @@ export default class ParticipantController {
       });
     }
 
-    if (isPromptEmpty(request)) {
-      if (doesLastMessageAskForNamespace(context.history)) {
+    if (Prompts.isPromptEmpty(request)) {
+      if (this._doesLastMessageAskForNamespace(context.history)) {
         return this.handleEmptyNamespaceMessage({
           command: '/query',
           context,
@@ -923,7 +1080,7 @@ export default class ParticipantController {
         });
       }
 
-      stream.markdown(QueryPrompt.getEmptyRequestResponse());
+      stream.markdown(Prompts.query.emptyRequestResponse);
       return emptyRequestChatResult(context.history);
     }
 
@@ -974,27 +1131,20 @@ export default class ParticipantController {
       );
     }
 
-    const messages = await QueryPrompt.buildMessages({
+    const messages = await Prompts.query.buildMessages({
       request,
       context,
       databaseName,
       collectionName,
       schema,
-      connectionNames: this._connectionController
-        .getSavedConnections()
-        .map((connection) => connection.name),
+      connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
-    const responseContent = await this.getChatResponseContent({
+
+    await this.streamChatResponseContentWithCodeActions({
       messages,
-      token,
-    });
-
-    stream.markdown(responseContent);
-
-    this._streamRunnableContentActions({
-      responseContent,
       stream,
+      token,
     });
 
     return queryRequestChatResult(context.history);
@@ -1062,31 +1212,41 @@ export default class ParticipantController {
       vscode.ChatResponseStream,
       vscode.CancellationToken
     ]
-  ): Promise<{
-    responseContent: string;
-    responseReferences?: Reference[];
-  }> {
-    const [request, context, , token] = args;
-    const messages = GenericPrompt.buildMessages({
+  ): Promise<void> {
+    const [request, context, stream, token] = args;
+    const messages = await Prompts.generic.buildMessages({
       request,
       context,
+      connectionNames: this._getConnectionNames(),
     });
 
-    const responseContent = await this.getChatResponseContent({
+    await this.streamChatResponseContentWithCodeActions({
       messages,
+      stream,
       token,
     });
-    const responseReferences = [
-      {
+
+    this._streamResponseReference({
+      reference: {
         url: MONGODB_DOCS_LINK,
         title: 'View MongoDB documentation',
       },
-    ];
+      stream,
+    });
+  }
 
-    return {
-      responseContent,
-      responseReferences,
-    };
+  _streamResponseReference({
+    reference,
+    stream,
+  }: {
+    reference: Reference;
+    stream: vscode.ChatResponseStream;
+  }): void {
+    const link = new vscode.MarkdownString(
+      `- [${reference.title}](${reference.url})\n`
+    );
+    link.supportHtml = true;
+    stream.markdown(link);
   }
 
   async handleDocsRequest(
@@ -1115,6 +1275,19 @@ export default class ParticipantController {
         token,
         stream,
       });
+
+      if (docsResult.responseReferences) {
+        for (const reference of docsResult.responseReferences) {
+          this._streamResponseReference({
+            reference,
+            stream,
+          });
+        }
+      }
+
+      if (docsResult.responseContent) {
+        stream.markdown(docsResult.responseContent);
+      }
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
@@ -1135,25 +1308,7 @@ export default class ParticipantController {
         }
       );
 
-      docsResult = await this._handleDocsRequestWithCopilot(...args);
-    }
-
-    if (docsResult.responseContent) {
-      stream.markdown(docsResult.responseContent);
-      this._streamRunnableContentActions({
-        responseContent: docsResult.responseContent,
-        stream,
-      });
-    }
-
-    if (docsResult.responseReferences) {
-      for (const ref of docsResult.responseReferences) {
-        const link = new vscode.MarkdownString(
-          `- [${ref.title}](${ref.url})\n`
-        );
-        link.supportHtml = true;
-        stream.markdown(link);
-      }
+      await this._handleDocsRequestWithCopilot(...args);
     }
 
     return docsRequestChatResult({
@@ -1184,15 +1339,12 @@ export default class ParticipantController {
           title: 'Exporting code to a playground...',
           cancellable: true,
         },
-        (progress, token): Promise<string | undefined> => {
-          token.onCancellationRequested(async () => {
-            await vscode.window.showInformationMessage(
-              'The running export to a playground operation was canceled.'
-            );
+        async (progress, token): Promise<string | null> => {
+          const messages = await Prompts.exportToPlayground.buildMessages({
+            request: { prompt: code },
           });
 
-          const messages = ExportToPlaygroundPrompt.buildMessages(code);
-          return Promise.race([
+          const result = await Promise.race([
             this.getChatResponseContent({
               messages,
               token,
@@ -1203,36 +1355,51 @@ export default class ParticipantController {
               })
             ),
           ]);
+
+          if (result?.includes("Sorry, I can't assist with that.")) {
+            void vscode.window.showErrorMessage(
+              "Sorry, I can't assist with that."
+            );
+            return null;
+          }
+
+          return this.streamChatResponseContentToPlayground({
+            messages,
+            token,
+          });
         }
       );
 
-      if (progressResult?.includes("Sorry, I can't assist with that.")) {
-        void vscode.window.showErrorMessage("Sorry, I can't assist with that.");
-        return false;
-      }
-
       if (progressResult) {
-        const runnableContent = getRunnableContentFromString(progressResult);
-        if (runnableContent) {
-          await vscode.commands.executeCommand(
-            EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-            {
-              runnableContent,
-            }
-          );
-        }
+        await vscode.commands.executeCommand(
+          EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+          {
+            runnableContent: progressResult,
+          }
+        );
+      } else {
+        await vscode.window.showErrorMessage('Exporting to playground failed.');
       }
 
       return true;
     } catch (error) {
+      const message = formatError(error).message;
+      if (
+        error instanceof vscode.LanguageModelError &&
+        message.includes('Canceled')
+      ) {
+        await vscode.window.showInformationMessage(
+          'The running export to a playground operation was canceled.'
+        );
+        return false;
+      }
+
       this._telemetryService.trackCopilotParticipantError(
         error,
         'exportToPlayground'
       );
       await vscode.window.showErrorMessage(
-        `An error occurred exporting to a playground: ${
-          formatError(error).message
-        }`
+        `An error occurred exporting to a playground: ${message}`
       );
       return false;
     }
@@ -1278,7 +1445,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
           return await this.handleSchemaRequest(...args);
         default:
           if (!request.prompt?.trim()) {
-            stream.markdown(GenericPrompt.getEmptyRequestResponse());
+            stream.markdown(Prompts.generic.getEmptyRequestResponse());
             return emptyRequestChatResult(args[1].history);
           }
 
@@ -1332,5 +1499,11 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       reason: feedback.unhelpfulReason,
       response_type: (feedback.result as ChatResult)?.metadata.intent,
     });
+  }
+
+  _getConnectionNames(): string[] {
+    return this._connectionController
+      .getSavedConnections()
+      .map((connection) => connection.name);
   }
 }

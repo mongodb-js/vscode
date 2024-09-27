@@ -12,16 +12,13 @@ import { loadFixturesToDB, reloadFixture } from './fixtures/fixture-loader';
 import type { Fixtures } from './fixtures/fixture-loader';
 import { AIBackend } from './ai-backend';
 import type { ChatCompletion } from './ai-backend';
-import { GenericPrompt } from '../../participant/prompts/generic';
-import { QueryPrompt } from '../../participant/prompts/query';
 import {
   createTestResultsHTMLPage,
   type TestOutputs,
   type TestResult,
 } from './create-test-results-html-page';
-import { NamespacePrompt } from '../../participant/prompts/namespace';
-import { runCodeInMessage } from './assertions';
-import { parseForDatabaseAndCollectionName } from '../../participant/participant';
+import { anyOf, runCodeInMessage } from './assertions';
+import { Prompts } from '../../participant/prompts';
 
 const numberOfRunsPerTest = 1;
 
@@ -37,7 +34,7 @@ type AssertProps = {
 
 type TestCase = {
   testCase: string;
-  type: 'generic' | 'query' | 'namespace';
+  type: 'intent' | 'generic' | 'query' | 'namespace';
   userInput: string;
   // Some tests can edit the documents in a collection.
   // As we want tests to run in isolation this flag will cause the fixture
@@ -51,14 +48,19 @@ type TestCase = {
   only?: boolean; // Translates to mocha's it.only so only this test will run.
 };
 
-const namespaceTestCases: TestCase[] = [
+const namespaceTestCases: (TestCase & {
+  type: 'namespace';
+})[] = [
   {
     testCase: 'Namespace included in query',
     type: 'namespace',
     userInput:
       'How many documents are in the tempReadings collection in the pools database?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal('pools');
       expect(namespace.collectionName).to.equal('tempReadings');
@@ -69,7 +71,10 @@ const namespaceTestCases: TestCase[] = [
     type: 'namespace',
     userInput: 'How many documents are in the collection?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal(undefined);
       expect(namespace.collectionName).to.equal(undefined);
@@ -81,7 +86,10 @@ const namespaceTestCases: TestCase[] = [
     userInput:
       'How do I create a new user with read write permissions on the orders collection?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal(undefined);
       expect(namespace.collectionName).to.equal('orders');
@@ -93,7 +101,10 @@ const namespaceTestCases: TestCase[] = [
     userInput:
       'How do I create a new user with read write permissions on the orders db?',
     assertResult: ({ responseContent }: AssertProps): void => {
-      const namespace = parseForDatabaseAndCollectionName(responseContent);
+      const namespace =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContent
+        );
 
       expect(namespace.databaseName).to.equal('orders');
       expect(namespace.collectionName).to.equal(undefined);
@@ -101,7 +112,9 @@ const namespaceTestCases: TestCase[] = [
   },
 ];
 
-const queryTestCases: TestCase[] = [
+const queryTestCases: (TestCase & {
+  type: 'query';
+})[] = [
   {
     testCase: 'Basic query',
     type: 'query',
@@ -236,9 +249,177 @@ const queryTestCases: TestCase[] = [
       expect(output.data?.result?.content[0].collectors).to.include('Monkey');
     },
   },
+  {
+    testCase: 'Complex aggregation with string and number manipulation',
+    type: 'query',
+    databaseName: 'CookBook',
+    collectionName: 'recipes',
+    userInput:
+      'what percentage of recipes have "salt" in their ingredients? "ingredients" is a field ' +
+      'with an array of strings of the ingredients. Only consider recipes ' +
+      'that have the "difficulty Medium or Easy. Return is as a string named "saltPercentage" like ' +
+      '"75%", rounded to the nearest whole number.',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+
+      anyOf([
+        (): void => {
+          const lines = responseContent.trim().split('\n');
+          const lastLine = lines[lines.length - 1];
+
+          expect(lastLine).to.include('saltPercentage');
+          expect(output.data?.result?.content).to.include('67%');
+        },
+        (): void => {
+          expect(output.printOutput[output.printOutput.length - 1]).to.equal(
+            "{ saltPercentage: '67%' }"
+          );
+        },
+        (): void => {
+          expect(output.data?.result?.content[0].saltPercentage).to.equal(
+            '67%'
+          );
+        },
+      ])(null);
+    },
+  },
 ];
 
-const testCases: TestCase[] = [...namespaceTestCases, ...queryTestCases];
+const intentTestCases: (TestCase & {
+  type: 'intent';
+})[] = [
+  {
+    testCase: 'Docs intent',
+    type: 'intent',
+    userInput:
+      'Where can I find more information on how to connect to MongoDB?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Docs');
+    },
+  },
+  {
+    testCase: 'Docs intent 2',
+    type: 'intent',
+    userInput: 'What are the options when creating an aggregation cursor?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Docs');
+    },
+  },
+  {
+    testCase: 'Query intent',
+    type: 'intent',
+    userInput:
+      'which collectors specialize only in mint items? and are located in London or New York? an array of their names in a field called collectors',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Query');
+    },
+  },
+  {
+    testCase: 'Schema intent',
+    type: 'intent',
+    userInput: 'What do the documents in the collection pineapple look like?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Schema');
+    },
+  },
+  {
+    testCase: 'Default/Generic intent 1',
+    type: 'intent',
+    userInput: 'How can I connect to MongoDB?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Default');
+    },
+  },
+  {
+    testCase: 'Default/Generic intent 2',
+    type: 'intent',
+    userInput: 'What is the size breakdown of all of the databases?',
+    assertResult: ({ responseContent }: AssertProps): void => {
+      expect(responseContent).to.equal('Default');
+    },
+  },
+];
+
+const genericTestCases: (TestCase & {
+  type: 'generic';
+})[] = [
+  {
+    testCase: 'Database meta data question',
+    type: 'generic',
+    userInput:
+      'How do I print the name and size of the largest database? Using the print function',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+      const printOutput = output.printOutput.join('');
+
+      // Don't check the name since they're all the base 8192.
+      expect(printOutput).to.include('8192');
+    },
+  },
+  {
+    testCase: 'Code question with database, collection, and fields named',
+    type: 'generic',
+    userInput:
+      'How many sightings happened in the "year" "2020" and "2021"? database "UFO" collection "sightings". code to just return the one total number. also, the year is a string',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+      anyOf([
+        (): void => {
+          expect(output.printOutput.join('')).to.equal('2');
+        },
+        (): void => {
+          expect(output.data?.result?.content).to.equal('2');
+        },
+        (): void => {
+          expect(output.data?.result?.content).to.equal(2);
+        },
+        (): void => {
+          expect(
+            Object.entries(output.data?.result?.content[0])[0][1]
+          ).to.equal(2);
+        },
+        (): void => {
+          expect(
+            Object.entries(output.data?.result?.content[0])[0][1]
+          ).to.equal('2');
+        },
+      ])(null);
+    },
+  },
+  {
+    testCase: 'Complex aggregation code generation',
+    type: 'generic',
+    userInput:
+      'what percentage of recipes have "salt" in their ingredients? "ingredients" is a field ' +
+      'with an array of strings of the ingredients. Only consider recipes ' +
+      'that have the "difficulty Medium or Easy. Return is as a string named "saltPercentage" like ' +
+      '"75%", rounded to the nearest whole number. db CookBook, collection recipes',
+    assertResult: async ({
+      responseContent,
+      connectionString,
+    }: AssertProps): Promise<void> => {
+      const output = await runCodeInMessage(responseContent, connectionString);
+
+      expect(output.data?.result?.content[0].saltPercentage).to.equal('67%');
+    },
+  },
+];
+
+const testCases: TestCase[] = [
+  ...namespaceTestCases,
+  ...queryTestCases,
+  ...intentTestCases,
+  ...genericTestCases,
+];
 
 const projectRoot = path.join(__dirname, '..', '..', '..');
 
@@ -310,18 +491,26 @@ const buildMessages = async ({
   fixtures: Fixtures;
 }): Promise<vscode.LanguageModelChatMessage[]> => {
   switch (testCase.type) {
-    case 'generic':
-      return GenericPrompt.buildMessages({
+    case 'intent':
+      return Prompts.intent.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
+        connectionNames: [],
+      });
+
+    case 'generic':
+      return Prompts.generic.buildMessages({
+        request: { prompt: testCase.userInput },
+        context: { history: [] },
+        connectionNames: [],
       });
 
     case 'query':
-      return await QueryPrompt.buildMessages({
+      return await Prompts.query.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
-        databaseName: testCase.databaseName,
-        collectionName: testCase.collectionName,
+        databaseName: testCase.databaseName ?? 'test',
+        collectionName: testCase.collectionName ?? 'test',
         connectionNames: [],
         ...(fixtures[testCase.databaseName as string]?.[
           testCase.collectionName as string
@@ -343,7 +532,7 @@ const buildMessages = async ({
       });
 
     case 'namespace':
-      return NamespacePrompt.buildMessages({
+      return Prompts.namespace.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
         connectionNames: [],
@@ -463,12 +652,14 @@ describe('AI Accuracy Tests', function () {
 
     testFunction(
       `should pass for input: "${testCase.userInput}" if average accuracy is above threshold`,
-      // eslint-disable-next-line no-loop-func
+      // eslint-disable-next-line no-loop-func, complexity
       async function () {
         console.log(`Starting test run of ${testCase.testCase}.`);
 
         const testRunDidSucceed: boolean[] = [];
-        const successFullRunStats: {
+        // Successful and unsuccessful runs are both tracked as long as the model
+        // returns a response.
+        const runStats: {
           promptTokens: number;
           completionTokens: number;
           executionTimeMS: number;
@@ -495,12 +686,15 @@ describe('AI Accuracy Tests', function () {
           }
 
           const startTime = Date.now();
+          let responseContent: ChatCompletion | undefined;
+          let executionTimeMS = 0;
           try {
-            const responseContent = await runTest({
+            responseContent = await runTest({
               testCase,
               aiBackend,
               fixtures,
             });
+            executionTimeMS = Date.now() - startTime;
             testOutputs[testCase.testCase].outputs.push(
               responseContent.content
             );
@@ -511,11 +705,6 @@ describe('AI Accuracy Tests', function () {
               mongoClient,
             });
 
-            successFullRunStats.push({
-              completionTokens: responseContent.usageStats.completionTokens,
-              promptTokens: responseContent.usageStats.promptTokens,
-              executionTimeMS: Date.now() - startTime,
-            });
             success = true;
 
             console.log(
@@ -526,6 +715,18 @@ describe('AI Accuracy Tests', function () {
               `Test run of ${testCase.testCase}. Run ${i} of ${numberOfRunsPerTest} failed with error:`,
               err
             );
+          }
+
+          if (
+            responseContent &&
+            responseContent?.usageStats?.completionTokens > 0 &&
+            executionTimeMS !== 0
+          ) {
+            runStats.push({
+              completionTokens: responseContent.usageStats.completionTokens,
+              promptTokens: responseContent.usageStats.promptTokens,
+              executionTimeMS,
+            });
           }
 
           testRunDidSucceed.push(success);
@@ -548,21 +749,19 @@ describe('AI Accuracy Tests', function () {
           Accuracy: averageAccuracy,
           Pass: didFail ? '✗' : '✓',
           'Avg Execution Time (ms)':
-            successFullRunStats.length > 0
-              ? successFullRunStats.reduce((a, b) => a + b.executionTimeMS, 0) /
-                successFullRunStats.length
+            runStats.length > 0
+              ? runStats.reduce((a, b) => a + b.executionTimeMS, 0) /
+                runStats.length
               : 0,
           'Avg Prompt Tokens':
-            successFullRunStats.length > 0
-              ? successFullRunStats.reduce((a, b) => a + b.promptTokens, 0) /
-                successFullRunStats.length
+            runStats.length > 0
+              ? runStats.reduce((a, b) => a + b.promptTokens, 0) /
+                runStats.length
               : 0,
           'Avg Completion Tokens':
-            successFullRunStats.length > 0
-              ? successFullRunStats.reduce(
-                  (a, b) => a + b.completionTokens,
-                  0
-                ) / successFullRunStats.length
+            runStats.length > 0
+              ? runStats.reduce((a, b) => a + b.completionTokens, 0) /
+                runStats.length
               : 0,
         });
 

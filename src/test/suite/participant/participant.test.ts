@@ -6,10 +6,7 @@ import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
 
-import ParticipantController, {
-  parseForDatabaseAndCollectionName,
-  getRunnableContentFromString,
-} from '../../../participant/participant';
+import ParticipantController from '../../../participant/participant';
 import ConnectionController from '../../../connectionController';
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
@@ -28,6 +25,9 @@ import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
 import { getFullRange } from '../suggestTestHelpers';
 import { isPlayground } from '../../../utils/playground';
+import { Prompts } from '../../../participant/prompts';
+import { createMarkdownLink } from '../../../participant/markdown';
+import EXTENSION_COMMANDS from '../../../commands';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -120,14 +120,7 @@ suite('Participant Controller Test Suite', function () {
     };
     countTokensStub = sinon.stub();
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
-    sendRequestStub = sinon.stub().resolves({
-      text: [
-        '```javascript\n' +
-          "use('dbOne');\n" +
-          "db.getCollection('collOne').find({ name: 'example' });\n" +
-          '```',
-      ],
-    });
+    sendRequestStub = sinon.stub();
     sinon.replace(
       vscode.lm,
       'selectChatModels',
@@ -155,21 +148,9 @@ suite('Participant Controller Test Suite', function () {
   test('parses a returned by ai text for database and collection name', function () {
     const text = 'DATABASE_NAME: my  \nCOLLECTION_NAME: cats';
     const { databaseName, collectionName } =
-      parseForDatabaseAndCollectionName(text);
+      Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(text);
     expect(databaseName).to.be.equal('my');
     expect(collectionName).to.be.equal('cats');
-  });
-
-  test('parses a returned by ai text for code blocks', function () {
-    const text =
-      '```javascript\n' +
-      "use('test');\n" +
-      "db.getCollection('test').find({ name: 'Shika' });\n" +
-      '```';
-    const code = getRunnableContentFromString(text);
-    expect(code).to.be.equal(
-      "use('test');\ndb.getCollection('test').find({ name: 'Shika' });"
-    );
   });
 
   suite('when not connected', function () {
@@ -384,6 +365,14 @@ suite('Participant Controller Test Suite', function () {
           'get',
           sinon.fake.returns(false)
         );
+        sendRequestStub.resolves({
+          text: [
+            '```javascript\n' +
+              "use('dbOne');\n" +
+              "db.getCollection('collOne').find({ name: 'example' });\n" +
+              '```',
+          ],
+        });
       });
 
       test('prints a welcome message to chat', async function () {
@@ -437,14 +426,82 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('generic command', function () {
-        test('generates a query', async function () {
+        beforeEach(function () {
+          sendRequestStub.resolves({
+            text: [
+              '```javascript\n' +
+                "use('dbOne');\n" +
+                "db.getCollection('collOne').find({ name: 'example' });\n" +
+                '```',
+            ],
+          });
+        });
+
+        suite('when the intent is recognized', function () {
+          beforeEach(function () {
+            sendRequestStub.onCall(0).resolves({
+              text: ['Schema'],
+            });
+          });
+
+          test('routes to the appropriate handler', async function () {
+            const chatRequestMock = {
+              prompt:
+                'what is the shape of the documents in the pineapple collection?',
+              command: undefined,
+              references: [],
+            };
+            const res = await invokeChatHandler(chatRequestMock);
+
+            expect(sendRequestStub).to.have.been.calledTwice;
+            const intentRequest = sendRequestStub.firstCall.args[0];
+            expect(intentRequest).to.have.length(2);
+            expect(intentRequest[0].content).to.include(
+              'Your task is to help guide a conversation with a user to the correct handler.'
+            );
+            expect(intentRequest[1].content).to.equal(
+              'what is the shape of the documents in the pineapple collection?'
+            );
+            const genericRequest = sendRequestStub.secondCall.args[0];
+            expect(genericRequest).to.have.length(2);
+            expect(genericRequest[0].content).to.include(
+              'Parse all user messages to find a database name and a collection name.'
+            );
+            expect(genericRequest[1].content).to.equal(
+              'what is the shape of the documents in the pineapple collection?'
+            );
+
+            expect(res?.metadata.intent).to.equal('askForNamespace');
+          });
+        });
+
+        test('default handler asks for intent and shows code run actions', async function () {
           const chatRequestMock = {
             prompt: 'how to find documents in my collection?',
             command: undefined,
             references: [],
           };
-          await invokeChatHandler(chatRequestMock);
+          const res = await invokeChatHandler(chatRequestMock);
 
+          expect(sendRequestStub).to.have.been.calledTwice;
+          const intentRequest = sendRequestStub.firstCall.args[0];
+          expect(intentRequest).to.have.length(2);
+          expect(intentRequest[0].content).to.include(
+            'Your task is to help guide a conversation with a user to the correct handler.'
+          );
+          expect(intentRequest[1].content).to.equal(
+            'how to find documents in my collection?'
+          );
+          const genericRequest = sendRequestStub.secondCall.args[0];
+          expect(genericRequest).to.have.length(2);
+          expect(genericRequest[0].content).to.include(
+            'Your task is to help the user with MongoDB related questions.'
+          );
+          expect(genericRequest[1].content).to.equal(
+            'how to find documents in my collection?'
+          );
+
+          expect(res?.metadata.intent).to.equal('generic');
           expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
             command: 'mdb.runParticipantQuery',
             title: '▶️ Run',
@@ -459,6 +516,17 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('query command', function () {
+        beforeEach(function () {
+          sendRequestStub.resolves({
+            text: [
+              '```javascript\n' +
+                "use('dbOne');\n" +
+                "db.getCollection('collOne').find({ name: 'example' });\n" +
+                '```',
+            ],
+          });
+        });
+
         suite('known namespace from running namespace LLM', function () {
           beforeEach(function () {
             sendRequestStub.onCall(0).resolves({
@@ -503,7 +571,7 @@ suite('Participant Controller Test Suite', function () {
             };
             await invokeChatHandler(chatRequestMock);
             const messages = sendRequestStub.secondCall.args[0];
-            expect(messages[0].content).to.include(
+            expect(messages[1].content).to.include(
               'Collection schema: _id: ObjectId\n' +
                 'field.stringField: String\n' +
                 'field.arrayField: Array<Int32>\n'
@@ -552,7 +620,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.include(
+              expect(messages[1].content).to.include(
                 'Sample documents: [\n' +
                   '  {\n' +
                   "    _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
@@ -605,7 +673,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.include(
+              expect(messages[1].content).to.include(
                 'Sample document: {\n' +
                   "  _id: ObjectId('63ed1d522d8573fa5c203660'),\n" +
                   '  field: {\n' +
@@ -652,7 +720,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.include(
+              expect(messages[1].content).to.include(
                 'Sample document: {\n' +
                   "  _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
                   '  field: {\n' +
@@ -696,7 +764,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.not.include('Sample documents');
+              expect(messages[1].content).to.not.include('Sample documents');
             });
           });
 
@@ -709,7 +777,7 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.not.include('Sample documents');
+              expect(messages[1].content).to.not.include('Sample documents');
             });
           });
         });
@@ -1104,6 +1172,17 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('schema command', function () {
+        beforeEach(function () {
+          sendRequestStub.resolves({
+            text: [
+              '```javascript\n' +
+                "use('dbOne');\n" +
+                "db.getCollection('collOne').find({ name: 'example' });\n" +
+                '```',
+            ],
+          });
+        });
+
         suite('known namespace from running namespace LLM', function () {
           beforeEach(function () {
             sendRequestStub.onCall(0).resolves({
@@ -1308,19 +1387,19 @@ Schema:
     .append("_id", new ObjectId())
     .append("title", "Ski Bloopers")
     .append("genres", Arrays.asList("Documentary", "Comedy")));
-  System.out.println("Success! Inserted document id: " + result.getInsertedId());
+  System.out.println("Success! Documents were inserted");
 `;
           edit.replace(testDocumentUri, getFullRange(editor.document), code);
           await vscode.workspace.applyEdit(edit);
-          sendRequestStub.onCall(0).resolves({
+          sendRequestStub.resolves({
             text: [
               '```javascript\n' +
                 'db.collection.insertOne({\n' +
                 '_id: new ObjectId(),\n' +
-                'title: "Ski Bloopers",' +
-                'genres: ["Documentary", "Comedy"]' +
+                'title: "Ski Bloopers",\n' +
+                'genres: ["Documentary", "Comedy"]\n' +
                 '});\n' +
-                'print("Success! Inserted document id: " + result.insertedId);' +
+                'print("Success! Documents were inserted");\n' +
                 '```',
             ],
           });
@@ -1331,7 +1410,7 @@ Schema:
             isPlayground(vscode.window.activeTextEditor?.document.uri)
           ).to.be.eql(true);
           expect(vscode.window.activeTextEditor?.document.getText()).to.include(
-            'Inserted document id'
+            'Success! Documents were inserted'
           );
         });
 
@@ -1348,7 +1427,7 @@ Schema:
     .append("_id", new ObjectId())
     .append("title", "Ski Bloopers")
     .append("genres", Arrays.asList("Documentary", "Comedy")));
-  System.out.println("Success! Inserted document id: " + result.getInsertedId());
+  System.out.println("Success! Documents were inserted");
 `;
           edit.replace(testDocumentUri, getFullRange(editor.document), code);
           await vscode.workspace.applyEdit(edit);
@@ -1357,15 +1436,17 @@ Schema:
           const endPosition = position.with(3, 63);
           const newSelection = new vscode.Selection(startPosition, endPosition);
           editor.selection = newSelection;
-          sendRequestStub.onCall(0).resolves({
+          sendRequestStub.resolves({
             text: [
-              '```javascript\n' +
+              'Text before code.\n' +
+                '```javascript\n' +
                 'db.collection.insertOne({\n' +
                 '_id: new ObjectId(),\n' +
-                'title: "Ski Bloopers",' +
-                'genres: ["Documentary", "Comedy"]' +
+                'title: "Ski Bloopers",\n' +
+                'genres: ["Documentary", "Comedy"]\n' +
                 '});\n' +
-                '```',
+                '```\n' +
+                'Text after code.',
             ],
           });
           await testParticipantController.exportCodeToPlayground();
@@ -1376,9 +1457,222 @@ Schema:
           ).to.be.eql(true);
           expect(
             vscode.window.activeTextEditor?.document.getText()
-          ).to.not.include('Inserted document id');
+          ).to.not.include('"Success! Documents were inserted"');
         });
       });
+    });
+  });
+
+  suite('prompt builders', function () {
+    test('generic', async function () {
+      const chatRequestMock = {
+        prompt: 'find all docs by a name example',
+      };
+      const messages = await Prompts.generic.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        connectionNames: [],
+      });
+
+      expect(messages).to.have.lengthOf(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+    });
+
+    test('query', async function () {
+      const chatRequestMock = {
+        prompt:
+          'how do I find the number of people whose name starts with "P"?',
+        command: 'query',
+      };
+
+      chatContextStub = {
+        history: [
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: 'give me the count of all people in the prod database',
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+        ],
+      };
+      const messages = await Prompts.query.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        collectionName: 'people',
+        connectionNames: ['localhost', 'atlas'],
+        databaseName: 'prod',
+        sampleDocuments: [
+          {
+            _id: new ObjectId(),
+            name: 'Peter',
+          },
+          {
+            _id: new ObjectId(),
+            name: 'John',
+          },
+        ],
+        schema: `
+          {
+            _id: ObjectId,
+            name: String
+          }
+        `,
+      });
+
+      expect(messages).to.have.lengthOf(3);
+
+      // Assistant prompt
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+
+      // History
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+      expect(messages[1].content).to.equal(
+        'give me the count of all people in the prod database'
+      );
+
+      // Actual user prompt
+      expect(messages[2].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+    });
+
+    test('schema', async function () {
+      const chatRequestMock = {
+        prompt: 'find all docs by a name example',
+        command: 'schema',
+      };
+
+      const databaseName = 'dbOne';
+      const collectionName = 'collOne';
+      const schema = `
+          {
+            _id: ObjectId,
+            name: String
+          }
+        `;
+      const messages = await Prompts.schema.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        amountOfDocumentsSampled: 3,
+        collectionName,
+        databaseName,
+        schema,
+        connectionNames: [],
+      });
+
+      expect(messages).to.have.lengthOf(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+      expect(messages[0].content).to.include('Amount of documents sampled: 3');
+
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+      expect(messages[1].content).to.include(databaseName);
+      expect(messages[1].content).to.include(collectionName);
+      expect(messages[1].content).to.include(schema);
+    });
+
+    test('namespace', async function () {
+      const chatRequestMock = {
+        prompt: 'find all docs by a name example',
+        command: 'query',
+      };
+      const messages = await Prompts.namespace.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        connectionNames: [],
+      });
+
+      expect(messages).to.have.lengthOf(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+    });
+
+    test('removes askForConnect messages from history', async function () {
+      // The user is responding to an `askToConnect` message, so the prompt is just the
+      // name of the connection
+      const chatRequestMock = {
+        prompt: 'localhost',
+        command: 'query',
+      };
+
+      chatContextStub = {
+        history: [
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: 'give me the count of all people in the prod database',
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+            participant: CHAT_PARTICIPANT_ID,
+            response: [
+              {
+                value: {
+                  value: `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
+
+                    ${createMarkdownLink({
+                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+                      name: 'localhost',
+                      data: {},
+                    })}
+                    ${createMarkdownLink({
+                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+                      name: 'atlas',
+                      data: {},
+                    })}`,
+                } as vscode.MarkdownString,
+              },
+            ],
+            command: 'query',
+            result: {
+              metadata: {
+                intent: 'askToConnect',
+                chatId: 'abc',
+              },
+            },
+          }),
+        ],
+      };
+
+      const messages = await Prompts.query.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        collectionName: 'people',
+        connectionNames: ['localhost', 'atlas'],
+        databaseName: 'prod',
+        sampleDocuments: [],
+      });
+
+      expect(messages.length).to.equal(2);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+
+      // We don't expect history because we're removing the askForConnect message as well
+      // as the user response to it. Therefore the actual user prompt should be the first
+      // message that we supplied in the history.
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+      expect(messages[1].content).to.contain(
+        'give me the count of all people in the prod database'
+      );
     });
   });
 

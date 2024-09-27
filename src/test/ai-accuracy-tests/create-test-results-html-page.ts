@@ -23,6 +23,9 @@ export type TestOutputs = {
   [testName: string]: TestOutput;
 };
 
+const createTestLinkId = (testName: string): string =>
+  encodeURIComponent(testName.replace(/ /g, '-'));
+
 function getTestResultsTable(testResults: TestResult[]): string {
   const headers = Object.keys(testResults[0])
     .map((key) => `<th>${key}</th>`)
@@ -30,8 +33,15 @@ function getTestResultsTable(testResults: TestResult[]): string {
 
   const resultRows = testResults
     .map((result) => {
-      const row = Object.values(result)
-        .map((value) => `<td>${value}</td>`)
+      const row = Object.entries(result)
+        .map(
+          ([field, value]) =>
+            `<td>${
+              field === 'Test'
+                ? `<a href="#${createTestLinkId(value as string)}">${value}</a>`
+                : value
+            }</td>`
+        )
         .join('');
       return `<tr>${row}</tr>`;
     })
@@ -56,7 +66,9 @@ function getTestOutputTables(testOutputs: TestOutputs): string {
         .map((out) => `<tr><td>${out}</td></tr>`)
         .join('');
       return `
-      <h2>${testName} <i>[${output.testType}]</i></h2>
+      <h2 id="${
+        createTestLinkId(testName) // Folks can click an link in the table and get sent here.
+      }">${testName} <i>[${output.testType}]</i></h2>
       <p><strong>Prompt:</strong> ${output.prompt}</p>
       <table>
         <thead>

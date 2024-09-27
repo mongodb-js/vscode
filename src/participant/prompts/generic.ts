@@ -1,52 +1,28 @@
 import * as vscode from 'vscode';
 
-import { getHistoryMessages } from './history';
+import type { PromptArgsBase } from './promptBase';
+import { PromptBase } from './promptBase';
 
-export class GenericPrompt {
-  static getAssistantPrompt(): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert.
-Your task is to help the user craft MongoDB queries and aggregation pipelines that perform their task.
-Keep your response concise.
-You should suggest queries that are performant and correct.
-Respond with markdown, suggest code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.
-You can imagine the schema, collection, and database name.
-Respond in MongoDB shell syntax using the \`\`\`javascript code block syntax.`;
+import { codeBlockIdentifier } from '../constants';
 
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.Assistant(prompt);
+export class GenericPrompt extends PromptBase<PromptArgsBase> {
+  protected getAssistantPrompt(): string {
+    return `You are a MongoDB expert.
+Your task is to help the user with MongoDB related questions.
+When applicable, you may suggest MongoDB code, queries, and aggregation pipelines that perform their task.
+Rules:
+1. Keep your response concise.
+2. You should suggest code that is performant and correct.
+3. Respond with markdown.
+4. When relevant, provide code in a Markdown code block that begins with ${codeBlockIdentifier.start} and ends with ${codeBlockIdentifier.end}
+5. Use MongoDB shell syntax for code unless the user requests a specific language.
+6. If you require additional information to provide a response, ask the user for it.
+7. When specifying a database, use the MongoDB syntax use('databaseName').`;
   }
 
-  static getUserPrompt(prompt: string): vscode.LanguageModelChatMessage {
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(prompt);
-  }
-
-  static getEmptyRequestResponse(): string {
-    // TODO(VSCODE-572): Generic empty response handler
+  public getEmptyRequestResponse(): string {
     return vscode.l10n.t(
       'Ask anything about MongoDB, from writing queries to questions about your cluster.'
     );
   }
-
-  static buildMessages({
-    context,
-    request,
-  }: {
-    request: {
-      prompt: string;
-    };
-    context: vscode.ChatContext;
-  }): vscode.LanguageModelChatMessage[] {
-    const messages = [
-      GenericPrompt.getAssistantPrompt(),
-      ...getHistoryMessages({ context }),
-      GenericPrompt.getUserPrompt(request.prompt),
-    ];
-
-    return messages;
-  }
-}
-
-export function isPromptEmpty(request: vscode.ChatRequest): boolean {
-  return !request.prompt || request.prompt.trim().length === 0;
 }

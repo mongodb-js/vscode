@@ -1,8 +1,16 @@
-import * as vscode from 'vscode';
+import { PromptBase, type PromptArgsBase } from './promptBase';
 
-export class ExportToPlaygroundPrompt {
-  static getAssistantPrompt(): vscode.LanguageModelChatMessage {
-    const prompt = `You are a MongoDB expert.
+export interface ExportToPlaygroundPromptArgs extends PromptArgsBase {
+  databaseName: string;
+  collectionName: string;
+  schema: string;
+  amountOfDocumentsSampled: number;
+  connectionNames: string[];
+}
+
+export class ExportToPlaygroundPrompt extends PromptBase<PromptArgsBase> {
+  protected getAssistantPrompt(): string {
+    return `You are a MongoDB expert.
 Your task is to convert user's code written in any programming language to the MongoDB mongosh shell script.
 
 Example:
@@ -38,6 +46,7 @@ class InsertMany {
         { "title": "Short Circuit 3" },
         { "title": "The Lego Frozen Movie" },
       ]);
+      print('Inserted document ids:');
       printjson(ids.insertedIds);
     } catch (error) {
       print(error);
@@ -48,20 +57,5 @@ class InsertMany {
 Take a user prompt as an input string and translate it to the MongoDB Shell language.
 Keep your response concise.
 Respond with markdown, suggest code in a Markdown code block that begins with \`\`\`javascript and ends with \`\`\`.`;
-
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.Assistant(prompt);
-  }
-
-  static getUserPrompt(prompt: string): vscode.LanguageModelChatMessage {
-    // eslint-disable-next-line new-cap
-    return vscode.LanguageModelChatMessage.User(prompt);
-  }
-
-  static buildMessages(prompt: string): vscode.LanguageModelChatMessage[] {
-    return [
-      ExportToPlaygroundPrompt.getAssistantPrompt(),
-      ExportToPlaygroundPrompt.getUserPrompt(prompt),
-    ];
   }
 }
