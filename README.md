@@ -95,7 +95,7 @@ _Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https:
 
 - `/docs` is a participant command that finds answers to coding-related questions in the [MongoDB documentation](https://www.mongodb.com/docs/).
 - `/query` is a participant command that generates MongoDB queries from natural language to be used with a connected MongoDB cluster. It generates both queries and aggregations depending on the complexity of the request. It utilizes schema to reduce model hallucinations. It provides a code action to open generated code in a playground and an action to directly run the code from the Copilot chat interface.
-- `/schema` is a participant command, which analyzes and returns information about a collection's schema.
+- `/schema` is a participant command that analyzes and returns information about a collection's schema.
 
 ## Extension Settings
 
