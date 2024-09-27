@@ -119,6 +119,15 @@ export type ParticipantPromptProperties = {
   internal_purpose: InternalPromptPurpose;
 };
 
+export type ParticipantResponseProperties = {
+  command: string;
+  has_cta: boolean;
+  has_runnable_content: boolean;
+  found_namespace: boolean;
+  round_trips_number?: number; // TODO: how do we track this?
+  output_length: number;
+};
+
 export function chatResultFeedbackKindToTelemetryValue(
   kind: vscode.ChatResultFeedbackKind
 ): TelemetryFeedbackKind {
@@ -172,6 +181,7 @@ export enum TelemetryEventTypes {
   PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
   PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
   PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
+  PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
 }
 
 export enum ParticipantErrorTypes {
@@ -437,5 +447,9 @@ export default class TelemetryService {
 
   trackCopilotParticipantPrompt(stats: ParticipantPromptProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED, stats);
+  }
+
+  trackCopilotParticipantResponse(props: ParticipantResponseProperties): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
   }
 }
