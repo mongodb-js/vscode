@@ -14,6 +14,7 @@ import { ExtensionContextStub } from '../stubs';
 import type {
   InternalPromptPurpose,
   ParticipantPromptProperties,
+  ParticipantResponseProperties,
 } from '../../../telemetry/telemetryService';
 import TelemetryService, {
   TelemetryEventTypes,
@@ -87,16 +88,14 @@ suite('Participant Controller Test Suite', function () {
     {
       expectSampleDocs = false,
       callIndex = 0,
-      expectedCallCount,
       expectedInternalPurpose = undefined,
     }: {
       expectSampleDocs?: boolean;
       callIndex: number;
-      expectedCallCount: number;
       expectedInternalPurpose?: InternalPromptPurpose;
     }
   ): void => {
-    expect(telemetryTrackStub.callCount).to.equal(expectedCallCount);
+    expect(telemetryTrackStub.callCount).to.be.greaterThan(callIndex);
 
     const call = telemetryTrackStub.getCalls()[callIndex];
     expect(call.args[0]).to.equal('Participant Prompt Submitted');
@@ -118,6 +117,33 @@ suite('Participant Controller Test Suite', function () {
       chatRequest.prompt.length
     );
     expect(properties.internal_purpose).to.equal(expectedInternalPurpose);
+  };
+
+  const assertResponseTelemetry = (
+    command: string,
+    {
+      callIndex = 0,
+      hasCTA = false,
+      hasRunnableContent = false,
+      foundNamespace = false,
+    }: {
+      callIndex: number;
+      hasCTA?: boolean;
+      hasRunnableContent?: boolean;
+      foundNamespace?: boolean;
+    }
+  ): void => {
+    expect(telemetryTrackStub.callCount).to.be.greaterThan(callIndex);
+    const call = telemetryTrackStub.getCalls()[callIndex];
+    expect(call.args[0]).to.equal('Participant Response Generated');
+
+    const properties = call.args[1] as ParticipantResponseProperties;
+
+    expect(properties.command).to.equal(command);
+    expect(properties.found_namespace).to.equal(foundNamespace);
+    expect(properties.has_cta).to.equal(hasCTA);
+    expect(properties.has_runnable_content).to.equal(hasRunnableContent);
+    expect(properties.output_length).to.be.greaterThan(0);
   };
 
   beforeEach(function () {
@@ -433,7 +459,6 @@ suite('Participant Controller Test Suite', function () {
         expect(telemetryTrackStub.firstCall.args[1]).to.be.undefined;
         assertCommandTelemetry('query', chatRequestMock, {
           callIndex: 1,
-          expectedCallCount: 2,
           expectedInternalPurpose: 'namespace',
         });
       });
@@ -549,14 +574,17 @@ suite('Participant Controller Test Suite', function () {
           });
 
           assertCommandTelemetry('generic', chatRequestMock, {
-            expectedCallCount: 2,
             callIndex: 0,
             expectedInternalPurpose: 'intent',
           });
 
           assertCommandTelemetry('generic', chatRequestMock, {
-            expectedCallCount: 2,
             callIndex: 1,
+          });
+
+          assertResponseTelemetry('generic', {
+            callIndex: 2,
+            hasRunnableContent: true,
           });
         });
       });
@@ -589,13 +617,17 @@ suite('Participant Controller Test Suite', function () {
 
             assertCommandTelemetry('query', chatRequestMock, {
               callIndex: 0,
-              expectedCallCount: 2,
               expectedInternalPurpose: 'namespace',
             });
 
             assertCommandTelemetry('query', chatRequestMock, {
               callIndex: 1,
-              expectedCallCount: 2,
+            });
+
+            assertResponseTelemetry('query', {
+              callIndex: 2,
+              hasRunnableContent: true,
+              foundNamespace: true,
             });
           });
 
@@ -625,13 +657,17 @@ suite('Participant Controller Test Suite', function () {
 
             assertCommandTelemetry('query', chatRequestMock, {
               callIndex: 0,
-              expectedCallCount: 2,
               expectedInternalPurpose: 'namespace',
             });
 
             assertCommandTelemetry('query', chatRequestMock, {
               callIndex: 1,
-              expectedCallCount: 2,
+            });
+
+            assertResponseTelemetry('query', {
+              callIndex: 2,
+              hasRunnableContent: true,
+              foundNamespace: true,
             });
           });
 
@@ -702,14 +738,18 @@ suite('Participant Controller Test Suite', function () {
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 0,
-                expectedCallCount: 2,
                 expectedInternalPurpose: 'namespace',
               });
 
               assertCommandTelemetry('query', chatRequestMock, {
                 expectSampleDocs: true,
                 callIndex: 1,
-                expectedCallCount: 2,
+              });
+
+              assertResponseTelemetry('query', {
+                callIndex: 2,
+                hasRunnableContent: true,
+                foundNamespace: true,
               });
             });
 
@@ -758,14 +798,18 @@ suite('Participant Controller Test Suite', function () {
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 0,
-                expectedCallCount: 2,
                 expectedInternalPurpose: 'namespace',
               });
 
               assertCommandTelemetry('query', chatRequestMock, {
                 expectSampleDocs: true,
                 callIndex: 1,
-                expectedCallCount: 2,
+              });
+
+              assertResponseTelemetry('query', {
+                callIndex: 2,
+                hasRunnableContent: true,
+                foundNamespace: true,
               });
             });
 
@@ -812,14 +856,18 @@ suite('Participant Controller Test Suite', function () {
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 0,
-                expectedCallCount: 2,
                 expectedInternalPurpose: 'namespace',
               });
 
               assertCommandTelemetry('query', chatRequestMock, {
                 expectSampleDocs: true,
                 callIndex: 1,
-                expectedCallCount: 2,
+              });
+
+              assertResponseTelemetry('query', {
+                callIndex: 2,
+                hasRunnableContent: true,
+                foundNamespace: true,
               });
             });
 
@@ -861,13 +909,17 @@ suite('Participant Controller Test Suite', function () {
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 0,
-                expectedCallCount: 2,
                 expectedInternalPurpose: 'namespace',
               });
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 1,
-                expectedCallCount: 2,
+              });
+
+              assertResponseTelemetry('query', {
+                callIndex: 2,
+                hasRunnableContent: true,
+                foundNamespace: true,
               });
             });
           });
@@ -885,13 +937,17 @@ suite('Participant Controller Test Suite', function () {
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 0,
-                expectedCallCount: 2,
                 expectedInternalPurpose: 'namespace',
               });
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 1,
-                expectedCallCount: 2,
+              });
+
+              assertResponseTelemetry('query', {
+                callIndex: 2,
+                hasRunnableContent: true,
+                foundNamespace: true,
               });
             });
           });
@@ -1341,6 +1397,21 @@ suite('Participant Controller Test Suite', function () {
                 },
               ],
             });
+
+            assertCommandTelemetry('schema', chatRequestMock, {
+              callIndex: 0,
+              expectedInternalPurpose: 'namespace',
+            });
+
+            assertCommandTelemetry('schema', chatRequestMock, {
+              callIndex: 1,
+            });
+
+            assertResponseTelemetry('schema', {
+              callIndex: 2,
+              hasCTA: true,
+              foundNamespace: true,
+            });
           });
 
           test("includes the collection's schema in the request", async function () {
@@ -1384,6 +1455,21 @@ Schema:
                 "field",
                 "arrayField"
               ],`);
+
+            assertCommandTelemetry('schema', chatRequestMock, {
+              callIndex: 0,
+              expectedInternalPurpose: 'namespace',
+            });
+
+            assertCommandTelemetry('schema', chatRequestMock, {
+              callIndex: 1,
+            });
+
+            assertResponseTelemetry('schema', {
+              callIndex: 2,
+              hasCTA: true,
+              foundNamespace: true,
+            });
           });
 
           test('prints a message when no documents are found', async function () {
@@ -1397,6 +1483,11 @@ Schema:
             expect(chatStreamStub?.markdown.getCall(0).args[0]).to.include(
               'Unable to generate a schema from the collection, no documents found.'
             );
+
+            assertCommandTelemetry('schema', chatRequestMock, {
+              callIndex: 0,
+              expectedInternalPurpose: 'namespace',
+            });
           });
         });
       });
@@ -1423,7 +1514,8 @@ Schema:
             json: () =>
               Promise.resolve({
                 _id: '650b4b260f975ef031016c8a',
-                messages: [],
+                content:
+                  'To connect to MongoDB using mongosh, you can follow these steps',
               }),
           });
           global.fetch = fetchStub;
@@ -1435,6 +1527,10 @@ Schema:
           await invokeChatHandler(chatRequestMock);
           expect(fetchStub).to.have.been.called;
           expect(sendRequestStub).to.have.not.been.called;
+
+          assertResponseTelemetry('docs/chatbot', {
+            callIndex: 0,
+          });
         });
 
         test('falls back to the copilot model when docs chatbot result is not available', async function () {
@@ -1454,7 +1550,9 @@ Schema:
           expect(sendRequestStub).to.have.been.called;
 
           // Expect the error to be reported through the telemetry service
-          expect(telemetryTrackStub).to.have.been.calledTwice;
+          expect(
+            telemetryTrackStub.getCalls()
+          ).to.have.length.greaterThanOrEqual(2);
           expect(telemetryTrackStub.firstCall.args[0]).to.equal(
             TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED
           );
@@ -1462,6 +1560,11 @@ Schema:
           const properties = telemetryTrackStub.firstCall.args[1];
           expect(properties.command).to.equal('docs');
           expect(properties.error_name).to.equal('Docs Chatbot API Issue');
+
+          assertResponseTelemetry('docs/copilot', {
+            callIndex: 2,
+            hasCTA: true,
+          });
         });
       });
     });

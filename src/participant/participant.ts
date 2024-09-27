@@ -190,14 +190,21 @@ export default class ParticipantController {
     modelInput: ModelInput;
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
-  }): Promise<void> {
+  }): Promise<{ outputLength: number }> {
     const chatResponse = await this._getChatResponse({
       modelInput,
       token,
     });
+
+    let length = 0;
     for await (const fragment of chatResponse.text) {
       stream.markdown(fragment);
+      length += fragment.length;
     }
+
+    return {
+      outputLength: length,
+    };
   }
 
   _streamCodeBlockActions({
@@ -236,22 +243,34 @@ export default class ParticipantController {
     modelInput: ModelInput;
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
-  }): Promise<void> {
+  }): Promise<{
+    outputLength: number;
+    hasCodeBlock: boolean;
+  }> {
     const chatResponse = await this._getChatResponse({
       modelInput,
       token,
     });
 
+    let outputLength = 0;
+    let hasCodeBlock = false;
     await processStreamWithIdentifiers({
       processStreamFragment: (fragment: string) => {
         stream.markdown(fragment);
+        outputLength += fragment.length;
       },
       onStreamIdentifier: (content: string) => {
         this._streamCodeBlockActions({ runnableContent: content, stream });
+        hasCodeBlock = true;
       },
       inputIterable: chatResponse.text,
       identifier: codeBlockIdentifier,
     });
+
+    return {
+      outputLength,
+      hasCodeBlock,
+    };
   }
 
   // This will stream all of the response content and create a string from it.
@@ -287,10 +306,19 @@ export default class ParticipantController {
       connectionNames: this._getConnectionNames(),
     });
 
-    await this.streamChatResponseContentWithCodeActions({
-      modelInput,
-      token,
-      stream,
+    const { hasCodeBlock, outputLength } =
+      await this.streamChatResponseContentWithCodeActions({
+        modelInput,
+        token,
+        stream,
+      });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'generic',
+      has_cta: false,
+      found_namespace: false,
+      has_runnable_content: hasCodeBlock,
+      output_length: outputLength,
     });
 
     return genericRequestChatResult(context.history);
@@ -995,6 +1023,7 @@ export default class ParticipantController {
       context,
       token,
     });
+
     if (!databaseName || !collectionName) {
       return await this._askForNamespace({
         command: '/schema',
@@ -1056,7 +1085,7 @@ export default class ParticipantController {
       connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
-    await this.streamChatResponse({
+    const response = await this.streamChatResponse({
       modelInput,
       stream,
       token,
@@ -1070,6 +1099,14 @@ export default class ParticipantController {
           schema,
         } as OpenSchemaCommandArgs,
       ],
+    });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'schema',
+      has_cta: true,
+      found_namespace: true,
+      has_runnable_content: false,
+      output_length: response.outputLength,
     });
 
     return schemaRequestChatResult(context.history);
@@ -1160,10 +1197,19 @@ export default class ParticipantController {
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
 
-    await this.streamChatResponseContentWithCodeActions({
-      modelInput,
-      stream,
-      token,
+    const { hasCodeBlock, outputLength } =
+      await this.streamChatResponseContentWithCodeActions({
+        modelInput,
+        stream,
+        token,
+      });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'query',
+      has_cta: false,
+      found_namespace: true,
+      has_runnable_content: hasCodeBlock,
+      output_length: outputLength,
     });
 
     return queryRequestChatResult(context.history);
@@ -1239,11 +1285,12 @@ export default class ParticipantController {
       connectionNames: this._getConnectionNames(),
     });
 
-    await this.streamChatResponseContentWithCodeActions({
-      modelInput,
-      stream,
-      token,
-    });
+    const { hasCodeBlock, outputLength } =
+      await this.streamChatResponseContentWithCodeActions({
+        modelInput,
+        stream,
+        token,
+      });
 
     this._streamResponseReference({
       reference: {
@@ -1251,6 +1298,14 @@ export default class ParticipantController {
         title: 'View MongoDB documentation',
       },
       stream,
+    });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'docs/copilot',
+      has_cta: true,
+      found_namespace: false,
+      has_runnable_content: hasCodeBlock,
+      output_length: outputLength,
     });
   }
 
@@ -1307,6 +1362,14 @@ export default class ParticipantController {
       if (docsResult.responseContent) {
         stream.markdown(docsResult.responseContent);
       }
+
+      this._telemetryService.trackCopilotParticipantResponse({
+        command: 'docs/chatbot',
+        has_cta: !!docsResult.responseReferences,
+        found_namespace: false,
+        has_runnable_content: false,
+        output_length: docsResult.responseContent?.length ?? 0,
+      });
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
