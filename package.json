@@ -16,6 +16,9 @@
   },
   "publisher": "mongodb",
   "categories": [
+    "AI",
+    "Chat",
+    "Data Science",
     "Programming Languages",
     "Snippets",
     "Other"
