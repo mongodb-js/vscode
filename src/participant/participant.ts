@@ -1301,7 +1301,7 @@ export default class ParticipantController {
     });
 
     this._telemetryService.trackCopilotParticipantResponse({
-      command: 'docs',
+      command: 'docs/copilot',
       has_cta: true,
       found_namespace: true,
       has_runnable_content: hasCodeBlock,
@@ -1364,7 +1364,7 @@ export default class ParticipantController {
       }
 
       this._telemetryService.trackCopilotParticipantResponse({
-        command: 'docs',
+        command: 'docs/chatbot',
         has_cta: !!docsResult.responseReferences,
         found_namespace: false,
         has_runnable_content: false,

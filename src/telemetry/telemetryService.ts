@@ -157,7 +157,9 @@ type TelemetryEventProperties =
   | SavedConnectionsLoadedProperties
   | SurveyActionProperties
   | ParticipantFeedbackProperties
-  | ParticipantResponseFailedProperties;
+  | ParticipantResponseFailedProperties
+  | ParticipantPromptProperties
+  | ParticipantResponseProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
