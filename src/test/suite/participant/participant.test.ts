@@ -1564,7 +1564,6 @@ Schema:
           assertResponseTelemetry('docs/copilot', {
             callIndex: 2,
             hasCTA: true,
-            foundNamespace: true,
           });
         });
       });

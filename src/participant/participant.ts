@@ -1303,7 +1303,7 @@ export default class ParticipantController {
     this._telemetryService.trackCopilotParticipantResponse({
       command: 'docs/copilot',
       has_cta: true,
-      found_namespace: true,
+      found_namespace: false,
       has_runnable_content: hasCodeBlock,
       output_length: outputLength,
     });

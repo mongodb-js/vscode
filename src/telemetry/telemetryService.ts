@@ -124,7 +124,6 @@ export type ParticipantResponseProperties = {
   has_cta: boolean;
   has_runnable_content: boolean;
   found_namespace: boolean;
-  round_trips_number?: number; // TODO: how do we track this?
   output_length: number;
 };
 
