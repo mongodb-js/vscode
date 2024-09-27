@@ -503,12 +503,7 @@ export default class PlaygroundController {
         title: 'Running MongoDB playground...',
         cancellable: true,
       },
-      async (progress, token): Promise<ShellEvaluateResult> => {
-        token.onCancellationRequested(() => {
-          // If the user clicks the cancel button,
-          // terminate all processes running on the language server.
-          this._languageServerController.cancelAll();
-        });
+      (progress, token): Promise<ShellEvaluateResult> => {
         return this._evaluate(codeToEvaluate, token);
       }
     );

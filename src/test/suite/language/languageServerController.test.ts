@@ -105,37 +105,6 @@ suite('Language Server Controller Test Suite', () => {
     sandbox.restore();
   });
 
-  test('cancel a long-running script', async () => {
-    expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
-    const source = new vscode.CancellationTokenSource();
-    await languageServerControllerStub.evaluate(
-      {
-        codeToEvaluate: `
-        const names = [
-          "flour",
-          "butter",
-          "water",
-          "salt",
-          "onions",
-          "leek"
-        ];
-        let currentName = '';
-        names.forEach((name) => {
-          setTimeout(() => {
-            currentName = name;
-          }, 500);
-        });
-        currentName
-      `,
-        connectionId: 'pineapple',
-      },
-      source.token
-    );
-
-    languageServerControllerStub.cancelAll();
-    expect(languageServerControllerStub._isExecutingInProgress).to.equal(false);
-  });
-
   test('the language server dependency bundle exists', async () => {
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const languageServerModuleBundlePath = path.join(

@@ -28,7 +28,6 @@ const log = createLogger('language server controller');
  */
 export default class LanguageServerController {
   _context: ExtensionContext;
-  _isExecutingInProgress = false;
   _client: LanguageClient;
   _currentConnectionId: string | null = null;
   _currentConnectionString?: string;
@@ -185,7 +184,6 @@ export default class LanguageServerController {
       filePath: playgroundExecuteParameters.filePath,
       inputLength: playgroundExecuteParameters.codeToEvaluate.length,
     });
-    this._isExecutingInProgress = true;
     this._consoleOutputChannel.clear();
 
     // Send a request with a cancellation token
@@ -196,8 +194,6 @@ export default class LanguageServerController {
       playgroundExecuteParameters,
       token
     );
-
-    this._isExecutingInProgress = false;
 
     log.info('Evaluate response', {
       namespace: res?.result?.namespace,
@@ -261,17 +257,6 @@ export default class LanguageServerController {
       ServerCommands.CLEAR_CACHED_COMPLETIONS,
       clear
     );
-  }
-
-  cancelAll(): void {
-    log.info('Canceling a playground...');
-    // Send a request for cancellation. As a result
-    // the associated CancellationToken will be notified of the cancellation,
-    // the onCancellationRequested event will be fired,
-    // and IsCancellationRequested will return true.
-    if (this._isExecutingInProgress) {
-      this._isExecutingInProgress = false;
-    }
   }
 
   async updateCurrentSessionFields(params): Promise<void> {

@@ -430,4 +430,39 @@ export default class TelemetryService {
   trackCopilotParticipantFeedback(props: ParticipantFeedbackProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_FEEDBACK, props);
   }
+
+  trackCopilotParticipantError(err: any, command: string): void {
+    let errorCode: string | undefined;
+    let errorName: ParticipantErrorTypes;
+    // Making the chat request might fail because
+    // - model does not exist
+    // - user consent not given
+    // - quote limits exceeded
+    if (err instanceof vscode.LanguageModelError) {
+      errorCode = err.code;
+    }
+
+    if (err instanceof Error) {
+      // Unwrap the error if a cause is provided
+      err = err.cause || err;
+    }
+
+    const message: string = err.message || err.toString();
+
+    if (message.includes('off_topic')) {
+      errorName = ParticipantErrorTypes.CHAT_MODEL_OFF_TOPIC;
+    } else if (message.includes('Filtered by Responsible AI Service')) {
+      errorName = ParticipantErrorTypes.FILTERED;
+    } else if (message.includes('Prompt failed validation')) {
+      errorName = ParticipantErrorTypes.INVALID_PROMPT;
+    } else {
+      errorName = ParticipantErrorTypes.OTHER;
+    }
+
+    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED, {
+      command,
+      error_code: errorCode,
+      error_name: errorName,
+    });
+  }
 }

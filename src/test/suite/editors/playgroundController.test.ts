@@ -317,20 +317,6 @@ suite('Playground Controller Test Suite', function () {
         expect(showTextDocumentOptions.viewColumn).to.be.equal(-2);
       });
 
-      test('close cancelation modal when a playground is canceled', async () => {
-        sandbox.replace(
-          testPlaygroundController,
-          '_evaluate',
-          sandbox.fake.resolves(null)
-        );
-
-        const result = await testPlaygroundController._evaluateWithCancelModal(
-          ''
-        );
-
-        expect(result).to.deep.equal(null);
-      });
-
       test('playground controller loads the active editor on start', () => {
         sandbox.replaceGetter(
           vscode.window,

@@ -1440,7 +1440,10 @@ Schema:
 
     test('reports error', function () {
       const err = Error('Filtered by Responsible AI Service');
-      testParticipantController.handleError(err, 'query');
+      testParticipantController._telemetryService.trackCopilotParticipantError(
+        err,
+        'query'
+      );
       sinon.assert.calledOnce(telemetryTrackStub);
 
       expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
@@ -1458,7 +1461,10 @@ Schema:
     test('reports nested error', function () {
       const err = new Error('Parent error');
       err.cause = Error('This message is flagged as off topic: off_topic.');
-      testParticipantController.handleError(err, 'docs');
+      testParticipantController._telemetryService.trackCopilotParticipantError(
+        err,
+        'docs'
+      );
       sinon.assert.calledOnce(telemetryTrackStub);
 
       expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
@@ -1474,7 +1480,10 @@ Schema:
     test('Reports error code when available', function () {
       // eslint-disable-next-line new-cap
       const err = vscode.LanguageModelError.NotFound('Model not found');
-      testParticipantController.handleError(err, 'schema');
+      testParticipantController._telemetryService.trackCopilotParticipantError(
+        err,
+        'schema'
+      );
       sinon.assert.calledOnce(telemetryTrackStub);
 
       expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(

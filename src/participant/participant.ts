@@ -134,44 +134,6 @@ export default class ParticipantController {
     return this._participant;
   }
 
-  handleError(err: any, command: string): void {
-    let errorCode: string | undefined;
-    let errorName: ParticipantErrorTypes;
-    // Making the chat request might fail because
-    // - model does not exist
-    // - user consent not given
-    // - quote limits exceeded
-    if (err instanceof vscode.LanguageModelError) {
-      errorCode = err.code;
-    }
-
-    if (err instanceof Error) {
-      // Unwrap the error if a cause is provided
-      err = err.cause || err;
-    }
-
-    const message: string = err.message || err.toString();
-
-    if (message.includes('off_topic')) {
-      errorName = ParticipantErrorTypes.CHAT_MODEL_OFF_TOPIC;
-    } else if (message.includes('Filtered by Responsible AI Service')) {
-      errorName = ParticipantErrorTypes.FILTERED;
-    } else if (message.includes('Prompt failed validation')) {
-      errorName = ParticipantErrorTypes.INVALID_PROMPT;
-    } else {
-      errorName = ParticipantErrorTypes.OTHER;
-    }
-
-    this._telemetryService.track(
-      TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
-      {
-        command,
-        error_code: errorCode,
-        error_name: errorName,
-      }
-    );
-  }
-
   /**
    * In order to get access to the model, and to write more messages to the chat after
    * an async event that occurs after we've already completed our response, we need
@@ -1222,7 +1184,7 @@ export default class ParticipantController {
           title: 'Exporting code to a playground...',
           cancellable: true,
         },
-        async (progress, token): Promise<string | undefined> => {
+        (progress, token): Promise<string | undefined> => {
           token.onCancellationRequested(async () => {
             await vscode.window.showInformationMessage(
               'The running export to a playground operation was canceled.'
@@ -1263,7 +1225,10 @@ export default class ParticipantController {
 
       return true;
     } catch (error) {
-      this.handleError(error, 'exportToPlayground');
+      this._telemetryService.trackCopilotParticipantError(
+        error,
+        'exportToPlayground'
+      );
       await vscode.window.showErrorMessage(
         `An error occurred exporting to a playground: ${
           formatError(error).message
@@ -1319,10 +1284,13 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
 
           return await this.handleGenericRequest(...args);
       }
-    } catch (e) {
-      this.handleError(e, request.command || 'generic');
+    } catch (error) {
+      this._telemetryService.trackCopilotParticipantError(
+        error,
+        request.command || 'generic'
+      );
       // Re-throw other errors so they show up in the UI.
-      throw e;
+      throw error;
     }
   }
 
