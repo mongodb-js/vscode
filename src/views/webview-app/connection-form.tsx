@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ComponentProps } from 'react';
 import CompassConnectionForm from '@mongodb-js/connection-form';
 import {
   CancelLoader,
@@ -90,23 +89,20 @@ const ConnectionForm: React.FunctionComponent<
         <CompassConnectionForm
           onSaveAndConnectClicked={onSaveAndConnectClicked}
           initialConnectionInfo={initialConnectionInfo}
-          preferences={{
-            showFavoriteActions: false,
-            protectConnectionStrings: false,
-            forceConnectionOptions: [],
-            showKerberosPasswordField: false,
-            showOIDCDeviceAuthFlow:
-              window[VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID],
-            enableOidc: true,
-            enableDebugUseCsfleSchemaMap: false,
-            protectConnectionStringsForNewConnections: false,
-            showOIDCAuth: true,
-            showKerberosAuth: false,
-            showCSFLE: false,
-            saveAndConnectLabel: 'Save & Connect',
-            showHelpCardsInForm: false,
-            showPersonalisationForm: false,
-          }}
+          showFavoriteActions={false}
+          protectConnectionStrings={false}
+          forceConnectionOptions={[]}
+          showKerberosPasswordField={false}
+          showOIDCDeviceAuthFlow={window[VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID]}
+          enableOidc
+          enableDebugUseCsfleSchemaMap={false}
+          protectConnectionStringsForNewConnections={false}
+          showOIDCAuth
+          showKerberosAuth={false}
+          showCSFLE={false}
+          saveAndConnectLabel={'Save & Connect'}
+          showHelpCardsInForm={false}
+          showPersonalisationForm={false}
           connectionErrorMessage={connectionErrorMessage}
         />
       </div>
