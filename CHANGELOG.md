@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.9.1](https://github.com/mongodb-js/vscode/releases/tag/v1.9.1) - 2024-09-30
+
+## What's Changed
+* fix: remove enabledApiProposals from package.json VSCODE-631 by @Anemy in https://github.com/mongodb-js/vscode/pull/849
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.9.0...v1.9.1
+
+
 ## [v1.9.0](https://github.com/mongodb-js/vscode/releases/tag/v1.9.0) - 2024-09-30
 
 ## What's Changed
@@ -401,17 +410,5 @@ To dig deeper please feel free to follow the links mentioned below:
 ### Changed
 
 - Updated the Atlas link to have https (#259)
-
-
-## [v0.4.1](https://github.com/mongodb-js/vscode/releases/tag/v0.4.1) - 2021-02-10
-
-### Changed
-
-- Updated the Atlas link in the overview page (#250)
-
-### Fixed
-
-- Fixed an issue with playground connectivity not defaulting the `directConnection` option to true (VSCODE-234, #255)
-- Fixed an issue around showing an error while editing a playground file without an active MongoDB connection (VSCODE-231, #251)
 
 
