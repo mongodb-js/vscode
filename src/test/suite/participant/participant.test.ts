@@ -563,7 +563,7 @@ suite('Participant Controller Test Suite', function () {
 
           expect(res?.metadata.intent).to.equal('generic');
           expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
-            command: 'mdb.runParticipantQuery',
+            command: 'mdb.runParticipantCode',
             title: '▶️ Run',
             arguments: [
               {
@@ -605,7 +605,7 @@ suite('Participant Controller Test Suite', function () {
             };
             await invokeChatHandler(chatRequestMock);
             expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
-              command: 'mdb.runParticipantQuery',
+              command: 'mdb.runParticipantCode',
               title: '▶️ Run',
               arguments: [
                 {
@@ -1141,7 +1141,7 @@ suite('Participant Controller Test Suite', function () {
 
             expect(chatStreamStub?.button.callCount).to.equal(2);
             expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
-              command: 'mdb.runParticipantQuery',
+              command: 'mdb.runParticipantCode',
               title: '▶️ Run',
               arguments: [
                 {
@@ -1151,7 +1151,7 @@ suite('Participant Controller Test Suite', function () {
               ],
             });
             expect(chatStreamStub?.button.getCall(1).args[0]).to.deep.equal({
-              command: 'mdb.openParticipantQueryInPlayground',
+              command: 'mdb.openParticipantCodeInPlayground',
               title: 'Open in playground',
               arguments: [
                 {

@@ -77,8 +77,8 @@ enum EXTENSION_COMMANDS {
   MDB_DROP_STREAM_PROCESSOR = 'mdb.dropStreamProcessor',
 
   // Chat participant.
-  OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND = 'mdb.openParticipantQueryInPlayground',
-  RUN_PARTICIPANT_QUERY = 'mdb.runParticipantQuery',
+  OPEN_PARTICIPANT_CODE_IN_PLAYGROUND = 'mdb.openParticipantCodeInPlayground',
+  RUN_PARTICIPANT_CODE = 'mdb.runParticipantCode',
   CONNECT_WITH_PARTICIPANT = 'mdb.connectWithParticipant',
   SELECT_DATABASE_WITH_PARTICIPANT = 'mdb.selectDatabaseWithParticipant',
   SELECT_COLLECTION_WITH_PARTICIPANT = 'mdb.selectCollectionWithParticipant',

@@ -55,7 +55,7 @@ interface NamespaceQuickPicks {
   data: string;
 }
 
-export type RunParticipantQueryCommandArgs = {
+export type RunParticipantCodeCommandArgs = {
   runnableContent: string;
 };
 
@@ -244,16 +244,16 @@ export default class ParticipantController {
       return;
     }
 
-    const commandArgs: RunParticipantQueryCommandArgs = {
+    const commandArgs: RunParticipantCodeCommandArgs = {
       runnableContent,
     };
     stream.button({
-      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
       title: vscode.l10n.t('▶️ Run'),
       arguments: [commandArgs],
     });
     stream.button({
-      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
       title: vscode.l10n.t('Open in playground'),
       arguments: [commandArgs],
     });

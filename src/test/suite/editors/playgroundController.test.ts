@@ -324,9 +324,9 @@ suite('Playground Controller Test Suite', function () {
           sandbox.fake.rejects(false)
         );
 
-        const result = await testPlaygroundController._evaluateWithCancelModal(
-          ''
-        );
+        const result = await testPlaygroundController._evaluateWithCancelModal({
+          codeToEvaluate: '',
+        });
 
         expect(result).to.deep.equal({ result: undefined });
       });
