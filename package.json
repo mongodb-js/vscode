@@ -35,7 +35,6 @@
     "color": "#3D4F58",
     "theme": "dark"
   },
-  "enabledApiProposals": [],
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./dist/extension.js",
   "scripts": {
