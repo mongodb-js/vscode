@@ -118,7 +118,6 @@ export default class ConnectionTreeItem
       const dbs = await dataService.listDatabases({
         nameOnly: true,
       });
-
       return dbs.map((dbItem) => dbItem.name);
     } catch (error) {
       throw new Error(

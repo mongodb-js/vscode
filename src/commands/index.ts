@@ -5,6 +5,8 @@ enum EXTENSION_COMMANDS {
   MDB_DISCONNECT = 'mdb.disconnect',
   MDB_REMOVE_CONNECTION = 'mdb.removeConnection',
 
+  OPEN_MONGODB_ISSUE_REPORTER = 'mdb.openMongoDBIssueReporter',
+
   MDB_OPEN_MDB_SHELL = 'mdb.openMongoDBShell',
   MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW = 'mdb.treeViewOpenMongoDBShell',
 
@@ -73,6 +75,14 @@ enum EXTENSION_COMMANDS {
   MDB_START_STREAM_PROCESSOR = 'mdb.startStreamProcessor',
   MDB_STOP_STREAM_PROCESSOR = 'mdb.stopStreamProcessor',
   MDB_DROP_STREAM_PROCESSOR = 'mdb.dropStreamProcessor',
+
+  // Chat participant.
+  OPEN_PARTICIPANT_CODE_IN_PLAYGROUND = 'mdb.openParticipantCodeInPlayground',
+  RUN_PARTICIPANT_CODE = 'mdb.runParticipantCode',
+  CONNECT_WITH_PARTICIPANT = 'mdb.connectWithParticipant',
+  SELECT_DATABASE_WITH_PARTICIPANT = 'mdb.selectDatabaseWithParticipant',
+  SELECT_COLLECTION_WITH_PARTICIPANT = 'mdb.selectCollectionWithParticipant',
+  PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT = 'mdb.participantViewRawSchemaOutput',
 }
 
 export default EXTENSION_COMMANDS;

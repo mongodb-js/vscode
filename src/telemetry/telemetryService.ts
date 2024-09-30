@@ -12,6 +12,7 @@ import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
 import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
+import type { ParticipantResponseType } from '../participant/constants';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -93,7 +94,53 @@ type SavedConnectionsLoadedProperties = {
   connections_with_secrets_in_secret_storage: number;
 };
 
-export type TelemetryEventProperties =
+type TelemetryFeedbackKind = 'positive' | 'negative' | undefined;
+
+type ParticipantFeedbackProperties = {
+  feedback: TelemetryFeedbackKind;
+  response_type: ParticipantResponseType;
+  reason?: String;
+};
+
+type ParticipantResponseFailedProperties = {
+  command: string;
+  error_code?: string;
+  error_name: ParticipantErrorTypes;
+};
+
+export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
+
+export type ParticipantPromptProperties = {
+  command: string;
+  user_input_length: number;
+  total_message_length: number;
+  has_sample_documents: boolean;
+  history_size: number;
+  internal_purpose: InternalPromptPurpose;
+};
+
+export type ParticipantResponseProperties = {
+  command: string;
+  has_cta: boolean;
+  has_runnable_content: boolean;
+  found_namespace: boolean;
+  output_length: number;
+};
+
+export function chatResultFeedbackKindToTelemetryValue(
+  kind: vscode.ChatResultFeedbackKind
+): TelemetryFeedbackKind {
+  switch (kind) {
+    case vscode.ChatResultFeedbackKind.Helpful:
+      return 'positive';
+    case vscode.ChatResultFeedbackKind.Unhelpful:
+      return 'negative';
+    default:
+      return undefined;
+  }
+}
+
+type TelemetryEventProperties =
   | PlaygroundTelemetryEventProperties
   | LinkClickedTelemetryEventProperties
   | ExtensionCommandRunTelemetryEventProperties
@@ -107,7 +154,11 @@ export type TelemetryEventProperties =
   | PlaygroundLoadedTelemetryEventProperties
   | KeytarSecretsMigrationFailedProperties
   | SavedConnectionsLoadedProperties
-  | SurveyActionProperties;
+  | SurveyActionProperties
+  | ParticipantFeedbackProperties
+  | ParticipantResponseFailedProperties
+  | ParticipantPromptProperties
+  | ParticipantResponseProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -127,6 +178,19 @@ export enum TelemetryEventTypes {
   SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
   SURVEY_CLICKED = 'Survey link clicked',
   SURVEY_DISMISSED = 'Survey prompt dismissed',
+  PARTICIPANT_FEEDBACK = 'Participant Feedback',
+  PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
+  PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
+  PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
+  PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
+}
+
+export enum ParticipantErrorTypes {
+  CHAT_MODEL_OFF_TOPIC = 'Chat Model Off Topic',
+  INVALID_PROMPT = 'Invalid Prompt',
+  FILTERED = 'Filtered by Responsible AI Service',
+  OTHER = 'Other',
+  DOCS_CHATBOT_API = 'Docs Chatbot API Issue',
 }
 
 /**
@@ -162,13 +226,12 @@ export default class TelemetryService {
       );
       // eslint-disable-next-line no-sync
       const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
-      const constants = JSON.parse(constantsFile) as { segmentKey: string };
-
-      log.info('SegmentKey was found', { type: typeof constants.segmentKey });
-
-      return constants.segmentKey;
+      const { segmentKey } = JSON.parse(constantsFile) as {
+        segmentKey?: string;
+      };
+      return segmentKey;
     } catch (error) {
-      log.error('SegmentKey was not found', error);
+      log.error('Failed to read segmentKey from the constants file', error);
       return;
     }
   }
@@ -215,7 +278,7 @@ export default class TelemetryService {
     return true;
   }
 
-  _segmentAnalyticsTrack(segmentProperties: SegmentProperties) {
+  _segmentAnalyticsTrack(segmentProperties: SegmentProperties): void {
     if (!this._isTelemetryFeatureEnabled()) {
       return;
     }
@@ -250,7 +313,7 @@ export default class TelemetryService {
   async _getConnectionTelemetryProperties(
     dataService: DataService,
     connectionType: ConnectionTypes
-  ) {
+  ): Promise<NewConnectionTelemetryEventProperties> {
     return await getConnectionTelemetryProperties(dataService, connectionType);
   }
 
@@ -298,7 +361,7 @@ export default class TelemetryService {
     return 'other';
   }
 
-  getTelemetryUserIdentity() {
+  getTelemetryUserIdentity(): { anonymousId: string } {
     return {
       anonymousId: this._segmentAnonymousId,
     };
@@ -363,7 +426,7 @@ export default class TelemetryService {
 
   trackSavedConnectionsLoaded(
     savedConnectionsLoadedProps: SavedConnectionsLoadedProperties
-  ) {
+  ): void {
     this.track(
       TelemetryEventTypes.SAVED_CONNECTIONS_LOADED,
       savedConnectionsLoadedProps
@@ -372,10 +435,22 @@ export default class TelemetryService {
 
   trackKeytarSecretsMigrationFailed(
     keytarSecretsMigrationFailedProps: KeytarSecretsMigrationFailedProperties
-  ) {
+  ): void {
     this.track(
       TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
       keytarSecretsMigrationFailedProps
     );
+  }
+
+  trackCopilotParticipantFeedback(props: ParticipantFeedbackProperties): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_FEEDBACK, props);
+  }
+
+  trackCopilotParticipantPrompt(stats: ParticipantPromptProperties): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED, stats);
+  }
+
+  trackCopilotParticipantResponse(props: ParticipantResponseProperties): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
   }
 }

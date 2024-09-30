@@ -79,7 +79,12 @@ function isOIDCAuth(connectionString: string): boolean {
 // Exported for testing.
 export function getNotifyDeviceFlowForConnectionAttempt(
   connectionOptions: ConnectionOptions
-) {
+):
+  | ((deviceFlowInformation: {
+      verificationUrl: string;
+      userCode: string;
+    }) => void)
+  | undefined {
   const isOIDCConnectionAttempt = isOIDCAuth(
     connectionOptions.connectionString
   );
@@ -97,7 +102,7 @@ export function getNotifyDeviceFlowForConnectionAttempt(
     }: {
       verificationUrl: string;
       userCode: string;
-    }) => {
+    }): void => {
       void vscode.window.showInformationMessage(
         `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`
       );
@@ -381,7 +386,7 @@ export default class ConnectionController {
           ...cloneDeep(connectionOptions.oidc),
           openBrowser: browserAuthCommand
             ? { command: browserAuthCommand }
-            : async ({ signal, url }) => {
+            : async ({ signal, url }): Promise<void> => {
                 try {
                   await openLink(url);
                 } catch (err) {
@@ -419,7 +424,14 @@ export default class ConnectionController {
     }
 
     log.info('Successfully connected', { connectionId });
-    void vscode.window.showInformationMessage('MongoDB connection successful.');
+
+    const message = 'MongoDB connection successful.';
+    this._statusView.showMessage(message);
+    setTimeout(() => {
+      if (this._statusView._statusBarItem.text === message) {
+        this._statusView.hideMessage();
+      }
+    }, 5000);
 
     dataService.addReauthenticationHandler(
       this._reauthenticationHandler.bind(this)
@@ -428,7 +440,12 @@ export default class ConnectionController {
     this._currentConnectionId = connectionId;
     this._connectionAttempt = null;
     this._connectingConnectionId = null;
+
+    this._connections[connectionId].lastUsed = new Date();
     this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    await this._connectionStorage.saveConnection(
+      this._connections[connectionId]
+    );
 
     // Send metrics to Segment
     this.sendTelemetry(dataService, connectionType);
@@ -457,7 +474,7 @@ export default class ConnectionController {
   }
 
   // Used to re-authenticate with OIDC.
-  async _reauthenticationHandler() {
+  async _reauthenticationHandler(): Promise<void> {
     const removeConfirmationResponse =
       await vscode.window.showInformationMessage(
         'You need to re-authenticate to the database in order to continue.',
@@ -476,7 +493,7 @@ export default class ConnectionController {
   }: {
     connectionInfo: LoadedConnection;
     dataService: DataService;
-  }) {
+  }): Promise<void> {
     if (connectionInfo.storageLocation === 'NONE') {
       return;
     }
@@ -501,7 +518,7 @@ export default class ConnectionController {
 
     // ?. because mocks in tests don't provide it
     dataService.on?.('connectionInfoSecretsChanged', () => {
-      void (async () => {
+      void (async (): Promise<void> => {
         try {
           if (
             !vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')
@@ -534,7 +551,7 @@ export default class ConnectionController {
     });
   }
 
-  cancelConnectionAttempt() {
+  cancelConnectionAttempt(): void {
     this._connectionAttempt?.cancelConnectionAttempt();
   }
 
@@ -603,10 +620,16 @@ export default class ConnectionController {
       'mdb.isAtlasStreams',
       false
     );
-    void vscode.window.showInformationMessage('MongoDB disconnected.');
 
     this._disconnecting = false;
-    this._statusView.hideMessage();
+
+    const message = 'MongoDB disconnected.';
+    this._statusView.showMessage(message);
+    setTimeout(() => {
+      if (this._statusView._statusBarItem.text === message) {
+        this._statusView.hideMessage();
+      }
+    }, 5000);
 
     return true;
   }
@@ -788,11 +811,11 @@ export default class ConnectionController {
     this.eventEmitter.removeListener(eventType, listener);
   }
 
-  deactivate() {
+  deactivate(): void {
     this.eventEmitter.removeAllListeners();
   }
 
-  closeConnectionStringInput() {
+  closeConnectionStringInput(): void {
     this._connectionStringInputCancellationToken?.cancel();
   }
 
@@ -887,7 +910,7 @@ export default class ConnectionController {
     return connectionStringData.toString();
   }
 
-  isConnectedToAtlasStreams() {
+  isConnectedToAtlasStreams(): boolean {
     return (
       this.isCurrentlyConnected() &&
       isAtlasStream(this.getActiveConnectionString())
@@ -909,7 +932,7 @@ export default class ConnectionController {
     return connectionString;
   }
 
-  getActiveDataService() {
+  getActiveDataService(): DataService | null {
     return this._activeDataService;
   }
 
@@ -1036,7 +1059,7 @@ export default class ConnectionController {
     );
 
     if (!selectedQuickPickItem) {
-      return true;
+      return false;
     }
 
     if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
@@ -1044,7 +1067,7 @@ export default class ConnectionController {
     }
 
     if (!selectedQuickPickItem.data.connectionId) {
-      return true;
+      return false;
     }
 
     const { successfullyConnected } = await this.connectWithConnectionId(

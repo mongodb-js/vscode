@@ -33,7 +33,7 @@ const testDatabaseURI = 'mongodb://localhost:27088';
 
 function getTestConnectionTreeItem(
   options?: Partial<ConstructorParameters<typeof ConnectionTreeItem>[0]>
-) {
+): ConnectionTreeItem {
   return new ConnectionTreeItem({
     connectionId: 'tasty_sandwhich',
     collapsibleState: vscode.TreeItemCollapsibleState.None,
@@ -48,7 +48,7 @@ function getTestConnectionTreeItem(
 
 function getTestCollectionTreeItem(
   options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>
-) {
+): CollectionTreeItem {
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
@@ -65,7 +65,7 @@ function getTestCollectionTreeItem(
 
 function getTestDatabaseTreeItem(
   options?: Partial<ConstructorParameters<typeof DatabaseTreeItem>[0]>
-) {
+): DatabaseTreeItem {
   return new DatabaseTreeItem({
     databaseName: 'zebra',
     dataService: {} as DataService,
@@ -78,7 +78,7 @@ function getTestDatabaseTreeItem(
 
 function getTestStreamProcessorTreeItem(
   options?: Partial<ConstructorParameters<typeof StreamProcessorTreeItem>[0]>
-) {
+): StreamProcessorTreeItem {
   return new StreamProcessorTreeItem({
     streamProcessorName: 'zebra',
     streamProcessorState: 'CREATED',
@@ -88,7 +88,7 @@ function getTestStreamProcessorTreeItem(
   });
 }
 
-function getTestFieldTreeItem() {
+function getTestFieldTreeItem(): FieldTreeItem {
   return new FieldTreeItem({
     field: {
       name: 'dolphins are sentient',
@@ -101,7 +101,7 @@ function getTestFieldTreeItem() {
   });
 }
 
-function getTestSchemaTreeItem() {
+function getTestSchemaTreeItem(): SchemaTreeItem {
   return new SchemaTreeItem({
     databaseName: 'zebraWearwolf',
     collectionName: 'giraffeVampire',
@@ -116,7 +116,7 @@ function getTestSchemaTreeItem() {
 
 function getTestDocumentTreeItem(
   options?: Partial<ConstructorParameters<typeof DocumentTreeItem>[0]>
-) {
+): DocumentTreeItem {
   return new DocumentTreeItem({
     document: {},
     namespace: 'waffle.house',
@@ -129,10 +129,14 @@ function getTestDocumentTreeItem(
 
 suite('MDBExtensionController Test Suite', function () {
   this.timeout(10000);
+  const sandbox = sinon.createSandbox();
+
+  afterEach(() => {
+    sandbox.restore();
+  });
 
   suite('when not connected', () => {
     let showErrorMessageStub: SinonSpy;
-    const sandbox = sinon.createSandbox();
 
     beforeEach(() => {
       sandbox.stub(vscode.window, 'showInformationMessage');
@@ -143,10 +147,6 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._telemetryService,
         'trackNewConnection'
       );
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     test('mdb.addDatabase command fails when not connected to the connection', async () => {
@@ -177,8 +177,6 @@ suite('MDBExtensionController Test Suite', function () {
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
     let openExternalStub: SinonStub;
 
-    const sandbox = sinon.createSandbox();
-
     beforeEach(() => {
       showInformationMessageStub = sandbox.stub(
         vscode.window,
@@ -204,10 +202,6 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._telemetryService,
         'trackNewConnection'
       );
-    });
-
-    afterEach(() => {
-      sandbox.restore();
     });
 
     test('mdb.viewCollectionDocuments command should call onViewCollectionDocuments on the editor controller with the collection namespace', async () => {
@@ -1851,6 +1845,58 @@ suite('MDBExtensionController Test Suite', function () {
           assert(showInformationMessageStub.notCalled);
         });
       });
+    });
+  });
+
+  test('mdb.participantViewRawSchemaOutput command opens a json document with the output', async () => {
+    const openTextDocumentStub = sandbox.stub(
+      vscode.workspace,
+      'openTextDocument'
+    );
+    const showTextDocumentStub = sandbox.stub(
+      vscode.window,
+      'showTextDocument'
+    );
+
+    const schemaContent = `{
+  "count": 1,
+  "fields": [
+    {
+      "name": "_id",
+      "path": [
+        "_id"
+      ],
+      "count": 1,
+      "type": "ObjectId",
+      "probability": 1,
+      "hasDuplicates": false,
+      "types": [
+        {
+          "name": "ObjectId",
+          "path": [
+            "_id"
+          ],
+          "count": 1,
+          "probability": 1,
+          "bsonType": "ObjectId"
+        }
+      ]
+    }
+  ]
+}`;
+    await vscode.commands.executeCommand('mdb.participantViewRawSchemaOutput', {
+      schema: schemaContent,
+    });
+
+    assert(openTextDocumentStub.calledOnce);
+    assert.deepStrictEqual(openTextDocumentStub.firstCall.args[0], {
+      language: 'json',
+      content: schemaContent,
+    });
+
+    assert(showTextDocumentStub.calledOnce);
+    assert.deepStrictEqual(showTextDocumentStub.firstCall.args[1], {
+      preview: true,
     });
   });
 });

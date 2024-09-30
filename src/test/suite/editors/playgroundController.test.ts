@@ -79,7 +79,6 @@ suite('Playground Controller Test Suite', function () {
     testExportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider();
     testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
-
     languageServerControllerStub = new LanguageServerControllerStub(
       extensionContextStub,
       testStorageController
@@ -325,8 +324,9 @@ suite('Playground Controller Test Suite', function () {
           sandbox.fake.rejects(false)
         );
 
-        const result =
-          await testPlaygroundController._evaluateWithCancelModal();
+        const result = await testPlaygroundController._evaluateWithCancelModal({
+          codeToEvaluate: '',
+        });
 
         expect(result).to.deep.equal({ result: undefined });
       });
@@ -399,7 +399,7 @@ suite('Playground Controller Test Suite', function () {
           );
           sandbox.replace(
             testPlaygroundController,
-            '_openPlaygroundResult',
+            '_openInResultPane',
             sandbox.stub()
           );
         });

@@ -15,6 +15,7 @@ import { DatabaseTreeItem } from '../explorer';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { LanguageServerController } from '../language';
+import playgroundBasicTextTemplate from '../templates/playgroundBasicTextTemplate';
 import playgroundCreateIndexTemplate from '../templates/playgroundCreateIndexTemplate';
 import playgroundCreateCollectionTemplate from '../templates/playgroundCreateCollectionTemplate';
 import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumentTemplate';
@@ -58,10 +59,14 @@ interface ToCompile {
 
 let dummySandbox;
 
+function getActiveEditorFilePath(): string | undefined {
+  return vscode.window.activeTextEditor?.document.uri.fsPath;
+}
+
 // TODO: this function was copied from the compass-export-to-language module
 // https://github.com/mongodb-js/compass/blob/7c4bc0789a7b66c01bb7ba63955b3b11ed40c094/packages/compass-export-to-language/src/modules/count-aggregation-stages-in-string.js
 // and should be updated as well when the better solution for the problem will be found.
-const countAggregationStagesInString = (str: string) => {
+const countAggregationStagesInString = (str: string): number => {
   if (!dummySandbox) {
     dummySandbox = vm.createContext(Object.create(null), {
       codeGeneration: { strings: false, wasm: false },
@@ -111,6 +116,9 @@ const exportModeMapping: Record<
   [ExportToLanguageMode.OTHER]: undefined,
 };
 
+const connectBeforeRunningMessage =
+  'Please connect to a database before running a playground.';
+
 /**
  * This controller manages playground.
  */
@@ -131,8 +139,6 @@ export default class PlaygroundController {
   private _statusView: StatusView;
   private _playgroundResultViewProvider: PlaygroundResultProvider;
   private _activeConnectionChangedHandler: () => void;
-
-  private _codeToEvaluate = '';
 
   constructor({
     connectionController,
@@ -161,7 +167,7 @@ export default class PlaygroundController {
     this._playgroundSelectedCodeActionProvider =
       playgroundSelectedCodeActionProvider;
 
-    this._activeConnectionChangedHandler = () => {
+    this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();
     };
     this._connectionController.addEventListener(
@@ -171,7 +177,7 @@ export default class PlaygroundController {
 
     const onDidChangeActiveTextEditor = (
       editor: vscode.TextEditor | undefined
-    ) => {
+    ): void => {
       if (editor?.document.uri.scheme === PLAYGROUND_RESULT_SCHEME) {
         this._playgroundResultViewColumn = editor.viewColumn;
         this._playgroundResultTextDocument = editor?.document;
@@ -374,6 +380,21 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
+  createPlaygroundFromParticipantCode({
+    text,
+  }: {
+    text: string;
+  }): Promise<boolean> {
+    const useDefaultTemplate = !!vscode.workspace
+      .getConfiguration('mdb')
+      .get('useDefaultTemplateForPlayground');
+    const content = useDefaultTemplate
+      ? playgroundBasicTextTemplate.replace('PLAYGROUND_CONTENT', text)
+      : text;
+    this._telemetryService.trackPlaygroundCreated('agent');
+    return this._createPlaygroundFileWithContent(content);
+  }
+
   createPlaygroundForCloneDocument(
     documentContents: string,
     databaseName: string,
@@ -424,13 +445,17 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
-  async _evaluate(codeToEvaluate: string): Promise<ShellEvaluateResult> {
+  async _evaluate({
+    codeToEvaluate,
+    filePath,
+  }: {
+    codeToEvaluate: string;
+    filePath?: string;
+  }): Promise<ShellEvaluateResult> {
     const connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
-      throw new Error(
-        'Please connect to a database before running a playground.'
-      );
+      throw new Error(connectBeforeRunningMessage);
     }
 
     this._statusView.showMessage('Getting results...');
@@ -441,7 +466,7 @@ export default class PlaygroundController {
       result = await this._languageServerController.evaluate({
         codeToEvaluate,
         connectionId,
-        filePath: vscode.window.activeTextEditor?.document.uri.fsPath,
+        filePath,
       });
     } catch (error) {
       const msg =
@@ -468,11 +493,15 @@ export default class PlaygroundController {
     return this._activeTextEditor?.document.getText(selection) || '';
   }
 
-  async _evaluateWithCancelModal(): Promise<ShellEvaluateResult> {
+  async _evaluateWithCancelModal({
+    codeToEvaluate,
+    filePath,
+  }: {
+    codeToEvaluate: string;
+    filePath?: string;
+  }): Promise<ShellEvaluateResult> {
     if (!this._connectionController.isCurrentlyConnected()) {
-      throw new Error(
-        'Please connect to a database before running a playground.'
-      );
+      throw new Error(connectBeforeRunningMessage);
     }
 
     try {
@@ -491,9 +520,10 @@ export default class PlaygroundController {
           });
 
           // Run all playground scripts.
-          const result: ShellEvaluateResult = await this._evaluate(
-            this._codeToEvaluate
-          );
+          const result: ShellEvaluateResult = await this._evaluate({
+            codeToEvaluate,
+            filePath,
+          });
 
           return result;
         }
@@ -507,10 +537,8 @@ export default class PlaygroundController {
     }
   }
 
-  async _openPlaygroundResult(): Promise<void> {
-    this._playgroundResultViewProvider.setPlaygroundResult(
-      this._playgroundResult
-    );
+  async _openInResultPane(result: PlaygroundResult): Promise<void> {
+    this._playgroundResultViewProvider.setPlaygroundResult(result);
 
     if (!this._playgroundResultTextDocument) {
       await this._openResultAsVirtualDocument();
@@ -521,7 +549,7 @@ export default class PlaygroundController {
     await this._showResultAsVirtualDocument();
 
     if (this._playgroundResultTextDocument) {
-      const language = this._playgroundResult?.language || 'plaintext';
+      const language = result?.language || 'plaintext';
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,
@@ -558,15 +586,58 @@ export default class PlaygroundController {
     }
   }
 
-  async _evaluatePlayground(): Promise<boolean> {
+  async evaluateParticipantCode(codeToEvaluate: string): Promise<boolean> {
+    const shouldConfirmRunCopilotCode = vscode.workspace
+      .getConfiguration('mdb')
+      .get('confirmRunCopilotCode');
+
+    if (!this._connectionController.isCurrentlyConnected()) {
+      // TODO(VSCODE-618): Prompt user to connect when clicked.
+      void vscode.window.showErrorMessage(connectBeforeRunningMessage);
+
+      return false;
+    }
+
+    if (shouldConfirmRunCopilotCode === true) {
+      const name = this._connectionController.getActiveConnectionName();
+      const confirmRunCopilotCode = await vscode.window.showInformationMessage(
+        `Are you sure you want to run this code generated by the MongoDB participant against ${name}? This confirmation can be disabled in the extension settings.`,
+        { modal: true },
+        'Yes'
+      );
+
+      if (confirmRunCopilotCode !== 'Yes') {
+        return false;
+      }
+    }
+
+    const evaluateResponse: ShellEvaluateResult =
+      await this._evaluateWithCancelModal({
+        codeToEvaluate,
+      });
+
+    if (!evaluateResponse || !evaluateResponse.result) {
+      return false;
+    }
+
+    await this._openInResultPane(evaluateResponse.result);
+
+    return true;
+  }
+
+  async _evaluatePlayground({
+    codeToEvaluate,
+    filePath,
+  }: {
+    codeToEvaluate: string;
+    filePath?: string;
+  }): Promise<boolean> {
     const shouldConfirmRunAll = vscode.workspace
       .getConfiguration('mdb')
       .get('confirmRunAll');
 
     if (!this._connectionController.isCurrentlyConnected()) {
-      void vscode.window.showErrorMessage(
-        'Please connect to a database before running a playground.'
-      );
+      void vscode.window.showErrorMessage(connectBeforeRunningMessage);
 
       return false;
     }
@@ -585,15 +656,17 @@ export default class PlaygroundController {
     }
 
     const evaluateResponse: ShellEvaluateResult =
-      await this._evaluateWithCancelModal();
+      await this._evaluateWithCancelModal({
+        codeToEvaluate,
+        filePath,
+      });
 
     if (!evaluateResponse || !evaluateResponse.result) {
       return false;
     }
 
     this._playgroundResult = evaluateResponse.result;
-
-    await this._openPlaygroundResult();
+    await this._openInResultPane(this._playgroundResult);
 
     return true;
   }
@@ -608,9 +681,11 @@ export default class PlaygroundController {
     }
 
     this._isPartialRun = true;
-    this._codeToEvaluate = this._selectedText;
 
-    return this._evaluatePlayground();
+    return this._evaluatePlayground({
+      codeToEvaluate: this._selectedText || '',
+      filePath: getActiveEditorFilePath(),
+    });
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
@@ -626,9 +701,11 @@ export default class PlaygroundController {
     }
 
     this._isPartialRun = false;
-    this._codeToEvaluate = this._getAllText();
 
-    return this._evaluatePlayground();
+    return this._evaluatePlayground({
+      codeToEvaluate: this._getAllText(),
+      filePath: getActiveEditorFilePath(),
+    });
   }
 
   runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
@@ -643,28 +720,26 @@ export default class PlaygroundController {
       return Promise.resolve(false);
     }
 
-    const selections = this._activeTextEditor.selections;
-
-    if (
-      !selections ||
-      !Array.isArray(selections) ||
-      (selections.length === 1 && this._getSelectedText(selections[0]) === '')
-    ) {
+    let codeToEvaluate = '';
+    if (!this._selectedText) {
       this._isPartialRun = false;
-      this._codeToEvaluate = this._getAllText();
-    } else if (this._selectedText) {
+      codeToEvaluate = this._getAllText();
+    } else {
       this._isPartialRun = true;
-      this._codeToEvaluate = this._selectedText;
+      codeToEvaluate = this._selectedText;
     }
 
-    return this._evaluatePlayground();
+    return this._evaluatePlayground({
+      codeToEvaluate,
+      filePath: getActiveEditorFilePath(),
+    });
   }
 
   async fixThisInvalidInteractiveSyntax({
     documentUri,
     range,
     fix,
-  }: ThisDiagnosticFix) {
+  }: ThisDiagnosticFix): Promise<boolean> {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(documentUri, range, fix);
     await vscode.workspace.applyEdit(edit);
@@ -674,7 +749,7 @@ export default class PlaygroundController {
   async fixAllInvalidInteractiveSyntax({
     documentUri,
     diagnostics,
-  }: AllDiagnosticFixes) {
+  }: AllDiagnosticFixes): Promise<boolean> {
     const edit = new vscode.WorkspaceEdit();
 
     for (const { range, fix } of diagnostics) {
@@ -848,7 +923,7 @@ export default class PlaygroundController {
           language,
           num_stages: selectedText
             ? countAggregationStagesInString(selectedText)
-            : null,
+            : undefined,
           with_import_statements: importStatements,
           with_builders: builders,
           with_driver_syntax: driverSyntax,
@@ -870,7 +945,7 @@ export default class PlaygroundController {
       }
       /* eslint-enable camelcase */
 
-      await this._openPlaygroundResult();
+      await this._openInResultPane(this._playgroundResult);
     } catch (error) {
       log.error(`Export to the '${language}' language failed`, error);
       const printableError = formatError(error);

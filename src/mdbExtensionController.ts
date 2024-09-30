@@ -42,6 +42,12 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
+import type {
+  ParticipantCommand,
+  RunParticipantCodeCommandArgs,
+} from './participant/participant';
+import ParticipantController from './participant/participant';
+import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -65,6 +71,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  _participantController: ParticipantController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -117,6 +124,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
     });
+    this._participantController = new ParticipantController({
+      connectionController: this._connectionController,
+      storageController: this._storageController,
+      telemetryService: this._telemetryService,
+    });
     this._editorsController = new EditorsController({
       context,
       connectionController: this._connectionController,
@@ -145,6 +157,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._helpExplorer.activateHelpTreeView(this._telemetryService);
     this._playgroundsExplorer.activatePlaygroundsTreeView();
     this._telemetryService.activateSegmentAnalytics();
+    this._participantController.createParticipant(this._context);
 
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
@@ -177,6 +190,19 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
       this._connectionController.changeActiveConnection()
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.OPEN_MONGODB_ISSUE_REPORTER,
+      async () => {
+        return await vscode.commands.executeCommand(
+          'workbench.action.openIssueReporter',
+          {
+            extensionId: 'mongodb.mongodb-vscode',
+            issueSource: 'extension',
+          }
+        );
+      }
     );
 
     // ------ SHELL ------ //
@@ -267,6 +293,78 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerEditorCommands();
     this.registerTreeViewCommands();
+
+    // ------ CHAT PARTICIPANT ------ //
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+      ({ runnableContent }: RunParticipantCodeCommandArgs) => {
+        return this._playgroundController.createPlaygroundFromParticipantCode({
+          text: runnableContent,
+        });
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
+      ({ runnableContent }: RunParticipantCodeCommandArgs) => {
+        return this._playgroundController.evaluateParticipantCode(
+          runnableContent
+        );
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+      (data: { id?: string; command?: string }) => {
+        return this._participantController.connectWithParticipant(data);
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+      (data: {
+        chatId: string;
+        command: ParticipantCommand;
+        databaseName?: string;
+      }) => {
+        return this._participantController.selectDatabaseWithParticipant(data);
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+      (data: any) => {
+        return this._participantController.selectCollectionWithParticipant(
+          data
+        );
+      }
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
+      async ({ schema }: OpenSchemaCommandArgs) => {
+        const document = await vscode.workspace.openTextDocument({
+          language: 'json',
+          content: schema,
+        });
+        await vscode.window.showTextDocument(document, { preview: true });
+
+        return !!document;
+      }
+    );
+  };
+
+  registerParticipantCommand = (
+    command: string,
+    commandHandler: (...args: any[]) => Promise<boolean>
+  ): void => {
+    const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
+      this._telemetryService.trackCommandRun(command);
+
+      return commandHandler(args);
+    };
+    const participant = this._participantController.getParticipant();
+    if (participant) {
+      this._context.subscriptions.push(
+        participant,
+        vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
+      );
+    }
   };
 
   registerCommand = (
@@ -708,7 +806,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerAtlasStreamsTreeViewCommands();
   }
 
-  registerAtlasStreamsTreeViewCommands() {
+  registerAtlasStreamsTreeViewCommands(): void {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_ADD_STREAM_PROCESSOR,
       async (element: ConnectionTreeItem): Promise<boolean> => {

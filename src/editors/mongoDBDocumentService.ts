@@ -98,13 +98,11 @@ export default class MongoDBDocumentService {
           returnDocument: 'after',
         }
       );
-
-      this._statusView.hideMessage();
       this._telemetryService.trackDocumentUpdated(source, true);
     } catch (error) {
-      this._statusView.hideMessage();
-
       return this._saveDocumentFailed(formatError(error).message);
+    } finally {
+      this._statusView.hideMessage();
     }
   }
 
@@ -141,17 +139,15 @@ export default class MongoDBDocumentService {
         { limit: 1 }
       );
 
-      this._statusView.hideMessage();
-
       if (!documents || documents.length === 0) {
         return;
       }
 
       return getEJSON(documents[0]);
     } catch (error) {
-      this._statusView.hideMessage();
-
       return this._fetchDocumentFailed(formatError(error).message);
+    } finally {
+      this._statusView.hideMessage();
     }
   }
 }

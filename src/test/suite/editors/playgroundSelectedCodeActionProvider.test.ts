@@ -72,7 +72,7 @@ suite('Playground Selected CodeAction Provider Test Suite', function () {
       const fakeOpenPlaygroundResult = sandbox.fake();
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
-        '_openPlaygroundResult',
+        '_openInResultPane',
         fakeOpenPlaygroundResult
       );
 
