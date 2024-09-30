@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getSimplifiedSchema, parseSchema } from 'mongodb-schema';
 import type { Document } from 'bson';
 import type { Reference } from 'mongodb-rag-core';
+import util from 'util';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -138,6 +139,12 @@ export default class ParticipantController {
       errorName = ParticipantErrorTypes.OTHER;
     }
 
+    log.error('Participant encountered an error', {
+      command,
+      error_code: errorCode,
+      error_name: errorName,
+    });
+
     this._telemetryService.track(
       TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
       {
@@ -177,9 +184,26 @@ export default class ParticipantController {
       throw new Error('Copilot model not found');
     }
 
+    log.info('Sending request to model', {
+      messages: modelInput.messages.map(
+        (message: vscode.LanguageModelChatMessage) =>
+          util.inspect({
+            role: message.role,
+            contentLength: message.content.length,
+          })
+      ),
+    });
     this._telemetryService.trackCopilotParticipantPrompt(modelInput.stats);
 
-    return await model.sendRequest(modelInput.messages, {}, token);
+    const modelResponse = await model.sendRequest(
+      modelInput.messages,
+      {},
+      token
+    );
+
+    log.info('Model response received');
+
+    return modelResponse;
   }
 
   async streamChatResponse({
@@ -265,6 +289,11 @@ export default class ParticipantController {
       },
       inputIterable: chatResponse.text,
       identifier: codeBlockIdentifier,
+    });
+
+    log.info('Streamed response to chat', {
+      outputLength,
+      hasCodeBlock,
     });
 
     return {
@@ -374,6 +403,10 @@ export default class ParticipantController {
     const responseContent = await this.getChatResponseContent({
       modelInput,
       token,
+    });
+
+    log.info('Received intent response from model', {
+      responseContentLength: responseContent.length,
     });
 
     return Prompts.intent.getIntentFromModelResponse(responseContent);
@@ -738,14 +771,41 @@ export default class ParticipantController {
       request,
       connectionNames: this._getConnectionNames(),
     });
-    const responseContentWithNamespace = await this.getChatResponseContent({
-      modelInput: messagesWithNamespace,
-      token,
-    });
-    const { databaseName, collectionName } =
-      Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
-        responseContentWithNamespace
-      );
+
+    let {
+      databaseName,
+      collectionName,
+    }: {
+      databaseName: string | undefined;
+      collectionName: string | undefined;
+    } = {
+      databaseName: undefined,
+      collectionName: undefined,
+    };
+
+    // When there's no user message content we can
+    // skip the request to the model. This would happen with /schema.
+    if (Prompts.doMessagesContainUserInput(messagesWithNamespace.messages)) {
+      // VSCODE-626: When there's an empty message sent to the ai model,
+      // it currently errors (not on insiders, only main VSCode).
+      // Here we're defaulting to have some content as a workaround.
+      // TODO: Remove this when the issue is fixed.
+      messagesWithNamespace.messages[
+        messagesWithNamespace.messages.length - 1
+      ].content =
+        messagesWithNamespace.messages[
+          messagesWithNamespace.messages.length - 1
+        ].content.trim() || 'see previous messages';
+
+      const responseContentWithNamespace = await this.getChatResponseContent({
+        modelInput: messagesWithNamespace,
+        token,
+      });
+      ({ databaseName, collectionName } =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContentWithNamespace
+        ));
+    }
 
     // See if there's a namespace set in the
     // chat metadata we can fallback to if the model didn't find it.
@@ -756,6 +816,11 @@ export default class ParticipantController {
       databaseName: databaseNameFromMetadata,
       collectionName: collectionNameFromMetadata,
     } = this._chatMetadataStore.getChatMetadata(chatId) ?? {};
+
+    log.info('Namespaces found in chat', {
+      databaseName: databaseName || databaseNameFromMetadata,
+      collectionName: collectionName || collectionNameFromMetadata,
+    });
 
     return {
       databaseName: databaseName || databaseNameFromMetadata,
@@ -831,6 +896,8 @@ export default class ParticipantController {
     context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
   }): ChatResult {
+    log.info('Participant asked user to connect');
+
     stream.markdown(
       "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
     );

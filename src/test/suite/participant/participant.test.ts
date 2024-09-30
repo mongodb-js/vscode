@@ -1343,26 +1343,70 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('schema command', function () {
-        suite('known namespace from running namespace LLM', function () {
+        suite('no namespace provided', function () {
           beforeEach(function () {
             sendRequestStub.onCall(0).resolves({
-              text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
+              text: ['none'],
             });
           });
 
-          test('shows a button to view the json output', async function () {
+          test('without a prompt it asks for the database name without pinging ai', async function () {
             const chatRequestMock = {
               prompt: '',
               command: 'schema',
               references: [],
             };
-            sampleStub.resolves([
-              {
-                _id: new ObjectId('63ed1d522d8573fa5c203660'),
-              },
-            ]);
             await invokeChatHandler(chatRequestMock);
-            const expectedSchema = `{
+
+            expect(sendRequestStub.called).to.be.false;
+            const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
+            expect(askForDBMessage).to.include(
+              'What is the name of the database you would like to run against?'
+            );
+          });
+
+          test('with a prompt it asks the ai for the namespace', async function () {
+            const chatRequestMock = {
+              prompt: 'pineapple',
+              command: 'schema',
+              references: [],
+            };
+            await invokeChatHandler(chatRequestMock);
+
+            expect(sendRequestStub.calledOnce).to.be.true;
+            expect(sendRequestStub.firstCall.args[0][0].content).to.include(
+              'Parse all user messages to find a database name and a collection name.'
+            );
+
+            const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
+            expect(askForDBMessage).to.include(
+              'What is the name of the database you would like to run against?'
+            );
+          });
+        });
+
+        suite(
+          'with a prompt and a known namespace from running namespace LLM',
+          function () {
+            beforeEach(function () {
+              sendRequestStub.onCall(0).resolves({
+                text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
+              });
+            });
+
+            test('shows a button to view the json output', async function () {
+              const chatRequestMock = {
+                prompt: 'what is my schema',
+                command: 'schema',
+                references: [],
+              };
+              sampleStub.resolves([
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203660'),
+                },
+              ]);
+              await invokeChatHandler(chatRequestMock);
+              const expectedSchema = `{
   "count": 1,
   "fields": [
     {
@@ -1388,108 +1432,109 @@ suite('Participant Controller Test Suite', function () {
     }
   ]
 }`;
-            expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
-              command: 'mdb.participantViewRawSchemaOutput',
-              title: 'Open JSON Output',
-              arguments: [
+              expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
+                command: 'mdb.participantViewRawSchemaOutput',
+                title: 'Open JSON Output',
+                arguments: [
+                  {
+                    schema: expectedSchema,
+                  },
+                ],
+              });
+
+              assertCommandTelemetry('schema', chatRequestMock, {
+                callIndex: 0,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('schema', chatRequestMock, {
+                callIndex: 1,
+              });
+
+              assertResponseTelemetry('schema', {
+                callIndex: 2,
+                hasCTA: true,
+                foundNamespace: true,
+              });
+            });
+
+            test("includes the collection's schema in the request", async function () {
+              sampleStub.resolves([
                 {
-                  schema: expectedSchema,
+                  _id: new ObjectId('63ed1d522d8573fa5c203660'),
+                  field: {
+                    stringField:
+                      'There was a house cat who finally got the chance to do what it had always wanted to do.',
+                    arrayField: [new Int32('1')],
+                  },
                 },
-              ],
-            });
-
-            assertCommandTelemetry('schema', chatRequestMock, {
-              callIndex: 0,
-              expectedInternalPurpose: 'namespace',
-            });
-
-            assertCommandTelemetry('schema', chatRequestMock, {
-              callIndex: 1,
-            });
-
-            assertResponseTelemetry('schema', {
-              callIndex: 2,
-              hasCTA: true,
-              foundNamespace: true,
-            });
-          });
-
-          test("includes the collection's schema in the request", async function () {
-            sampleStub.resolves([
-              {
-                _id: new ObjectId('63ed1d522d8573fa5c203660'),
-                field: {
-                  stringField:
-                    'There was a house cat who finally got the chance to do what it had always wanted to do.',
-                  arrayField: [new Int32('1')],
+                {
+                  _id: new ObjectId('63ed1d522d8573fa5c203660'),
+                  field: {
+                    stringField: 'Pineapple.',
+                    arrayField: [new Int32('166')],
+                  },
                 },
-              },
-              {
-                _id: new ObjectId('63ed1d522d8573fa5c203660'),
-                field: {
-                  stringField: 'Pineapple.',
-                  arrayField: [new Int32('166')],
-                },
-              },
-            ]);
-            const chatRequestMock = {
-              prompt: '',
-              command: 'schema',
-              references: [],
-            };
-            await invokeChatHandler(chatRequestMock);
-            const messages = sendRequestStub.secondCall.args[0];
-            expect(messages[0].content).to.include(
-              'Amount of documents sampled: 2'
-            );
-            expect(messages[1].content).to.include(
-              `Database name: dbOne
+              ]);
+              const chatRequestMock = {
+                prompt: 'what is my schema',
+                command: 'schema',
+                references: [],
+              };
+              await invokeChatHandler(chatRequestMock);
+              const messages = sendRequestStub.secondCall.args[0];
+              expect(messages[0].content).to.include(
+                'Amount of documents sampled: 2'
+              );
+              expect(messages[1].content).to.include(
+                `Database name: dbOne
 Collection name: collOne
 Schema:
 {
   "count": 2,
   "fields": [`
-            );
-            expect(messages[1].content).to.include(`"name": "arrayField",
+              );
+              expect(messages[1].content).to.include(`"name": "arrayField",
               "path": [
                 "field",
                 "arrayField"
               ],`);
 
-            assertCommandTelemetry('schema', chatRequestMock, {
-              callIndex: 0,
-              expectedInternalPurpose: 'namespace',
+              assertCommandTelemetry('schema', chatRequestMock, {
+                callIndex: 0,
+                expectedInternalPurpose: 'namespace',
+              });
+
+              assertCommandTelemetry('schema', chatRequestMock, {
+                callIndex: 1,
+              });
+
+              assertResponseTelemetry('schema', {
+                callIndex: 2,
+                hasCTA: true,
+                foundNamespace: true,
+              });
             });
 
-            assertCommandTelemetry('schema', chatRequestMock, {
-              callIndex: 1,
-            });
+            test('prints a message when no documents are found', async function () {
+              sampleStub.resolves([]);
+              const chatRequestMock = {
+                prompt: 'what is my schema',
+                command: 'schema',
+                references: [],
+              };
+              await invokeChatHandler(chatRequestMock);
+              expect(chatStreamStub?.markdown.getCall(0).args[0]).to.include(
+                'Unable to generate a schema from the collection, no documents found.'
+              );
 
-            assertResponseTelemetry('schema', {
-              callIndex: 2,
-              hasCTA: true,
-              foundNamespace: true,
+              assertCommandTelemetry('schema', chatRequestMock, {
+                callIndex: 0,
+                expectedInternalPurpose: 'namespace',
+              });
             });
-          });
-
-          test('prints a message when no documents are found', async function () {
-            sampleStub.resolves([]);
-            const chatRequestMock = {
-              prompt: '',
-              command: 'schema',
-              references: [],
-            };
-            await invokeChatHandler(chatRequestMock);
-            expect(chatStreamStub?.markdown.getCall(0).args[0]).to.include(
-              'Unable to generate a schema from the collection, no documents found.'
-            );
-
-            assertCommandTelemetry('schema', chatRequestMock, {
-              callIndex: 0,
-              expectedInternalPurpose: 'namespace',
-            });
-          });
-        });
+          }
+        );
       });
 
       suite('docs command', function () {
