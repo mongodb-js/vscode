@@ -44,7 +44,7 @@ import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
 import type {
   ParticipantCommand,
-  RunParticipantQueryCommandArgs,
+  RunParticipantCodeCommandArgs,
 } from './participant/participant';
 import ParticipantController from './participant/participant';
 import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
@@ -299,17 +299,17 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     // ------ CHAT PARTICIPANT ------ //
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
-      ({ runnableContent }: RunParticipantQueryCommandArgs) => {
-        return this._playgroundController.createPlaygroundFromParticipantQuery({
+      EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+      ({ runnableContent }: RunParticipantCodeCommandArgs) => {
+        return this._playgroundController.createPlaygroundFromParticipantCode({
           text: runnableContent,
         });
       }
     );
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
-      ({ runnableContent }: RunParticipantQueryCommandArgs) => {
-        return this._playgroundController.evaluateParticipantQuery(
+      EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
+      ({ runnableContent }: RunParticipantCodeCommandArgs) => {
+        return this._playgroundController.evaluateParticipantCode(
           runnableContent
         );
       }

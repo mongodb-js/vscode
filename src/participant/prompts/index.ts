@@ -1,4 +1,4 @@
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 
 import { GenericPrompt } from './generic';
 import { IntentPrompt } from './intent';
@@ -17,5 +17,23 @@ export class Prompts {
 
   public static isPromptEmpty(request: vscode.ChatRequest): boolean {
     return !request.prompt || request.prompt.trim().length === 0;
+  }
+
+  // Check if any of the messages contain user input.
+  // This is useful since when there's no user input in any
+  // messages, we can skip some additional processing.
+  public static doMessagesContainUserInput(
+    messages: vscode.LanguageModelChatMessage[]
+  ): boolean {
+    for (const message of messages) {
+      if (
+        message.role === vscode.LanguageModelChatMessageRole.User &&
+        message.content.trim().length > 0
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

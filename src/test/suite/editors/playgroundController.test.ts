@@ -213,8 +213,8 @@ suite('Playground Controller Test Suite', function () {
         document: {
           languageId: 'javascript',
           uri: mockDocumentUri,
-          getText: () => "use('dbName');",
-          lineAt: () => ({ text: "use('dbName');" }),
+          getText: (): string => "use('dbName');",
+          lineAt: (): { text: string } => ({ text: "use('dbName');" }),
         },
         selections: [
           new vscode.Selection(

@@ -236,7 +236,12 @@ suite('Telemetry Controller Test Suite', () => {
     const testPlaygroundController =
       mdbTestExtension.testExtensionController._playgroundController;
     const source = new vscode.CancellationTokenSource();
-    await testPlaygroundController._evaluate('show dbs', source.token);
+    await testPlaygroundController._evaluate(
+      {
+        codeToEvaluate: 'show dbs',
+      },
+      source.token
+    );
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
       sinon.match({
@@ -640,7 +645,7 @@ suite('Telemetry Controller Test Suite', () => {
         namespace: 'waffle.house',
         documentIndexInTree: 0,
         dataService: dataServiceStub,
-        resetDocumentListCache: () => Promise.resolve(),
+        resetDocumentListCache: (): Promise<void> => Promise.resolve(),
       });
       await vscode.commands.executeCommand(
         'mdb.cloneDocumentFromTreeView',

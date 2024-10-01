@@ -19,6 +19,7 @@ import {
 } from './create-test-results-html-page';
 import { anyOf, runCodeInMessage } from './assertions';
 import { Prompts } from '../../participant/prompts';
+import type { ModelInput } from '../../participant/prompts/promptBase';
 
 const numberOfRunsPerTest = 1;
 
@@ -489,7 +490,7 @@ const buildMessages = async ({
 }: {
   testCase: TestCase;
   fixtures: Fixtures;
-}): Promise<vscode.LanguageModelChatMessage[]> => {
+}): Promise<ModelInput> => {
   switch (testCase.type) {
     case 'intent':
       return Prompts.intent.buildMessages({
@@ -499,7 +500,7 @@ const buildMessages = async ({
       });
 
     case 'generic':
-      return Prompts.generic.buildMessages({
+      return await Prompts.generic.buildMessages({
         request: { prompt: testCase.userInput },
         context: { history: [] },
         connectionNames: [],
@@ -552,7 +553,7 @@ async function runTest({
   aiBackend: AIBackend;
   fixtures: Fixtures;
 }): Promise<ChatCompletion> {
-  const messages = await buildMessages({
+  const { messages } = await buildMessages({
     testCase,
     fixtures,
   });

@@ -115,6 +115,25 @@ type ParticipantResponseFailedProperties = {
   error_name: ParticipantErrorTypes;
 };
 
+export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
+
+export type ParticipantPromptProperties = {
+  command: string;
+  user_input_length: number;
+  total_message_length: number;
+  has_sample_documents: boolean;
+  history_size: number;
+  internal_purpose: InternalPromptPurpose;
+};
+
+export type ParticipantResponseProperties = {
+  command: string;
+  has_cta: boolean;
+  has_runnable_content: boolean;
+  found_namespace: boolean;
+  output_length: number;
+};
+
 export function chatResultFeedbackKindToTelemetryValue(
   kind: vscode.ChatResultFeedbackKind
 ): TelemetryFeedbackKind {
@@ -145,7 +164,9 @@ type TelemetryEventProperties =
   | SavedConnectionsLoadedProperties
   | SurveyActionProperties
   | ParticipantFeedbackProperties
-  | ParticipantResponseFailedProperties;
+  | ParticipantResponseFailedProperties
+  | ParticipantPromptProperties
+  | ParticipantResponseProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -168,6 +189,8 @@ export enum TelemetryEventTypes {
   PARTICIPANT_FEEDBACK = 'Participant Feedback',
   PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
   PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
+  PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
+  PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
 }
 
 export enum ParticipantErrorTypes {
@@ -464,5 +487,13 @@ export default class TelemetryService {
       error_code: errorCode,
       error_name: errorName,
     });
+  }
+
+  trackCopilotParticipantPrompt(stats: ParticipantPromptProperties): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED, stats);
+  }
+
+  trackCopilotParticipantResponse(props: ParticipantResponseProperties): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
   }
 }

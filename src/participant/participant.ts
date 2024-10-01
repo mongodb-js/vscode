@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getSimplifiedSchema, parseSchema } from 'mongodb-schema';
 import type { Document } from 'bson';
 import type { Reference } from 'mongodb-rag-core';
+import util from 'util';
 
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
@@ -40,6 +41,7 @@ import {
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
 import formatError from '../utils/formatError';
+import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 
@@ -54,7 +56,7 @@ interface NamespaceQuickPicks {
   data: string;
 }
 
-export type RunParticipantQueryCommandArgs = {
+export type RunParticipantCodeCommandArgs = {
   runnableContent: string;
 };
 
@@ -124,10 +126,10 @@ export default class ParticipantController {
   }
 
   async _getChatResponse({
-    messages,
+    modelInput,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     token: vscode.CancellationToken;
   }): Promise<vscode.LanguageModelChatResponse> {
     const model = await getCopilotModel();
@@ -136,25 +138,51 @@ export default class ParticipantController {
       throw new Error('Copilot model not found');
     }
 
-    return await model.sendRequest(messages, {}, token);
+    log.info('Sending request to model', {
+      messages: modelInput.messages.map(
+        (message: vscode.LanguageModelChatMessage) =>
+          util.inspect({
+            role: message.role,
+            contentLength: message.content.length,
+          })
+      ),
+    });
+    this._telemetryService.trackCopilotParticipantPrompt(modelInput.stats);
+
+    const modelResponse = await model.sendRequest(
+      modelInput.messages,
+      {},
+      token
+    );
+
+    log.info('Model response received');
+
+    return modelResponse;
   }
 
   async streamChatResponse({
-    messages,
+    modelInput,
     stream,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
-  }): Promise<void> {
+  }): Promise<{ outputLength: number }> {
     const chatResponse = await this._getChatResponse({
-      messages,
+      modelInput,
       token,
     });
+
+    let length = 0;
     for await (const fragment of chatResponse.text) {
       stream.markdown(fragment);
+      length += fragment.length;
     }
+
+    return {
+      outputLength: length,
+    };
   }
 
   _streamCodeBlockActions({
@@ -170,30 +198,30 @@ export default class ParticipantController {
       return;
     }
 
-    const commandArgs: RunParticipantQueryCommandArgs = {
+    const commandArgs: RunParticipantCodeCommandArgs = {
       runnableContent,
     };
     stream.button({
-      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_QUERY,
+      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
       title: vscode.l10n.t('▶️ Run'),
       arguments: [commandArgs],
     });
     stream.button({
-      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
       title: vscode.l10n.t('Open in playground'),
       arguments: [commandArgs],
     });
   }
 
   async streamChatResponseContentToPlayground({
-    messages,
+    modelInput,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     token: vscode.CancellationToken;
   }): Promise<string | null> {
     const chatResponse = await this._getChatResponse({
-      messages,
+      modelInput,
       token,
     });
 
@@ -210,43 +238,60 @@ export default class ParticipantController {
   }
 
   async streamChatResponseContentWithCodeActions({
-    messages,
+    modelInput,
     stream,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
-  }): Promise<void> {
+  }): Promise<{
+    outputLength: number;
+    hasCodeBlock: boolean;
+  }> {
     const chatResponse = await this._getChatResponse({
-      messages,
+      modelInput,
       token,
     });
 
+    let outputLength = 0;
+    let hasCodeBlock = false;
     await processStreamWithIdentifiers({
       processStreamFragment: (fragment: string) => {
         stream.markdown(fragment);
+        outputLength += fragment.length;
       },
       onStreamIdentifier: (content: string) => {
         this._streamCodeBlockActions({ runnableContent: content, stream });
+        hasCodeBlock = true;
       },
       inputIterable: chatResponse.text,
       identifier: codeBlockIdentifier,
     });
+
+    log.info('Streamed response to chat', {
+      outputLength,
+      hasCodeBlock,
+    });
+
+    return {
+      outputLength,
+      hasCodeBlock,
+    };
   }
 
   // This will stream all of the response content and create a string from it.
   // It should only be used when the entire response is needed at one time.
   async getChatResponseContent({
-    messages,
+    modelInput,
     token,
   }: {
-    messages: vscode.LanguageModelChatMessage[];
+    modelInput: ModelInput;
     token: vscode.CancellationToken;
   }): Promise<string> {
     let responseContent = '';
     const chatResponse = await this._getChatResponse({
-      messages,
+      modelInput,
       token,
     });
     for await (const fragment of chatResponse.text) {
@@ -262,16 +307,25 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<ChatResult> {
-    const messages = await Prompts.generic.buildMessages({
+    const modelInput = await Prompts.generic.buildMessages({
       request,
       context,
       connectionNames: this._getConnectionNames(),
     });
 
-    await this.streamChatResponseContentWithCodeActions({
-      messages,
-      token,
-      stream,
+    const { hasCodeBlock, outputLength } =
+      await this.streamChatResponseContentWithCodeActions({
+        modelInput,
+        token,
+        stream,
+      });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'generic',
+      has_cta: false,
+      found_namespace: false,
+      has_runnable_content: hasCodeBlock,
+      output_length: outputLength,
     });
 
     return genericRequestChatResult(context.history);
@@ -318,15 +372,19 @@ export default class ParticipantController {
     request: vscode.ChatRequest;
     token: vscode.CancellationToken;
   }): Promise<PromptIntent> {
-    const messages = await Prompts.intent.buildMessages({
+    const modelInput = await Prompts.intent.buildMessages({
       connectionNames: this._getConnectionNames(),
       request,
       context,
     });
 
     const responseContent = await this.getChatResponseContent({
-      messages,
+      modelInput,
       token,
+    });
+
+    log.info('Received intent response from model', {
+      responseContentLength: responseContent.length,
     });
 
     return Prompts.intent.getIntentFromModelResponse(responseContent);
@@ -691,14 +749,41 @@ export default class ParticipantController {
       request,
       connectionNames: this._getConnectionNames(),
     });
-    const responseContentWithNamespace = await this.getChatResponseContent({
-      messages: messagesWithNamespace,
-      token,
-    });
-    const { databaseName, collectionName } =
-      Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
-        responseContentWithNamespace
-      );
+
+    let {
+      databaseName,
+      collectionName,
+    }: {
+      databaseName: string | undefined;
+      collectionName: string | undefined;
+    } = {
+      databaseName: undefined,
+      collectionName: undefined,
+    };
+
+    // When there's no user message content we can
+    // skip the request to the model. This would happen with /schema.
+    if (Prompts.doMessagesContainUserInput(messagesWithNamespace.messages)) {
+      // VSCODE-626: When there's an empty message sent to the ai model,
+      // it currently errors (not on insiders, only main VSCode).
+      // Here we're defaulting to have some content as a workaround.
+      // TODO: Remove this when the issue is fixed.
+      messagesWithNamespace.messages[
+        messagesWithNamespace.messages.length - 1
+      ].content =
+        messagesWithNamespace.messages[
+          messagesWithNamespace.messages.length - 1
+        ].content.trim() || 'see previous messages';
+
+      const responseContentWithNamespace = await this.getChatResponseContent({
+        modelInput: messagesWithNamespace,
+        token,
+      });
+      ({ databaseName, collectionName } =
+        Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
+          responseContentWithNamespace
+        ));
+    }
 
     // See if there's a namespace set in the
     // chat metadata we can fallback to if the model didn't find it.
@@ -709,6 +794,11 @@ export default class ParticipantController {
       databaseName: databaseNameFromMetadata,
       collectionName: collectionNameFromMetadata,
     } = this._chatMetadataStore.getChatMetadata(chatId) ?? {};
+
+    log.info('Namespaces found in chat', {
+      databaseName: databaseName || databaseNameFromMetadata,
+      collectionName: collectionName || collectionNameFromMetadata,
+    });
 
     return {
       databaseName: databaseName || databaseNameFromMetadata,
@@ -784,6 +874,8 @@ export default class ParticipantController {
     context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
   }): ChatResult {
+    log.info('Participant asked user to connect');
+
     stream.markdown(
       "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
     );
@@ -976,6 +1068,7 @@ export default class ParticipantController {
       context,
       token,
     });
+
     if (!databaseName || !collectionName) {
       return await this._askForNamespace({
         command: '/schema',
@@ -1027,7 +1120,7 @@ export default class ParticipantController {
       return schemaRequestChatResult(context.history);
     }
 
-    const messages = await Prompts.schema.buildMessages({
+    const modelInput = await Prompts.schema.buildMessages({
       request,
       context,
       databaseName,
@@ -1037,8 +1130,8 @@ export default class ParticipantController {
       connectionNames: this._getConnectionNames(),
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
-    await this.streamChatResponse({
-      messages,
+    const response = await this.streamChatResponse({
+      modelInput,
       stream,
       token,
     });
@@ -1051,6 +1144,14 @@ export default class ParticipantController {
           schema,
         } as OpenSchemaCommandArgs,
       ],
+    });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'schema',
+      has_cta: true,
+      found_namespace: true,
+      has_runnable_content: false,
+      output_length: response.outputLength,
     });
 
     return schemaRequestChatResult(context.history);
@@ -1131,7 +1232,7 @@ export default class ParticipantController {
       );
     }
 
-    const messages = await Prompts.query.buildMessages({
+    const modelInput = await Prompts.query.buildMessages({
       request,
       context,
       databaseName,
@@ -1141,10 +1242,19 @@ export default class ParticipantController {
       ...(sampleDocuments ? { sampleDocuments } : {}),
     });
 
-    await this.streamChatResponseContentWithCodeActions({
-      messages,
-      stream,
-      token,
+    const { hasCodeBlock, outputLength } =
+      await this.streamChatResponseContentWithCodeActions({
+        modelInput,
+        stream,
+        token,
+      });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'query',
+      has_cta: false,
+      found_namespace: true,
+      has_runnable_content: hasCodeBlock,
+      output_length: outputLength,
     });
 
     return queryRequestChatResult(context.history);
@@ -1214,17 +1324,18 @@ export default class ParticipantController {
     ]
   ): Promise<void> {
     const [request, context, stream, token] = args;
-    const messages = await Prompts.generic.buildMessages({
+    const modelInput = await Prompts.generic.buildMessages({
       request,
       context,
       connectionNames: this._getConnectionNames(),
     });
 
-    await this.streamChatResponseContentWithCodeActions({
-      messages,
-      stream,
-      token,
-    });
+    const { hasCodeBlock, outputLength } =
+      await this.streamChatResponseContentWithCodeActions({
+        modelInput,
+        stream,
+        token,
+      });
 
     this._streamResponseReference({
       reference: {
@@ -1232,6 +1343,14 @@ export default class ParticipantController {
         title: 'View MongoDB documentation',
       },
       stream,
+    });
+
+    this._telemetryService.trackCopilotParticipantResponse({
+      command: 'docs/copilot',
+      has_cta: true,
+      found_namespace: false,
+      has_runnable_content: hasCodeBlock,
+      output_length: outputLength,
     });
   }
 
@@ -1288,6 +1407,14 @@ export default class ParticipantController {
       if (docsResult.responseContent) {
         stream.markdown(docsResult.responseContent);
       }
+
+      this._telemetryService.trackCopilotParticipantResponse({
+        command: 'docs/chatbot',
+        has_cta: !!docsResult.responseReferences,
+        found_namespace: false,
+        has_runnable_content: false,
+        output_length: docsResult.responseContent?.length ?? 0,
+      });
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
@@ -1340,13 +1467,13 @@ export default class ParticipantController {
           cancellable: true,
         },
         async (progress, token): Promise<string | null> => {
-          const messages = await Prompts.exportToPlayground.buildMessages({
+          const modelInput = await Prompts.exportToPlayground.buildMessages({
             request: { prompt: code },
           });
 
           const result = await Promise.race([
             this.getChatResponseContent({
-              messages,
+              modelInput,
               token,
             }),
             new Promise<undefined>((resolve) =>
@@ -1364,7 +1491,7 @@ export default class ParticipantController {
           }
 
           return this.streamChatResponseContentToPlayground({
-            messages,
+            modelInput,
             token,
           });
         }
@@ -1372,7 +1499,7 @@ export default class ParticipantController {
 
       if (progressResult) {
         await vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.OPEN_PARTICIPANT_QUERY_IN_PLAYGROUND,
+          EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
           {
             runnableContent: progressResult,
           }
@@ -1494,9 +1621,18 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     if (feedback.result.metadata?.intent === 'docs') {
       await this._rateDocsChatbotMessage(feedback);
     }
+
+    // unhelpfulReason is available in insider builds and is accessed through
+    // https://github.com/microsoft/vscode/blob/main/src/vscode-dts/vscode.proposed.chatParticipantAdditions.d.ts
+    // Since this is a proposed API, we can't depend on it being available, which is why
+    // we're dynamically checking for it.
+    const unhelpfulReason =
+      'unhelpfulReason' in feedback
+        ? (feedback.unhelpfulReason as string)
+        : undefined;
     this._telemetryService.trackCopilotParticipantFeedback({
       feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
-      reason: feedback.unhelpfulReason,
+      reason: unhelpfulReason,
       response_type: (feedback.result as ChatResult)?.metadata.intent,
     });
   }

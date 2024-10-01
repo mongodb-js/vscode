@@ -1,5 +1,25 @@
 # Change Log
 
+## [v1.9.1](https://github.com/mongodb-js/vscode/releases/tag/v1.9.1) - 2024-09-30
+
+## What's Changed
+* fix: remove enabledApiProposals from package.json VSCODE-631 by @Anemy in https://github.com/mongodb-js/vscode/pull/849
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.9.0...v1.9.1
+
+
+## [v1.9.0](https://github.com/mongodb-js/vscode/releases/tag/v1.9.0) - 2024-09-30
+
+## What's Changed
+* feat(chat): add VSCode Copilot chat participant VSCODE-528 in https://github.com/mongodb-js/vscode/pull/839
+
+## New Contributors
+* @nirinchev made their first contribution in https://github.com/mongodb-js/vscode/pull/813
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.8.1...v1.9.0
+
+
 ## [v1.8.1](https://github.com/mongodb-js/vscode/releases/tag/v1.8.1) - 2024-09-02
 
 ## What's Changed
@@ -390,39 +410,5 @@ To dig deeper please feel free to follow the links mentioned below:
 ### Changed
 
 - Updated the Atlas link to have https (#259)
-
-
-## [v0.4.1](https://github.com/mongodb-js/vscode/releases/tag/v0.4.1) - 2021-02-10
-
-### Changed
-
-- Updated the Atlas link in the overview page (#250)
-
-### Fixed
-
-- Fixed an issue with playground connectivity not defaulting the `directConnection` option to true (VSCODE-234, #255)
-- Fixed an issue around showing an error while editing a playground file without an active MongoDB connection (VSCODE-231, #251)
-
-
-## [v0.4.0](https://github.com/mongodb-js/vscode/releases/tag/v0.4.0) - 2021-01-25
-
-### Added
-
-- Added the ability to edit documents opened from the explorer panel (VSCODE-219, #226, #239)
-- Added the ability to open and edit documents from playground results (VSCODE-222, #232)
-- Added icons for connect and playground panel actions (VSCODE-179, #240)
-- Added the ability to specify multiple hosts and ports in the connection form (VSCODE-208, #224)
-- Added a feature where we show the overview page when the extension is first installed (VSCODE-167, #225)
-
-### Changed
-
-- Changed how we generate default connection names for new connections to better represent multiple hosts and ports, and srv records (VSCODE-221, #227)
-- Changed how we show connectivity errors with the connection form (VSCODE-196, #217)
-
-### Fixed
-
-- Fix opening documents with a binary `_id` from the explorer panel (VSCODE-118, #220)
-- Fixed playground log output panel to not display when a playground is open and when a playground is run and there was no log output (#234)
-- Fixed code lenses for partial playground executions sometimes being missing (VSCODE-226, #243)
 
 
