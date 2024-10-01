@@ -15,7 +15,9 @@ export interface SchemaPromptArgs extends PromptArgsBase {
 }
 
 export class SchemaPrompt extends PromptBase<SchemaPromptArgs> {
-  getAssistantPrompt({ amountOfDocumentsSampled }: SchemaPromptArgs): string {
+  protected getAssistantPrompt({
+    amountOfDocumentsSampled,
+  }: SchemaPromptArgs): string {
     return `You are a senior engineer who describes the schema of documents in a MongoDB database.
 The schema is generated from a sample of documents in the user's collection.
 You must follow these rules.

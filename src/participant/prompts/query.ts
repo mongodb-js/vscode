@@ -11,7 +11,7 @@ interface QueryPromptArgs extends PromptArgsBase {
   collectionName: string;
   schema?: string;
   sampleDocuments?: Document[];
-  connectionNames: string[];
+  connectionNames?: string[];
 }
 
 export class QueryPrompt extends PromptBase<QueryPromptArgs> {

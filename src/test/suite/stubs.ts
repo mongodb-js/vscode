@@ -265,7 +265,6 @@ class LanguageServerControllerStub {
   _context: ExtensionContextStub;
   _storageController?: StorageController;
   _source?: CancellationTokenSource;
-  _isExecutingInProgress: boolean;
   _client: LanguageClient;
   _currentConnectionId: string | null = null;
   _consoleOutputChannel =
@@ -331,7 +330,6 @@ class LanguageServerControllerStub {
       serverOptions,
       clientOptions
     );
-    this._isExecutingInProgress = false;
   }
 
   startLanguageServer(): Promise<void> {

@@ -28,6 +28,8 @@ import {
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
+import { getFullRange } from '../suggestTestHelpers';
+import { isPlayground } from '../../../utils/playground';
 import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
@@ -187,14 +189,7 @@ suite('Participant Controller Test Suite', function () {
     };
     countTokensStub = sinon.stub();
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
-    sendRequestStub = sinon.stub().resolves({
-      text: [
-        '```javascript\n' +
-          "use('dbOne');\n" +
-          "db.getCollection('collOne').find({ name: 'example' });\n" +
-          '```',
-      ],
-    });
+    sendRequestStub = sinon.stub();
     sinon.replace(
       vscode.lm,
       'selectChatModels',
@@ -439,6 +434,14 @@ suite('Participant Controller Test Suite', function () {
           'get',
           sinon.fake.returns(false)
         );
+        sendRequestStub.resolves({
+          text: [
+            '```javascript\n' +
+              "use('dbOne');\n" +
+              "db.getCollection('collOne').find({ name: 'example' });\n" +
+              '```',
+          ],
+        });
       });
 
       test('prints a welcome message to chat', async function () {
@@ -497,6 +500,17 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('generic command', function () {
+        beforeEach(function () {
+          sendRequestStub.resolves({
+            text: [
+              '```javascript\n' +
+                "use('dbOne');\n" +
+                "db.getCollection('collOne').find({ name: 'example' });\n" +
+                '```',
+            ],
+          });
+        });
+
         suite('when the intent is recognized', function () {
           beforeEach(function () {
             sendRequestStub.onCall(0).resolves({
@@ -590,6 +604,17 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('query command', function () {
+        beforeEach(function () {
+          sendRequestStub.resolves({
+            text: [
+              '```javascript\n' +
+                "use('dbOne');\n" +
+                "db.getCollection('collOne').find({ name: 'example' });\n" +
+                '```',
+            ],
+          });
+        });
+
         suite('known namespace from running namespace LLM', function () {
           beforeEach(function () {
             sendRequestStub.onCall(0).resolves({
@@ -1343,6 +1368,17 @@ suite('Participant Controller Test Suite', function () {
       });
 
       suite('schema command', function () {
+        beforeEach(function () {
+          sendRequestStub.resolves({
+            text: [
+              '```javascript\n' +
+                "use('dbOne');\n" +
+                "db.getCollection('collOne').find({ name: 'example' });\n" +
+                '```',
+            ],
+          });
+        });
+
         suite('no namespace provided', function () {
           beforeEach(function () {
             sendRequestStub.onCall(0).resolves({
@@ -1610,6 +1646,106 @@ Schema:
             callIndex: 2,
             hasCTA: true,
           });
+        });
+      });
+
+      suite('export to playground', function () {
+        beforeEach(async function () {
+          await vscode.commands.executeCommand(
+            'workbench.action.files.newUntitledFile'
+          );
+        });
+
+        afterEach(async function () {
+          await vscode.commands.executeCommand(
+            'workbench.action.closeActiveEditor'
+          );
+        });
+
+        test('exports all code to a playground', async function () {
+          const editor = vscode.window.activeTextEditor;
+          if (!editor) {
+            throw new Error('Window active text editor is undefined');
+          }
+
+          const testDocumentUri = editor.document.uri;
+          const edit = new vscode.WorkspaceEdit();
+          const code = `
+  InsertOneResult result = collection.insertOne(new Document()
+    .append("_id", new ObjectId())
+    .append("title", "Ski Bloopers")
+    .append("genres", Arrays.asList("Documentary", "Comedy")));
+  System.out.println("Success! Documents were inserted");
+`;
+          edit.replace(testDocumentUri, getFullRange(editor.document), code);
+          await vscode.workspace.applyEdit(edit);
+          sendRequestStub.resolves({
+            text: [
+              '```javascript\n' +
+                'db.collection.insertOne({\n' +
+                '_id: new ObjectId(),\n' +
+                'title: "Ski Bloopers",\n' +
+                'genres: ["Documentary", "Comedy"]\n' +
+                '});\n' +
+                'print("Success! Documents were inserted");\n' +
+                '```',
+            ],
+          });
+          await testParticipantController.exportCodeToPlayground();
+          const messages = sendRequestStub.firstCall.args[0];
+          expect(messages[1].content).to.include('System.out.println');
+          expect(
+            isPlayground(vscode.window.activeTextEditor?.document.uri)
+          ).to.be.eql(true);
+          expect(vscode.window.activeTextEditor?.document.getText()).to.include(
+            'Success! Documents were inserted'
+          );
+        });
+
+        test('exports selected lines of code to a playground', async function () {
+          const editor = vscode.window.activeTextEditor;
+          if (!editor) {
+            throw new Error('Window active text editor is undefined');
+          }
+
+          const testDocumentUri = editor.document.uri;
+          const edit = new vscode.WorkspaceEdit();
+          const code = `
+  InsertOneResult result = collection.insertOne(new Document()
+    .append("_id", new ObjectId())
+    .append("title", "Ski Bloopers")
+    .append("genres", Arrays.asList("Documentary", "Comedy")));
+  System.out.println("Success! Documents were inserted");
+`;
+          edit.replace(testDocumentUri, getFullRange(editor.document), code);
+          await vscode.workspace.applyEdit(edit);
+          const position = editor.selection.active;
+          const startPosition = position.with(0, 0);
+          const endPosition = position.with(3, 63);
+          const newSelection = new vscode.Selection(startPosition, endPosition);
+          editor.selection = newSelection;
+          sendRequestStub.resolves({
+            text: [
+              'Text before code.\n' +
+                '```javascript\n' +
+                'db.collection.insertOne({\n' +
+                '_id: new ObjectId(),\n' +
+                'title: "Ski Bloopers",\n' +
+                'genres: ["Documentary", "Comedy"]\n' +
+                '});\n' +
+                '```\n' +
+                'Text after code.',
+            ],
+          });
+          await testParticipantController.exportCodeToPlayground();
+          const messages = sendRequestStub.firstCall.args[0];
+          expect(messages[1].content).to.not.include('System.out.println');
+          expect(
+            isPlayground(vscode.window.activeTextEditor?.document.uri)
+          ).to.be.eql(true);
+          expect(
+            vscode.window.activeTextEditor?.document.getText()
+          ).to.not.include('"Success! Documents were inserted"');
         });
       });
     });
@@ -1936,8 +2072,9 @@ Schema:
 
     test('reports error', function () {
       const err = Error('Filtered by Responsible AI Service');
-      expect(() => testParticipantController.handleError(err, 'query')).throws(
-        'Filtered by Responsible AI Service'
+      testParticipantController._telemetryService.trackCopilotParticipantError(
+        err,
+        'query'
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 
@@ -1956,8 +2093,9 @@ Schema:
     test('reports nested error', function () {
       const err = new Error('Parent error');
       err.cause = Error('This message is flagged as off topic: off_topic.');
-      expect(() => testParticipantController.handleError(err, 'docs')).throws(
-        'off_topic'
+      testParticipantController._telemetryService.trackCopilotParticipantError(
+        err,
+        'docs'
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 
@@ -1974,8 +2112,9 @@ Schema:
     test('Reports error code when available', function () {
       // eslint-disable-next-line new-cap
       const err = vscode.LanguageModelError.NotFound('Model not found');
-      expect(() => testParticipantController.handleError(err, 'schema')).throws(
-        'Model not found'
+      testParticipantController._telemetryService.trackCopilotParticipantError(
+        err,
+        'schema'
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 

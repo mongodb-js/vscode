@@ -73,7 +73,7 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
 
-      expect(result).to.be.equal(undefined);
+      expect(result).to.be.equal(null);
     });
 
     test('catches error when _getCollectionsCompletionItems is called and extension path is empty string', async () => {
@@ -2729,7 +2729,7 @@ suite('MongoDBService Test Suite', () => {
         source.token
       );
 
-      expect(result).to.equal(undefined);
+      expect(result).to.equal(null);
     });
 
     test('evaluate multiplies commands at once', async () => {
