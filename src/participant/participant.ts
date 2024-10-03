@@ -792,10 +792,12 @@ export default class ParticipantController {
       // TODO: Remove this when the issue is fixed.
       messagesWithNamespace.messages[
         messagesWithNamespace.messages.length - 1
-      ].content =
+        // eslint-disable-next-line new-cap
+      ] = vscode.LanguageModelChatMessage.User(
         messagesWithNamespace.messages[
           messagesWithNamespace.messages.length - 1
-        ].content.trim() || 'see previous messages';
+        ].content.trim() || 'see previous messages'
+      );
 
       const responseContentWithNamespace = await this.getChatResponseContent({
         modelInput: messagesWithNamespace,
@@ -1359,13 +1361,7 @@ export default class ParticipantController {
         token,
       });
 
-    this._streamResponseReference({
-      reference: {
-        url: MONGODB_DOCS_LINK,
-        title: 'View MongoDB documentation',
-      },
-      stream,
-    });
+    this._streamGenericDocsLink(stream);
 
     this._telemetryService.trackCopilotParticipantResponse({
       command: 'docs/copilot',
@@ -1390,6 +1386,16 @@ export default class ParticipantController {
     stream.markdown(link);
   }
 
+  _streamGenericDocsLink(stream: vscode.ChatResponseStream): void {
+    this._streamResponseReference({
+      reference: {
+        url: MONGODB_DOCS_LINK,
+        title: 'View MongoDB documentation',
+      },
+      stream,
+    });
+  }
+
   async handleDocsRequest(
     ...args: [
       vscode.ChatRequest,
@@ -1399,6 +1405,12 @@ export default class ParticipantController {
     ]
   ): Promise<ChatResult> {
     const [request, context, stream, token] = args;
+
+    if (Prompts.isPromptEmpty(request)) {
+      stream.markdown(Prompts.generic.getEmptyRequestResponse());
+      this._streamGenericDocsLink(stream);
+      return emptyRequestChatResult(context.history);
+    }
 
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
       context.history

@@ -1383,6 +1383,52 @@ suite('Participant Controller Test Suite', function () {
               'What is the name of the database you would like to run against?'
             );
           });
+
+          test('with history, and a blank prompt, it sets a message so it does not cause model error (VSCODE-626)', async function () {
+            const chatRequestMock = {
+              prompt: '',
+              command: 'schema',
+              references: [],
+            };
+            chatContextStub = {
+              history: [
+                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+                  prompt:
+                    'how do I make a find request vs favorite_fruits.pineapple?',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                }),
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
+                  {
+                    participant: CHAT_PARTICIPANT_ID,
+                    response: [
+                      {
+                        value: 'some code',
+                      },
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'query',
+                        chatId: 'abc',
+                      },
+                    },
+                  }
+                ),
+              ],
+            };
+            await invokeChatHandler(chatRequestMock);
+
+            expect(sendRequestStub.calledOnce).to.be.true;
+            expect(sendRequestStub.firstCall.args[0][0].content).to.include(
+              'Parse all user messages to find a database name and a collection name.'
+            );
+            expect(sendRequestStub.firstCall.args[0][3].content).to.include(
+              'see previous messages'
+            );
+          });
         });
 
         suite(
@@ -1549,7 +1595,26 @@ Schema:
 
         afterEach(function () {
           global.fetch = initialFetch;
-          sinon.restore();
+        });
+
+        test('shows a message and docs link on empty prompt', async function () {
+          fetchStub = sinon.stub().resolves();
+          global.fetch = fetchStub;
+          const chatRequestMock = {
+            prompt: '',
+            command: 'docs',
+            references: [],
+          };
+          const res = await invokeChatHandler(chatRequestMock);
+          expect(fetchStub).to.not.have.been.called;
+          expect(sendRequestStub).to.have.not.been.called;
+          expect(res?.metadata.intent).to.equal('emptyRequest');
+          const defaultEmptyMsg = chatStreamStub.markdown.getCall(0).args[0];
+          expect(defaultEmptyMsg).to.include(
+            'Ask anything about MongoDB, from writing queries to questions a'
+          );
+          const referenceMsg = chatStreamStub.markdown.getCall(1).args[0];
+          expect(referenceMsg.value).to.include('View MongoDB documentation');
         });
 
         test('uses docs chatbot result if available', async function () {
