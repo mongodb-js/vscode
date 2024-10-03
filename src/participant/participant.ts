@@ -1429,6 +1429,10 @@ export default class ParticipantController {
         stream,
       });
 
+      if (docsResult.responseContent) {
+        stream.markdown(docsResult.responseContent);
+      }
+
       if (docsResult.responseReferences) {
         for (const reference of docsResult.responseReferences) {
           this._streamResponseReference({
@@ -1436,10 +1440,6 @@ export default class ParticipantController {
             stream,
           });
         }
-      }
-
-      if (docsResult.responseContent) {
-        stream.markdown(docsResult.responseContent);
       }
 
       this._telemetryService.trackCopilotParticipantResponse({
