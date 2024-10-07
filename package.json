@@ -1181,7 +1181,7 @@
     "@babel/core": "^7.24.6",
     "@babel/parser": "^7.24.6",
     "@babel/traverse": "^7.24.6",
-    "@mongodb-js/compass-components": "^1.25.0",
+    "@mongodb-js/compass-components": "^1.30.0",
     "@mongodb-js/connection-form": "^1.41.1",
     "@mongodb-js/connection-info": "^0.7.0",
     "@mongodb-js/mongodb-constants": "^0.10.2",
