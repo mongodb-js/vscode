@@ -75,6 +75,7 @@ suite('Explorer Controller Test Suite', function () {
     testConnectionController._connectionAttempt = createConnectionAttempt({
       connectFn: connect,
       logger: Object.assign(log, { mongoLogId }),
+      proxyOptions: {},
     });
 
     const connectionsItems = await treeController.getChildren();
