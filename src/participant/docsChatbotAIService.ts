@@ -69,7 +69,7 @@ export class DocsChatbotAIService {
   }): Promise<Response> {
     return fetch(uri, {
       headers: {
-        origin: this._serverBaseUri,
+        'X-Request-Origin': `vscode-mongodb-copilot-v${version}/docs`,
         'User-Agent': `mongodb-vscode/${version}`,
         ...headers,
       },

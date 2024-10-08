@@ -4,6 +4,9 @@ import sinon from 'sinon';
 
 import { DocsChatbotAIService } from '../../../participant/docsChatbotAIService';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../../../../package.json');
+
 suite('DocsChatbotAIService Test Suite', function () {
   const initialFetch = global.fetch;
   let docsChatbotAIService: DocsChatbotAIService;
@@ -137,5 +140,35 @@ suite('DocsChatbotAIService Test Suite', function () {
       rating: true,
     });
     expect(rating).to.be.eql(true);
+  });
+
+  test('has the correct headers', async () => {
+    const fetchStub = sinon.stub().resolves({
+      status: 200,
+      ok: true,
+      json: () => Promise.resolve(true),
+    });
+    global.fetch = fetchStub;
+    expect(fetchStub.calledOnce).to.be.false;
+    const signal = new AbortController().signal;
+    await docsChatbotAIService.addMessage({
+      conversationId: '650b4b260f975ef031016c8a',
+      message: 'pineapple',
+      signal,
+    });
+    expect(fetchStub.calledOnce).to.be.true;
+    expect(fetchStub.firstCall.args[0]).to.equal(
+      'https://knowledge.mongodb.com/api/v1/conversations/650b4b260f975ef031016c8a/messages'
+    );
+    expect(fetchStub.firstCall.args[1]).to.deep.equal({
+      method: 'POST',
+      body: '{"message":"pineapple"}',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-Origin': `vscode-mongodb-copilot-v${version}/docs`,
+        'User-Agent': `mongodb-vscode/${version}`,
+      },
+      signal,
+    });
   });
 });
