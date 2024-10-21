@@ -74,6 +74,13 @@ class StreamingKMP {
   }
 }
 
+// This class is essentially a state machine that processes a stream of text fragments
+// and emitting a callback with the content between each start and end identifier. The
+// two states we have are:
+// 1. "waiting for start identifier" - `_matchedContent === undefined`
+// 2. "waiting for end identifier" - `_matchedContent !== undefined`
+// with the state transitioning from one to the other when the corresponding identifier
+// is matched in the fragment stream.
 class FragmentMatcher {
   private _startMatcher: StreamingKMP;
   private _endMatcher: StreamingKMP;
