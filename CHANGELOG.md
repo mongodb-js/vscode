@@ -1,5 +1,18 @@
 # Change Log
 
+## [v1.9.2](https://github.com/mongodb-js/vscode/releases/tag/v1.9.2) - 2024-10-21
+
+## What's Changed
+* fix(chat): show empty docs msg, schema set msg content correctly VSCODE-628 by @Anemy in https://github.com/mongodb-js/vscode/pull/851
+* chore(participant): move docs references after content VSCODE-629 by @Anemy in https://github.com/mongodb-js/vscode/pull/852
+* fix: use new connection form by @paula-stacho in https://github.com/mongodb-js/vscode/pull/815
+* chore(chat): update docs chatbot request headers VSCODE-634 by @Anemy in https://github.com/mongodb-js/vscode/pull/853
+* chore: use the latest vsce that adds the chat-participant tag VSCODE-638 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/855
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.9.1...v1.9.2
+
+
 ## [v1.9.1](https://github.com/mongodb-js/vscode/releases/tag/v1.9.1) - 2024-09-30
 
 ## What's Changed
@@ -399,16 +412,5 @@ To dig deeper please feel free to follow the links mentioned below:
 ### Fixed
 
 - Fix launching mongodb shell with ssl in bash (VSCODE-227, #270)
-
-
-## [v0.4.2](https://github.com/mongodb-js/vscode/releases/tag/v0.4.2) - 2021-02-17
-
-### Added
-
-- Add icon to refresh collection documents list (#264)
-
-### Changed
-
-- Updated the Atlas link to have https (#259)
 
 
