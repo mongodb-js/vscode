@@ -71,7 +71,7 @@
     "precommit": "ts-node ./scripts/precommit.ts"
   },
   "engines": {
-    "vscode": "^1.93.1",
+    "vscode": "^1.94.2",
     "node": ">=20.9.0",
     "npm": ">=10.1.0"
   },
