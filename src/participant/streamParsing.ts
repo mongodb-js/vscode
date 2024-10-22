@@ -86,20 +86,24 @@ class FragmentMatcher {
   private _endMatcher: StreamingKMP;
   private _matchedContent?: string;
   private _onContentMatched: (content: string) => void;
+  private _onFragmentProcessed: (content: string) => void;
 
   constructor({
     identifier,
     onContentMatched,
+    onFragmentProcessed,
   }: {
     identifier: {
       start: string;
       end: string;
     };
     onContentMatched: (content: string) => void;
+    onFragmentProcessed: (content: string) => void;
   }) {
     this._startMatcher = new StreamingKMP(identifier.start);
     this._endMatcher = new StreamingKMP(identifier.end);
     this._onContentMatched = onContentMatched;
+    this._onFragmentProcessed = onFragmentProcessed;
   }
 
   private _contentMatched(): void {
@@ -116,6 +120,18 @@ class FragmentMatcher {
     this._endMatcher.reset();
   }
 
+  // This needs to be invoked every time before we call `process` recursively or when `process`
+  // completes processing the fragment. It will emit a notification to subscribers with the partial
+  // fragment we've processed, regardless of whether there's a match or not.
+  private _partialFragmentProcessed(
+    fragment: string,
+    index: number | undefined = undefined
+  ): void {
+    this._onFragmentProcessed(
+      index === undefined ? fragment : fragment.slice(0, index)
+    );
+  }
+
   public process(fragment: string): void {
     if (this._matchedContent === undefined) {
       // We haven't matched the start identifier yet, so try and do that
@@ -124,19 +140,24 @@ class FragmentMatcher {
         // We found a match for the start identifier - update `_matchedContent` to an empty string
         // and recursively call `process` with the remainder of the fragment.
         this._matchedContent = '';
+        this._partialFragmentProcessed(fragment, startIndex);
         this.process(fragment.slice(startIndex));
+      } else {
+        this._partialFragmentProcessed(fragment);
       }
     } else {
       const endIndex = this._endMatcher.match(fragment);
       if (endIndex !== -1) {
         // We've matched the end - emit the matched content and continue processing the partial fragment
         this._matchedContent += fragment.slice(0, endIndex);
+        this._partialFragmentProcessed(fragment, endIndex);
         this._contentMatched();
         this.process(fragment.slice(endIndex));
       } else {
         // We haven't matched the end yet - append the fragment to the matched content and wait
         // for a future fragment to contain the end identifier.
         this._matchedContent += fragment;
+        this._partialFragmentProcessed(fragment);
       }
     }
   }
@@ -165,10 +186,10 @@ export async function processStreamWithIdentifiers({
   const fragmentMatcher = new FragmentMatcher({
     identifier,
     onContentMatched: onStreamIdentifier,
+    onFragmentProcessed: processStreamFragment,
   });
 
   for await (const fragment of inputIterable) {
-    processStreamFragment(fragment);
     fragmentMatcher.process(fragment);
   }
 }
