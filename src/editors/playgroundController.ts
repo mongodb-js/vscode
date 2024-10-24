@@ -445,13 +445,16 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
-  async _evaluate({
-    codeToEvaluate,
-    filePath,
-  }: {
-    codeToEvaluate: string;
-    filePath?: string;
-  }): Promise<ShellEvaluateResult> {
+  async _evaluate(
+    {
+      codeToEvaluate,
+      filePath,
+    }: {
+      codeToEvaluate: string;
+      filePath?: string;
+    },
+    token: vscode.CancellationToken
+  ): Promise<ShellEvaluateResult> {
     const connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
@@ -460,14 +463,17 @@ export default class PlaygroundController {
 
     this._statusView.showMessage('Getting results...');
 
-    let result: ShellEvaluateResult;
+    let result: ShellEvaluateResult = null;
     try {
       // Send a request to the language server to execute scripts from a playground.
-      result = await this._languageServerController.evaluate({
-        codeToEvaluate,
-        connectionId,
-        filePath,
-      });
+      result = await this._languageServerController.evaluate(
+        {
+          codeToEvaluate,
+          connectionId,
+          filePath,
+        },
+        token
+      );
     } catch (error) {
       const msg =
         'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.';
@@ -504,37 +510,22 @@ export default class PlaygroundController {
       throw new Error(connectBeforeRunningMessage);
     }
 
-    try {
-      const progressResult = await vscode.window.withProgress(
-        {
-          location: ProgressLocation.Notification,
-          title: 'Running MongoDB playground...',
-          cancellable: true,
-        },
-        async (progress, token) => {
-          token.onCancellationRequested(() => {
-            // If a user clicked the cancel button terminate all playground scripts.
-            this._languageServerController.cancelAll();
-
-            return { result: undefined };
-          });
-
-          // Run all playground scripts.
-          const result: ShellEvaluateResult = await this._evaluate({
+    return await vscode.window.withProgress(
+      {
+        location: ProgressLocation.Notification,
+        title: 'Running MongoDB playground...',
+        cancellable: true,
+      },
+      (progress, token): Promise<ShellEvaluateResult> => {
+        return this._evaluate(
+          {
             codeToEvaluate,
             filePath,
-          });
-
-          return result;
-        }
-      );
-
-      return progressResult;
-    } catch (error) {
-      log.error('Evaluating playground with cancel modal failed', error);
-
-      return { result: undefined };
-    }
+          },
+          token
+        );
+      }
+    );
   }
 
   async _openInResultPane(result: PlaygroundResult): Promise<void> {
@@ -923,7 +914,7 @@ export default class PlaygroundController {
           language,
           num_stages: selectedText
             ? countAggregationStagesInString(selectedText)
-            : undefined,
+            : null,
           with_import_statements: importStatements,
           with_builders: builders,
           with_driver_syntax: driverSyntax,

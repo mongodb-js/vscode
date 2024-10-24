@@ -10,8 +10,8 @@ export interface PromptArgsBase {
     prompt: string;
     command?: string;
   };
-  context: vscode.ChatContext;
-  connectionNames: string[];
+  context?: vscode.ChatContext;
+  connectionNames?: string[];
 }
 
 export interface UserPromptResponse {
@@ -89,8 +89,14 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
-    if (args.connectionNames.includes(args.request.prompt)) {
-      const history = args.context.history;
+    if (args.connectionNames?.includes(args.request.prompt)) {
+      const history = args.context?.history;
+      if (!history) {
+        return {
+          messages: [],
+          stats: this.getStats([], args, false),
+        };
+      }
       const previousResponse = history[
         history.length - 1
       ] as vscode.ChatResponseTurn;
@@ -144,7 +150,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       user_input_length: request.prompt.length,
       has_sample_documents: hasSampleDocs,
       command: request.command || 'generic',
-      history_size: context.history.length,
+      history_size: context?.history.length || 0,
       internal_purpose: this.internalPurposeForTelemetry,
     };
   }
@@ -157,10 +163,14 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
     connectionNames,
     context,
   }: {
-    connectionNames: string[]; // Used to scrape the connecting messages from the history.
-    context: vscode.ChatContext;
+    connectionNames?: string[]; // Used to scrape the connecting messages from the history.
+    context?: vscode.ChatContext;
   }): vscode.LanguageModelChatMessage[] {
     const messages: vscode.LanguageModelChatMessage[] = [];
+
+    if (!context) {
+      return [];
+    }
 
     for (const historyItem of context.history) {
       if (historyItem instanceof vscode.ChatRequestTurn) {

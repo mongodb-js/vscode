@@ -1,4 +1,5 @@
 import type {
+  CancellationToken,
   InitializeParams,
   CompletionItem,
   TextDocumentPositionParams,
@@ -161,7 +162,7 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
 // Execute a playground.
 connection.onRequest(
   ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
-  (evaluateParams: PlaygroundEvaluateParams, token) => {
+  (evaluateParams: PlaygroundEvaluateParams, token: CancellationToken) => {
     return mongoDBService.evaluate(evaluateParams, token);
   }
 );

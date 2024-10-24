@@ -40,6 +40,7 @@ import {
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
+import formatError from '../utils/formatError';
 import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
@@ -109,53 +110,6 @@ export default class ParticipantController {
 
   getParticipant(): vscode.ChatParticipant | undefined {
     return this._participant;
-  }
-
-  handleError(err: any, command: string): never {
-    let errorCode: string | undefined;
-    let errorName: ParticipantErrorTypes;
-    // Making the chat request might fail because
-    // - model does not exist
-    // - user consent not given
-    // - quote limits exceeded
-    if (err instanceof vscode.LanguageModelError) {
-      errorCode = err.code;
-    }
-
-    if (err instanceof Error) {
-      // Unwrap the error if a cause is provided
-      err = err.cause || err;
-    }
-
-    const message: string = err.message || err.toString();
-
-    if (message.includes('off_topic')) {
-      errorName = ParticipantErrorTypes.CHAT_MODEL_OFF_TOPIC;
-    } else if (message.includes('Filtered by Responsible AI Service')) {
-      errorName = ParticipantErrorTypes.FILTERED;
-    } else if (message.includes('Prompt failed validation')) {
-      errorName = ParticipantErrorTypes.INVALID_PROMPT;
-    } else {
-      errorName = ParticipantErrorTypes.OTHER;
-    }
-
-    log.error('Participant encountered an error', {
-      command,
-      error_code: errorCode,
-      error_name: errorName,
-    });
-
-    this._telemetryService.track(
-      TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
-      {
-        command,
-        error_code: errorCode,
-        error_name: errorName,
-      }
-    );
-
-    // Re-throw other errors so they show up in the UI.
-    throw err;
   }
 
   /**
@@ -257,6 +211,30 @@ export default class ParticipantController {
       title: vscode.l10n.t('Open in playground'),
       arguments: [commandArgs],
     });
+  }
+
+  async streamChatResponseContentToPlayground({
+    modelInput,
+    token,
+  }: {
+    modelInput: ModelInput;
+    token: vscode.CancellationToken;
+  }): Promise<string | null> {
+    const chatResponse = await this._getChatResponse({
+      modelInput,
+      token,
+    });
+
+    const runnableContent: string[] = [];
+    await processStreamWithIdentifiers({
+      processStreamFragment: () => {},
+      onStreamIdentifier: (content: string) => {
+        runnableContent.push(content.trim());
+      },
+      inputIterable: chatResponse.text,
+      identifier: codeBlockIdentifier,
+    });
+    return runnableContent.length ? runnableContent.join('') : null;
   }
 
   async streamChatResponseContentWithCodeActions({
@@ -1481,6 +1459,94 @@ export default class ParticipantController {
     });
   }
 
+  async exportCodeToPlayground(): Promise<boolean> {
+    const activeTextEditor = vscode.window.activeTextEditor;
+    if (!activeTextEditor) {
+      await vscode.window.showErrorMessage('Active editor not found.');
+      return false;
+    }
+
+    const sortedSelections = Array.from(activeTextEditor.selections).sort(
+      (a, b) => a.start.compareTo(b.start)
+    );
+    const selectedText = sortedSelections
+      .map((selection) => activeTextEditor.document.getText(selection))
+      .join('\n');
+    const code =
+      selectedText || activeTextEditor.document.getText().trim() || '';
+    try {
+      const progressResult = await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Exporting code to a playground...',
+          cancellable: true,
+        },
+        async (progress, token): Promise<string | null> => {
+          const modelInput = await Prompts.exportToPlayground.buildMessages({
+            request: { prompt: code },
+          });
+
+          const result = await Promise.race([
+            this.getChatResponseContent({
+              modelInput,
+              token,
+            }),
+            new Promise<undefined>((resolve) =>
+              token.onCancellationRequested(() => {
+                resolve(undefined);
+              })
+            ),
+          ]);
+
+          if (result?.includes("Sorry, I can't assist with that.")) {
+            void vscode.window.showErrorMessage(
+              "Sorry, I can't assist with that."
+            );
+            return null;
+          }
+
+          return this.streamChatResponseContentToPlayground({
+            modelInput,
+            token,
+          });
+        }
+      );
+
+      if (progressResult) {
+        await vscode.commands.executeCommand(
+          EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+          {
+            runnableContent: progressResult,
+          }
+        );
+      } else {
+        await vscode.window.showErrorMessage('Exporting to playground failed.');
+      }
+
+      return true;
+    } catch (error) {
+      const message = formatError(error).message;
+      if (
+        error instanceof vscode.LanguageModelError &&
+        message.includes('Canceled')
+      ) {
+        await vscode.window.showInformationMessage(
+          'The running export to a playground operation was canceled.'
+        );
+        return false;
+      }
+
+      this._telemetryService.trackCopilotParticipantError(
+        error,
+        'exportToPlayground'
+      );
+      await vscode.window.showErrorMessage(
+        `An error occurred exporting to a playground: ${message}`
+      );
+      return false;
+    }
+  }
+
   async chatHandler(
     ...args: [
       vscode.ChatRequest,
@@ -1527,8 +1593,13 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
 
           return await this.handleGenericRequest(...args);
       }
-    } catch (e) {
-      this.handleError(e, request.command || 'generic');
+    } catch (error) {
+      this._telemetryService.trackCopilotParticipantError(
+        error,
+        request.command || 'generic'
+      );
+      // Re-throw other errors so they show up in the UI.
+      throw error;
     }
   }
 

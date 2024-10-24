@@ -2,6 +2,7 @@ import { CliServiceProvider } from '@mongosh/service-provider-server';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import { ServerCommands } from './serverCommands';
+import type { Document } from 'bson';
 
 import type {
   ShellEvaluateResult,
@@ -16,7 +17,7 @@ interface EvaluationResult {
   type: string | null;
 }
 
-const getContent = ({ type, printable }: EvaluationResult) => {
+const getContent = ({ type, printable }: EvaluationResult): Document => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
     return getEJSON(printable.documents);
   }
@@ -26,7 +27,9 @@ const getContent = ({ type, printable }: EvaluationResult) => {
     : getEJSON(printable);
 };
 
-export const getLanguage = (evaluationResult: EvaluationResult) => {
+export const getLanguage = (
+  evaluationResult: EvaluationResult
+): 'json' | 'plaintext' => {
   const content = getContent(evaluationResult);
 
   if (typeof content === 'object' && content !== null) {
@@ -44,7 +47,7 @@ type ExecuteCodeOptions = {
   filePath?: string;
 };
 
-function handleEvalPrint(values: EvaluationResult[]) {
+function handleEvalPrint(values: EvaluationResult[]): void {
   parentPort?.postMessage({
     name: ServerCommands.SHOW_CONSOLE_OUTPUT,
     payload: values.map((v) => {
@@ -65,7 +68,7 @@ export const execute = async ({
   connectionOptions,
   filePath,
 }: ExecuteCodeOptions): Promise<{
-  data?: ShellEvaluateResult;
+  data: ShellEvaluateResult | null;
   error?: any;
 }> => {
   const serviceProvider = await CliServiceProvider.connect(
@@ -112,7 +115,7 @@ export const execute = async ({
 
     return { data: { result } };
   } catch (error) {
-    return { error };
+    return { error, data: null };
   } finally {
     await serviceProvider.close(true);
   }

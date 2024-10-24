@@ -12,11 +12,9 @@ export type PlaygroundDebug = OutputItem[] | undefined;
 
 export type PlaygroundResult = OutputItem | undefined;
 
-export type ShellEvaluateResult =
-  | {
-      result: PlaygroundResult;
-    }
-  | undefined;
+export type ShellEvaluateResult = {
+  result: PlaygroundResult;
+} | null;
 
 export type PlaygroundEvaluateParams = {
   codeToEvaluate: string;

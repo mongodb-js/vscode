@@ -283,6 +283,10 @@
         }
       },
       {
+        "command": "mdb.exportCodeToPlayground",
+        "title": "Export Code to Playground"
+      },
+      {
         "command": "mdb.exportToPython",
         "title": "MongoDB: Export To Python 3"
       },
@@ -747,6 +751,17 @@
           "when": "mdb.isPlayground == true"
         }
       ],
+      "mdb.copilot": [
+        {
+          "command": "mdb.exportCodeToPlayground"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "mdb.copilot",
+          "group": "1_main@2"
+        }
+      ],
       "commandPalette": [
         {
           "command": "mdb.selectDatabaseWithParticipant",
@@ -949,6 +964,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.exportCodeToPlayground",
+          "when": "false"
+        },
+        {
           "command": "mdb.createIndexFromTreeView",
           "when": "false"
         },
@@ -994,6 +1013,12 @@
         }
       ]
     },
+    "submenus": [
+      {
+        "id": "mdb.copilot",
+        "label": "MongoDB Copilot Participant"
+      }
+    ],
     "keybindings": [
       {
         "command": "mdb.runSelectedPlaygroundBlocks",

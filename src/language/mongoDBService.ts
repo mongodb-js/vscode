@@ -192,7 +192,7 @@ export default class MongoDBService {
     };
   }
 
-  async _getAndCacheDatabases() {
+  async _getAndCacheDatabases(): Promise<void> {
     try {
       // Get database names for the current connection.
       const databases = await this._getDatabases();
@@ -205,7 +205,7 @@ export default class MongoDBService {
     }
   }
 
-  async _getAndCacheStreamProcessors() {
+  async _getAndCacheStreamProcessors(): Promise<void> {
     try {
       const processors = await this._getStreamProcessors();
       this._cacheStreamProcessorCompletionItems(processors);
@@ -222,7 +222,7 @@ export default class MongoDBService {
   async evaluate(
     params: PlaygroundEvaluateParams,
     token: CancellationToken
-  ): Promise<ShellEvaluateResult | undefined> {
+  ): Promise<ShellEvaluateResult> {
     this.clearCachedFields();
 
     return new Promise((resolve) => {
@@ -231,14 +231,14 @@ export default class MongoDBService {
           ServerCommands.SHOW_ERROR_MESSAGE,
           "The playground's active connection does not match the extension's active connection. Please reconnect and try again."
         );
-        return resolve(undefined);
+        return resolve(null);
       }
 
       if (!this._extensionPath) {
         this._connection.console.error(
           'LS evaluate: extensionPath is undefined'
         );
-        return resolve(undefined);
+        return resolve(null);
       }
 
       try {
@@ -274,7 +274,7 @@ export default class MongoDBService {
 
           if (name === ServerCommands.CODE_EXECUTION_RESULT) {
             const { error, data } = payload as {
-              data?: ShellEvaluateResult;
+              data: ShellEvaluateResult | null;
               error?: any;
             };
             if (error) {
@@ -313,13 +313,13 @@ export default class MongoDBService {
           // Stop the worker and all JavaScript execution
           // in the worker thread as soon as possible.
           await worker.terminate();
-          return resolve(undefined);
+          return resolve(null);
         });
       } catch (error) {
         this._connection.console.error(
           `LS evaluate error: ${util.inspect(error)}`
         );
-        return resolve(undefined);
+        return resolve(null);
       }
     });
   }
@@ -427,7 +427,7 @@ export default class MongoDBService {
   /**
    * Return 'db', 'sp' and 'use' completion items.
    */
-  _cacheGlobalSymbolCompletionItems() {
+  _cacheGlobalSymbolCompletionItems(): void {
     this._globalSymbolCompletionItems = [
       {
         label: 'db',
@@ -452,7 +452,7 @@ export default class MongoDBService {
   /**
    * Create and cache Shell symbols completion items.
    */
-  _cacheShellSymbolCompletionItems() {
+  _cacheShellSymbolCompletionItems(): void {
     const shellSymbolCompletionItems = {};
 
     Object.keys(signatures).map((symbol) => {
@@ -567,7 +567,10 @@ export default class MongoDBService {
   }: {
     operator: string;
     description?: string;
-  }) {
+  }): {
+    kind: typeof MarkupKind.Markdown;
+    value: string;
+  } {
     const title = operator.replace(/[$]/g, '');
     const link = LINKS.aggregationDocs(title);
     return {
@@ -584,7 +587,10 @@ export default class MongoDBService {
   }: {
     bsonType: string;
     description?: string;
-  }) {
+  }): {
+    kind: typeof MarkupKind.Markdown;
+    value: string;
+  } {
     const link = LINKS.bsonDocs(bsonType);
     return {
       kind: MarkupKind.Markdown,
@@ -600,7 +606,10 @@ export default class MongoDBService {
   }: {
     variable: string;
     description?: string;
-  }) {
+  }): {
+    kind: typeof MarkupKind.Markdown;
+    value: string;
+  } {
     const title = variable.replace(/[$]/g, '');
     const link = LINKS.systemVariableDocs(title);
     return {
@@ -617,7 +626,7 @@ export default class MongoDBService {
   async _getCompletionValuesAndUpdateCache(
     currentDatabaseName: string | null,
     currentCollectionName: string | null
-  ) {
+  ): Promise<void> {
     if (currentDatabaseName && !this._collections[currentDatabaseName]) {
       // Get collection names for the current database.
       const collections = await this._getCollections(currentDatabaseName);
@@ -645,7 +654,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'db.collection.aggregate([{<trigger>}])'.
    */
-  _provideStageCompletionItems(state: CompletionState) {
+  _provideStageCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isStage) {
       this._connection.console.log('VISITOR found stage operator completions');
 
@@ -678,7 +689,9 @@ export default class MongoDBService {
    * we check a playground text before the current cursor position.
    * If we found 'use("db")' or 'db.collection' we also suggest field names.
    */
-  _provideQueryOperatorCompletionItems(state: CompletionState) {
+  _provideQueryOperatorCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (
       state.stageOperator === MATCH ||
       (state.stageOperator === null && state.isObjectKey)
@@ -718,7 +731,9 @@ export default class MongoDBService {
    * we check a playground text before the current cursor position.
    * If we found 'use("db")' or 'db.collection' we also suggest field names.
    */
-  _provideAggregationOperatorCompletionItems(state: CompletionState) {
+  _provideAggregationOperatorCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.stageOperator) {
       const fields =
         this._fields[`${state.databaseName}.${state.collectionName}`] || [];
@@ -766,7 +781,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'db.collection.find({ _id: <trigger>});'.
    */
-  _provideIdentifierObjectValueCompletionItems(state: CompletionState) {
+  _provideIdentifierObjectValueCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isIdentifierObjectValue) {
       this._connection.console.log('VISITOR found bson completions');
       return getFilteredCompletions({ meta: ['bson'] }).map((item) => {
@@ -795,7 +812,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'db.collection.find({ field: "<trigger>" });'.
    */
-  _provideTextObjectValueCompletionItems(state: CompletionState) {
+  _provideTextObjectValueCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isTextObjectValue) {
       const fields =
         this._fields[`${state.databaseName}.${state.collectionName}`];
@@ -827,7 +846,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'db.collection.<trigger>' or 'db["test"].<trigger>'.
    */
-  _provideCollectionSymbolCompletionItems(state: CompletionState) {
+  _provideCollectionSymbolCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isCollectionSymbol) {
       this._connection.console.log(
         'VISITOR found collection symbol completions'
@@ -839,7 +860,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'sp.processor.<trigger>' or 'sp["processor"].<trigger>'.
    */
-  _provideStreamProcessorSymbolCompletionItems(state: CompletionState) {
+  _provideStreamProcessorSymbolCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isStreamProcessorSymbol) {
       this._connection.console.log(
         'VISITOR found stream processor symbol completions'
@@ -851,7 +874,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'db.collection.find().<trigger>'.
    */
-  _provideFindCursorCompletionItems(state: CompletionState) {
+  _provideFindCursorCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isFindCursor) {
       this._connection.console.log('VISITOR found find cursor completions');
       return this._shellSymbolCompletionItems.Cursor;
@@ -861,7 +886,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'db.collection.aggregate().<trigger>'.
    */
-  _provideAggregationCursorCompletionItems(state: CompletionState) {
+  _provideAggregationCursorCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isAggregationCursor) {
       this._connection.console.log(
         'VISITOR found aggregation cursor completions'
@@ -873,7 +900,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'db' or 'use'.
    */
-  _provideGlobalSymbolCompletionItems(state: CompletionState) {
+  _provideGlobalSymbolCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isGlobalSymbol) {
       this._connection.console.log('VISITOR found global symbol completions');
       return this._globalSymbolCompletionItems;
@@ -894,7 +923,7 @@ export default class MongoDBService {
     databaseName: string;
     currentLineText: string;
     position: { line: number; character: number };
-  }) {
+  }): CompletionItem[] {
     return this._collections[databaseName].map((collectionName) => {
       if (this._isValidPropertyName(collectionName)) {
         return {
@@ -936,7 +965,7 @@ export default class MongoDBService {
     state: CompletionState,
     currentLineText: string,
     position: { line: number; character: number }
-  ) {
+  ): CompletionItem[] | undefined {
     // If we found 'use("db")' and the current node is 'db.<trigger>'.
     if (state.isDbSymbol && state.databaseName) {
       this._connection.console.log(
@@ -963,7 +992,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'sp.<trigger>'.
    */
-  _provideSpSymbolCompletionItems(state: CompletionState) {
+  _provideSpSymbolCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isSpSymbol) {
       if (state.isStreamProcessorName) {
         this._connection.console.log(
@@ -982,7 +1013,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'sp.get(<trigger>)'.
    */
-  _provideStreamProcessorNameCompletionItems(state: CompletionState) {
+  _provideStreamProcessorNameCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isStreamProcessorName) {
       this._connection.console.log(
         'VISITOR found stream processor name completions'
@@ -999,7 +1032,7 @@ export default class MongoDBService {
     state: CompletionState,
     currentLineText: string,
     position: { line: number; character: number }
-  ) {
+  ): CompletionItem[] | undefined {
     if (state.isCollectionName && state.databaseName) {
       this._connection.console.log('VISITOR found collection name completions');
       return this._getCollectionCompletionItems({
@@ -1013,7 +1046,9 @@ export default class MongoDBService {
   /**
    * If the current node is 'use("<trigger>"")'.
    */
-  _provideDbNameCompletionItems(state: CompletionState) {
+  _provideDbNameCompletionItems(
+    state: CompletionState
+  ): CompletionItem[] | undefined {
     if (state.isUseCallExpression) {
       this._connection.console.log('VISITOR found database names completion');
       return this._databaseCompletionItems;
@@ -1094,7 +1129,7 @@ export default class MongoDBService {
   }
 
   // Highlight the usage of commands that only works inside interactive session.
-  provideDiagnostics(textFromEditor: string) {
+  provideDiagnostics(textFromEditor: string): Diagnostic[] {
     const lines = textFromEditor.split(/\r?\n/g);
     const diagnostics: Diagnostic[] = [];
     const invalidInteractiveSyntaxes = [
