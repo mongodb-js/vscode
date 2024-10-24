@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ComponentProps } from 'react';
 import CompassConnectionForm from '@mongodb-js/connection-form';
 import {
   CancelLoader,
@@ -49,17 +48,16 @@ const ConnectionForm: React.FunctionComponent<
     open: boolean;
     connectionErrorMessage: string;
   } & Pick<
-    ComponentProps<typeof CompassConnectionForm>,
-    'onConnectClicked' | 'onSaveConnectionClicked' | 'initialConnectionInfo'
+    Parameters<typeof CompassConnectionForm>[0],
+    'onSaveAndConnectClicked' | 'initialConnectionInfo'
   >
 > = ({
   initialConnectionInfo,
   connectionErrorMessage,
   isConnecting,
   onCancelConnectClicked,
-  onConnectClicked,
   onClose,
-  onSaveConnectionClicked,
+  onSaveAndConnectClicked,
   open,
 }) => {
   const darkMode = useDarkMode();
@@ -89,23 +87,22 @@ const ConnectionForm: React.FunctionComponent<
       )}
       <div data-testid="connection-form-modal" className={formContainerStyles}>
         <CompassConnectionForm
-          onConnectClicked={onConnectClicked}
-          onSaveConnectionClicked={onSaveConnectionClicked}
+          onSaveAndConnectClicked={onSaveAndConnectClicked}
           initialConnectionInfo={initialConnectionInfo}
-          preferences={{
-            showFavoriteActions: false,
-            protectConnectionStrings: false,
-            forceConnectionOptions: [],
-            showKerberosPasswordField: false,
-            showOIDCDeviceAuthFlow:
-              window[VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID],
-            enableOidc: true,
-            enableDebugUseCsfleSchemaMap: false,
-            protectConnectionStringsForNewConnections: false,
-            showOIDCAuth: true,
-            showKerberosAuth: false,
-            showCSFLE: false,
-          }}
+          showFavoriteActions={false}
+          protectConnectionStrings={false}
+          forceConnectionOptions={[]}
+          showKerberosPasswordField={false}
+          showOIDCDeviceAuthFlow={window[VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID]}
+          enableOidc
+          enableDebugUseCsfleSchemaMap={false}
+          protectConnectionStringsForNewConnections={false}
+          showOIDCAuth
+          showKerberosAuth={false}
+          showCSFLE={false}
+          saveAndConnectLabel={'Save & Connect'}
+          showHelpCardsInForm={false}
+          showPersonalisationForm={false}
           connectionErrorMessage={connectionErrorMessage}
         />
       </div>

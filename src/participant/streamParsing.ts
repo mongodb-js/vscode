@@ -1,5 +1,166 @@
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// This is a stateful streaming implementation of the Knuth-Morris-Pratt algorithm
+// for substring search. It supports being invoked with multiple fragments of the
+// haystack and is capable of finding matches spanning multiple fragments.
+class StreamingKMP {
+  public needle: string;
+  private _lookupVector: number[];
+
+  // In cases where we are fed a string that has a suffix that matches a prefix
+  // of the needle, we're storing the index in the needle which we last matched.
+  // Then when we get a new haystack, we start matching from that needle.
+  private _lastMatchingIndex = 0;
+
+  constructor(needle: string) {
+    this.needle = needle;
+    this._lookupVector = this._createLookupVector();
+  }
+
+  private _createLookupVector(): number[] {
+    const vector = new Array<number>(this.needle.length);
+    let j = 0;
+    vector[0] = 0;
+
+    for (let i = 1; i < this.needle.length; i++) {
+      while (j > 0 && this.needle[i] !== this.needle[j]) {
+        j = vector[j - 1];
+      }
+
+      if (this.needle[i] === this.needle[j]) {
+        j++;
+      }
+
+      vector[i] = j;
+    }
+
+    return vector;
+  }
+
+  // Returns the index in the haystackFragment **after** the needle.
+  // This is done because the match may have occurred over multiple fragments,
+  // so the index of the needle start would be negative.
+  public match(haystackFragment: string): number {
+    let j = this._lastMatchingIndex; // index in needle
+    let i = 0; // index in haystack
+
+    while (i < haystackFragment.length) {
+      if (haystackFragment[i] === this.needle[j]) {
+        i++;
+        j++;
+      }
+
+      if (j === this.needle.length) {
+        this._lastMatchingIndex = 0;
+        return i;
+      }
+
+      if (
+        i < haystackFragment.length &&
+        haystackFragment[i] !== this.needle[j]
+      ) {
+        if (j !== 0) {
+          j = this._lookupVector[j - 1];
+        } else {
+          i++;
+        }
+      }
+    }
+
+    this._lastMatchingIndex = j;
+    return -1;
+  }
+
+  public reset(): void {
+    this._lastMatchingIndex = 0;
+  }
+}
+
+// This class is essentially a state machine that processes a stream of text fragments
+// and emitting a callback with the content between each start and end identifier. The
+// two states we have are:
+// 1. "waiting for start identifier" - `_matchedContent === undefined`
+// 2. "waiting for end identifier" - `_matchedContent !== undefined`
+// with the state transitioning from one to the other when the corresponding identifier
+// is matched in the fragment stream.
+class FragmentMatcher {
+  private _startMatcher: StreamingKMP;
+  private _endMatcher: StreamingKMP;
+  private _matchedContent?: string;
+  private _onContentMatched: (content: string) => void;
+  private _onFragmentProcessed: (content: string) => void;
+
+  constructor({
+    identifier,
+    onContentMatched,
+    onFragmentProcessed,
+  }: {
+    identifier: {
+      start: string;
+      end: string;
+    };
+    onContentMatched: (content: string) => void;
+    onFragmentProcessed: (content: string) => void;
+  }) {
+    this._startMatcher = new StreamingKMP(identifier.start);
+    this._endMatcher = new StreamingKMP(identifier.end);
+    this._onContentMatched = onContentMatched;
+    this._onFragmentProcessed = onFragmentProcessed;
+  }
+
+  private _contentMatched(): void {
+    const content = this._matchedContent;
+    if (content !== undefined) {
+      // Strip the trailing end identifier from the matched content
+      this._onContentMatched(
+        content.slice(0, content.length - this._endMatcher.needle.length)
+      );
+    }
+
+    this._matchedContent = undefined;
+    this._startMatcher.reset();
+    this._endMatcher.reset();
+  }
+
+  // This needs to be invoked every time before we call `process` recursively or when `process`
+  // completes processing the fragment. It will emit a notification to subscribers with the partial
+  // fragment we've processed, regardless of whether there's a match or not.
+  private _partialFragmentProcessed(
+    fragment: string,
+    index: number | undefined = undefined
+  ): void {
+    this._onFragmentProcessed(
+      index === undefined ? fragment : fragment.slice(0, index)
+    );
+  }
+
+  public process(fragment: string): void {
+    if (this._matchedContent === undefined) {
+      // We haven't matched the start identifier yet, so try and do that
+      const startIndex = this._startMatcher.match(fragment);
+      if (startIndex !== -1) {
+        // We found a match for the start identifier - update `_matchedContent` to an empty string
+        // and recursively call `process` with the remainder of the fragment.
+        this._matchedContent = '';
+        this._partialFragmentProcessed(fragment, startIndex);
+        this.process(fragment.slice(startIndex));
+      } else {
+        this._partialFragmentProcessed(fragment);
+      }
+    } else {
+      const endIndex = this._endMatcher.match(fragment);
+      if (endIndex !== -1) {
+        // We've matched the end - emit the matched content and continue processing the partial fragment
+        this._matchedContent += fragment.slice(0, endIndex);
+        this._partialFragmentProcessed(fragment, endIndex);
+        this._contentMatched();
+        this.process(fragment.slice(endIndex));
+      } else {
+        // We haven't matched the end yet - append the fragment to the matched content and wait
+        // for a future fragment to contain the end identifier.
+        this._matchedContent += fragment;
+        this._partialFragmentProcessed(fragment);
+      }
+    }
+  }
 }
 
 /**
@@ -22,74 +183,13 @@ export async function processStreamWithIdentifiers({
     end: string;
   };
 }): Promise<void> {
-  const escapedIdentifierStart = escapeRegex(identifier.start);
-  const escapedIdentifierEnd = escapeRegex(identifier.end);
-  const regex = new RegExp(
-    `${escapedIdentifierStart}([\\s\\S]*?)${escapedIdentifierEnd}`,
-    'g'
-  );
+  const fragmentMatcher = new FragmentMatcher({
+    identifier,
+    onContentMatched: onStreamIdentifier,
+    onFragmentProcessed: processStreamFragment,
+  });
 
-  let contentSinceLastIdentifier = '';
   for await (const fragment of inputIterable) {
-    contentSinceLastIdentifier += fragment;
-
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(contentSinceLastIdentifier)) !== null) {
-      const endIndex = regex.lastIndex;
-
-      // Stream content up to the end of the identifier.
-      const contentToStream = contentSinceLastIdentifier.slice(
-        lastIndex,
-        endIndex
-      );
-      processStreamFragment(contentToStream);
-
-      const identifierContent = match[1];
-      onStreamIdentifier(identifierContent);
-
-      lastIndex = endIndex;
-    }
-
-    if (lastIndex > 0) {
-      // Remove all of the processed content.
-      contentSinceLastIdentifier = contentSinceLastIdentifier.slice(lastIndex);
-      // Reset the regex.
-      regex.lastIndex = 0;
-    } else {
-      // Clear as much of the content as we can safely.
-      const maxUnprocessedLength = identifier.start.length - 1;
-      if (contentSinceLastIdentifier.length > maxUnprocessedLength) {
-        const identifierIndex = contentSinceLastIdentifier.indexOf(
-          identifier.start
-        );
-        if (identifierIndex > -1) {
-          // We have an identifier, so clear up until the identifier.
-          const contentToStream = contentSinceLastIdentifier.slice(
-            0,
-            identifierIndex
-          );
-          processStreamFragment(contentToStream);
-          contentSinceLastIdentifier =
-            contentSinceLastIdentifier.slice(identifierIndex);
-        } else {
-          // No identifier, so clear up until the last maxUnprocessedLength.
-          const processUpTo =
-            contentSinceLastIdentifier.length - maxUnprocessedLength;
-          const contentToStream = contentSinceLastIdentifier.slice(
-            0,
-            processUpTo
-          );
-          processStreamFragment(contentToStream);
-          contentSinceLastIdentifier =
-            contentSinceLastIdentifier.slice(processUpTo);
-        }
-      }
-    }
-  }
-
-  // Finish up anything not streamed yet.
-  if (contentSinceLastIdentifier.length > 0) {
-    processStreamFragment(contentSinceLastIdentifier);
+    fragmentMatcher.process(fragment);
   }
 }

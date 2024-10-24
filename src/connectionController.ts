@@ -327,6 +327,7 @@ export default class ConnectionController {
           productDocsLink: LINKS.extensionDocs(),
         }),
       logger: Object.assign(log, { mongoLogId }),
+      proxyOptions: {},
     });
     this._connectionAttempt = connectionAttempt;
     this._connectingConnectionId = connectionId;
