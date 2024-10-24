@@ -1802,7 +1802,9 @@ Schema:
           });
           await testParticipantController.exportCodeToPlayground();
           const messages = sendRequestStub.firstCall.args[0];
-          expect(messages[1].content).to.include('System.out.println');
+          expect(getMessageContent(messages[1])).to.include(
+            'System.out.println'
+          );
           expect(
             isPlayground(vscode.window.activeTextEditor?.document.uri)
           ).to.be.eql(true);
