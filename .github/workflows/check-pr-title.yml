@@ -13,7 +13,7 @@ jobs:
         with:
           regex: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|ops){1}(\([\w\-\.]+\))?(!)?: .*'
           error-hint: 'Invalid PR title. Make sure it follows the conventional commit specification (i.e. "<type>(<optional scope>): <description>") or add the no-title-validation label'
-          ignore-labels: 'no-jira-ticket'
+          ignore-labels: 'no-title-validation'
       - name: Enforce JIRA ticket in title
         uses: realm/ci-actions/title-checker@main
         with:
