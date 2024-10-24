@@ -31,6 +31,7 @@ import { ChatMetadataStore } from '../../../participant/chatMetadata';
 import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
+import { getContentLength } from '../../../participant/prompts/promptBase';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -48,6 +49,28 @@ const testChatId = 'test-chat-id';
 
 const encodeStringify = (obj: Record<string, any>): string => {
   return encodeURIComponent(JSON.stringify(obj));
+};
+
+const getMessageContent = (
+  message: vscode.LanguageModelChatMessage
+): string => {
+  const content = message.content as any;
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content.reduce((agg: string, element) => {
+      const value = element?.value ?? element?.content?.value;
+      if (typeof value === 'string') {
+        return agg + value;
+      }
+
+      return agg;
+    }, '');
+  }
+
+  return '';
 };
 
 suite('Participant Controller Test Suite', function () {
@@ -514,20 +537,22 @@ suite('Participant Controller Test Suite', function () {
             const res = await invokeChatHandler(chatRequestMock);
 
             expect(sendRequestStub).to.have.been.calledTwice;
-            const intentRequest = sendRequestStub.firstCall.args[0];
+            const intentRequest = sendRequestStub.firstCall
+              .args[0] as vscode.LanguageModelChatMessage[];
             expect(intentRequest).to.have.length(2);
-            expect(intentRequest[0].content).to.include(
+            expect(getMessageContent(intentRequest[0])).to.include(
               'Your task is to help guide a conversation with a user to the correct handler.'
             );
-            expect(intentRequest[1].content).to.equal(
+            expect(getMessageContent(intentRequest[1])).to.equal(
               'what is the shape of the documents in the pineapple collection?'
             );
-            const genericRequest = sendRequestStub.secondCall.args[0];
+            const genericRequest = sendRequestStub.secondCall
+              .args[0] as vscode.LanguageModelChatMessage[];
             expect(genericRequest).to.have.length(2);
-            expect(genericRequest[0].content).to.include(
+            expect(getMessageContent(genericRequest[0])).to.include(
               'Parse all user messages to find a database name and a collection name.'
             );
-            expect(genericRequest[1].content).to.equal(
+            expect(getMessageContent(genericRequest[1])).to.equal(
               'what is the shape of the documents in the pineapple collection?'
             );
 
@@ -544,20 +569,22 @@ suite('Participant Controller Test Suite', function () {
           const res = await invokeChatHandler(chatRequestMock);
 
           expect(sendRequestStub).to.have.been.calledTwice;
-          const intentRequest = sendRequestStub.firstCall.args[0];
+          const intentRequest = sendRequestStub.firstCall
+            .args[0] as vscode.LanguageModelChatMessage[];
           expect(intentRequest).to.have.length(2);
-          expect(intentRequest[0].content).to.include(
+          expect(getMessageContent(intentRequest[0])).to.include(
             'Your task is to help guide a conversation with a user to the correct handler.'
           );
-          expect(intentRequest[1].content).to.equal(
+          expect(getMessageContent(intentRequest[1])).to.equal(
             'how to find documents in my collection?'
           );
-          const genericRequest = sendRequestStub.secondCall.args[0];
+          const genericRequest = sendRequestStub.secondCall
+            .args[0] as vscode.LanguageModelChatMessage[];
           expect(genericRequest).to.have.length(2);
-          expect(genericRequest[0].content).to.include(
+          expect(getMessageContent(genericRequest[0])).to.include(
             'Your task is to help the user with MongoDB related questions.'
           );
-          expect(genericRequest[1].content).to.equal(
+          expect(getMessageContent(genericRequest[1])).to.equal(
             'how to find documents in my collection?'
           );
 
@@ -648,8 +675,9 @@ suite('Participant Controller Test Suite', function () {
               references: [],
             };
             await invokeChatHandler(chatRequestMock);
-            const messages = sendRequestStub.secondCall.args[0];
-            expect(messages[1].content).to.include(
+            const messages = sendRequestStub.secondCall
+              .args[0] as vscode.LanguageModelChatMessage[];
+            expect(getMessageContent(messages[1])).to.include(
               'Collection schema: _id: ObjectId\n' +
                 'field.stringField: String\n' +
                 'field.arrayField: Array<Int32>\n'
@@ -712,8 +740,9 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-              const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[1].content).to.include(
+              const messages = sendRequestStub.secondCall
+                .args[0] as vscode.LanguageModelChatMessage[];
+              expect(getMessageContent(messages[1])).to.include(
                 'Sample documents: [\n' +
                   '  {\n' +
                   "    _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
@@ -781,8 +810,9 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-              const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[1].content).to.include(
+              const messages = sendRequestStub.secondCall
+                .args[0] as vscode.LanguageModelChatMessage[];
+              expect(getMessageContent(messages[1])).to.include(
                 'Sample document: {\n' +
                   "  _id: ObjectId('63ed1d522d8573fa5c203660'),\n" +
                   '  field: {\n' +
@@ -844,8 +874,9 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-              const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[1].content).to.include(
+              const messages = sendRequestStub.secondCall
+                .args[0] as vscode.LanguageModelChatMessage[];
+              expect(getMessageContent(messages[1])).to.include(
                 'Sample document: {\n' +
                   "  _id: ObjectId('63ed1d522d8573fa5c203661'),\n" +
                   '  field: {\n' +
@@ -904,8 +935,11 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-              const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[1].content).to.not.include('Sample documents');
+              const messages = sendRequestStub.secondCall
+                .args[0] as vscode.LanguageModelChatMessage[];
+              expect(getMessageContent(messages[1])).to.not.include(
+                'Sample documents'
+              );
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 0,
@@ -932,8 +966,11 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-              const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[1].content).to.not.include('Sample documents');
+              const messages = sendRequestStub.secondCall
+                .args[0] as vscode.LanguageModelChatMessage[];
+              expect(getMessageContent(messages[1])).to.not.include(
+                'Sample documents'
+              );
 
               assertCommandTelemetry('query', chatRequestMock, {
                 callIndex: 0,
@@ -1374,7 +1411,9 @@ suite('Participant Controller Test Suite', function () {
             await invokeChatHandler(chatRequestMock);
 
             expect(sendRequestStub.calledOnce).to.be.true;
-            expect(sendRequestStub.firstCall.args[0][0].content).to.include(
+            const messages = sendRequestStub.firstCall
+              .args[0] as vscode.LanguageModelChatMessage[];
+            expect(getMessageContent(messages[0])).to.include(
               'Parse all user messages to find a database name and a collection name.'
             );
 
@@ -1422,10 +1461,13 @@ suite('Participant Controller Test Suite', function () {
             await invokeChatHandler(chatRequestMock);
 
             expect(sendRequestStub.calledOnce).to.be.true;
-            expect(sendRequestStub.firstCall.args[0][0].content).to.include(
+
+            const messages = sendRequestStub.firstCall
+              .args[0] as vscode.LanguageModelChatMessage[];
+            expect(getMessageContent(messages[0])).to.include(
               'Parse all user messages to find a database name and a collection name.'
             );
-            expect(sendRequestStub.firstCall.args[0][3].content).to.include(
+            expect(getMessageContent(messages[3])).to.include(
               'see previous messages'
             );
           });
@@ -1528,11 +1570,12 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-              const messages = sendRequestStub.secondCall.args[0];
-              expect(messages[0].content).to.include(
+              const messages = sendRequestStub.secondCall
+                .args[0] as vscode.LanguageModelChatMessage[];
+              expect(getMessageContent(messages[0])).to.include(
                 'Amount of documents sampled: 2'
               );
-              expect(messages[1].content).to.include(
+              expect(getMessageContent(messages[1])).to.include(
                 `Database name: dbOne
 Collection name: collOne
 Schema:
@@ -1540,7 +1583,8 @@ Schema:
   "count": 2,
   "fields": [`
               );
-              expect(messages[1].content).to.include(`"name": "arrayField",
+              expect(getMessageContent(messages[1])).to
+                .include(`"name": "arrayField",
               "path": [
                 "field",
                 "arrayField"
@@ -1703,7 +1747,7 @@ Schema:
       expect(stats.has_sample_documents).to.be.false;
       expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
       expect(stats.total_message_length).to.equal(
-        messages[0].content.length + messages[1].content.length
+        getContentLength(messages[0]) + getContentLength(messages[1])
       );
     });
 
@@ -1759,7 +1803,7 @@ Schema:
       expect(messages[1].role).to.equal(
         vscode.LanguageModelChatMessageRole.User
       );
-      expect(messages[1].content).to.equal(
+      expect(getMessageContent(messages[1])).to.equal(
         'give me the count of all people in the prod database'
       );
 
@@ -1772,15 +1816,15 @@ Schema:
       expect(stats.has_sample_documents).to.be.true;
       expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
       expect(stats.total_message_length).to.equal(
-        messages[0].content.length +
-          messages[1].content.length +
-          messages[2].content.length
+        getContentLength(messages[0]) +
+          getContentLength(messages[1]) +
+          getContentLength(messages[2])
       );
 
       // The length of the user prompt length should be taken from the prompt supplied
       // by the user, even if we enhance it with sample docs and schema.
       expect(stats.user_input_length).to.be.lessThan(
-        messages[2].content.length
+        getContentLength(messages[2])
       );
     });
 
@@ -1812,20 +1856,22 @@ Schema:
       expect(messages[0].role).to.equal(
         vscode.LanguageModelChatMessageRole.Assistant
       );
-      expect(messages[0].content).to.include('Amount of documents sampled: 3');
+      expect(getMessageContent(messages[0])).to.include(
+        'Amount of documents sampled: 3'
+      );
 
       expect(messages[1].role).to.equal(
         vscode.LanguageModelChatMessageRole.User
       );
-      expect(messages[1].content).to.include(databaseName);
-      expect(messages[1].content).to.include(collectionName);
-      expect(messages[1].content).to.include(schema);
+      expect(getMessageContent(messages[1])).to.include(databaseName);
+      expect(getMessageContent(messages[1])).to.include(collectionName);
+      expect(getMessageContent(messages[1])).to.include(schema);
 
       expect(stats.command).to.equal('schema');
       expect(stats.has_sample_documents).to.be.false;
       expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
       expect(stats.total_message_length).to.equal(
-        messages[0].content.length + messages[1].content.length
+        getContentLength(messages[0]) + getContentLength(messages[1])
       );
     });
 
@@ -1852,7 +1898,7 @@ Schema:
       expect(stats.has_sample_documents).to.be.false;
       expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
       expect(stats.total_message_length).to.equal(
-        messages[0].content.length + messages[1].content.length
+        getContentLength(messages[0]) + getContentLength(messages[1])
       );
     });
 
@@ -1927,18 +1973,18 @@ Schema:
       expect(messages[1].role).to.equal(
         vscode.LanguageModelChatMessageRole.User
       );
-      expect(messages[1].content).to.contain(expectedPrompt);
+      expect(getMessageContent(messages[1])).to.contain(expectedPrompt);
 
       expect(stats.command).to.equal('query');
       expect(stats.has_sample_documents).to.be.false;
       expect(stats.user_input_length).to.equal(expectedPrompt.length);
       expect(stats.total_message_length).to.equal(
-        messages[0].content.length + messages[1].content.length
+        getContentLength(messages[0]) + getContentLength(messages[1])
       );
 
       // The prompt builder may add extra info, but we're only reporting the actual user input
       expect(stats.user_input_length).to.be.lessThan(
-        messages[1].content.length
+        getContentLength(messages[1])
       );
     });
   });

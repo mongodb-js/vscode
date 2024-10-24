@@ -5,6 +5,9 @@ import { IntentPrompt } from './intent';
 import { NamespacePrompt } from './namespace';
 import { QueryPrompt } from './query';
 import { SchemaPrompt } from './schema';
+import { isContentEmpty } from './promptBase';
+
+export { getContentLength } from './promptBase';
 
 export class Prompts {
   public static generic = new GenericPrompt();
@@ -26,7 +29,7 @@ export class Prompts {
     for (const message of messages) {
       if (
         message.role === vscode.LanguageModelChatMessageRole.User &&
-        message.content.trim().length > 0
+        !isContentEmpty(message)
       ) {
         return true;
       }

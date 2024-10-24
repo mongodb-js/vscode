@@ -10,7 +10,7 @@ import type { LoadedConnection } from '../storage/connectionStorage';
 import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
-import { Prompts } from './prompts';
+import { getContentLength, Prompts } from './prompts';
 import type { ChatResult } from './constants';
 import {
   askToConnectChatResult,
@@ -189,7 +189,7 @@ export default class ParticipantController {
         (message: vscode.LanguageModelChatMessage) =>
           util.inspect({
             role: message.role,
-            contentLength: message.content.length,
+            contentLength: getContentLength(message),
           })
       ),
     });
@@ -790,15 +790,18 @@ export default class ParticipantController {
       // it currently errors (not on insiders, only main VSCode).
       // Here we're defaulting to have some content as a workaround.
       // TODO: Remove this when the issue is fixed.
-      messagesWithNamespace.messages[
-        messagesWithNamespace.messages.length - 1
-        // eslint-disable-next-line new-cap
-      ] = vscode.LanguageModelChatMessage.User(
+      if (
+        !Prompts.doMessagesContainUserInput([
+          messagesWithNamespace.messages[
+            messagesWithNamespace.messages.length - 1
+          ],
+        ])
+      ) {
         messagesWithNamespace.messages[
           messagesWithNamespace.messages.length - 1
-        ].content.trim() || 'see previous messages'
-      );
-
+          // eslint-disable-next-line new-cap
+        ] = vscode.LanguageModelChatMessage.User('see previous messages');
+      }
       const responseContentWithNamespace = await this.getChatResponseContent({
         modelInput: messagesWithNamespace,
         token,
