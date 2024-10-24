@@ -24,6 +24,52 @@ export interface ModelInput {
   stats: ParticipantPromptProperties;
 }
 
+export function getContentLength(
+  message: vscode.LanguageModelChatMessage
+): number {
+  const content = message.content as any;
+  if (typeof content === 'string') {
+    return content.trim().length;
+  }
+
+  // TODO: https://github.com/microsoft/vscode/pull/231788 made it so message.content is no longer a string,
+  // but an array of things that a message can contain. This will eventually be reflected in the type definitions
+  // but until then, we're manually checking the array contents to ensure we don't break when this PR gets released
+  // in the stable channel.
+  if (Array.isArray(content)) {
+    return content.reduce((acc: number, element) => {
+      const value = element?.value ?? element?.content?.value;
+      if (typeof value === 'string') {
+        return acc + value.length;
+      }
+
+      return acc;
+    }, 0);
+  }
+
+  return 0;
+}
+
+export function isContentEmpty(
+  message: vscode.LanguageModelChatMessage
+): boolean {
+  const content = message.content as any;
+  if (typeof content === 'string') {
+    return content.trim().length === 0;
+  }
+
+  if (Array.isArray(content)) {
+    for (const element of content) {
+      const value = element?.value ?? element?.content?.value;
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 export abstract class PromptBase<TArgs extends PromptArgsBase> {
   protected abstract getAssistantPrompt(args: TArgs): string;
 
@@ -92,7 +138,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
   ): ParticipantPromptProperties {
     return {
       total_message_length: messages.reduce(
-        (acc, message) => acc + message.content.length,
+        (acc, message) => acc + getContentLength(message),
         0
       ),
       user_input_length: request.prompt.length,
