@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.9.3](https://github.com/mongodb-js/vscode/releases/tag/v1.9.3) - 2024-10-24
+
+## What's Changed
+* chore: Adapt message content access to latest vscode API VSCODE-640 by @nirinchev in https://github.com/mongodb-js/vscode/pull/857
+* fix: Replace regex fragment matching with streaming KMP VSCODE-639 by @nirinchev in https://github.com/mongodb-js/vscode/pull/837
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.9.2...v1.9.3
+
+
 ## [v1.9.2](https://github.com/mongodb-js/vscode/releases/tag/v1.9.2) - 2024-10-21
 
 ## What's Changed
@@ -401,16 +410,5 @@ To dig deeper please feel free to follow the links mentioned below:
 
 - Fixed showing an error when large files are shown in vscode which have tokenization disabled (VSCODE-250, #290)
 - Fixed showing recently dropped collections and databases in the explorer (VSCODE-244, #288)
-
-
-## [v0.5.0](https://github.com/mongodb-js/vscode/releases/tag/v0.5.0) - 2021-03-10
-
-### Added
-
-- Add documentation details to playground auto completion items (#267)
-
-### Fixed
-
-- Fix launching mongodb shell with ssl in bash (VSCODE-227, #270)
 
 
