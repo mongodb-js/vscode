@@ -5,7 +5,9 @@ import { IntentPrompt } from './intent';
 import { NamespacePrompt } from './namespace';
 import { QueryPrompt } from './query';
 import { SchemaPrompt } from './schema';
-import { isContentEmpty, getContentLength } from './promptBase';
+import { isContentEmpty } from './promptBase';
+
+export { getContentLength } from './promptBase';
 
 export class Prompts {
   public static generic = new GenericPrompt();
@@ -34,11 +36,5 @@ export class Prompts {
     }
 
     return false;
-  }
-
-  public static getContentLength(
-    message: vscode.LanguageModelChatMessage
-  ): number {
-    return getContentLength(message);
   }
 }

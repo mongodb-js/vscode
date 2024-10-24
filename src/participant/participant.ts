@@ -10,7 +10,7 @@ import type { LoadedConnection } from '../storage/connectionStorage';
 import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
 import { StorageVariables } from '../storage';
-import { Prompts } from './prompts';
+import { getContentLength, Prompts } from './prompts';
 import type { ChatResult } from './constants';
 import {
   askToConnectChatResult,
@@ -189,7 +189,7 @@ export default class ParticipantController {
         (message: vscode.LanguageModelChatMessage) =>
           util.inspect({
             role: message.role,
-            contentLength: Prompts.getContentLength(message),
+            contentLength: getContentLength(message),
           })
       ),
     });
