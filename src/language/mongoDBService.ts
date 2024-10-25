@@ -14,7 +14,7 @@ import type {
   MarkupContent,
   Diagnostic,
 } from 'vscode-languageserver/node';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { CliServiceProvider } from '@mongosh/service-provider-node-driver';
 import type { Document } from '@mongosh/service-provider-core';
 import { getFilteredCompletions } from '@mongodb-js/mongodb-constants';
 import parseSchema from 'mongodb-schema';

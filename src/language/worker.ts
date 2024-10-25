@@ -1,4 +1,4 @@
-import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { CliServiceProvider } from '@mongosh/service-provider-node-driver';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import { ServerCommands } from './serverCommands';
