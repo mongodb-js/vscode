@@ -16,6 +16,8 @@ jobs:
           ignore-labels: 'no-title-validation'
       - name: Enforce JIRA ticket in title
         uses: realm/ci-actions/title-checker@main
+        # Skip the JIRA ticket check for PRs opened by bots
+        if: ${{ !contains(github.event.pull_request.user.login, '[bot]') }}
         with:
           regex: '[A-Z]{4,10}-[0-9]{1,5}$'
           error-hint: 'Invalid PR title. Make sure it ends with a JIRA ticket - i.e. VSCODE-1234 or add the no-title-validation label'
