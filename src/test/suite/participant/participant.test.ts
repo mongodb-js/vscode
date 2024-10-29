@@ -34,6 +34,7 @@ import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
+import { ParticipantErrorTypes } from '../../../types/participantErrorTypes';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -2124,6 +2125,61 @@ Schema:
       expect(stats.user_input_length).to.be.lessThan(
         getContentLength(messages[1])
       );
+    });
+
+    suite('with invalid messages', function () {
+      test('filters disallowed messages', async function () {
+        const chatRequestMock = {
+          prompt: 'find all docs by a name example',
+        };
+
+        chatContextStub = {
+          history: [
+            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+              prompt: 'give me the count of all people in the prod database',
+              command: 'query',
+              references: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+              prompt: 'some disallowed message',
+              command: 'query',
+              references: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+            Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+              result: {
+                errorDetails: {
+                  message: ParticipantErrorTypes.FILTERED,
+                },
+              },
+              response: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+              prompt: 'ok message',
+              references: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+          ],
+        };
+        const { messages } = await Prompts.generic.buildMessages({
+          context: chatContextStub,
+          request: chatRequestMock,
+          connectionNames: [],
+        });
+
+        expect(messages).to.have.lengthOf(4);
+        expect(
+          messages.find((message) =>
+            message.content.includes('some disallowed message')
+          )
+        ).to.be.undefined;
+
+        expect(
+          messages.find((message) => message.content.includes('ok message'))
+        ).to.not.be.undefined;
+      });
     });
   });
 
