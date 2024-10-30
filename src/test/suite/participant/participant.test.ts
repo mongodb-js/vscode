@@ -2170,14 +2170,28 @@ Schema:
         });
 
         expect(messages).to.have.lengthOf(4);
+
+        const contentIncludes = (
+          message: unknown,
+          pattern: string
+        ): boolean => {
+          if (Array.isArray(message)) {
+            return message.find((sub) => sub.includes(pattern));
+          }
+          if (message instanceof String) {
+            return message.includes(pattern);
+          }
+          throw new Error('Unhandled message content type');
+        };
+
         expect(
           messages.find((message) =>
-            message.content.includes('some disallowed message')
+            contentIncludes(message, 'some disallowed message')
           )
         ).to.be.undefined;
 
         expect(
-          messages.find((message) => message.content.includes('ok message'))
+          messages.find((message) => contentIncludes(message, 'ok message'))
         ).to.not.be.undefined;
       });
     });
