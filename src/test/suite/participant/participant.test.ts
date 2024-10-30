@@ -2185,15 +2185,21 @@ Schema:
           throw new Error(`Unhandled message content type ${message}`);
         };
 
-        expect(
-          messages.find((message) =>
-            contentIncludes(message, 'some disallowed message')
-          )
-        ).to.be.undefined;
+        const messageContents = messages.map((message) => {
+          // There may be different types for the messages' content
+          const content = Array.isArray(message.content)
+            ? message.content.flatMap((sub) => sub.value).join('')
+            : message.content;
 
-        expect(
-          messages.find((message) => contentIncludes(message, 'ok message'))
-        ).to.not.be.undefined;
+          return content;
+        });
+
+        // Skip the preset prompt and check that the rest are correct.
+        expect(messageContents.slice(1)).deep.equal([
+          'give me the count of all people in the prod database',
+          'ok message',
+          'find all docs by a name example',
+        ]);
       });
     });
   });
