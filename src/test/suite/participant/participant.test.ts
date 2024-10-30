@@ -2171,17 +2171,18 @@ Schema:
 
         expect(messages).to.have.lengthOf(4);
 
-        const contentIncludes = (
-          message: unknown,
-          pattern: string
-        ): boolean => {
-          if (Array.isArray(message)) {
-            return message.find((sub) => sub.includes(pattern));
+        // VSCode's messages' content could either be array of values or a string
+        // This helper supports both.
+        const contentIncludes = (message: any, pattern: string): boolean => {
+          if (Array.isArray(message.content)) {
+            return message.content.find((sub: { value: string }) =>
+              sub.value.includes(pattern)
+            );
           }
-          if (message instanceof String) {
-            return message.includes(pattern);
+          if (message.content instanceof String) {
+            return message.content.includes(pattern);
           }
-          throw new Error('Unhandled message content type');
+          throw new Error(`Unhandled message content type ${message}`);
         };
 
         expect(
