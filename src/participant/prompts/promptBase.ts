@@ -193,6 +193,8 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
           historyItem.result.errorDetails?.message ===
           ParticipantErrorTypes.FILTERED
         ) {
+          // If the response led to a filtered error, we do not want the
+          // error-causing message to be sent again so we remove it.
           messages.pop();
           continue;
         }
