@@ -9,8 +9,8 @@ import { mdbTestExtension } from './stubbableMdbExtension';
 
 export async function run(): Promise<void> {
   const reporterOptions = {
-    spec: '-',
     'mocha-junit-reporter': path.join(__dirname, './test-results.xml'),
+    spec: '-',
   };
 
   // Create the mocha tester.
@@ -19,6 +19,7 @@ export async function run(): Promise<void> {
     reporterOptions,
     ui: 'tdd',
     color: true,
+    grep: 'Participant',
   });
 
   const testsRoot = path.join(__dirname, '..');

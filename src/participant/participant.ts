@@ -44,6 +44,7 @@ import formatError from '../utils/formatError';
 import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
+import type { DataService } from 'mongodb-data-service';
 
 const log = createLogger('participant');
 
@@ -671,64 +672,49 @@ export default class ParticipantController {
     }
   }
 
-  async renderCollectionsTree({
+  renderCollectionsTree({
+    collections,
     command,
     context,
     databaseName,
     stream,
   }: {
+    collections: Awaited<ReturnType<DataService['listCollections']>>;
     command: ParticipantCommand;
     databaseName: string;
     context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
-  }): Promise<void> {
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      return;
-    }
-
-    stream.push(
-      new vscode.ChatResponseProgressPart('Fetching collection names...')
+  }): void {
+    collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((coll) =>
+      stream.markdown(
+        createMarkdownLink({
+          commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+          data: {
+            command,
+            chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+              context.history
+            ),
+            databaseName,
+            collectionName: coll.name,
+          },
+          name: coll.name,
+        })
+      )
     );
-
-    try {
-      const collections = await dataService.listCollections(databaseName);
-      collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((coll) =>
-        stream.markdown(
-          createMarkdownLink({
-            commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
-            data: {
-              command,
-              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-                context.history
-              ),
-              databaseName,
-              collectionName: coll.name,
-            },
-            name: coll.name,
-          })
-        )
+    if (collections.length > MAX_MARKDOWN_LIST_LENGTH) {
+      stream.markdown(
+        createMarkdownLink({
+          commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+          data: {
+            command,
+            chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+              context.history
+            ),
+            databaseName,
+          },
+          name: 'Show more',
+        })
       );
-      if (collections.length > MAX_MARKDOWN_LIST_LENGTH) {
-        stream.markdown(
-          createMarkdownLink({
-            commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
-            data: {
-              command,
-              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-                context.history
-              ),
-              databaseName,
-            },
-            name: 'Show more',
-          })
-        );
-      }
-    } catch (error) {
-      log.error('Unable to fetch collections:', error);
-
-      // Users can always do this manually when asked to provide a collection name.
-      return;
     }
   }
 
@@ -811,7 +797,67 @@ export default class ParticipantController {
     };
   }
 
-  async _askForNamespace({
+  async _getCollections({
+    stream,
+    databaseName,
+  }: {
+    stream: vscode.ChatResponseStream;
+    databaseName: string;
+  }): Promise<ReturnType<DataService['listCollections']> | undefined> {
+    stream.push(
+      new vscode.ChatResponseProgressPart('Fetching collection names...')
+    );
+
+    const dataService = this._connectionController.getActiveDataService();
+
+    if (!dataService) {
+      return;
+    }
+    try {
+      return await dataService.listCollections(databaseName);
+    } catch (error) {
+      log.error('Unable to fetch collections:', error);
+      return;
+    }
+  }
+
+  /** Gets the collection name if there is only one collection.
+   *  Otherwise returns undefined and asks the user to select the collection. */
+  async _getOrAskForCollectionName({
+    context,
+    databaseName,
+    stream,
+    command,
+  }: {
+    command: ParticipantCommand;
+    context: vscode.ChatContext;
+    databaseName: string;
+    stream: vscode.ChatResponseStream;
+  }): Promise<string | undefined> {
+    const collections = await this._getCollections({ stream, databaseName });
+
+    if (collections !== undefined) {
+      if (collections.length === 1) {
+        return collections[0].name;
+      }
+
+      stream.markdown(
+        `Which collection would you like to use within ${databaseName}?\n\n`
+      );
+
+      this.renderCollectionsTree({
+        collections,
+        command,
+        databaseName,
+        context,
+        stream,
+      });
+    }
+
+    return;
+  }
+
+  async _askForDatabaseName({
     command,
     context,
     databaseName,
@@ -835,16 +881,6 @@ export default class ParticipantController {
       );
       await this.renderDatabasesTree({
         command,
-        context,
-        stream,
-      });
-    } else if (!collectionName) {
-      stream.markdown(
-        `Which collection would you like to use within ${databaseName}?\n\n`
-      );
-      await this.renderCollectionsTree({
-        command,
-        databaseName,
         context,
         stream,
       });
@@ -1011,12 +1047,33 @@ export default class ParticipantController {
     // we re-ask the question.
     const databaseName = lastMessage.metadata.databaseName;
     if (databaseName) {
+      const collections = await this._getCollections({
+        stream,
+        databaseName,
+      });
+
+      if (!collections) {
+        return namespaceRequestChatResult({
+          databaseName,
+          collectionName: undefined,
+          history: context.history,
+        });
+      }
+
+      // If there is only 1 collection in the database, we can pick it automatically
+      if (collections.length === 1) {
+        stream.markdown(Prompts.generic.getEmptyRequestResponse());
+        return emptyRequestChatResult(context.history);
+      }
+
       stream.markdown(
         vscode.l10n.t(
           'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
         )
       );
-      await this.renderCollectionsTree({
+
+      this.renderCollectionsTree({
+        collections,
         command,
         databaseName,
         context,
@@ -1043,6 +1100,7 @@ export default class ParticipantController {
   }
 
   // @MongoDB /schema
+  // eslint-disable-next-line complexity
   async handleSchemaRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
@@ -1068,20 +1126,41 @@ export default class ParticipantController {
       });
     }
 
-    const { databaseName, collectionName } = await this._getNamespaceFromChat({
+    const namespace = await this._getNamespaceFromChat({
       request,
       context,
       token,
     });
+    const { databaseName } = namespace;
+    let { collectionName } = namespace;
 
-    if (!databaseName || !collectionName) {
-      return await this._askForNamespace({
+    if (!databaseName) {
+      return await this._askForDatabaseName({
         command: '/schema',
         context,
         databaseName,
         collectionName,
         stream,
       });
+    }
+
+    if (!collectionName) {
+      collectionName = await this._getOrAskForCollectionName({
+        command: '/schema',
+        context,
+        databaseName,
+        stream,
+      });
+
+      // If the collection name could not get automatically selected,
+      // then the user has been prompted for it.
+      if (!collectionName) {
+        return namespaceRequestChatResult({
+          databaseName,
+          collectionName: undefined,
+          history: context.history,
+        });
+      }
     }
 
     if (token.isCancellationRequested) {
@@ -1194,19 +1273,40 @@ export default class ParticipantController {
     // First we ask the model to parse for the database and collection name.
     // If they exist, we can then use them in our final completion.
     // When they don't exist we ask the user for them.
-    const { databaseName, collectionName } = await this._getNamespaceFromChat({
+    const namespace = await this._getNamespaceFromChat({
       request,
       context,
       token,
     });
-    if (!databaseName || !collectionName) {
-      return await this._askForNamespace({
+    const { databaseName } = namespace;
+    let { collectionName } = namespace;
+
+    if (!databaseName) {
+      return await this._askForDatabaseName({
         command: '/query',
         context,
         databaseName,
         collectionName,
         stream,
       });
+    }
+    if (!collectionName) {
+      collectionName = await this._getOrAskForCollectionName({
+        command: '/query',
+        context,
+        databaseName,
+        stream,
+      });
+
+      // If the collection name could not get automatically selected,
+      // then the user has been prompted for it.
+      if (!collectionName) {
+        return namespaceRequestChatResult({
+          databaseName,
+          collectionName: undefined,
+          history: context.history,
+        });
+      }
     }
 
     if (token.isCancellationRequested) {

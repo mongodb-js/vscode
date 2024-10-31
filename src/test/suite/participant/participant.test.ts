@@ -404,6 +404,19 @@ suite('Participant Controller Test Suite', function () {
 
   suite('when connected', function () {
     let sampleStub;
+    let mockedCollectionList = [
+      { name: 'collOne' },
+      { name: 'notifications' },
+      { name: 'products' },
+      { name: 'orders' },
+      { name: 'categories' },
+      { name: 'invoices' },
+      { name: 'transactions' },
+      { name: 'logs' },
+      { name: 'messages' },
+      { name: 'sessions' },
+      { name: 'feedback' },
+    ];
 
     beforeEach(function () {
       sampleStub = sinon.stub();
@@ -426,20 +439,7 @@ suite('Participant Controller Test Suite', function () {
                 { name: 'analytics' },
                 { name: '123' },
               ]),
-            listCollections: () =>
-              Promise.resolve([
-                { name: 'collOne' },
-                { name: 'notifications' },
-                { name: 'products' },
-                { name: 'orders' },
-                { name: 'categories' },
-                { name: 'invoices' },
-                { name: 'transactions' },
-                { name: 'logs' },
-                { name: 'messages' },
-                { name: 'sessions' },
-                { name: 'feedback' },
-              ]),
+            listCollections: () => Promise.resolve(mockedCollectionList),
             getMongoClientConnectionOptions: () => ({
               url: TEST_DATABASE_URI,
               options: {},
@@ -1298,107 +1298,139 @@ suite('Participant Controller Test Suite', function () {
             });
           });
 
-          test('handles empty collection name', async function () {
+          suite('with an empty collection name', function () {
             const chatRequestMock = {
               prompt: '',
               command: 'query',
               references: [],
             };
-            chatContextStub = {
-              history: [
-                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-                  prompt: 'find all docs by a name example',
-                  command: 'query',
-                  references: [],
-                  participant: CHAT_PARTICIPANT_ID,
-                }),
-                Object.assign(
-                  Object.create(vscode.ChatResponseTurn.prototype),
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: {
-                          value:
-                            'Which database would you like to query within this database?',
-                        } as vscode.MarkdownString,
-                      },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        intent: 'askForNamespace',
-                      },
-                    },
-                  }
-                ),
-                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-                  prompt: 'dbOne',
-                  command: 'query',
-                  references: [],
-                  participant: CHAT_PARTICIPANT_ID,
-                }),
-                Object.assign(
-                  Object.create(vscode.ChatResponseTurn.prototype),
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: {
-                          value:
-                            'Which collection would you like to query within dbOne?',
-                        } as vscode.MarkdownString,
-                      },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        intent: 'askForNamespace',
-                        databaseName: 'dbOne',
-                        collectionName: undefined,
-                        chatId: 'pineapple',
-                      },
-                    },
-                  }
-                ),
-              ],
-            };
-            const chatResult = await invokeChatHandler(chatRequestMock);
 
-            const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
-            expect(emptyMessage).to.include(
-              'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
-            );
-            const listCollsMessage = chatStreamStub.markdown.getCall(1).args[0];
-            expect(listCollsMessage.value).to.include(
-              `- [collOne](command:mdb.selectCollectionWithParticipant?${encodeStringify(
-                {
-                  command: '/query',
-                  chatId: 'pineapple',
-                  databaseName: 'dbOne',
-                  collectionName: 'collOne',
-                }
-              )})`
-            );
-            const showMoreCollsMessage =
-              chatStreamStub.markdown.getCall(11).args[0];
-            expect(showMoreCollsMessage.value).to.include(
-              `- [Show more](command:mdb.selectCollectionWithParticipant?${encodeStringify(
-                {
-                  command: '/query',
-                  chatId: 'pineapple',
-                  databaseName: 'dbOne',
-                }
-              )})`
-            );
-            expect({
-              ...chatResult?.metadata,
-              chatId: undefined,
-            }).to.deep.equal({
-              intent: 'askForNamespace',
-              collectionName: undefined,
-              databaseName: 'dbOne',
-              chatId: undefined,
+            beforeEach(function () {
+              chatContextStub = {
+                history: [
+                  Object.assign(
+                    Object.create(vscode.ChatRequestTurn.prototype),
+                    {
+                      prompt: 'find all docs by a name example',
+                      command: 'query',
+                      references: [],
+                      participant: CHAT_PARTICIPANT_ID,
+                    }
+                  ),
+                  Object.assign(
+                    Object.create(vscode.ChatResponseTurn.prototype),
+                    {
+                      participant: CHAT_PARTICIPANT_ID,
+                      response: [
+                        {
+                          value: {
+                            value:
+                              'Which database would you like to query within this database?',
+                          } as vscode.MarkdownString,
+                        },
+                      ],
+                      command: 'query',
+                      result: {
+                        metadata: {
+                          intent: 'askForNamespace',
+                        },
+                      },
+                    }
+                  ),
+                  Object.assign(
+                    Object.create(vscode.ChatRequestTurn.prototype),
+                    {
+                      prompt: 'dbOne',
+                      command: 'query',
+                      references: [],
+                      participant: CHAT_PARTICIPANT_ID,
+                    }
+                  ),
+                  Object.assign(
+                    Object.create(vscode.ChatResponseTurn.prototype),
+                    {
+                      participant: CHAT_PARTICIPANT_ID,
+                      response: [
+                        {
+                          value: {
+                            value:
+                              'Which collection would you like to query within dbOne?',
+                          } as vscode.MarkdownString,
+                        },
+                      ],
+                      command: 'query',
+                      result: {
+                        metadata: {
+                          intent: 'askForNamespace',
+                          databaseName: 'dbOne',
+                          collectionName: undefined,
+                          chatId: 'pineapple',
+                        },
+                      },
+                    }
+                  ),
+                ],
+              };
+            });
+
+            test('prompts to select collection name', async function () {
+              const chatResult = await invokeChatHandler(chatRequestMock);
+
+              const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
+              expect(emptyMessage).to.include(
+                'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+              );
+              const listCollsMessage =
+                chatStreamStub.markdown.getCall(1).args[0];
+              expect(listCollsMessage.value).to.include(
+                `- [collOne](command:mdb.selectCollectionWithParticipant?${encodeStringify(
+                  {
+                    command: '/query',
+                    chatId: 'pineapple',
+                    databaseName: 'dbOne',
+                    collectionName: 'collOne',
+                  }
+                )})`
+              );
+              const showMoreCollsMessage =
+                chatStreamStub.markdown.getCall(11).args[0];
+              expect(showMoreCollsMessage.value).to.include(
+                `- [Show more](command:mdb.selectCollectionWithParticipant?${encodeStringify(
+                  {
+                    command: '/query',
+                    chatId: 'pineapple',
+                    databaseName: 'dbOne',
+                  }
+                )})`
+              );
+              expect({
+                ...chatResult?.metadata,
+                chatId: undefined,
+              }).to.deep.equal({
+                intent: 'askForNamespace',
+                collectionName: undefined,
+                databaseName: 'dbOne',
+                chatId: undefined,
+              });
+            });
+
+            test('shows the empty request message if there is only 1 collection in the database', async function () {
+              mockedCollectionList = [{ name: 'onlyColl' }];
+
+              const chatResult = await invokeChatHandler(chatRequestMock);
+
+              const responses = chatStreamStub.markdown
+                .getCalls()
+                .map((call) => call.args[0]);
+              expect(responses.length).equals(1);
+              expect(responses[0]).to.include(
+                'Ask anything about MongoDB, from writing queries to questions about your cluster.'
+              );
+
+              expect(chatResult).deep.equals({
+                intent: 'emptyRequest',
+                chatId: 'pineapple',
+              });
             });
           });
         });
