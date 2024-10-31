@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { CliServiceProvider } from '@mongosh/service-provider-node-driver';
+import type { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
 export type OutputItem = {
   namespace: string | null;
@@ -60,9 +60,9 @@ export interface ExportToLanguageNamespace {
   collectionName: string | null;
 }
 
-// MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).
+// MongoClientOptions is the second argument of NodeDriverServiceProvider.connect(connectionStr, options).
 export type MongoClientOptions = NonNullable<
-  Parameters<(typeof CliServiceProvider)['connect']>[1]
+  Parameters<(typeof NodeDriverServiceProvider)['connect']>[1]
 >;
 
 export interface WorkerEvaluate {

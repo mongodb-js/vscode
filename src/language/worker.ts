@@ -1,4 +1,4 @@
-import { CliServiceProvider } from '@mongosh/service-provider-node-driver';
+import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import { ServerCommands } from './serverCommands';
@@ -71,7 +71,7 @@ export const execute = async ({
   data: ShellEvaluateResult | null;
   error?: any;
 }> => {
-  const serviceProvider = await CliServiceProvider.connect(
+  const serviceProvider = await NodeDriverServiceProvider.connect(
     connectionString,
     connectionOptions
   );
