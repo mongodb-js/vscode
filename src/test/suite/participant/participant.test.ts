@@ -1552,7 +1552,7 @@ suite('Participant Controller Test Suite', function () {
               );
             });
 
-            test('if collection name is not provided but there is only one collection in the database, it automatically picks it', async function () {
+            test('collection name gets picked automatically if there is only 1', async function () {
               mockedCollectionList = [{ name: 'onlyOneColl' }];
               const renderCollectionsTreeSpy = sinon.spy(
                 testParticipantController,
@@ -1569,10 +1569,7 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               });
 
-              expect(chatResult?.metadata).deep.equals({
-                chatId: 'test-chat-id',
-                intent: 'schema',
-              });
+              expect(renderCollectionsTreeSpy.called).to.be.false;
 
               expect(
                 fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0]
@@ -1580,14 +1577,38 @@ suite('Participant Controller Test Suite', function () {
                 collectionName: 'onlyOneColl',
               });
 
-              const responseContents = chatStreamStub.markdown
-                .getCalls()
-                .map((call) => call.args[0]);
-              expect(responseContents.length).equals(1);
-              expect(responseContents[0]).equals(
-                'Unable to generate a schema from the collection, no documents found.'
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'schema',
+              });
+            });
+
+            test('prompts for collection name if there are multiple available', async function () {
+              const renderCollectionsTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderCollectionsTree'
               );
-              expect(renderCollectionsTreeSpy.called).to.be.false;
+              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
+                testParticipantController,
+                '_fetchCollectionSchemaAndSampleDocuments'
+              );
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'dbOne',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
+              expect(
+                fetchCollectionSchemaAndSampleDocumentsSpy.called
+              ).to.be.false;
+
+              expect(chatResult?.metadata).deep.equals({
+                intent: 'askForNamespace',
+                chatId: testChatId,
+                databaseName: 'dbOne',
+              });
             });
           });
         });
