@@ -1427,7 +1427,7 @@ suite('Participant Controller Test Suite', function () {
                 'Ask anything about MongoDB, from writing queries to questions about your cluster.'
               );
 
-              expect(chatResult).deep.equals({
+              expect(chatResult?.metadata).deep.equals({
                 intent: 'emptyRequest',
                 chatId: 'pineapple',
               });
@@ -1538,6 +1538,57 @@ suite('Participant Controller Test Suite', function () {
             expect(getMessageContent(messages[3])).to.include(
               'see previous messages'
             );
+          });
+
+          suite('with an empty collection name', function () {
+            beforeEach(function () {
+              sinon.replace(
+                testParticipantController._chatMetadataStore,
+                'getChatMetadata',
+                () => ({
+                  databaseName: 'dbOne',
+                  collectionName: undefined,
+                })
+              );
+            });
+
+            test('if collection name is not provided but there is only one collection in the database, it automatically picks it', async function () {
+              mockedCollectionList = [{ name: 'onlyOneColl' }];
+              const renderCollectionsTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderCollectionsTree'
+              );
+              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
+                testParticipantController,
+                '_fetchCollectionSchemaAndSampleDocuments'
+              );
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'dbOne',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: 'test-chat-id',
+                intent: 'schema',
+              });
+
+              expect(
+                fetchCollectionSchemaAndSampleDocumentsSpy.args[0]
+              ).to.include({
+                collectionName: 'onlyOneColl',
+              });
+
+              const responseContents = chatStreamStub.markdown
+                .getCalls()
+                .map((call) => call.args[0]);
+              expect(responseContents.length).equals(1);
+              expect(responseContents[0]).equals(
+                'Unable to generate a schema from the collection, no documents found.'
+              );
+              expect(renderCollectionsTreeSpy.called).to.be.false;
+            });
           });
         });
 
