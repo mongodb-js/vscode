@@ -19,7 +19,6 @@ export async function run(): Promise<void> {
     reporterOptions,
     ui: 'tdd',
     color: true,
-    grep: 'Participant',
   });
 
   const testsRoot = path.join(__dirname, '..');
