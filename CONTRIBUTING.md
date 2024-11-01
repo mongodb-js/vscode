@@ -49,7 +49,7 @@ You can run tests using command line along with an optional `MOCHA_GREP` environ
 MOCHA_GREP="Participant .* prompt builders" npm test
 ```
 
-It may be quicker to be more specific and use `npm run test-extension` or `npm run test-webview`.
+It may be quicker to be more specific and use `npm run test-extension` or `npm run test-webview` after compiling.
 
 ### Using Proposed API
 
