@@ -35,6 +35,22 @@ npm run watch
 
 2. Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) open this directory and press `F5` to begin debugging the extension. This should launch a new VSCode window which is running the extension.
 
+### Running Tests
+
+#### Using the VSCode debugger
+
+You can launch a debugging task for tests inside VSCode with the **"Run Tests"** task. There you also can specify an optional test filter.
+
+#### Using command line
+
+You can run tests using command line along with an optional `MOCHA_GREP` environment variable to apply a grep filter on tests to run.
+
+```shell
+MOCHA_GREP="Participant .* prompt builders" npm test
+```
+
+It may be quicker to be more specific and use `npm run test-extension` or `npm run test-webview`.
+
 ### Using Proposed API
 
 The vscode extension will occasionally need to use [proposed API](https://code.visualstudio.com/api/advanced-topics/using-proposed-api) that haven't been promoted to stable yet. To enable an API proposal, add it to the `enabledApiProposals` section in `package.json`, then run `cd src/vscode-dts && npx @vscode/dts dev` to install the type definitions for the API you want to enable.
