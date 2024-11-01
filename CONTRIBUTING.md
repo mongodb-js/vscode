@@ -39,7 +39,7 @@ npm run watch
 
 #### Using the VSCode debugger
 
-You can launch a debugging task for tests inside VSCode with the **"Run Tests"** task. There you also can specify an optional test filter.
+You can launch a debugging task for tests inside VSCode with the **"Run Tests"** task. There you can also specify an optional test filter.
 
 #### Using command line
 
