@@ -1161,6 +1161,15 @@ export default class ParticipantController {
           history: context.history,
         });
       }
+
+      // Save the collection name in the metadata.
+      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+        context.history
+      );
+      this._chatMetadataStore.setChatMetadata(chatId, {
+        ...this._chatMetadataStore.getChatMetadata(chatId),
+        collectionName,
+      });
     }
 
     if (token.isCancellationRequested) {
@@ -1307,6 +1316,15 @@ export default class ParticipantController {
           history: context.history,
         });
       }
+
+      // Save the collection name in the metadata.
+      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+        context.history
+      );
+      this._chatMetadataStore.setChatMetadata(chatId, {
+        ...this._chatMetadataStore.getChatMetadata(chatId),
+        collectionName,
+      });
     }
 
     if (token.isCancellationRequested) {
