@@ -404,22 +404,26 @@ suite('Participant Controller Test Suite', function () {
 
   suite('when connected', function () {
     let sampleStub;
-    let mockedCollectionList = [
-      { name: 'collOne' },
-      { name: 'notifications' },
-      { name: 'products' },
-      { name: 'orders' },
-      { name: 'categories' },
-      { name: 'invoices' },
-      { name: 'transactions' },
-      { name: 'logs' },
-      { name: 'messages' },
-      { name: 'sessions' },
-      { name: 'feedback' },
-    ];
+    let listCollectionsStub;
 
     beforeEach(function () {
       sampleStub = sinon.stub();
+      listCollectionsStub = sinon
+        .stub()
+        .resolves([
+          { name: 'collOne' },
+          { name: 'notifications' },
+          { name: 'products' },
+          { name: 'orders' },
+          { name: 'categories' },
+          { name: 'invoices' },
+          { name: 'transactions' },
+          { name: 'logs' },
+          { name: 'messages' },
+          { name: 'sessions' },
+          { name: 'feedback' },
+        ]);
+
       sinon.replace(
         testParticipantController._connectionController,
         'getActiveDataService',
@@ -439,7 +443,7 @@ suite('Participant Controller Test Suite', function () {
                 { name: 'analytics' },
                 { name: '123' },
               ]),
-            listCollections: () => Promise.resolve(mockedCollectionList),
+            listCollections: listCollectionsStub,
             getMongoClientConnectionOptions: () => ({
               url: TEST_DATABASE_URI,
               options: {},
@@ -1373,7 +1377,30 @@ suite('Participant Controller Test Suite', function () {
               };
             });
 
-            test('prompts to select collection name', async function () {
+            afterEach(function () {
+              sinon.restore();
+            });
+
+            test('collection name gets picked automatically if there is only', async function () {
+              listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
+
+              const chatResult = await invokeChatHandler(chatRequestMock);
+
+              const responses = chatStreamStub.markdown
+                .getCalls()
+                .map((call) => call.args[0]);
+              expect(responses.length).equals(1);
+              expect(responses[0]).to.include(
+                'Ask anything about MongoDB, from writing queries to questions about your cluster.'
+              );
+
+              expect(chatResult?.metadata).deep.equals({
+                intent: 'emptyRequest',
+                chatId: 'pineapple',
+              });
+            });
+
+            test('prompts for collection name if there are multiple available', async function () {
               const chatResult = await invokeChatHandler(chatRequestMock);
 
               const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
@@ -1411,25 +1438,6 @@ suite('Participant Controller Test Suite', function () {
                 collectionName: undefined,
                 databaseName: 'dbOne',
                 chatId: undefined,
-              });
-            });
-
-            test('shows the empty request message if there is only 1 collection in the database', async function () {
-              mockedCollectionList = [{ name: 'onlyColl' }];
-
-              const chatResult = await invokeChatHandler(chatRequestMock);
-
-              const responses = chatStreamStub.markdown
-                .getCalls()
-                .map((call) => call.args[0]);
-              expect(responses.length).equals(1);
-              expect(responses[0]).to.include(
-                'Ask anything about MongoDB, from writing queries to questions about your cluster.'
-              );
-
-              expect(chatResult?.metadata).deep.equals({
-                intent: 'emptyRequest',
-                chatId: 'pineapple',
               });
             });
           });
@@ -1553,7 +1561,7 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('collection name gets picked automatically if there is only 1', async function () {
-              mockedCollectionList = [{ name: 'onlyOneColl' }];
+              listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
               const renderCollectionsTreeSpy = sinon.spy(
                 testParticipantController,
                 'renderCollectionsTree'
@@ -1608,6 +1616,7 @@ suite('Participant Controller Test Suite', function () {
                 intent: 'askForNamespace',
                 chatId: testChatId,
                 databaseName: 'dbOne',
+                collectionName: undefined,
               });
             });
           });
