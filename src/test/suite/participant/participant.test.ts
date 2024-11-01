@@ -1575,7 +1575,7 @@ suite('Participant Controller Test Suite', function () {
               });
 
               expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.args[0]
+                fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0]
               ).to.include({
                 collectionName: 'onlyOneColl',
               });
