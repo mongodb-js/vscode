@@ -784,78 +784,6 @@ export default class ParticipantController {
     };
   }
 
-  /** Helper which either automatically picks and returns missing parts of the namespace (if any)
-   *  or prompts the user to pick the missing namespace.
-   */
-  async _getOrAskForMissingNamespace({
-    databaseName,
-    collectionName,
-    context,
-    stream,
-    command,
-  }: {
-    databaseName: string | undefined;
-    collectionName: string | undefined;
-    context: vscode.ChatContext;
-    stream: vscode.ChatResponseStream;
-    command: ParticipantCommand;
-  }): Promise<{
-    databaseName: string | undefined;
-    collectionName: string | undefined;
-  }> {
-    if (!databaseName) {
-      databaseName = await this._getOrAskForDatabaseName({
-        command,
-        context,
-        stream,
-      });
-
-      // If the database name could not get automatically selected,
-      // then the user has been prompted for it instead.
-      if (!databaseName) {
-        return { databaseName, collectionName };
-      }
-
-      // Save the database name in the metadata.
-      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-        context.history
-      );
-      this._chatMetadataStore.setChatMetadata(chatId, {
-        ...this._chatMetadataStore.getChatMetadata(chatId),
-        databaseName,
-      });
-    }
-
-    if (!collectionName) {
-      collectionName = await this._getOrAskForCollectionName({
-        command: '/schema',
-        context,
-        databaseName,
-        stream,
-      });
-
-      // If the collection name could not get automatically selected,
-      // then the user has been prompted for it instead.
-      if (!collectionName) {
-        return {
-          databaseName,
-          collectionName,
-        };
-      }
-
-      // Save the collection name in the metadata.
-      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-        context.history
-      );
-      this._chatMetadataStore.setChatMetadata(chatId, {
-        ...this._chatMetadataStore.getChatMetadata(chatId),
-        collectionName,
-      });
-    }
-
-    return { collectionName, databaseName };
-  }
-
   async _getDatabases({
     stream,
   }: {
@@ -958,14 +886,6 @@ export default class ParticipantController {
     context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
   }): Promise<string | undefined> {
-    // If no database or collection name is found in the user prompt,
-    // we retrieve the available namespaces from the current connection.
-    // Users can then select a value by clicking on an item in the list.
-    stream.markdown(
-      `What is the name of the database you would like${
-        command === '/query' ? ' this query' : ''
-      } to run against?\n\n`
-    );
     const databases = await this._getDatabases({ stream });
 
     if (databases === undefined || databases.length === 0) {
@@ -977,6 +897,15 @@ export default class ParticipantController {
       return databases[0].name;
     }
 
+    // If no database or collection name is found in the user prompt,
+    // we retrieve the available namespaces from the current connection.
+    // Users can then select a value by clicking on an item in the list.
+    stream.markdown(
+      `What is the name of the database you would like${
+        command === '/query' ? ' this query' : ''
+      } to run against?\n\n`
+    );
+
     this.renderDatabasesTree({
       databases,
       command,
@@ -985,6 +914,78 @@ export default class ParticipantController {
     });
 
     return;
+  }
+
+  /** Helper which either automatically picks and returns missing parts of the namespace (if any)
+   *  or prompts the user to pick the missing namespace.
+   */
+  async _getOrAskForMissingNamespace({
+    databaseName,
+    collectionName,
+    context,
+    stream,
+    command,
+  }: {
+    databaseName: string | undefined;
+    collectionName: string | undefined;
+    context: vscode.ChatContext;
+    stream: vscode.ChatResponseStream;
+    command: ParticipantCommand;
+  }): Promise<{
+    databaseName: string | undefined;
+    collectionName: string | undefined;
+  }> {
+    if (!databaseName) {
+      databaseName = await this._getOrAskForDatabaseName({
+        command,
+        context,
+        stream,
+      });
+
+      // If the database name could not get automatically selected,
+      // then the user has been prompted for it instead.
+      if (!databaseName) {
+        return { databaseName, collectionName };
+      }
+
+      // Save the database name in the metadata.
+      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+        context.history
+      );
+      this._chatMetadataStore.setChatMetadata(chatId, {
+        ...this._chatMetadataStore.getChatMetadata(chatId),
+        databaseName,
+      });
+    }
+
+    if (!collectionName) {
+      collectionName = await this._getOrAskForCollectionName({
+        command,
+        context,
+        databaseName,
+        stream,
+      });
+
+      // If the collection name could not get automatically selected,
+      // then the user has been prompted for it instead.
+      if (!collectionName) {
+        return {
+          databaseName,
+          collectionName,
+        };
+      }
+
+      // Save the collection name in the metadata.
+      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+        context.history
+      );
+      this._chatMetadataStore.setChatMetadata(chatId, {
+        ...this._chatMetadataStore.getChatMetadata(chatId),
+        collectionName,
+      });
+    }
+
+    return { collectionName, databaseName };
   }
 
   _doesLastMessageAskForNamespace(
@@ -1152,12 +1153,6 @@ export default class ParticipantController {
           collectionName: undefined,
           history: context.history,
         });
-      }
-
-      // If there is only 1 collection in the database, we can pick it automatically
-      if (collections.length === 1) {
-        stream.markdown(Prompts.generic.getEmptyRequestResponse());
-        return emptyRequestChatResult(context.history);
       }
 
       stream.markdown(
