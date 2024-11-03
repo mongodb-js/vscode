@@ -613,62 +613,49 @@ export default class ParticipantController {
     ) as Promise<boolean>;
   }
 
-  async renderDatabasesTree({
+  renderDatabasesTree({
     command,
     context,
     stream,
+    databases,
   }: {
     command: ParticipantCommand;
     context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
-  }): Promise<void> {
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      return;
-    }
-
-    stream.push(
-      new vscode.ChatResponseProgressPart('Fetching database names...')
+    databases: {
+      _id: string;
+      name: string;
+    }[];
+  }): void {
+    databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((db) =>
+      stream.markdown(
+        createMarkdownLink({
+          commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+          data: {
+            command,
+            chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+              context.history
+            ),
+            databaseName: db.name,
+          },
+          name: db.name,
+        })
+      )
     );
 
-    try {
-      const databases = await dataService.listDatabases({
-        nameOnly: true,
-      });
-      databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((db) =>
-        stream.markdown(
-          createMarkdownLink({
-            commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-            data: {
-              command,
-              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-                context.history
-              ),
-              databaseName: db.name,
-            },
-            name: db.name,
-          })
-        )
+    if (databases.length > MAX_MARKDOWN_LIST_LENGTH) {
+      stream.markdown(
+        createMarkdownLink({
+          data: {
+            command,
+            chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+              context.history
+            ),
+          },
+          commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+          name: 'Show more',
+        })
       );
-      if (databases.length > MAX_MARKDOWN_LIST_LENGTH) {
-        stream.markdown(
-          createMarkdownLink({
-            data: {
-              command,
-              chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-                context.history
-              ),
-            },
-            commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-            name: 'Show more',
-          })
-        );
-      }
-    } catch (error) {
-      log.error('Unable to fetch databases:', error);
-
-      // Users can always do this manually when asked to provide a database name.
-      return;
     }
   }
 
@@ -797,6 +784,37 @@ export default class ParticipantController {
     };
   }
 
+  async _getDatabases({
+    stream,
+  }: {
+    stream: vscode.ChatResponseStream;
+  }): Promise<
+    | {
+        _id: string;
+        name: string;
+      }[]
+    | undefined
+  > {
+    stream.push(
+      new vscode.ChatResponseProgressPart('Fetching database names...')
+    );
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      return;
+    }
+
+    try {
+      const databases = await dataService.listDatabases({
+        nameOnly: true,
+      });
+      return databases;
+    } catch (error) {
+      log.error('Unable to fetch databases:', error);
+
+      return;
+    }
+  }
+
   async _getCollections({
     stream,
     databaseName,
@@ -857,40 +875,44 @@ export default class ParticipantController {
     return;
   }
 
-  async _askForDatabaseName({
+  /** Gets the database name if there is only one collection.
+   *  Otherwise returns undefined and asks the user to select the database. */
+  async _getOrAskForDatabaseName({
     command,
     context,
-    databaseName,
-    collectionName,
     stream,
   }: {
     command: ParticipantCommand;
     context: vscode.ChatContext;
-    databaseName: string | undefined;
-    collectionName: string | undefined;
     stream: vscode.ChatResponseStream;
-  }): Promise<ChatResult> {
+  }): Promise<string | undefined> {
     // If no database or collection name is found in the user prompt,
     // we retrieve the available namespaces from the current connection.
     // Users can then select a value by clicking on an item in the list.
-    if (!databaseName) {
-      stream.markdown(
-        `What is the name of the database you would like${
-          command === '/query' ? ' this query' : ''
-        } to run against?\n\n`
-      );
-      await this.renderDatabasesTree({
-        command,
-        context,
-        stream,
-      });
+    stream.markdown(
+      `What is the name of the database you would like${
+        command === '/query' ? ' this query' : ''
+      } to run against?\n\n`
+    );
+    const databases = await this._getDatabases({ stream });
+
+    if (databases === undefined || databases.length === 0) {
+      log.error('No databases found');
+      return;
     }
 
-    return namespaceRequestChatResult({
-      databaseName,
-      collectionName,
-      history: context.history,
+    if (databases.length === 1) {
+      return databases[0].name;
+    }
+
+    this.renderDatabasesTree({
+      databases,
+      command,
+      context,
+      stream,
     });
+
+    return;
   }
 
   _doesLastMessageAskForNamespace(
@@ -1045,7 +1067,7 @@ export default class ParticipantController {
 
     // When the last message was asking for a database or collection name,
     // we re-ask the question.
-    const databaseName = lastMessage.metadata.databaseName;
+    let databaseName = lastMessage.metadata.databaseName;
     if (databaseName) {
       const collections = await this._getCollections({
         stream,
@@ -1085,10 +1107,11 @@ export default class ParticipantController {
           'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
         )
       );
-      await this.renderDatabasesTree({
+
+      databaseName = await this._getOrAskForDatabaseName({
         command,
-        context,
         stream,
+        context,
       });
     }
 
@@ -1131,17 +1154,24 @@ export default class ParticipantController {
       context,
       token,
     });
-    const { databaseName } = namespace;
-    let { collectionName } = namespace;
+    let { databaseName, collectionName } = namespace;
 
     if (!databaseName) {
-      return await this._askForDatabaseName({
+      databaseName = await this._getOrAskForDatabaseName({
         command: '/schema',
         context,
-        databaseName,
-        collectionName,
         stream,
       });
+
+      // If the database name could not get automatically selected,
+      // then the user has been prompted for it.
+      if (!databaseName) {
+        return namespaceRequestChatResult({
+          databaseName,
+          collectionName,
+          history: context.history,
+        });
+      }
     }
 
     if (!collectionName) {
@@ -1157,7 +1187,7 @@ export default class ParticipantController {
       if (!collectionName) {
         return namespaceRequestChatResult({
           databaseName,
-          collectionName: undefined,
+          collectionName,
           history: context.history,
         });
       }
