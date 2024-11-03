@@ -1230,7 +1230,7 @@ export default class ParticipantController {
       });
 
     // If either the database or collection name could not be automatically picked
-    // then the user has be prompted to select one manually.
+    // then the user has been prompted to select one manually.
     if (databaseName === undefined || collectionName === undefined) {
       return namespaceRequestChatResult({
         databaseName,
@@ -1363,7 +1363,7 @@ export default class ParticipantController {
       });
 
     // If either the database or collection name could not be automatically picked
-    // then the user has be prompted to select one manually.
+    // then the user has been prompted to select one manually.
     if (databaseName === undefined || collectionName === undefined) {
       return namespaceRequestChatResult({
         databaseName,
