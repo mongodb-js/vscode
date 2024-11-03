@@ -19,6 +19,7 @@ export async function run(): Promise<void> {
     reporterOptions,
     ui: 'tdd',
     color: true,
+    grep: process.env.MOCHA_GREP,
   });
 
   const testsRoot = path.join(__dirname, '..');
