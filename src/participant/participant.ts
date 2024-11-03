@@ -784,6 +784,78 @@ export default class ParticipantController {
     };
   }
 
+  /** Helper which either automatically picks and returns missing parts of the namespace (if any)
+   *  or prompts the user to pick the missing namespace.
+   */
+  async _getOrAskForMissingNamespace({
+    databaseName,
+    collectionName,
+    context,
+    stream,
+    command,
+  }: {
+    databaseName: string | undefined;
+    collectionName: string | undefined;
+    context: vscode.ChatContext;
+    stream: vscode.ChatResponseStream;
+    command: ParticipantCommand;
+  }): Promise<{
+    databaseName: string | undefined;
+    collectionName: string | undefined;
+  }> {
+    if (!databaseName) {
+      databaseName = await this._getOrAskForDatabaseName({
+        command,
+        context,
+        stream,
+      });
+
+      // If the database name could not get automatically selected,
+      // then the user has been prompted for it instead.
+      if (!databaseName) {
+        return { databaseName, collectionName };
+      }
+
+      // Save the database name in the metadata.
+      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+        context.history
+      );
+      this._chatMetadataStore.setChatMetadata(chatId, {
+        ...this._chatMetadataStore.getChatMetadata(chatId),
+        databaseName,
+      });
+    }
+
+    if (!collectionName) {
+      collectionName = await this._getOrAskForCollectionName({
+        command: '/schema',
+        context,
+        databaseName,
+        stream,
+      });
+
+      // If the collection name could not get automatically selected,
+      // then the user has been prompted for it instead.
+      if (!collectionName) {
+        return {
+          databaseName,
+          collectionName,
+        };
+      }
+
+      // Save the collection name in the metadata.
+      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+        context.history
+      );
+      this._chatMetadataStore.setChatMetadata(chatId, {
+        ...this._chatMetadataStore.getChatMetadata(chatId),
+        collectionName,
+      });
+    }
+
+    return { collectionName, databaseName };
+  }
+
   async _getDatabases({
     stream,
   }: {
@@ -1154,51 +1226,21 @@ export default class ParticipantController {
       context,
       token,
     });
-    let { databaseName, collectionName } = namespace;
-
-    if (!databaseName) {
-      databaseName = await this._getOrAskForDatabaseName({
-        command: '/schema',
+    const { databaseName, collectionName } =
+      await this._getOrAskForMissingNamespace({
+        ...namespace,
         context,
         stream,
+        command: '/schema',
       });
 
-      // If the database name could not get automatically selected,
-      // then the user has been prompted for it.
-      if (!databaseName) {
-        return namespaceRequestChatResult({
-          databaseName,
-          collectionName,
-          history: context.history,
-        });
-      }
-    }
-
-    if (!collectionName) {
-      collectionName = await this._getOrAskForCollectionName({
-        command: '/schema',
-        context,
+    // If either the database or collection name could not be automatically picked
+    // then the user has be prompted to select one manually.
+    if (databaseName === undefined || collectionName === undefined) {
+      return namespaceRequestChatResult({
         databaseName,
-        stream,
-      });
-
-      // If the collection name could not get automatically selected,
-      // then the user has been prompted for it.
-      if (!collectionName) {
-        return namespaceRequestChatResult({
-          databaseName,
-          collectionName,
-          history: context.history,
-        });
-      }
-
-      // Save the collection name in the metadata.
-      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-        context.history
-      );
-      this._chatMetadataStore.setChatMetadata(chatId, {
-        ...this._chatMetadataStore.getChatMetadata(chatId),
         collectionName,
+        history: context.history,
       });
     }
 
@@ -1317,43 +1359,21 @@ export default class ParticipantController {
       context,
       token,
     });
-    const { databaseName } = namespace;
-    let { collectionName } = namespace;
-
-    if (!databaseName) {
-      return await this._askForDatabaseName({
-        command: '/query',
+    const { databaseName, collectionName } =
+      await this._getOrAskForMissingNamespace({
+        ...namespace,
         context,
-        databaseName,
-        collectionName,
         stream,
-      });
-    }
-    if (!collectionName) {
-      collectionName = await this._getOrAskForCollectionName({
         command: '/query',
-        context,
-        databaseName,
-        stream,
       });
 
-      // If the collection name could not get automatically selected,
-      // then the user has been prompted for it.
-      if (!collectionName) {
-        return namespaceRequestChatResult({
-          databaseName,
-          collectionName: undefined,
-          history: context.history,
-        });
-      }
-
-      // Save the collection name in the metadata.
-      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-        context.history
-      );
-      this._chatMetadataStore.setChatMetadata(chatId, {
-        ...this._chatMetadataStore.getChatMetadata(chatId),
+    // If either the database or collection name could not be automatically picked
+    // then the user has be prompted to select one manually.
+    if (databaseName === undefined || collectionName === undefined) {
+      return namespaceRequestChatResult({
+        databaseName,
         collectionName,
+        history: context.history,
       });
     }
 
