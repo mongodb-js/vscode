@@ -853,26 +853,37 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
   }): Promise<string | undefined> {
     const collections = await this._getCollections({ stream, databaseName });
-
-    if (collections !== undefined) {
-      if (collections.length === 1) {
-        return collections[0].name;
-      }
-
+    if (collections === undefined) {
       stream.markdown(
-        `Which collection would you like to use within ${databaseName}?\n\n`
+        vscode.l10n.t(
+          `An error occurred when getting the collections from the database ${databaseName}.`
+        )
       );
-
-      this.renderCollectionsTree({
-        collections,
-        command,
-        databaseName,
-        context,
-        stream,
-      });
+      return;
+    }
+    if (collections.length === 0) {
+      stream.markdown(
+        vscode.l10n.t(
+          `No collections were found in the database ${databaseName}.`
+        )
+      );
+      return;
+    }
+    if (collections.length === 1) {
+      return collections[0].name;
     }
 
-    return;
+    stream.markdown(
+      `Which collection would you like to use within ${databaseName}?\n\n`
+    );
+
+    this.renderCollectionsTree({
+      collections,
+      command,
+      databaseName,
+      context,
+      stream,
+    });
   }
 
   /** Gets the database name if there is only one collection.
@@ -888,8 +899,14 @@ export default class ParticipantController {
   }): Promise<string | undefined> {
     const databases = await this._getDatabases({ stream });
 
-    if (databases === undefined || databases.length === 0) {
-      log.error('No databases found');
+    if (databases === undefined) {
+      stream.markdown(
+        vscode.l10n.t('An error occurred when getting the databases.')
+      );
+      return;
+    }
+    if (databases.length === 0) {
+      stream.markdown(vscode.l10n.t('No databases were found.'));
       return;
     }
 

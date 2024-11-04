@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
-import type { SinonSpy } from 'sinon';
+import type { SinonSpy, SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
@@ -403,9 +403,9 @@ suite('Participant Controller Test Suite', function () {
   });
 
   suite('when connected', function () {
-    let sampleStub;
-    let listCollectionsStub;
-    let listDatabasesStub;
+    let sampleStub: SinonStub;
+    let listCollectionsStub: SinonStub;
+    let listDatabasesStub: SinonStub;
 
     beforeEach(function () {
       sampleStub = sinon.stub();
@@ -1321,6 +1321,49 @@ suite('Participant Controller Test Suite', function () {
               sinon.restore();
             });
 
+            test('shows an error if something goes wrong with getting databases', async function () {
+              listDatabasesStub.rejects();
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals(['An error occurred when getting the databases.']);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: undefined,
+                collectionName: undefined,
+              });
+            });
+
+            test('shows an error if there are no databases found', async function () {
+              // No databases
+              listDatabasesStub.resolves([]);
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals(['No databases were found.']);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: undefined,
+                collectionName: undefined,
+              });
+            });
+
             test('database name gets picked automatically if there is only 1', async function () {
               listDatabasesStub.resolves([{ name: 'onlyOneDb' }]);
 
@@ -1334,7 +1377,7 @@ suite('Participant Controller Test Suite', function () {
               );
 
               const chatResult = await invokeChatHandler({
-                prompt: 'what is this',
+                prompt: 'find all docs by a name example',
                 command: 'query',
                 references: [],
               });
@@ -1394,6 +1437,52 @@ suite('Participant Controller Test Suite', function () {
               sinon.restore();
             });
 
+            test('shows an error if something goes wrong with getting collections', async function () {
+              listCollectionsStub.rejects();
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals([
+                'An error occurred when getting the collections from the database dbOne.',
+              ]);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: 'dbOne',
+                collectionName: undefined,
+              });
+            });
+
+            test('shows an error if there are no collections found', async function () {
+              listCollectionsStub.resolves([]);
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'find all docs by a name example',
+                command: 'query',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals([
+                'No collections were found in the database dbOne.',
+              ]);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: 'dbOne',
+                collectionName: undefined,
+              });
+            });
+
             test('collection name gets picked automatically if there is only 1', async function () {
               listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
               const renderCollectionsTreeSpy = sinon.spy(
@@ -1406,7 +1495,7 @@ suite('Participant Controller Test Suite', function () {
               );
 
               const chatResult = await invokeChatHandler({
-                prompt: 'what is this',
+                prompt: 'find all docs by a name example',
                 command: 'query',
                 references: [],
               });
@@ -1577,6 +1666,49 @@ suite('Participant Controller Test Suite', function () {
               sinon.restore();
             });
 
+            test('shows an error if something goes wrong with getting databases', async function () {
+              listDatabasesStub.rejects();
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'what is my schema',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals(['An error occurred when getting the databases.']);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: undefined,
+                collectionName: undefined,
+              });
+            });
+
+            test('shows an error if there are no databases found', async function () {
+              // No databases
+              listDatabasesStub.resolves([]);
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'what is my schema',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals(['No databases were found.']);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: undefined,
+                collectionName: undefined,
+              });
+            });
+
             test('database name gets picked automatically if there is only 1', async function () {
               listDatabasesStub.resolves([{ name: 'onlyOneDb' }]);
 
@@ -1590,7 +1722,7 @@ suite('Participant Controller Test Suite', function () {
               );
 
               const chatResult = await invokeChatHandler({
-                prompt: 'what is this',
+                prompt: 'find all docs by a name example',
                 command: 'schema',
                 references: [],
               });
@@ -1674,6 +1806,52 @@ suite('Participant Controller Test Suite', function () {
               expect(chatResult?.metadata).deep.equals({
                 chatId: testChatId,
                 intent: 'schema',
+              });
+            });
+
+            test('shows an error if something goes wrong with getting collections', async function () {
+              listCollectionsStub.rejects();
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'what is my schema',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals([
+                'An error occurred when getting the collections from the database dbOne.',
+              ]);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: 'dbOne',
+                collectionName: undefined,
+              });
+            });
+
+            test('shows an error if there are no collections found', async function () {
+              listCollectionsStub.resolves([]);
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'what is my schema',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(
+                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
+              ).deep.equals([
+                'No collections were found in the database dbOne.',
+              ]);
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: 'dbOne',
+                collectionName: undefined,
               });
             });
 
