@@ -860,7 +860,9 @@ export default class ParticipantController {
       }
 
       stream.markdown(
-        `Which collection would you like to use within ${databaseName}?\n\n`
+        vscode.l10n.t(
+          `Which collection would you like to use within ${databaseName}?\n\n`
+        )
       );
 
       this.renderCollectionsTree({
