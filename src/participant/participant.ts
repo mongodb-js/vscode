@@ -1140,7 +1140,7 @@ export default class ParticipantController {
 
     // When the last message was asking for a database or collection name,
     // we re-ask the question.
-    let databaseName = lastMessage.metadata.databaseName;
+    const databaseName = lastMessage.metadata.databaseName;
     if (databaseName) {
       const collections = await this._getCollections({
         stream,
@@ -1169,16 +1169,29 @@ export default class ParticipantController {
         stream,
       });
     } else {
+      const databases = await this._getDatabases({
+        stream,
+      });
+
+      if (!databases) {
+        return namespaceRequestChatResult({
+          databaseName,
+          collectionName: undefined,
+          history: context.history,
+        });
+      }
+
       stream.markdown(
         vscode.l10n.t(
           'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
         )
       );
 
-      databaseName = await this._getOrAskForDatabaseName({
+      this.renderDatabasesTree({
+        databases,
         command,
-        stream,
         context,
+        stream,
       });
     }
 
