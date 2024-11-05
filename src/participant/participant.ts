@@ -35,7 +35,6 @@ import {
 } from './prompts/schema';
 import {
   chatResultFeedbackKindToTelemetryValue,
-  ParticipantErrorTypes,
   TelemetryEventTypes,
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
@@ -45,6 +44,7 @@ import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import type { DataService } from 'mongodb-data-service';
+import { ParticipantErrorTypes } from '../types/participantErrorTypes';
 
 const log = createLogger('participant');
 
