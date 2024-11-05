@@ -13,6 +13,8 @@ export interface PromptArgsBase {
   };
   context?: vscode.ChatContext;
   connectionNames?: string[];
+  databaseName?: string;
+  collectionName?: string;
 }
 
 export interface UserPromptResponse {
@@ -163,9 +165,13 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
   protected getHistoryMessages({
     connectionNames,
     context,
+    databaseName,
+    collectionName,
   }: {
     connectionNames?: string[]; // Used to scrape the connecting messages from the history.
     context?: vscode.ChatContext;
+    databaseName?: string;
+    collectionName?: string;
   }): vscode.LanguageModelChatMessage[] {
     const messages: vscode.LanguageModelChatMessage[] = [];
 
@@ -173,6 +179,10 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       return [];
     }
 
+    let previousItem:
+      | vscode.ChatRequestTurn
+      | vscode.ChatResponseTurn
+      | undefined = undefined;
     for (const historyItem of context.history) {
       if (historyItem instanceof vscode.ChatRequestTurn) {
         if (
@@ -181,7 +191,23 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
         ) {
           // When the message is empty or a connection name then we skip it.
           // It's probably going to be the response to the connect step.
+          previousItem = historyItem;
           continue;
+        }
+
+        if (previousItem instanceof vscode.ChatResponseTurn) {
+          const responseIntent = (previousItem.result as ChatResult).metadata
+            .intent;
+
+          // If the namespace is already known, skip responses to prompts asking for it.
+          if (
+            responseIntent === 'askForNamespace' &&
+            databaseName !== undefined &&
+            collectionName !== undefined
+          ) {
+            previousItem = historyItem;
+            continue;
+          }
         }
 
         // eslint-disable-next-line new-cap
@@ -206,11 +232,21 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
           'emptyRequest',
           'askToConnect',
         ];
+
+        const responseType = (historyItem.result as ChatResult)?.metadata
+          ?.intent;
+        if (responseTypesToSkip.includes(responseType)) {
+          previousItem = historyItem;
+          continue;
+        }
+
+        // If the namespace is already known, skip including prompts asking for it.
         if (
-          responseTypesToSkip.indexOf(
-            (historyItem.result as ChatResult)?.metadata?.intent
-          ) > -1
+          responseType === 'askForNamespace' &&
+          databaseName !== undefined &&
+          collectionName !== undefined
         ) {
+          previousItem = historyItem;
           continue;
         }
 
@@ -232,6 +268,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
         // eslint-disable-next-line new-cap
         messages.push(vscode.LanguageModelChatMessage.Assistant(message));
       }
+      previousItem = historyItem;
     }
 
     return messages;

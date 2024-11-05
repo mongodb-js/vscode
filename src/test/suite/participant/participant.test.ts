@@ -2418,6 +2418,200 @@ Schema:
       );
     });
 
+    test('removes askForNameSpace messages from history if the metadata exists', async function () {
+      sinon.replace(
+        testParticipantController._chatMetadataStore,
+        'getChatMetadata',
+        () => ({
+          databaseName: 'dbOne',
+          collectionName: 'collOne',
+        })
+      );
+      // The user is responding to an `askToConnect` message, so the prompt is just the
+      // name of the connection
+      const chatRequestMock = {
+        prompt: 'localhost',
+        command: 'query',
+      };
+
+      const userMessages = [
+        'find all docs by a name example',
+        'what other queries can be used as an example',
+      ];
+
+      chatContextStub = {
+        history: [
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: userMessages[0],
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+            participant: CHAT_PARTICIPANT_ID,
+            response: [
+              {
+                value: {
+                  value:
+                    'Which database would you like to query within this database?',
+                } as vscode.MarkdownString,
+              },
+            ],
+            command: 'query',
+            result: {
+              metadata: {
+                intent: 'askForNamespace',
+              },
+            },
+          }),
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: 'dbOne',
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+            participant: CHAT_PARTICIPANT_ID,
+            response: [
+              {
+                value: {
+                  value:
+                    'Which collection would you like to query within dbOne?',
+                } as vscode.MarkdownString,
+              },
+            ],
+            command: 'query',
+            result: {
+              metadata: {
+                intent: 'askForNamespace',
+                databaseName: 'dbOne',
+                collectionName: undefined,
+                chatId: testChatId,
+              },
+            },
+          }),
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: 'collectionOne',
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: userMessages[1],
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+        ],
+      };
+
+      const { messages, stats } = await Prompts.query.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        collectionName: 'people',
+        connectionNames: ['localhost', 'atlas'],
+        databaseName: 'prod',
+        sampleDocuments: [],
+      });
+
+      expect(messages.length).to.equal(4);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+
+      // We don't expect history because we're removing the askForConnect message as well
+      // as the user response to it. Therefore the actual user prompt should be the first
+      // message that we supplied in the history.
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+
+      expect(
+        messages.slice(1, 3).map((message) => getMessageContent(message))
+      ).to.deep.equal(userMessages);
+
+      expect(stats.command).to.equal('query');
+    });
+
+    test('does not remove askForNameSpace messages if there is no metadata', async function () {
+      // The user is responding to an `askToConnect` message, so the prompt is just the
+      // name of the connection
+      const chatRequestMock = {
+        prompt: 'localhost',
+        command: 'query',
+      };
+
+      const userMessages = [
+        'find all docs by a name example',
+        'what other queries can be used as an example',
+      ];
+
+      chatContextStub = {
+        history: [
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: userMessages[0],
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+            participant: CHAT_PARTICIPANT_ID,
+            response: [
+              {
+                value: {
+                  value:
+                    'Which database would you like to query within this database?',
+                } as vscode.MarkdownString,
+              },
+            ],
+            command: 'query',
+            result: {
+              metadata: {
+                intent: 'askForNamespace',
+              },
+            },
+          }),
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: 'dbOne',
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+            prompt: userMessages[1],
+            command: 'query',
+            references: [],
+            participant: CHAT_PARTICIPANT_ID,
+          }),
+        ],
+      };
+
+      const { messages, stats } = await Prompts.query.buildMessages({
+        context: chatContextStub,
+        request: chatRequestMock,
+        connectionNames: ['localhost', 'atlas'],
+        sampleDocuments: [],
+        // @ts-expect-error Forcing undefined for the purpose of test
+        databaseName: undefined,
+        // @ts-expect-error Forcing undefined for the purpose of test
+        collectionName: undefined,
+      });
+
+      expect(messages.length).to.equal(6);
+      expect(messages[0].role).to.equal(
+        vscode.LanguageModelChatMessageRole.Assistant
+      );
+
+      // We don't expect history because we're removing the askForConnect message as well
+      // as the user response to it. Therefore the actual user prompt should be the first
+      // message that we supplied in the history.
+      expect(messages[1].role).to.equal(
+        vscode.LanguageModelChatMessageRole.User
+      );
+
+      expect(stats.command).to.equal('query');
+    });
+
     test('removes askForConnect messages from history', async function () {
       // The user is responding to an `askToConnect` message, so the prompt is just the
       // name of the connection
