@@ -52,8 +52,18 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--extensionTestsPath=${workspaceFolder}/out/test/suite"
       ],
+      "env": {
+        "MOCHA_GREP": "${input:mochaGrep}"
+      },
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
       "preLaunchTask": "npm: compile:extension",
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mochaGrep",
+      "type": "promptString",
+      "description": "Enter an optional grep filter to run specific tests. Leave blank for all.",
     }
   ],
   "compounds": [
