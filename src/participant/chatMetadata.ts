@@ -20,6 +20,20 @@ export class ChatMetadataStore {
     return this._chats[chatId];
   }
 
+  patchChatMetadata(
+    context: vscode.ChatContext,
+    patchedMetadata: Partial<ChatMetadata>
+  ): void {
+    const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
+      context.history
+    );
+
+    this.setChatMetadata(chatId, {
+      ...this.getChatMetadata(chatId),
+      ...patchedMetadata,
+    });
+  }
+
   // Exposed for stubbing in tests.
   static createNewChatId(): string {
     return uuidv4();

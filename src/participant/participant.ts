@@ -795,21 +795,23 @@ export default class ParticipantController {
       }[]
     | undefined
   > {
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      return undefined;
+    }
+
     stream.push(
       new vscode.ChatResponseProgressPart('Fetching database names...')
     );
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      return;
-    }
 
     try {
-      const databases = await dataService.listDatabases({
+      return await dataService.listDatabases({
         nameOnly: true,
       });
-      return databases;
     } catch (error) {
       log.error('Unable to fetch databases:', error);
+
+      return undefined;
     }
   }
 
@@ -820,19 +822,22 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
     databaseName: string;
   }): Promise<ReturnType<DataService['listCollections']> | undefined> {
+    const dataService = this._connectionController.getActiveDataService();
+
+    if (!dataService) {
+      return undefined;
+    }
+
     stream.push(
       new vscode.ChatResponseProgressPart('Fetching collection names...')
     );
 
-    const dataService = this._connectionController.getActiveDataService();
-
-    if (!dataService) {
-      return;
-    }
     try {
       return await dataService.listCollections(databaseName);
     } catch (error) {
       log.error('Unable to fetch collections:', error);
+
+      return undefined;
     }
   }
 
@@ -854,7 +859,6 @@ export default class ParticipantController {
     if (collections === undefined) {
       return;
     }
-    
     if (collections.length === 1) {
       return collections[0].name;
     }
@@ -939,18 +943,12 @@ export default class ParticipantController {
         stream,
       });
 
-      // If the database name could not get automatically selected,
-      // then the user has been prompted for it instead.
+      // databaseName will be undefined if some error occurs.
       if (!databaseName) {
         return { databaseName, collectionName };
       }
 
-      // Save the database name in the metadata.
-      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-        context.history
-      );
-      this._chatMetadataStore.setChatMetadata(chatId, {
-        ...this._chatMetadataStore.getChatMetadata(chatId),
+      this._chatMetadataStore.patchChatMetadata(context, {
         databaseName,
       });
     }
@@ -972,12 +970,7 @@ export default class ParticipantController {
         };
       }
 
-      // Save the collection name in the metadata.
-      const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-        context.history
-      );
-      this._chatMetadataStore.setChatMetadata(chatId, {
-        ...this._chatMetadataStore.getChatMetadata(chatId),
+      this._chatMetadataStore.patchChatMetadata(context, {
         collectionName,
       });
     }
