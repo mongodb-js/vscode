@@ -55,7 +55,7 @@ export default Object.fromEntries(
       k,
       typeof v === 'string'
         ? addUTMAttrs(v)
-        : (name: string) => {
+        : (name: string): string => {
             return addUTMAttrs(v(name));
           },
     ];
