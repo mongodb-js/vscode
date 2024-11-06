@@ -810,8 +810,6 @@ export default class ParticipantController {
       return databases;
     } catch (error) {
       log.error('Unable to fetch databases:', error);
-
-      return;
     }
   }
 
@@ -835,7 +833,6 @@ export default class ParticipantController {
       return await dataService.listCollections(databaseName);
     } catch (error) {
       log.error('Unable to fetch collections:', error);
-      return;
     }
   }
 
@@ -854,27 +851,27 @@ export default class ParticipantController {
   }): Promise<string | undefined> {
     const collections = await this._getCollections({ stream, databaseName });
 
-    if (collections !== undefined) {
-      if (collections.length === 1) {
-        return collections[0].name;
-      }
-
-      stream.markdown(
-        vscode.l10n.t(
-          `Which collection would you like to use within ${databaseName}?\n\n`
-        )
-      );
-
-      this.renderCollectionsTree({
-        collections,
-        command,
-        databaseName,
-        context,
-        stream,
-      });
+    if (collections === undefined) {
+      return;
+    }
+    
+    if (collections.length === 1) {
+      return collections[0].name;
     }
 
-    return;
+    stream.markdown(
+      vscode.l10n.t(
+        `Which collection would you like to use within ${databaseName}?\n\n`
+      )
+    );
+
+    this.renderCollectionsTree({
+      collections,
+      command,
+      databaseName,
+      context,
+      stream,
+    });
   }
 
   /** Gets the database name if there is only one collection.
@@ -914,8 +911,6 @@ export default class ParticipantController {
       context,
       stream,
     });
-
-    return;
   }
 
   /** Helper which either automatically picks and returns missing parts of the namespace (if any)
