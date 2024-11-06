@@ -4,7 +4,7 @@ import type {
   InternalPromptPurpose,
   ParticipantPromptProperties,
 } from '../../telemetry/telemetryService';
-import { ParticipantErrorTypes } from '../../types/participantErrorTypes';
+import { ParticipantErrorTypes } from '../participantErrorTypes';
 
 export interface PromptArgsBase {
   request: {

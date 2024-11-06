@@ -13,7 +13,7 @@ import type { NewConnectionTelemetryEventProperties } from './connectionTelemetr
 import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
 import type { ParticipantResponseType } from '../participant/constants';
-import { ParticipantErrorTypes } from '../types/participantErrorTypes';
+import { ParticipantErrorTypes } from '../participant/participantErrorTypes';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires

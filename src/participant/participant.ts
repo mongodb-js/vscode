@@ -44,7 +44,7 @@ import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import type { DataService } from 'mongodb-data-service';
-import { ParticipantErrorTypes } from '../types/participantErrorTypes';
+import { ParticipantErrorTypes } from './participantErrorTypes';
 
 const log = createLogger('participant');
 
