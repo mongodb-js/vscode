@@ -43,7 +43,7 @@ import formatError from '../utils/formatError';
 import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
-import { ParticipantErrorTypes } from '../types/participantErrorTypes';
+import { ParticipantErrorTypes } from '../test/suite/participant/participantErrorTypes';
 
 const log = createLogger('participant');
 

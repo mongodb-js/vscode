@@ -34,7 +34,7 @@ import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
-import { ParticipantErrorTypes } from '../../../types/participantErrorTypes';
+import { ParticipantErrorTypes } from './participantErrorTypes';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
