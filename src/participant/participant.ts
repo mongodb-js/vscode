@@ -943,7 +943,9 @@ export default class ParticipantController {
         stream,
       });
 
-      // databaseName will be undefined if some error occurs.
+      // databaseName will be undefined if it cannot be found from
+      // the metadata or history, in which case the user will be prompted
+      // to select it or if some error occurs.
       if (!databaseName) {
         return { databaseName, collectionName };
       }
@@ -1233,7 +1235,7 @@ export default class ParticipantController {
       });
 
     // If either the database or collection name could not be automatically picked
-    // then the user has been prompted to select one manually.
+    // then the user has been prompted to select one manually or been presented with an error.
     if (databaseName === undefined || collectionName === undefined) {
       return namespaceRequestChatResult({
         databaseName,
