@@ -1560,152 +1560,6 @@ suite('Participant Controller Test Suite', function () {
               'see previous messages'
             );
           });
-
-          suite('with an empty database name', function () {
-            beforeEach(function () {
-              sinon.replace(
-                testParticipantController._chatMetadataStore,
-                'getChatMetadata',
-                () => ({
-                  databaseName: undefined,
-                  collectionName: undefined,
-                })
-              );
-            });
-
-            afterEach(function () {
-              sinon.restore();
-            });
-
-            test('database name gets picked automatically if there is only 1', async function () {
-              listDatabasesStub.resolves([{ name: 'onlyOneDb' }]);
-
-              const renderDatabasesTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderDatabasesTree'
-              );
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'what is this',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderDatabasesTreeSpy.called).to.be.false;
-              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'onlyOneDb',
-                collectionName: undefined,
-              });
-            });
-
-            test('prompts for database name if there are multiple available', async function () {
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const renderDatabasesTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderDatabasesTree'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderDatabasesTreeSpy.calledOnce).to.be.true;
-              expect(renderCollectionsTreeSpy.called).to.be.false;
-
-              expect(chatResult?.metadata).deep.equals({
-                intent: 'askForNamespace',
-                chatId: testChatId,
-                databaseName: undefined,
-                collectionName: undefined,
-              });
-            });
-          });
-
-          suite('with an empty collection name', function () {
-            beforeEach(function () {
-              sinon.replace(
-                testParticipantController._chatMetadataStore,
-                'getChatMetadata',
-                () => ({
-                  databaseName: 'dbOne',
-                  collectionName: undefined,
-                })
-              );
-            });
-
-            test('collection name gets picked automatically if there is only 1', async function () {
-              listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
-                testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderCollectionsTreeSpy.called).to.be.false;
-
-              expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0]
-              ).to.include({
-                collectionName: 'onlyOneColl',
-              });
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'schema',
-              });
-            });
-
-            test('prompts for collection name if there are multiple available', async function () {
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
-                testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
-              expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.called
-              ).to.be.false;
-
-              expect(chatResult?.metadata).deep.equals({
-                intent: 'askForNamespace',
-                chatId: testChatId,
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
-            });
-          });
         });
 
         suite(
@@ -2056,6 +1910,158 @@ Schema:
           expect(
             vscode.window.activeTextEditor?.document.getText()
           ).to.not.include('"Success! Documents were inserted"');
+        });
+      });
+    });
+
+    suite('determining the namespace', function () {
+      ['query', 'schema'].forEach(function (command) {
+        suite(`${command} command`, function () {
+          suite('with an empty database name', function () {
+            beforeEach(function () {
+              sinon.replace(
+                testParticipantController._chatMetadataStore,
+                'getChatMetadata',
+                () => ({
+                  databaseName: undefined,
+                  collectionName: undefined,
+                })
+              );
+            });
+
+            afterEach(function () {
+              sinon.restore();
+            });
+
+            test('database name gets picked automatically if there is only 1', async function () {
+              listDatabasesStub.resolves([{ name: 'onlyOneDb' }]);
+
+              const renderDatabasesTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderDatabasesTree'
+              );
+              const renderCollectionsTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderCollectionsTree'
+              );
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'what is this',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(renderDatabasesTreeSpy.called).to.be.false;
+              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'askForNamespace',
+                databaseName: 'onlyOneDb',
+                collectionName: undefined,
+              });
+            });
+
+            test('prompts for database name if there are multiple available', async function () {
+              const renderCollectionsTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderCollectionsTree'
+              );
+              const renderDatabasesTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderDatabasesTree'
+              );
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'dbOne',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(renderDatabasesTreeSpy.calledOnce).to.be.true;
+              expect(renderCollectionsTreeSpy.called).to.be.false;
+
+              expect(chatResult?.metadata).deep.equals({
+                intent: 'askForNamespace',
+                chatId: testChatId,
+                databaseName: undefined,
+                collectionName: undefined,
+              });
+            });
+          });
+
+          suite('with an empty collection name', function () {
+            beforeEach(function () {
+              sinon.replace(
+                testParticipantController._chatMetadataStore,
+                'getChatMetadata',
+                () => ({
+                  databaseName: 'dbOne',
+                  collectionName: undefined,
+                })
+              );
+            });
+
+            test('collection name gets picked automatically if there is only 1', async function () {
+              listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
+              const renderCollectionsTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderCollectionsTree'
+              );
+              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
+                testParticipantController,
+                '_fetchCollectionSchemaAndSampleDocuments'
+              );
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'dbOne',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(renderCollectionsTreeSpy.called).to.be.false;
+
+              expect(
+                fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0]
+              ).to.include({
+                collectionName: 'onlyOneColl',
+              });
+
+              expect(chatResult?.metadata).deep.equals({
+                chatId: testChatId,
+                intent: 'schema',
+              });
+            });
+
+            test('prompts for collection name if there are multiple available', async function () {
+              const renderCollectionsTreeSpy = sinon.spy(
+                testParticipantController,
+                'renderCollectionsTree'
+              );
+              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
+                testParticipantController,
+                '_fetchCollectionSchemaAndSampleDocuments'
+              );
+
+              const chatResult = await invokeChatHandler({
+                prompt: 'dbOne',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
+              expect(
+                fetchCollectionSchemaAndSampleDocumentsSpy.called
+              ).to.be.false;
+
+              expect(chatResult?.metadata).deep.equals({
+                intent: 'askForNamespace',
+                chatId: testChatId,
+                databaseName: 'dbOne',
+                collectionName: undefined,
+              });
+            });
+          });
         });
       });
     });
