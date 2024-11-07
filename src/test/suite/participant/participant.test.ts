@@ -34,6 +34,7 @@ import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -187,10 +188,13 @@ suite('Participant Controller Test Suite', function () {
       telemetryService: testTelemetryService,
     });
     sinon.replace(ChatMetadataStore, 'createNewChatId', () => testChatId);
+    const testExportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider();
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
       storageController: testStorageController,
       telemetryService: testTelemetryService,
+      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
     chatContextStub = {
       history: [

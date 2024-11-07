@@ -35,7 +35,7 @@ function getTestConnectionTreeItem(
   options?: Partial<ConstructorParameters<typeof ConnectionTreeItem>[0]>
 ): ConnectionTreeItem {
   return new ConnectionTreeItem({
-    connectionId: 'tasty_sandwhich',
+    connectionId: 'tasty_sandwich',
     collapsibleState: vscode.TreeItemCollapsibleState.None,
     isExpanded: false,
     connectionController:
@@ -184,7 +184,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
       openExternalStub = sandbox.stub(vscode.env, 'openExternal');
       openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
-      fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
+      fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwich');
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveConnectionId',
@@ -913,7 +913,7 @@ suite('MDBExtensionController Test Suite', function () {
       mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
     });
 
-    test('mdb.openMongoDBDocumentFromTree openes a document from the sidebar and saves it to MongoDB', async () => {
+    test('mdb.openMongoDBDocumentFromTree opens a document from the sidebar and saves it to MongoDB', async () => {
       const mockDocument = {
         _id: 'pancakes',
         name: '',
@@ -935,12 +935,13 @@ suite('MDBExtensionController Test Suite', function () {
           'VIEW_DOCUMENT_SCHEME:/',
           'waffle.house:pancakes.json?',
           'namespace=waffle.house&',
-          'connectionId=tasty_sandwhich&',
+          'connectionId=tasty_sandwich&',
           'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
           'source=treeview',
         ].join('')
       );
-      activeTextEditor.document.getText = () => JSON.stringify(mockDocument);
+      activeTextEditor.document.getText = (): string =>
+        JSON.stringify(mockDocument);
       sandbox.replaceGetter(
         vscode.window,
         'activeTextEditor',
@@ -1002,7 +1003,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    test('mdb.openMongoDBDocumentFromTree openes a document from a tree with a treeview source', async () => {
+    test('mdb.openMongoDBDocumentFromTree opens a document from a tree with a treeview source', async () => {
       const mockDocument = {
         _id: 'pancakes',
         name: '',
@@ -1030,7 +1031,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    test('mdb.openMongoDBDocumentFromCodeLens openes a document from a playground results with a playground source', async () => {
+    test('mdb.openMongoDBDocumentFromCodeLens opens a document from a playground results with a playground source', async () => {
       const documentItem = {
         source: 'playground',
         line: 1,
@@ -1080,7 +1081,7 @@ suite('MDBExtensionController Test Suite', function () {
                 scheme: 'VIEW_DOCUMENT_SCHEME',
                 query: [
                   'namespace=waffle.house',
-                  'connectionId=tasty_sandwhich',
+                  'connectionId=tasty_sandwich',
                   'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
                   'source=treeview',
                 ].join('&'),
@@ -1130,7 +1131,7 @@ suite('MDBExtensionController Test Suite', function () {
                 scheme: 'VIEW_DOCUMENT_SCHEME',
                 query: [
                   'namespace=waffle.house',
-                  'connectionId=tasty_sandwhich',
+                  'connectionId=tasty_sandwich',
                   'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
                   'source=playground',
                 ].join('&'),

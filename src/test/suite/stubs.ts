@@ -10,12 +10,7 @@ import path from 'path';
 import type { Document, Filter, FindOptions } from 'mongodb';
 
 import type { StorageController } from '../../storage';
-
-import type {
-  ShellEvaluateResult,
-  ExportToLanguageNamespace,
-} from '../../types/playgroundType';
-import { ExportToLanguageMode } from '../../types/playgroundType';
+import type { ShellEvaluateResult } from '../../types/playgroundType';
 
 // Bare mock of the extension context for vscode.
 class ExtensionContextStub implements vscode.ExtensionContext {
@@ -46,19 +41,19 @@ class ExtensionContextStub implements vscode.ExtensionContext {
   constructor() {
     this.languageModelAccessInformation = {
       onDidChange: (): any => {},
-      canSendRequest: () => undefined,
+      canSendRequest: (): undefined => undefined,
     };
     this.globalStoragePath = '';
     this.logPath = '';
     this.subscriptions = [];
     this.secrets = {
-      get: (key: string) => {
+      get: (key: string): string => {
         return this._secrets[key];
       },
-      store: (key: string, value: string) => {
+      store: (key: string, value: string): void => {
         this._secrets[key] = value;
       },
-      delete: (key: string) => {
+      delete: (key: string): void => {
         delete this._secrets[key];
       },
     };
@@ -188,11 +183,15 @@ class DataServiceStub {
     return Promise.resolve(mockDatabases[databaseName].collections);
   }
 
-  find(namespace: string, filter: Filter<Document>, options: FindOptions) {
+  find(
+    namespace: string,
+    filter: Filter<Document>,
+    options: FindOptions
+  ): Promise<Document[]> {
     return Promise.resolve(mockDocuments.slice(0, options.limit));
   }
 
-  estimatedCount() {
+  estimatedCount(): Promise<number> {
     return Promise.resolve(mockDocuments.length);
   }
 }
@@ -229,8 +228,8 @@ const mockVSCodeTextDocument = {
   positionAt: (/* offset: number */): vscode.Position => mockPosition,
   getText: (/* range?: vscode.Range */): string => '',
 
-  getWordRangeAtPosition: (/* position: vscode.Position, regex?: RegExp */) =>
-    undefined,
+  getWordRangeAtPosition:
+    (/* position: vscode.Position, regex?: RegExp */): undefined => undefined,
   validateRange: (/* range: vscode.Range */): vscode.Range => mockRange,
   validatePosition: (/* position: vscode.Position */): vscode.Position =>
     mockPosition,
@@ -253,12 +252,12 @@ const mockTextEditor = {
     lineNumbers: vscode.TextEditorLineNumbersStyle.Off,
   },
   viewColumn: vscode.ViewColumn.Beside,
-  edit: () => Promise.resolve(true),
-  insertSnippet: () => Promise.resolve(true),
-  setDecorations: () => {},
-  revealRange: () => {},
-  show: () => {},
-  hide: () => {},
+  edit: (): Promise<boolean> => Promise.resolve(true),
+  insertSnippet: (): Promise<boolean> => Promise.resolve(true),
+  setDecorations: (): void => {},
+  revealRange: (): void => {},
+  show: (): void => {},
+  hide: (): void => {},
 };
 
 class LanguageServerControllerStub {
@@ -351,14 +350,6 @@ class LanguageServerControllerStub {
     });
   }
 
-  getExportToLanguageMode(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageMode> {
-    return Promise.resolve(ExportToLanguageMode.OTHER);
-  }
-
-  getNamespaceForSelection(/* params: PlaygroundTextAndSelection */): Promise<ExportToLanguageNamespace> {
-    return Promise.resolve({ databaseName: null, collectionName: null });
-  }
-
   activeConnectionChanged(/* params: {
     connectionString?: string;
     connectionOptions?: MongoClientOptions;
@@ -381,12 +372,12 @@ class LanguageServerControllerStub {
 }
 
 class StreamStub extends Duplex {
-  _write(chunk: string, _encoding: string, done: () => void) {
+  _write(chunk: string, _encoding: string, done: () => void): void {
     this.emit('data', chunk);
     done();
   }
 
-  _read() {}
+  _read(): void {}
 }
 
 export {

@@ -84,6 +84,7 @@ enum EXTENSION_COMMANDS {
   SELECT_DATABASE_WITH_PARTICIPANT = 'mdb.selectDatabaseWithParticipant',
   SELECT_COLLECTION_WITH_PARTICIPANT = 'mdb.selectCollectionWithParticipant',
   PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT = 'mdb.participantViewRawSchemaOutput',
+  SHOW_EXPORT_TO_LANGUAGE_RESULTS = 'mdb.showExportToLanguageResults',
 }
 
 export default EXTENSION_COMMANDS;

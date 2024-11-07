@@ -11,7 +11,6 @@ import chaiAsPromised from 'chai-as-promised';
 import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
@@ -50,8 +49,6 @@ suite('Language Server Controller Test Suite', () => {
     testConnectionController,
     testEditDocumentCodeLensProvider
   );
-  const testExportToLanguageCodeLensProvider =
-    new ExportToLanguageCodeLensProvider();
   const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
 
   let languageServerControllerStub: LanguageServerController;
@@ -69,7 +66,6 @@ suite('Language Server Controller Test Suite', () => {
       telemetryService: testTelemetryService,
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
-      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider: testCodeActionProvider,
     });
     await languageServerControllerStub.startLanguageServer();

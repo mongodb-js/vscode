@@ -2,10 +2,7 @@ import * as vscode from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
 import type { ExportToLanguageAddons } from '../types/playgroundType';
-import {
-  ExportToLanguageMode,
-  ExportToLanguages,
-} from '../types/playgroundType';
+import { ExportToLanguages } from '../types/playgroundType';
 
 export default class ExportToLanguageCodeLensProvider
   implements vscode.CodeLensProvider
@@ -21,7 +18,6 @@ export default class ExportToLanguageCodeLensProvider
     this._exportToLanguageAddons = {
       importStatements: false,
       driverSyntax: false,
-      builders: false,
       language: 'shell',
     };
 
@@ -42,7 +38,6 @@ export default class ExportToLanguageCodeLensProvider
   provideCodeLenses(): vscode.CodeLens[] {
     const importStatementsCodeLens = this.createCodeLens();
     const driverSyntaxCodeLens = this.createCodeLens();
-    const buildersCodeLens = this.createCodeLens();
     const exportToLanguageCodeLenses: vscode.CodeLens[] = [];
 
     if (['json', 'plaintext'].includes(this._exportToLanguageAddons.language)) {
@@ -77,25 +72,6 @@ export default class ExportToLanguageCodeLensProvider
         ],
       };
       exportToLanguageCodeLenses.push(driverSyntaxCodeLens);
-    }
-
-    if (
-      this._exportToLanguageAddons.language === ExportToLanguages.JAVA &&
-      this._exportToLanguageAddons.mode === ExportToLanguageMode.QUERY
-    ) {
-      buildersCodeLens.command = {
-        title: this._exportToLanguageAddons.builders
-          ? 'Use Raw Query'
-          : 'Use Builders',
-        command: EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
-        arguments: [
-          {
-            ...this._exportToLanguageAddons,
-            builders: !this._exportToLanguageAddons.builders,
-          },
-        ],
-      };
-      exportToLanguageCodeLenses.push(buildersCodeLens);
     }
 
     return exportToLanguageCodeLenses;

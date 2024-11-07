@@ -74,28 +74,11 @@ suite('Telemetry Controller Test Suite', () => {
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
-        ._languageServerController,
-      'getNamespaceForSelection',
-      sandbox.fake.resolves({
-        collectionName: 'coll',
-        databaseName: 'db',
-      })
-    );
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getMongoClientConnectionOptions',
       sandbox.fake.returns('mongodb://localhost')
     );
     sandbox.stub(vscode.window, 'showErrorMessage');
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
-      'getTranspiledContent',
-      sandbox.fake.resolves({
-        namespace: 'db.coll',
-        expressio: '{}',
-      })
-    );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.replace(
       testTelemetryService,
@@ -261,7 +244,7 @@ suite('Telemetry Controller Test Suite', () => {
   test.skip('track mongodb playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
-      '../../../../src/test/fixture/testSaving.mongodb'
+      '../../../../src/test/fixture/testPlayground.mongodb'
     );
     await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
     sandbox.assert.calledWith(
@@ -280,7 +263,7 @@ suite('Telemetry Controller Test Suite', () => {
   test.skip('track mongodbjs playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
-      '../../../../src/test/fixture/testSaving.mongodb.js'
+      '../../../../src/test/fixture/testPlayground.mongodb.js'
     );
     await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
     sandbox.assert.calledWith(
@@ -331,7 +314,6 @@ suite('Telemetry Controller Test Suite', () => {
     testTelemetryService.trackQueryExported({
       language: 'python',
       with_import_statements: false,
-      with_builders: false,
       with_driver_syntax: false,
     });
 
@@ -343,7 +325,6 @@ suite('Telemetry Controller Test Suite', () => {
         properties: {
           language: 'python',
           with_import_statements: false,
-          with_builders: false,
           with_driver_syntax: false,
           extension_version: version,
         },
@@ -356,7 +337,6 @@ suite('Telemetry Controller Test Suite', () => {
       language: 'java',
       num_stages: 1,
       with_import_statements: false,
-      with_builders: false,
       with_driver_syntax: false,
     });
 
@@ -369,7 +349,6 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'java',
           num_stages: 1,
           with_import_statements: false,
-          with_builders: false,
           with_driver_syntax: false,
           extension_version: version,
         },

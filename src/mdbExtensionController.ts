@@ -120,7 +120,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
       statusView: this._statusView,
       playgroundResultViewProvider: this._playgroundResultViewProvider,
-      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectedCodeActionProvider:
         this._playgroundSelectedCodeActionProvider,
     });
@@ -128,6 +127,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       connectionController: this._connectionController,
       storageController: this._storageController,
       telemetryService: this._telemetryService,
+      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
     });
     this._editorsController = new EditorsController({
       context,
@@ -249,34 +249,34 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     // ------ EXPORT TO LANGUAGE ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.PYTHON)
+      this._participantController.exportToLanguage(ExportToLanguages.PYTHON)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.JAVA)
+      this._participantController.exportToLanguage(ExportToLanguages.JAVA)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.CSHARP)
+      this._participantController.exportToLanguage(ExportToLanguages.CSHARP)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.JAVASCRIPT)
+      this._participantController.exportToLanguage(ExportToLanguages.JAVASCRIPT)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.RUBY)
+      this._participantController.exportToLanguage(ExportToLanguages.RUBY)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_GO, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.GO)
+      this._participantController.exportToLanguage(ExportToLanguages.GO)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.RUST)
+      this._participantController.exportToLanguage(ExportToLanguages.RUST)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.PHP)
+      this._participantController.exportToLanguage(ExportToLanguages.PHP)
     );
 
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
       (exportToLanguageAddons) =>
-        this._playgroundController.changeExportToLanguageAddons(
+        this._participantController.changeExportToLanguageAddons(
           exportToLanguageAddons
         )
     );
@@ -312,6 +312,12 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.evaluateParticipantCode(
           runnableContent
         );
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULTS,
+      (data: { content: string | null; language: string }) => {
+        return this._playgroundController.showExportToLanguageResults(data);
       }
     );
     this.registerCommand(

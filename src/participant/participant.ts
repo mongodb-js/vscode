@@ -44,6 +44,13 @@ import formatError from '../utils/formatError';
 import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
+import type { ExportToLanguageAddons } from '../types/playgroundType';
+import type ExportToLanguageCodeLensProvider from '../editors/exportToLanguageCodeLensProvider';
+import {
+  isPlayground,
+  getSelectedPlaygroundText,
+  getAllPlaygroundText,
+} from '../utils/playground';
 
 const log = createLogger('participant');
 
@@ -71,21 +78,25 @@ export default class ParticipantController {
   _chatMetadataStore: ChatMetadataStore;
   _docsChatbotAIService: DocsChatbotAIService;
   _telemetryService: TelemetryService;
+  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
 
   constructor({
     connectionController,
     storageController,
     telemetryService,
+    exportToLanguageCodeLensProvider,
   }: {
     connectionController: ConnectionController;
     storageController: StorageController;
     telemetryService: TelemetryService;
+    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._chatMetadataStore = new ChatMetadataStore();
     this._telemetryService = telemetryService;
     this._docsChatbotAIService = new DocsChatbotAIService();
+    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -213,17 +224,24 @@ export default class ParticipantController {
     });
   }
 
-  async streamChatResponseContentToPlayground({
+  async streamChatResponseContentToCode({
     modelInput,
     token,
+    language,
   }: {
     modelInput: ModelInput;
     token: vscode.CancellationToken;
+    language?: string;
   }): Promise<string | null> {
     const chatResponse = await this._getChatResponse({
       modelInput,
       token,
     });
+
+    const languageCodeBlockIdentifier = {
+      start: `\`\`\`${language ? language : 'javascript'}`,
+      end: '```',
+    };
 
     const runnableContent: string[] = [];
     await processStreamWithIdentifiers({
@@ -232,7 +250,7 @@ export default class ParticipantController {
         runnableContent.push(content.trim());
       },
       inputIterable: chatResponse.text,
-      identifier: codeBlockIdentifier,
+      identifier: languageCodeBlockIdentifier,
     });
     return runnableContent.length ? runnableContent.join('') : null;
   }
@@ -1487,7 +1505,7 @@ export default class ParticipantController {
           });
 
           const result = await Promise.race([
-            this.getChatResponseContent({
+            this.streamChatResponseContentToCode({
               modelInput,
               token,
             }),
@@ -1505,10 +1523,7 @@ export default class ParticipantController {
             return null;
           }
 
-          return this.streamChatResponseContentToPlayground({
-            modelInput,
-            token,
-          });
+          return result || null;
         }
       );
 
@@ -1545,6 +1560,57 @@ export default class ParticipantController {
       );
       return false;
     }
+  }
+
+  async exportPlaygroundToLanguage({
+    code,
+    language,
+    includeDriverSyntax,
+    includeImportStatements,
+  }: {
+    code: string;
+    language: string;
+    includeDriverSyntax: boolean;
+    includeImportStatements: boolean;
+  }): Promise<string | null> {
+    const progressResult = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Exporting playground to ${language}...`,
+        cancellable: true,
+      },
+      async (progress, token): Promise<string | null> => {
+        const modelInput = await Prompts.exportToLanguage.buildMessages({
+          request: { prompt: code },
+          language,
+          includeDriverSyntax,
+          includeImportStatements,
+        });
+        const result = await Promise.race([
+          this.streamChatResponseContentToCode({
+            modelInput,
+            token,
+            language,
+          }),
+          new Promise<undefined>((resolve) =>
+            token.onCancellationRequested(() => {
+              resolve(undefined);
+            })
+          ),
+        ]);
+
+        if (result?.includes("Sorry, I can't assist with that.")) {
+          void vscode.window.showErrorMessage(
+            "Sorry, I can't assist with that."
+          );
+          return null;
+        }
+
+        return result || null;
+      }
+    );
+
+    return progressResult;
   }
 
   async chatHandler(
@@ -1656,5 +1722,80 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     return this._connectionController
       .getSavedConnections()
       .map((connection) => connection.name);
+  }
+
+  changeExportToLanguageAddons(
+    exportToLanguageAddons: ExportToLanguageAddons
+  ): Promise<boolean> {
+    this._exportToLanguageCodeLensProvider.refresh(exportToLanguageAddons);
+
+    return this._transpile();
+  }
+
+  async exportToLanguage(language: string): Promise<boolean> {
+    this._exportToLanguageCodeLensProvider.refresh({
+      ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+      language,
+    });
+
+    return this._transpile();
+  }
+
+  async _transpile(): Promise<boolean> {
+    const editor = vscode.window.activeTextEditor;
+
+    if (!isPlayground(editor?.document?.uri)) {
+      void vscode.window.showErrorMessage(
+        'Please open a MongoDB playground file before running it.'
+      );
+
+      return Promise.resolve(false);
+    }
+
+    const selectedText = getSelectedPlaygroundText();
+    let codeToTranspile = '';
+    if (!selectedText) {
+      codeToTranspile = getAllPlaygroundText();
+    } else {
+      codeToTranspile = selectedText;
+    }
+
+    const { importStatements, driverSyntax, language } =
+      this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
+
+    log.info(`Exporting to the '${language}' language...`);
+
+    try {
+      const content = await this.exportPlaygroundToLanguage({
+        code: codeToTranspile,
+        language,
+        includeDriverSyntax: driverSyntax,
+        includeImportStatements: importStatements,
+      });
+
+      log.info(`The playground was exported to ${language}`, {
+        code: codeToTranspile,
+        language,
+        includeDriverSyntax: driverSyntax,
+        includeImportStatements: importStatements,
+      });
+
+      await vscode.commands.executeCommand(
+        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULTS,
+        { content, language }
+      );
+      this._exportToLanguageCodeLensProvider.refresh({
+        ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+        language,
+      });
+    } catch (error) {
+      log.error(`Export to ${language} failed`, error);
+      const printableError = formatError(error);
+      void vscode.window.showErrorMessage(
+        `Unable to ${language}: ${printableError.message}`
+      );
+    }
+
+    return true;
   }
 }

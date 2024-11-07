@@ -8,8 +8,6 @@ export type OutputItem = {
   language: string | null;
 };
 
-export type PlaygroundDebug = OutputItem[] | undefined;
-
 export type PlaygroundResult = OutputItem | undefined;
 
 export type ShellEvaluateResult = {
@@ -28,9 +26,7 @@ export interface ExportToLanguageAddons {
   selection?: vscode.Selection;
   importStatements: boolean;
   driverSyntax: boolean;
-  builders: boolean;
   language: string;
-  mode?: ExportToLanguageMode;
 }
 
 export interface PlaygroundTextAndSelection {
@@ -47,17 +43,6 @@ export enum ExportToLanguages {
   GO = 'go',
   RUST = 'rust',
   PHP = 'php',
-}
-
-export enum ExportToLanguageMode {
-  QUERY = 'QUERY',
-  AGGREGATION = 'AGGREGATION',
-  OTHER = 'OTHER',
-}
-
-export interface ExportToLanguageNamespace {
-  databaseName: string | null;
-  collectionName: string | null;
 }
 
 // MongoClientOptions is the second argument of CliServiceProvider.connect(connectionStr, options).

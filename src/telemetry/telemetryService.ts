@@ -52,14 +52,12 @@ type AggregationExportedTelemetryEventProperties = {
   language: string;
   num_stages: number | null;
   with_import_statements: boolean;
-  with_builders: boolean;
   with_driver_syntax: boolean;
 };
 
 type QueryExportedTelemetryEventProperties = {
   language: string;
   with_import_statements: boolean;
-  with_builders: boolean;
   with_driver_syntax: boolean;
 };
 
