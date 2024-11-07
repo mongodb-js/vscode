@@ -857,7 +857,8 @@ export default class ParticipantController {
     const collections = await this._getCollections({ stream, databaseName });
 
     if (collections === undefined) {
-      return;
+      log.error('No collections found');
+      return undefined;
     }
     if (collections.length === 1) {
       return collections[0].name;
@@ -876,6 +877,8 @@ export default class ParticipantController {
       context,
       stream,
     });
+
+    return undefined;
   }
 
   /** Gets the database name if there is only one collection.
@@ -893,7 +896,7 @@ export default class ParticipantController {
 
     if (databases === undefined || databases.length === 0) {
       log.error('No databases found');
-      return;
+      return undefined;
     }
 
     if (databases.length === 1) {
@@ -916,6 +919,8 @@ export default class ParticipantController {
       context,
       stream,
     });
+
+    return undefined;
   }
 
   /** Helper which either automatically picks and returns missing parts of the namespace (if any)
