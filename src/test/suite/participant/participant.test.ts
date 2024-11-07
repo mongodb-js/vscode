@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
-import type { SinonSpy, SinonStub } from 'sinon';
+import type { SinonSpy } from 'sinon';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
@@ -404,50 +404,43 @@ suite('Participant Controller Test Suite', function () {
   });
 
   suite('when connected', function () {
-    let sampleStub: SinonStub;
-    let listCollectionsStub: SinonStub;
-    let listDatabasesStub: SinonStub;
+    let sampleStub;
 
     beforeEach(function () {
       sampleStub = sinon.stub();
-      listDatabasesStub = sinon
-        .stub()
-        .resolves([
-          { name: 'dbOne' },
-          { name: 'customer' },
-          { name: 'inventory' },
-          { name: 'sales' },
-          { name: 'employee' },
-          { name: 'financialReports' },
-          { name: 'productCatalog' },
-          { name: 'projectTracker' },
-          { name: 'user' },
-          { name: 'analytics' },
-          { name: '123' },
-        ]);
-      listCollectionsStub = sinon
-        .stub()
-        .resolves([
-          { name: 'collOne' },
-          { name: 'notifications' },
-          { name: 'products' },
-          { name: 'orders' },
-          { name: 'categories' },
-          { name: 'invoices' },
-          { name: 'transactions' },
-          { name: 'logs' },
-          { name: 'messages' },
-          { name: 'sessions' },
-          { name: 'feedback' },
-        ]);
-
       sinon.replace(
         testParticipantController._connectionController,
         'getActiveDataService',
         () =>
           ({
-            listDatabases: listDatabasesStub,
-            listCollections: listCollectionsStub,
+            listDatabases: () =>
+              Promise.resolve([
+                { name: 'dbOne' },
+                { name: 'customer' },
+                { name: 'inventory' },
+                { name: 'sales' },
+                { name: 'employee' },
+                { name: 'financialReports' },
+                { name: 'productCatalog' },
+                { name: 'projectTracker' },
+                { name: 'user' },
+                { name: 'analytics' },
+                { name: '123' },
+              ]),
+            listCollections: () =>
+              Promise.resolve([
+                { name: 'collOne' },
+                { name: 'notifications' },
+                { name: 'products' },
+                { name: 'orders' },
+                { name: 'categories' },
+                { name: 'invoices' },
+                { name: 'transactions' },
+                { name: 'logs' },
+                { name: 'messages' },
+                { name: 'sessions' },
+                { name: 'feedback' },
+              ]),
             getMongoClientConnectionOptions: () => ({
               url: TEST_DATABASE_URI,
               options: {},
@@ -1023,7 +1016,7 @@ suite('Participant Controller Test Suite', function () {
           });
         });
 
-        suite('no namespace provided', function () {
+        suite('unknown namespace', function () {
           test('asks for a namespace and generates a query', async function () {
             const chatRequestMock = {
               prompt: 'find all docs by a name example',
@@ -1232,7 +1225,7 @@ suite('Participant Controller Test Suite', function () {
             });
           });
 
-          test('asks for the empty database name again if the last prompt was doing so', async function () {
+          test('handles empty database name', async function () {
             const chatRequestMock = {
               prompt: '',
               command: 'query',
@@ -1306,242 +1299,107 @@ suite('Participant Controller Test Suite', function () {
             });
           });
 
-          suite('with an empty database name', function () {
-            beforeEach(function () {
-              sinon.replace(
-                testParticipantController._chatMetadataStore,
-                'getChatMetadata',
-                () => ({
-                  databaseName: undefined,
-                  collectionName: undefined,
-                })
-              );
-            });
+          test('handles empty collection name', async function () {
+            const chatRequestMock = {
+              prompt: '',
+              command: 'query',
+              references: [],
+            };
+            chatContextStub = {
+              history: [
+                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+                  prompt: 'find all docs by a name example',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                }),
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
+                  {
+                    participant: CHAT_PARTICIPANT_ID,
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'Which database would you like to query within this database?',
+                        } as vscode.MarkdownString,
+                      },
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                      },
+                    },
+                  }
+                ),
+                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+                  prompt: 'dbOne',
+                  command: 'query',
+                  references: [],
+                  participant: CHAT_PARTICIPANT_ID,
+                }),
+                Object.assign(
+                  Object.create(vscode.ChatResponseTurn.prototype),
+                  {
+                    participant: CHAT_PARTICIPANT_ID,
+                    response: [
+                      {
+                        value: {
+                          value:
+                            'Which collection would you like to query within dbOne?',
+                        } as vscode.MarkdownString,
+                      },
+                    ],
+                    command: 'query',
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        databaseName: 'dbOne',
+                        collectionName: undefined,
+                        chatId: 'pineapple',
+                      },
+                    },
+                  }
+                ),
+              ],
+            };
+            const chatResult = await invokeChatHandler(chatRequestMock);
 
-            afterEach(function () {
-              sinon.restore();
-            });
-
-            test('shows an error if something goes wrong with getting databases', async function () {
-              listDatabasesStub.rejects();
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command: 'query',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals(['An error occurred when getting the databases.']);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: undefined,
-                collectionName: undefined,
-              });
-            });
-
-            test('shows an error if there are no databases found', async function () {
-              // No databases
-              listDatabasesStub.resolves([]);
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command: 'query',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals(['No databases were found.']);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: undefined,
-                collectionName: undefined,
-              });
-            });
-
-            test('database name gets picked automatically if there is only 1', async function () {
-              listDatabasesStub.resolves([{ name: 'onlyOneDb' }]);
-
-              const renderDatabasesTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderDatabasesTree'
-              );
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command: 'query',
-                references: [],
-              });
-
-              expect(renderDatabasesTreeSpy.called).to.be.false;
-              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'onlyOneDb',
-                collectionName: undefined,
-              });
-            });
-
-            test('prompts for database name if there are multiple available', async function () {
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const renderDatabasesTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderDatabasesTree'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'query',
-                references: [],
-              });
-
-              expect(renderDatabasesTreeSpy.calledOnce).to.be.true;
-              expect(renderCollectionsTreeSpy.called).to.be.false;
-
-              expect(chatResult?.metadata).deep.equals({
-                intent: 'askForNamespace',
-                chatId: testChatId,
-                databaseName: undefined,
-                collectionName: undefined,
-              });
-            });
-          });
-
-          suite('with an empty collection name', function () {
-            beforeEach(function () {
-              sinon.replace(
-                testParticipantController._chatMetadataStore,
-                'getChatMetadata',
-                () => ({
+            const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
+            expect(emptyMessage).to.include(
+              'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
+            );
+            const listCollsMessage = chatStreamStub.markdown.getCall(1).args[0];
+            expect(listCollsMessage.value).to.include(
+              `- [collOne](command:mdb.selectCollectionWithParticipant?${encodeStringify(
+                {
+                  command: '/query',
+                  chatId: 'pineapple',
                   databaseName: 'dbOne',
-                  collectionName: undefined,
-                })
-              );
-            });
-
-            afterEach(function () {
-              sinon.restore();
-            });
-
-            test('shows an error if something goes wrong with getting collections', async function () {
-              listCollectionsStub.rejects();
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command: 'query',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals([
-                'An error occurred when getting the collections from the database dbOne.',
-              ]);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
-            });
-
-            test('shows an error if there are no collections found', async function () {
-              listCollectionsStub.resolves([]);
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command: 'query',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals([
-                'No collections were found in the database dbOne.',
-              ]);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
-            });
-
-            test('collection name gets picked automatically if there is only 1', async function () {
-              listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
-                testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command: 'query',
-                references: [],
-              });
-
-              expect(renderCollectionsTreeSpy.called).to.be.false;
-
-              expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0]
-              ).to.include({
-                collectionName: 'onlyOneColl',
-              });
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'query',
-              });
-            });
-
-            test('prompts for collection name if there are multiple available', async function () {
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
-                testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'query',
-                references: [],
-              });
-
-              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
-              expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.called
-              ).to.be.false;
-
-              expect(chatResult?.metadata).deep.equals({
-                intent: 'askForNamespace',
-                chatId: testChatId,
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
+                  collectionName: 'collOne',
+                }
+              )})`
+            );
+            const showMoreCollsMessage =
+              chatStreamStub.markdown.getCall(11).args[0];
+            expect(showMoreCollsMessage.value).to.include(
+              `- [Show more](command:mdb.selectCollectionWithParticipant?${encodeStringify(
+                {
+                  command: '/query',
+                  chatId: 'pineapple',
+                  databaseName: 'dbOne',
+                }
+              )})`
+            );
+            expect({
+              ...chatResult?.metadata,
+              chatId: undefined,
+            }).to.deep.equal({
+              intent: 'askForNamespace',
+              collectionName: undefined,
+              databaseName: 'dbOne',
+              chatId: undefined,
             });
           });
         });
@@ -1649,241 +1507,6 @@ suite('Participant Controller Test Suite', function () {
             expect(getMessageContent(messages[3])).to.include(
               'see previous messages'
             );
-          });
-
-          suite('with an empty database name', function () {
-            beforeEach(function () {
-              sinon.replace(
-                testParticipantController._chatMetadataStore,
-                'getChatMetadata',
-                () => ({
-                  databaseName: undefined,
-                  collectionName: undefined,
-                })
-              );
-            });
-
-            afterEach(function () {
-              sinon.restore();
-            });
-
-            test('shows an error if something goes wrong with getting databases', async function () {
-              listDatabasesStub.rejects();
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'what is my schema',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals(['An error occurred when getting the databases.']);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: undefined,
-                collectionName: undefined,
-              });
-            });
-
-            test('shows an error if there are no databases found', async function () {
-              // No databases
-              listDatabasesStub.resolves([]);
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'what is my schema',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals(['No databases were found.']);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: undefined,
-                collectionName: undefined,
-              });
-            });
-
-            test('database name gets picked automatically if there is only 1', async function () {
-              listDatabasesStub.resolves([{ name: 'onlyOneDb' }]);
-
-              const renderDatabasesTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderDatabasesTree'
-              );
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderDatabasesTreeSpy.called).to.be.false;
-              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'onlyOneDb',
-                collectionName: undefined,
-              });
-            });
-
-            test('prompts for database name if there are multiple available', async function () {
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const renderDatabasesTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderDatabasesTree'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderDatabasesTreeSpy.calledOnce).to.be.true;
-              expect(renderCollectionsTreeSpy.called).to.be.false;
-
-              expect(chatResult?.metadata).deep.equals({
-                intent: 'askForNamespace',
-                chatId: testChatId,
-                databaseName: undefined,
-                collectionName: undefined,
-              });
-            });
-          });
-
-          suite('with an empty collection name', function () {
-            beforeEach(function () {
-              sinon.replace(
-                testParticipantController._chatMetadataStore,
-                'getChatMetadata',
-                () => ({
-                  databaseName: 'dbOne',
-                  collectionName: undefined,
-                })
-              );
-            });
-
-            test('collection name gets picked automatically if there is only 1', async function () {
-              listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
-                testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderCollectionsTreeSpy.called).to.be.false;
-
-              expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0]
-              ).to.include({
-                collectionName: 'onlyOneColl',
-              });
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'schema',
-              });
-            });
-
-            test('shows an error if something goes wrong with getting collections', async function () {
-              listCollectionsStub.rejects();
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'what is my schema',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals([
-                'An error occurred when getting the collections from the database dbOne.',
-              ]);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
-            });
-
-            test('shows an error if there are no collections found', async function () {
-              listCollectionsStub.resolves([]);
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'what is my schema',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals([
-                'No collections were found in the database dbOne.',
-              ]);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
-            });
-
-            test('prompts for collection name if there are multiple available', async function () {
-              const renderCollectionsTreeSpy = sinon.spy(
-                testParticipantController,
-                'renderCollectionsTree'
-              );
-              const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
-                testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
-              );
-
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
-              expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.called
-              ).to.be.false;
-
-              expect(chatResult?.metadata).deep.equals({
-                intent: 'askForNamespace',
-                chatId: testChatId,
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
-            });
           });
         });
 
@@ -2418,198 +2041,140 @@ Schema:
       );
     });
 
-    test('removes askForNameSpace messages from history if the metadata exists', async function () {
-      sinon.replace(
-        testParticipantController._chatMetadataStore,
-        'getChatMetadata',
-        () => ({
-          databaseName: 'dbOne',
-          collectionName: 'collOne',
-        })
-      );
-      // The user is responding to an `askToConnect` message, so the prompt is just the
-      // name of the connection
-      const chatRequestMock = {
-        prompt: 'localhost',
-        command: 'query',
-      };
-
+    suite('with askForNameSpace', function () {
       const userMessages = [
         'find all docs by a name example',
         'what other queries can be used as an example',
       ];
 
-      chatContextStub = {
-        history: [
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: userMessages[0],
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
-            participant: CHAT_PARTICIPANT_ID,
-            response: [
-              {
-                value: {
-                  value:
-                    'Which database would you like to query within this database?',
-                } as vscode.MarkdownString,
-              },
-            ],
-            command: 'query',
-            result: {
-              metadata: {
-                intent: 'askForNamespace',
-              },
-            },
-          }),
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: 'dbOne',
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
-            participant: CHAT_PARTICIPANT_ID,
-            response: [
-              {
-                value: {
-                  value:
-                    'Which collection would you like to query within dbOne?',
-                } as vscode.MarkdownString,
-              },
-            ],
-            command: 'query',
-            result: {
-              metadata: {
-                intent: 'askForNamespace',
-                databaseName: 'dbOne',
-                collectionName: undefined,
-                chatId: testChatId,
-              },
-            },
-          }),
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: 'collectionOne',
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: userMessages[1],
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-        ],
-      };
-
-      const { messages, stats } = await Prompts.query.buildMessages({
-        context: chatContextStub,
-        request: chatRequestMock,
-        collectionName: 'people',
-        connectionNames: ['localhost', 'atlas'],
-        databaseName: 'prod',
-        sampleDocuments: [],
-      });
-
-      expect(messages.length).to.equal(4);
-      expect(messages[0].role).to.equal(
-        vscode.LanguageModelChatMessageRole.Assistant
-      );
-
-      // We don't expect history because we're removing the askForConnect message as well
-      // as the user response to it. Therefore the actual user prompt should be the first
-      // message that we supplied in the history.
-      expect(messages[1].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
-      );
-
-      expect(
-        messages.slice(1, 3).map((message) => getMessageContent(message))
-      ).to.deep.equal(userMessages);
-
-      expect(stats.command).to.equal('query');
-    });
-
-    test('does not remove askForNameSpace messages if there is no metadata', async function () {
-      // The user is responding to an `askToConnect` message, so the prompt is just the
-      // name of the connection
       const chatRequestMock = {
         prompt: 'localhost',
         command: 'query',
       };
 
-      const userMessages = [
-        'find all docs by a name example',
-        'what other queries can be used as an example',
-      ];
-
-      chatContextStub = {
-        history: [
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: userMessages[0],
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
-            participant: CHAT_PARTICIPANT_ID,
-            response: [
-              {
-                value: {
-                  value:
-                    'Which database would you like to query within this database?',
-                } as vscode.MarkdownString,
+      beforeEach(function () {
+        chatContextStub = {
+          history: [
+            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+              prompt: userMessages[0],
+              command: 'query',
+              references: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+            Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+              participant: CHAT_PARTICIPANT_ID,
+              response: [
+                {
+                  value: {
+                    value:
+                      'Which database would you like to query within this database?',
+                  } as vscode.MarkdownString,
+                },
+              ],
+              command: 'query',
+              result: {
+                metadata: {
+                  intent: 'askForNamespace',
+                },
               },
-            ],
-            command: 'query',
-            result: {
-              metadata: {
-                intent: 'askForNamespace',
+            }),
+            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+              prompt: 'dbOne',
+              command: 'query',
+              references: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+            Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+              participant: CHAT_PARTICIPANT_ID,
+              response: [
+                {
+                  value: {
+                    value:
+                      'Which collection would you like to query within dbOne?',
+                  } as vscode.MarkdownString,
+                },
+              ],
+              command: 'query',
+              result: {
+                metadata: {
+                  intent: 'askForNamespace',
+                  databaseName: 'dbOne',
+                  collectionName: undefined,
+                  chatId: testChatId,
+                },
               },
-            },
-          }),
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: 'dbOne',
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: userMessages[1],
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-        ],
-      };
-
-      const { messages, stats } = await Prompts.query.buildMessages({
-        context: chatContextStub,
-        request: chatRequestMock,
-        connectionNames: ['localhost', 'atlas'],
-        sampleDocuments: [],
-        // @ts-expect-error Forcing undefined for the purpose of test
-        databaseName: undefined,
-        // @ts-expect-error Forcing undefined for the purpose of test
-        collectionName: undefined,
+            }),
+            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+              prompt: 'collectionOne',
+              command: 'query',
+              references: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
+              prompt: userMessages[1],
+              command: 'query',
+              references: [],
+              participant: CHAT_PARTICIPANT_ID,
+            }),
+          ],
+        };
       });
 
-      expect(messages.length).to.equal(6);
-      expect(messages[0].role).to.equal(
-        vscode.LanguageModelChatMessageRole.Assistant
-      );
+      test('does not include askForNameSpace messages in history if the metadata exists', async function () {
+        const { messages, stats } = await Prompts.query.buildMessages({
+          context: chatContextStub,
+          request: chatRequestMock,
+          collectionName: 'people',
+          connectionNames: ['localhost', 'atlas'],
+          databaseName: 'prod',
+          sampleDocuments: [],
+        });
 
-      // We don't expect history because we're removing the askForConnect message as well
-      // as the user response to it. Therefore the actual user prompt should be the first
-      // message that we supplied in the history.
-      expect(messages[1].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
-      );
+        expect(messages.length).to.equal(4);
+        expect(messages[0].role).to.equal(
+          vscode.LanguageModelChatMessageRole.Assistant
+        );
 
-      expect(stats.command).to.equal('query');
+        // We don't expect history because we're removing the askForConnect message as well
+        // as the user response to it. Therefore the actual user prompt should be the first
+        // message that we supplied in the history.
+        expect(messages[1].role).to.equal(
+          vscode.LanguageModelChatMessageRole.User
+        );
+
+        expect(
+          messages.slice(1, 3).map((message) => getMessageContent(message))
+        ).to.deep.equal(userMessages);
+
+        expect(stats.command).to.equal('query');
+      });
+
+      test('includes askForNameSpace messages in history if there is no metadata', async function () {
+        const { messages, stats } = await Prompts.query.buildMessages({
+          context: chatContextStub,
+          request: chatRequestMock,
+          connectionNames: ['localhost', 'atlas'],
+          sampleDocuments: [],
+          // @ts-expect-error Forcing undefined for the purpose of test
+          databaseName: undefined,
+          // @ts-expect-error Forcing undefined for the purpose of test
+          collectionName: undefined,
+        });
+
+        expect(messages.length).to.equal(6);
+        expect(messages[0].role).to.equal(
+          vscode.LanguageModelChatMessageRole.Assistant
+        );
+
+        // We don't expect history because we're removing the askForConnect message as well
+        // as the user response to it. Therefore the actual user prompt should be the first
+        // message that we supplied in the history.
+        expect(messages[1].role).to.equal(
+          vscode.LanguageModelChatMessageRole.User
+        );
+
+        expect(stats.command).to.equal('query');
+      });
     });
 
     test('removes askForConnect messages from history', async function () {
