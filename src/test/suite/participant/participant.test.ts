@@ -1917,6 +1917,12 @@ Schema:
     suite('determining the namespace', function () {
       ['query', 'schema'].forEach(function (command) {
         suite(`${command} command`, function () {
+          beforeEach(function () {
+            sendRequestStub.onCall(0).resolves({
+              text: ['determining the namespace'],
+            });
+          });
+
           suite('with an empty database name', function () {
             beforeEach(function () {
               sinon.replace(
