@@ -865,7 +865,7 @@ export default class ParticipantController {
 
     stream.markdown(
       vscode.l10n.t(
-        `Which collection would you like to use within ${databaseName}?\n\n`
+        `Which collection would you like to use within ${databaseName}? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
       )
     );
 
@@ -902,11 +902,12 @@ export default class ParticipantController {
 
     // If no database or collection name is found in the user prompt,
     // we retrieve the available namespaces from the current connection.
-    // Users can then select a value by clicking on an item in the list.
+    // Users can then select a value by clicking on an item in the list
+    // or typing the name manually.
     stream.markdown(
-      `What is the name of the database you would like${
-        command === '/query' ? ' this query' : ''
-      } to run against?\n\n`
+      `Which database would you like ${
+        command === '/query' ? 'this query to run against' : 'to use'
+      }? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
     );
 
     this.renderDatabasesTree({
@@ -1132,64 +1133,22 @@ export default class ParticipantController {
 
     // When the last message was asking for a database or collection name,
     // we re-ask the question.
-    const databaseName = lastMessage.metadata.databaseName;
-    if (databaseName) {
-      const collections = await this._getCollections({
-        stream,
-        databaseName,
-      });
+    const metadataDatabaseName = lastMessage.metadata.databaseName;
 
-      if (!collections) {
-        return namespaceRequestChatResult({
-          databaseName,
-          collectionName: undefined,
-          history: context.history,
-        });
-      }
-
-      stream.markdown(
-        vscode.l10n.t(
-          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
-        )
-      );
-
-      this.renderCollectionsTree({
-        collections,
-        command,
-        databaseName,
-        context,
-        stream,
-      });
-    } else {
-      const databases = await this._getDatabases({
-        stream,
-      });
-
-      if (!databases) {
-        return namespaceRequestChatResult({
-          databaseName,
-          collectionName: undefined,
-          history: context.history,
-        });
-      }
-
-      stream.markdown(
-        vscode.l10n.t(
-          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
-        )
-      );
-
-      this.renderDatabasesTree({
-        databases,
+    // This will prompt the user for the missing databaseName or the collectionName.
+    // If anything in the namespace can be automatically picked, it will be returned.
+    const { databaseName, collectionName } =
+      await this._getOrAskForMissingNamespace({
         command,
         context,
         stream,
+        databaseName: metadataDatabaseName,
+        collectionName: undefined,
       });
-    }
 
     return namespaceRequestChatResult({
       databaseName,
-      collectionName: undefined,
+      collectionName,
       history: context.history,
     });
   }

@@ -1033,7 +1033,7 @@ suite('Participant Controller Test Suite', function () {
             const chatResult = await invokeChatHandler(chatRequestMock);
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(askForDBMessage).to.include(
-              'What is the name of the database you would like this query to run against?'
+              'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
             const expectedContent = encodeStringify({
@@ -1087,7 +1087,7 @@ suite('Participant Controller Test Suite', function () {
                       {
                         value: {
                           value:
-                            'What is the name of the database you would like this query to run against?',
+                            'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
                         } as vscode.MarkdownString,
                       },
                     ],
@@ -1108,7 +1108,7 @@ suite('Participant Controller Test Suite', function () {
             const askForCollMessage =
               chatStreamStub.markdown.getCall(12).args[0];
             expect(askForCollMessage).to.include(
-              'Which collection would you like to use within dbOne?'
+              'Which collection would you like to use within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
             );
             const listCollsMessage =
               chatStreamStub.markdown.getCall(13).args[0];
@@ -1164,7 +1164,7 @@ suite('Participant Controller Test Suite', function () {
                       {
                         value: {
                           value:
-                            'Which database would you like to query within this database?',
+                            'Which database would you like to this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
                         } as vscode.MarkdownString,
                       },
                     ],
@@ -1190,7 +1190,7 @@ suite('Participant Controller Test Suite', function () {
                       {
                         value: {
                           value:
-                            'Which collection would you like to query within dbOne?',
+                            'Which collection would you like to query within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
                         } as vscode.MarkdownString,
                       },
                     ],
@@ -1254,7 +1254,7 @@ suite('Participant Controller Test Suite', function () {
                       {
                         value: {
                           value:
-                            'What is the name of the database you would like this query to run against?',
+                            'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
                         } as vscode.MarkdownString,
                       },
                     ],
@@ -1272,8 +1272,8 @@ suite('Participant Controller Test Suite', function () {
             const chatResult = await invokeChatHandler(chatRequestMock);
 
             const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
-            expect(emptyMessage).to.include(
-              'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
+            expect(emptyMessage).to.equal(
+              'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listDBsMessage.value).to.include(
@@ -1488,7 +1488,7 @@ suite('Participant Controller Test Suite', function () {
             expect(sendRequestStub.called).to.be.false;
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(askForDBMessage).to.include(
-              'What is the name of the database you would like to run against?'
+              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
             );
           });
 
@@ -1508,8 +1508,8 @@ suite('Participant Controller Test Suite', function () {
             );
 
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
-            expect(askForDBMessage).to.include(
-              'What is the name of the database you would like to run against?'
+            expect(askForDBMessage).to.equals(
+              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
             );
           });
 
