@@ -35,7 +35,6 @@ import {
 } from './prompts/schema';
 import {
   chatResultFeedbackKindToTelemetryValue,
-  ParticipantErrorTypes,
   TelemetryEventTypes,
 } from '../telemetry/telemetryService';
 import { DocsChatbotAIService } from './docsChatbotAIService';
@@ -45,6 +44,7 @@ import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import type { DataService } from 'mongodb-data-service';
+import { ParticipantErrorTypes } from '../test/suite/participant/participantErrorTypes';
 
 const log = createLogger('participant');
 
@@ -861,7 +861,7 @@ export default class ParticipantController {
           `An error occurred when getting the collections from the database ${databaseName}.`
         )
       );
-      return;
+      return undefined;
     }
     if (collections.length === 0) {
       stream.markdown(
@@ -869,7 +869,7 @@ export default class ParticipantController {
           `No collections were found in the database ${databaseName}.`
         )
       );
-      return;
+      return undefined;
     }
     if (collections.length === 1) {
       return collections[0].name;
@@ -877,7 +877,7 @@ export default class ParticipantController {
 
     stream.markdown(
       vscode.l10n.t(
-        `Which collection would you like to use within ${databaseName}?\n\n`
+        `Which collection would you like to use within ${databaseName}? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
       )
     );
 
@@ -888,6 +888,8 @@ export default class ParticipantController {
       context,
       stream,
     });
+
+    return undefined;
   }
 
   /** Gets the database name if there is only one collection.
@@ -907,11 +909,11 @@ export default class ParticipantController {
       stream.markdown(
         vscode.l10n.t('An error occurred when getting the databases.')
       );
-      return;
+      return undefined;
     }
     if (databases.length === 0) {
       stream.markdown(vscode.l10n.t('No databases were found.'));
-      return;
+      return undefined;
     }
 
     if (databases.length === 1) {
@@ -920,11 +922,12 @@ export default class ParticipantController {
 
     // If no database or collection name is found in the user prompt,
     // we retrieve the available namespaces from the current connection.
-    // Users can then select a value by clicking on an item in the list.
+    // Users can then select a value by clicking on an item in the list
+    // or typing the name manually.
     stream.markdown(
-      `What is the name of the database you would like${
-        command === '/query' ? ' this query' : ''
-      } to run against?\n\n`
+      `Which database would you like ${
+        command === '/query' ? 'this query to run against' : 'to use'
+      }? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
     );
 
     this.renderDatabasesTree({
@@ -933,6 +936,8 @@ export default class ParticipantController {
       context,
       stream,
     });
+
+    return undefined;
   }
 
   /** Helper which either automatically picks and returns missing parts of the namespace (if any)
@@ -961,7 +966,9 @@ export default class ParticipantController {
         stream,
       });
 
-      // databaseName will be undefined if some error occurs.
+      // databaseName will be undefined if it cannot be found from
+      // the metadata or history, in which case the user will be prompted
+      // to select it or if some error occurs.
       if (!databaseName) {
         return { databaseName, collectionName };
       }
@@ -1148,64 +1155,22 @@ export default class ParticipantController {
 
     // When the last message was asking for a database or collection name,
     // we re-ask the question.
-    const databaseName = lastMessage.metadata.databaseName;
-    if (databaseName) {
-      const collections = await this._getCollections({
-        stream,
-        databaseName,
-      });
+    const metadataDatabaseName = lastMessage.metadata.databaseName;
 
-      if (!collections) {
-        return namespaceRequestChatResult({
-          databaseName,
-          collectionName: undefined,
-          history: context.history,
-        });
-      }
-
-      stream.markdown(
-        vscode.l10n.t(
-          'Please select a collection by either clicking on an item in the list or typing the name manually in the chat.'
-        )
-      );
-
-      this.renderCollectionsTree({
-        collections,
-        command,
-        databaseName,
-        context,
-        stream,
-      });
-    } else {
-      const databases = await this._getDatabases({
-        stream,
-      });
-
-      if (!databases) {
-        return namespaceRequestChatResult({
-          databaseName,
-          collectionName: undefined,
-          history: context.history,
-        });
-      }
-
-      stream.markdown(
-        vscode.l10n.t(
-          'Please select a database by either clicking on an item in the list or typing the name manually in the chat.'
-        )
-      );
-
-      this.renderDatabasesTree({
-        databases,
+    // This will prompt the user for the missing databaseName or the collectionName.
+    // If anything in the namespace can be automatically picked, it will be returned.
+    const { databaseName, collectionName } =
+      await this._getOrAskForMissingNamespace({
         command,
         context,
         stream,
+        databaseName: metadataDatabaseName,
+        collectionName: undefined,
       });
-    }
 
     return namespaceRequestChatResult({
       databaseName,
-      collectionName: undefined,
+      collectionName,
       history: context.history,
     });
   }
@@ -1251,7 +1216,7 @@ export default class ParticipantController {
       });
 
     // If either the database or collection name could not be automatically picked
-    // then the user has been prompted to select one manually.
+    // then the user has been prompted to select one manually or been presented with an error.
     if (databaseName === undefined || collectionName === undefined) {
       return namespaceRequestChatResult({
         databaseName,
