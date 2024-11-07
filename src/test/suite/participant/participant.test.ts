@@ -2161,7 +2161,7 @@ Schema:
           collectionName: undefined,
         });
 
-        expect(messages.length).to.equal(6);
+        expect(messages.length).to.equal(8);
         expect(messages[0].role).to.equal(
           vscode.LanguageModelChatMessageRole.Assistant
         );
