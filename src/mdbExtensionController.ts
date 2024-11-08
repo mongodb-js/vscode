@@ -52,7 +52,7 @@ import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
-  _PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
+  _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _connectionStorage: ConnectionStorage;
@@ -110,7 +110,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._exportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider();
-    this._PlaygroundSelectionCodeActionProvider =
+    this._playgroundSelectionCodeActionProvider =
       new PlaygroundSelectionCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
@@ -121,7 +121,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       statusView: this._statusView,
       playgroundResultViewProvider: this._playgroundResultViewProvider,
       PlaygroundSelectionCodeActionProvider:
-        this._PlaygroundSelectionCodeActionProvider,
+        this._playgroundSelectionCodeActionProvider,
     });
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
@@ -139,7 +139,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       PlaygroundSelectionCodeActionProvider:
-        this._PlaygroundSelectionCodeActionProvider,
+        this._playgroundSelectionCodeActionProvider,
       playgroundDiagnosticsCodeActionProvider:
         this._playgroundDiagnosticsCodeActionProvider,
       editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,

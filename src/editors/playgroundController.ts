@@ -56,7 +56,7 @@ export default class PlaygroundController {
   _connectionController: ConnectionController;
   _playgroundResult?: PlaygroundResult;
   _languageServerController: LanguageServerController;
-  _PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
+  _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _telemetryService: TelemetryService;
 
   _isPartialRun = false;
@@ -73,22 +73,22 @@ export default class PlaygroundController {
     telemetryService,
     statusView,
     playgroundResultViewProvider,
-    PlaygroundSelectionCodeActionProvider,
+    playgroundSelectionCodeActionProvider,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
     telemetryService: TelemetryService;
     statusView: StatusView;
     playgroundResultViewProvider: PlaygroundResultProvider;
-    PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
+    playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   }) {
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
     this._statusView = statusView;
     this._playgroundResultViewProvider = playgroundResultViewProvider;
-    this._PlaygroundSelectionCodeActionProvider =
-      PlaygroundSelectionCodeActionProvider;
+    this._playgroundSelectionCodeActionProvider =
+      playgroundSelectionCodeActionProvider;
 
     this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();

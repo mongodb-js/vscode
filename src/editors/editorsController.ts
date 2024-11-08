@@ -84,7 +84,7 @@ export function getViewCollectionDocumentsUri(
  * new editors and the data they need. It also manages active editors.
  */
 export default class EditorsController {
-  _PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
+  _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
@@ -112,7 +112,7 @@ export default class EditorsController {
     playgroundResultViewProvider,
     activeConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider,
-    PlaygroundSelectionCodeActionProvider,
+    playgroundSelectionCodeActionProvider,
     playgroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider,
   }: {
@@ -124,7 +124,7 @@ export default class EditorsController {
     playgroundResultViewProvider: PlaygroundResultProvider;
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
-    PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
+    playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
     playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   }) {
@@ -156,8 +156,8 @@ export default class EditorsController {
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore
       );
-    this._PlaygroundSelectionCodeActionProvider =
-      PlaygroundSelectionCodeActionProvider;
+    this._playgroundSelectionCodeActionProvider =
+      playgroundSelectionCodeActionProvider;
     this._playgroundDiagnosticsCodeActionProvider =
       playgroundDiagnosticsCodeActionProvider;
 
@@ -446,7 +446,7 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
         'javascript',
-        this._PlaygroundSelectionCodeActionProvider,
+        this._playgroundSelectionCodeActionProvider,
         {
           providedCodeActionKinds:
             PlaygroundSelectionCodeActionProvider.providedCodeActionKinds,
