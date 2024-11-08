@@ -172,7 +172,7 @@ connection.onRequest(ServerCommands.INITIALIZE_MONGODB_SERVICE, (settings) => {
   mongoDBService.initialize(settings);
 });
 
-// Change CliServiceProvider active connection.
+// Change NodeDriverServiceProvider active connection.
 connection.onRequest(ServerCommands.ACTIVE_CONNECTION_CHANGED, (params) => {
   return mongoDBService.activeConnectionChanged(params);
 });

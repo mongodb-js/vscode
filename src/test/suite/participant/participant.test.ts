@@ -34,7 +34,7 @@ import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
-import { ParticipantErrorTypes } from './participantErrorTypes';
+import { ParticipantErrorTypes } from '../../../participant/participantErrorTypes';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -1769,7 +1769,7 @@ Schema:
       ['query', 'schema'].forEach(function (command) {
         suite(`${command} command`, function () {
           beforeEach(function () {
-            sendRequestStub.onCall(0).resolves({
+            sendRequestStub.resolves({
               text: ['determining the namespace'],
             });
           });
@@ -1795,7 +1795,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'find all docs by a name example',
-                command: 'query',
+                command,
                 references: [],
               });
 
@@ -1817,7 +1817,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'find all docs by a name example',
-                command: 'query',
+                command,
                 references: [],
               });
 
@@ -1847,7 +1847,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'what is this',
-                command: 'schema',
+                command,
                 references: [],
               });
 
@@ -1874,7 +1874,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'dbOne',
-                command: 'schema',
+                command,
                 references: [],
               });
 
@@ -1907,7 +1907,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'find all docs by a name example',
-                command: 'query',
+                command,
                 references: [],
               });
 
@@ -1930,7 +1930,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'find all docs by a name example',
-                command: 'query',
+                command,
                 references: [],
               });
 
@@ -1961,7 +1961,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'dbOne',
-                command: 'schema',
+                command,
                 references: [],
               });
 
@@ -1975,7 +1975,7 @@ Schema:
 
               expect(chatResult?.metadata).deep.equals({
                 chatId: testChatId,
-                intent: 'schema',
+                intent: command,
               });
             });
 
@@ -1991,7 +1991,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'dbOne',
-                command: 'schema',
+                command,
                 references: [],
               });
 
