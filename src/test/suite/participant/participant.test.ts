@@ -1954,7 +1954,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'what is this',
-                command: 'schema',
+                command,
                 references: [],
               });
 
@@ -1981,7 +1981,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'dbOne',
-                command: 'schema',
+                command,
                 references: [],
               });
 
@@ -2022,7 +2022,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'dbOne',
-                command: 'schema',
+                command,
                 references: [],
               });
 
@@ -2036,7 +2036,7 @@ Schema:
 
               expect(chatResult?.metadata).deep.equals({
                 chatId: testChatId,
-                intent: 'schema',
+                intent: command,
               });
             });
 
@@ -2052,7 +2052,7 @@ Schema:
 
               const chatResult = await invokeChatHandler({
                 prompt: 'dbOne',
-                command: 'schema',
+                command,
                 references: [],
               });
 
