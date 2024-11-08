@@ -77,7 +77,7 @@
   },
   "activationEvents": [
     "onView:mongoDB",
-    "onStartupFinished",
+    "onChatParticipant:mongodb.participant",
     "onLanguage:json",
     "onLanguage:javascript",
     "onLanguage:plaintext"
