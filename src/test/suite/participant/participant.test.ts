@@ -1919,7 +1919,7 @@ Schema:
       ['query', 'schema'].forEach(function (command) {
         suite(`${command} command`, function () {
           beforeEach(function () {
-            sendRequestStub.onCall(0).resolves({
+            sendRequestStub.resolves({
               text: ['determining the namespace'],
             });
           });
