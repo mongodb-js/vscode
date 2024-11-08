@@ -861,7 +861,7 @@ export default class ParticipantController {
           `An error occurred when getting the collections from the database ${databaseName}.`
         )
       );
-      return;
+      return undefined;
     }
     if (collections.length === 0) {
       stream.markdown(
@@ -869,7 +869,7 @@ export default class ParticipantController {
           `No collections were found in the database ${databaseName}.`
         )
       );
-      return;
+      return undefined;
     }
     if (collections.length === 1) {
       return collections[0].name;
