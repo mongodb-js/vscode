@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/mongodb-js/vscode/actions/workflows/test-and-build.yaml/badge.svg?branchName=main)](https://github.com/mongodb-js/vscode/actions/workflows/test-and-build.yaml)
 
-MongoDB for VS Code makes it easy to work with your data in MongoDB directly from your VS Code environment. MongoDB for VS Code is the perfect companion for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register), but you can also use it with your self-managed MongoDB instances.
+MongoDB for VS Code makes it easy to work with your data in MongoDB directly from your VS Code environment. MongoDB for VS Code is the perfect companion for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product), but you can also use it with your self-managed MongoDB instances.
 
 <p align="center">
   <a title="Watch the MongoDB for VS Code demo video" href="https://mdb.link/vs-code-demo-video">
@@ -19,13 +19,13 @@ MongoDB for VS Code makes it easy to work with your data in MongoDB directly fro
 - Edit documents and save changes to the database
 - Get a quick overview of your schema and your indexes
 
-Read more about this functionality in the [online documentation](https://www.mongodb.com/docs/mongodb-vscode/databases-collections/).
+Read more about this functionality in the [online documentation](https://www.mongodb.com/docs/mongodb-vscode/databases-collections/?utm_source=vscode&utm_medium=product).
 
 ![Explore data with MongoDB for VS Code](resources/screenshots/explore-data.png)
 
 ### MongoDB Playgrounds
 
-[MongoDB Playgrounds](https://www.mongodb.com/docs/mongodb-vscode/playgrounds/) are the most convenient way to prototype and execute CRUD operations and other MongoDB commands directly inside VS Code.
+[MongoDB Playgrounds](https://www.mongodb.com/docs/mongodb-vscode/playgrounds/?utm_source=vscode&utm_medium=product) are the most convenient way to prototype and execute CRUD operations and other MongoDB commands directly inside VS Code.
 
 - Prototype your queries, aggregations, and MongoDB commands with convenient syntax highlighting and intelligent autocomplete for MongoDB Shell API, BSON types, MongoDB Query API, system variables, and for database, collection, and field names.
 - Run your playgrounds and see the results instantly. Click the play button in the tab bar to see the output.
@@ -59,11 +59,11 @@ Editing documents with MongoDB for VS Code is as natural as editing any file in 
 
 ### Quick access to the MongoDB Shell
 
-Launch the [MongoDB Shell](https://www.mongodb.com/products/shell) from the command palette to quickly connect to the same cluster you have active in VS Code.
+Launch the [MongoDB Shell](https://www.mongodb.com/products/shell?utm_source=vscode&utm_medium=product) from the command palette to quickly connect to the same cluster you have active in VS Code.
 
 ![MongoDB Shell](resources/screenshots/shell-launcher.png)
 
-_Note: The `mongosh` binary needs to be in your `$PATH`. You can download the `mongosh` from the [MongoDB Download Center](https://www.mongodb.com/try/download/shell)._
+_Note: The `mongosh` binary needs to be in your `$PATH`. You can download the `mongosh` from the [MongoDB Download Center](https://www.mongodb.com/try/download/shell?utm_source=vscode&utm_medium=product)._
 
 ### Terraform snippet for MongoDB Atlas
 
@@ -81,7 +81,7 @@ Connect to Atlas Stream Processing instances and develop stream processors using
 
 Use natural language to interact with your clusters and generate MongoDB-related code with GitHub Copilot Chat in VS Code.
 
-_Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) extension. By using Copilot Chat you agree to [GitHub Copilot chat preview terms](https://docs.github.com/en/copilot/responsible-use-of-github-copilot-features/responsible-use-of-github-copilot-chat-in-your-ide). Find more details about the MongoDB GenAI Features in the [FAQ](https://www.mongodb.com/docs/generative-ai-faq/)._
+_Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) extension. By using Copilot Chat you agree to [GitHub Copilot chat preview terms](https://docs.github.com/en/copilot/responsible-use-of-github-copilot-features/responsible-use-of-github-copilot-chat-in-your-ide). Find more details about the MongoDB GenAI Features in the [FAQ](https://www.mongodb.com/docs/generative-ai-faq/?utm_source=vscode&utm_medium=product)._
 
 #### How to use the MongoDB Participant
 
@@ -93,7 +93,7 @@ _Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https:
 
 ![MongoDB Participant Commands](resources/screenshots/mongodb-participant-commands.png)
 
-- `/docs` is a participant command that finds answers to coding-related questions in the [MongoDB documentation](https://www.mongodb.com/docs/).
+- `/docs` is a participant command that finds answers to coding-related questions in the [MongoDB documentation](https://www.mongodb.com/docs/?utm_source=vscode&utm_medium=product).
 - `/query` is a participant command that generates MongoDB queries from natural language to be used with a connected MongoDB cluster. It generates both queries and aggregations depending on the complexity of the request. It utilizes schema to reduce model hallucinations. It provides a code action to open generated code in a playground and an action to directly run the code from the Copilot chat interface.
 - `/schema` is a participant command that analyzes and returns information about a collection's schema.
 
@@ -146,7 +146,7 @@ Currently, there is no way to resolve this except for turning off semantic highl
 
 ## Telemetry
 
-MongoDB for VS Code collects usage data and sends it to MongoDB to help improve our products and services. Read our [privacy policy](https://www.mongodb.com/legal/privacy-policy) to learn more. If you don’t wish to send usage data to MongoDB, you can opt-out by setting `mdb.sendTelemetry` to `false` in the extension settings.
+MongoDB for VS Code collects usage data and sends it to MongoDB to help improve our products and services. Read our [privacy policy](https://www.mongodb.com/legal/privacy-policy?utm_source=vscode&utm_medium=product) to learn more. If you don’t wish to send usage data to MongoDB, you can opt-out by setting `mdb.sendTelemetry` to `false` in the extension settings.
 
 ## Contributing
 
@@ -154,7 +154,7 @@ For issues, please create a ticket in our [JIRA Project](https://jira.mongodb.or
 
 For contributing, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Is there anything else you’d like to see in MongoDB for VS Code? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code).
+Is there anything else you’d like to see in MongoDB for VS Code? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code?utm_source=vscode&utm_medium=product).
 
 ## Building and Installing from Source
 
