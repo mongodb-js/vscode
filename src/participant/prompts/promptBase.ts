@@ -183,6 +183,9 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       | vscode.ChatRequestTurn
       | vscode.ChatResponseTurn
       | undefined = undefined;
+
+    const namespaceIsKnown =
+      databaseName !== undefined && collectionName !== undefined;
     for (const historyItem of context.history) {
       if (historyItem instanceof vscode.ChatRequestTurn) {
         if (
@@ -200,11 +203,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
             .intent;
 
           // If the namespace is already known, skip responses to prompts asking for it.
-          if (
-            responseIntent === 'askForNamespace' &&
-            databaseName !== undefined &&
-            collectionName !== undefined
-          ) {
+          if (responseIntent === 'askForNamespace' && namespaceIsKnown) {
             previousItem = historyItem;
             continue;
           }
@@ -241,11 +240,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
         }
 
         // If the namespace is already known, skip including prompts asking for it.
-        if (
-          responseType === 'askForNamespace' &&
-          databaseName !== undefined &&
-          collectionName !== undefined
-        ) {
+        if (responseType === 'askForNamespace' && namespaceIsKnown) {
           previousItem = historyItem;
           continue;
         }
