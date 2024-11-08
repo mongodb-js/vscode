@@ -796,7 +796,7 @@ export default class ParticipantController {
   > {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      throw Error('Failed to get the data service');
+      throw new Error(vscode.l10n.t('Failed to get the data service'));
     }
 
     stream.push(
@@ -808,11 +808,13 @@ export default class ParticipantController {
         nameOnly: true,
       });
     } catch (error) {
-      stream.markdown(`Unable to fetch database names: ${formatError(error)}`);
-
       log.error('Unable to fetch databases:', error);
 
-      throw error;
+      throw new Error(
+        vscode.l10n.t(
+          `Unable to fetch database names: ${formatError(error).message}.`
+        )
+      );
     }
   }
 
@@ -826,7 +828,7 @@ export default class ParticipantController {
     const dataService = this._connectionController.getActiveDataService();
 
     if (!dataService) {
-      throw Error('Failed to get the data service');
+      throw new Error('Failed to get the data service');
     }
 
     stream.push(
@@ -836,17 +838,15 @@ export default class ParticipantController {
     try {
       return await dataService.listCollections(databaseName);
     } catch (error) {
-      stream.markdown(
+      log.error('Unable to fetch collection names:', error);
+
+      throw new Error(
         vscode.l10n.t(
-          `Unable to fetch collection names from ${databaseName}: ${formatError(
-            error
-          )}`
+          `Unable to fetch collection names from ${databaseName}: ${
+            formatError(error).message
+          }.`
         )
       );
-
-      log.error('Unable to fetch collections:', error);
-
-      throw error;
     }
   }
 
@@ -866,12 +866,11 @@ export default class ParticipantController {
     const collections = await this._getCollections({ stream, databaseName });
 
     if (collections.length === 0) {
-      stream.markdown(
+      throw new Error(
         vscode.l10n.t(
           `No collections were found in the database ${databaseName}.`
         )
       );
-      return undefined;
     }
     if (collections.length === 1) {
       return collections[0].name;
@@ -908,8 +907,7 @@ export default class ParticipantController {
     const databases = await this._getDatabases({ stream });
 
     if (databases.length === 0) {
-      stream.markdown(vscode.l10n.t('No databases were found.'));
-      return undefined;
+      throw new Error(vscode.l10n.t('No databases were found.'));
     }
 
     if (databases.length === 1) {

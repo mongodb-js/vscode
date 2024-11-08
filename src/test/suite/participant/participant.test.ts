@@ -1791,46 +1791,40 @@ Schema:
             });
 
             test('shows an error if something goes wrong with getting databases', async function () {
-              listDatabasesStub.rejects();
+              listDatabasesStub.rejects(new Error('Something went wrong'));
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command,
-                references: [],
-              });
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
 
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals(['An error occurred when getting the databases.']);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: undefined,
-                collectionName: undefined,
-              });
+              expect(caughtError?.message).equals(
+                'Unable to fetch database names: Something went wrong.'
+              );
             });
 
             test('shows an error if there are no databases found', async function () {
               // No databases
               listDatabasesStub.resolves([]);
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command,
-                references: [],
-              });
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
 
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals(['No databases were found.']);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: undefined,
-                collectionName: undefined,
-              });
+              expect(caughtError?.message).equals('No databases were found.');
             });
 
             test('database name gets picked automatically if there is only 1', async function () {
@@ -1903,49 +1897,40 @@ Schema:
             });
 
             test('shows an error if something goes wrong with getting collections', async function () {
-              listCollectionsStub.rejects();
+              listCollectionsStub.rejects(new Error('Something went wrong'));
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command,
-                references: [],
-              });
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
 
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals([
-                'An error occurred when getting the collections from the database dbOne.',
-              ]);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
+              expect(caughtError?.message).equals(
+                'Unable to fetch collection names from dbOne: Something went wrong.'
+              );
             });
 
             test('shows an error if there are no collections found', async function () {
               listCollectionsStub.resolves([]);
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'find all docs by a name example',
-                command,
-                references: [],
-              });
-
-              expect(
-                chatStreamStub.markdown.getCalls().map((call) => call.args[0])
-              ).deep.equals([
-                'No collections were found in the database dbOne.',
-              ]);
-
-              expect(chatResult?.metadata).deep.equals({
-                chatId: testChatId,
-                intent: 'askForNamespace',
-                databaseName: 'dbOne',
-                collectionName: undefined,
-              });
+              expect(caughtError?.message).equals(
+                'No collections were found in the database dbOne.'
+              );
             });
 
             test('collection name gets picked automatically if there is only 1', async function () {
