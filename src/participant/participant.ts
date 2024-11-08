@@ -828,7 +828,7 @@ export default class ParticipantController {
     const dataService = this._connectionController.getActiveDataService();
 
     if (!dataService) {
-      throw new Error('Failed to get the data service');
+      throw new Error(vscode.l10n.t('Failed to get the data service'));
     }
 
     stream.push(
