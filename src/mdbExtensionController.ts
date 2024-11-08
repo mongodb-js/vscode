@@ -120,7 +120,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
       statusView: this._statusView,
       playgroundResultViewProvider: this._playgroundResultViewProvider,
-      PlaygroundSelectionCodeActionProvider:
+      playgroundSelectionCodeActionProvider:
         this._playgroundSelectionCodeActionProvider,
     });
     this._participantController = new ParticipantController({
@@ -138,7 +138,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundResultViewProvider: this._playgroundResultViewProvider,
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
-      PlaygroundSelectionCodeActionProvider:
+      playgroundSelectionCodeActionProvider:
         this._playgroundSelectionCodeActionProvider,
       playgroundDiagnosticsCodeActionProvider:
         this._playgroundDiagnosticsCodeActionProvider,

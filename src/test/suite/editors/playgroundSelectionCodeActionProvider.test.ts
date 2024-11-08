@@ -12,7 +12,7 @@ import { mockTextEditor } from '../stubs';
 
 const expect = chai.expect;
 
-suite('Playground Run Command Code Action Provider Test Suite', function () {
+suite('Playground Selection Code Action Provider Test Suite', function () {
   this.timeout(5000);
 
   const extensionContextStub = new ExtensionContextStub();
@@ -56,7 +56,7 @@ suite('Playground Run Command Code Action Provider Test Suite', function () {
           playgroundResultViewProvider:
             mdbTestExtension.testExtensionController
               ._playgroundResultViewProvider,
-          PlaygroundSelectionCodeActionProvider: testCodeActionProvider,
+          playgroundSelectionCodeActionProvider: testCodeActionProvider,
         });
 
       const fakeOpenPlaygroundResult = sandbox.fake();

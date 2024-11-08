@@ -66,7 +66,7 @@ suite('Language Server Controller Test Suite', () => {
       telemetryService: testTelemetryService,
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
-      PlaygroundSelectionCodeActionProvider: testCodeActionProvider,
+      playgroundSelectionCodeActionProvider: testCodeActionProvider,
     });
     await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._activeConnectionChanged();
