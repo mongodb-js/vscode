@@ -82,10 +82,10 @@ export const isPlayground = (fileUri?: vscode.Uri): boolean => {
   );
 };
 
-export const getSelectedPlaygroundText = (): string | undefined => {
+export const getSelectedText = (): string | undefined => {
   const editor = vscode.window.activeTextEditor;
 
-  if (!editor || !isPlayground(editor?.document.uri)) {
+  if (!editor) {
     return;
   }
 
@@ -99,13 +99,7 @@ export const getSelectedPlaygroundText = (): string | undefined => {
     .join('\n');
 };
 
-export const getAllPlaygroundText = (): string => {
-  const editor = vscode.window.activeTextEditor;
-
-  if (!editor || !isPlayground(editor?.document.uri)) {
-    return '';
-  }
-
+export const getAllText = (): string => {
   return vscode.window.activeTextEditor?.document.getText().trim() || '';
 };
 

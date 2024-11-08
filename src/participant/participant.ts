@@ -46,11 +46,7 @@ import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import type { ExportToLanguageAddons } from '../types/playgroundType';
 import type ExportToLanguageCodeLensProvider from '../editors/exportToLanguageCodeLensProvider';
-import {
-  isPlayground,
-  getSelectedPlaygroundText,
-  getAllPlaygroundText,
-} from '../utils/playground';
+import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 
 const log = createLogger('participant');
 
@@ -1478,20 +1474,9 @@ export default class ParticipantController {
   }
 
   async exportCodeToPlayground(): Promise<boolean> {
-    const activeTextEditor = vscode.window.activeTextEditor;
-    if (!activeTextEditor) {
-      await vscode.window.showErrorMessage('Active editor not found.');
-      return false;
-    }
+    const selectedText = getSelectedText();
+    const codeToExport = selectedText || getAllText();
 
-    const sortedSelections = Array.from(activeTextEditor.selections).sort(
-      (a, b) => a.start.compareTo(b.start)
-    );
-    const selectedText = sortedSelections
-      .map((selection) => activeTextEditor.document.getText(selection))
-      .join('\n');
-    const code =
-      selectedText || activeTextEditor.document.getText().trim() || '';
     try {
       const progressResult = await vscode.window.withProgress(
         {
@@ -1501,7 +1486,7 @@ export default class ParticipantController {
         },
         async (progress, token): Promise<string | null> => {
           const modelInput = await Prompts.exportToPlayground.buildMessages({
-            request: { prompt: code },
+            request: { prompt: codeToExport },
           });
 
           const result = await Promise.race([
@@ -1728,7 +1713,6 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     exportToLanguageAddons: ExportToLanguageAddons
   ): Promise<boolean> {
     this._exportToLanguageCodeLensProvider.refresh(exportToLanguageAddons);
-
     return this._transpile();
   }
 
@@ -1738,28 +1722,21 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       language,
     });
 
+    const editor = vscode.window.activeTextEditor;
+
+    if (!isPlayground(editor?.document.uri)) {
+      await vscode.window.showErrorMessage(
+        'Please select one or more lines in the playground.'
+      );
+      return false;
+    }
+
     return this._transpile();
   }
 
   async _transpile(): Promise<boolean> {
-    const editor = vscode.window.activeTextEditor;
-
-    if (!isPlayground(editor?.document?.uri)) {
-      void vscode.window.showErrorMessage(
-        'Please open a MongoDB playground file before running it.'
-      );
-
-      return Promise.resolve(false);
-    }
-
-    const selectedText = getSelectedPlaygroundText();
-    let codeToTranspile = '';
-    if (!selectedText) {
-      codeToTranspile = getAllPlaygroundText();
-    } else {
-      codeToTranspile = selectedText;
-    }
-
+    const selectedText = getSelectedText();
+    const codeToTranspile = selectedText || getAllText();
     const { importStatements, driverSyntax, language } =
       this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
 

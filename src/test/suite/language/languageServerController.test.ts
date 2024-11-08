@@ -8,7 +8,7 @@ import type { SinonStub } from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import chaiAsPromised from 'chai-as-promised';
 
-import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
+import PlaygroundRunCommandCodeActionProvider from '../../../editors/PlaygroundRunCommandCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { LanguageServerController } from '../../../language';
@@ -49,7 +49,7 @@ suite('Language Server Controller Test Suite', () => {
     testConnectionController,
     testEditDocumentCodeLensProvider
   );
-  const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
+  const testCodeActionProvider = new PlaygroundRunCommandCodeActionProvider();
 
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
@@ -66,7 +66,7 @@ suite('Language Server Controller Test Suite', () => {
       telemetryService: testTelemetryService,
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
-      playgroundSelectedCodeActionProvider: testCodeActionProvider,
+      PlaygroundRunCommandCodeActionProvider: testCodeActionProvider,
     });
     await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._activeConnectionChanged();

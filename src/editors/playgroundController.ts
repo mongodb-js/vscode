@@ -3,7 +3,7 @@ import path from 'path';
 import { ProgressLocation } from 'vscode';
 import os from 'os';
 
-import type PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
+import type PlaygroundRunCommandCodeActionProvider from './PlaygroundRunCommandCodeActionProvider';
 import type ConnectionController from '../connectionController';
 import { DataServiceEventTypes } from '../connectionController';
 import { createLogger } from '../logging';
@@ -35,8 +35,8 @@ import type { StatusView } from '../views';
 import type TelemetryService from '../telemetry/telemetryService';
 import {
   isPlayground,
-  getSelectedPlaygroundText,
-  getAllPlaygroundText,
+  getSelectedText,
+  getAllText,
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
 
@@ -56,7 +56,7 @@ export default class PlaygroundController {
   _connectionController: ConnectionController;
   _playgroundResult?: PlaygroundResult;
   _languageServerController: LanguageServerController;
-  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _PlaygroundRunCommandCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
   _telemetryService: TelemetryService;
 
   _isPartialRun = false;
@@ -73,22 +73,22 @@ export default class PlaygroundController {
     telemetryService,
     statusView,
     playgroundResultViewProvider,
-    playgroundSelectedCodeActionProvider,
+    PlaygroundRunCommandCodeActionProvider,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
     telemetryService: TelemetryService;
     statusView: StatusView;
     playgroundResultViewProvider: PlaygroundResultProvider;
-    playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+    PlaygroundRunCommandCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
   }) {
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
     this._statusView = statusView;
     this._playgroundResultViewProvider = playgroundResultViewProvider;
-    this._playgroundSelectedCodeActionProvider =
-      playgroundSelectedCodeActionProvider;
+    this._PlaygroundRunCommandCodeActionProvider =
+      PlaygroundRunCommandCodeActionProvider;
 
     this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();
@@ -544,12 +544,13 @@ export default class PlaygroundController {
   }
 
   runSelectedPlaygroundBlocks(): Promise<boolean> {
-    const selectedText = getSelectedPlaygroundText();
-    if (!getSelectedPlaygroundText()) {
+    const editor = vscode.window.activeTextEditor;
+    const selectedText = getSelectedText();
+
+    if (!isPlayground(editor?.document.uri) || !getSelectedText()) {
       void vscode.window.showInformationMessage(
         'Please select one or more lines in the playground.'
       );
-
       return Promise.resolve(false);
     }
 
@@ -562,12 +563,12 @@ export default class PlaygroundController {
   }
 
   runAllPlaygroundBlocks(): Promise<boolean> {
-    const codeToEvaluate = getAllPlaygroundText();
+    const codeToEvaluate = getAllText();
+
     if (!codeToEvaluate) {
       void vscode.window.showErrorMessage(
         'Please open a MongoDB playground file before running it.'
       );
-
       return Promise.resolve(false);
     }
 
@@ -580,16 +581,16 @@ export default class PlaygroundController {
   }
 
   runAllOrSelectedPlaygroundBlocks(): Promise<boolean> {
-    const selectedText = getSelectedPlaygroundText();
-    const codeToEvaluate = selectedText || getAllPlaygroundText();
+    const editor = vscode.window.activeTextEditor;
+    const selectedText = getSelectedText();
+    const codeToEvaluate = selectedText || getAllText();
 
     this._isPartialRun = !!selectedText;
 
-    if (!codeToEvaluate) {
+    if (!isPlayground(editor?.document.uri)) {
       void vscode.window.showErrorMessage(
         'Please open a MongoDB playground file before running it.'
       );
-
       return Promise.resolve(false);
     }
 

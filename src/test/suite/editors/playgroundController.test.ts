@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 
-import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
+import PlaygroundRunCommandCodeActionProvider from '../../../editors/PlaygroundRunCommandCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import type { LanguageServerController } from '../../../language';
@@ -37,7 +37,7 @@ suite('Playground Controller Test Suite', function () {
   let testConnectionController: ConnectionController;
   let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   let testPlaygroundResultProvider: PlaygroundResultProvider;
-  let testCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  let testCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
@@ -63,7 +63,7 @@ suite('Playground Controller Test Suite', function () {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
+    testCodeActionProvider = new PlaygroundRunCommandCodeActionProvider();
     languageServerControllerStub = new LanguageServerControllerStub(
       extensionContextStub,
       testStorageController
@@ -74,7 +74,7 @@ suite('Playground Controller Test Suite', function () {
       telemetryService: testTelemetryService,
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
-      playgroundSelectedCodeActionProvider: testCodeActionProvider,
+      PlaygroundRunCommandCodeActionProvider: testCodeActionProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(testTelemetryService, 'trackNewConnection');
