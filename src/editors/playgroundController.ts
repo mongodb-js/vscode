@@ -3,7 +3,7 @@ import path from 'path';
 import { ProgressLocation } from 'vscode';
 import os from 'os';
 
-import type PlaygroundRunCommandCodeActionProvider from './PlaygroundRunCommandCodeActionProvider';
+import type PlaygroundSelectionCodeActionProvider from './playgroundSelectionCodeActionProvider';
 import type ConnectionController from '../connectionController';
 import { DataServiceEventTypes } from '../connectionController';
 import { createLogger } from '../logging';
@@ -56,7 +56,7 @@ export default class PlaygroundController {
   _connectionController: ConnectionController;
   _playgroundResult?: PlaygroundResult;
   _languageServerController: LanguageServerController;
-  _PlaygroundRunCommandCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
+  _PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _telemetryService: TelemetryService;
 
   _isPartialRun = false;
@@ -73,22 +73,22 @@ export default class PlaygroundController {
     telemetryService,
     statusView,
     playgroundResultViewProvider,
-    PlaygroundRunCommandCodeActionProvider,
+    PlaygroundSelectionCodeActionProvider,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
     telemetryService: TelemetryService;
     statusView: StatusView;
     playgroundResultViewProvider: PlaygroundResultProvider;
-    PlaygroundRunCommandCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
+    PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   }) {
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
     this._statusView = statusView;
     this._playgroundResultViewProvider = playgroundResultViewProvider;
-    this._PlaygroundRunCommandCodeActionProvider =
-      PlaygroundRunCommandCodeActionProvider;
+    this._PlaygroundSelectionCodeActionProvider =
+      PlaygroundSelectionCodeActionProvider;
 
     this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();

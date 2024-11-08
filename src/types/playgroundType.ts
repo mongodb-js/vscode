@@ -21,10 +21,7 @@ export type PlaygroundEvaluateParams = {
 };
 
 export interface ExportToLanguageAddons {
-  textFromEditor?: string;
-  selectedText?: string;
-  selection?: vscode.Selection;
-  importStatements: boolean;
+  codeToTranspile: string;
   driverSyntax: boolean;
   language: string;
 }

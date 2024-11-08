@@ -7,7 +7,7 @@ const expect = chai.expect;
 
 suite('Export To Language Code Lens Provider Test Suite', function () {
   const defaults = {
-    importStatements: false,
+    codeToTranspile: '123',
     driverSyntax: false,
     language: 'shell',
   };
@@ -18,59 +18,44 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
       new ExportToLanguageCodeLensProvider();
   });
 
-  test('has the include import statements code lens when importStatements is false', () => {
+  test('renders the include driver syntax code lens by default for shell', () => {
     testExportToLanguageCodeLensProvider.refresh(defaults);
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[0].command?.title).to.be.equal(
-      'Include Import Statements'
-    );
+    expect(codeLenses.length).to.be.equal(1);
+    expect(codeLenses[0].command?.title).to.be.equal('Include Driver Syntax');
   });
 
-  test('has the exclude import statements code lens when importStatements is true', () => {
+  test('renders the include driver syntax code lens when driverSyntax is false for shell', () => {
     testExportToLanguageCodeLensProvider.refresh({
       ...defaults,
-      importStatements: true,
+      driverSyntax: false,
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[0].command?.title).to.be.equal(
-      'Exclude Import Statements'
-    );
+    expect(codeLenses.length).to.be.equal(1);
+    expect(codeLenses[0].command?.title).to.be.equal('Include Driver Syntax');
   });
 
-  test('has the include import statements code lens when driverSyntax is false', () => {
-    testExportToLanguageCodeLensProvider.refresh(defaults);
-
-    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[1].command?.title).to.be.equal('Include Driver Syntax');
-  });
-
-  test('has the exclude import statements code lens when driverSyntax is true', () => {
+  test('renders the exclude driver syntax code lens when driverSyntax is true for shell', () => {
     testExportToLanguageCodeLensProvider.refresh({
       ...defaults,
       driverSyntax: true,
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[1].command?.title).to.be.equal('Exclude Driver Syntax');
+    expect(codeLenses.length).to.be.equal(1);
+    expect(codeLenses[0].command?.title).to.be.equal('Exclude Driver Syntax');
   });
 
-  test('does not have the include driver syntax code lens when language is csharp', () => {
+  test('does not render code lenses for csharp', () => {
     testExportToLanguageCodeLensProvider.refresh({
       ...defaults,
       language: 'csharp',
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(1); // Csharp does not support driver syntax.
-    expect(codeLenses[0].command?.title).to.be.equal(
-      'Include Import Statements'
-    );
+    expect(codeLenses.length).to.be.equal(0); // Csharp does not support driver syntax.
   });
 
   test('does not render code lenses for json text', () => {

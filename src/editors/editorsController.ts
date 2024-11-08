@@ -4,7 +4,7 @@ import type { Document } from 'bson';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
-import PlaygroundRunCommandCodeActionProvider from './PlaygroundRunCommandCodeActionProvider';
+import PlaygroundSelectionCodeActionProvider from './playgroundSelectionCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './playgroundDiagnosticsCodeActionProvider';
 import type ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
@@ -84,7 +84,7 @@ export function getViewCollectionDocumentsUri(
  * new editors and the data they need. It also manages active editors.
  */
 export default class EditorsController {
-  _PlaygroundRunCommandCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
+  _PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
@@ -112,7 +112,7 @@ export default class EditorsController {
     playgroundResultViewProvider,
     activeConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider,
-    PlaygroundRunCommandCodeActionProvider,
+    PlaygroundSelectionCodeActionProvider,
     playgroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider,
   }: {
@@ -124,7 +124,7 @@ export default class EditorsController {
     playgroundResultViewProvider: PlaygroundResultProvider;
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
-    PlaygroundRunCommandCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
+    PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
     playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   }) {
@@ -156,8 +156,8 @@ export default class EditorsController {
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore
       );
-    this._PlaygroundRunCommandCodeActionProvider =
-      PlaygroundRunCommandCodeActionProvider;
+    this._PlaygroundSelectionCodeActionProvider =
+      PlaygroundSelectionCodeActionProvider;
     this._playgroundDiagnosticsCodeActionProvider =
       playgroundDiagnosticsCodeActionProvider;
 
@@ -446,10 +446,10 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
         'javascript',
-        this._PlaygroundRunCommandCodeActionProvider,
+        this._PlaygroundSelectionCodeActionProvider,
         {
           providedCodeActionKinds:
-            PlaygroundRunCommandCodeActionProvider.providedCodeActionKinds,
+            PlaygroundSelectionCodeActionProvider.providedCodeActionKinds,
         }
       )
     );

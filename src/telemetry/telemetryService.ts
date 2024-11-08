@@ -48,16 +48,8 @@ type DocumentEditedTelemetryEventProperties = {
   source: DocumentSource;
 };
 
-type AggregationExportedTelemetryEventProperties = {
+type PlaygroundExportedToLanguageTelemetryEventProperties = {
   language: string;
-  num_stages: number | null;
-  with_import_statements: boolean;
-  with_driver_syntax: boolean;
-};
-
-type QueryExportedTelemetryEventProperties = {
-  language: string;
-  with_import_statements: boolean;
   with_driver_syntax: boolean;
 };
 
@@ -153,8 +145,7 @@ type TelemetryEventProperties =
   | DocumentUpdatedTelemetryEventProperties
   | ConnectionEditedTelemetryEventProperties
   | DocumentEditedTelemetryEventProperties
-  | QueryExportedTelemetryEventProperties
-  | AggregationExportedTelemetryEventProperties
+  | PlaygroundExportedToLanguageTelemetryEventProperties
   | PlaygroundCreatedTelemetryEventProperties
   | PlaygroundSavedTelemetryEventProperties
   | PlaygroundLoadedTelemetryEventProperties
@@ -177,8 +168,7 @@ export enum TelemetryEventTypes {
   PLAYGROUND_LOADED = 'Playground Loaded',
   DOCUMENT_UPDATED = 'Document Updated',
   DOCUMENT_EDITED = 'Document Edited',
-  QUERY_EXPORTED = 'Query Exported',
-  AGGREGATION_EXPORTED = 'Aggregation Exported',
+  PLAYGROUND_EXPORTED_TO_LANGUAGE = 'Playground Exported To Language',
   PLAYGROUND_CREATED = 'Playground Created',
   KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
   SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
@@ -412,16 +402,13 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
   }
 
-  trackQueryExported(
-    queryExportedProps: QueryExportedTelemetryEventProperties
+  trackPlaygroundExportedToLanguageExported(
+    playgroundExportedProps: PlaygroundExportedToLanguageTelemetryEventProperties
   ): void {
-    this.track(TelemetryEventTypes.QUERY_EXPORTED, queryExportedProps);
-  }
-
-  trackAggregationExported(
-    aggExportedProps: AggregationExportedTelemetryEventProperties
-  ): void {
-    this.track(TelemetryEventTypes.AGGREGATION_EXPORTED, aggExportedProps);
+    this.track(
+      TelemetryEventTypes.PLAYGROUND_EXPORTED_TO_LANGUAGE,
+      playgroundExportedProps
+    );
   }
 
   trackPlaygroundCreated(playgroundType: string): void {

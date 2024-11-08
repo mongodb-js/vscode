@@ -4,7 +4,6 @@ import type { UserPromptResponse } from './promptBase';
 export interface ExportToLanguagePromptArgs extends PromptArgsBase {
   language: string;
   includeDriverSyntax: boolean;
-  includeImportStatements: boolean;
 }
 
 export class ExportToLanguagePrompt extends PromptBase<ExportToLanguagePromptArgs> {
@@ -25,14 +24,12 @@ Respond with markdown, suggest code in a Markdown code block that begins with \`
   getUserPrompt({
     request,
     includeDriverSyntax,
-    includeImportStatements,
   }: ExportToLanguagePromptArgs): Promise<UserPromptResponse> {
     const prompt = request.prompt;
     return Promise.resolve({
       prompt: `${
         prompt ? `The user provided additional information: "${prompt}"\n` : ''
-      }Include driver syntax: ${includeDriverSyntax}
-Include import statements: ${includeImportStatements}`,
+      }Include driver syntax: ${includeDriverSyntax}`,
       hasSampleDocs: false,
     });
   }

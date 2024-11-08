@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 
-import PlaygroundRunCommandCodeActionProvider from '../../../editors/PlaygroundRunCommandCodeActionProvider';
+import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import type { LanguageServerController } from '../../../language';
@@ -37,7 +37,7 @@ suite('Playground Controller Test Suite', function () {
   let testConnectionController: ConnectionController;
   let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   let testPlaygroundResultProvider: PlaygroundResultProvider;
-  let testCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
+  let testCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
@@ -63,7 +63,7 @@ suite('Playground Controller Test Suite', function () {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testCodeActionProvider = new PlaygroundRunCommandCodeActionProvider();
+    testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
     languageServerControllerStub = new LanguageServerControllerStub(
       extensionContextStub,
       testStorageController
@@ -74,7 +74,7 @@ suite('Playground Controller Test Suite', function () {
       telemetryService: testTelemetryService,
       statusView: testStatusView,
       playgroundResultViewProvider: testPlaygroundResultProvider,
-      PlaygroundRunCommandCodeActionProvider: testCodeActionProvider,
+      PlaygroundSelectionCodeActionProvider: testCodeActionProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(testTelemetryService, 'trackNewConnection');

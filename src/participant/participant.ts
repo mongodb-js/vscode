@@ -1551,12 +1551,10 @@ export default class ParticipantController {
     code,
     language,
     includeDriverSyntax,
-    includeImportStatements,
   }: {
     code: string;
     language: string;
     includeDriverSyntax: boolean;
-    includeImportStatements: boolean;
   }): Promise<string | null> {
     const progressResult = await vscode.window.withProgress(
       {
@@ -1569,7 +1567,6 @@ export default class ParticipantController {
           request: { prompt: code },
           language,
           includeDriverSyntax,
-          includeImportStatements,
         });
         const result = await Promise.race([
           this.streamChatResponseContentToCode({
@@ -1717,11 +1714,6 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
   }
 
   async exportToLanguage(language: string): Promise<boolean> {
-    this._exportToLanguageCodeLensProvider.refresh({
-      ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
-      language,
-    });
-
     const editor = vscode.window.activeTextEditor;
 
     if (!isPlayground(editor?.document.uri)) {
@@ -1731,13 +1723,20 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       return false;
     }
 
+    const selectedText = getSelectedText();
+    const codeToTranspile = selectedText || getAllText();
+
+    this._exportToLanguageCodeLensProvider.refresh({
+      ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+      codeToTranspile,
+      language,
+    });
+
     return this._transpile();
   }
 
   async _transpile(): Promise<boolean> {
-    const selectedText = getSelectedText();
-    const codeToTranspile = selectedText || getAllText();
-    const { importStatements, driverSyntax, language } =
+    const { codeToTranspile, driverSyntax, language } =
       this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
 
     log.info(`Exporting to the '${language}' language...`);
@@ -1747,23 +1746,28 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
         code: codeToTranspile,
         language,
         includeDriverSyntax: driverSyntax,
-        includeImportStatements: importStatements,
       });
 
       log.info(`The playground was exported to ${language}`, {
         code: codeToTranspile,
         language,
         includeDriverSyntax: driverSyntax,
-        includeImportStatements: importStatements,
       });
 
       await vscode.commands.executeCommand(
         EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULTS,
         { content, language }
       );
+
       this._exportToLanguageCodeLensProvider.refresh({
         ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+        codeToTranspile,
         language,
+      });
+
+      this._telemetryService.trackPlaygroundExportedToLanguageExported({
+        language,
+        with_driver_syntax: driverSyntax,
       });
     } catch (error) {
       log.error(`Export to ${language} failed`, error);

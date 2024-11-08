@@ -16,7 +16,7 @@ export default class ExportToLanguageCodeLensProvider
 
   constructor() {
     this._exportToLanguageAddons = {
-      importStatements: false,
+      codeToTranspile: '',
       driverSyntax: false,
       language: 'shell',
     };
@@ -36,27 +36,12 @@ export default class ExportToLanguageCodeLensProvider
   }
 
   provideCodeLenses(): vscode.CodeLens[] {
-    const importStatementsCodeLens = this.createCodeLens();
     const driverSyntaxCodeLens = this.createCodeLens();
     const exportToLanguageCodeLenses: vscode.CodeLens[] = [];
 
     if (['json', 'plaintext'].includes(this._exportToLanguageAddons.language)) {
       return [];
     }
-
-    importStatementsCodeLens.command = {
-      title: this._exportToLanguageAddons.importStatements
-        ? 'Exclude Import Statements'
-        : 'Include Import Statements',
-      command: EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
-      arguments: [
-        {
-          ...this._exportToLanguageAddons,
-          importStatements: !this._exportToLanguageAddons.importStatements,
-        },
-      ],
-    };
-    exportToLanguageCodeLenses.push(importStatementsCodeLens);
 
     if (this._exportToLanguageAddons.language !== ExportToLanguages.CSHARP) {
       driverSyntaxCodeLens.command = {

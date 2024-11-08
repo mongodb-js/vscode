@@ -3,42 +3,46 @@ import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import { isPlayground, getSelectedText } from '../utils/playground';
 
-const exportToLanguageCommands = [
+const selectionCommands = [
   {
-    languageName: 'Python 3',
+    name: 'Run selected playground blocks',
+    command: EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
+  },
+  {
+    name: 'Export To Python 3',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON,
   },
   {
-    languageName: 'Java',
+    name: 'Export To Java',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA,
   },
   {
-    languageName: 'C#',
+    name: 'Export To C#',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP,
   },
   {
-    languageName: 'Node.js',
+    name: 'Export To Node.js',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE,
   },
   {
-    languageName: 'Ruby',
+    name: 'Export To Ruby',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY,
   },
   {
-    languageName: 'Go',
+    name: 'Export To Go',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_GO,
   },
   {
-    languageName: 'Rust',
+    name: 'Export To Rust',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST,
   },
   {
-    languageName: 'PHP',
+    name: 'Export To PHP',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP,
   },
 ];
 
-export default class PlaygroundRunCommandCodeActionProvider
+export default class PlaygroundSelectionCodeActionProvider
   implements vscode.CodeActionProvider
 {
   _onDidChangeCodeCodeAction: vscode.EventEmitter<void> =
@@ -79,34 +83,17 @@ export default class PlaygroundRunCommandCodeActionProvider
   }
 
   provideCodeActions(): vscode.CodeAction[] | undefined {
-    const codeActions: vscode.CodeAction[] = [];
     const editor = vscode.window.activeTextEditor;
+    const codeActions: vscode.CodeAction[] = [];
 
-    if (!isPlayground(editor?.document?.uri)) {
+    if (!isPlayground(editor?.document.uri) || !getSelectedText()) {
       return;
     }
 
-    if (getSelectedText()) {
+    for (const { name, command } of selectionCommands) {
       codeActions.push(
         this.createCodeAction({
-          codeActionName: 'Run selected playground blocks',
-          codeActionCommand:
-            EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
-        })
-      );
-    } else {
-      codeActions.push(
-        this.createCodeAction({
-          codeActionName: 'Run playground',
-          codeActionCommand: EXTENSION_COMMANDS.MDB_RUN_ALL_PLAYGROUND_BLOCKS,
-        })
-      );
-    }
-
-    for (const { languageName, command } of exportToLanguageCommands) {
-      codeActions.push(
-        this.createCodeAction({
-          codeActionName: `Export To ${languageName}`,
+          codeActionName: name,
           codeActionCommand: command,
         })
       );

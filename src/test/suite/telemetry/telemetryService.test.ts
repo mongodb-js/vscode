@@ -310,33 +310,9 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track query exported to language', function () {
-    testTelemetryService.trackQueryExported({
-      language: 'python',
-      with_import_statements: false,
-      with_driver_syntax: false,
-    });
-
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Query Exported',
-        properties: {
-          language: 'python',
-          with_import_statements: false,
-          with_driver_syntax: false,
-          extension_version: version,
-        },
-      })
-    );
-  });
-
-  test('track aggregation exported to language', () => {
-    testTelemetryService.trackAggregationExported({
+  test('track playground exported to language', () => {
+    testTelemetryService.trackPlaygroundExportedToLanguageExported({
       language: 'java',
-      num_stages: 1,
-      with_import_statements: false,
       with_driver_syntax: false,
     });
 
@@ -344,11 +320,9 @@ suite('Telemetry Controller Test Suite', () => {
       fakeSegmentAnalyticsTrack,
       sinon.match({
         anonymousId,
-        event: 'Aggregation Exported',
+        event: 'Playground Exported To Language',
         properties: {
           language: 'java',
-          num_stages: 1,
-          with_import_statements: false,
           with_driver_syntax: false,
           extension_version: version,
         },

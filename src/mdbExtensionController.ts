@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
-import PlaygroundRunCommandCodeActionProvider from './editors/PlaygroundRunCommandCodeActionProvider';
+import PlaygroundSelectionCodeActionProvider from './editors/playgroundSelectionCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './editors/playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from './connectionController';
 import type ConnectionTreeItem from './explorer/connectionTreeItem';
@@ -52,7 +52,7 @@ import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
-  _PlaygroundRunCommandCodeActionProvider: PlaygroundRunCommandCodeActionProvider;
+  _PlaygroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _connectionStorage: ConnectionStorage;
@@ -110,8 +110,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._exportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider();
-    this._PlaygroundRunCommandCodeActionProvider =
-      new PlaygroundRunCommandCodeActionProvider();
+    this._PlaygroundSelectionCodeActionProvider =
+      new PlaygroundSelectionCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
     this._playgroundController = new PlaygroundController({
@@ -120,8 +120,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
       statusView: this._statusView,
       playgroundResultViewProvider: this._playgroundResultViewProvider,
-      PlaygroundRunCommandCodeActionProvider:
-        this._PlaygroundRunCommandCodeActionProvider,
+      PlaygroundSelectionCodeActionProvider:
+        this._PlaygroundSelectionCodeActionProvider,
     });
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
@@ -138,8 +138,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundResultViewProvider: this._playgroundResultViewProvider,
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
-      PlaygroundRunCommandCodeActionProvider:
-        this._PlaygroundRunCommandCodeActionProvider,
+      PlaygroundSelectionCodeActionProvider:
+        this._PlaygroundSelectionCodeActionProvider,
       playgroundDiagnosticsCodeActionProvider:
         this._playgroundDiagnosticsCodeActionProvider,
       editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
