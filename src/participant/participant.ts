@@ -793,11 +793,10 @@ export default class ParticipantController {
         _id: string;
         name: string;
       }[]
-    | undefined
   > {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      return undefined;
+      throw new Error(vscode.l10n.t('Failed to get the data service'));
     }
 
     stream.push(
@@ -811,7 +810,11 @@ export default class ParticipantController {
     } catch (error) {
       log.error('Unable to fetch databases:', error);
 
-      return undefined;
+      throw new Error(
+        vscode.l10n.t(
+          `Unable to fetch database names: ${formatError(error).message}.`
+        )
+      );
     }
   }
 
@@ -821,11 +824,11 @@ export default class ParticipantController {
   }: {
     stream: vscode.ChatResponseStream;
     databaseName: string;
-  }): Promise<ReturnType<DataService['listCollections']> | undefined> {
+  }): Promise<ReturnType<DataService['listCollections']>> {
     const dataService = this._connectionController.getActiveDataService();
 
     if (!dataService) {
-      return undefined;
+      throw new Error(vscode.l10n.t('Failed to get the data service'));
     }
 
     stream.push(
@@ -835,9 +838,15 @@ export default class ParticipantController {
     try {
       return await dataService.listCollections(databaseName);
     } catch (error) {
-      log.error('Unable to fetch collections:', error);
+      log.error('Unable to fetch collection names:', error);
 
-      return undefined;
+      throw new Error(
+        vscode.l10n.t(
+          `Unable to fetch collection names from ${databaseName}: ${
+            formatError(error).message
+          }.`
+        )
+      );
     }
   }
 
@@ -856,9 +865,12 @@ export default class ParticipantController {
   }): Promise<string | undefined> {
     const collections = await this._getCollections({ stream, databaseName });
 
-    if (collections === undefined) {
-      log.error('No collections found');
-      return undefined;
+    if (collections.length === 0) {
+      throw new Error(
+        vscode.l10n.t(
+          `No collections were found in the database ${databaseName}.`
+        )
+      );
     }
     if (collections.length === 1) {
       return collections[0].name;
@@ -894,9 +906,8 @@ export default class ParticipantController {
   }): Promise<string | undefined> {
     const databases = await this._getDatabases({ stream });
 
-    if (databases === undefined || databases.length === 0) {
-      log.error('No databases found');
-      return undefined;
+    if (databases.length === 0) {
+      throw new Error(vscode.l10n.t('No databases were found.'));
     }
 
     if (databases.length === 1) {
@@ -908,9 +919,11 @@ export default class ParticipantController {
     // Users can then select a value by clicking on an item in the list
     // or typing the name manually.
     stream.markdown(
-      `Which database would you like ${
-        command === '/query' ? 'this query to run against' : 'to use'
-      }? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
+      vscode.l10n.t(
+        `Which database would you like ${
+          command === '/query' ? 'this query to run against' : 'to use'
+        }? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
+      )
     );
 
     this.renderDatabasesTree({

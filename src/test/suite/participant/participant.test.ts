@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
-import type { SinonSpy } from 'sinon';
+import type { SinonSpy, SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import { ObjectId, Int32 } from 'bson';
@@ -404,9 +404,9 @@ suite('Participant Controller Test Suite', function () {
   });
 
   suite('when connected', function () {
-    let sampleStub;
-    let listCollectionsStub;
-    let listDatabasesStub;
+    let sampleStub: SinonStub;
+    let listCollectionsStub: SinonStub;
+    let listDatabasesStub: SinonStub;
 
     beforeEach(function () {
       sampleStub = sinon.stub();
@@ -1790,6 +1790,43 @@ Schema:
               sinon.restore();
             });
 
+            test('shows an error if something goes wrong with getting databases', async function () {
+              listDatabasesStub.rejects(new Error('Something went wrong'));
+
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
+
+              expect(caughtError?.message).equals(
+                'Unable to fetch database names: Something went wrong.'
+              );
+            });
+
+            test('shows an error if there are no databases found', async function () {
+              // No databases
+              listDatabasesStub.resolves([]);
+
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
+
+              expect(caughtError?.message).equals('No databases were found.');
+            });
+
             test('database name gets picked automatically if there is only 1', async function () {
               listDatabasesStub.resolves([{ name: 'onlyOneDb' }]);
 
@@ -1856,6 +1893,43 @@ Schema:
                   databaseName: 'dbOne',
                   collectionName: undefined,
                 })
+              );
+            });
+
+            test('shows an error if something goes wrong with getting collections', async function () {
+              listCollectionsStub.rejects(new Error('Something went wrong'));
+
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
+
+              expect(caughtError?.message).equals(
+                'Unable to fetch collection names from dbOne: Something went wrong.'
+              );
+            });
+
+            test('shows an error if there are no collections found', async function () {
+              listCollectionsStub.resolves([]);
+              let caughtError: Error | undefined;
+              try {
+                await invokeChatHandler({
+                  prompt: 'find all docs by a name example',
+                  command,
+                  references: [],
+                });
+              } catch (error) {
+                caughtError = error as Error;
+              }
+
+              expect(caughtError?.message).equals(
+                'No collections were found in the database dbOne.'
               );
             });
 
