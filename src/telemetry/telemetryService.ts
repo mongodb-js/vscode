@@ -13,6 +13,7 @@ import type { NewConnectionTelemetryEventProperties } from './connectionTelemetr
 import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
 import type { ParticipantResponseType } from '../participant/constants';
+import { ParticipantErrorTypes } from '../participant/participantErrorTypes';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -179,14 +180,6 @@ export enum TelemetryEventTypes {
   PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
   PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
-}
-
-export enum ParticipantErrorTypes {
-  CHAT_MODEL_OFF_TOPIC = 'Chat Model Off Topic',
-  INVALID_PROMPT = 'Invalid Prompt',
-  FILTERED = 'Filtered by Responsible AI Service',
-  OTHER = 'Other',
-  DOCS_CHATBOT_API = 'Docs Chatbot API Issue',
 }
 
 /**

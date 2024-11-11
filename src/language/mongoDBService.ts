@@ -14,7 +14,7 @@ import type {
   MarkupContent,
   Diagnostic,
 } from 'vscode-languageserver/node';
-import { CliServiceProvider } from '@mongosh/service-provider-server';
+import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import type { Document } from '@mongosh/service-provider-core';
 import { getFilteredCompletions } from '@mongodb-js/mongodb-constants';
 import parseSchema from 'mongodb-schema';
@@ -70,7 +70,7 @@ export default class MongoDBService {
   _fields: { [namespace: string]: string[] } = {};
 
   _visitor: Visitor;
-  _serviceProvider?: CliServiceProvider;
+  _serviceProvider?: NodeDriverServiceProvider;
 
   constructor(connection: Connection) {
     connection.console.log('MongoDBService initializing...');
@@ -117,7 +117,7 @@ export default class MongoDBService {
   }
 
   /**
-   * Change CliServiceProvider active connection.
+   * Change NodeDriverServiceProvider active connection.
    */
   async activeConnectionChanged({
     connectionId,
@@ -129,12 +129,14 @@ export default class MongoDBService {
     connectionErrorMessage?: string;
   }> {
     this._connection.console.log(
-      `Changing CliServiceProvider active connection... ${JSON.stringify({
-        currentConnectionId: this._currentConnectionId,
-        newConnectionId: connectionId,
-        hasConnectionString: !!connectionString,
-        hasConnectionOptions: !!connectionOptions,
-      })}`
+      `Changing NodeDriverServiceProvider active connection... ${JSON.stringify(
+        {
+          currentConnectionId: this._currentConnectionId,
+          newConnectionId: connectionId,
+          hasConnectionString: !!connectionString,
+          hasConnectionOptions: !!connectionOptions,
+        }
+      )}`
     );
 
     // If already connected close the previous connection.
@@ -157,7 +159,7 @@ export default class MongoDBService {
 
     if (connectionId && (!connectionString || !connectionOptions)) {
       this._connection.console.error(
-        'Failed to change CliServiceProvider active connection: connectionString and connectionOptions are required'
+        'Failed to change NodeDriverServiceProvider active connection: connectionString and connectionOptions are required'
       );
       return {
         connectionId,
@@ -168,7 +170,7 @@ export default class MongoDBService {
     }
 
     if (connectionString && connectionOptions) {
-      this._serviceProvider = await CliServiceProvider.connect(
+      this._serviceProvider = await NodeDriverServiceProvider.connect(
         connectionString,
         connectionOptions
       );
@@ -181,7 +183,7 @@ export default class MongoDBService {
     }
 
     this._connection.console.log(
-      `CliServiceProvider active connection has changed: { connectionId: ${connectionId} }`
+      `NodeDriverServiceProvider active connection has changed: { connectionId: ${connectionId} }`
     );
     return {
       successfullyConnected: true,
@@ -246,7 +248,7 @@ export default class MongoDBService {
         // We use cancelation tokens to handle users' requests to terminate
         // the current evaluation.
         // Each thread is responsible for one playground evaluation and then terminates.
-        // By doing this we ensure that the CliServiceProvider connection is up-to-date,
+        // By doing this we ensure that the NodeDriverServiceProvider connection is up-to-date,
         // and that multiple playground runs do not interfere with each other.
         //
         // There is an issue with support for `.ts` files.

@@ -4,6 +4,7 @@ import type {
   InternalPromptPurpose,
   ParticipantPromptProperties,
 } from '../../telemetry/telemetryService';
+import { ParticipantErrorTypes } from '../participantErrorTypes';
 
 export interface PromptArgsBase {
   request: {
@@ -188,6 +189,16 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       }
 
       if (historyItem instanceof vscode.ChatResponseTurn) {
+        if (
+          historyItem.result.errorDetails?.message ===
+          ParticipantErrorTypes.FILTERED
+        ) {
+          // If the response led to a filtered error, we do not want the
+          // error-causing message to be sent again so we remove it.
+          messages.pop();
+          continue;
+        }
+
         let message = '';
 
         // Skip a response to an empty user prompt message or connect message.
