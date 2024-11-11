@@ -1639,9 +1639,9 @@ export default class ParticipantController {
               modelInput,
               token,
             }),
-            new Promise<undefined>((resolve) =>
+            new Promise<null>((resolve) =>
               token.onCancellationRequested(() => {
-                resolve(undefined);
+                resolve(null);
               })
             ),
           ]);
@@ -1653,7 +1653,7 @@ export default class ParticipantController {
             return null;
           }
 
-          return result || null;
+          return result;
         }
       );
 
@@ -1719,9 +1719,9 @@ export default class ParticipantController {
             token,
             language,
           }),
-          new Promise<undefined>((resolve) =>
+          new Promise<null>((resolve) =>
             token.onCancellationRequested(() => {
-              resolve(undefined);
+              resolve(null);
             })
           ),
         ]);

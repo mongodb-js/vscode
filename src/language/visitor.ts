@@ -145,12 +145,6 @@ export class Visitor {
     return this._state as CompletionState;
   }
 
-  parseASTForNamespace(params): NamespaceState {
-    this._state = this._getDefaultsForNamespace();
-    this.parseAST(params);
-    return this._state as NamespaceState;
-  }
-
   parseAST({ textFromEditor, selection }: VisitorTextAndSelection): void {
     this._selection = selection;
 
@@ -195,16 +189,6 @@ export class Visitor {
       isStreamProcessorName: false,
       isAggregationCursor: false,
       isFindCursor: false,
-    };
-  }
-
-  _getDefaultsForNamespace(): {
-    databaseName: null;
-    collectionName: null;
-  } {
-    return {
-      databaseName: null,
-      collectionName: null,
     };
   }
 
