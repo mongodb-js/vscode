@@ -36,7 +36,7 @@ export class DocsPrompt extends PromptBase<PromptArgsBase> {
     }
     return this.getFilteredHistoryMessages({
       connectionNames,
-      history: historySinceLastDocs,
+      history: historySinceLastDocs.reverse(),
       databaseName,
       collectionName,
     });
