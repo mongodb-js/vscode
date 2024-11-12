@@ -200,7 +200,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
 
         if (previousItem instanceof vscode.ChatResponseTurn) {
           const responseIntent = (previousItem.result as ChatResult).metadata
-            .intent;
+            ?.intent;
 
           // If the namespace is already known, skip responses to prompts asking for it.
           if (responseIntent === 'askForNamespace' && namespaceIsKnown) {
