@@ -37,6 +37,10 @@ import { getContentLength } from '../../../participant/prompts/promptBase';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { ParticipantErrorTypes } from '../../../participant/participantErrorTypes';
 import * as model from '../../../participant/model';
+import {
+  createChatRequestTurn,
+  createChatResponseTurn,
+} from './participantHelpers';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -1074,33 +1078,26 @@ suite('Participant Controller Test Suite', function () {
 
             chatContextStub = {
               history: [
-                {
-                  prompt: 'find all docs by a name example',
-                  command: 'query',
-                  references: [],
-                  participant: CHAT_PARTICIPANT_ID,
-                } as vscode.ChatRequestTurn,
-                Object.assign(
-                  Object.create(vscode.ChatResponseTurn.prototype),
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: {
-                          value:
-                            'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                        } as vscode.MarkdownString,
-                      },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        intent: 'askForNamespace',
-                        chatId: firstChatId,
-                      },
-                    },
-                  } as vscode.ChatResponseTurn
+                createChatRequestTurn(
+                  '/query',
+                  'find all docs by a name example'
                 ),
+                createChatResponseTurn('/query', {
+                  response: [
+                    {
+                      value: {
+                        value:
+                          'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                      } as vscode.MarkdownString,
+                    },
+                  ],
+                  result: {
+                    metadata: {
+                      intent: 'askForNamespace',
+                      chatId: firstChatId,
+                    },
+                  },
+                }),
               ],
             };
 
@@ -1151,61 +1148,44 @@ suite('Participant Controller Test Suite', function () {
             });
             chatContextStub = {
               history: [
-                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-                  prompt: 'find all docs by a name example',
-                  command: 'query',
-                  references: [],
-                  participant: CHAT_PARTICIPANT_ID,
-                }),
-                Object.assign(
-                  Object.create(vscode.ChatResponseTurn.prototype),
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: {
-                          value:
-                            'Which database would you like to this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                        } as vscode.MarkdownString,
-                      },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        intent: 'askForNamespace',
-                      },
-                    },
-                  }
+                createChatRequestTurn(
+                  '/query',
+                  'find all docs by a name example'
                 ),
-                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-                  prompt: 'dbOne',
-                  command: 'query',
-                  references: [],
-                  participant: CHAT_PARTICIPANT_ID,
-                }),
-                Object.assign(
-                  Object.create(vscode.ChatResponseTurn.prototype),
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: {
-                          value:
-                            'Which collection would you like to query within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                        } as vscode.MarkdownString,
-                      },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        intent: 'askForNamespace',
-                        databaseName: 'dbOne',
-                        collectionName: 'collOne',
-                        chatId: firstChatId,
-                      },
+                createChatResponseTurn('/query', {
+                  response: [
+                    {
+                      value: {
+                        value:
+                          'Which database would you like to this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                      } as vscode.MarkdownString,
                     },
-                  }
-                ),
+                  ],
+                  result: {
+                    metadata: {
+                      intent: 'askForNamespace',
+                    },
+                  },
+                }),
+                createChatRequestTurn('/query', 'dbOne'),
+                createChatResponseTurn('/query', {
+                  response: [
+                    {
+                      value: {
+                        value:
+                          'Which collection would you like to query within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                      } as vscode.MarkdownString,
+                    },
+                  ],
+                  result: {
+                    metadata: {
+                      intent: 'askForNamespace',
+                      databaseName: 'dbOne',
+                      collectionName: 'collOne',
+                      chatId: firstChatId,
+                    },
+                  },
+                }),
               ],
             };
             await invokeChatHandler(chatRequestMock);
@@ -1241,33 +1221,26 @@ suite('Participant Controller Test Suite', function () {
             };
             chatContextStub = {
               history: [
-                {
-                  prompt: 'find all docs by a name example',
-                  command: 'query',
-                  references: [],
-                  participant: CHAT_PARTICIPANT_ID,
-                } as vscode.ChatRequestTurn,
-                Object.assign(
-                  Object.create(vscode.ChatResponseTurn.prototype),
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: {
-                          value:
-                            'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                        } as vscode.MarkdownString,
-                      },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        intent: 'askForNamespace',
-                        chatId: 'pineapple',
-                      },
-                    },
-                  } as vscode.ChatResponseTurn
+                createChatRequestTurn(
+                  '/query',
+                  'find all docs by a name example'
                 ),
+                createChatResponseTurn('/query', {
+                  response: [
+                    {
+                      value: {
+                        value:
+                          'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                      } as vscode.MarkdownString,
+                    },
+                  ],
+                  result: {
+                    metadata: {
+                      intent: 'askForNamespace',
+                      chatId: 'pineapple',
+                    },
+                  },
+                }),
               ],
             };
             const chatResult = await invokeChatHandler(chatRequestMock);
@@ -1372,31 +1345,23 @@ suite('Participant Controller Test Suite', function () {
             };
             chatContextStub = {
               history: [
-                Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-                  prompt:
-                    'how do I make a find request vs favorite_fruits.pineapple?',
-                  command: 'query',
-                  references: [],
-                  participant: CHAT_PARTICIPANT_ID,
-                }),
-                Object.assign(
-                  Object.create(vscode.ChatResponseTurn.prototype),
-                  {
-                    participant: CHAT_PARTICIPANT_ID,
-                    response: [
-                      {
-                        value: 'some code',
-                      },
-                    ],
-                    command: 'query',
-                    result: {
-                      metadata: {
-                        intent: 'query',
-                        chatId: 'abc',
-                      },
-                    },
-                  }
+                createChatRequestTurn(
+                  '/query',
+                  'how do I make a find request vs favorite_fruits.pineapple?'
                 ),
+                createChatResponseTurn('/query', {
+                  response: [
+                    {
+                      value: { value: 'some code' } as vscode.MarkdownString,
+                    },
+                  ],
+                  result: {
+                    metadata: {
+                      intent: 'query',
+                      chatId: 'abc',
+                    },
+                  },
+                }),
               ],
             };
             await invokeChatHandler(chatRequestMock);
@@ -2035,12 +2000,10 @@ Schema:
 
       chatContextStub = {
         history: [
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: 'give me the count of all people in the prod database',
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
+          createChatRequestTurn(
+            '/query',
+            'give me the count of all people in the prod database'
+          ),
         ],
       };
       const { messages, stats } = await Prompts.query.buildMessages({
@@ -2177,6 +2140,120 @@ Schema:
       );
     });
 
+    suite('with askForNameSpace', function () {
+      const userMessages = [
+        'find all docs by a name example',
+        'what other queries can be used as an example',
+      ];
+
+      const chatRequestMock = {
+        prompt: 'localhost',
+        command: 'query',
+      };
+
+      beforeEach(function () {
+        chatContextStub = {
+          history: [
+            createChatRequestTurn('/query', userMessages[0]),
+            createChatResponseTurn('/query', {
+              participant: CHAT_PARTICIPANT_ID,
+              response: [
+                {
+                  value: {
+                    value:
+                      'Which database would you like to query within this database?',
+                  } as vscode.MarkdownString,
+                },
+              ],
+              result: {
+                metadata: {
+                  intent: 'askForNamespace',
+                },
+              },
+            }),
+            createChatRequestTurn('/query', 'dbOne'),
+            createChatResponseTurn('/query', {
+              participant: CHAT_PARTICIPANT_ID,
+              response: [
+                {
+                  value: {
+                    value:
+                      'Which collection would you like to query within dbOne?',
+                  } as vscode.MarkdownString,
+                },
+              ],
+              result: {
+                metadata: {
+                  intent: 'askForNamespace',
+                  databaseName: 'dbOne',
+                  collectionName: undefined,
+                  chatId: testChatId,
+                },
+              },
+            }),
+            createChatRequestTurn('/query', 'collectionOne'),
+            createChatRequestTurn('/query', userMessages[1]),
+          ],
+        };
+      });
+
+      test('does not include askForNameSpace messages in history if the metadata exists', async function () {
+        const { messages, stats } = await Prompts.query.buildMessages({
+          context: chatContextStub,
+          request: chatRequestMock,
+          collectionName: 'people',
+          connectionNames: ['localhost', 'atlas'],
+          databaseName: 'prod',
+          sampleDocuments: [],
+        });
+
+        expect(messages.length).to.equal(4);
+        expect(messages[0].role).to.equal(
+          vscode.LanguageModelChatMessageRole.Assistant
+        );
+
+        // We don't expect history because we're removing the askForConnect message as well
+        // as the user response to it. Therefore the actual user prompt should be the first
+        // message that we supplied in the history.
+        expect(messages[1].role).to.equal(
+          vscode.LanguageModelChatMessageRole.User
+        );
+
+        expect(
+          messages.slice(1, 3).map((message) => getMessageContent(message))
+        ).to.deep.equal(userMessages);
+
+        expect(stats.command).to.equal('query');
+      });
+
+      test('includes askForNameSpace messages in history if there is no metadata', async function () {
+        const { messages, stats } = await Prompts.query.buildMessages({
+          context: chatContextStub,
+          request: chatRequestMock,
+          connectionNames: ['localhost', 'atlas'],
+          sampleDocuments: [],
+          // @ts-expect-error Forcing undefined for the purpose of test
+          databaseName: undefined,
+          // @ts-expect-error Forcing undefined for the purpose of test
+          collectionName: undefined,
+        });
+
+        expect(messages.length).to.equal(8);
+        expect(messages[0].role).to.equal(
+          vscode.LanguageModelChatMessageRole.Assistant
+        );
+
+        // We don't expect history because we're removing the askForConnect message as well
+        // as the user response to it. Therefore the actual user prompt should be the first
+        // message that we supplied in the history.
+        expect(messages[1].role).to.equal(
+          vscode.LanguageModelChatMessageRole.User
+        );
+
+        expect(stats.command).to.equal('query');
+      });
+    });
+
     test('removes askForConnect messages from history', async function () {
       // The user is responding to an `askToConnect` message, so the prompt is just the
       // name of the connection
@@ -2191,13 +2268,8 @@ Schema:
 
       chatContextStub = {
         history: [
-          Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-            prompt: expectedPrompt,
-            command: 'query',
-            references: [],
-            participant: CHAT_PARTICIPANT_ID,
-          }),
-          Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+          createChatRequestTurn('/query', expectedPrompt),
+          createChatResponseTurn('/query', {
             participant: CHAT_PARTICIPANT_ID,
             response: [
               {
@@ -2217,7 +2289,6 @@ Schema:
                 } as vscode.MarkdownString,
               },
             ],
-            command: 'query',
             result: {
               metadata: {
                 intent: 'askToConnect',
@@ -2271,32 +2342,20 @@ Schema:
 
         chatContextStub = {
           history: [
-            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-              prompt: 'give me the count of all people in the prod database',
-              command: 'query',
-              references: [],
-              participant: CHAT_PARTICIPANT_ID,
-            }),
-            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-              prompt: 'some disallowed message',
-              command: 'query',
-              references: [],
-              participant: CHAT_PARTICIPANT_ID,
-            }),
-            Object.assign(Object.create(vscode.ChatResponseTurn.prototype), {
+            createChatRequestTurn(
+              '/query',
+              'give me the count of all people in the prod database'
+            ),
+            createChatRequestTurn('/query', 'some disallowed message'),
+            createChatResponseTurn('/query', {
               result: {
                 errorDetails: {
                   message: ParticipantErrorTypes.FILTERED,
                 },
+                metadata: {},
               },
-              response: [],
-              participant: CHAT_PARTICIPANT_ID,
             }),
-            Object.assign(Object.create(vscode.ChatRequestTurn.prototype), {
-              prompt: 'ok message',
-              references: [],
-              participant: CHAT_PARTICIPANT_ID,
-            }),
+            createChatRequestTurn(undefined, 'ok message'),
           ],
         };
         const { messages } = await Prompts.generic.buildMessages({
