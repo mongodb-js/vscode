@@ -51,6 +51,7 @@ type DocumentEditedTelemetryEventProperties = {
 
 type PlaygroundExportedToLanguageTelemetryEventProperties = {
   language: string;
+  exported_code_length: number;
   with_driver_syntax: boolean;
 };
 

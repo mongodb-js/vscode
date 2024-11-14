@@ -313,6 +313,7 @@ suite('Telemetry Controller Test Suite', () => {
   test('track playground exported to language', () => {
     testTelemetryService.trackPlaygroundExportedToLanguageExported({
       language: 'java',
+      exported_code_length: 3,
       with_driver_syntax: false,
     });
 

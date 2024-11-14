@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import { CHAT_PARTICIPANT_MODEL } from './constants';
 
-let selectedModel: vscode.LanguageModelChat;
+let selectedModel: vscode.LanguageModelChat | undefined;
 
 export async function getCopilotModel(): Promise<
   vscode.LanguageModelChat | undefined
@@ -14,11 +14,9 @@ export async function getCopilotModel(): Promise<
         family: CHAT_PARTICIPANT_MODEL,
       });
       selectedModel = model;
-      return selectedModel;
     } catch (err) {
       // Model is not ready yet. It is being initialised with the first user prompt.
     }
   }
-
   return selectedModel;
 }

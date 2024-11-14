@@ -96,7 +96,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.not.exist;
@@ -115,7 +114,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.exist;
@@ -149,7 +147,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         testActiveTextEditor.get(function getterFn() {
           return activeTextEditor;
         });
-        testCodeActionProvider.refresh();
 
         // this is to ensure we're starting each test in the same state
         await vscode.commands.executeCommand(
@@ -225,7 +222,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.exist;
@@ -261,7 +257,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.exist;
@@ -302,7 +297,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.exist;
@@ -343,7 +337,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.exist;
@@ -384,7 +377,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.exist;
@@ -425,7 +417,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.exist;
@@ -478,7 +469,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.be.undefined;
@@ -497,7 +487,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor.get(function getterFn() {
         return activeTextEditor;
       });
-      testCodeActionProvider.refresh();
 
       const codeActions = testCodeActionProvider.provideCodeActions();
       expect(codeActions).to.be.undefined;

@@ -36,6 +36,7 @@ import EXTENSION_COMMANDS from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { ParticipantErrorTypes } from '../../../participant/participantErrorTypes';
+import * as model from '../../../participant/model';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -218,21 +219,17 @@ suite('Participant Controller Test Suite', function () {
     countTokensStub = sinon.stub();
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
     sendRequestStub = sinon.stub();
-    sinon.replace(
-      vscode.lm,
-      'selectChatModels',
-      sinon.fake.returns([
-        {
-          id: 'modelId',
-          vendor: 'copilot',
-          family: 'gpt-4o',
-          version: 'gpt-4o-date',
-          name: 'GPT 4o (date)',
-          maxInputTokens: MAX_TOTAL_PROMPT_LENGTH_MOCK,
-          countTokens: countTokensStub,
-          sendRequest: sendRequestStub,
-        },
-      ])
+    sinon.replace(model, 'getCopilotModel', () =>
+      Promise.resolve({
+        id: 'modelId',
+        vendor: 'copilot',
+        family: 'gpt-4o',
+        version: 'gpt-4o-date',
+        name: 'GPT 4o (date)',
+        maxInputTokens: MAX_TOTAL_PROMPT_LENGTH_MOCK,
+        countTokens: countTokensStub,
+        sendRequest: sendRequestStub,
+      })
     );
 
     sinon.replace(testTelemetryService, 'track', telemetryTrackStub);

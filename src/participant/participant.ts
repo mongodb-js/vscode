@@ -1648,7 +1648,7 @@ export default class ParticipantController {
 
           if (result?.includes("Sorry, I can't assist with that.")) {
             void vscode.window.showErrorMessage(
-              "Sorry, I can't assist with that."
+              'Sorry, we were unable to generate the playground, please try again. If the error persists, try changing your selected code.'
             );
             return null;
           }
@@ -1728,7 +1728,7 @@ export default class ParticipantController {
 
         if (result?.includes("Sorry, I can't assist with that.")) {
           void vscode.window.showErrorMessage(
-            "Sorry, I can't assist with that."
+            `Sorry, we were unable to export code to the "${language}" language, please try again. If the error persists, try changing your selected code.`
           );
           return null;
         }
@@ -1912,13 +1912,14 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
 
       this._telemetryService.trackPlaygroundExportedToLanguageExported({
         language,
+        exported_code_length: content?.length || 0,
         with_driver_syntax: driverSyntax,
       });
     } catch (error) {
       log.error(`Export to ${language} failed`, error);
       const printableError = formatError(error);
       void vscode.window.showErrorMessage(
-        `Unable to ${language}: ${printableError.message}`
+        `Unable to export to ${language}: ${printableError.message}`
       );
     }
 

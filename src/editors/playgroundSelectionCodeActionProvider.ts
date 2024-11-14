@@ -59,10 +59,6 @@ export default class PlaygroundSelectionCodeActionProvider
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeCodeAction.event;
 
-  refresh(): void {
-    this._onDidChangeCodeCodeAction.fire();
-  }
-
   createCodeAction({
     codeActionName,
     codeActionCommand,
