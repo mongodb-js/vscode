@@ -221,7 +221,7 @@ export default class ParticipantController {
     });
   }
 
-  async streamChatResponseContentToCode({
+  async streamChatResponseWithExportToLanguage({
     modelInput,
     token,
     language,
@@ -1635,7 +1635,7 @@ export default class ParticipantController {
           });
 
           const result = await Promise.race([
-            this.streamChatResponseContentToCode({
+            this.streamChatResponseWithExportToLanguage({
               modelInput,
               token,
             }),
@@ -1714,7 +1714,7 @@ export default class ParticipantController {
           includeDriverSyntax,
         });
         const result = await Promise.race([
-          this.streamChatResponseContentToCode({
+          this.streamChatResponseWithExportToLanguage({
             modelInput,
             token,
             language,
