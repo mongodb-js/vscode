@@ -1623,7 +1623,7 @@ export default class ParticipantController {
     const codeToExport = selectedText || getAllText();
 
     try {
-      const progressResult = await vscode.window.withProgress(
+      const content = await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Exporting code to a playground...',
@@ -1641,6 +1641,9 @@ export default class ParticipantController {
             }),
             new Promise<null>((resolve) =>
               token.onCancellationRequested(() => {
+                void vscode.window.showInformationMessage(
+                  'The export to a playground operation was canceled.'
+                );
                 resolve(null);
               })
             ),
@@ -1657,30 +1660,20 @@ export default class ParticipantController {
         }
       );
 
-      if (progressResult) {
-        await vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
-          {
-            runnableContent: progressResult,
-          }
-        );
-      } else {
-        await vscode.window.showErrorMessage('Exporting to playground failed.');
+      if (!content) {
+        return true;
       }
+
+      await vscode.commands.executeCommand(
+        EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+        {
+          runnableContent: content,
+        }
+      );
 
       return true;
     } catch (error) {
       const message = formatError(error).message;
-      if (
-        error instanceof vscode.LanguageModelError &&
-        message.includes('Canceled')
-      ) {
-        await vscode.window.showInformationMessage(
-          'The running export to a playground operation was canceled.'
-        );
-        return false;
-      }
-
       this._telemetryService.trackCopilotParticipantError(
         error,
         'exportToPlayground'
@@ -1692,7 +1685,7 @@ export default class ParticipantController {
     }
   }
 
-  async exportPlaygroundToLanguage({
+  async _exportPlaygroundToLanguageWithCancelModal({
     code,
     language,
     includeDriverSyntax,
@@ -1721,6 +1714,9 @@ export default class ParticipantController {
           }),
           new Promise<null>((resolve) =>
             token.onCancellationRequested(() => {
+              void vscode.window.showInformationMessage(
+                `The export to ${language} operation was canceled.`
+              );
               resolve(null);
             })
           ),
@@ -1858,7 +1854,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     return this._transpile();
   }
 
-  async exportToLanguage(language: string): Promise<boolean> {
+  async exportPlaygroundToLanguage(language: string): Promise<boolean> {
     const editor = vscode.window.activeTextEditor;
 
     if (!isPlayground(editor?.document.uri)) {
@@ -1887,11 +1883,15 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     log.info(`Exporting to the '${language}' language...`);
 
     try {
-      const content = await this.exportPlaygroundToLanguage({
+      const content = await this._exportPlaygroundToLanguageWithCancelModal({
         code: codeToTranspile,
         language,
         includeDriverSyntax: driverSyntax,
       });
+
+      if (!content) {
+        return true;
+      }
 
       log.info(`The playground was exported to ${language}`, {
         code: codeToTranspile,

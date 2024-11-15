@@ -249,28 +249,44 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     // ------ EXPORT TO LANGUAGE ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.PYTHON)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.PYTHON
+      )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.JAVA)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.JAVA
+      )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.CSHARP)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.CSHARP
+      )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.JAVASCRIPT)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.JAVASCRIPT
+      )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.RUBY)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.RUBY
+      )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_GO, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.GO)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.GO
+      )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.RUST)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.RUST
+      )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP, () =>
-      this._participantController.exportToLanguage(ExportToLanguages.PHP)
+      this._participantController.exportPlaygroundToLanguage(
+        ExportToLanguages.PHP
+      )
     );
 
     this.registerCommand(
