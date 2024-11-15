@@ -1453,13 +1453,6 @@ export default class ParticipantController {
       context: context,
     });
 
-    log.info(
-      'Sending history to chatbot',
-      history.map((message: vscode.LanguageModelChatMessage) =>
-        getContent(message)
-      )
-    );
-
     const previousMessages =
       history.length > 0
         ? `${history
