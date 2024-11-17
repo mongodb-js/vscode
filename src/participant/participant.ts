@@ -45,6 +45,7 @@ import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import type { DataService } from 'mongodb-data-service';
 import { ParticipantErrorTypes } from './participantErrorTypes';
+import { PromptHistory } from './prompts/promptHistory';
 
 const log = createLogger('participant');
 
@@ -1448,7 +1449,7 @@ export default class ParticipantController {
       log.info('Docs chatbot created for chatId', chatId);
     }
 
-    const history = Prompts.docs.getHistoryMessages({
+    const history = PromptHistory.getFilteredHistoryForDocs({
       connectionNames: this._getConnectionNames(),
       context: context,
     });

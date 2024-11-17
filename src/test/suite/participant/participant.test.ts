@@ -1539,6 +1539,8 @@ Schema:
               history: [
                 createChatRequestTurn('/query', 'query request'),
                 createChatResponseTurn('/query', 'query response'),
+                createChatRequestTurn('/query', 'query request 2'),
+                createChatResponseTurn('/query', 'query response 2'),
                 createChatRequestTurn('/schema', 'schema request'),
                 createChatResponseTurn('/schema', 'schema response'),
               ],
@@ -1555,8 +1557,8 @@ Schema:
             expect(addMessageStub.calledOnce).is.true;
             expect(addMessageStub.getCall(0).firstArg.message).equal(
               [
-                'query request',
-                'query response',
+                'query request 2',
+                'query response 2',
                 'schema request',
                 'schema response',
                 'docs request',
