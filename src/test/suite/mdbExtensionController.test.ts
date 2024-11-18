@@ -1846,6 +1846,143 @@ suite('MDBExtensionController Test Suite', function () {
         });
       });
     });
+
+    suite('copilot introduction prompt', function () {
+      suite(
+        "when a user hasn't been shown the copilot introduction prompt yet, and they have connections saved",
+        () => {
+          [
+            {
+              description: 'clicked the button',
+              value: { title: 'Chat with @MongoDB' },
+            },
+            { description: 'dismissed', value: undefined },
+          ].forEach((reaction) => {
+            suite(`user ${reaction.description}`, () => {
+              let connectionsUpdateStub: SinonStub;
+              let executeCommandStub: SinonStub;
+              beforeEach(async () => {
+                showInformationMessageStub.resolves(reaction.value);
+                executeCommandStub = sandbox.stub(
+                  vscode.commands,
+                  'executeCommand'
+                );
+                sandbox.replace(
+                  mdbTestExtension.testExtensionController._storageController,
+                  'get',
+                  sandbox.fake.returns(undefined)
+                );
+                sandbox.replace(
+                  mdbTestExtension.testExtensionController._connectionStorage,
+                  'hasSavedConnections',
+                  sandbox.fake.returns(true)
+                );
+                connectionsUpdateStub = sandbox.stub(
+                  mdbTestExtension.testExtensionController._storageController,
+                  'update'
+                );
+                connectionsUpdateStub.resolves(undefined);
+                await mdbTestExtension.testExtensionController.showCopilotIntroductionForEstablishedUsers();
+              });
+
+              afterEach(() => {
+                sandbox.restore();
+              });
+
+              test('they are shown the copilot introduction prompt', () => {
+                assert(showInformationMessageStub.called);
+                assert.strictEqual(
+                  showInformationMessageStub.firstCall.args[0],
+                  'Generate queries, interact with documentation, and explore your database schema using the MongoDB Copilot extension. Give it a try!'
+                );
+              });
+
+              test('the link was open if and only if they click the button', () => {
+                if (reaction.value === undefined) {
+                  assert(executeCommandStub.notCalled);
+                }
+                if (reaction.value) {
+                  assert(executeCommandStub.called);
+                  assert.strictEqual(
+                    executeCommandStub.firstCall.args[0],
+                    'workbench.action.chat.newChat'
+                  );
+                }
+              });
+
+              test("it sets that they've been shown the copilot introduction", () => {
+                assert(connectionsUpdateStub.called);
+                assert.strictEqual(
+                  connectionsUpdateStub.firstCall.args[0],
+                  StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN
+                );
+                assert.strictEqual(
+                  connectionsUpdateStub.firstCall.args[1],
+                  true
+                );
+              });
+            });
+          });
+        }
+      );
+
+      suite(
+        'when a user has been shown the copilot introduction prompt already',
+        () => {
+          let connectionsUpdateStub: SinonStub;
+          beforeEach(() => {
+            sandbox.replace(
+              mdbTestExtension.testExtensionController._storageController,
+              'get',
+              sandbox.fake.returns(true) // copilot introduction has been shown
+            );
+            sandbox.replace(
+              mdbTestExtension.testExtensionController._connectionStorage,
+              'hasSavedConnections',
+              sandbox.fake.returns(true)
+            );
+            connectionsUpdateStub = sandbox.stub(
+              mdbTestExtension.testExtensionController._storageController,
+              'update'
+            );
+            connectionsUpdateStub.resolves(undefined);
+
+            void mdbTestExtension.testExtensionController.showCopilotIntroductionForEstablishedUsers();
+          });
+
+          test('they are not shown the copilot introduction prompt', () => {
+            assert(showInformationMessageStub.notCalled);
+          });
+        }
+      );
+
+      suite('when a has no connections saved', () => {
+        let connectionsUpdateStub: SinonStub;
+        beforeEach(() => {
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._storageController,
+            'get',
+            sandbox.fake.returns(undefined)
+          );
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._connectionStorage,
+            'hasSavedConnections',
+            sandbox.fake.returns(false) // no connections yet - this might be the first install
+          );
+          connectionsUpdateStub = sandbox.stub(
+            mdbTestExtension.testExtensionController._storageController,
+            'update'
+          );
+          connectionsUpdateStub.resolves(undefined);
+
+          void mdbTestExtension.testExtensionController.showCopilotIntroductionForEstablishedUsers();
+        });
+
+        test('they are not shown the copilot introduction prompt', () => {
+          assert(showInformationMessageStub.notCalled);
+        });
+      });
+    });
   });
 
   test('mdb.participantViewRawSchemaOutput command opens a json document with the output', async () => {

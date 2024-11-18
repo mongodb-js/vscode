@@ -135,6 +135,10 @@ export type ParticipantResponseProperties = {
   output_length: number;
 };
 
+export type CopilotIntroductionProperties = {
+  is_copilot_active: boolean;
+};
+
 export function chatResultFeedbackKindToTelemetryValue(
   kind: vscode.ChatResultFeedbackKind
 ): TelemetryFeedbackKind {
@@ -167,7 +171,8 @@ type TelemetryEventProperties =
   | ParticipantFeedbackProperties
   | ParticipantResponseFailedProperties
   | ParticipantPromptProperties
-  | ParticipantResponseProperties;
+  | ParticipantResponseProperties
+  | CopilotIntroductionProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -192,6 +197,8 @@ export enum TelemetryEventTypes {
   PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
   PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
+  COPILOT_INTRODUCTION_CLICKED = 'Copilot Introduction Clicked',
+  COPILOT_INTRODUCTION_DISMISSED = 'Copilot Introduction Dismissed',
 }
 
 /**
@@ -488,5 +495,15 @@ export default class TelemetryService {
 
   trackCopilotParticipantResponse(props: ParticipantResponseProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
+  }
+
+  trackCopilotIntroductionClicked(props: CopilotIntroductionProperties): void {
+    this.track(TelemetryEventTypes.COPILOT_INTRODUCTION_CLICKED, props);
+  }
+
+  trackCopilotIntroductionDismissed(
+    props: CopilotIntroductionProperties
+  ): void {
+    this.track(TelemetryEventTypes.COPILOT_INTRODUCTION_DISMISSED, props);
   }
 }

@@ -165,6 +165,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
     void this.showSurveyForEstablishedUsers();
+    void this.showCopilotIntroductionForEstablishedUsers();
   }
 
   registerCommands = (): void => {
@@ -916,6 +917,56 @@ export default class MDBExtensionController implements vscode.Disposable {
         true
       );
     }
+  }
+
+  async showCopilotIntroductionForEstablishedUsers(): Promise<void> {
+    const hasBeenShownAlready =
+      this._storageController.get(
+        StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN
+      ) === true;
+
+    // Show the toast when it hasn't been show to the
+    // user yet, and they have saved connections
+    // -> they haven't just started using this extension.
+    if (hasBeenShownAlready || !this._connectionStorage.hasSavedConnections()) {
+      return;
+    }
+
+    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+
+    const action = 'Chat with @MongoDB';
+    const text =
+      'Generate queries, interact with documentation, and explore your database schema using the MongoDB Copilot extension. Give it a try!';
+    const result = await vscode.window.showInformationMessage(
+      text,
+      {},
+      {
+        title: action,
+      }
+    );
+    if (result?.title === action) {
+      await vscode.commands.executeCommand('workbench.action.chat.newChat');
+      await vscode.commands.executeCommand(
+        'workbench.action.chat.clearHistory'
+      );
+      await vscode.commands.executeCommand('workbench.action.chat.open', {
+        query: '@MongoDB',
+        isPartialQuery: true,
+      });
+      this._telemetryService.trackCopilotIntroductionClicked({
+        is_copilot_active: !!copilot?.isActive,
+      });
+    } else {
+      this._telemetryService.trackCopilotIntroductionDismissed({
+        is_copilot_active: !!copilot?.isActive,
+      });
+    }
+
+    // Whether action was taken or the prompt dismissed, we won't show this again.
+    void this._storageController.update(
+      StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN,
+      true
+    );
   }
 
   async showSurveyForEstablishedUsers(): Promise<void> {
