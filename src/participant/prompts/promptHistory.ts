@@ -28,13 +28,13 @@ export class PromptHistory {
     const responseType = (currentTurn.result as ChatResult)?.metadata?.intent;
     if (responseTypesToSkip.includes(responseType)) {
       // eslint-disable-next-line new-cap
-      return vscode.LanguageModelChatMessage.Assistant(message);
+      return undefined;
     }
 
     // If the namespace is already known, skip including prompts asking for it.
     if (responseType === 'askForNamespace' && namespaceIsKnown) {
       // eslint-disable-next-line new-cap
-      return vscode.LanguageModelChatMessage.Assistant(message);
+      return undefined;
     }
 
     for (const fragment of currentTurn.response) {
