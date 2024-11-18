@@ -661,6 +661,30 @@ suite('Participant Controller Test Suite', function () {
             });
           });
 
+          test('returns a special response with an empty prompt', async function () {
+            // Put the namespace in metadata as otherwise the user is meant to
+            // be prompted for a namespace with an empty prompt
+            sinon.replace(
+              testParticipantController._chatMetadataStore,
+              'getChatMetadata',
+              () => ({
+                databaseName: 'dbOne',
+                collectionName: 'collectionOne',
+              })
+            );
+
+            await invokeChatHandler({
+              prompt: '',
+              command: 'query',
+              references: [],
+            });
+
+            expect(chatStreamStub.markdown.calledOnce).is.true;
+            expect(chatStreamStub.markdown.getCall(0).firstArg).equals(
+              Prompts.query.emptyRequestResponse
+            );
+          });
+
           test('generates a query', async function () {
             const chatRequestMock = {
               prompt: 'find all docs by a name example',
@@ -1335,47 +1359,6 @@ suite('Participant Controller Test Suite', function () {
               'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
             );
           });
-
-          test('with history, and a blank prompt, it sets a message so it does not cause model error (VSCODE-626)', async function () {
-            const chatRequestMock = {
-              prompt: '',
-              command: 'schema',
-              references: [],
-            };
-            chatContextStub = {
-              history: [
-                createChatRequestTurn(
-                  '/query',
-                  'how do I make a find request vs favorite_fruits.pineapple?'
-                ),
-                createChatResponseTurn('/query', {
-                  response: [
-                    {
-                      value: { value: 'some code' } as vscode.MarkdownString,
-                    },
-                  ],
-                  result: {
-                    metadata: {
-                      intent: 'query',
-                      chatId: 'abc',
-                    },
-                  },
-                }),
-              ],
-            };
-            await invokeChatHandler(chatRequestMock);
-
-            expect(sendRequestStub.calledOnce).to.be.true;
-
-            const messages = sendRequestStub.firstCall
-              .args[0] as vscode.LanguageModelChatMessage[];
-            expect(getMessageContent(messages[0])).to.include(
-              'Parse all user messages to find a database name and a collection name.'
-            );
-            expect(getMessageContent(messages[3])).to.include(
-              'see previous messages'
-            );
-          });
         });
 
         suite(
@@ -1385,6 +1368,30 @@ suite('Participant Controller Test Suite', function () {
               sendRequestStub.onCall(0).resolves({
                 text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
               });
+            });
+
+            test('returns a special response with an empty prompt', async function () {
+              // Put the namespace in metadata as otherwise the user is meant to
+              // be prompted for a namespace with an empty prompt
+              sinon.replace(
+                testParticipantController._chatMetadataStore,
+                'getChatMetadata',
+                () => ({
+                  databaseName: 'dbOne',
+                  collectionName: 'collectionOne',
+                })
+              );
+
+              await invokeChatHandler({
+                prompt: '',
+                command: 'schema',
+                references: [],
+              });
+
+              expect(chatStreamStub.markdown.calledOnce).is.true;
+              expect(chatStreamStub.markdown.getCall(0).firstArg).equals(
+                Prompts.schema.emptyRequestResponse
+              );
             });
 
             test('shows a button to view the json output', async function () {
