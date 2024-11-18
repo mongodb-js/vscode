@@ -1187,6 +1187,19 @@ export default class ParticipantController {
       });
     }
 
+    if (Prompts.isPromptEmpty(request)) {
+      if (this._doesLastMessageAskForNamespace(context.history)) {
+        return this.handleEmptyNamespaceMessage({
+          command: '/schema',
+          context,
+          stream,
+        });
+      }
+
+      stream.markdown(Prompts.schema.emptyRequestResponse);
+      return emptyRequestChatResult(context.history);
+    }
+
     const namespace = await this._getNamespaceFromChat({
       request,
       context,
@@ -1208,19 +1221,6 @@ export default class ParticipantController {
         collectionName,
         history: context.history,
       });
-    }
-
-    if (Prompts.isPromptEmpty(request)) {
-      if (this._doesLastMessageAskForNamespace(context.history)) {
-        return this.handleEmptyNamespaceMessage({
-          command: '/schema',
-          context,
-          stream,
-        });
-      }
-
-      stream.markdown(Prompts.schema.emptyRequestResponse);
-      return emptyRequestChatResult(context.history);
     }
 
     if (token.isCancellationRequested) {
@@ -1316,6 +1316,19 @@ export default class ParticipantController {
       });
     }
 
+    if (Prompts.isPromptEmpty(request)) {
+      if (this._doesLastMessageAskForNamespace(context.history)) {
+        return this.handleEmptyNamespaceMessage({
+          command: '/query',
+          context,
+          stream,
+        });
+      }
+
+      stream.markdown(Prompts.query.emptyRequestResponse);
+      return emptyRequestChatResult(context.history);
+    }
+
     // We "prompt chain" to handle the query requests.
     // First we ask the model to parse for the database and collection name.
     // If they exist, we can then use them in our final completion.
@@ -1348,19 +1361,6 @@ export default class ParticipantController {
         context,
         stream,
       });
-    }
-
-    if (Prompts.isPromptEmpty(request)) {
-      if (this._doesLastMessageAskForNamespace(context.history)) {
-        return this.handleEmptyNamespaceMessage({
-          command: '/query',
-          context,
-          stream,
-        });
-      }
-
-      stream.markdown(Prompts.query.emptyRequestResponse);
-      return emptyRequestChatResult(context.history);
     }
 
     let schema: string | undefined;

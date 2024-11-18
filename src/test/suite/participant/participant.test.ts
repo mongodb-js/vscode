@@ -662,17 +662,6 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('returns a special response with an empty prompt', async function () {
-            // Put the namespace in metadata as otherwise the user is meant to
-            // be prompted for a namespace with an empty prompt
-            sinon.replace(
-              testParticipantController._chatMetadataStore,
-              'getChatMetadata',
-              () => ({
-                databaseName: 'dbOne',
-                collectionName: 'collectionOne',
-              })
-            );
-
             await invokeChatHandler({
               prompt: '',
               command: 'query',
@@ -1324,21 +1313,6 @@ suite('Participant Controller Test Suite', function () {
             });
           });
 
-          test('without a prompt it asks for the database name without pinging ai', async function () {
-            const chatRequestMock = {
-              prompt: '',
-              command: 'schema',
-              references: [],
-            };
-            await invokeChatHandler(chatRequestMock);
-
-            expect(sendRequestStub.called).to.be.false;
-            const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
-            expect(askForDBMessage).to.include(
-              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
-            );
-          });
-
           test('with a prompt it asks the ai for the namespace', async function () {
             const chatRequestMock = {
               prompt: 'pineapple',
@@ -1371,17 +1345,6 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('returns a special response with an empty prompt', async function () {
-              // Put the namespace in metadata as otherwise the user is meant to
-              // be prompted for a namespace with an empty prompt
-              sinon.replace(
-                testParticipantController._chatMetadataStore,
-                'getChatMetadata',
-                () => ({
-                  databaseName: 'dbOne',
-                  collectionName: 'collectionOne',
-                })
-              );
-
               await invokeChatHandler({
                 prompt: '',
                 command: 'schema',
