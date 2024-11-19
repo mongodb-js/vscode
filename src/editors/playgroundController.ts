@@ -583,10 +583,13 @@ export default class PlaygroundController {
       .get('confirmRunCopilotCode');
 
     if (!this._connectionController.isCurrentlyConnected()) {
-      // TODO(VSCODE-618): Prompt user to connect when clicked.
-      void vscode.window.showErrorMessage(connectBeforeRunningMessage);
+      const successfullyConnected =
+        await this._connectionController.changeActiveConnection();
 
-      return false;
+      if (!successfullyConnected) {
+        void vscode.window.showErrorMessage(connectBeforeRunningMessage);
+        return false;
+      }
     }
 
     if (shouldConfirmRunCopilotCode === true) {
