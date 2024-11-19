@@ -72,6 +72,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
+  _surveyShown = false;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -920,7 +921,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   async showCopilotIntroductionForEstablishedUsers(): Promise<void> {
-    const hasBeenShownAlready =
+    const copilotIntroductionShown =
       this._storageController.get(
         StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN
       ) === true;
@@ -928,7 +929,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Show the toast when it hasn't been show to the
     // user yet, and they have saved connections
     // -> they haven't just started using this extension.
-    if (hasBeenShownAlready || !this._connectionStorage.hasSavedConnections()) {
+    if (
+      this._surveyShown ||
+      copilotIntroductionShown ||
+      !this._connectionStorage.hasSavedConnections()
+    ) {
       return;
     }
 
@@ -985,6 +990,8 @@ export default class MDBExtensionController implements vscode.Disposable {
     ) {
       return;
     }
+
+    this._surveyShown = true;
 
     const action = 'Share your thoughts';
     const text = 'How can we make the MongoDB extension better for you?';

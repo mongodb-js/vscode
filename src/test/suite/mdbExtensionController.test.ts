@@ -1867,6 +1867,14 @@ suite('MDBExtensionController Test Suite', function () {
                   vscode.commands,
                   'executeCommand'
                 );
+                sandbox
+                  .stub(
+                    mdbTestExtension.testExtensionController,
+                    '_surveyShown'
+                  )
+                  .get(function getterFn() {
+                    return false;
+                  });
                 sandbox.replace(
                   mdbTestExtension.testExtensionController._storageController,
                   'get',
@@ -1959,6 +1967,11 @@ suite('MDBExtensionController Test Suite', function () {
       suite('when a has no connections saved', () => {
         let connectionsUpdateStub: SinonStub;
         beforeEach(() => {
+          sandbox
+            .stub(mdbTestExtension.testExtensionController, '_surveyShown')
+            .get(function getterFn() {
+              return false;
+            });
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
@@ -1982,6 +1995,36 @@ suite('MDBExtensionController Test Suite', function () {
           assert(showInformationMessageStub.notCalled);
         });
       });
+
+      suite(
+        'when a user has been shown the survey prompt during this extension launch',
+        () => {
+          let connectionsUpdateStub: SinonStub;
+          beforeEach(() => {
+            sandbox
+              .stub(mdbTestExtension.testExtensionController, '_surveyShown')
+              .get(function getterFn() {
+                return true;
+              });
+            sandbox.replace(
+              mdbTestExtension.testExtensionController._connectionStorage,
+              'hasSavedConnections',
+              sandbox.fake.returns(true)
+            );
+            connectionsUpdateStub = sandbox.stub(
+              mdbTestExtension.testExtensionController._storageController,
+              'update'
+            );
+            connectionsUpdateStub.resolves(undefined);
+
+            void mdbTestExtension.testExtensionController.showCopilotIntroductionForEstablishedUsers();
+          });
+
+          test('they are not shown the copilot introduction prompt', () => {
+            assert(showInformationMessageStub.notCalled);
+          });
+        }
+      );
     });
   });
 
