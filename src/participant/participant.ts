@@ -1662,9 +1662,7 @@ export default class ParticipantController {
             }),
             new Promise<null>((resolve) =>
               token.onCancellationRequested(() => {
-                void vscode.window.showInformationMessage(
-                  'The export to a playground operation was canceled.'
-                );
+                log.info('The export to a playground operation was canceled.');
                 resolve(null);
               })
             ),
@@ -1699,7 +1697,7 @@ export default class ParticipantController {
         error,
         'exportToPlayground'
       );
-      await vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `An error occurred exporting to a playground: ${message}`
       );
       return false;
@@ -1731,9 +1729,7 @@ export default class ParticipantController {
           }),
           new Promise<null>((resolve) =>
             token.onCancellationRequested(() => {
-              void vscode.window.showInformationMessage(
-                `The export to ${language} operation was canceled.`
-              );
+              log.info(`The export to ${language} operation was canceled.`);
               resolve(null);
             })
           ),
@@ -1864,14 +1860,17 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       .map((connection) => connection.name);
   }
 
-  changeDriverSyntax(includeDriverSyntax: boolean): Promise<boolean> {
+  async changeDriverSyntax(includeDriverSyntax: boolean): Promise<boolean> {
     if (
       !this._playgroundResultProvider._playgroundResult ||
       !isExportToLanguageResult(
         this._playgroundResultProvider._playgroundResult
       )
     ) {
-      return Promise.resolve(false);
+      void vscode.window.showErrorMessage(
+        'Unable to change the driver syntax, no playground content found.'
+      );
+      return false;
     }
 
     return this._transpile({
@@ -1884,7 +1883,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     const editor = vscode.window.activeTextEditor;
 
     if (!isPlayground(editor?.document.uri)) {
-      await vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'Please select one or more lines in the playground.'
       );
       return false;

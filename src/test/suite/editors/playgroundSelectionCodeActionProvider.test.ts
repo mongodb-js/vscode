@@ -82,7 +82,11 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
       testActiveTextEditor = sandbox.stub(vscode.window, 'activeTextEditor');
 
-      await vscode.commands.executeCommand('mdb.changeDriverSyntax', false);
+      sandbox.replace(
+        vscode.extensions,
+        'getExtension',
+        sandbox.fake.returns({ isActive: true })
+      );
     });
 
     afterEach(async () => {

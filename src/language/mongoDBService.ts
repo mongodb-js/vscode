@@ -303,9 +303,7 @@ export default class MongoDBService {
 
         // Listen for cancellation request from the language server client.
         token.onCancellationRequested(async () => {
-          this._connection.console.log('PLAYGROUND cancellation requested');
-          void this._connection.sendNotification(
-            ServerCommands.SHOW_INFO_MESSAGE,
+          this._connection.console.log(
             'The running playground operation was canceled.'
           );
 

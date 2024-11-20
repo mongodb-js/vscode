@@ -11,34 +11,42 @@ const selectionCommands = [
   {
     name: 'Export To Python 3',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON,
+    isCopilotRequired: true,
   },
   {
     name: 'Export To Java',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA,
+    isCopilotRequired: true,
   },
   {
     name: 'Export To C#',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP,
+    isCopilotRequired: true,
   },
   {
     name: 'Export To Node.js',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE,
+    isCopilotRequired: true,
   },
   {
     name: 'Export To Ruby',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY,
+    isCopilotRequired: true,
   },
   {
     name: 'Export To Go',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_GO,
+    isCopilotRequired: true,
   },
   {
     name: 'Export To Rust',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST,
+    isCopilotRequired: true,
   },
   {
     name: 'Export To PHP',
     command: EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP,
+    isCopilotRequired: true,
   },
 ];
 
@@ -81,18 +89,21 @@ export default class PlaygroundSelectionCodeActionProvider
   provideCodeActions(): vscode.CodeAction[] | undefined {
     const editor = vscode.window.activeTextEditor;
     const codeActions: vscode.CodeAction[] = [];
+    const copilot = vscode.extensions.getExtension('github.copilot-chat');
 
     if (!isPlayground(editor?.document.uri) || !getSelectedText()) {
       return;
     }
 
-    for (const { name, command } of selectionCommands) {
-      codeActions.push(
-        this.createCodeAction({
-          codeActionName: name,
-          codeActionCommand: command,
-        })
-      );
+    for (const { name, command, isCopilotRequired } of selectionCommands) {
+      if (!isCopilotRequired || copilot?.isActive) {
+        codeActions.push(
+          this.createCodeAction({
+            codeActionName: name,
+            codeActionCommand: command,
+          })
+        );
+      }
     }
 
     return codeActions;

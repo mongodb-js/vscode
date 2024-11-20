@@ -316,7 +316,6 @@ export default class EditorsController {
         .isCurrentlyFetchingMoreDocuments
     ) {
       void vscode.window.showErrorMessage('Already fetching more documents...');
-
       return Promise.resolve(false);
     }
 
@@ -329,7 +328,6 @@ export default class EditorsController {
       void vscode.window.showErrorMessage(
         `Unable to view more documents: no longer connected to ${oldConnectionName}`
       );
-
       return Promise.resolve(false);
     }
 
