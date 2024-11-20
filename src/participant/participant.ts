@@ -40,7 +40,7 @@ import {
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type TelemetryService from '../telemetry/telemetryService';
 import formatError from '../utils/formatError';
-import type { ModelInput } from './prompts/promptBase';
+import { getContent, type ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
@@ -51,6 +51,7 @@ import {
   type ExportToLanguageResult,
   isExportToLanguageResult,
 } from '../types/playgroundType';
+import { PromptHistory } from './prompts/promptHistory';
 
 const log = createLogger('participant');
 
@@ -1432,10 +1433,12 @@ export default class ParticipantController {
     chatId,
     token,
     stream,
+    context,
   }: {
     prompt: string;
     chatId: string;
     token: vscode.CancellationToken;
+    context: vscode.ChatContext;
     stream: vscode.ChatResponseStream;
   }): Promise<{
     responseContent: string;
@@ -1463,8 +1466,22 @@ export default class ParticipantController {
       log.info('Docs chatbot created for chatId', chatId);
     }
 
+    const history = PromptHistory.getFilteredHistoryForDocs({
+      connectionNames: this._getConnectionNames(),
+      context: context,
+    });
+
+    const previousMessages =
+      history.length > 0
+        ? `${history
+            .map((message: vscode.LanguageModelChatMessage) =>
+              getContent(message)
+            )
+            .join('\n\n')}\n\n`
+        : '';
+
     const response = await this._docsChatbotAIService.addMessage({
-      message: prompt,
+      message: `${previousMessages}${prompt}`,
       conversationId: docsChatbotConversationId,
       signal: abortController.signal,
     });
@@ -1570,6 +1587,7 @@ export default class ParticipantController {
         chatId,
         token,
         stream,
+        context,
       });
 
       if (docsResult.responseContent) {

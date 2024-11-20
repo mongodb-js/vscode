@@ -8,10 +8,7 @@ export function createChatRequestTurn(
   options: {
     participant?: vscode.ChatRequestTurn['participant'];
     references?: vscode.ChatRequestTurn['references'];
-  } = {
-    participant: CHAT_PARTICIPANT_ID,
-    references: [],
-  }
+  } = {}
 ): vscode.ChatRequestTurn {
   const { participant = CHAT_PARTICIPANT_ID, references = [] } = options;
 
@@ -25,18 +22,27 @@ export function createChatRequestTurn(
 
 export function createChatResponseTurn(
   command: ParticipantCommand,
+  /** Helper shortcut for response text, use options.response for a more manual setup */
+  responseText?: string,
   options: {
-    response?: vscode.ChatResponseTurn['response'];
+    response?: vscode.ChatResponseTurn['response'] | undefined;
     result?: vscode.ChatResponseTurn['result'];
     participant?: string;
-  } = {
-    response: [],
-    result: {},
-    participant: CHAT_PARTICIPANT_ID,
-  }
+  } = {}
 ): vscode.ChatRequestTurn {
   const {
-    response = [],
+    response = responseText
+      ? [
+          Object.assign(
+            Object.create(vscode.ChatResponseMarkdownPart.prototype),
+            {
+              value: {
+                value: responseText,
+              },
+            }
+          ),
+        ]
+      : [],
     result = {},
     participant = CHAT_PARTICIPANT_ID,
   } = options;
