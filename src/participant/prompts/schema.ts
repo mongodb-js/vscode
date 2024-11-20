@@ -1,6 +1,5 @@
 import type { UserPromptResponse } from './promptBase';
 import { PromptBase, type PromptArgsBase } from './promptBase';
-import * as vscode from 'vscode';
 
 export const DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT = 100;
 
@@ -45,11 +44,5 @@ Schema:
 ${schema}`,
       hasSampleDocs: false,
     });
-  }
-
-  get emptyRequestResponse(): string {
-    return vscode.l10n.t(
-      'Please specify a question when using this command. Usage: @MongoDB /schema what is the schema for the sample_mflix.users collection?'
-    );
   }
 }

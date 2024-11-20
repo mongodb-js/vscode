@@ -661,19 +661,6 @@ suite('Participant Controller Test Suite', function () {
             });
           });
 
-          test('returns a special response with an empty prompt', async function () {
-            await invokeChatHandler({
-              prompt: '',
-              command: 'query',
-              references: [],
-            });
-
-            expect(chatStreamStub.markdown.calledOnce).is.true;
-            expect(chatStreamStub.markdown.getCall(0).firstArg).equals(
-              Prompts.query.emptyRequestResponse
-            );
-          });
-
           test('generates a query', async function () {
             const chatRequestMock = {
               prompt: 'find all docs by a name example',
@@ -1094,22 +1081,18 @@ suite('Participant Controller Test Suite', function () {
                   '/query',
                   'find all docs by a name example'
                 ),
-                createChatResponseTurn('/query', {
-                  response: [
-                    {
-                      value: {
-                        value:
-                          'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                      } as vscode.MarkdownString,
+                createChatResponseTurn(
+                  '/query',
+                  'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                  {
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        chatId: firstChatId,
+                      },
                     },
-                  ],
-                  result: {
-                    metadata: {
-                      intent: 'askForNamespace',
-                      chatId: firstChatId,
-                    },
-                  },
-                }),
+                  }
+                ),
               ],
             };
 
@@ -1164,40 +1147,32 @@ suite('Participant Controller Test Suite', function () {
                   '/query',
                   'find all docs by a name example'
                 ),
-                createChatResponseTurn('/query', {
-                  response: [
-                    {
-                      value: {
-                        value:
-                          'Which database would you like to this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                      } as vscode.MarkdownString,
+                createChatResponseTurn(
+                  '/query',
+                  'Which database would you like to this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                  {
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                      },
                     },
-                  ],
-                  result: {
-                    metadata: {
-                      intent: 'askForNamespace',
-                    },
-                  },
-                }),
+                  }
+                ),
                 createChatRequestTurn('/query', 'dbOne'),
-                createChatResponseTurn('/query', {
-                  response: [
-                    {
-                      value: {
-                        value:
-                          'Which collection would you like to query within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                      } as vscode.MarkdownString,
+                createChatResponseTurn(
+                  '/query',
+                  'Which collection would you like to query within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                  {
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        databaseName: 'dbOne',
+                        collectionName: 'collOne',
+                        chatId: firstChatId,
+                      },
                     },
-                  ],
-                  result: {
-                    metadata: {
-                      intent: 'askForNamespace',
-                      databaseName: 'dbOne',
-                      collectionName: 'collOne',
-                      chatId: firstChatId,
-                    },
-                  },
-                }),
+                  }
+                ),
               ],
             };
             await invokeChatHandler(chatRequestMock);
@@ -1237,22 +1212,18 @@ suite('Participant Controller Test Suite', function () {
                   '/query',
                   'find all docs by a name example'
                 ),
-                createChatResponseTurn('/query', {
-                  response: [
-                    {
-                      value: {
-                        value:
-                          'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
-                      } as vscode.MarkdownString,
+                createChatResponseTurn(
+                  '/query',
+                  'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
+                  {
+                    result: {
+                      metadata: {
+                        intent: 'askForNamespace',
+                        chatId: 'pineapple',
+                      },
                     },
-                  ],
-                  result: {
-                    metadata: {
-                      intent: 'askForNamespace',
-                      chatId: 'pineapple',
-                    },
-                  },
-                }),
+                  }
+                ),
               ],
             };
             const chatResult = await invokeChatHandler(chatRequestMock);
@@ -1313,6 +1284,21 @@ suite('Participant Controller Test Suite', function () {
             });
           });
 
+          test('without a prompt it asks for the database name without pinging ai', async function () {
+            const chatRequestMock = {
+              prompt: '',
+              command: 'schema',
+              references: [],
+            };
+            await invokeChatHandler(chatRequestMock);
+
+            expect(sendRequestStub.called).to.be.false;
+            const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
+            expect(askForDBMessage).to.include(
+              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
+            );
+          });
+
           test('with a prompt it asks the ai for the namespace', async function () {
             const chatRequestMock = {
               prompt: 'pineapple',
@@ -1333,6 +1319,42 @@ suite('Participant Controller Test Suite', function () {
               'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
             );
           });
+
+          test('with history, and a blank prompt, it sets a message so it does not cause model error (VSCODE-626)', async function () {
+            const chatRequestMock = {
+              prompt: '',
+              command: 'schema',
+              references: [],
+            };
+            chatContextStub = {
+              history: [
+                createChatRequestTurn(
+                  '/query',
+                  'how do I make a find request vs favorite_fruits.pineapple?'
+                ),
+                createChatResponseTurn('/query', 'some code', {
+                  result: {
+                    metadata: {
+                      intent: 'query',
+                      chatId: 'abc',
+                    },
+                  },
+                }),
+              ],
+            };
+            await invokeChatHandler(chatRequestMock);
+
+            expect(sendRequestStub.calledOnce).to.be.true;
+
+            const messages = sendRequestStub.firstCall
+              .args[0] as vscode.LanguageModelChatMessage[];
+            expect(getMessageContent(messages[0])).to.include(
+              'Parse all user messages to find a database name and a collection name.'
+            );
+            expect(getMessageContent(messages[3])).to.include(
+              'see previous messages'
+            );
+          });
         });
 
         suite(
@@ -1342,19 +1364,6 @@ suite('Participant Controller Test Suite', function () {
               sendRequestStub.onCall(0).resolves({
                 text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
               });
-            });
-
-            test('returns a special response with an empty prompt', async function () {
-              await invokeChatHandler({
-                prompt: '',
-                command: 'schema',
-                references: [],
-              });
-
-              expect(chatStreamStub.markdown.calledOnce).is.true;
-              expect(chatStreamStub.markdown.getCall(0).firstArg).equals(
-                Prompts.schema.emptyRequestResponse
-              );
             });
 
             test('shows a button to view the json output', async function () {
@@ -1507,13 +1516,95 @@ Schema:
         let fetchStub: sinon.SinonStub;
 
         beforeEach(function () {
-          sendRequestStub.onCall(0).resolves({
+          sendRequestStub.resolves({
             text: ['connection info'],
           });
         });
 
         afterEach(function () {
           global.fetch = initialFetch;
+        });
+
+        suite('includes the history of previous requests', function () {
+          let addMessageStub: sinon.SinonStub;
+          beforeEach(function () {
+            addMessageStub = sinon.stub(
+              testParticipantController._docsChatbotAIService,
+              'addMessage'
+            );
+          });
+
+          test('since the beginning', async function () {
+            chatContextStub = {
+              history: [
+                createChatRequestTurn('/query', 'query request'),
+                createChatResponseTurn('/query', 'query response'),
+                createChatRequestTurn('/query', 'query request 2'),
+                createChatResponseTurn('/query', 'query response 2'),
+                createChatRequestTurn('/schema', 'schema request'),
+                createChatResponseTurn('/schema', 'schema response'),
+              ],
+            };
+
+            const chatRequestMock = {
+              prompt: 'docs request',
+              command: 'docs',
+              references: [],
+            };
+
+            await invokeChatHandler(chatRequestMock);
+
+            expect(addMessageStub.calledOnce).is.true;
+            expect(addMessageStub.getCall(0).firstArg.message).equal(
+              [
+                'query request 2',
+                'query response 2',
+                'schema request',
+                'schema response',
+                'docs request',
+              ].join('\n\n')
+            );
+          });
+
+          test('since the last docs request or response', async function () {
+            chatContextStub = {
+              history: [
+                createChatRequestTurn('/query', 'query request'),
+                createChatResponseTurn('/query', 'query response'),
+                createChatRequestTurn('/docs', 'first docs request'),
+                createChatResponseTurn('/docs', 'first docs response'),
+                createChatRequestTurn('/schema', 'schema request'),
+                createChatResponseTurn('/schema', 'schema response'),
+              ],
+            };
+
+            const chatRequestMock = {
+              prompt: 'docs request',
+              command: 'docs',
+              references: [],
+            };
+
+            await invokeChatHandler(chatRequestMock);
+
+            expect(addMessageStub.calledOnce).is.true;
+            expect(addMessageStub.getCall(0).firstArg.message).equals(
+              ['schema request', 'schema response', 'docs request'].join('\n\n')
+            );
+
+            chatContextStub = {
+              history: [
+                createChatRequestTurn('/query', 'query request'),
+                createChatResponseTurn('/query', 'query response'),
+                createChatRequestTurn('/docs', 'first docs request'),
+              ],
+            };
+
+            await invokeChatHandler(chatRequestMock);
+
+            expect(addMessageStub.getCall(1).firstArg.message).equals(
+              'docs request'
+            );
+          });
         });
 
         test('shows a message and docs link on empty prompt', async function () {
@@ -2124,42 +2215,32 @@ Schema:
         chatContextStub = {
           history: [
             createChatRequestTurn('/query', userMessages[0]),
-            createChatResponseTurn('/query', {
-              participant: CHAT_PARTICIPANT_ID,
-              response: [
-                {
-                  value: {
-                    value:
-                      'Which database would you like to query within this database?',
-                  } as vscode.MarkdownString,
+            createChatResponseTurn(
+              '/query',
+              'Which database would you like to query within this database?',
+              {
+                result: {
+                  metadata: {
+                    intent: 'askForNamespace',
+                  },
                 },
-              ],
-              result: {
-                metadata: {
-                  intent: 'askForNamespace',
-                },
-              },
-            }),
+              }
+            ),
             createChatRequestTurn('/query', 'dbOne'),
-            createChatResponseTurn('/query', {
-              participant: CHAT_PARTICIPANT_ID,
-              response: [
-                {
-                  value: {
-                    value:
-                      'Which collection would you like to query within dbOne?',
-                  } as vscode.MarkdownString,
+            createChatResponseTurn(
+              '/query',
+              'Which collection would you like to query within dbOne?',
+              {
+                result: {
+                  metadata: {
+                    intent: 'askForNamespace',
+                    databaseName: 'dbOne',
+                    collectionName: undefined,
+                    chatId: testChatId,
+                  },
                 },
-              ],
-              result: {
-                metadata: {
-                  intent: 'askForNamespace',
-                  databaseName: 'dbOne',
-                  collectionName: undefined,
-                  chatId: testChatId,
-                },
-              },
-            }),
+              }
+            ),
             createChatRequestTurn('/query', 'collectionOne'),
             createChatRequestTurn('/query', userMessages[1]),
           ],
@@ -2238,12 +2319,9 @@ Schema:
       chatContextStub = {
         history: [
           createChatRequestTurn('/query', expectedPrompt),
-          createChatResponseTurn('/query', {
-            participant: CHAT_PARTICIPANT_ID,
-            response: [
-              {
-                value: {
-                  value: `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
+          createChatResponseTurn(
+            '/query',
+            `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
 
                     ${createMarkdownLink({
                       commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
@@ -2255,16 +2333,15 @@ Schema:
                       name: 'atlas',
                       data: {},
                     })}`,
-                } as vscode.MarkdownString,
+            {
+              result: {
+                metadata: {
+                  intent: 'askToConnect',
+                  chatId: 'abc',
+                },
               },
-            ],
-            result: {
-              metadata: {
-                intent: 'askToConnect',
-                chatId: 'abc',
-              },
-            },
-          }),
+            }
+          ),
         ],
       };
 
@@ -2316,7 +2393,7 @@ Schema:
               'give me the count of all people in the prod database'
             ),
             createChatRequestTurn('/query', 'some disallowed message'),
-            createChatResponseTurn('/query', {
+            createChatResponseTurn('/query', undefined, {
               result: {
                 errorDetails: {
                   message: ParticipantErrorTypes.FILTERED,

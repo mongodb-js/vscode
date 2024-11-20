@@ -1187,17 +1187,15 @@ export default class ParticipantController {
       });
     }
 
-    if (Prompts.isPromptEmpty(request)) {
-      if (this._doesLastMessageAskForNamespace(context.history)) {
-        return this.handleEmptyNamespaceMessage({
-          command: '/schema',
-          context,
-          stream,
-        });
-      }
-
-      stream.markdown(Prompts.schema.emptyRequestResponse);
-      return emptyRequestChatResult(context.history);
+    if (
+      Prompts.isPromptEmpty(request) &&
+      this._doesLastMessageAskForNamespace(context.history)
+    ) {
+      return this.handleEmptyNamespaceMessage({
+        command: '/schema',
+        context,
+        stream,
+      });
     }
 
     const namespace = await this._getNamespaceFromChat({
