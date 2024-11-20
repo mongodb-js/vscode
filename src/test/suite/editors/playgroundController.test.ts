@@ -18,6 +18,7 @@ import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
 import { mockTextEditor } from '../stubs';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
 const expect = chai.expect;
 
@@ -68,13 +69,17 @@ suite('Playground Controller Test Suite', function () {
       extensionContextStub,
       testStorageController
     );
+    const testExportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
+
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
       telemetryService: testTelemetryService,
       statusView: testStatusView,
-      playgroundResultViewProvider: testPlaygroundResultProvider,
+      playgroundResultProvider: testPlaygroundResultProvider,
       playgroundSelectionCodeActionProvider: testCodeActionProvider,
+      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(testTelemetryService, 'trackNewConnection');

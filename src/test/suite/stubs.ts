@@ -342,8 +342,8 @@ class LanguageServerControllerStub {
   evaluate(/* codeToEvaluate: string */): Promise<ShellEvaluateResult> {
     return Promise.resolve({
       result: {
-        namespace: null,
-        type: null,
+        namespace: undefined,
+        type: undefined,
         content: 'Result',
         language: 'plaintext',
       },

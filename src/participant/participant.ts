@@ -43,11 +43,14 @@ import formatError from '../utils/formatError';
 import type { ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
-import type { ExportToLanguageAddons } from '../types/playgroundType';
-import type ExportToLanguageCodeLensProvider from '../editors/exportToLanguageCodeLensProvider';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
 import { ParticipantErrorTypes } from './participantErrorTypes';
+import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
+import {
+  type ExportToLanguageResult,
+  isExportToLanguageResult,
+} from '../types/playgroundType';
 
 const log = createLogger('participant');
 
@@ -75,25 +78,25 @@ export default class ParticipantController {
   _chatMetadataStore: ChatMetadataStore;
   _docsChatbotAIService: DocsChatbotAIService;
   _telemetryService: TelemetryService;
-  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  _playgroundResultProvider: PlaygroundResultProvider;
 
   constructor({
     connectionController,
     storageController,
     telemetryService,
-    exportToLanguageCodeLensProvider,
+    playgroundResultProvider,
   }: {
     connectionController: ConnectionController;
     storageController: StorageController;
     telemetryService: TelemetryService;
-    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+    playgroundResultProvider: PlaygroundResultProvider;
   }) {
     this._connectionController = connectionController;
     this._storageController = storageController;
     this._chatMetadataStore = new ChatMetadataStore();
     this._telemetryService = telemetryService;
     this._docsChatbotAIService = new DocsChatbotAIService();
-    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
+    this._playgroundResultProvider = playgroundResultProvider;
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -1686,14 +1689,10 @@ export default class ParticipantController {
   }
 
   async _exportPlaygroundToLanguageWithCancelModal({
-    code,
+    codeToTranspile,
     language,
     includeDriverSyntax,
-  }: {
-    code: string;
-    language: string;
-    includeDriverSyntax: boolean;
-  }): Promise<string | null> {
+  }: Omit<ExportToLanguageResult, 'content'>): Promise<string | null> {
     const progressResult = await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -1702,7 +1701,7 @@ export default class ParticipantController {
       },
       async (progress, token): Promise<string | null> => {
         const modelInput = await Prompts.exportToLanguage.buildMessages({
-          request: { prompt: code },
+          request: { prompt: codeToTranspile },
           language,
           includeDriverSyntax,
         });
@@ -1847,11 +1846,20 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       .map((connection) => connection.name);
   }
 
-  changeExportToLanguageAddons(
-    exportToLanguageAddons: ExportToLanguageAddons
-  ): Promise<boolean> {
-    this._exportToLanguageCodeLensProvider.refresh(exportToLanguageAddons);
-    return this._transpile();
+  changeDriverSyntax(includeDriverSyntax: boolean): Promise<boolean> {
+    if (
+      !this._playgroundResultProvider._playgroundResult ||
+      !isExportToLanguageResult(
+        this._playgroundResultProvider._playgroundResult
+      )
+    ) {
+      return Promise.resolve(false);
+    }
+
+    return this._transpile({
+      ...this._playgroundResultProvider._playgroundResult,
+      includeDriverSyntax,
+    });
   }
 
   async exportPlaygroundToLanguage(language: string): Promise<boolean> {
@@ -1866,54 +1874,62 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
 
     const selectedText = getSelectedText();
     const codeToTranspile = selectedText || getAllText();
+    let includeDriverSyntax = false;
 
-    this._exportToLanguageCodeLensProvider.refresh({
-      ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
+    if (
+      this._playgroundResultProvider._playgroundResult &&
+      isExportToLanguageResult(this._playgroundResultProvider._playgroundResult)
+    ) {
+      includeDriverSyntax =
+        this._playgroundResultProvider._playgroundResult.includeDriverSyntax;
+    }
+
+    return this._transpile({
       codeToTranspile,
       language,
+      includeDriverSyntax,
     });
-
-    return this._transpile();
   }
 
-  async _transpile(): Promise<boolean> {
-    const { codeToTranspile, driverSyntax, language } =
-      this._exportToLanguageCodeLensProvider._exportToLanguageAddons;
-
+  async _transpile({
+    codeToTranspile,
+    language,
+    includeDriverSyntax,
+  }: Omit<ExportToLanguageResult, 'content'>): Promise<boolean> {
     log.info(`Exporting to the '${language}' language...`);
 
     try {
-      const content = await this._exportPlaygroundToLanguageWithCancelModal({
-        code: codeToTranspile,
-        language,
-        includeDriverSyntax: driverSyntax,
-      });
+      const transpiledContent =
+        await this._exportPlaygroundToLanguageWithCancelModal({
+          codeToTranspile,
+          language,
+          includeDriverSyntax,
+        });
 
-      if (!content) {
+      if (!transpiledContent) {
         return true;
       }
 
       log.info(`The playground was exported to ${language}`, {
-        code: codeToTranspile,
+        codeToTranspile,
         language,
-        includeDriverSyntax: driverSyntax,
+        includeDriverSyntax,
       });
 
       await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULTS,
-        { content, language }
+        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+        {
+          content: transpiledContent,
+          codeToTranspile,
+          language,
+          includeDriverSyntax,
+        }
       );
-
-      this._exportToLanguageCodeLensProvider.refresh({
-        ...this._exportToLanguageCodeLensProvider._exportToLanguageAddons,
-        codeToTranspile,
-        language,
-      });
 
       this._telemetryService.trackPlaygroundExportedToLanguageExported({
         language,
-        exported_code_length: content?.length || 0,
-        with_driver_syntax: driverSyntax,
+        exported_code_length: transpiledContent?.length || 0,
+        with_driver_syntax: includeDriverSyntax,
       });
     } catch (error) {
       log.error(`Export to ${language} failed`, error);

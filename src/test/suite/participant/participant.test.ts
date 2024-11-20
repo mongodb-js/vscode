@@ -34,13 +34,14 @@ import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { ParticipantErrorTypes } from '../../../participant/participantErrorTypes';
 import * as model from '../../../participant/model';
 import {
   createChatRequestTurn,
   createChatResponseTurn,
 } from './participantHelpers';
+import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
+import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -93,6 +94,8 @@ suite('Participant Controller Test Suite', function () {
   let testStatusView: StatusView;
   let testTelemetryService: TelemetryService;
   let testParticipantController: ParticipantController;
+  let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+  let testPlaygroundResultProvider: PlaygroundResultProvider;
   let chatContextStub: vscode.ChatContext;
   let chatStreamStub: {
     push: sinon.SinonSpy;
@@ -194,13 +197,18 @@ suite('Participant Controller Test Suite', function () {
       telemetryService: testTelemetryService,
     });
     sinon.replace(ChatMetadataStore, 'createNewChatId', () => testChatId);
-    const testExportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
+    testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
+    testPlaygroundResultProvider = new PlaygroundResultProvider(
+      testConnectionController,
+      testEditDocumentCodeLensProvider
+    );
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
       storageController: testStorageController,
       telemetryService: testTelemetryService,
-      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
+      playgroundResultProvider: testPlaygroundResultProvider,
     });
     chatContextStub = {
       history: [

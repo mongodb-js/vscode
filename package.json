@@ -259,8 +259,8 @@
         "title": "MongoDB: Change Active Connection"
       },
       {
-        "command": "mdb.changeExportToLanguageAddons",
-        "title": "MongoDB: Change Export To Language Addons"
+        "command": "mdb.changeDriverSyntax",
+        "title": "MongoDB: Change Export To Language Driver Syntax"
       },
       {
         "command": "mdb.runSelectedPlaygroundBlocks",
@@ -873,7 +873,7 @@
           "when": "mdb.isPlayground"
         },
         {
-          "command": "mdb.changeExportToLanguageAddons",
+          "command": "mdb.changeDriverSyntax",
           "when": "false"
         },
         {

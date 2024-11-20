@@ -97,7 +97,7 @@ export default class EditorsController {
   _documentIdStore: DocumentIdStore;
   _mongoDBDocumentService: MongoDBDocumentService;
   _telemetryService: TelemetryService;
-  _playgroundResultViewProvider: PlaygroundResultProvider;
+  _playgroundResultProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
@@ -109,7 +109,7 @@ export default class EditorsController {
     playgroundController,
     statusView,
     telemetryService,
-    playgroundResultViewProvider,
+    playgroundResultProvider,
     activeConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider,
     playgroundSelectionCodeActionProvider,
@@ -121,7 +121,7 @@ export default class EditorsController {
     playgroundController: PlaygroundController;
     statusView: StatusView;
     telemetryService: TelemetryService;
-    playgroundResultViewProvider: PlaygroundResultProvider;
+    playgroundResultProvider: PlaygroundResultProvider;
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
@@ -149,7 +149,7 @@ export default class EditorsController {
       statusView: new StatusView(context),
       editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
     });
-    this._playgroundResultViewProvider = playgroundResultViewProvider;
+    this._playgroundResultProvider = playgroundResultProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._collectionDocumentsCodeLensProvider =
@@ -398,7 +398,7 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
         PLAYGROUND_RESULT_SCHEME,
-        this._playgroundResultViewProvider
+        this._playgroundResultProvider
       )
     );
     // REGISTER CODE LENSES PROVIDERS.

@@ -20,6 +20,7 @@ import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { ExtensionContextStub } from '../stubs';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
 const expect = chai.expect;
 
@@ -60,13 +61,17 @@ suite('Language Server Controller Test Suite', () => {
     languageServerControllerStub = new LanguageServerController(
       extensionContextStub
     );
+    const testExportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
+
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
       telemetryService: testTelemetryService,
       statusView: testStatusView,
-      playgroundResultViewProvider: testPlaygroundResultProvider,
+      playgroundResultProvider: testPlaygroundResultProvider,
       playgroundSelectionCodeActionProvider: testCodeActionProvider,
+      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
     await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._activeConnectionChanged();

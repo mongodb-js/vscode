@@ -24,7 +24,10 @@ import {
   HelpExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
-import { ExportToLanguages } from './types/playgroundType';
+import {
+  ExportToLanguage,
+  type ExportToLanguageResult,
+} from './types/playgroundType';
 import EXTENSION_COMMANDS from './commands';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
@@ -67,7 +70,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _telemetryService: TelemetryService;
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
-  _playgroundResultViewProvider: PlaygroundResultProvider;
+  _playgroundResultProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
@@ -102,14 +105,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
       this._connectionController
     );
-    this._playgroundResultViewProvider = new PlaygroundResultProvider(
+    this._playgroundResultProvider = new PlaygroundResultProvider(
       this._connectionController,
       this._editDocumentCodeLensProvider
     );
     this._activeConnectionCodeLensProvider =
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._exportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
+      new ExportToLanguageCodeLensProvider(this._playgroundResultProvider);
     this._playgroundSelectionCodeActionProvider =
       new PlaygroundSelectionCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
@@ -119,15 +122,16 @@ export default class MDBExtensionController implements vscode.Disposable {
       languageServerController: this._languageServerController,
       telemetryService: this._telemetryService,
       statusView: this._statusView,
-      playgroundResultViewProvider: this._playgroundResultViewProvider,
+      playgroundResultProvider: this._playgroundResultProvider,
       playgroundSelectionCodeActionProvider:
         this._playgroundSelectionCodeActionProvider,
+      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
     });
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
       storageController: this._storageController,
       telemetryService: this._telemetryService,
-      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
+      playgroundResultProvider: this._playgroundResultProvider,
     });
     this._editorsController = new EditorsController({
       context,
@@ -135,7 +139,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundController: this._playgroundController,
       statusView: this._statusView,
       telemetryService: this._telemetryService,
-      playgroundResultViewProvider: this._playgroundResultViewProvider,
+      playgroundResultProvider: this._playgroundResultProvider,
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectionCodeActionProvider:
@@ -250,51 +254,49 @@ export default class MDBExtensionController implements vscode.Disposable {
     // ------ EXPORT TO LANGUAGE ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.PYTHON
+        ExportToLanguage.PYTHON
       )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.JAVA
+        ExportToLanguage.JAVA
       )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.CSHARP
+        ExportToLanguage.CSHARP
       )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.JAVASCRIPT
+        ExportToLanguage.JAVASCRIPT
       )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.RUBY
+        ExportToLanguage.RUBY
       )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_GO, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.GO
+        ExportToLanguage.GO
       )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.RUST
+        ExportToLanguage.RUST
       )
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP, () =>
       this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguages.PHP
+        ExportToLanguage.PHP
       )
     );
 
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
-      (exportToLanguageAddons) =>
-        this._participantController.changeExportToLanguageAddons(
-          exportToLanguageAddons
-        )
+      EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX,
+      (includeDriverSyntax: boolean) =>
+        this._participantController.changeDriverSyntax(includeDriverSyntax)
     );
 
     // ------ DOCUMENTS ------ //
@@ -331,9 +333,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULTS,
-      (data: { content: string | null; language: string }) => {
-        return this._playgroundController.showExportToLanguageResults(data);
+      EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+      (data: ExportToLanguageResult) => {
+        return this._playgroundController.showExportToLanguageResult(data);
       }
     );
     this.registerCommand(

@@ -335,7 +335,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'AggregationCursor',
           content: '',
           language: 'plaintext',
@@ -348,7 +348,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert BulkWriteResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'BulkWriteResult',
           content: '',
           language: 'plaintext',
@@ -361,7 +361,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Collection shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Collection',
           content: '',
           language: 'plaintext',
@@ -374,7 +374,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Cursor shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Cursor',
           content: '',
           language: 'plaintext',
@@ -387,7 +387,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Database shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Database',
           content: '',
           language: 'plaintext',
@@ -400,7 +400,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert DeleteResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'DeleteResult',
           content: '',
           language: 'plaintext',
@@ -413,7 +413,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert InsertManyResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'InsertManyResult',
           content: '',
           language: 'plaintext',
@@ -426,7 +426,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert InsertOneResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'InsertOneResult',
           content: '',
           language: 'plaintext',
@@ -439,7 +439,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert ReplicaSet shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'ReplicaSet',
           content: '',
           language: 'plaintext',
@@ -452,7 +452,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Shard shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Shard',
           content: '',
           language: 'plaintext',
@@ -465,7 +465,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert ShellApi shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'ShellApi',
           content: '',
           language: 'plaintext',
@@ -478,7 +478,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert UpdateResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'UpdateResult',
           content: '',
           language: 'plaintext',
@@ -491,8 +491,8 @@ suite('Telemetry Controller Test Suite', () => {
     test('return other telemetry type if evaluation returns a string', () => {
       const res = {
         result: {
-          namespace: null,
-          type: null,
+          namespace: undefined,
+          type: undefined,
           content: '2',
           language: 'plaintext',
         },

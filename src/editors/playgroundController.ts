@@ -18,11 +18,12 @@ import playgroundCloneDocumentTemplate from '../templates/playgroundCloneDocumen
 import playgroundInsertDocumentTemplate from '../templates/playgroundInsertDocumentTemplate';
 import playgroundStreamsTemplate from '../templates/playgroundStreamsTemplate';
 import playgroundCreateStreamProcessorTemplate from '../templates/playgroundCreateStreamProcessorTemplate';
-import type {
-  PlaygroundResult,
-  ShellEvaluateResult,
-  ThisDiagnosticFix,
-  AllDiagnosticFixes,
+import {
+  type ShellEvaluateResult,
+  type ThisDiagnosticFix,
+  type AllDiagnosticFixes,
+  type PlaygroundRunResult,
+  type ExportToLanguageResult,
 } from '../types/playgroundType';
 import type PlaygroundResultProvider from './playgroundResultProvider';
 import {
@@ -39,6 +40,7 @@ import {
   getAllText,
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
+import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 
 const log = createLogger('playground controller');
 
@@ -54,17 +56,18 @@ const connectBeforeRunningMessage =
  */
 export default class PlaygroundController {
   _connectionController: ConnectionController;
-  _playgroundResult?: PlaygroundResult;
+  _playgroundResult?: PlaygroundRunResult | ExportToLanguageResult;
   _languageServerController: LanguageServerController;
   _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _telemetryService: TelemetryService;
+  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
 
   _isPartialRun = false;
 
   private _playgroundResultViewColumn?: vscode.ViewColumn;
   private _playgroundResultTextDocument?: vscode.TextDocument;
   private _statusView: StatusView;
-  private _playgroundResultViewProvider: PlaygroundResultProvider;
+  private _playgroundResultProvider: PlaygroundResultProvider;
   private _activeConnectionChangedHandler: () => void;
 
   constructor({
@@ -72,23 +75,26 @@ export default class PlaygroundController {
     languageServerController,
     telemetryService,
     statusView,
-    playgroundResultViewProvider,
+    playgroundResultProvider,
     playgroundSelectionCodeActionProvider,
+    exportToLanguageCodeLensProvider,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
     telemetryService: TelemetryService;
     statusView: StatusView;
-    playgroundResultViewProvider: PlaygroundResultProvider;
+    playgroundResultProvider: PlaygroundResultProvider;
     playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
+    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   }) {
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
     this._telemetryService = telemetryService;
     this._statusView = statusView;
-    this._playgroundResultViewProvider = playgroundResultViewProvider;
+    this._playgroundResultProvider = playgroundResultProvider;
     this._playgroundSelectionCodeActionProvider =
       playgroundSelectionCodeActionProvider;
+    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
 
     this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();
@@ -397,8 +403,10 @@ export default class PlaygroundController {
     );
   }
 
-  async _openInResultPane(result: PlaygroundResult): Promise<void> {
-    this._playgroundResultViewProvider.setPlaygroundResult(result);
+  async _openInResultPane(
+    result: PlaygroundRunResult | ExportToLanguageResult
+  ): Promise<void> {
+    this._playgroundResultProvider.setPlaygroundResult(result);
 
     if (!this._playgroundResultTextDocument) {
       await this._openResultAsVirtualDocument();
@@ -419,7 +427,7 @@ export default class PlaygroundController {
   }
 
   _refreshResultAsVirtualDocument(): void {
-    this._playgroundResultViewProvider.refresh();
+    this._playgroundResultProvider.refresh();
   }
 
   async _showResultAsVirtualDocument(): Promise<void> {
@@ -480,19 +488,9 @@ export default class PlaygroundController {
     return true;
   }
 
-  async showExportToLanguageResults({
-    content,
-    language,
-  }: {
-    content: string | null;
-    language: string;
-  }): Promise<boolean> {
-    const result = {
-      namespace: null,
-      type: null,
-      content,
-      language: language,
-    };
+  async showExportToLanguageResult(
+    result: ExportToLanguageResult
+  ): Promise<boolean> {
     await this._openInResultPane(result);
     return true;
   }

@@ -2595,7 +2595,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 2,
           language: 'plaintext',
@@ -2742,7 +2742,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 3,
           language: 'plaintext',
@@ -2763,7 +2763,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const firstRes = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 2,
           language: 'plaintext',
@@ -2781,7 +2781,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const secondRes = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 3,
           language: 'plaintext',
@@ -2804,7 +2804,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: {
             _id: {
@@ -2830,7 +2830,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: {
             name: 'a short string',
@@ -2854,7 +2854,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: [
             {
@@ -2879,7 +2879,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'undefined',
           content: undefined,
           language: 'plaintext',
@@ -2900,7 +2900,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: null,
           language: 'plaintext',
@@ -2922,7 +2922,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'string',
           content: 'A single line string',
           language: 'plaintext',
@@ -2946,7 +2946,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'string',
           content: `vscode
           is
@@ -2999,7 +2999,7 @@ suite('MongoDBService Test Suite', () => {
 
         const expectedResult = {
           result: {
-            namespace: null,
+            namespace: undefined,
             type: 'number',
             content: 42,
             language: 'plaintext',
@@ -3036,7 +3036,7 @@ suite('MongoDBService Test Suite', () => {
         );
         const expectedResult = {
           result: {
-            namespace: null,
+            namespace: undefined,
             type: 'number',
             content: 3,
             language: 'plaintext',

@@ -41,23 +41,8 @@ suite('Playground Result Provider Test Suite', () => {
     sandbox.restore();
   });
 
-  test('constructor sets default playground result', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
-      testConnectionController,
-      testEditDocumentCodeLensProvider
-    );
-    expect(testPlaygroundResultViewProvider._playgroundResult).to.be.deep.equal(
-      {
-        namespace: null,
-        type: null,
-        content: undefined,
-        language: null,
-      }
-    );
-  });
-
   test('setPlaygroundResult refreshes private playground result property', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
@@ -70,133 +55,126 @@ suite('Playground Result Provider Test Suite', () => {
       },
       language: 'json',
     };
-    testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
-    expect(testPlaygroundResultViewProvider._playgroundResult).to.be.deep.equal(
+    testPlaygroundResultProvider.setPlaygroundResult(playgroundResult);
+    expect(testPlaygroundResultProvider._playgroundResult).to.be.deep.equal(
       playgroundResult
     );
   });
 
   test('provideTextDocumentContent returns undefined formatted to string if content is undefined', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testPlaygroundResultViewProvider._playgroundResult = {
+    testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'undefined',
       content: null,
       language: 'plaintext',
     };
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal('undefined');
   });
 
   test('provideTextDocumentContent returns null formatted to string if content is null', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testPlaygroundResultViewProvider._playgroundResult = {
+    testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
       content: null,
       language: 'plaintext',
     };
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal('null');
   });
 
   test('provideTextDocumentContent returns number formatted to string if content is number', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testPlaygroundResultViewProvider._playgroundResult = {
+    testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'number',
       content: 4,
       language: 'plaintext',
     };
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal('4');
   });
 
   test('provideTextDocumentContent returns array formatted to string if content is array', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testPlaygroundResultViewProvider._playgroundResult = {
+    testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
       content: [],
       language: 'json',
     };
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal('[]');
   });
 
   test('provideTextDocumentContent returns object formatted to string if content is object', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testPlaygroundResultViewProvider._playgroundResult = {
+    testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'object',
       content: {},
       language: 'json',
     };
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal('{}');
   });
 
   test('provideTextDocumentContent returns boolean formatted to string if content is boolean', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testPlaygroundResultViewProvider._playgroundResult = {
+    testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'boolean',
       content: true,
       language: 'plaintext',
     };
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal('true');
   });
 
   test('provideTextDocumentContent returns string if content is string', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testPlaygroundResultViewProvider._playgroundResult = {
+    testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
       type: 'string',
       content: 'Berlin',
       language: 'plaintext',
     };
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal('Berlin');
   });
 
   test('provideTextDocumentContent returns Cursor formatted to string if content is string', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
@@ -219,15 +197,14 @@ suite('Playground Result Provider Test Suite', () => {
 
     const fakeUpdateCodeLensesForPlayground = sandbox.fake();
     sandbox.replace(
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
+      testPlaygroundResultProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
       fakeUpdateCodeLensesForPlayground
     );
 
-    testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
+    testPlaygroundResultProvider._playgroundResult = playgroundResult;
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
     expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
     expect(
@@ -236,7 +213,7 @@ suite('Playground Result Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent returns Document formatted to string if content is string', () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
@@ -253,15 +230,14 @@ suite('Playground Result Provider Test Suite', () => {
 
     const fakeUpdateCodeLensesForPlayground = sandbox.fake();
     sandbox.replace(
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider,
+      testPlaygroundResultProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
       fakeUpdateCodeLensesForPlayground
     );
 
-    testPlaygroundResultViewProvider._playgroundResult = playgroundResult;
+    testPlaygroundResultProvider._playgroundResult = playgroundResult;
 
-    const result =
-      testPlaygroundResultViewProvider.provideTextDocumentContent();
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
     expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
     expect(
@@ -270,7 +246,7 @@ suite('Playground Result Provider Test Suite', () => {
   });
 
   test('provideTextDocumentContent sets different code lenses for the playground and the collection', async () => {
-    const testPlaygroundResultViewProvider = new PlaygroundResultProvider(
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
@@ -318,11 +294,11 @@ suite('Playground Result Provider Test Suite', () => {
         } as unknown as typeof vscode.window.activeTextEditor)
     );
 
-    testPlaygroundResultViewProvider.setPlaygroundResult(playgroundResult);
-    testPlaygroundResultViewProvider.provideTextDocumentContent();
+    testPlaygroundResultProvider.setPlaygroundResult(playgroundResult);
+    testPlaygroundResultProvider.provideTextDocumentContent();
 
     let codeLenses =
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
+      testPlaygroundResultProvider._editDocumentCodeLensProvider.provideCodeLenses();
     expect(codeLenses.length).to.be.equal(2);
 
     let firstCodeLensRange = codeLenses[0].range;
@@ -333,7 +309,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(secondCodeLensRange.start.line).to.be.equal(9);
 
     let codeLensesInfo =
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider
+      testPlaygroundResultProvider._editDocumentCodeLensProvider
         ._codeLensesInfo;
     expect(Object.keys(codeLensesInfo).length).to.be.equal(1);
 
@@ -394,9 +370,9 @@ suite('Playground Result Provider Test Suite', () => {
 
     activeTextEditorDocument.uri = collectionUri; // Switch active editor.
     await testCollectionViewProvider.provideTextDocumentContent(collectionUri);
-    testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
+    testPlaygroundResultProvider._editDocumentCodeLensProvider.provideCodeLenses();
     codeLenses =
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider.provideCodeLenses();
+      testPlaygroundResultProvider._editDocumentCodeLensProvider.provideCodeLenses();
 
     expect(codeLenses.length).to.be.equal(1);
 
@@ -406,7 +382,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(codeLenses[0].command?.title).to.be.equal('Edit Document');
 
     codeLensesInfo =
-      testPlaygroundResultViewProvider._editDocumentCodeLensProvider
+      testPlaygroundResultProvider._editDocumentCodeLensProvider
         ._codeLensesInfo;
 
     expect(Object.keys(codeLensesInfo).length).to.be.equal(2);

@@ -1,59 +1,61 @@
 import * as vscode from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
-import type { ExportToLanguageAddons } from '../types/playgroundType';
-import { ExportToLanguages } from '../types/playgroundType';
+import {
+  ExportToLanguage,
+  isExportToLanguageResult,
+} from '../types/playgroundType';
+import type PlaygroundResultProvider from './playgroundResultProvider';
 
 export default class ExportToLanguageCodeLensProvider
   implements vscode.CodeLensProvider
 {
+  _playgroundResultProvider: PlaygroundResultProvider;
   _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
-  _exportToLanguageAddons: ExportToLanguageAddons;
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeLenses.event;
 
-  constructor() {
-    this._exportToLanguageAddons = {
-      codeToTranspile: '',
-      driverSyntax: false,
-      language: 'shell',
-    };
-
+  constructor(playgroundResultProvider: PlaygroundResultProvider) {
+    this._playgroundResultProvider = playgroundResultProvider;
     vscode.workspace.onDidChangeConfiguration(() => {
       this._onDidChangeCodeLenses.fire();
     });
-  }
-
-  refresh(exportToLanguageAddons: ExportToLanguageAddons): void {
-    this._exportToLanguageAddons = exportToLanguageAddons;
-    this._onDidChangeCodeLenses.fire();
   }
 
   createCodeLens(): vscode.CodeLens {
     return new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
   }
 
-  provideCodeLenses(): vscode.CodeLens[] {
+  provideCodeLenses(): vscode.CodeLens[] | undefined {
     const driverSyntaxCodeLens = this.createCodeLens();
     const exportToLanguageCodeLenses: vscode.CodeLens[] = [];
 
-    if (['json', 'plaintext'].includes(this._exportToLanguageAddons.language)) {
-      return [];
+    if (
+      !this._playgroundResultProvider._playgroundResult?.language ||
+      ['json', 'plaintext'].includes(
+        this._playgroundResultProvider._playgroundResult?.language
+      ) ||
+      !isExportToLanguageResult(
+        this._playgroundResultProvider._playgroundResult
+      )
+    ) {
+      return;
     }
 
-    if (this._exportToLanguageAddons.language !== ExportToLanguages.CSHARP) {
+    if (
+      this._playgroundResultProvider._playgroundResult?.language !==
+      ExportToLanguage.CSHARP
+    ) {
       driverSyntaxCodeLens.command = {
-        title: this._exportToLanguageAddons.driverSyntax
+        title: this._playgroundResultProvider._playgroundResult
+          .includeDriverSyntax
           ? 'Exclude Driver Syntax'
           : 'Include Driver Syntax',
-        command: EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
+        command: EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX,
         arguments: [
-          {
-            ...this._exportToLanguageAddons,
-            driverSyntax: !this._exportToLanguageAddons.driverSyntax,
-          },
+          !this._playgroundResultProvider._playgroundResult.includeDriverSyntax,
         ],
       };
       exportToLanguageCodeLenses.push(driverSyntaxCodeLens);
