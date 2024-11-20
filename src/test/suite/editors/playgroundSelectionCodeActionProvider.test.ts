@@ -81,12 +81,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       await mdbTestExtension.testExtensionController._playgroundController._activeConnectionChanged();
 
       testActiveTextEditor = sandbox.stub(vscode.window, 'activeTextEditor');
-
-      sandbox.replace(
-        vscode.extensions,
-        'getExtension',
-        sandbox.fake.returns({ isActive: true })
-      );
     });
 
     afterEach(async () => {
@@ -101,401 +95,453 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       sandbox.restore();
     });
 
-    test('does not render code actions when text is not selected', () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string => '123';
-      activeTextEditor.selections = [];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
-      });
-
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.not.exist;
-    });
-
-    test('renders the run selected playground blocks code action', () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string => '123';
-      activeTextEditor.selections = [
-        {
-          start: { line: 0, character: 0 },
-          end: { line: 0, character: 4 },
-        } as vscode.Selection,
-      ];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
-      });
-
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.exist;
-
-      if (codeActions) {
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[0].command;
-
-        if (actionCommand) {
-          expect(actionCommand.command).to.be.equal(
-            'mdb.runSelectedPlaygroundBlocks'
-          );
-          expect(actionCommand.title).to.be.equal(
-            'Run selected playground blocks'
-          );
-        }
-      }
-    });
-
-    suite('renders export to java code actions', () => {
+    suite('copilot is disabled', () => {
       beforeEach(() => {
+        sandbox.replace(
+          vscode.extensions,
+          'getExtension',
+          sandbox.fake.returns(undefined)
+        );
+      });
+
+      test('renders only the run selected playground blocks code action', () => {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-        activeTextEditor.document.getText = (): string => 'Berlin';
+        activeTextEditor.document.getText = (): string => '123';
         activeTextEditor.selections = [
           {
             start: { line: 0, character: 0 },
-            end: { line: 0, character: 6 },
+            end: { line: 0, character: 4 },
           } as vscode.Selection,
         ];
         testActiveTextEditor.get(function getterFn() {
           return activeTextEditor;
         });
-      });
 
-      test('renders the include driver syntax code action and changes it to exclude', async () => {
         const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
 
-        if (!codeActions) {
-          expect.fail('No code actions');
-          return false;
-        }
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(1);
+          const actionCommand = codeActions[0].command;
 
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[2].command;
-
-        if (!actionCommand) {
-          expect.fail('Action command not found');
-          return false;
-        }
-
-        expect(actionCommand.command).to.be.equal('mdb.exportToJava');
-        expect(actionCommand.title).to.be.equal('Export To Java');
-
-        await vscode.commands.executeCommand(actionCommand.command);
-
-        mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
-          {
-            content: 'Berlin',
-            codeToTranspile: 'Berlin',
-            language: 'java',
-            includeDriverSyntax: false,
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal(
+              'mdb.runSelectedPlaygroundBlocks'
+            );
+            expect(actionCommand.title).to.be.equal(
+              'Run selected playground blocks'
+            );
           }
-        );
+        }
+      });
+    });
 
-        let codeLenses =
-          mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
-        expect(codeLenses?.length).to.be.equal(1);
-        let lensesObj = { lenses: codeLenses };
-        expect(lensesObj).to.have.nested.property(
-          'lenses[0].command.title',
-          'Include Driver Syntax'
+    suite('copilot is active', () => {
+      beforeEach(() => {
+        sandbox.replace(
+          vscode.extensions,
+          'getExtension',
+          sandbox.fake.returns({ isActive: true })
         );
+      });
 
-        mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
+      test('does not render code actions when text is not selected', () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string => '123';
+        activeTextEditor.selections = [];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
+
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.not.exist;
+      });
+
+      test('renders the run selected playground blocks code action', () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string => '123';
+        activeTextEditor.selections = [
           {
-            content: 'Berlin',
-            codeToTranspile: 'Berlin',
-            language: 'java',
-            includeDriverSyntax: true,
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 4 },
+          } as vscode.Selection,
+        ];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
+
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
+
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[0].command;
+
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal(
+              'mdb.runSelectedPlaygroundBlocks'
+            );
+            expect(actionCommand.title).to.be.equal(
+              'Run selected playground blocks'
+            );
           }
-        );
-
-        codeLenses =
-          mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
-        lensesObj = { lenses: codeLenses };
-        expect(lensesObj).to.have.nested.property(
-          'lenses[0].command.title',
-          'Exclude Driver Syntax'
-        );
-      });
-    });
-
-    test('renders export to csharp code actions', async () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string => "{ name: '22' }";
-      activeTextEditor.selections = [
-        {
-          start: { line: 0, character: 0 },
-          end: { line: 0, character: 14 },
-        } as vscode.Selection,
-      ];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
+        }
       });
 
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.exist;
+      suite('renders export to java code actions', () => {
+        beforeEach(() => {
+          const activeTextEditor = mockTextEditor;
+          activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+          activeTextEditor.document.getText = (): string => 'Berlin';
+          activeTextEditor.selections = [
+            {
+              start: { line: 0, character: 0 },
+              end: { line: 0, character: 6 },
+            } as vscode.Selection,
+          ];
+          testActiveTextEditor.get(function getterFn() {
+            return activeTextEditor;
+          });
+        });
 
-      if (codeActions) {
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[3].command;
+        test('renders the include driver syntax code action and changes it to exclude', async () => {
+          const codeActions = testCodeActionProvider.provideCodeActions();
 
-        if (actionCommand) {
-          expect(actionCommand.command).to.be.equal('mdb.exportToCsharp');
-          expect(actionCommand.title).to.be.equal('Export To C#');
+          if (!codeActions) {
+            expect.fail('No code actions');
+            return false;
+          }
+
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[2].command;
+
+          if (!actionCommand) {
+            expect.fail('Action command not found');
+            return false;
+          }
+
+          expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+          expect(actionCommand.title).to.be.equal('Export To Java');
 
           await vscode.commands.executeCommand(actionCommand.command);
 
-          const codeLenses =
-            mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          expect(codeLenses).to.not.exist; // Csharp does not support driver syntax.
-        }
-      }
-    });
-
-    test('renders export to python code actions', async () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string =>
-        "use('db'); db.coll.find({ name: '22' })";
-      activeTextEditor.selections = [
-        {
-          start: { line: 0, character: 24 },
-          end: { line: 0, character: 38 },
-        } as vscode.Selection,
-      ];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
-      });
-
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.exist;
-
-      if (codeActions) {
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[1].command;
-
-        if (actionCommand) {
-          expect(actionCommand.command).to.be.equal('mdb.exportToPython');
-          expect(actionCommand.title).to.be.equal('Export To Python 3');
-
           mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
             {
-              content: 'Does not matter',
-              codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
-              language: 'python',
+              content: 'Berlin',
+              codeToTranspile: 'Berlin',
+              language: 'java',
               includeDriverSyntax: false,
             }
           );
 
-          await vscode.commands.executeCommand(actionCommand.command);
-          const codeLenses =
+          let codeLenses =
             mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
           expect(codeLenses?.length).to.be.equal(1);
-          const lensesObj = { lenses: codeLenses };
+          let lensesObj = { lenses: codeLenses };
           expect(lensesObj).to.have.nested.property(
             'lenses[0].command.title',
             'Include Driver Syntax'
           );
-        }
-      }
-    });
-
-    test('renders export to ruby code actions', async () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string =>
-        "use('db'); db.coll.find({ name: '22' })";
-      activeTextEditor.selections = [
-        {
-          start: { line: 0, character: 24 },
-          end: { line: 0, character: 38 },
-        } as vscode.Selection,
-      ];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
-      });
-
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.exist;
-
-      if (codeActions) {
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[5].command;
-
-        if (actionCommand) {
-          expect(actionCommand.command).to.be.equal('mdb.exportToRuby');
-          expect(actionCommand.title).to.be.equal('Export To Ruby');
 
           mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
             {
-              content: 'Does not matter',
-              codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
-              language: 'ruby',
-              includeDriverSyntax: false,
+              content: 'Berlin',
+              codeToTranspile: 'Berlin',
+              language: 'java',
+              includeDriverSyntax: true,
             }
           );
 
-          await vscode.commands.executeCommand(actionCommand.command);
-
-          const codeLenses =
+          codeLenses =
             mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          expect(codeLenses?.length).to.be.equal(1);
-          const lensesObj = { lenses: codeLenses };
+          lensesObj = { lenses: codeLenses };
           expect(lensesObj).to.have.nested.property(
             'lenses[0].command.title',
-            'Include Driver Syntax'
+            'Exclude Driver Syntax'
           );
-        }
-      }
-    });
-
-    test('renders export to go code actions', async () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string =>
-        "use('db'); db.coll.find({ name: '22' })";
-      activeTextEditor.selections = [
-        {
-          start: { line: 0, character: 24 },
-          end: { line: 0, character: 38 },
-        } as vscode.Selection,
-      ];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
+        });
       });
 
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.exist;
+      test('renders export to csharp code actions', async () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string => "{ name: '22' }";
+        activeTextEditor.selections = [
+          {
+            start: { line: 0, character: 0 },
+            end: { line: 0, character: 14 },
+          } as vscode.Selection,
+        ];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
 
-      if (codeActions) {
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[6].command;
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
 
-        if (actionCommand) {
-          expect(actionCommand.command).to.be.equal('mdb.exportToGo');
-          expect(actionCommand.title).to.be.equal('Export To Go');
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[3].command;
 
-          mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
-            {
-              content: 'Does not matter',
-              codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
-              language: 'go',
-              includeDriverSyntax: false,
-            }
-          );
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal('mdb.exportToCsharp');
+            expect(actionCommand.title).to.be.equal('Export To C#');
 
-          await vscode.commands.executeCommand(actionCommand.command);
+            await vscode.commands.executeCommand(actionCommand.command);
 
-          const codeLenses =
-            mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          expect(codeLenses?.length).to.be.equal(1);
-          const lensesObj = { lenses: codeLenses };
-          expect(lensesObj).to.have.nested.property(
-            'lenses[0].command.title',
-            'Include Driver Syntax'
-          );
+            const codeLenses =
+              mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
+            expect(codeLenses).to.not.exist; // Csharp does not support driver syntax.
+          }
         }
-      }
-    });
-
-    test('renders export to rust code actions', async () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string =>
-        "use('db'); db.coll.find({ name: '22' })";
-      activeTextEditor.selections = [
-        {
-          start: { line: 0, character: 24 },
-          end: { line: 0, character: 38 },
-        } as vscode.Selection,
-      ];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
       });
 
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.exist;
+      test('renders export to python code actions', async () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string =>
+          "use('db'); db.coll.find({ name: '22' })";
+        activeTextEditor.selections = [
+          {
+            start: { line: 0, character: 24 },
+            end: { line: 0, character: 38 },
+          } as vscode.Selection,
+        ];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
 
-      if (codeActions) {
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[7].command;
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
 
-        if (actionCommand) {
-          expect(actionCommand.command).to.be.equal('mdb.exportToRust');
-          expect(actionCommand.title).to.be.equal('Export To Rust');
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[1].command;
 
-          mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
-            {
-              content: 'Does not matter',
-              codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
-              language: 'rust',
-              includeDriverSyntax: false,
-            }
-          );
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal('mdb.exportToPython');
+            expect(actionCommand.title).to.be.equal('Export To Python 3');
 
-          await vscode.commands.executeCommand(actionCommand.command);
+            mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
+              {
+                content: 'Does not matter',
+                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                language: 'python',
+                includeDriverSyntax: false,
+              }
+            );
 
-          const codeLenses =
-            mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          expect(codeLenses?.length).to.be.equal(1);
-          const lensesObj = { lenses: codeLenses };
-          expect(lensesObj).to.have.nested.property(
-            'lenses[0].command.title',
-            'Include Driver Syntax'
-          );
+            await vscode.commands.executeCommand(actionCommand.command);
+            const codeLenses =
+              mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
+            expect(codeLenses?.length).to.be.equal(1);
+            const lensesObj = { lenses: codeLenses };
+            expect(lensesObj).to.have.nested.property(
+              'lenses[0].command.title',
+              'Include Driver Syntax'
+            );
+          }
         }
-      }
-    });
-
-    test('renders export to php code actions', async () => {
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-      activeTextEditor.document.getText = (): string =>
-        "use('db'); db.coll.find({ name: '22' })";
-      activeTextEditor.selections = [
-        {
-          start: { line: 0, character: 24 },
-          end: { line: 0, character: 38 },
-        } as vscode.Selection,
-      ];
-      testActiveTextEditor.get(function getterFn() {
-        return activeTextEditor;
       });
 
-      const codeActions = testCodeActionProvider.provideCodeActions();
-      expect(codeActions).to.exist;
+      test('renders export to ruby code actions', async () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string =>
+          "use('db'); db.coll.find({ name: '22' })";
+        activeTextEditor.selections = [
+          {
+            start: { line: 0, character: 24 },
+            end: { line: 0, character: 38 },
+          } as vscode.Selection,
+        ];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
 
-      if (codeActions) {
-        expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-        const actionCommand = codeActions[8].command;
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
 
-        if (actionCommand) {
-          expect(actionCommand.command).to.be.equal('mdb.exportToPHP');
-          expect(actionCommand.title).to.be.equal('Export To PHP');
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[5].command;
 
-          mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
-            {
-              content: 'Does not matter',
-              codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
-              language: 'php',
-              includeDriverSyntax: false,
-            }
-          );
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal('mdb.exportToRuby');
+            expect(actionCommand.title).to.be.equal('Export To Ruby');
 
-          await vscode.commands.executeCommand(actionCommand.command);
+            mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
+              {
+                content: 'Does not matter',
+                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                language: 'ruby',
+                includeDriverSyntax: false,
+              }
+            );
 
-          const codeLenses =
-            mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
-          expect(codeLenses?.length).to.be.equal(1);
-          const lensesObj = { lenses: codeLenses };
-          expect(lensesObj).to.have.nested.property(
-            'lenses[0].command.title',
-            'Include Driver Syntax'
-          );
+            await vscode.commands.executeCommand(actionCommand.command);
+
+            const codeLenses =
+              mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
+            expect(codeLenses?.length).to.be.equal(1);
+            const lensesObj = { lenses: codeLenses };
+            expect(lensesObj).to.have.nested.property(
+              'lenses[0].command.title',
+              'Include Driver Syntax'
+            );
+          }
         }
-      }
+      });
+
+      test('renders export to go code actions', async () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string =>
+          "use('db'); db.coll.find({ name: '22' })";
+        activeTextEditor.selections = [
+          {
+            start: { line: 0, character: 24 },
+            end: { line: 0, character: 38 },
+          } as vscode.Selection,
+        ];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
+
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
+
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[6].command;
+
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal('mdb.exportToGo');
+            expect(actionCommand.title).to.be.equal('Export To Go');
+
+            mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
+              {
+                content: 'Does not matter',
+                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                language: 'go',
+                includeDriverSyntax: false,
+              }
+            );
+
+            await vscode.commands.executeCommand(actionCommand.command);
+
+            const codeLenses =
+              mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
+            expect(codeLenses?.length).to.be.equal(1);
+            const lensesObj = { lenses: codeLenses };
+            expect(lensesObj).to.have.nested.property(
+              'lenses[0].command.title',
+              'Include Driver Syntax'
+            );
+          }
+        }
+      });
+
+      test('renders export to rust code actions', async () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string =>
+          "use('db'); db.coll.find({ name: '22' })";
+        activeTextEditor.selections = [
+          {
+            start: { line: 0, character: 24 },
+            end: { line: 0, character: 38 },
+          } as vscode.Selection,
+        ];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
+
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
+
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[7].command;
+
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal('mdb.exportToRust');
+            expect(actionCommand.title).to.be.equal('Export To Rust');
+
+            mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
+              {
+                content: 'Does not matter',
+                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                language: 'rust',
+                includeDriverSyntax: false,
+              }
+            );
+
+            await vscode.commands.executeCommand(actionCommand.command);
+
+            const codeLenses =
+              mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
+            expect(codeLenses?.length).to.be.equal(1);
+            const lensesObj = { lenses: codeLenses };
+            expect(lensesObj).to.have.nested.property(
+              'lenses[0].command.title',
+              'Include Driver Syntax'
+            );
+          }
+        }
+      });
+
+      test('renders export to php code actions', async () => {
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+        activeTextEditor.document.getText = (): string =>
+          "use('db'); db.coll.find({ name: '22' })";
+        activeTextEditor.selections = [
+          {
+            start: { line: 0, character: 24 },
+            end: { line: 0, character: 38 },
+          } as vscode.Selection,
+        ];
+        testActiveTextEditor.get(function getterFn() {
+          return activeTextEditor;
+        });
+
+        const codeActions = testCodeActionProvider.provideCodeActions();
+        expect(codeActions).to.exist;
+
+        if (codeActions) {
+          expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
+          const actionCommand = codeActions[8].command;
+
+          if (actionCommand) {
+            expect(actionCommand.command).to.be.equal('mdb.exportToPHP');
+            expect(actionCommand.title).to.be.equal('Export To PHP');
+
+            mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
+              {
+                content: 'Does not matter',
+                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                language: 'php',
+                includeDriverSyntax: false,
+              }
+            );
+
+            await vscode.commands.executeCommand(actionCommand.command);
+
+            const codeLenses =
+              mdbTestExtension.testExtensionController._exportToLanguageCodeLensProvider.provideCodeLenses();
+            expect(codeLenses?.length).to.be.equal(1);
+            const lensesObj = { lenses: codeLenses };
+            expect(lensesObj).to.have.nested.property(
+              'lenses[0].command.title',
+              'Include Driver Syntax'
+            );
+          }
+        }
+      });
     });
   });
 
