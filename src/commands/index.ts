@@ -20,15 +20,9 @@ enum EXTENSION_COMMANDS {
   MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixThisInvalidInteractiveSyntax',
   MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixAllInvalidInteractiveSyntax',
 
-  MDB_EXPORT_TO_PYTHON = 'mdb.exportToPython',
-  MDB_EXPORT_TO_JAVA = 'mdb.exportToJava',
-  MDB_EXPORT_TO_CSHARP = 'mdb.exportToCsharp',
-  MDB_EXPORT_TO_NODE = 'mdb.exportToNode',
-  MDB_EXPORT_TO_RUBY = 'mdb.exportToRuby',
-  MDB_EXPORT_TO_GO = 'mdb.exportToGo',
-  MDB_EXPORT_TO_RUST = 'mdb.exportToRust',
-  MDB_EXPORT_TO_PHP = 'mdb.exportToPHP',
-  MDB_CHANGE_DRIVER_SYNTAX = 'mdb.changeDriverSyntax',
+  MDB_SELECT_TARGET_FOR_EXPORT_TO_LANGUAGE = 'mdb.selectTargetForExportToLanguage',
+  MDB_EXPORT_TO_LANGUAGE = 'mdb.exportToLanguage',
+  MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE = 'mdb.changeDriverSyntaxForExportToLanguage',
 
   MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS = 'mdb.openMongoDBDocumentFromCodeLens',
   MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE = 'mdb.openMongoDBDocumentFromTree',

@@ -24,10 +24,7 @@ import {
   HelpExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
-import {
-  ExportToLanguage,
-  type ExportToLanguageResult,
-} from './types/playgroundType';
+import { type ExportToLanguageResult } from './types/playgroundType';
 import EXTENSION_COMMANDS from './commands';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
@@ -252,51 +249,27 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     // ------ EXPORT TO LANGUAGE ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.PYTHON
-      )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.JAVA
-      )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.CSHARP
-      )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.JAVASCRIPT
-      )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.RUBY
-      )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_GO, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.GO
-      )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.RUST
-      )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP, () =>
-      this._participantController.exportPlaygroundToLanguage(
-        ExportToLanguage.PHP
-      )
-    );
-
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX,
+      EXTENSION_COMMANDS.MDB_SELECT_TARGET_FOR_EXPORT_TO_LANGUAGE,
+      () => this._participantController.selectTargetForExportToLanguage()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
+      (language: string) =>
+        this._participantController.exportPlaygroundToLanguage(language)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE,
       (includeDriverSyntax: boolean) =>
-        this._participantController.changeDriverSyntax(includeDriverSyntax)
+        this._participantController.changeDriverSyntaxForExportToLanguage(
+          includeDriverSyntax
+        )
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+      (data: ExportToLanguageResult) => {
+        return this._playgroundController.showExportToLanguageResult(data);
+      }
     );
 
     // ------ DOCUMENTS ------ //
@@ -330,12 +303,6 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.evaluateParticipantCode(
           runnableContent
         );
-      }
-    );
-    this.registerParticipantCommand(
-      EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
-      (data: ExportToLanguageResult) => {
-        return this._playgroundController.showExportToLanguageResult(data);
       }
     );
     this.registerCommand(

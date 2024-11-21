@@ -47,11 +47,10 @@ import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
 import { ParticipantErrorTypes } from './participantErrorTypes';
 import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
-import {
-  type ExportToLanguageResult,
-  isExportToLanguageResult,
-} from '../types/playgroundType';
+import { isExportToLanguageResult } from '../types/playgroundType';
 import { PromptHistory } from './prompts/promptHistory';
+import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
+import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
 
 const log = createLogger('participant');
 
@@ -59,7 +58,7 @@ const NUM_DOCUMENTS_TO_SAMPLE = 3;
 
 const MONGODB_DOCS_LINK = 'https://www.mongodb.com/docs/';
 
-interface NamespaceQuickPicks {
+interface ParticipantQuickPicks {
   label: string;
   data: string;
 }
@@ -498,7 +497,7 @@ export default class ParticipantController {
 
   async getDatabaseQuickPicks(
     command: ParticipantCommand
-  ): Promise<NamespaceQuickPicks[]> {
+  ): Promise<ParticipantQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
@@ -561,7 +560,7 @@ export default class ParticipantController {
   }: {
     command: ParticipantCommand;
     databaseName: string;
-  }): Promise<NamespaceQuickPicks[]> {
+  }): Promise<ParticipantQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
@@ -1639,6 +1638,34 @@ export default class ParticipantController {
     });
   }
 
+  async selectLanguageWithQuickPick(): Promise<string | undefined> {
+    const targetLanguages = EXPORT_TO_LANGUAGE_ALIASES.map(
+      ({ alias }) => alias
+    );
+    const selectedQuickPickItem = await vscode.window.showQuickPick(
+      targetLanguages,
+      {
+        placeHolder: 'Export to...',
+      }
+    );
+    return selectedQuickPickItem;
+  }
+
+  async selectTargetForExportToLanguage(): Promise<boolean> {
+    const languageAlias = await this.selectLanguageWithQuickPick();
+    const language = EXPORT_TO_LANGUAGE_ALIASES.find(
+      (item) => item.alias === languageAlias
+    );
+    if (!language) {
+      return false;
+    }
+    await vscode.commands.executeCommand(
+      EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
+      language.id
+    );
+    return true;
+  }
+
   async exportCodeToPlayground(): Promise<boolean> {
     const selectedText = getSelectedText();
     const codeToExport = selectedText || getAllText();
@@ -1705,19 +1732,26 @@ export default class ParticipantController {
   }
 
   async _exportPlaygroundToLanguageWithCancelModal({
-    codeToTranspile,
+    prompt,
     language,
     includeDriverSyntax,
-  }: Omit<ExportToLanguageResult, 'content'>): Promise<string | null> {
+  }: {
+    prompt: string;
+    language: string;
+    includeDriverSyntax: boolean;
+  }): Promise<string | null> {
+    const languageById = EXPORT_TO_LANGUAGE_ALIASES.find(
+      (item) => item.id === language
+    );
     const progressResult = await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: `Exporting playground to ${language}...`,
+        title: `Exporting playground to ${languageById?.alias || language}...`,
         cancellable: true,
       },
       async (progress, token): Promise<string | null> => {
         const modelInput = await Prompts.exportToLanguage.buildMessages({
-          request: { prompt: codeToTranspile },
+          request: { prompt },
           language,
           includeDriverSyntax,
         });
@@ -1860,7 +1894,9 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       .map((connection) => connection.name);
   }
 
-  async changeDriverSyntax(includeDriverSyntax: boolean): Promise<boolean> {
+  async changeDriverSyntaxForExportToLanguage(
+    includeDriverSyntax: boolean
+  ): Promise<boolean> {
     if (
       !this._playgroundResultProvider._playgroundResult ||
       !isExportToLanguageResult(
@@ -1873,10 +1909,9 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       return false;
     }
 
-    return this._transpile({
-      ...this._playgroundResultProvider._playgroundResult,
-      includeDriverSyntax,
-    });
+    const { prompt, language } =
+      this._playgroundResultProvider._playgroundResult;
+    return this._transpile({ prompt, language, includeDriverSyntax });
   }
 
   async exportPlaygroundToLanguage(language: string): Promise<boolean> {
@@ -1890,8 +1925,8 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     }
 
     const selectedText = getSelectedText();
-    const codeToTranspile = selectedText || getAllText();
-    let includeDriverSyntax = false;
+    const prompt = selectedText || getAllText();
+    let includeDriverSyntax = DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX;
 
     if (
       this._playgroundResultProvider._playgroundResult &&
@@ -1901,58 +1936,62 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
         this._playgroundResultProvider._playgroundResult.includeDriverSyntax;
     }
 
-    return this._transpile({
-      codeToTranspile,
-      language,
-      includeDriverSyntax,
-    });
+    return this._transpile({ prompt, language, includeDriverSyntax });
   }
 
   async _transpile({
-    codeToTranspile,
+    prompt,
     language,
     includeDriverSyntax,
-  }: Omit<ExportToLanguageResult, 'content'>): Promise<boolean> {
-    log.info(`Exporting to the '${language}' language...`);
+  }: {
+    prompt: string;
+    language: string;
+    includeDriverSyntax: boolean;
+  }): Promise<boolean> {
+    log.info(`Exporting to the '${language}' language.`);
 
     try {
       const transpiledContent =
         await this._exportPlaygroundToLanguageWithCancelModal({
-          codeToTranspile,
+          prompt,
           language,
           includeDriverSyntax,
         });
 
       if (!transpiledContent) {
-        return true;
+        return false;
       }
 
       log.info(`The playground was exported to ${language}`, {
-        codeToTranspile,
+        prompt,
         language,
         includeDriverSyntax,
       });
-
-      await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
-        {
-          content: transpiledContent,
-          codeToTranspile,
-          language,
-          includeDriverSyntax,
-        }
-      );
-
       this._telemetryService.trackPlaygroundExportedToLanguageExported({
         language,
         exported_code_length: transpiledContent?.length || 0,
         with_driver_syntax: includeDriverSyntax,
       });
+
+      await vscode.commands.executeCommand(
+        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+        {
+          prompt,
+          content: transpiledContent,
+          language,
+          includeDriverSyntax,
+        }
+      );
     } catch (error) {
       log.error(`Export to ${language} failed`, error);
       const printableError = formatError(error);
+      const languageById = EXPORT_TO_LANGUAGE_ALIASES.find(
+        (item) => item.id === language
+      );
       void vscode.window.showErrorMessage(
-        `Unable to export to ${language}: ${printableError.message}`
+        `Unable to export to ${languageById?.alias || language}: ${
+          printableError.message
+        }`
       );
     }
 
