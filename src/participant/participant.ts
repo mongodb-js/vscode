@@ -1638,7 +1638,7 @@ export default class ParticipantController {
     });
   }
 
-  async _selectLanguageWithQuickPick(): Promise<string | undefined> {
+  async selectLanguageWithQuickPick(): Promise<string | undefined> {
     const targetLanguages = EXPORT_TO_LANGUAGE_ALIASES.map(
       ({ alias }) => alias
     );
@@ -1652,7 +1652,7 @@ export default class ParticipantController {
   }
 
   async selectTargetForExportToLanguage(): Promise<boolean> {
-    const languageAlias = await this._selectLanguageWithQuickPick();
+    const languageAlias = await this.selectLanguageWithQuickPick();
     const language = EXPORT_TO_LANGUAGE_ALIASES.find(
       (item) => item.alias === languageAlias
     );

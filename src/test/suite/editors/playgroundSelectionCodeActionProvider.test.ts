@@ -218,7 +218,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           }
 
           expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[2].command;
+          const actionCommand = codeActions[3].command;
 
           if (!actionCommand) {
             expect.fail('Action command not found');
@@ -286,7 +286,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
         if (codeActions) {
           expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[3].command;
+          const actionCommand = codeActions[1].command;
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
@@ -321,7 +321,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
         if (codeActions) {
           expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[1].command;
+          const actionCommand = codeActions[6].command;
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
@@ -369,7 +369,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
         if (codeActions) {
           expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[5].command;
+          const actionCommand = codeActions[7].command;
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
@@ -418,7 +418,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
         if (codeActions) {
           expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[6].command;
+          const actionCommand = codeActions[2].command;
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
@@ -467,7 +467,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
         if (codeActions) {
           expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[7].command;
+          const actionCommand = codeActions[8].command;
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
@@ -516,7 +516,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
         if (codeActions) {
           expect(codeActions.length).to.be.equal(TOTAL_CODEACTIONS_COUNT);
-          const actionCommand = codeActions[8].command;
+          const actionCommand = codeActions[5].command;
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
