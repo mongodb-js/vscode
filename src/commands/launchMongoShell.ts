@@ -52,7 +52,6 @@ const openMongoDBShell = (
     void vscode.window.showErrorMessage(
       'You need to be connected before launching the MongoDB Shell.'
     );
-
     return Promise.resolve(false);
   }
 
@@ -63,9 +62,8 @@ const openMongoDBShell = (
 
   if (!userShell) {
     void vscode.window.showErrorMessage(
-      'Error: No shell found, please set your default shell environment in vscode.'
+      'No shell found, please set your default shell environment in vscode.'
     );
-
     return Promise.resolve(false);
   }
 

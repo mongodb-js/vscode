@@ -1,19 +1,28 @@
 import type * as vscode from 'vscode';
 import type { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
-export type OutputItem = {
-  namespace: string | null;
-  type: string | null;
+export type PlaygroundRunResult = {
+  namespace?: string;
+  type?: string;
   content: any;
-  language: string | null;
+  language?: string;
 };
 
-export type PlaygroundDebug = OutputItem[] | undefined;
+export type ExportToLanguageResult = {
+  content: string;
+  codeToTranspile: string;
+  language: string;
+  includeDriverSyntax: boolean;
+};
 
-export type PlaygroundResult = OutputItem | undefined;
+export function isExportToLanguageResult(
+  result: PlaygroundRunResult | ExportToLanguageResult
+): result is ExportToLanguageResult {
+  return (result as ExportToLanguageResult).codeToTranspile !== undefined;
+}
 
 export type ShellEvaluateResult = {
-  result: PlaygroundResult;
+  result: PlaygroundRunResult | undefined;
 } | null;
 
 export type PlaygroundEvaluateParams = {
@@ -22,23 +31,12 @@ export type PlaygroundEvaluateParams = {
   filePath?: string;
 };
 
-export interface ExportToLanguageAddons {
-  textFromEditor?: string;
-  selectedText?: string;
-  selection?: vscode.Selection;
-  importStatements: boolean;
-  driverSyntax: boolean;
-  builders: boolean;
-  language: string;
-  mode?: ExportToLanguageMode;
-}
-
 export interface PlaygroundTextAndSelection {
   textFromEditor: string;
   selection: vscode.Selection;
 }
 
-export enum ExportToLanguages {
+export enum ExportToLanguage {
   PYTHON = 'python',
   JAVA = 'java',
   CSHARP = 'csharp',
@@ -47,17 +45,6 @@ export enum ExportToLanguages {
   GO = 'go',
   RUST = 'rust',
   PHP = 'php',
-}
-
-export enum ExportToLanguageMode {
-  QUERY = 'QUERY',
-  AGGREGATION = 'AGGREGATION',
-  OTHER = 'OTHER',
-}
-
-export interface ExportToLanguageNamespace {
-  databaseName: string | null;
-  collectionName: string | null;
 }
 
 // MongoClientOptions is the second argument of NodeDriverServiceProvider.connect(connectionStr, options).

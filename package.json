@@ -259,8 +259,8 @@
         "title": "MongoDB: Change Active Connection"
       },
       {
-        "command": "mdb.changeExportToLanguageAddons",
-        "title": "MongoDB: Change Export To Language Addons"
+        "command": "mdb.changeDriverSyntax",
+        "title": "MongoDB: Change Export To Language Driver Syntax"
       },
       {
         "command": "mdb.runSelectedPlaygroundBlocks",
@@ -753,7 +753,8 @@
       ],
       "mdb.copilot": [
         {
-          "command": "mdb.exportCodeToPlayground"
+          "command": "mdb.exportCodeToPlayground",
+          "when": "mdb.isPlayground == false"
         }
       ],
       "editor/context": [
@@ -872,7 +873,7 @@
           "when": "mdb.isPlayground"
         },
         {
-          "command": "mdb.changeExportToLanguageAddons",
+          "command": "mdb.changeDriverSyntax",
           "when": "false"
         },
         {
@@ -1216,7 +1217,6 @@
     "@mongosh/shell-api": "^2.3.3",
     "@segment/analytics-node": "^1.3.0",
     "bson": "^6.8.0",
-    "bson-transpilers": "^2.2.0",
     "debug": "^4.3.7",
     "dotenv": "^16.4.5",
     "ejson-shell-parser": "^2.0.1",

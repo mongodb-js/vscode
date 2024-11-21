@@ -2,8 +2,11 @@ import * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
-import type { PlaygroundResult } from '../types/playgroundType';
-import { ExportToLanguages } from '../types/playgroundType';
+import {
+  type PlaygroundRunResult,
+  type ExportToLanguageResult,
+} from '../types/playgroundType';
+import { isExportToLanguageResult } from '../types/playgroundType';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -16,7 +19,7 @@ export default class PlaygroundResultProvider
 {
   _connectionController: ConnectionController;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-  _playgroundResult: PlaygroundResult;
+  _playgroundResult?: PlaygroundRunResult | ExportToLanguageResult;
 
   constructor(
     connectionController: ConnectionController,
@@ -24,18 +27,14 @@ export default class PlaygroundResultProvider
   ) {
     this._connectionController = connectionController;
     this._editDocumentCodeLensProvider = editDocumentCodeLensProvider;
-    this._playgroundResult = {
-      namespace: null,
-      type: null,
-      content: undefined,
-      language: null,
-    };
   }
 
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
-  setPlaygroundResult(playgroundResult?: PlaygroundResult): void {
+  setPlaygroundResult(
+    playgroundResult?: PlaygroundRunResult | ExportToLanguageResult
+  ): void {
     if (playgroundResult) {
       this._playgroundResult = playgroundResult;
     }
@@ -50,26 +49,21 @@ export default class PlaygroundResultProvider
       return 'undefined';
     }
 
-    const { type, content, language } = this._playgroundResult;
-
-    if (type === 'undefined') {
-      return 'undefined';
-    }
-
     if (
-      type === 'string' ||
-      (language &&
-        Object.values(ExportToLanguages).includes(
-          language as ExportToLanguages
-        ))
+      isExportToLanguageResult(this._playgroundResult) ||
+      this._playgroundResult.type === 'string'
     ) {
       return this._playgroundResult.content;
+    }
+
+    if (this._playgroundResult.type === 'undefined') {
+      return 'undefined';
     }
 
     this._editDocumentCodeLensProvider?.updateCodeLensesForPlayground(
       this._playgroundResult
     );
 
-    return JSON.stringify(content, null, 2);
+    return JSON.stringify(this._playgroundResult.content, null, 2);
   }
 }
