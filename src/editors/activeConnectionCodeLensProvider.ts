@@ -24,7 +24,7 @@ export default class ActiveConnectionCodeLensProvider
       this._onDidChangeCodeLenses.fire();
     });
 
-    this._activeConnectionChangedHandler = () => {
+    this._activeConnectionChangedHandler = (): void => {
       this._onDidChangeCodeLenses.fire();
     };
     this._connectionController.addEventListener(
@@ -65,7 +65,7 @@ export default class ActiveConnectionCodeLensProvider
     return [codeLens];
   }
 
-  deactivate() {
+  deactivate(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       this._activeConnectionChangedHandler
