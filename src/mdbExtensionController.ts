@@ -46,6 +46,7 @@ import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
 import type {
+  SendParticipantMessageCommandArgs,
   ParticipantCommand,
   RunParticipantCodeCommandArgs,
 } from './participant/participant';
@@ -322,6 +323,20 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.createPlaygroundFromParticipantCode({
           text: runnableContent,
         });
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.SEND_PARTICIPANT_MESSAGE,
+      async ({
+        message,
+        isPartialQuery,
+        isNewChat,
+      }: SendParticipantMessageCommandArgs) => {
+        await this._participantController.writeChatMessageAsUser(message, {
+          isPartialQuery,
+          isNewChat,
+        });
+        return true;
       }
     );
     this.registerParticipantCommand(

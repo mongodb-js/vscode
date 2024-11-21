@@ -64,6 +64,12 @@ interface NamespaceQuickPicks {
   data: string;
 }
 
+export type SendParticipantMessageCommandArgs = {
+  message: string;
+  isPartialQuery: boolean;
+  isNewChat: boolean;
+};
+
 export type RunParticipantCodeCommandArgs = {
   runnableContent: string;
 };
@@ -131,9 +137,25 @@ export default class ParticipantController {
    * in the chat. To work around this, we can write a message as the user, which will
    * trigger the chat handler and give us access to the model.
    */
-  writeChatMessageAsUser(message: string): Thenable<unknown> {
+  async writeChatMessageAsUser(
+    message: string,
+    options: {
+      isNewChat?: boolean;
+      isPartialQuery?: boolean;
+    } = {}
+  ): Promise<unknown> {
+    const { isNewChat = false, isPartialQuery = false } = options;
+
+    if (isNewChat) {
+      await vscode.commands.executeCommand('workbench.action.chat.newChat');
+      await vscode.commands.executeCommand(
+        'workbench.action.chat.clearHistory'
+      );
+    }
+
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       query: `@MongoDB ${message}`,
+      isPartialQuery,
     });
   }
 
