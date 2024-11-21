@@ -9,7 +9,9 @@ import { PlaygroundController } from '../../../editors';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub } from '../stubs';
 import { mockTextEditor } from '../stubs';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import ExportToLanguageCodeLensProvider, {
+  DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
+} from '../../../editors/exportToLanguageCodeLensProvider';
 
 const expect = chai.expect;
 
@@ -207,7 +209,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           });
         });
 
-        test('renders the include driver syntax code action and changes it to exclude', async () => {
+        test('renders the exclude driver syntax code action and changes it to include', async () => {
           const codeActions = testCodeActionProvider.provideCodeActions();
 
           if (!codeActions) {
@@ -223,7 +225,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             return false;
           }
 
-          expect(actionCommand.command).to.be.equal('mdb.exportToJava');
+          expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
           expect(actionCommand.title).to.be.equal('Export To Java');
 
           await vscode.commands.executeCommand(actionCommand.command);
@@ -231,9 +233,9 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
             {
               content: 'Berlin',
-              codeToTranspile: 'Berlin',
+              prompt: 'Berlin',
               language: 'java',
-              includeDriverSyntax: false,
+              includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
             }
           );
 
@@ -243,15 +245,15 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           let lensesObj = { lenses: codeLenses };
           expect(lensesObj).to.have.nested.property(
             'lenses[0].command.title',
-            'Include Driver Syntax'
+            'Exclude Driver Syntax'
           );
 
           mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
             {
               content: 'Berlin',
-              codeToTranspile: 'Berlin',
+              prompt: 'Berlin',
               language: 'java',
-              includeDriverSyntax: true,
+              includeDriverSyntax: !DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
             }
           );
 
@@ -260,7 +262,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           lensesObj = { lenses: codeLenses };
           expect(lensesObj).to.have.nested.property(
             'lenses[0].command.title',
-            'Exclude Driver Syntax'
+            'Include Driver Syntax'
           );
         });
       });
@@ -287,7 +289,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           const actionCommand = codeActions[3].command;
 
           if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToCsharp');
+            expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
             expect(actionCommand.title).to.be.equal('Export To C#');
 
             await vscode.commands.executeCommand(actionCommand.command);
@@ -322,15 +324,15 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           const actionCommand = codeActions[1].command;
 
           if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToPython');
+            expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
             expect(actionCommand.title).to.be.equal('Export To Python 3');
 
             mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
               {
                 content: 'Does not matter',
-                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'python',
-                includeDriverSyntax: false,
+                includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
               }
             );
 
@@ -341,7 +343,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Include Driver Syntax'
+              'Exclude Driver Syntax'
             );
           }
         }
@@ -370,15 +372,15 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           const actionCommand = codeActions[5].command;
 
           if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToRuby');
+            expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
             expect(actionCommand.title).to.be.equal('Export To Ruby');
 
             mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
               {
                 content: 'Does not matter',
-                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'ruby',
-                includeDriverSyntax: false,
+                includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
               }
             );
 
@@ -390,7 +392,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Include Driver Syntax'
+              'Exclude Driver Syntax'
             );
           }
         }
@@ -419,15 +421,15 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           const actionCommand = codeActions[6].command;
 
           if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToGo');
+            expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
             expect(actionCommand.title).to.be.equal('Export To Go');
 
             mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
               {
                 content: 'Does not matter',
-                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'go',
-                includeDriverSyntax: false,
+                includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
               }
             );
 
@@ -439,7 +441,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Include Driver Syntax'
+              'Exclude Driver Syntax'
             );
           }
         }
@@ -468,15 +470,15 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           const actionCommand = codeActions[7].command;
 
           if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToRust');
+            expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
             expect(actionCommand.title).to.be.equal('Export To Rust');
 
             mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
               {
                 content: 'Does not matter',
-                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'rust',
-                includeDriverSyntax: false,
+                includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
               }
             );
 
@@ -488,7 +490,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Include Driver Syntax'
+              'Exclude Driver Syntax'
             );
           }
         }
@@ -517,15 +519,15 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           const actionCommand = codeActions[8].command;
 
           if (actionCommand) {
-            expect(actionCommand.command).to.be.equal('mdb.exportToPHP');
+            expect(actionCommand.command).to.be.equal('mdb.exportToLanguage');
             expect(actionCommand.title).to.be.equal('Export To PHP');
 
             mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
               {
                 content: 'Does not matter',
-                codeToTranspile: "use('db'); db.coll.find({ name: '22' })",
+                prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'php',
-                includeDriverSyntax: false,
+                includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
               }
             );
 
@@ -537,7 +539,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Include Driver Syntax'
+              'Exclude Driver Syntax'
             );
           }
         }

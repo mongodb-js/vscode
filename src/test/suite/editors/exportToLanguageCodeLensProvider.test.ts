@@ -1,7 +1,9 @@
 import { beforeEach } from 'mocha';
 import chai from 'chai';
 
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import ExportToLanguageCodeLensProvider, {
+  DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
+} from '../../../editors/exportToLanguageCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import StorageController from '../../../storage/storageController';
 import { ExtensionContextStub } from '../stubs';
@@ -14,8 +16,8 @@ const expect = chai.expect;
 
 const DEFAULT_EXPORT_TO_LANGUAGE_RESULT = {
   content: '123',
-  codeToTranspile: '123',
-  includeDriverSyntax: false,
+  prompt: '123',
+  includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
   language: 'shell',
 };
 
@@ -57,7 +59,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     );
   });
 
-  test('renders the include driver syntax code lens by default for shell', () => {
+  test('renders the exclude driver syntax code lens by default for shell', () => {
     testPlaygroundResultProvider.setPlaygroundResult(
       DEFAULT_EXPORT_TO_LANGUAGE_RESULT
     );
@@ -66,7 +68,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     expect(codeLenses).to.exist;
     if (codeLenses) {
       expect(codeLenses.length).to.be.equal(1);
-      expect(codeLenses[0].command?.title).to.be.equal('Include Driver Syntax');
+      expect(codeLenses[0].command?.title).to.be.equal('Exclude Driver Syntax');
     }
   });
 
