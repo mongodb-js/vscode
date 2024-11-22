@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import type { ChatResult, ParticipantResponseType } from '../constants';
+import type { ChatResult } from '../constants';
 import type {
   InternalPromptPurpose,
   ParticipantPromptProperties,
 } from '../../telemetry/telemetryService';
-import { ParticipantErrorTypes } from '../participantErrorTypes';
+import { PromptHistory } from './promptHistory';
 
 export interface PromptArgsBase {
   request: {
@@ -53,6 +53,26 @@ export function getContentLength(
   return 0;
 }
 
+export function getContent(message: vscode.LanguageModelChatMessage): string {
+  const content = message.content as any;
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  if (Array.isArray(content)) {
+    return content.reduce((agg: string, element) => {
+      const value = element?.value ?? element?.content?.value;
+      if (typeof value === 'string') {
+        return agg + value;
+      }
+
+      return agg;
+    }, '');
+  }
+
+  return '';
+}
+
 export function isContentEmpty(
   message: vscode.LanguageModelChatMessage
 ): boolean {
@@ -88,7 +108,10 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
   }
 
   async buildMessages(args: TArgs): Promise<ModelInput> {
-    let historyMessages = this.getHistoryMessages(args);
+    let historyMessages = PromptHistory.getFilteredHistory({
+      history: args.context?.history,
+      ...args,
+    });
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
@@ -156,116 +179,5 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       history_size: context?.history.length || 0,
       internal_purpose: this.internalPurposeForTelemetry,
     };
-  }
-
-  // When passing the history to the model we only want contextual messages
-  // to be passed. This function parses through the history and returns
-  // the messages that are valuable to keep.
-  // eslint-disable-next-line complexity
-  protected getHistoryMessages({
-    connectionNames,
-    context,
-    databaseName,
-    collectionName,
-  }: {
-    connectionNames?: string[]; // Used to scrape the connecting messages from the history.
-    context?: vscode.ChatContext;
-    databaseName?: string;
-    collectionName?: string;
-  }): vscode.LanguageModelChatMessage[] {
-    const messages: vscode.LanguageModelChatMessage[] = [];
-
-    if (!context) {
-      return [];
-    }
-
-    let previousItem:
-      | vscode.ChatRequestTurn
-      | vscode.ChatResponseTurn
-      | undefined = undefined;
-
-    const namespaceIsKnown =
-      databaseName !== undefined && collectionName !== undefined;
-    for (const historyItem of context.history) {
-      if (historyItem instanceof vscode.ChatRequestTurn) {
-        if (
-          historyItem.prompt?.trim().length === 0 ||
-          connectionNames?.includes(historyItem.prompt)
-        ) {
-          // When the message is empty or a connection name then we skip it.
-          // It's probably going to be the response to the connect step.
-          previousItem = historyItem;
-          continue;
-        }
-
-        if (previousItem instanceof vscode.ChatResponseTurn) {
-          const responseIntent = (previousItem.result as ChatResult).metadata
-            ?.intent;
-
-          // If the namespace is already known, skip responses to prompts asking for it.
-          if (responseIntent === 'askForNamespace' && namespaceIsKnown) {
-            previousItem = historyItem;
-            continue;
-          }
-        }
-
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.User(historyItem.prompt));
-      }
-
-      if (historyItem instanceof vscode.ChatResponseTurn) {
-        if (
-          historyItem.result.errorDetails?.message ===
-          ParticipantErrorTypes.FILTERED
-        ) {
-          // If the response led to a filtered error, we do not want the
-          // error-causing message to be sent again so we remove it.
-          messages.pop();
-          continue;
-        }
-
-        let message = '';
-
-        // Skip a response to an empty user prompt message or connect message.
-        const responseTypesToSkip: ParticipantResponseType[] = [
-          'emptyRequest',
-          'askToConnect',
-        ];
-
-        const responseType = (historyItem.result as ChatResult)?.metadata
-          ?.intent;
-        if (responseTypesToSkip.includes(responseType)) {
-          previousItem = historyItem;
-          continue;
-        }
-
-        // If the namespace is already known, skip including prompts asking for it.
-        if (responseType === 'askForNamespace' && namespaceIsKnown) {
-          previousItem = historyItem;
-          continue;
-        }
-
-        for (const fragment of historyItem.response) {
-          if (fragment instanceof vscode.ChatResponseMarkdownPart) {
-            message += fragment.value.value;
-
-            if (
-              (historyItem.result as ChatResult)?.metadata?.intent ===
-              'askForNamespace'
-            ) {
-              // When the message is the assistant asking for part of a namespace,
-              // we only want to include the question asked, not the user's
-              // database and collection names in the history item.
-              break;
-            }
-          }
-        }
-        // eslint-disable-next-line new-cap
-        messages.push(vscode.LanguageModelChatMessage.Assistant(message));
-      }
-      previousItem = historyItem;
-    }
-
-    return messages;
   }
 }

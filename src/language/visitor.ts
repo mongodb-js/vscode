@@ -38,18 +38,13 @@ export interface CompletionState {
   isFindCursor: boolean;
 }
 
-export interface ExportToLanguageState {
-  isObjectSelection: boolean;
-  isArraySelection: boolean;
-}
-
 export interface NamespaceState {
   databaseName: string | null;
   collectionName: string | null;
 }
 
 export class Visitor {
-  _state: CompletionState | ExportToLanguageState | NamespaceState | {};
+  _state: CompletionState | NamespaceState | {};
   _selection: VisitorSelection;
 
   constructor() {
@@ -65,7 +60,6 @@ export class Visitor {
       return;
     }
 
-    this._checkIsBSONSelection(path.node);
     this._checkIsUseCall(path.node);
     this._checkIsCollectionNameAsCallExpression(path.node);
     this._checkIsStreamProcessorNameAsCallExpression(path.node);
@@ -105,21 +99,8 @@ export class Visitor {
 
   _visitArrayExpression(path: NodePath): void {
     if (path.node.type === 'ArrayExpression') {
-      this._checkIsBSONSelection(path.node);
       this._checkIsStage(path.node);
       this._checkIsStageOperator(path);
-    }
-  }
-
-  _visitVariableDeclarator(path: NodePath): void {
-    if (path.node.type === 'VariableDeclarator') {
-      this._checkIsBSONSelection(path.node);
-    }
-  }
-
-  _visitObjectProperty(path: NodePath): void {
-    if (path.node.type === 'ObjectProperty') {
-      this._checkIsBSONSelection(path.node);
     }
   }
 
@@ -164,19 +145,7 @@ export class Visitor {
     return this._state as CompletionState;
   }
 
-  parseASTForExportToLanguage(params): ExportToLanguageState {
-    this._state = this._getDefaultsForExportToLanguage();
-    this.parseAST(params);
-    return this._state as ExportToLanguageState;
-  }
-
-  parseASTForNamespace(params): NamespaceState {
-    this._state = this._getDefaultsForNamespace();
-    this.parseAST(params);
-    return this._state as NamespaceState;
-  }
-
-  parseAST({ textFromEditor, selection }: VisitorTextAndSelection) {
+  parseAST({ textFromEditor, selection }: VisitorTextAndSelection): void {
     this._selection = selection;
 
     let ast;
@@ -196,19 +165,15 @@ export class Visitor {
         this._visitExpressionStatement(path);
         this._visitObjectExpression(path);
         this._visitArrayExpression(path);
-        this._visitVariableDeclarator(path);
-        this._visitObjectProperty(path);
       },
     });
   }
 
-  _getDefaultsForCompletion() {
+  _getDefaultsForCompletion(): CompletionState {
     return {
       databaseName: null,
       collectionName: null,
       streamProcessorName: null,
-      isObjectSelection: false,
-      isArraySelection: false,
       isObjectKey: false,
       isIdentifierObjectValue: false,
       isTextObjectValue: false,
@@ -224,20 +189,6 @@ export class Visitor {
       isStreamProcessorName: false,
       isAggregationCursor: false,
       isFindCursor: false,
-    };
-  }
-
-  _getDefaultsForExportToLanguage() {
-    return {
-      isArraySelection: false,
-      isObjectSelection: false,
-    };
-  }
-
-  _getDefaultsForNamespace() {
-    return {
-      databaseName: null,
-      collectionName: null,
     };
   }
 
@@ -461,79 +412,6 @@ export class Visitor {
     return false;
   }
 
-  _checkIsArrayWithinSelection(node: t.Node): void {
-    if (
-      node.type === 'ArrayExpression' &&
-      this._isWithinSelection(node) &&
-      'isArraySelection' in this._state
-    ) {
-      this._state.isArraySelection = true;
-    }
-  }
-
-  _checkIsObjectWithinSelection(node: t.Node): void {
-    if (
-      node.type === 'ObjectExpression' &&
-      this._isWithinSelection(node) &&
-      'isObjectSelection' in this._state
-    ) {
-      this._state.isObjectSelection = true;
-    }
-  }
-
-  _checkIsBSONSelectionInArray(node: t.Node): void {
-    if (
-      node.type === 'ArrayExpression' &&
-      this._isParentAroundSelection(node)
-    ) {
-      node.elements.forEach((item) => {
-        if (item) {
-          this._checkIsObjectWithinSelection(item);
-          this._checkIsArrayWithinSelection(item);
-        }
-      });
-    }
-  }
-
-  _checkIsBSONSelectionInFunction(node: t.Node): void {
-    if (node.type === 'CallExpression' && this._isParentAroundSelection(node)) {
-      node.arguments.forEach((item) => {
-        if (item) {
-          this._checkIsObjectWithinSelection(item);
-          this._checkIsArrayWithinSelection(item);
-        }
-      });
-    }
-  }
-
-  _checkIsBSONSelectionInVariable(node: t.Node) {
-    if (
-      node.type === 'VariableDeclarator' &&
-      node.init &&
-      this._isVariableIdentifierBeforeSelection(node)
-    ) {
-      this._checkIsObjectWithinSelection(node.init);
-      this._checkIsArrayWithinSelection(node.init);
-    }
-  }
-
-  _checkIsBSONSelectionInObject(node: t.Node) {
-    if (
-      node.type === 'ObjectProperty' &&
-      this._isObjectPropBeforeSelection(node)
-    ) {
-      this._checkIsObjectWithinSelection(node.value);
-      this._checkIsArrayWithinSelection(node.value);
-    }
-  }
-
-  _checkIsBSONSelection(node: t.Node): void {
-    this._checkIsBSONSelectionInFunction(node);
-    this._checkIsBSONSelectionInArray(node);
-    this._checkIsBSONSelectionInVariable(node);
-    this._checkIsBSONSelectionInObject(node);
-  }
-
   _checkIsCollectionNameAsMemberExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'Identifier' &&
@@ -649,7 +527,7 @@ export class Visitor {
     }
   }
 
-  _checkHasCollectionNameCallExpression(node: t.MemberExpression) {
+  _checkHasCollectionNameCallExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.object.callee.type === 'MemberExpression' &&
@@ -781,7 +659,7 @@ export class Visitor {
     }
   }
 
-  _checkHasStreamProcessorNameCallExpression(node: t.MemberExpression) {
+  _checkHasStreamProcessorNameCallExpression(node: t.MemberExpression): void {
     if (
       node.object.type === 'CallExpression' &&
       node.object.callee.type === 'MemberExpression' &&

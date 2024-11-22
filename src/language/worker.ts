@@ -103,7 +103,7 @@ export const execute = async ({
     const namespace =
       source && source.namespace
         ? `${source.namespace.db}.${source.namespace.collection}`
-        : null;
+        : undefined;
 
     // Prepare a playground result.
     const result = {

@@ -259,8 +259,8 @@
         "title": "MongoDB: Change Active Connection"
       },
       {
-        "command": "mdb.changeExportToLanguageAddons",
-        "title": "MongoDB: Change Export To Language Addons"
+        "command": "mdb.changeDriverSyntaxForExportToLanguage",
+        "title": "MongoDB: Change Export To Language Driver Syntax"
       },
       {
         "command": "mdb.runSelectedPlaygroundBlocks",
@@ -283,40 +283,16 @@
         }
       },
       {
+        "command": "mdb.selectTargetForExportToLanguage",
+        "title": "MongoDB: Select Target For Export to Language",
+        "icon": {
+          "light": "images/light/export-to-language.svg",
+          "dark": "images/dark/export-to-language.svg"
+        }
+      },
+      {
         "command": "mdb.exportCodeToPlayground",
         "title": "Export Code to Playground"
-      },
-      {
-        "command": "mdb.exportToPython",
-        "title": "MongoDB: Export To Python 3"
-      },
-      {
-        "command": "mdb.exportToJava",
-        "title": "MongoDB: Export To Java"
-      },
-      {
-        "command": "mdb.exportToCsharp",
-        "title": "MongoDB: Export To C#"
-      },
-      {
-        "command": "mdb.exportToNode",
-        "title": "MongoDB: Export To Node.js"
-      },
-      {
-        "command": "mdb.exportToRuby",
-        "title": "MongoDB: Export To Ruby"
-      },
-      {
-        "command": "mdb.exportToGo",
-        "title": "MongoDB: Export To Go"
-      },
-      {
-        "command": "mdb.exportToRust",
-        "title": "MongoDB: Export To Rust"
-      },
-      {
-        "command": "mdb.exportToPHP",
-        "title": "MongoDB: Export To PHP"
       },
       {
         "command": "mdb.addConnection",
@@ -746,14 +722,20 @@
       ],
       "editor/title": [
         {
+          "command": "mdb.selectTargetForExportToLanguage",
+          "group": "navigation@1",
+          "when": "mdb.isPlayground == true"
+        },
+        {
           "command": "mdb.runPlayground",
-          "group": "navigation",
+          "group": "navigation@2",
           "when": "mdb.isPlayground == true"
         }
       ],
       "mdb.copilot": [
         {
-          "command": "mdb.exportCodeToPlayground"
+          "command": "mdb.exportCodeToPlayground",
+          "when": "mdb.isPlayground == false"
         }
       ],
       "editor/context": [
@@ -808,38 +790,6 @@
           "when": "mdb.isPlayground == true"
         },
         {
-          "command": "mdb.exportToRuby",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToPython",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToJava",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToCsharp",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToNode",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToGo",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToRust",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToPHP",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
           "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "false"
         },
@@ -872,7 +822,7 @@
           "when": "mdb.isPlayground"
         },
         {
-          "command": "mdb.changeExportToLanguageAddons",
+          "command": "mdb.changeDriverSyntaxForExportToLanguage",
           "when": "false"
         },
         {
@@ -961,6 +911,10 @@
         },
         {
           "command": "mdb.runPlayground",
+          "when": "false"
+        },
+        {
+          "command": "mdb.selectTargetForExportToLanguage",
           "when": "false"
         },
         {
@@ -1216,7 +1170,6 @@
     "@mongosh/shell-api": "^2.3.3",
     "@segment/analytics-node": "^1.3.0",
     "bson": "^6.8.0",
-    "bson-transpilers": "^2.2.0",
     "debug": "^4.3.7",
     "dotenv": "^16.4.5",
     "ejson-shell-parser": "^2.0.1",

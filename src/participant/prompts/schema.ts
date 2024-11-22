@@ -21,9 +21,10 @@ export class SchemaPrompt extends PromptBase<SchemaPromptArgs> {
     return `You are a senior engineer who describes the schema of documents in a MongoDB database.
 The schema is generated from a sample of documents in the user's collection.
 You must follow these rules.
-Rule 1: Try to be as concise as possible.
-Rule 2: Pay attention to the JSON schema.
-Rule 3: Mention the amount of documents sampled in your response.
+Rule 1: Your answer should always describe the schema of documents in the collection.
+Rule 2: Try to be as concise as possible.
+Rule 3: Pay attention to the JSON schema.
+Rule 4: Mention the amount of documents sampled in your response.
 Amount of documents sampled: ${amountOfDocumentsSampled}.`;
   }
 

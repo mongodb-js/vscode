@@ -20,15 +20,9 @@ enum EXTENSION_COMMANDS {
   MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixThisInvalidInteractiveSyntax',
   MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX = 'mdb.fixAllInvalidInteractiveSyntax',
 
-  MDB_EXPORT_TO_PYTHON = 'mdb.exportToPython',
-  MDB_EXPORT_TO_JAVA = 'mdb.exportToJava',
-  MDB_EXPORT_TO_CSHARP = 'mdb.exportToCsharp',
-  MDB_EXPORT_TO_NODE = 'mdb.exportToNode',
-  MDB_EXPORT_TO_RUBY = 'mdb.exportToRuby',
-  MDB_EXPORT_TO_GO = 'mdb.exportToGo',
-  MDB_EXPORT_TO_RUST = 'mdb.exportToRust',
-  MDB_EXPORT_TO_PHP = 'mdb.exportToPHP',
-  MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS = 'mdb.changeExportToLanguageAddons',
+  MDB_SELECT_TARGET_FOR_EXPORT_TO_LANGUAGE = 'mdb.selectTargetForExportToLanguage',
+  MDB_EXPORT_TO_LANGUAGE = 'mdb.exportToLanguage',
+  MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE = 'mdb.changeDriverSyntaxForExportToLanguage',
 
   MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS = 'mdb.openMongoDBDocumentFromCodeLens',
   MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE = 'mdb.openMongoDBDocumentFromTree',
@@ -84,6 +78,7 @@ enum EXTENSION_COMMANDS {
   SELECT_DATABASE_WITH_PARTICIPANT = 'mdb.selectDatabaseWithParticipant',
   SELECT_COLLECTION_WITH_PARTICIPANT = 'mdb.selectCollectionWithParticipant',
   PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT = 'mdb.participantViewRawSchemaOutput',
+  SHOW_EXPORT_TO_LANGUAGE_RESULT = 'mdb.showExportToLanguageResult',
 }
 
 export default EXTENSION_COMMANDS;

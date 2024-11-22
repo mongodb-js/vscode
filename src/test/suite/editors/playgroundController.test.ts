@@ -4,15 +4,11 @@ import chai from 'chai';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
-import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
 import chaiAsPromised from 'chai-as-promised';
 
-import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
+import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
-import { ExportToLanguageMode } from '../../../types/playgroundType';
 import type { LanguageServerController } from '../../../language';
 import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
@@ -21,19 +17,12 @@ import { StorageController } from '../../../storage';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
+import { mockTextEditor } from '../stubs';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
 const expect = chai.expect;
 
 chai.use(chaiAsPromised);
-
-const mockFileName = path.join(
-  'nonexistent',
-  `playground-${uuidv4()}.mongodb.js`
-);
-const mockDocumentUri = vscode.Uri.from({
-  path: mockFileName,
-  scheme: 'untitled',
-});
 
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);
@@ -49,8 +38,7 @@ suite('Playground Controller Test Suite', function () {
   let testConnectionController: ConnectionController;
   let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   let testPlaygroundResultProvider: PlaygroundResultProvider;
-  let testExportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
-  let testCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  let testCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
@@ -76,21 +64,22 @@ suite('Playground Controller Test Suite', function () {
       testConnectionController,
       testEditDocumentCodeLensProvider
     );
-    testExportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
-    testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
+    testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
     languageServerControllerStub = new LanguageServerControllerStub(
       extensionContextStub,
       testStorageController
     );
+    const testExportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
+
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
       telemetryService: testTelemetryService,
       statusView: testStatusView,
-      playgroundResultViewProvider: testPlaygroundResultProvider,
+      playgroundResultProvider: testPlaygroundResultProvider,
+      playgroundSelectionCodeActionProvider: testCodeActionProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
-      playgroundSelectedCodeActionProvider: testCodeActionProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(testTelemetryService, 'trackNewConnection');
@@ -168,12 +157,13 @@ suite('Playground Controller Test Suite', function () {
     let showInformationMessageStub: SinonStub;
 
     beforeEach(() => {
-      testPlaygroundController._activeTextEditor = undefined;
-
       showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
       );
+      sandbox.stub(vscode.window, 'activeTextEditor').get(function getterFn() {
+        return undefined;
+      });
     });
 
     test('run all playground tells to open a playground file', async () => {
@@ -205,32 +195,19 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is open', () => {
-    let mockActiveTestEditor;
     let showInformationMessageStub: SinonStub;
 
     beforeEach(() => {
-      mockActiveTestEditor = {
-        document: {
-          languageId: 'javascript',
-          uri: mockDocumentUri,
-          getText: (): string => "use('dbName');",
-          lineAt: (): { text: string } => ({ text: "use('dbName');" }),
-        },
-        selections: [
-          new vscode.Selection(
-            new vscode.Position(0, 0),
-            new vscode.Position(0, 0)
-          ),
-        ],
-      };
-
-      testPlaygroundController._activeTextEditor =
-        mockActiveTestEditor as vscode.TextEditor;
-      testPlaygroundController._selectedText = undefined;
       showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
       );
+      const activeTextEditor = mockTextEditor;
+      activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
+      activeTextEditor.document.getText = (): string => '123';
+      sandbox.stub(vscode.window, 'activeTextEditor').get(function getterFn() {
+        return activeTextEditor;
+      });
     });
 
     suite('user is not connected', () => {
@@ -252,7 +229,6 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('run selected playground blocks shows please connect to a database error', async () => {
-        testPlaygroundController._selectedText = '{}';
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runSelectedPlaygroundBlocks();
@@ -262,13 +238,66 @@ suite('Playground Controller Test Suite', function () {
       });
 
       test('run all or selected playground blocks shows please connect to a database error', async () => {
-        testPlaygroundController._selectedText = '{}';
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
         expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
           expectedMessage
         );
+      });
+
+      suite('running code from the participant', function () {
+        beforeEach(function () {
+          sinon
+            .stub(testPlaygroundController, '_evaluateWithCancelModal')
+            .resolves({ result: '123' } as any);
+          sinon.stub(testPlaygroundController, '_openInResultPane').resolves();
+
+          showInformationMessageStub.resolves('Yes');
+        });
+
+        afterEach(() => sinon.restore());
+
+        test('prompts to connect to a database and succeeds with selection', async () => {
+          const changeActiveConnectionStub = sinon.stub(
+            testPlaygroundController._connectionController,
+            'changeActiveConnection'
+          );
+          // Mocks the user selecting a connection.
+          changeActiveConnectionStub.resolves(true);
+
+          const result = await testPlaygroundController.evaluateParticipantCode(
+            'console.log("test");'
+          );
+
+          expect(showErrorMessageStub.notCalled).is.true;
+
+          expect(changeActiveConnectionStub.calledOnce).is.true;
+
+          expect(result).is.true;
+        });
+
+        test('prompts to connect to a database and errors if not selected', async () => {
+          const changeActiveConnectionStub = sinon.stub(
+            testPlaygroundController._connectionController,
+            'changeActiveConnection'
+          );
+          // Mocks the user selecting a connection.
+          changeActiveConnectionStub.resolves(false);
+
+          const result = await testPlaygroundController.evaluateParticipantCode(
+            'console.log("test");'
+          );
+
+          const expectedMessage =
+            'Please connect to a database before running a playground.';
+          await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
+          expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
+            expectedMessage
+          );
+
+          expect(result).is.false;
+        });
       });
     });
 
@@ -315,65 +344,6 @@ suite('Playground Controller Test Suite', function () {
         expect(showTextDocumentOptions.preview).to.be.equal(false);
         expect(showTextDocumentOptions.preserveFocus).to.be.equal(true);
         expect(showTextDocumentOptions.viewColumn).to.be.equal(-2);
-      });
-
-      test('playground controller loads the active editor on start', () => {
-        sandbox.replaceGetter(
-          vscode.window,
-          'activeTextEditor',
-          () => mockActiveTestEditor as vscode.TextEditor
-        );
-
-        const playgroundController = new PlaygroundController({
-          connectionController: testConnectionController,
-          languageServerController: languageServerControllerStub,
-          telemetryService: testTelemetryService,
-          statusView: testStatusView,
-          playgroundResultViewProvider: testPlaygroundResultProvider,
-          exportToLanguageCodeLensProvider:
-            testExportToLanguageCodeLensProvider,
-          playgroundSelectedCodeActionProvider: testCodeActionProvider,
-        });
-
-        expect(playgroundController._activeTextEditor).to.deep.equal(
-          mockActiveTestEditor
-        );
-      });
-
-      test('exportToLanguage thrown an error for invalid syntax', async () => {
-        const playgroundController = new PlaygroundController({
-          connectionController: testConnectionController,
-          languageServerController: languageServerControllerStub,
-          telemetryService: testTelemetryService,
-          statusView: testStatusView,
-          playgroundResultViewProvider: testPlaygroundResultProvider,
-          exportToLanguageCodeLensProvider:
-            testExportToLanguageCodeLensProvider,
-          playgroundSelectedCodeActionProvider: testCodeActionProvider,
-        });
-        const textFromEditor = 'var x = { name: qwerty }';
-        const selection = {
-          start: { line: 0, character: 8 },
-          end: { line: 0, character: 24 },
-        } as vscode.Selection;
-        const mode = ExportToLanguageMode.OTHER;
-        const activeTextEditor = {
-          document: { getText: () => textFromEditor },
-        } as vscode.TextEditor;
-
-        playgroundController._selectedText = '{ name: qwerty }';
-        playgroundController._playgroundSelectedCodeActionProvider.selection =
-          selection;
-        playgroundController._playgroundSelectedCodeActionProvider.mode = mode;
-        playgroundController._activeTextEditor = activeTextEditor;
-
-        await playgroundController.exportToLanguage('csharp');
-
-        const expectedMessage =
-          "Unable to export to csharp language: Symbol 'qwerty' is undefined";
-        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
-          expectedMessage
-        );
       });
 
       suite('confirmation modal', () => {
@@ -429,6 +399,35 @@ suite('Playground Controller Test Suite', function () {
             await testPlaygroundController.runAllPlaygroundBlocks();
 
           expect(result).to.be.false;
+        });
+      });
+
+      suite('running code from the participant', function () {
+        beforeEach(function () {
+          sinon
+            .stub(testPlaygroundController, '_evaluateWithCancelModal')
+            .resolves({ result: '123' } as any);
+          sinon.stub(testPlaygroundController, '_openInResultPane').resolves();
+
+          showInformationMessageStub.resolves('Yes');
+        });
+
+        afterEach(() => sinon.restore());
+
+        test('does not prompt to connect to the database', async () => {
+          const changeActiveConnectionStub = sinon.stub(
+            testPlaygroundController._connectionController,
+            'changeActiveConnection'
+          );
+          const result = await testPlaygroundController.evaluateParticipantCode(
+            'console.log("test");'
+          );
+
+          expect(showErrorMessageStub.notCalled).is.true;
+
+          expect(changeActiveConnectionStub.notCalled).is.true;
+
+          expect(result).is.true;
         });
       });
     });

@@ -22,7 +22,6 @@ updates:
         patterns:
           - "@mongodb-js/compass-*"
           - mongodb-data-service
-          - bson-transpilers
           - "@mongodb-js/connection-form"
       mongosh:
         patterns:

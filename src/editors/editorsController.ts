@@ -4,7 +4,7 @@ import type { Document } from 'bson';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
-import PlaygroundSelectedCodeActionProvider from './playgroundSelectedCodeActionProvider';
+import PlaygroundSelectionCodeActionProvider from './playgroundSelectionCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './playgroundDiagnosticsCodeActionProvider';
 import type ConnectionController from '../connectionController';
 import CollectionDocumentsCodeLensProvider from './collectionDocumentsCodeLensProvider';
@@ -38,7 +38,7 @@ const log = createLogger('editors controller');
 export function getFileDisplayNameForDocument(
   documentId: any,
   namespace: string
-) {
+): string {
   let displayName = `${namespace}:${EJSON.stringify(documentId)}`;
 
   // Encode special file uri characters to ensure VSCode handles
@@ -84,7 +84,7 @@ export function getViewCollectionDocumentsUri(
  * new editors and the data they need. It also manages active editors.
  */
 export default class EditorsController {
-  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _playgroundController: PlaygroundController;
@@ -97,7 +97,7 @@ export default class EditorsController {
   _documentIdStore: DocumentIdStore;
   _mongoDBDocumentService: MongoDBDocumentService;
   _telemetryService: TelemetryService;
-  _playgroundResultViewProvider: PlaygroundResultProvider;
+  _playgroundResultProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
@@ -109,10 +109,10 @@ export default class EditorsController {
     playgroundController,
     statusView,
     telemetryService,
-    playgroundResultViewProvider,
+    playgroundResultProvider,
     activeConnectionCodeLensProvider,
     exportToLanguageCodeLensProvider,
-    playgroundSelectedCodeActionProvider,
+    playgroundSelectionCodeActionProvider,
     playgroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider,
   }: {
@@ -121,10 +121,10 @@ export default class EditorsController {
     playgroundController: PlaygroundController;
     statusView: StatusView;
     telemetryService: TelemetryService;
-    playgroundResultViewProvider: PlaygroundResultProvider;
+    playgroundResultProvider: PlaygroundResultProvider;
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
     exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
-    playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+    playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
     playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   }) {
@@ -149,15 +149,15 @@ export default class EditorsController {
       statusView: new StatusView(context),
       editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
     });
-    this._playgroundResultViewProvider = playgroundResultViewProvider;
+    this._playgroundResultProvider = playgroundResultProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._collectionDocumentsCodeLensProvider =
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore
       );
-    this._playgroundSelectedCodeActionProvider =
-      playgroundSelectedCodeActionProvider;
+    this._playgroundSelectionCodeActionProvider =
+      playgroundSelectionCodeActionProvider;
     this._playgroundDiagnosticsCodeActionProvider =
       playgroundDiagnosticsCodeActionProvider;
 
@@ -218,15 +218,14 @@ export default class EditorsController {
   }
 
   async saveMongoDBDocument(): Promise<boolean> {
-    const activeEditor = vscode.window.activeTextEditor;
+    const editor = vscode.window.activeTextEditor;
 
-    if (!activeEditor) {
+    if (!editor) {
       await vscode.commands.executeCommand('workbench.action.files.save');
-
       return false;
     }
 
-    const uriParams = new URLSearchParams(activeEditor.document.uri.query);
+    const uriParams = new URLSearchParams(editor.document.uri.query);
     const namespace = uriParams.get(NAMESPACE_URI_IDENTIFIER);
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
@@ -236,7 +235,7 @@ export default class EditorsController {
     ) as DocumentSource;
 
     if (
-      activeEditor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
+      editor.document.uri.scheme !== 'VIEW_DOCUMENT_SCHEME' ||
       !namespace ||
       !connectionId ||
       // A valid documentId can be false.
@@ -244,13 +243,13 @@ export default class EditorsController {
       documentId === undefined
     ) {
       void vscode.window.showErrorMessage(
-        `The current file can not be saved as a MongoDB document. Invalid URL: ${activeEditor.document.uri.toString()}`
+        `The current file can not be saved as a MongoDB document. Invalid URL: ${editor.document.uri.toString()}`
       );
       return false;
     }
 
     try {
-      const newDocument = EJSON.parse(activeEditor.document.getText() || '');
+      const newDocument = EJSON.parse(editor.document.getText() || '');
 
       await this._mongoDBDocumentService.replaceDocument({
         namespace,
@@ -261,7 +260,7 @@ export default class EditorsController {
       });
 
       // Save document changes to active editor.
-      await activeEditor?.document.save();
+      await editor?.document.save();
 
       void vscode.window.showInformationMessage(
         `The document was saved successfully to '${namespace}'`
@@ -317,7 +316,6 @@ export default class EditorsController {
         .isCurrentlyFetchingMoreDocuments
     ) {
       void vscode.window.showErrorMessage('Already fetching more documents...');
-
       return Promise.resolve(false);
     }
 
@@ -330,7 +328,6 @@ export default class EditorsController {
       void vscode.window.showErrorMessage(
         `Unable to view more documents: no longer connected to ${oldConnectionName}`
       );
-
       return Promise.resolve(false);
     }
 
@@ -399,7 +396,7 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
         PLAYGROUND_RESULT_SCHEME,
-        this._playgroundResultViewProvider
+        this._playgroundResultProvider
       )
     );
     // REGISTER CODE LENSES PROVIDERS.
@@ -447,10 +444,10 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
         'javascript',
-        this._playgroundSelectedCodeActionProvider,
+        this._playgroundSelectionCodeActionProvider,
         {
           providedCodeActionKinds:
-            PlaygroundSelectedCodeActionProvider.providedCodeActionKinds,
+            PlaygroundSelectionCodeActionProvider.providedCodeActionKinds,
         }
       )
     );

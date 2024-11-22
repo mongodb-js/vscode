@@ -74,28 +74,11 @@ suite('Telemetry Controller Test Suite', () => {
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
-        ._languageServerController,
-      'getNamespaceForSelection',
-      sandbox.fake.resolves({
-        collectionName: 'coll',
-        databaseName: 'db',
-      })
-    );
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getMongoClientConnectionOptions',
       sandbox.fake.returns('mongodb://localhost')
     );
     sandbox.stub(vscode.window, 'showErrorMessage');
-    sandbox.replace(
-      mdbTestExtension.testExtensionController._playgroundController,
-      'getTranspiledContent',
-      sandbox.fake.resolves({
-        namespace: 'db.coll',
-        expressio: '{}',
-      })
-    );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.replace(
       testTelemetryService,
@@ -261,7 +244,7 @@ suite('Telemetry Controller Test Suite', () => {
   test.skip('track mongodb playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
-      '../../../../src/test/fixture/testSaving.mongodb'
+      '../../../../src/test/fixture/testPlayground.mongodb'
     );
     await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
     sandbox.assert.calledWith(
@@ -280,7 +263,7 @@ suite('Telemetry Controller Test Suite', () => {
   test.skip('track mongodbjs playground loaded event', async () => {
     const docPath = path.resolve(
       __dirname,
-      '../../../../src/test/fixture/testSaving.mongodb.js'
+      '../../../../src/test/fixture/testPlayground.mongodb.js'
     );
     await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
     sandbox.assert.calledWith(
@@ -327,36 +310,10 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track query exported to language', function () {
-    testTelemetryService.trackQueryExported({
-      language: 'python',
-      with_import_statements: false,
-      with_builders: false,
-      with_driver_syntax: false,
-    });
-
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Query Exported',
-        properties: {
-          language: 'python',
-          with_import_statements: false,
-          with_builders: false,
-          with_driver_syntax: false,
-          extension_version: version,
-        },
-      })
-    );
-  });
-
-  test('track aggregation exported to language', () => {
-    testTelemetryService.trackAggregationExported({
+  test('track playground exported to language', () => {
+    testTelemetryService.trackPlaygroundExportedToLanguageExported({
       language: 'java',
-      num_stages: 1,
-      with_import_statements: false,
-      with_builders: false,
+      exported_code_length: 3,
       with_driver_syntax: false,
     });
 
@@ -364,12 +321,9 @@ suite('Telemetry Controller Test Suite', () => {
       fakeSegmentAnalyticsTrack,
       sinon.match({
         anonymousId,
-        event: 'Aggregation Exported',
+        event: 'Playground Exported To Language',
         properties: {
           language: 'java',
-          num_stages: 1,
-          with_import_statements: false,
-          with_builders: false,
           with_driver_syntax: false,
           extension_version: version,
         },
@@ -381,7 +335,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert AggregationCursor shellApiType to aggregation telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'AggregationCursor',
           content: '',
           language: 'plaintext',
@@ -394,7 +348,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert BulkWriteResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'BulkWriteResult',
           content: '',
           language: 'plaintext',
@@ -407,7 +361,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Collection shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Collection',
           content: '',
           language: 'plaintext',
@@ -420,7 +374,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Cursor shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Cursor',
           content: '',
           language: 'plaintext',
@@ -433,7 +387,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Database shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Database',
           content: '',
           language: 'plaintext',
@@ -446,7 +400,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert DeleteResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'DeleteResult',
           content: '',
           language: 'plaintext',
@@ -459,7 +413,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert InsertManyResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'InsertManyResult',
           content: '',
           language: 'plaintext',
@@ -472,7 +426,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert InsertOneResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'InsertOneResult',
           content: '',
           language: 'plaintext',
@@ -485,7 +439,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert ReplicaSet shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'ReplicaSet',
           content: '',
           language: 'plaintext',
@@ -498,7 +452,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert Shard shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'Shard',
           content: '',
           language: 'plaintext',
@@ -511,7 +465,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert ShellApi shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'ShellApi',
           content: '',
           language: 'plaintext',
@@ -524,7 +478,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('convert UpdateResult shellApiType to other telemetry type', () => {
       const res = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'UpdateResult',
           content: '',
           language: 'plaintext',
@@ -537,8 +491,8 @@ suite('Telemetry Controller Test Suite', () => {
     test('return other telemetry type if evaluation returns a string', () => {
       const res = {
         result: {
-          namespace: null,
-          type: null,
+          namespace: undefined,
+          type: undefined,
           content: '2',
           language: 'plaintext',
         },
