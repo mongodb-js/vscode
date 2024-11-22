@@ -72,6 +72,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
+  _startupNotificationShown = false;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -166,6 +167,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
     void this.showSurveyForEstablishedUsers();
+    void this.showCopilotIntroductionForEstablishedUsers();
   }
 
   registerCommands = (): void => {
@@ -909,6 +911,62 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
   }
 
+  async showCopilotIntroductionForEstablishedUsers(): Promise<void> {
+    const copilotIntroductionShown =
+      this._storageController.get(
+        StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN
+      ) === true;
+
+    // Show the toast when startup notifications have not been shown
+    // to the user yet and they have saved connections
+    // -> they haven't just started using this extension.
+    if (
+      this._startupNotificationShown ||
+      copilotIntroductionShown ||
+      !this._connectionStorage.hasSavedConnections()
+    ) {
+      return;
+    }
+
+    this._startupNotificationShown = true;
+
+    const action = 'Chat with @MongoDB';
+    const text =
+      'Generate queries, interact with documentation, and explore your database schema using the MongoDB Copilot extension. Give it a try!';
+    const result = await vscode.window.showInformationMessage(
+      text,
+      {},
+      {
+        title: action,
+      }
+    );
+
+    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    if (result?.title === action) {
+      await vscode.commands.executeCommand('workbench.action.chat.newChat');
+      await vscode.commands.executeCommand(
+        'workbench.action.chat.clearHistory'
+      );
+      await vscode.commands.executeCommand('workbench.action.chat.open', {
+        query: '@MongoDB',
+        isPartialQuery: true,
+      });
+      this._telemetryService.trackCopilotIntroductionClicked({
+        is_copilot_active: !!copilot?.isActive,
+      });
+    } else {
+      this._telemetryService.trackCopilotIntroductionDismissed({
+        is_copilot_active: !!copilot?.isActive,
+      });
+    }
+
+    // Whether action was taken or the prompt dismissed, we won't show this again.
+    void this._storageController.update(
+      StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN,
+      true
+    );
+  }
+
   async showSurveyForEstablishedUsers(): Promise<void> {
     const surveyId = '9viN9wcbsC3zvHyg7';
 
@@ -916,15 +974,18 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._storageController.get(StorageVariables.GLOBAL_SURVEY_SHOWN) ===
       surveyId;
 
-    // Show the survey when it hasn't been show to the
-    // user yet, and they have saved connections
+    // Show the toast when startup notifications have not been shown
+    // to the user yet and they have saved connections
     // -> they haven't just started using this extension
     if (
+      this._startupNotificationShown ||
       hasBeenShownSurveyAlready ||
       !this._connectionStorage.hasSavedConnections()
     ) {
       return;
     }
+
+    this._startupNotificationShown = true;
 
     const action = 'Share your thoughts';
     const text = 'How can we make the MongoDB extension better for you?';
