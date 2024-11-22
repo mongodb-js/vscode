@@ -917,8 +917,8 @@ export default class MDBExtensionController implements vscode.Disposable {
         StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN
       ) === true;
 
-    // Show the toast when it hasn't been show to the
-    // user yet, and they have saved connections
+    // Show the toast when startup notifications have not been shown
+    // to the user yet and they have saved connections
     // -> they haven't just started using this extension.
     if (
       this._startupNotificationShown ||
@@ -974,8 +974,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._storageController.get(StorageVariables.GLOBAL_SURVEY_SHOWN) ===
       surveyId;
 
-    // Show the survey when it hasn't been show to the
-    // user yet, and they have saved connections
+    // Show the toast when startup notifications have not been shown
+    // to the user yet and they have saved connections
     // -> they haven't just started using this extension
     if (
       this._startupNotificationShown ||
