@@ -46,6 +46,10 @@ import type { PromptIntent } from './prompts/intent';
 import type { DataService } from 'mongodb-data-service';
 import { ParticipantErrorTypes } from './participantErrorTypes';
 import { PromptHistory } from './prompts/promptHistory';
+import type {
+  SendMessageToParticipantOptions,
+  SendMessageToParticipantFromInputOptions,
+} from './participantTypes';
 
 const log = createLogger('participant');
 
@@ -121,9 +125,46 @@ export default class ParticipantController {
    * in the chat. To work around this, we can write a message as the user, which will
    * trigger the chat handler and give us access to the model.
    */
-  writeChatMessageAsUser(message: string): Thenable<unknown> {
+  async sendMessageToParticipant(
+    options: SendMessageToParticipantOptions
+  ): Promise<unknown> {
+    const { message, isNewChat = false, isPartialQuery = false } = options;
+
+    if (isNewChat) {
+      await vscode.commands.executeCommand('workbench.action.chat.newChat');
+      await vscode.commands.executeCommand(
+        'workbench.action.chat.clearHistory'
+      );
+    }
+
     return vscode.commands.executeCommand('workbench.action.chat.open', {
       query: `@MongoDB ${message}`,
+      isPartialQuery,
+    });
+  }
+
+  async sendMessageToParticipantFromInput(
+    options: SendMessageToParticipantFromInputOptions
+  ): Promise<unknown> {
+    const {
+      messagePrefix = '',
+      isNewChat = false,
+      isPartialQuery = false,
+      ...inputBoxOptions
+    } = options;
+
+    const message = await vscode.window.showInputBox({
+      ...inputBoxOptions,
+    });
+
+    if (message === undefined || message.trim() === '') {
+      return Promise.resolve();
+    }
+
+    return this.sendMessageToParticipant({
+      message: `${messagePrefix ? `${messagePrefix} ` : ''}${message}`,
+      isNewChat,
+      isPartialQuery,
     });
   }
 
@@ -444,9 +485,9 @@ export default class ParticipantController {
 
     const connectionName = this._connectionController.getActiveConnectionName();
 
-    return this.writeChatMessageAsUser(
-      `${command ? `${command} ` : ''}${connectionName}`
-    ) as Promise<boolean>;
+    return this.sendMessageToParticipant({
+      message: `${command ? `${command} ` : ''}${connectionName}`,
+    }) as Promise<boolean>;
   }
 
   getConnectionsTree(command: ParticipantCommand): vscode.MarkdownString[] {
@@ -485,7 +526,7 @@ export default class ParticipantController {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
-      void this.writeChatMessageAsUser(command);
+      void this.sendMessageToParticipant({ message: command });
       return [];
     }
 
@@ -533,9 +574,9 @@ export default class ParticipantController {
       databaseName: databaseName,
     });
 
-    return this.writeChatMessageAsUser(
-      `${command} ${databaseName}`
-    ) as Promise<boolean>;
+    return this.sendMessageToParticipant({
+      message: `${command} ${databaseName}`,
+    }) as Promise<boolean>;
   }
 
   async getCollectionQuickPicks({
@@ -548,7 +589,7 @@ export default class ParticipantController {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
-      void this.writeChatMessageAsUser(command);
+      void this.sendMessageToParticipant({ message: command });
       return [];
     }
 
@@ -609,9 +650,9 @@ export default class ParticipantController {
       databaseName: databaseName,
       collectionName: collectionName,
     });
-    return this.writeChatMessageAsUser(
-      `${command} ${collectionName}`
-    ) as Promise<boolean>;
+    return this.sendMessageToParticipant({
+      message: `${command} ${collectionName}`,
+    }) as Promise<boolean>;
   }
 
   renderDatabasesTree({

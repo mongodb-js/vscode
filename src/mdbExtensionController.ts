@@ -48,6 +48,11 @@ import type {
 } from './participant/participant';
 import ParticipantController from './participant/participant';
 import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
+import { QueryWithCopilotCodeLensProvider } from './editors/queryWithCopilotCodeLensProvider';
+import type {
+  SendMessageToParticipantOptions,
+  SendMessageToParticipantFromInputOptions,
+} from './participant/participantTypes';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -68,6 +73,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
   _playgroundResultViewProvider: PlaygroundResultProvider;
+  _queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
@@ -106,6 +112,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController,
       this._editDocumentCodeLensProvider
     );
+    this._queryWithCopilotCodeLensProvider =
+      new QueryWithCopilotCodeLensProvider();
     this._activeConnectionCodeLensProvider =
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._exportToLanguageCodeLensProvider =
@@ -143,6 +151,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundDiagnosticsCodeActionProvider:
         this._playgroundDiagnosticsCodeActionProvider,
       editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
+      queryWithCopilotCodeLensProvider: this._queryWithCopilotCodeLensProvider,
     });
     this._webviewController = new WebviewController({
       connectionController: this._connectionController,
@@ -304,6 +313,22 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.createPlaygroundFromParticipantCode({
           text: runnableContent,
         });
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT,
+      async (options: SendMessageToParticipantOptions) => {
+        await this._participantController.sendMessageToParticipant(options);
+        return true;
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
+      async (options: SendMessageToParticipantFromInputOptions) => {
+        await this._participantController.sendMessageToParticipantFromInput(
+          options
+        );
+        return true;
       }
     );
     this.registerParticipantCommand(

@@ -420,6 +420,10 @@ export default class EditorsController {
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         { language: 'javascript' },
+        this._queryWithCopilotCodeLensProvider
+      ),
+      vscode.languages.registerCodeLensProvider(
+        { language: 'javascript' },
         this._activeConnectionCodeLensProvider
       )
     );

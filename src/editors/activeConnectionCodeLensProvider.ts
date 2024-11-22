@@ -50,10 +50,10 @@ export default class ActiveConnectionCodeLensProvider
         ? getDBFromConnectionString(connectionString)
         : null;
       message = defaultDB
-        ? `Currently connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}. Click here to change connection.`
-        : `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
+        ? `Connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}`
+        : `Connected to ${this._connectionController.getActiveConnectionName()}`;
     } else {
-      message = 'Disconnected. Click here to connect.';
+      message = 'Connect';
     }
 
     codeLens.command = {
