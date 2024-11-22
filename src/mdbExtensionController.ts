@@ -175,14 +175,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.isCopilotActive',
       copilot?.isActive
     );
-
-    vscode.extensions.onDidChange(() => {
-      void vscode.commands.executeCommand(
-        'setContext',
-        'mdb.isCopilotActive',
-        copilot?.isActive
-      );
-    });
   }
 
   registerCommands = (): void => {
