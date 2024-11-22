@@ -1,4 +1,3 @@
-import type * as vscode from 'vscode';
 import { before, after, beforeEach, afterEach } from 'mocha';
 import {
   CancellationTokenSource,
@@ -1345,7 +1344,7 @@ suite('MongoDBService Test Suite', () => {
           'when connected to a default db and not explicitly using a db',
         dbInUse: 'defaultDB',
         defaultContent: '',
-        beforeAssertions: () => {
+        beforeAssertions: (): void => {
           Sinon.stub(testMongoDBService, 'connectionString').get(
             () => `${params.connectionString}/defaultDB`
           );
@@ -1356,7 +1355,7 @@ suite('MongoDBService Test Suite', () => {
           'when connected to a default db and also explicitly using another db',
         dbInUse: 'anotherTestDB',
         defaultContent: "use('anotherTestDB');",
-        beforeAssertions: () => {
+        beforeAssertions: (): void => {
           Sinon.stub(testMongoDBService, 'connectionString').get(
             () => `${params.connectionString}/defaultDB`
           );
@@ -1367,8 +1366,8 @@ suite('MongoDBService Test Suite', () => {
           'when not connected to a default db and explicitly using another db',
         dbInUse: 'anotherTestDB',
         defaultContent: "use('anotherTestDB');",
-        beforeAssertions: () => {
-          () => params.connectionString;
+        beforeAssertions: (): void => {
+          (): string => params.connectionString;
         },
       },
     ].forEach(
@@ -2377,7 +2376,7 @@ suite('MongoDBService Test Suite', () => {
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
-          { name: 'testProccessor' },
+          { name: 'testProcessor' },
         ]);
 
         const result = await testMongoDBService.provideCompletionItems({
@@ -2385,7 +2384,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProccessor'
+          (item: CompletionItem) => item.label === 'testProcessor'
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2596,7 +2595,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 2,
           language: 'plaintext',
@@ -2743,7 +2742,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 3,
           language: 'plaintext',
@@ -2764,7 +2763,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const firstRes = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 2,
           language: 'plaintext',
@@ -2782,7 +2781,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const secondRes = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'number',
           content: 3,
           language: 'plaintext',
@@ -2805,7 +2804,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: {
             _id: {
@@ -2831,7 +2830,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: {
             name: 'a short string',
@@ -2855,7 +2854,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: [
             {
@@ -2880,7 +2879,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'undefined',
           content: undefined,
           language: 'plaintext',
@@ -2901,7 +2900,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'object',
           content: null,
           language: 'plaintext',
@@ -2923,7 +2922,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'string',
           content: 'A single line string',
           language: 'plaintext',
@@ -2947,7 +2946,7 @@ suite('MongoDBService Test Suite', () => {
       );
       const expectedResult = {
         result: {
-          namespace: null,
+          namespace: undefined,
           type: 'string',
           content: `vscode
           is
@@ -3000,7 +2999,7 @@ suite('MongoDBService Test Suite', () => {
 
         const expectedResult = {
           result: {
-            namespace: null,
+            namespace: undefined,
             type: 'number',
             content: 42,
             language: 'plaintext',
@@ -3037,7 +3036,7 @@ suite('MongoDBService Test Suite', () => {
         );
         const expectedResult = {
           result: {
-            namespace: null,
+            namespace: undefined,
             type: 'number',
             content: 3,
             language: 'plaintext',
@@ -3046,166 +3045,6 @@ suite('MongoDBService Test Suite', () => {
 
         expect(result).to.deep.equal(expectedResult);
       });
-    });
-  });
-
-  suite('Export to language mode', function () {
-    this.timeout(INCREASED_TEST_TIMEOUT);
-
-    const up = new StreamStub();
-    const down = new StreamStub();
-    const connection = createConnection(up, down);
-
-    connection.listen();
-
-    const testMongoDBService = new MongoDBService(connection);
-
-    test('returns other for call expression', () => {
-      const textFromEditor = `db.sales.insertMany([
-        { '_id': 1, 'item': 'abc', 'price': 10, 'quantity': 2, 'date': new Date('2014-03-01T08:00:00Z') },
-        { '_id': 2, 'item': 'jkl', 'price': 20, 'quantity': 1, 'date': new Date('2014-03-01T09:00:00Z') },
-        { '_id': 3, 'item': 'xyz', 'price': 5, 'quantity': 10, 'date': new Date('2014-03-15T09:00:00Z') },
-        { '_id': 4, 'item': 'xyz', 'price': 5, 'quantity':  20, 'date': new Date('2014-04-04T11:21:39.736Z') },
-        { '_id': 5, 'item': 'abc', 'price': 10, 'quantity': 10, 'date': new Date('2014-04-04T21:23:13.331Z') },
-        { '_id': 6, 'item': 'def', 'price': 7.5, 'quantity': 5, 'date': new Date('2015-06-04T05:08:13Z') },
-        { '_id': 7, 'item': 'def', 'price': 7.5, 'quantity': 10, 'date': new Date('2015-09-10T08:43:00Z') },
-        { '_id': 8, 'item': 'abc', 'price': 10, 'quantity': 5, 'date': new Date('2016-02-06T20:20:13Z') },
-      ]);`;
-      const selection = {
-        start: { line: 0, character: 0 },
-        end: { line: 9, character: 3 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('OTHER');
-    });
-
-    test('returns query for an object', () => {
-      const textFromEditor =
-        "db.sales.insertMany([{ '_id': 1, 'item': 'abc', 'price': 10, 'quantity': 2, 'date': new Date('2014-03-01T08:00:00Z') }]);";
-      const selection = {
-        start: { line: 0, character: 21 },
-        end: { line: 0, character: 118 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('QUERY');
-    });
-
-    test('returns aggregation for an array as function argument', () => {
-      const textFromEditor =
-        "db.sales.insertMany([{ '_id': 1, 'item': 'abc', 'price': 10, 'quantity': 2, 'date': new Date('2014-03-01T08:00:00Z') }]);";
-      const selection = {
-        start: { line: 0, character: 20 },
-        end: { line: 0, character: 119 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('AGGREGATION');
-    });
-
-    test('returns query for an object as function argument', () => {
-      const textFromEditor =
-        "db.sales.insertMany({ '_id': 1, 'item': 'abc' });";
-      const selection = {
-        start: { line: 0, character: 20 },
-        end: { line: 0, character: 47 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('QUERY');
-    });
-
-    test('returns aggregation for an array assigned to a variable', () => {
-      const textFromEditor = "const arr = [{ '_id': 1, 'item': 'abc' }];";
-      const selection = {
-        start: { line: 0, character: 12 },
-        end: { line: 0, character: 41 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('AGGREGATION');
-    });
-
-    test('returns query for an object assigned to a variable', () => {
-      const textFromEditor = "const obj = { '_id': 1 };";
-      const selection = {
-        start: { line: 0, character: 12 },
-        end: { line: 0, character: 24 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('QUERY');
-    });
-
-    test('returns other for a variable declaration', () => {
-      const textFromEditor = "const arr = [{ '_id': 1, 'item': 'abc' }];";
-      const selection = {
-        start: { line: 0, character: 0 },
-        end: { line: 0, character: 42 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('OTHER');
-    });
-
-    test('returns query for an object used as another object property', () => {
-      const textFromEditor =
-        "const obj = { prop: { '_id': 1, 'item': 'abc' } };";
-      const selection = {
-        start: { line: 0, character: 20 },
-        end: { line: 0, character: 47 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('QUERY');
-    });
-
-    test('returns aggregation for an array inside another array', () => {
-      const textFromEditor = 'const arr = [[]];';
-      const selection = {
-        start: { line: 0, character: 13 },
-        end: { line: 0, character: 15 },
-      } as vscode.Selection;
-
-      const mode = testMongoDBService.getExportToLanguageMode({
-        textFromEditor,
-        selection,
-      });
-
-      expect(mode).to.be.equal('AGGREGATION');
     });
   });
 

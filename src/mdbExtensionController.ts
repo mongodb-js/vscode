@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 
 import ActiveConnectionCodeLensProvider from './editors/activeConnectionCodeLensProvider';
-import PlaygroundSelectedCodeActionProvider from './editors/playgroundSelectedCodeActionProvider';
+import PlaygroundSelectionCodeActionProvider from './editors/playgroundSelectionCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './editors/playgroundDiagnosticsCodeActionProvider';
 import ConnectionController from './connectionController';
 import type ConnectionTreeItem from './explorer/connectionTreeItem';
@@ -24,7 +24,7 @@ import {
   HelpExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
-import { ExportToLanguages } from './types/playgroundType';
+import { type ExportToLanguageResult } from './types/playgroundType';
 import EXTENSION_COMMANDS from './commands';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
@@ -57,7 +57,7 @@ import type {
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
-  _playgroundSelectedCodeActionProvider: PlaygroundSelectedCodeActionProvider;
+  _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
   _connectionController: ConnectionController;
   _connectionStorage: ConnectionStorage;
@@ -72,12 +72,13 @@ export default class MDBExtensionController implements vscode.Disposable {
   _telemetryService: TelemetryService;
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
-  _playgroundResultViewProvider: PlaygroundResultProvider;
   _queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
+  _playgroundResultProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
+  _startupNotificationShown = false;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -108,7 +109,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
       this._connectionController
     );
-    this._playgroundResultViewProvider = new PlaygroundResultProvider(
+    this._playgroundResultProvider = new PlaygroundResultProvider(
       this._connectionController,
       this._editDocumentCodeLensProvider
     );
@@ -117,9 +118,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._activeConnectionCodeLensProvider =
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._exportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
-    this._playgroundSelectedCodeActionProvider =
-      new PlaygroundSelectedCodeActionProvider();
+      new ExportToLanguageCodeLensProvider(this._playgroundResultProvider);
+    this._playgroundSelectionCodeActionProvider =
+      new PlaygroundSelectionCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
       new PlaygroundDiagnosticsCodeActionProvider();
     this._playgroundController = new PlaygroundController({
@@ -127,15 +128,16 @@ export default class MDBExtensionController implements vscode.Disposable {
       languageServerController: this._languageServerController,
       telemetryService: this._telemetryService,
       statusView: this._statusView,
-      playgroundResultViewProvider: this._playgroundResultViewProvider,
+      playgroundResultProvider: this._playgroundResultProvider,
+      playgroundSelectionCodeActionProvider:
+        this._playgroundSelectionCodeActionProvider,
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
-      playgroundSelectedCodeActionProvider:
-        this._playgroundSelectedCodeActionProvider,
     });
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
       storageController: this._storageController,
       telemetryService: this._telemetryService,
+      playgroundResultProvider: this._playgroundResultProvider,
     });
     this._editorsController = new EditorsController({
       context,
@@ -143,11 +145,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundController: this._playgroundController,
       statusView: this._statusView,
       telemetryService: this._telemetryService,
-      playgroundResultViewProvider: this._playgroundResultViewProvider,
+      playgroundResultProvider: this._playgroundResultProvider,
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
       exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
-      playgroundSelectedCodeActionProvider:
-        this._playgroundSelectedCodeActionProvider,
+      playgroundSelectionCodeActionProvider:
+        this._playgroundSelectionCodeActionProvider,
       playgroundDiagnosticsCodeActionProvider:
         this._playgroundDiagnosticsCodeActionProvider,
       editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
@@ -174,6 +176,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
     void this.showSurveyForEstablishedUsers();
+    void this.showCopilotIntroductionForEstablishedUsers();
   }
 
   registerCommands = (): void => {
@@ -257,37 +260,27 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     // ------ EXPORT TO LANGUAGE ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.PYTHON)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.JAVA)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.CSHARP)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.JAVASCRIPT)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.RUBY)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_GO, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.GO)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.RUST)
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP, () =>
-      this._playgroundController.exportToLanguage(ExportToLanguages.PHP)
-    );
-
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CHANGE_EXPORT_TO_LANGUAGE_ADDONS,
-      (exportToLanguageAddons) =>
-        this._playgroundController.changeExportToLanguageAddons(
-          exportToLanguageAddons
+      EXTENSION_COMMANDS.MDB_SELECT_TARGET_FOR_EXPORT_TO_LANGUAGE,
+      () => this._participantController.selectTargetForExportToLanguage()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
+      (language: string) =>
+        this._participantController.exportPlaygroundToLanguage(language)
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE,
+      (includeDriverSyntax: boolean) =>
+        this._participantController.changeDriverSyntaxForExportToLanguage(
+          includeDriverSyntax
         )
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+      (data: ExportToLanguageResult) => {
+        return this._playgroundController.showExportToLanguageResult(data);
+      }
     );
 
     // ------ DOCUMENTS ------ //
@@ -943,6 +936,62 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
   }
 
+  async showCopilotIntroductionForEstablishedUsers(): Promise<void> {
+    const copilotIntroductionShown =
+      this._storageController.get(
+        StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN
+      ) === true;
+
+    // Show the toast when startup notifications have not been shown
+    // to the user yet and they have saved connections
+    // -> they haven't just started using this extension.
+    if (
+      this._startupNotificationShown ||
+      copilotIntroductionShown ||
+      !this._connectionStorage.hasSavedConnections()
+    ) {
+      return;
+    }
+
+    this._startupNotificationShown = true;
+
+    const action = 'Chat with @MongoDB';
+    const text =
+      'Generate queries, interact with documentation, and explore your database schema using the MongoDB Copilot extension. Give it a try!';
+    const result = await vscode.window.showInformationMessage(
+      text,
+      {},
+      {
+        title: action,
+      }
+    );
+
+    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    if (result?.title === action) {
+      await vscode.commands.executeCommand('workbench.action.chat.newChat');
+      await vscode.commands.executeCommand(
+        'workbench.action.chat.clearHistory'
+      );
+      await vscode.commands.executeCommand('workbench.action.chat.open', {
+        query: '@MongoDB',
+        isPartialQuery: true,
+      });
+      this._telemetryService.trackCopilotIntroductionClicked({
+        is_copilot_active: !!copilot?.isActive,
+      });
+    } else {
+      this._telemetryService.trackCopilotIntroductionDismissed({
+        is_copilot_active: !!copilot?.isActive,
+      });
+    }
+
+    // Whether action was taken or the prompt dismissed, we won't show this again.
+    void this._storageController.update(
+      StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN,
+      true
+    );
+  }
+
   async showSurveyForEstablishedUsers(): Promise<void> {
     const surveyId = '9viN9wcbsC3zvHyg7';
 
@@ -950,15 +999,18 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._storageController.get(StorageVariables.GLOBAL_SURVEY_SHOWN) ===
       surveyId;
 
-    // Show the survey when it hasn't been show to the
-    // user yet, and they have saved connections
+    // Show the toast when startup notifications have not been shown
+    // to the user yet and they have saved connections
     // -> they haven't just started using this extension
     if (
+      this._startupNotificationShown ||
       hasBeenShownSurveyAlready ||
       !this._connectionStorage.hasSavedConnections()
     ) {
       return;
     }
+
+    this._startupNotificationShown = true;
 
     const action = 'Share your thoughts';
     const text = 'How can we make the MongoDB extension better for you?';

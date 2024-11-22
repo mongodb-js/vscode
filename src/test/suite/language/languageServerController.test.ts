@@ -8,10 +8,9 @@ import type { SinonStub } from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import chaiAsPromised from 'chai-as-promised';
 
-import PlaygroundSelectedCodeActionProvider from '../../../editors/playgroundSelectedCodeActionProvider';
+import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
@@ -21,6 +20,7 @@ import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import TelemetryService from '../../../telemetry/telemetryService';
 import { ExtensionContextStub } from '../stubs';
+import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
 const expect = chai.expect;
 
@@ -50,9 +50,7 @@ suite('Language Server Controller Test Suite', () => {
     testConnectionController,
     testEditDocumentCodeLensProvider
   );
-  const testExportToLanguageCodeLensProvider =
-    new ExportToLanguageCodeLensProvider();
-  const testCodeActionProvider = new PlaygroundSelectedCodeActionProvider();
+  const testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
 
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
@@ -63,14 +61,17 @@ suite('Language Server Controller Test Suite', () => {
     languageServerControllerStub = new LanguageServerController(
       extensionContextStub
     );
+    const testExportToLanguageCodeLensProvider =
+      new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
+
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
       telemetryService: testTelemetryService,
       statusView: testStatusView,
-      playgroundResultViewProvider: testPlaygroundResultProvider,
+      playgroundResultProvider: testPlaygroundResultProvider,
+      playgroundSelectionCodeActionProvider: testCodeActionProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
-      playgroundSelectedCodeActionProvider: testCodeActionProvider,
     });
     await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._activeConnectionChanged();

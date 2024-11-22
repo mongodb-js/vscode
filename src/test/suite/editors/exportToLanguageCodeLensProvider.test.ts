@@ -1,139 +1,132 @@
 import { beforeEach } from 'mocha';
 import chai from 'chai';
 
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
-import { ExportToLanguageMode } from '../../../types/playgroundType';
+import ExportToLanguageCodeLensProvider, {
+  DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
+} from '../../../editors/exportToLanguageCodeLensProvider';
+import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import StorageController from '../../../storage/storageController';
+import { ExtensionContextStub } from '../stubs';
+import TelemetryService from '../../../telemetry/telemetryService';
+import StatusView from '../../../views/statusView';
+import ConnectionController from '../../../connectionController';
+import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 
 const expect = chai.expect;
 
+const DEFAULT_EXPORT_TO_LANGUAGE_RESULT = {
+  content: '123',
+  prompt: '123',
+  includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
+  language: 'shell',
+};
+
 suite('Export To Language Code Lens Provider Test Suite', function () {
-  const defaults = {
-    importStatements: false,
-    driverSyntax: false,
-    builders: false,
-    language: 'shell',
-  };
   let testExportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
+  let testPlaygroundResultProvider: PlaygroundResultProvider;
+  let testStorageController: StorageController;
+  let testTelemetryService: TelemetryService;
+  let testStatusView: StatusView;
+  let testConnectionController: ConnectionController;
+  let testEditDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+
+  const extensionContextStub = new ExtensionContextStub();
+
+  // The test extension runner.
+  extensionContextStub.extensionPath = '../../';
 
   beforeEach(() => {
-    testExportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider();
-  });
-
-  test('has the include import statements code lens when importStatements is false', () => {
-    testExportToLanguageCodeLensProvider.refresh(defaults);
-
-    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[0].command?.title).to.be.equal(
-      'Include Import Statements'
+    testStorageController = new StorageController(extensionContextStub);
+    testTelemetryService = new TelemetryService(
+      testStorageController,
+      extensionContextStub
+    );
+    testStatusView = new StatusView(extensionContextStub);
+    testConnectionController = new ConnectionController({
+      statusView: testStatusView,
+      storageController: testStorageController,
+      telemetryService: testTelemetryService,
+    });
+    testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
+      testConnectionController
+    );
+    testPlaygroundResultProvider = new PlaygroundResultProvider(
+      testConnectionController,
+      testEditDocumentCodeLensProvider
+    );
+    testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider(
+      testPlaygroundResultProvider
     );
   });
 
-  test('has the exclude import statements code lens when importStatements is true', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      importStatements: true,
-    });
-
-    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[0].command?.title).to.be.equal(
-      'Exclude Import Statements'
+  test('renders the exclude driver syntax code lens by default for shell', () => {
+    testPlaygroundResultProvider.setPlaygroundResult(
+      DEFAULT_EXPORT_TO_LANGUAGE_RESULT
     );
-  });
-
-  test('has the include import statements code lens when driverSyntax is false', () => {
-    testExportToLanguageCodeLensProvider.refresh(defaults);
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[1].command?.title).to.be.equal('Include Driver Syntax');
+    expect(codeLenses).to.exist;
+    if (codeLenses) {
+      expect(codeLenses.length).to.be.equal(1);
+      expect(codeLenses[0].command?.title).to.be.equal('Exclude Driver Syntax');
+    }
   });
 
-  test('has the exclude import statements code lens when driverSyntax is true', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      driverSyntax: true,
+  test('renders the include driver syntax code lens when includeDriverSyntax is false for shell', () => {
+    testPlaygroundResultProvider.setPlaygroundResult({
+      ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
+      includeDriverSyntax: false,
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
-    expect(codeLenses[1].command?.title).to.be.equal('Exclude Driver Syntax');
+    expect(codeLenses).to.exist;
+    if (codeLenses) {
+      expect(codeLenses.length).to.be.equal(1);
+      expect(codeLenses[0].command?.title).to.be.equal('Include Driver Syntax');
+    }
   });
 
-  test('has the use builders code lens when builders is false, language is java, and mode is query', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      mode: ExportToLanguageMode.QUERY,
-      language: 'java',
+  test('renders the exclude driver syntax code lens when includeDriverSyntax is true for shell', () => {
+    testPlaygroundResultProvider.setPlaygroundResult({
+      ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
+      includeDriverSyntax: true,
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(3);
-    expect(codeLenses[2].command?.title).to.be.equal('Use Builders');
+    expect(codeLenses).to.exist;
+    if (codeLenses) {
+      expect(codeLenses.length).to.be.equal(1);
+      expect(codeLenses[0].command?.title).to.be.equal('Exclude Driver Syntax');
+    }
   });
 
-  test('does not have the include driver syntax code lens when language is csharp', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      mode: ExportToLanguageMode.QUERY,
+  test('does not render code lenses for csharp', () => {
+    testPlaygroundResultProvider.setPlaygroundResult({
+      ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       language: 'csharp',
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(1); // Csharp does not support driver syntax.
-    expect(codeLenses[0].command?.title).to.be.equal(
-      'Include Import Statements'
-    );
-  });
-
-  test('has the use raw query code lens when builders is true, language is java, and mode is query', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      builders: true,
-      mode: ExportToLanguageMode.QUERY,
-      language: 'java',
-    });
-
-    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(3);
-    expect(codeLenses[2].command?.title).to.be.equal('Use Raw Query');
-  });
-
-  test('does not have the use raw query code lens when builders is true, language is java, and mode is plain text', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      builders: true,
-      mode: ExportToLanguageMode.OTHER,
-      language: 'java',
-    });
-
-    const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(2);
+    expect(codeLenses?.length).to.be.equal(0); // Csharp does not support driver syntax.
   });
 
   test('does not render code lenses for json text', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      builders: true,
-      mode: ExportToLanguageMode.OTHER,
+    testPlaygroundResultProvider.setPlaygroundResult({
+      ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       language: 'json',
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(0);
+    expect(codeLenses).to.not.exist;
   });
 
   test('does not render code lenses for plain text text', () => {
-    testExportToLanguageCodeLensProvider.refresh({
-      ...defaults,
-      builders: true,
-      mode: ExportToLanguageMode.OTHER,
+    testPlaygroundResultProvider.setPlaygroundResult({
+      ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       language: 'plaintext',
     });
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
-    expect(codeLenses.length).to.be.equal(0);
+    expect(codeLenses).to.not.exist;
   });
 });

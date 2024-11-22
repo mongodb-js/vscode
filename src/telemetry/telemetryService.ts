@@ -49,19 +49,10 @@ type DocumentEditedTelemetryEventProperties = {
   source: DocumentSource;
 };
 
-type AggregationExportedTelemetryEventProperties = {
-  language: string;
-  num_stages: number | null;
-  with_import_statements: boolean;
-  with_builders: boolean;
-  with_driver_syntax: boolean;
-};
-
-type QueryExportedTelemetryEventProperties = {
-  language: string;
-  with_import_statements: boolean;
-  with_builders: boolean;
-  with_driver_syntax: boolean;
+type PlaygroundExportedToLanguageTelemetryEventProperties = {
+  language?: string;
+  exported_code_length: number;
+  with_driver_syntax?: boolean;
 };
 
 type PlaygroundCreatedTelemetryEventProperties = {
@@ -135,6 +126,10 @@ export type ParticipantResponseProperties = {
   output_length: number;
 };
 
+export type CopilotIntroductionProperties = {
+  is_copilot_active: boolean;
+};
+
 export function chatResultFeedbackKindToTelemetryValue(
   kind: vscode.ChatResultFeedbackKind
 ): TelemetryFeedbackKind {
@@ -156,8 +151,7 @@ type TelemetryEventProperties =
   | DocumentUpdatedTelemetryEventProperties
   | ConnectionEditedTelemetryEventProperties
   | DocumentEditedTelemetryEventProperties
-  | QueryExportedTelemetryEventProperties
-  | AggregationExportedTelemetryEventProperties
+  | PlaygroundExportedToLanguageTelemetryEventProperties
   | PlaygroundCreatedTelemetryEventProperties
   | PlaygroundSavedTelemetryEventProperties
   | PlaygroundLoadedTelemetryEventProperties
@@ -167,7 +161,8 @@ type TelemetryEventProperties =
   | ParticipantFeedbackProperties
   | ParticipantResponseFailedProperties
   | ParticipantPromptProperties
-  | ParticipantResponseProperties;
+  | ParticipantResponseProperties
+  | CopilotIntroductionProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
@@ -180,8 +175,7 @@ export enum TelemetryEventTypes {
   PLAYGROUND_LOADED = 'Playground Loaded',
   DOCUMENT_UPDATED = 'Document Updated',
   DOCUMENT_EDITED = 'Document Edited',
-  QUERY_EXPORTED = 'Query Exported',
-  AGGREGATION_EXPORTED = 'Aggregation Exported',
+  PLAYGROUND_EXPORTED_TO_LANGUAGE = 'Playground Exported To Language',
   PLAYGROUND_CREATED = 'Playground Created',
   KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
   SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
@@ -192,6 +186,8 @@ export enum TelemetryEventTypes {
   PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
   PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
+  COPILOT_INTRODUCTION_CLICKED = 'Copilot Introduction Clicked',
+  COPILOT_INTRODUCTION_DISMISSED = 'Copilot Introduction Dismissed',
 }
 
 /**
@@ -407,16 +403,13 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
   }
 
-  trackQueryExported(
-    queryExportedProps: QueryExportedTelemetryEventProperties
+  trackPlaygroundExportedToLanguageExported(
+    playgroundExportedProps: PlaygroundExportedToLanguageTelemetryEventProperties
   ): void {
-    this.track(TelemetryEventTypes.QUERY_EXPORTED, queryExportedProps);
-  }
-
-  trackAggregationExported(
-    aggExportedProps: AggregationExportedTelemetryEventProperties
-  ): void {
-    this.track(TelemetryEventTypes.AGGREGATION_EXPORTED, aggExportedProps);
+    this.track(
+      TelemetryEventTypes.PLAYGROUND_EXPORTED_TO_LANGUAGE,
+      playgroundExportedProps
+    );
   }
 
   trackPlaygroundCreated(playgroundType: string): void {
@@ -488,5 +481,15 @@ export default class TelemetryService {
 
   trackCopilotParticipantResponse(props: ParticipantResponseProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
+  }
+
+  trackCopilotIntroductionClicked(props: CopilotIntroductionProperties): void {
+    this.track(TelemetryEventTypes.COPILOT_INTRODUCTION_CLICKED, props);
+  }
+
+  trackCopilotIntroductionDismissed(
+    props: CopilotIntroductionProperties
+  ): void {
+    this.track(TelemetryEventTypes.COPILOT_INTRODUCTION_DISMISSED, props);
   }
 }

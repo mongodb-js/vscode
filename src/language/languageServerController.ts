@@ -14,9 +14,6 @@ import { createLogger } from '../logging';
 import type {
   PlaygroundEvaluateParams,
   ShellEvaluateResult,
-  ExportToLanguageMode,
-  ExportToLanguageNamespace,
-  PlaygroundTextAndSelection,
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 import { ServerCommands } from './serverCommands';
@@ -134,19 +131,16 @@ export default class LanguageServerController {
       });
     });
 
-    this._client.onNotification(
-      ServerCommands.SHOW_INFO_MESSAGE,
-      (messsage) => {
-        log.info('The info message shown to a user', messsage);
-        void vscode.window.showInformationMessage(messsage);
-      }
-    );
+    this._client.onNotification(ServerCommands.SHOW_INFO_MESSAGE, (message) => {
+      log.info('The info message shown to a user', message);
+      void vscode.window.showInformationMessage(message);
+    });
 
     this._client.onNotification(
       ServerCommands.SHOW_ERROR_MESSAGE,
-      (messsage) => {
-        log.info('The error message shown to a user', messsage);
-        void vscode.window.showErrorMessage(messsage);
+      (message) => {
+        log.info('The error message shown to a user', message);
+        void vscode.window.showErrorMessage(message);
       }
     );
 
@@ -207,24 +201,6 @@ export default class LanguageServerController {
     return res;
   }
 
-  async getExportToLanguageMode(
-    params: PlaygroundTextAndSelection
-  ): Promise<ExportToLanguageMode> {
-    return this._client.sendRequest(
-      ServerCommands.GET_EXPORT_TO_LANGUAGE_MODE,
-      params
-    );
-  }
-
-  async getNamespaceForSelection(
-    params: PlaygroundTextAndSelection
-  ): Promise<ExportToLanguageNamespace> {
-    return this._client.sendRequest(
-      ServerCommands.GET_NAMESPACE_FOR_SELECTION,
-      params
-    );
-  }
-
   async activeConnectionChanged({
     connectionId,
     connectionString,
@@ -252,7 +228,7 @@ export default class LanguageServerController {
   }
 
   async resetCache(clear: ClearCompletionsCache): Promise<void> {
-    log.info('Reseting MongoDBService cache...', clear);
+    log.info('Resetting MongoDBService cache...', clear);
     await this._client.sendRequest(
       ServerCommands.CLEAR_CACHED_COMPLETIONS,
       clear

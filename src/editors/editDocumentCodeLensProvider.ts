@@ -7,7 +7,7 @@ import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import EXTENSION_COMMANDS from '../commands';
 import { PLAYGROUND_RESULT_URI } from './playgroundResultProvider';
-import type { PlaygroundResult } from '../types/playgroundType';
+import type { PlaygroundRunResult } from '../types/playgroundType';
 
 export default class EditDocumentCodeLensProvider
   implements vscode.CodeLensProvider
@@ -31,7 +31,7 @@ export default class EditDocumentCodeLensProvider
 
   updateCodeLensesForCollection(data: {
     content: Document;
-    namespace: string | null;
+    namespace?: string;
     uri: vscode.Uri;
   }): void {
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
@@ -44,7 +44,7 @@ export default class EditDocumentCodeLensProvider
     this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
   }
 
-  updateCodeLensesForPlayground(playgroundResult: PlaygroundResult): void {
+  updateCodeLensesForPlayground(playgroundResult: PlaygroundRunResult): void {
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 
@@ -71,7 +71,7 @@ export default class EditDocumentCodeLensProvider
 
   _updateCodeLensesForCursor(data: {
     content: any;
-    namespace: string | null;
+    namespace?: string;
     source: DocumentSource;
   }): EditDocumentInfo[] {
     const resultCodeLensesInfo: EditDocumentInfo[] = [];
@@ -109,7 +109,7 @@ export default class EditDocumentCodeLensProvider
 
   _updateCodeLensesForDocument(data: {
     content: any;
-    namespace: string | null;
+    namespace?: string;
     source: DocumentSource;
   }): EditDocumentInfo[] {
     const { content, namespace, source } = data;

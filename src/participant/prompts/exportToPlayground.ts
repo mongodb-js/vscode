@@ -1,13 +1,5 @@
 import { PromptBase, type PromptArgsBase } from './promptBase';
 
-export interface ExportToPlaygroundPromptArgs extends PromptArgsBase {
-  databaseName: string;
-  collectionName: string;
-  schema: string;
-  amountOfDocumentsSampled: number;
-  connectionNames: string[];
-}
-
 export class ExportToPlaygroundPrompt extends PromptBase<PromptArgsBase> {
   protected getAssistantPrompt(): string {
     return `You are a MongoDB expert.

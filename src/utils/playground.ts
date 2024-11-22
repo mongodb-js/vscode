@@ -61,7 +61,7 @@ const stat = (filePath: string): Promise<fs.Stats> => {
   return fs.promises.lstat(filePath);
 };
 
-export const isPlayground = (fileUri?: vscode.Uri) => {
+export const isPlayground = (fileUri?: vscode.Uri): boolean => {
   if (!fileUri) {
     return false;
   }
@@ -82,8 +82,31 @@ export const isPlayground = (fileUri?: vscode.Uri) => {
   );
 };
 
-export const getPlaygroundExtensionForTelemetry = (fileUri?: vscode.Uri) => {
-  let fileType;
+export const getSelectedText = (): string | undefined => {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    return;
+  }
+
+  // Sort lines selected as the may be mis-ordered from alt+click.
+  const sortedSelections = (editor.selections as Array<vscode.Selection>).sort(
+    (a, b) => (a.start.line > b.start.line ? 1 : -1)
+  );
+
+  return sortedSelections
+    .map((item) => editor.document.getText(item) || '')
+    .join('\n');
+};
+
+export const getAllText = (): string => {
+  return vscode.window.activeTextEditor?.document.getText().trim() || '';
+};
+
+export const getPlaygroundExtensionForTelemetry = (
+  fileUri?: vscode.Uri
+): string => {
+  let fileType = 'other';
 
   if (fileUri?.fsPath.match(/\.(mongodb\.js)$/gi)) {
     fileType = 'mongodbjs';
