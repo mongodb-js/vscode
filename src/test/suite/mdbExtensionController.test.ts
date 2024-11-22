@@ -1717,6 +1717,26 @@ suite('MDBExtensionController Test Suite', function () {
 
     suite('survey prompt', function () {
       suite(
+        'when a user has been shown the startup notification already',
+        function () {
+          beforeEach(() => {
+            sandbox
+              .stub(
+                mdbTestExtension.testExtensionController,
+                '_startupNotificationShown'
+              )
+              .get(function getterFn() {
+                return true;
+              });
+          });
+
+          test('they are not shown the survey prompt', () => {
+            assert(showInformationMessageStub.notCalled);
+          });
+        }
+      );
+
+      suite(
         "when a user hasn't been shown the survey prompt yet, and they have connections saved",
         () => {
           [
@@ -1730,6 +1750,15 @@ suite('MDBExtensionController Test Suite', function () {
               let connectionsUpdateStub: SinonStub;
               let uriParseStub: SinonStub;
               beforeEach(async () => {
+                sandbox
+                  .stub(
+                    mdbTestExtension.testExtensionController,
+                    '_startupNotificationShown'
+                  )
+                  .set(function setterFn() {})
+                  .get(function getterFn() {
+                    return false;
+                  });
                 showInformationMessageStub.resolves(reaction.value);
                 openExternalStub.resolves(undefined);
                 sandbox.replace(
@@ -1796,6 +1825,15 @@ suite('MDBExtensionController Test Suite', function () {
       suite('when a user has been shown the survey prompt already', () => {
         let connectionsUpdateStub: SinonStub;
         beforeEach(() => {
+          sandbox
+            .stub(
+              mdbTestExtension.testExtensionController,
+              '_startupNotificationShown'
+            )
+            .set(function setterFn() {})
+            .get(function getterFn() {
+              return false;
+            });
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
@@ -1823,6 +1861,15 @@ suite('MDBExtensionController Test Suite', function () {
       suite('when a has no connections saved', () => {
         let connectionsUpdateStub: SinonStub;
         beforeEach(() => {
+          sandbox
+            .stub(
+              mdbTestExtension.testExtensionController,
+              '_startupNotificationShown'
+            )
+            .set(function setterFn() {})
+            .get(function getterFn() {
+              return false;
+            });
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
@@ -1850,6 +1897,26 @@ suite('MDBExtensionController Test Suite', function () {
 
     suite('copilot introduction prompt', function () {
       suite(
+        'when a user has been shown the startup notification already',
+        function () {
+          beforeEach(() => {
+            sandbox
+              .stub(
+                mdbTestExtension.testExtensionController,
+                '_startupNotificationShown'
+              )
+              .get(function getterFn() {
+                return true;
+              });
+          });
+
+          test('they are not shown the copilot introduction prompt', () => {
+            assert(showInformationMessageStub.notCalled);
+          });
+        }
+      );
+
+      suite(
         "when a user hasn't been shown the copilot introduction prompt yet, and they have connections saved",
         () => {
           [
@@ -1863,19 +1930,20 @@ suite('MDBExtensionController Test Suite', function () {
               let connectionsUpdateStub: SinonStub;
               let executeCommandStub: SinonStub;
               beforeEach(async () => {
+                sandbox
+                  .stub(
+                    mdbTestExtension.testExtensionController,
+                    '_startupNotificationShown'
+                  )
+                  .set(function setterFn() {})
+                  .get(function getterFn() {
+                    return false;
+                  });
                 showInformationMessageStub.resolves(reaction.value);
                 executeCommandStub = sandbox.stub(
                   vscode.commands,
                   'executeCommand'
                 );
-                sandbox
-                  .stub(
-                    mdbTestExtension.testExtensionController,
-                    '_surveyShown'
-                  )
-                  .get(function getterFn() {
-                    return false;
-                  });
                 sandbox.replace(
                   mdbTestExtension.testExtensionController._storageController,
                   'get',
@@ -1940,6 +2008,15 @@ suite('MDBExtensionController Test Suite', function () {
         () => {
           let connectionsUpdateStub: SinonStub;
           beforeEach(() => {
+            sandbox
+              .stub(
+                mdbTestExtension.testExtensionController,
+                '_startupNotificationShown'
+              )
+              .set(function setterFn() {})
+              .get(function getterFn() {
+                return false;
+              });
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
@@ -1969,7 +2046,11 @@ suite('MDBExtensionController Test Suite', function () {
         let connectionsUpdateStub: SinonStub;
         beforeEach(() => {
           sandbox
-            .stub(mdbTestExtension.testExtensionController, '_surveyShown')
+            .stub(
+              mdbTestExtension.testExtensionController,
+              '_startupNotificationShown'
+            )
+            .set(function setterFn() {})
             .get(function getterFn() {
               return false;
             });
@@ -1996,36 +2077,6 @@ suite('MDBExtensionController Test Suite', function () {
           assert(showInformationMessageStub.notCalled);
         });
       });
-
-      suite(
-        'when a user has been shown the survey prompt during this extension launch',
-        () => {
-          let connectionsUpdateStub: SinonStub;
-          beforeEach(() => {
-            sandbox
-              .stub(mdbTestExtension.testExtensionController, '_surveyShown')
-              .get(function getterFn() {
-                return true;
-              });
-            sandbox.replace(
-              mdbTestExtension.testExtensionController._connectionStorage,
-              'hasSavedConnections',
-              sandbox.fake.returns(true)
-            );
-            connectionsUpdateStub = sandbox.stub(
-              mdbTestExtension.testExtensionController._storageController,
-              'update'
-            );
-            connectionsUpdateStub.resolves(undefined);
-
-            void mdbTestExtension.testExtensionController.showCopilotIntroductionForEstablishedUsers();
-          });
-
-          test('they are not shown the copilot introduction prompt', () => {
-            assert(showInformationMessageStub.notCalled);
-          });
-        }
-      );
     });
   });
 

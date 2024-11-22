@@ -72,7 +72,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
-  _surveyShown = false;
+  _startupNotificationShown = false;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -921,14 +921,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     // user yet, and they have saved connections
     // -> they haven't just started using this extension.
     if (
-      this._surveyShown ||
+      this._startupNotificationShown ||
       copilotIntroductionShown ||
       !this._connectionStorage.hasSavedConnections()
     ) {
       return;
     }
 
-    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    this._startupNotificationShown = true;
 
     const action = 'Chat with @MongoDB';
     const text =
@@ -940,6 +940,8 @@ export default class MDBExtensionController implements vscode.Disposable {
         title: action,
       }
     );
+
+    const copilot = vscode.extensions.getExtension('github.copilot-chat');
     if (result?.title === action) {
       await vscode.commands.executeCommand('workbench.action.chat.newChat');
       await vscode.commands.executeCommand(
@@ -976,13 +978,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     // user yet, and they have saved connections
     // -> they haven't just started using this extension
     if (
+      this._startupNotificationShown ||
       hasBeenShownSurveyAlready ||
       !this._connectionStorage.hasSavedConnections()
     ) {
       return;
     }
 
-    this._surveyShown = true;
+    this._startupNotificationShown = true;
 
     const action = 'Share your thoughts';
     const text = 'How can we make the MongoDB extension better for you?';
