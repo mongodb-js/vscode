@@ -20,11 +20,11 @@ export class QueryWithCopilotCodeLensProvider
 
     // We can only detect whether a user has the Copilot extension active
     // but not whether it has an active subscription.
-    const hasCopilotInstalled =
+    const hasCopilotChatActive =
       vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID)?.isActive ===
       true;
 
-    if (!hasCopilotInstalled) {
+    if (!hasCopilotChatActive) {
       return [];
     }
 
