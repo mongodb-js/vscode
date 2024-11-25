@@ -1,5 +1,29 @@
 # Change Log
 
+## [v1.10.0](https://github.com/mongodb-js/vscode/releases/tag/v1.10.0) - 2024-11-25
+
+## What's Changed
+* feat(participant): export to a playground VSCODE-574 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/832
+* fix: filter long and invalid prompts in future messages VSCODE-614 by @gagik in https://github.com/mongodb-js/vscode/pull/861
+* feat(participant): use onChatParticipant for the activation event VSCODE-630 by @gagik in https://github.com/mongodb-js/vscode/pull/869
+* feat(chat): automatically pick the database & collection if there exists only one VSCODE-610 by @gagik in https://github.com/mongodb-js/vscode/pull/863
+* chore: add analytics url params to README VSCODE-637 by @Anemy in https://github.com/mongodb-js/vscode/pull/868
+* feat(chat): show errors if there are issues when getting databases & collections to pick VSCODE-610 by @gagik in https://github.com/mongodb-js/vscode/pull/864
+* feat(chat): filter namespace messages from history if it exists in metadata VSCODE-611 by @gagik in https://github.com/mongodb-js/vscode/pull/866
+* feat(chat): prompt to connect when a disconnected user tries to run code from participant VSCODE-618 by @gagik in https://github.com/mongodb-js/vscode/pull/872
+* feat(chat): include history from messages to docs chatbot VSCODE-632 by @gagik in https://github.com/mongodb-js/vscode/pull/871
+* feat(chat): update schema assistant prompt to handle empty and short prompts better VSCODE-648 by @gagik in https://github.com/mongodb-js/vscode/pull/874
+* feat(copilot): export to Language with Copilot VSCODE-573 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/870
+* feat(copilot): optimize export with copilot experience VSCODE-655 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/880
+* feat(participant): in-app notification to introduce users to copilot extension VSCODE-633 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/875
+* fix: show export to language icon only when copilot is active VSCODE-655 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/882
+
+## New Contributors
+* @gagik made their first contribution in https://github.com/mongodb-js/vscode/pull/862
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.9.3...v1.10.0
+
+
 ## [v1.9.3](https://github.com/mongodb-js/vscode/releases/tag/v1.9.3) - 2024-10-24
 
 ## What's Changed
@@ -388,27 +412,5 @@ To dig deeper please feel free to follow the links mentioned below:
 
 - Updated code lenses in playgrounds to now appear at the end of a selection for partially running (#324)
 - Update our CI release pipeline - this is the first automated release ✨ 
-
-
-## [v0.6.0](https://github.com/mongodb-js/vscode/releases/tag/v0.6.0) - 2021-07-13
-
-### Added
-
-- Added icons for time-series collections (VSCODE-263, #296)
-- Updated our mongosh dependency to 1.0.0 and MongoDB node driver to a fork of the 4.0.0 driver (VSCODE-264, #308)
-- Added support for load balanced connections (#311)
-
-### Changed
-
-- Made mongosh the default shell when launching the shell from a saved connection (#306)
-- Updated how collections and databases are created to use playgrounds instead of vscode inputs (VSCODE-262, #294)
-- Updated how playgrounds are run to preserve focus on the editor when the results are shown (VSCODE-214, #290, #222)
-- Updated the Atlas terraform snippet (#297)
-- Updated the collections list to sort system collections to the end of the list (#298)
-
-### Fixed
-
-- Fixed showing an error when large files are shown in vscode which have tokenization disabled (VSCODE-250, #290)
-- Fixed showing recently dropped collections and databases in the explorer (VSCODE-244, #288)
 
 
