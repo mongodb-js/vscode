@@ -955,7 +955,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         'workbench.action.chat.clearHistory'
       );
       await vscode.commands.executeCommand('workbench.action.chat.open', {
-        query: '@MongoDB',
+        query: '@MongoDB ',
         isPartialQuery: true,
       });
       this._telemetryService.trackCopilotIntroductionClicked({
