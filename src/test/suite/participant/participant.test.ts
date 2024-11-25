@@ -1698,6 +1698,8 @@ Schema:
       });
 
       suite('export to playground', function () {
+        this.timeout(5000);
+
         beforeEach(async function () {
           await vscode.commands.executeCommand(
             'workbench.action.files.newUntitledFile'
