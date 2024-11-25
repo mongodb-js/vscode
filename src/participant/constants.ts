@@ -3,6 +3,7 @@ import { ChatMetadataStore } from './chatMetadata';
 
 export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
+export const COPILOT_EXTENSION_ID = 'GitHub.copilot';
 
 export type ParticipantResponseType =
   | 'query'

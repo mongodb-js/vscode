@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import type { SendMessageToParticipantFromInputOptions } from '../participant/participantTypes';
 import { isPlayground } from '../utils/playground';
-
-const COPILOT_CHAT_EXTENSION_ID = 'GitHub.copilot-chat';
+import { COPILOT_EXTENSION_ID } from '../participant/constants';
 
 export class QueryWithCopilotCodeLensProvider
   implements vscode.CodeLensProvider
@@ -21,8 +20,7 @@ export class QueryWithCopilotCodeLensProvider
     // We can only detect whether a user has the Copilot extension active
     // but not whether it has an active subscription.
     const hasCopilotChatActive =
-      vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID)?.isActive ===
-      true;
+      vscode.extensions.getExtension(COPILOT_EXTENSION_ID)?.isActive === true;
 
     if (!hasCopilotChatActive) {
       return [];
