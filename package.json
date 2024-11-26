@@ -1157,14 +1157,14 @@
       }
     },
     "icons": {
-      "connection-active": {
+      "mdb-connection-active": {
         "description": "MongoDB Icon",
         "default": {
           "fontPath": "./fonts/mongodb-icons.woff",
           "fontCharacter": "\\ea01"
         }
       },
-      "connection-inactive": {
+      "mdb-connection-inactive": {
         "description": "MongoDB Icon",
         "default": {
           "fontPath": "./fonts/mongodb-icons.woff",

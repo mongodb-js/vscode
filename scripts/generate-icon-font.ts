@@ -30,7 +30,7 @@ async function main(): Promise<void> {
     if (!glyph.metadata?.name) {
       throw new Error('There is a glyph without a name');
     }
-    iconsConfig[glyph.metadata.name] = {
+    iconsConfig[`mdb-${glyph.metadata.name}`] = {
       description: 'MongoDB Icon',
       default: {
         fontPath: './fonts/mongodb-icons.woff',
