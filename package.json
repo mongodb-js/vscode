@@ -256,6 +256,11 @@
         }
       },
       {
+        "command": "mdb.createNewPlaygroundFromConnectionTreeView",
+        "title": "Create MongoDB Playground",
+        "icon": "$(mdb-playground)"
+      },
+      {
         "command": "mdb.changeActiveConnection",
         "title": "MongoDB: Change Active Connection"
       },
@@ -330,10 +335,7 @@
       {
         "command": "mdb.addDatabase",
         "title": "Add Database...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.searchForDocuments",
@@ -372,12 +374,14 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.askCopilotFromTreeItem",
+        "title": "Ask MongoDB Copilot",
+        "icon": "$(copilot)"
+      },
+      {
         "command": "mdb.addCollection",
         "title": "Add Collection...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.viewCollectionDocuments",
@@ -422,10 +426,7 @@
       {
         "command": "mdb.createIndexFromTreeView",
         "title": "Create New Index...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.insertObjectIdToEditor",
@@ -454,10 +455,7 @@
       {
         "command": "mdb.addStreamProcessor",
         "title": "Add StreamProcessor...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.startStreamProcessor",
@@ -587,7 +585,7 @@
         {
           "command": "mdb.addCollection",
           "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
-          "group": "inline"
+          "group": "inline@3"
         },
         {
           "command": "mdb.addCollection",
@@ -605,9 +603,29 @@
           "group": "2@1"
         },
         {
+          "command": "mdb.askCopilotFromTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "inline@1"
+        },
+        {
+          "command": "mdb.askCopilotFromTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "3@1"
+        },
+        {
+          "command": "mdb.createNewPlaygroundFromConnectionTreeView",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "inline@2"
+        },
+        {
+          "command": "mdb.createNewPlaygroundFromConnectionTreeView",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "3@2"
+        },
+        {
           "command": "mdb.dropDatabase",
           "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
-          "group": "3@1"
+          "group": "4@1"
         },
         {
           "command": "mdb.viewCollectionDocuments",
@@ -1157,18 +1175,32 @@
       }
     },
     "icons": {
-      "connection-active": {
+      "mdb-playground": {
         "description": "MongoDB Icon",
         "default": {
           "fontPath": "./fonts/mongodb-icons.woff",
           "fontCharacter": "\\ea01"
         }
       },
-      "connection-inactive": {
+      "mdb-plus-circle": {
         "description": "MongoDB Icon",
         "default": {
           "fontPath": "./fonts/mongodb-icons.woff",
           "fontCharacter": "\\ea02"
+        }
+      },
+      "mdb-connection-active": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea03"
+        }
+      },
+      "mdb-connection-inactive": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea04"
         }
       }
     }

@@ -55,6 +55,7 @@ import type {
 } from './participantTypes';
 import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
 import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
+import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
 
 const log = createLogger('participant');
 
@@ -137,7 +138,13 @@ export default class ParticipantController {
   async sendMessageToParticipant(
     options: SendMessageToParticipantOptions
   ): Promise<unknown> {
-    const { message, isNewChat = false, isPartialQuery = false } = options;
+    log.info(`STUFF: ${util.inspect(options)}`);
+    const {
+      message,
+      isNewChat = false,
+      isPartialQuery = false,
+      ...otherOptions
+    } = options;
 
     if (isNewChat) {
       await vscode.commands.executeCommand('workbench.action.chat.newChat');
@@ -146,7 +153,8 @@ export default class ParticipantController {
       );
     }
 
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
+    return await vscode.commands.executeCommand('workbench.action.chat.open', {
+      ...otherOptions,
       query: `@MongoDB ${message}`,
       isPartialQuery,
     });
@@ -175,6 +183,34 @@ export default class ParticipantController {
       isNewChat,
       isPartialQuery,
     });
+  }
+
+  async askCopilotFromTreeItem(
+    treeItem: DatabaseTreeItem | CollectionTreeItem
+  ): Promise<unknown> {
+    if (treeItem instanceof DatabaseTreeItem) {
+      const { databaseName } = treeItem;
+
+      await this.sendMessageToParticipant({
+        message: `I want to ask questions about the \`${databaseName}\` database.`,
+        isNewChat: true,
+      });
+    }
+    if (treeItem instanceof CollectionTreeItem) {
+      const { databaseName, collectionName } = treeItem;
+
+      await this.sendMessageToParticipant({
+        message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
+        isNewChat: true,
+      });
+    }
+
+    await this.sendMessageToParticipant({
+      message: '',
+      isPartialQuery: true,
+    });
+    log.info(`after: ${util.inspect(this._chatMetadataStore._chats)}`);
+    return undefined;
   }
 
   async _getChatResponse({
@@ -792,6 +828,13 @@ export default class ParticipantController {
       collectionName: undefined,
     };
 
+    log.info(
+      `messages: ${util.inspect(
+        messagesWithNamespace.messages.map((c) => getContent(c))
+      )}`
+    );
+    log.info(`context.history: ${util.inspect(context.history, true, 10)}`);
+
     // When there's no user message content we can
     // skip the request to the model. This would happen with /schema.
     if (Prompts.doMessagesContainUserInput(messagesWithNamespace.messages)) {
@@ -815,6 +858,7 @@ export default class ParticipantController {
         modelInput: messagesWithNamespace,
         token,
       });
+      log.info(`with namespace: ${responseContentWithNamespace}`);
       ({ databaseName, collectionName } =
         Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
           responseContentWithNamespace

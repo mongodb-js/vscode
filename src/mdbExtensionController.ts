@@ -325,6 +325,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerParticipantCommand(
+      EXTENSION_COMMANDS.ASK_COPILOT_FROM_TREE_ITEM,
+      async (treeItem: DatabaseTreeItem) => {
+        await this._participantController.askCopilotFromTreeItem(treeItem);
+        return true;
+      }
+    );
+    this.registerParticipantCommand(
       EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
       ({ runnableContent }: RunParticipantCodeCommandArgs) => {
         return this._playgroundController.evaluateParticipantCode(
@@ -735,6 +742,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW,
       () => this._playgroundController.createPlayground()
+    );
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_CONNECTION_TREE_VIEW,
+      (treeItem: DatabaseTreeItem | CollectionTreeItem) =>
+        this._playgroundController.createPlayground(treeItem)
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,

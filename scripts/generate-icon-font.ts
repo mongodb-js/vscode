@@ -3,7 +3,12 @@ import fs from 'fs/promises';
 import { GlyphData } from 'webfont/dist/src/types';
 
 /** Icons to include in the generated icon font */
-const INCLUDED_ICONS = ['connection-active', 'connection-inactive'];
+const INCLUDED_ICONS = [
+  'light/connection-active',
+  'light/connection-inactive',
+  'playground',
+  'plus-circle',
+];
 
 /**
  * Generates an icon font from the included icons and outputs package.json
@@ -12,7 +17,13 @@ const INCLUDED_ICONS = ['connection-active', 'connection-inactive'];
  */
 async function main(): Promise<void> {
   const font = await webfont({
-    files: INCLUDED_ICONS.map((icon) => `./images/light/${icon}.svg`),
+    files: INCLUDED_ICONS.map((icon) => {
+      // Legacy support for icons inside light and dark folders.
+      if (icon.startsWith('light/')) {
+        return `./images/${icon}.svg`;
+      }
+      return `./images/icons/${icon}.svg`;
+    }),
     fontName: 'MongoDB Icons',
     formats: ['woff'],
     normalize: true,
@@ -30,7 +41,7 @@ async function main(): Promise<void> {
     if (!glyph.metadata?.name) {
       throw new Error('There is a glyph without a name');
     }
-    iconsConfig[glyph.metadata.name] = {
+    iconsConfig[`mdb-${glyph.metadata.name}`] = {
       description: 'MongoDB Icon',
       default: {
         fontPath: './fonts/mongodb-icons.woff',
