@@ -32,6 +32,7 @@ export class QueryWithCopilotCodeLensProvider
         'e.g. Find the document in sample_mflix.users with the name of Kayden Washington',
       messagePrefix: '/query',
       isNewChat: true,
+      source: 'query with copilot codelens',
     };
 
     return [

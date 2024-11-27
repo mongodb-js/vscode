@@ -130,6 +130,10 @@ export type CopilotIntroductionProperties = {
   is_copilot_active: boolean;
 };
 
+export type ParticipantOpenedFromInputBoxProperties = {
+  source?: 'query with copilot codelens';
+};
+
 export function chatResultFeedbackKindToTelemetryValue(
   kind: vscode.ChatResultFeedbackKind
 ): TelemetryFeedbackKind {
@@ -161,6 +165,7 @@ type TelemetryEventProperties =
   | ParticipantFeedbackProperties
   | ParticipantResponseFailedProperties
   | ParticipantPromptProperties
+  | ParticipantOpenedFromInputBoxProperties
   | ParticipantResponseProperties
   | CopilotIntroductionProperties;
 
@@ -186,6 +191,7 @@ export enum TelemetryEventTypes {
   PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
   PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
+  PARTICIPANT_SUBMITTED_FROM_INPUT_BOX = 'Participant Submitted From Input Box',
   COPILOT_INTRODUCTION_CLICKED = 'Copilot Introduction Clicked',
   COPILOT_INTRODUCTION_DISMISSED = 'Copilot Introduction Dismissed',
 }
@@ -438,6 +444,12 @@ export default class TelemetryService {
 
   trackCopilotParticipantFeedback(props: ParticipantFeedbackProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_FEEDBACK, props);
+  }
+
+  trackCopilotParticipantSubmittedFromInputBox(
+    props: ParticipantOpenedFromInputBoxProperties
+  ): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_SUBMITTED_FROM_INPUT_BOX, props);
   }
 
   trackCopilotParticipantError(err: any, command: string): void {

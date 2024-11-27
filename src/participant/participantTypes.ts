@@ -8,5 +8,6 @@ export type SendMessageToParticipantOptions = {
 
 export type SendMessageToParticipantFromInputOptions = {
   messagePrefix?: string;
+  source?: 'query with copilot codelens';
 } & Omit<SendMessageToParticipantOptions, 'message'> &
   vscode.InputBoxOptions;
