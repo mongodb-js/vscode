@@ -27,7 +27,7 @@ export class QueryWithCopilotCodeLensProvider
     }
 
     const options: SendMessageToParticipantFromInputOptions = {
-      prompt: 'Describe the query you would like to generate.',
+      prompt: 'Describe the query you would like to generate',
       placeHolder:
         'e.g. Find the document in sample_mflix.users with the name of Kayden Washington',
       messagePrefix: '/query',
