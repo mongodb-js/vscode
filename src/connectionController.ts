@@ -201,7 +201,7 @@ export default class ConnectionController {
           ignoreFocusOut: true,
           placeHolder:
             'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
-          prompt: 'Enter your connection string (SRV or standard)',
+          prompt: 'Enter your SRV or standard connection string',
           validateInput: (uri: string) => {
             if (
               !uri.startsWith('mongodb://') &&
