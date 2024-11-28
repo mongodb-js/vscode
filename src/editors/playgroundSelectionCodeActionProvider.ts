@@ -42,7 +42,7 @@ export default class PlaygroundSelectionCodeActionProvider
 
   provideCodeActions(): vscode.CodeAction[] | undefined {
     const editor = vscode.window.activeTextEditor;
-    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    const copilot = vscode.extensions.getExtension('GitHub.copilot-chat');
     let codeActions: vscode.CodeAction[] = [
       this.createCodeAction({
         title: 'Run selected playground blocks',

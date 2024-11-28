@@ -34,7 +34,7 @@ export async function activate(
     .getConfiguration('mdb.connectionSaving')
     .get('defaultConnectionSavingLocation');
 
-  log.info('Activating extension...', {
+  log.info('123Activating extension...', {
     id: context.extension.id,
     version: version,
     mode: vscode.ExtensionMode[context.extensionMode],

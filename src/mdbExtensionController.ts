@@ -53,8 +53,8 @@ import type {
   SendMessageToParticipantOptions,
   SendMessageToParticipantFromInputOptions,
 } from './participant/participantTypes';
-import { logger } from 'mongodb-rag-core';
-
+import { createLogger } from './logging';
+const log = createLogger('connection controller');
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
@@ -175,7 +175,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     await this._languageServerController.startLanguageServer();
 
     this.registerCommands();
-    logger.info('this is running');
+    log.info('this is running');
     this.updateCopilotStatusContext();
     this.showOverviewPageIfRecentlyInstalled();
 
@@ -966,9 +966,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.isCopilotActive',
       copilot?.isActive === true
     );
-    logger.info(`coplit is ${copilot?.isActive}`);
+    log.info(`coplit is ${copilot?.isActive}`);
     vscode.extensions.onDidChange(() => {
       const copilot = vscode.extensions.getExtension('github.copilot-chat');
+      log.info(`coplit is ${copilot?.isActive}`);
       void vscode.commands.executeCommand(
         'setContext',
         'mdb.isCopilotActive',
