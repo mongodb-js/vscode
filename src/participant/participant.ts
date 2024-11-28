@@ -138,7 +138,6 @@ export default class ParticipantController {
   async sendMessageToParticipant(
     options: SendMessageToParticipantOptions
   ): Promise<unknown> {
-    log.info(`STUFF: ${util.inspect(options)}`);
     const {
       message,
       isNewChat = false,
