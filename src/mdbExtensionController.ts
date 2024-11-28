@@ -181,6 +181,13 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     void this.showSurveyForEstablishedUsers();
     void this.showCopilotIntroductionForEstablishedUsers();
+
+    const copilot = vscode.extensions.getExtension('GitHub.copilot');
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.isCopilotActive',
+      copilot?.isActive
+    );
   }
 
   registerCommands = (): void => {
@@ -1002,12 +1009,9 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     const copilot = vscode.extensions.getExtension('github.copilot-chat');
     if (result?.title === action) {
-      await vscode.commands.executeCommand('workbench.action.chat.newChat');
-      await vscode.commands.executeCommand(
-        'workbench.action.chat.clearHistory'
-      );
-      await vscode.commands.executeCommand('workbench.action.chat.open', {
-        query: '@MongoDB',
+      await this._participantController.sendMessageToParticipant({
+        message: '',
+        isNewChat: true,
         isPartialQuery: true,
       });
       this._telemetryService.trackCopilotIntroductionClicked({

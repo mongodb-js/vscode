@@ -167,8 +167,13 @@ export default class ParticipantController {
       messagePrefix = '',
       isNewChat = false,
       isPartialQuery = false,
+      source,
       ...inputBoxOptions
     } = options;
+
+    this._telemetryService.trackCopilotParticipantSubmittedFromInputBox({
+      source,
+    });
 
     const message = await vscode.window.showInputBox({
       ...inputBoxOptions,

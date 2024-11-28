@@ -1,4 +1,5 @@
 import type * as vscode from 'vscode';
+import type { DocumentSource } from '../documentSource';
 
 /** Based on options from Copilot's chat open command IChatViewOpenOptions */
 export type SendMessageToParticipantOptions = {
@@ -17,5 +18,6 @@ export type SendMessageToParticipantOptions = {
 
 export type SendMessageToParticipantFromInputOptions = {
   messagePrefix?: string;
+  source?: DocumentSource;
 } & Omit<SendMessageToParticipantOptions, 'message'> &
   vscode.InputBoxOptions;
