@@ -33,9 +33,7 @@ import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
-import TelemetryService, {
-  TelemetryEventTypes,
-} from './telemetry/telemetryService';
+import TelemetryService from './telemetry/telemetryService';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
@@ -175,7 +173,8 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
-    void this.showSurveyForEstablishedUsers();
+
+    // ------ In-app notifications ------ //
     void this.showCopilotIntroductionForEstablishedUsers();
 
     const copilot = vscode.extensions.getExtension('GitHub.copilot');
@@ -993,54 +992,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     void this._storageController.update(
       StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN,
       true
-    );
-  }
-
-  async showSurveyForEstablishedUsers(): Promise<void> {
-    const surveyId = '9viN9wcbsC3zvHyg7';
-
-    const hasBeenShownSurveyAlready =
-      this._storageController.get(StorageVariables.GLOBAL_SURVEY_SHOWN) ===
-      surveyId;
-
-    // Show the toast when startup notifications have not been shown
-    // to the user yet and they have saved connections
-    // -> they haven't just started using this extension
-    if (
-      this._startupNotificationShown ||
-      hasBeenShownSurveyAlready ||
-      !this._connectionStorage.hasSavedConnections()
-    ) {
-      return;
-    }
-
-    this._startupNotificationShown = true;
-
-    const action = 'Share your thoughts';
-    const text = 'How can we make the MongoDB extension better for you?';
-    const link = 'https://forms.gle/9viN9wcbsC3zvHyg7';
-    const result = await vscode.window.showInformationMessage(
-      text,
-      {},
-      {
-        title: action,
-      }
-    );
-    if (result?.title === action) {
-      void vscode.env.openExternal(vscode.Uri.parse(link));
-      this._telemetryService.track(TelemetryEventTypes.SURVEY_CLICKED, {
-        survey_id: surveyId,
-      });
-    } else {
-      this._telemetryService.track(TelemetryEventTypes.SURVEY_DISMISSED, {
-        survey_id: surveyId,
-      });
-    }
-
-    // whether action was taken or the prompt dismissed, we won't show this again
-    void this._storageController.update(
-      StorageVariables.GLOBAL_SURVEY_SHOWN,
-      surveyId
     );
   }
 
