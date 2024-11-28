@@ -65,6 +65,7 @@
     "release-draft": "node ./scripts/release-draft.js",
     "reformat": "prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
+    "generate-icon-font": "ts-node ./scripts/generate-icon-font.ts",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
@@ -1154,6 +1155,22 @@
           "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
         }
       }
+    },
+    "icons": {
+      "mdb-connection-active": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea01"
+        }
+      },
+      "mdb-connection-inactive": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea02"
+        }
+      }
     }
   },
   "dependencies": {
@@ -1198,7 +1215,6 @@
     "@mongodb-js/oidc-mock-provider": "^0.10.1",
     "@mongodb-js/oidc-plugin": "^0.4.0",
     "@mongodb-js/prettier-config-devtools": "^1.0.1",
-    "mongodb-rag-core": "^0.4.1",
     "@mongodb-js/sbom-tools": "^0.7.2",
     "@mongodb-js/signing-utils": "^0.3.6",
     "@mongosh/service-provider-core": "^2.3.3",
@@ -1241,6 +1257,7 @@
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^6.1.0",
+    "mongodb-rag-core": "^0.4.1",
     "mongodb-runner": "^5.7.0",
     "node-fetch": "^2.7.0",
     "node-loader": "^0.6.0",
@@ -1260,6 +1277,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5",
+    "webfont": "^11.2.26",
     "webpack": "^5.95.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4",

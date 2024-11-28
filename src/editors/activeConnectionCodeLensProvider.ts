@@ -50,10 +50,10 @@ export default class ActiveConnectionCodeLensProvider
         ? getDBFromConnectionString(connectionString)
         : null;
       message = defaultDB
-        ? `Connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}`
-        : `Connected to ${this._connectionController.getActiveConnectionName()}`;
+        ? `$(mdb-connection-active)Connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}`
+        : `$(mdb-connection-active)Connected to ${this._connectionController.getActiveConnectionName()}`;
     } else {
-      message = 'Connect';
+      message = '$(mdb-connection-inactive)Connect';
     }
 
     codeLens.command = {

@@ -61,7 +61,9 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
-        expect(codeLens[0].command?.title).to.be.equal('Connect');
+        expect(codeLens[0].command?.title).to.be.equal(
+          '$(mdb-connection-inactive)Connect'
+        );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
       });
@@ -109,7 +111,9 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
-        expect(codeLens[0].command?.title).to.be.equal('Connected to fakeName');
+        expect(codeLens[0].command?.title).to.be.equal(
+          '$(mdb-connection-active)Connected to fakeName'
+        );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
         expect(codeLens[0].command?.command).to.be.equal(
@@ -129,7 +133,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
         expect(codeLens[0].command?.title).to.be.equal(
-          'Connected to fakeName with default database fakeDBName'
+          '$(mdb-connection-active)Connected to fakeName with default database fakeDBName'
         );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
