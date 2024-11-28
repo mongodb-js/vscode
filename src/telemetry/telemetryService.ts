@@ -131,7 +131,7 @@ export type CopilotIntroductionProperties = {
 };
 
 export type ParticipantOpenedFromInputBoxProperties = {
-  source?: 'query with copilot codelens';
+  source?: DocumentSource;
 };
 
 export function chatResultFeedbackKindToTelemetryValue(
