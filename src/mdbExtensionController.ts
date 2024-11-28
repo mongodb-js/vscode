@@ -173,8 +173,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     await this._languageServerController.startLanguageServer();
 
     this.registerCommands();
-    log.info('this is running');
-    this.updateCopilotStatusContext();
     this.showOverviewPageIfRecentlyInstalled();
 
     // ------ In-app notifications ------ //
@@ -955,25 +953,6 @@ export default class MDBExtensionController implements vscode.Disposable {
         true
       );
     }
-  }
-
-  updateCopilotStatusContext(): void {
-    const copilot = vscode.extensions.getExtension('github.copilot-chat');
-    void vscode.commands.executeCommand(
-      'setContext',
-      'mdb.isCopilotActive',
-      copilot?.isActive === true
-    );
-    log.info(`coplit is ${copilot?.isActive}`);
-    vscode.extensions.onDidChange(() => {
-      const copilot = vscode.extensions.getExtension('github.copilot-chat');
-      log.info(`coplit is ${copilot?.isActive}`);
-      void vscode.commands.executeCommand(
-        'setContext',
-        'mdb.isCopilotActive',
-        copilot?.isActive === true
-      );
-    });
   }
 
   async showCopilotIntroductionForEstablishedUsers(): Promise<void> {

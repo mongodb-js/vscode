@@ -23,6 +23,7 @@ import {
   schemaRequestChatResult,
   createCancelledRequestChatResult,
   codeBlockIdentifier,
+  COPILOT_EXTENSION_ID,
 } from './constants';
 import { SchemaFormatter } from './schema';
 import { getSimplifiedSampleDocuments } from './sampleDocuments';
@@ -84,6 +85,7 @@ export default class ParticipantController {
   _docsChatbotAIService: DocsChatbotAIService;
   _telemetryService: TelemetryService;
   _playgroundResultProvider: PlaygroundResultProvider;
+  _copilotStatusSubscription?: vscode.Disposable;
 
   constructor({
     connectionController,
@@ -121,7 +123,42 @@ export default class ParticipantController {
       participantId: this._participant?.id,
     });
     this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
+
+    this.subscribeToCopilotStatus();
+
     return this._participant;
+  }
+
+  dispose(): void {
+    this._copilotStatusSubscription?.dispose();
+  }
+
+  subscribeToCopilotStatus(): void {
+    const updateCopilotStatusContext = (): void => {
+      const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.isCopilotActive',
+        copilot?.isActive === true
+      );
+      if (copilot !== undefined && !copilot.isActive) {
+        // TODO: This is a workaround for https://github.com/microsoft/vscode/issues/234426
+        // The onDidChange event only gets fired if extensions get added or removed but
+        // not when they are activated; so retry after a delay and check again.
+        setTimeout(() => {
+          void vscode.commands.executeCommand(
+            'setContext',
+            'mdb.isCopilotActive',
+            copilot?.isActive === true
+          );
+        }, 3000);
+      }
+    };
+
+    this._copilotStatusSubscription = vscode.extensions.onDidChange(() =>
+      updateCopilotStatusContext()
+    );
+    updateCopilotStatusContext();
   }
 
   getParticipant(): vscode.ChatParticipant | undefined {
