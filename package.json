@@ -604,12 +604,12 @@
         },
         {
           "command": "mdb.askCopilotFromTreeItem",
-          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "when": "mdb.isCopilotActive == true && view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
           "group": "inline@1"
         },
         {
           "command": "mdb.askCopilotFromTreeItem",
-          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "when": "mdb.isCopilotActive == true && view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
           "group": "3@1"
         },
         {

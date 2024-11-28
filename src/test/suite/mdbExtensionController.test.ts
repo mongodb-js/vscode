@@ -524,8 +524,8 @@ suite('MDBExtensionController Test Suite', function () {
 
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
       assert(content.includes('// Create a new database.'));
-      assert(content.includes('NEW_DATABASE_NAME'));
-      assert(content.includes('NEW_COLLECTION_NAME'));
+      assert(content.includes('CURRENT_DATABASE'));
+      assert(content.includes('CURRENT_COLLECTION'));
     });
 
     test('mdb.addCollection should create a MongoDB playground with create collection template', async () => {
@@ -535,7 +535,7 @@ suite('MDBExtensionController Test Suite', function () {
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
       assert(content.includes('// The current database to use.'));
       assert(content.includes('zebra'));
-      assert(content.includes('NEW_COLLECTION_NAME'));
+      assert(content.includes('CURRENT_COLLECTION'));
       assert(!content.includes('time-series'));
     });
 

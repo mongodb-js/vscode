@@ -53,6 +53,7 @@ import type {
   SendMessageToParticipantOptions,
   SendMessageToParticipantFromInputOptions,
 } from './participant/participantTypes';
+import { logger } from 'mongodb-rag-core';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -174,7 +175,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     await this._languageServerController.startLanguageServer();
 
     this.registerCommands();
+    logger.info('this is running');
+    this.updateCopilotStatusContext();
     this.showOverviewPageIfRecentlyInstalled();
+
     void this.showSurveyForEstablishedUsers();
     void this.showCopilotIntroductionForEstablishedUsers();
   }
@@ -746,7 +750,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_CONNECTION_TREE_VIEW,
       (treeItem: DatabaseTreeItem | CollectionTreeItem) =>
-        this._playgroundController.createPlayground(treeItem)
+        this._playgroundController.createPlaygroundFromTreeView(treeItem)
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
@@ -946,6 +950,24 @@ export default class MDBExtensionController implements vscode.Disposable {
         true
       );
     }
+  }
+
+  updateCopilotStatusContext(): void {
+    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    void vscode.commands.executeCommand(
+      'setContext',
+      'mdb.isCopilotActive',
+      copilot?.isActive === true
+    );
+    logger.info(`coplit is ${copilot?.isActive}`);
+    vscode.extensions.onDidChange(() => {
+      const copilot = vscode.extensions.getExtension('github.copilot-chat');
+      void vscode.commands.executeCommand(
+        'setContext',
+        'mdb.isCopilotActive',
+        copilot?.isActive === true
+      );
+    });
   }
 
   async showCopilotIntroductionForEstablishedUsers(): Promise<void> {

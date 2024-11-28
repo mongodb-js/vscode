@@ -42,7 +42,6 @@ import {
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
-import { playgroundWithNamespaceTemplate } from '../templates/playgroundWithNameSpaceTemplate';
 
 const log = createLogger('playground controller');
 
@@ -243,7 +242,7 @@ export default class PlaygroundController {
 
     if (element instanceof DatabaseTreeItem) {
       content = content
-        .replace('NEW_DATABASE_NAME', element.databaseName)
+        .replace('CURRENT_DATABASE', element.databaseName)
         .replace('Create a new database', 'The current database to use');
       this._telemetryService.trackPlaygroundCreated('createCollection');
     } else {
@@ -318,22 +317,32 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
-  async createPlayground(
-    treeItem?: DatabaseTreeItem | CollectionTreeItem
+  async createPlaygroundFromTreeView(
+    treeItem: DatabaseTreeItem | CollectionTreeItem
   ): Promise<boolean> {
+    let content = '';
+    if (treeItem instanceof DatabaseTreeItem) {
+      content = playgroundInsertDocumentTemplate.replace(
+        'CURRENT_DATABASE',
+        treeItem.databaseName
+      );
+      this._telemetryService.trackPlaygroundCreated('fromDatabaseTreeItem');
+    } else if (treeItem instanceof CollectionTreeItem) {
+      content = playgroundInsertDocumentTemplate
+        .replace('CURRENT_DATABASE', treeItem.databaseName)
+        .replace('CURRENT_COLLECTION', treeItem.collectionName);
+      this._telemetryService.trackPlaygroundCreated('fromCollectionTreeItem');
+    }
+
+    return this._createPlaygroundFileWithContent(content);
+  }
+
+  async createPlayground(): Promise<boolean> {
     const useDefaultTemplate = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
     let content = '';
-
-    if (treeItem instanceof DatabaseTreeItem) {
-      content = playgroundWithNamespaceTemplate(treeItem.databaseName);
-    } else if (treeItem instanceof CollectionTreeItem) {
-      content = playgroundWithNamespaceTemplate(
-        treeItem.databaseName,
-        treeItem.collectionName
-      );
-    } else if (useDefaultTemplate) {
+    if (useDefaultTemplate) {
       const isStreams = this._connectionController.isConnectedToAtlasStreams();
       const template = isStreams
         ? playgroundStreamsTemplate
