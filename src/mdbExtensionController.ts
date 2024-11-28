@@ -52,6 +52,7 @@ import type {
   SendMessageToParticipantFromInputOptions,
 } from './participant/participantTypes';
 import { createLogger } from './logging';
+import { COPILOT_CHAT_EXTENSION_ID } from './participant/constants';
 const log = createLogger('connection controller');
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -985,7 +986,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
 
-    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    const copilot = vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID);
     if (result?.title === action) {
       await this._participantController.sendMessageToParticipant({
         message: '',

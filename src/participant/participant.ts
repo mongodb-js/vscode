@@ -869,13 +869,6 @@ export default class ParticipantController {
       collectionName: undefined,
     };
 
-    log.info(
-      `messages: ${util.inspect(
-        messagesWithNamespace.messages.map((c) => getContent(c))
-      )}`
-    );
-    log.info(`context.history: ${util.inspect(context.history, true, 10)}`);
-
     // When there's no user message content we can
     // skip the request to the model. This would happen with /schema.
     if (Prompts.doMessagesContainUserInput(messagesWithNamespace.messages)) {
@@ -899,7 +892,6 @@ export default class ParticipantController {
         modelInput: messagesWithNamespace,
         token,
       });
-      log.info(`with namespace: ${responseContentWithNamespace}`);
       ({ databaseName, collectionName } =
         Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
           responseContentWithNamespace

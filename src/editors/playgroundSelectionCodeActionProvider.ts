@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import EXTENSION_COMMANDS from '../commands';
 import { isPlayground, getSelectedText } from '../utils/playground';
+import { COPILOT_CHAT_EXTENSION_ID } from '../participant/constants';
 
 export const EXPORT_TO_LANGUAGE_ALIASES = [
   { id: 'csharp', alias: 'C#' },
@@ -42,7 +43,7 @@ export default class PlaygroundSelectionCodeActionProvider
 
   provideCodeActions(): vscode.CodeAction[] | undefined {
     const editor = vscode.window.activeTextEditor;
-    const copilot = vscode.extensions.getExtension('GitHub.copilot-chat');
+    const copilot = vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID);
     let codeActions: vscode.CodeAction[] = [
       this.createCodeAction({
         title: 'Run selected playground blocks',
