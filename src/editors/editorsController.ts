@@ -32,6 +32,7 @@ import type PlaygroundResultProvider from './playgroundResultProvider';
 import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import { StatusView } from '../views';
 import type TelemetryService from '../telemetry/telemetryService';
+import type { QueryWithCopilotCodeLensProvider } from './queryWithCopilotCodeLensProvider';
 
 const log = createLogger('editors controller');
 
@@ -102,6 +103,7 @@ export default class EditorsController {
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
+  _queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
 
   constructor({
     context,
@@ -115,6 +117,7 @@ export default class EditorsController {
     playgroundSelectionCodeActionProvider,
     playgroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider,
+    queryWithCopilotCodeLensProvider,
   }: {
     context: vscode.ExtensionContext;
     connectionController: ConnectionController;
@@ -127,6 +130,7 @@ export default class EditorsController {
     playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
     playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
+    queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
   }) {
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
@@ -160,6 +164,7 @@ export default class EditorsController {
       playgroundSelectionCodeActionProvider;
     this._playgroundDiagnosticsCodeActionProvider =
       playgroundDiagnosticsCodeActionProvider;
+    this._queryWithCopilotCodeLensProvider = queryWithCopilotCodeLensProvider;
 
     vscode.workspace.onDidCloseTextDocument((e) => {
       const uriParams = new URLSearchParams(e.uri.query);
@@ -410,6 +415,10 @@ export default class EditorsController {
       )
     );
     this._context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(
+        { language: 'javascript' },
+        this._queryWithCopilotCodeLensProvider
+      ),
       vscode.languages.registerCodeLensProvider(
         { language: 'javascript' },
         this._activeConnectionCodeLensProvider

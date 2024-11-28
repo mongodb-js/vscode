@@ -73,6 +73,8 @@ enum EXTENSION_COMMANDS {
 
   // Chat participant.
   OPEN_PARTICIPANT_CODE_IN_PLAYGROUND = 'mdb.openParticipantCodeInPlayground',
+  SEND_MESSAGE_TO_PARTICIPANT = 'mdb.sendMessageToParticipant',
+  SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT = 'mdb.sendMessageToParticipantFromInput',
   RUN_PARTICIPANT_CODE = 'mdb.runParticipantCode',
   CONNECT_WITH_PARTICIPANT = 'mdb.connectWithParticipant',
   SELECT_DATABASE_WITH_PARTICIPANT = 'mdb.selectDatabaseWithParticipant',

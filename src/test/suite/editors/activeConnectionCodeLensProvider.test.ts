@@ -61,9 +61,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
-        expect(codeLens[0].command?.title).to.be.equal(
-          'Disconnected. Click here to connect.'
-        );
+        expect(codeLens[0].command?.title).to.be.equal('Connect');
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
       });
@@ -111,9 +109,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
-        expect(codeLens[0].command?.title).to.be.equal(
-          'Currently connected to fakeName. Click here to change connection.'
-        );
+        expect(codeLens[0].command?.title).to.be.equal('Connected to fakeName');
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
         expect(codeLens[0].command?.command).to.be.equal(
@@ -133,7 +129,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
         expect(codeLens[0].command?.title).to.be.equal(
-          'Currently connected to fakeName with default database fakeDBName. Click here to change connection.'
+          'Connected to fakeName with default database fakeDBName'
         );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);

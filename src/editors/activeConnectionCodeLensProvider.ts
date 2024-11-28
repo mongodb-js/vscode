@@ -24,7 +24,7 @@ export default class ActiveConnectionCodeLensProvider
       this._onDidChangeCodeLenses.fire();
     });
 
-    this._activeConnectionChangedHandler = () => {
+    this._activeConnectionChangedHandler = (): void => {
       this._onDidChangeCodeLenses.fire();
     };
     this._connectionController.addEventListener(
@@ -50,10 +50,10 @@ export default class ActiveConnectionCodeLensProvider
         ? getDBFromConnectionString(connectionString)
         : null;
       message = defaultDB
-        ? `Currently connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}. Click here to change connection.`
-        : `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
+        ? `Connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}`
+        : `Connected to ${this._connectionController.getActiveConnectionName()}`;
     } else {
-      message = 'Disconnected. Click here to connect.';
+      message = 'Connect';
     }
 
     codeLens.command = {
@@ -65,7 +65,7 @@ export default class ActiveConnectionCodeLensProvider
     return [codeLens];
   }
 
-  deactivate() {
+  deactivate(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
       this._activeConnectionChangedHandler
