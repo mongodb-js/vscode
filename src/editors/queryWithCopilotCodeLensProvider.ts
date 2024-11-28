@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import EXTENSION_COMMANDS from '../commands';
 import type { SendMessageToParticipantFromInputOptions } from '../participant/participantTypes';
 import { isPlayground } from '../utils/playground';
-
-const COPILOT_CHAT_EXTENSION_ID = 'GitHub.copilot-chat';
+import { COPILOT_EXTENSION_ID } from '../participant/constants';
+import { DocumentSource } from '../documentSource';
 
 export class QueryWithCopilotCodeLensProvider
   implements vscode.CodeLensProvider
@@ -21,19 +21,19 @@ export class QueryWithCopilotCodeLensProvider
     // We can only detect whether a user has the Copilot extension active
     // but not whether it has an active subscription.
     const hasCopilotChatActive =
-      vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID)?.isActive ===
-      true;
+      vscode.extensions.getExtension(COPILOT_EXTENSION_ID)?.isActive === true;
 
     if (!hasCopilotChatActive) {
       return [];
     }
 
     const options: SendMessageToParticipantFromInputOptions = {
-      prompt: 'Describe the query you would like to generate.',
+      prompt: 'Describe the query you would like to generate',
       placeHolder:
         'e.g. Find the document in sample_mflix.users with the name of Kayden Washington',
       messagePrefix: '/query',
       isNewChat: true,
+      source: DocumentSource.DOCUMENT_SOURCE_QUERY_WITH_COPILOT_CODELENS,
     };
 
     return [

@@ -1,4 +1,5 @@
 import type * as vscode from 'vscode';
+import type { DocumentSource } from '../documentSource';
 
 export type SendMessageToParticipantOptions = {
   message: string;
@@ -8,5 +9,6 @@ export type SendMessageToParticipantOptions = {
 
 export type SendMessageToParticipantFromInputOptions = {
   messagePrefix?: string;
+  source?: DocumentSource;
 } & Omit<SendMessageToParticipantOptions, 'message'> &
   vscode.InputBoxOptions;

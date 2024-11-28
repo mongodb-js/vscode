@@ -725,7 +725,7 @@
         {
           "command": "mdb.selectTargetForExportToLanguage",
           "group": "navigation@1",
-          "when": "mdb.isPlayground == true"
+          "when": "mdb.isPlayground == true && mdb.isCopilotActive == true"
         },
         {
           "command": "mdb.runPlayground",
