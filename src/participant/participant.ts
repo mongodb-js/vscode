@@ -250,7 +250,6 @@ export default class ParticipantController {
       message: '',
       isPartialQuery: true,
     });
-    log.info(`after: ${util.inspect(this._chatMetadataStore._chats)}`);
     return undefined;
   }
 

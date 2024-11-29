@@ -51,9 +51,8 @@ import type {
   SendMessageToParticipantOptions,
   SendMessageToParticipantFromInputOptions,
 } from './participant/participantTypes';
-import { createLogger } from './logging';
 import { COPILOT_CHAT_EXTENSION_ID } from './participant/constants';
-const log = createLogger('connection controller');
+
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {

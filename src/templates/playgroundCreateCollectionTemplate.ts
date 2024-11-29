@@ -6,7 +6,7 @@ const template = `/* global use, db */
 use('CURRENT_DATABASE');
 
 // Create a new collection.
-db.createCollection('CURRENT_COLLECTION');
+db.createCollection('NEW_COLLECTION_NAME');
 
 // The prototype form to create a collection:
 /* db.createCollection( <name>,
