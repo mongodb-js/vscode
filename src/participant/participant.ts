@@ -236,14 +236,15 @@ export default class ParticipantController {
         message: `I want to ask questions about the \`${databaseName}\` database.`,
         isNewChat: true,
       });
-    }
-    if (treeItem instanceof CollectionTreeItem) {
+    } else if (treeItem instanceof CollectionTreeItem) {
       const { databaseName, collectionName } = treeItem;
 
       await this.sendMessageToParticipant({
         message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
         isNewChat: true,
       });
+    } else {
+      throw new Error('Unsupported tree item type');
     }
 
     await this.sendMessageToParticipant({
