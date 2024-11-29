@@ -30,7 +30,7 @@ export type SendMessageToParticipantOptions = {
   command?: ParticipantCommandType;
   isNewChat?: boolean;
   isPartialQuery?: boolean;
-  metadata?: TelemetryMetadata;
+  telemetry?: TelemetryMetadata;
   /**
    * Any previous chat requests and responses that should be shown in the chat view.
    * Note that currently these requests do not end up included in vscode's context.history.
@@ -43,6 +43,6 @@ export type SendMessageToParticipantOptions = {
 
 export type SendMessageToParticipantFromInputOptions = Pick<
   SendMessageToParticipantOptions,
-  'isNewChat' | 'isPartialQuery' | 'command' | 'metadata'
+  'isNewChat' | 'isPartialQuery' | 'command' | 'telemetry'
 > &
   vscode.InputBoxOptions;

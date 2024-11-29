@@ -33,7 +33,7 @@ export class QueryWithCopilotCodeLensProvider
         'e.g. Find the document in sample_mflix.users with the name of Kayden Washington',
       command: 'query',
       isNewChat: true,
-      metadata: {
+      telemetry: {
         source: DocumentSource.DOCUMENT_SOURCE_CODELENS,
         sourceDetails: 'query with copilot code lens',
       },

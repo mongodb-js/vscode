@@ -1846,7 +1846,7 @@ Schema:
             {
               message: '',
               isPartialQuery: true,
-              metadata: {
+              telemetry: {
                 source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
                 sourceDetails: 'copilot button on database tree item',
               },
@@ -1877,7 +1877,7 @@ Schema:
             {
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
-              metadata: {
+              telemetry: {
                 source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
                 sourceDetails: 'copilot button on collection tree item',
               },

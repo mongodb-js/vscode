@@ -180,7 +180,7 @@ export default class ParticipantController {
       message,
       isNewChat = false,
       isPartialQuery = false,
-      metadata,
+      telemetry,
       command,
       ...otherOptions
     } = options;
@@ -194,16 +194,16 @@ export default class ParticipantController {
     const commandPrefix = command ? `/${command} ` : '';
     const query = `@MongoDB ${commandPrefix}${message}`;
 
-    if (metadata) {
+    if (telemetry) {
       if (isNewChat) {
         this._telemetryService.trackParticipantChatOpenedFromAction({
-          ...metadata,
+          ...telemetry,
           command,
         });
       }
       if (!isPartialQuery) {
         this._telemetryService.trackParticipantPromptSubmittedFromAction({
-          ...metadata,
+          ...telemetry,
           command: command ?? 'generic',
           input_length: query.length,
         });
@@ -220,16 +220,21 @@ export default class ParticipantController {
   async sendMessageToParticipantFromInput(
     options: SendMessageToParticipantFromInputOptions
   ): Promise<unknown> {
-    const { isNewChat, isPartialQuery, metadata, command, ...inputBoxOptions } =
-      options;
+    const {
+      isNewChat,
+      isPartialQuery,
+      telemetry,
+      command,
+      ...inputBoxOptions
+    } = options;
 
     const message = await vscode.window.showInputBox({
       ...inputBoxOptions,
     });
 
-    if (metadata) {
+    if (telemetry) {
       this._telemetryService.trackParticipantInputBoxOpened({
-        ...metadata,
+        ...telemetry,
         input_length: message?.length,
         command,
       });
@@ -241,7 +246,7 @@ export default class ParticipantController {
 
     return this.sendMessageToParticipant({
       message,
-      metadata,
+      telemetry,
       command,
       isNewChat,
       isPartialQuery,
@@ -257,7 +262,7 @@ export default class ParticipantController {
       await this.sendMessageToParticipant({
         message: `I want to ask questions about the \`${databaseName}\` database.`,
         isNewChat: true,
-        metadata: {
+        telemetry: {
           source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
           sourceDetails: 'copilot button on database tree item',
         },
@@ -268,7 +273,7 @@ export default class ParticipantController {
       await this.sendMessageToParticipant({
         message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
         isNewChat: true,
-        metadata: {
+        telemetry: {
           source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
           sourceDetails: 'copilot button on collection tree item',
         },
