@@ -1,6 +1,6 @@
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
 import * as vscode from 'vscode';
-import type { ParticipantCommand } from '../../../participant/participant';
+import type { ParticipantCommand } from '../../../participant/participantTypes';
 
 export function createChatRequestTurn(
   command: ParticipantCommand | undefined,
