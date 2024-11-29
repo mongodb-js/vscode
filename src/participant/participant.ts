@@ -233,9 +233,10 @@ export default class ParticipantController {
     });
 
     if (telemetry) {
-      this._telemetryService.trackParticipantInputBoxOpened({
+      this._telemetryService.trackParticipantInputBoxSubmitted({
         ...telemetry,
         input_length: message?.length,
+        dismissed: message === undefined,
         command,
       });
     }

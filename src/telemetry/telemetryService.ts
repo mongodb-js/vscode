@@ -142,9 +142,10 @@ export type ParticipantChatOpenedFromActionProperties = {
   command?: ParticipantCommandType;
 };
 
-export type ParticipantInputBoxOpened = {
+export type ParticipantInputBoxSubmitted = {
   source: DocumentSource;
   input_length: number | undefined;
+  dismissed: boolean;
   command?: ParticipantCommandType;
 };
 
@@ -208,8 +209,8 @@ export enum TelemetryEventTypes {
   PARTICIPANT_PROMPT_SUBMITTED_FROM_ACTION = 'Participant Prompt Submitted From Action',
   /** Tracks when a new chat was opened from an action such as clicking on a tree view. */
   PARTICIPANT_CHAT_OPENED_FROM_ACTION = 'Participant Chat Opened From Action',
-  /** Tracks when we open an input box to let the user write the prompt for participant. */
-  PARTICIPANT_INPUT_BOX_OPENED = 'Participant Inbox Box Opened',
+  /** Tracks after a participant interacts with the input box we open to let the user write the prompt for participant. */
+  PARTICIPANT_INPUT_BOX_SUBMITTED = 'Participant Inbox Box Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
   COPILOT_INTRODUCTION_CLICKED = 'Copilot Introduction Clicked',
   COPILOT_INTRODUCTION_DISMISSED = 'Copilot Introduction Dismissed',
@@ -480,8 +481,8 @@ export default class TelemetryService {
     this.track(TelemetryEventTypes.PARTICIPANT_CHAT_OPENED_FROM_ACTION, props);
   }
 
-  trackParticipantInputBoxOpened(props: ParticipantInputBoxOpened): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_INPUT_BOX_OPENED, props);
+  trackParticipantInputBoxSubmitted(props: ParticipantInputBoxSubmitted): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_INPUT_BOX_SUBMITTED, props);
   }
 
   trackParticipantError(err: any, command: ParticipantResponseType): void {
