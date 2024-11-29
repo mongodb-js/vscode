@@ -1839,6 +1839,10 @@ Schema:
             {
               message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
               isNewChat: true,
+              telemetry: {
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                sourceDetails: 'copilot button on database tree item',
+              },
             },
           ]);
 
@@ -1846,10 +1850,6 @@ Schema:
             {
               message: '',
               isPartialQuery: true,
-              telemetry: {
-                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-                sourceDetails: 'copilot button on database tree item',
-              },
             },
           ]);
         });
