@@ -44,6 +44,7 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../../../explorer';
 import type { SendMessageToParticipantOptions } from '../../../participant/participantTypes';
+import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -1845,6 +1846,10 @@ Schema:
             {
               message: '',
               isPartialQuery: true,
+              metadata: {
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                sourceDetails: 'copilot button on database tree item',
+              },
             },
           ]);
         });
@@ -1872,6 +1877,10 @@ Schema:
             {
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
+              metadata: {
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                sourceDetails: 'copilot button on collection tree item',
+              },
             },
           ]);
 
