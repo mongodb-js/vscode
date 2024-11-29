@@ -31,9 +31,12 @@ export class QueryWithCopilotCodeLensProvider
       prompt: 'Describe the query you would like to generate',
       placeHolder:
         'e.g. Find the document in sample_mflix.users with the name of Kayden Washington',
-      messagePrefix: '/query',
+      command: 'query',
       isNewChat: true,
-      source: DocumentSource.DOCUMENT_SOURCE_QUERY_WITH_COPILOT_CODELENS,
+      metadata: {
+        source: DocumentSource.DOCUMENT_SOURCE_CODELENS,
+        sourceDetails: 'query with copilot code lens',
+      },
     };
 
     return [

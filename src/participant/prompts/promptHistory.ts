@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ParticipantErrorTypes } from '../participantErrorTypes';
-import type { ChatResult, ParticipantResponseType } from '../constants';
+import type { ChatResult } from '../constants';
+import type { ParticipantResponseType } from '../participantTypes';
 
 export class PromptHistory {
   private static _handleChatResponseTurn({

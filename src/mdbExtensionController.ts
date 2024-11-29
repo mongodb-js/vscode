@@ -25,7 +25,7 @@ import {
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { type ExportToLanguageResult } from './types/playgroundType';
-import EXTENSION_COMMANDS from './commands';
+import type { ExtensionCommand } from './commands';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
 import { LanguageServerController } from './language';
@@ -40,10 +40,7 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
-import type {
-  ParticipantCommand,
-  RunParticipantCodeCommandArgs,
-} from './participant/participant';
+import type { RunParticipantCodeCommandArgs } from './participant/participant';
 import ParticipantController from './participant/participant';
 import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
 import { QueryWithCopilotCodeLensProvider } from './editors/queryWithCopilotCodeLensProvider';
@@ -52,6 +49,8 @@ import type {
   SendMessageToParticipantFromInputOptions,
 } from './participant/participantTypes';
 import { COPILOT_CHAT_EXTENSION_ID } from './participant/constants';
+import type { ParticipantCommand } from './participant/participantTypes';
+import EXTENSION_COMMANDS from './commands';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -385,7 +384,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   };
 
   registerParticipantCommand = (
-    command: string,
+    command: ExtensionCommand,
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
@@ -403,7 +402,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   };
 
   registerCommand = (
-    command: string,
+    command: ExtensionCommand,
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {

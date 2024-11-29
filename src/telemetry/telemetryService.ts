@@ -12,8 +12,13 @@ import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
 import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
-import type { ParticipantResponseType } from '../participant/constants';
 import { ParticipantErrorTypes } from '../participant/participantErrorTypes';
+import type { ExtensionCommand } from '../commands';
+import type {
+  ParticipantCommandType,
+  ParticipantRequestType,
+  ParticipantResponseType,
+} from '../participant/participantTypes';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -37,7 +42,7 @@ type LinkClickedTelemetryEventProperties = {
 };
 
 type ExtensionCommandRunTelemetryEventProperties = {
-  command: string;
+  command: ExtensionCommand;
 };
 
 type DocumentUpdatedTelemetryEventProperties = {
@@ -98,7 +103,7 @@ type ParticipantFeedbackProperties = {
 };
 
 type ParticipantResponseFailedProperties = {
-  command: string;
+  command: ParticipantResponseType;
   error_code?: string;
   error_name: ParticipantErrorTypes;
 };
@@ -106,7 +111,7 @@ type ParticipantResponseFailedProperties = {
 export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
 
 export type ParticipantPromptProperties = {
-  command: string;
+  command: ParticipantCommandType;
   user_input_length: number;
   total_message_length: number;
   has_sample_documents: boolean;
@@ -115,7 +120,7 @@ export type ParticipantPromptProperties = {
 };
 
 export type ParticipantResponseProperties = {
-  command: string;
+  command: ParticipantResponseType;
   has_cta: boolean;
   has_runnable_content: boolean;
   found_namespace: boolean;
@@ -126,8 +131,21 @@ export type CopilotIntroductionProperties = {
   is_copilot_active: boolean;
 };
 
-export type ParticipantOpenedFromInputBoxProperties = {
-  source?: DocumentSource;
+export type ParticipantPromptSubmittedFromActionProperties = {
+  source: DocumentSource;
+  input_length: number;
+  command: ParticipantRequestType;
+};
+
+export type ParticipantChatOpenedFromActionProperties = {
+  source: DocumentSource;
+  command?: ParticipantCommandType;
+};
+
+export type ParticipantInputBoxOpened = {
+  source: DocumentSource;
+  input_length: number | undefined;
+  command?: ParticipantCommandType;
 };
 
 export function chatResultFeedbackKindToTelemetryValue(
@@ -160,7 +178,8 @@ type TelemetryEventProperties =
   | ParticipantFeedbackProperties
   | ParticipantResponseFailedProperties
   | ParticipantPromptProperties
-  | ParticipantOpenedFromInputBoxProperties
+  | ParticipantPromptSubmittedFromActionProperties
+  | ParticipantChatOpenedFromActionProperties
   | ParticipantResponseProperties
   | CopilotIntroductionProperties;
 
@@ -182,9 +201,16 @@ export enum TelemetryEventTypes {
   PARTICIPANT_FEEDBACK = 'Participant Feedback',
   PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
   PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
+  /** Tracks all submitted prompts */
   PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
+  /** Tracks prompts that were submitted as a result of an action other than
+   * the user typing the message, such as clicking on an item in tree view or a codelens */
+  PARTICIPANT_PROMPT_SUBMITTED_FROM_ACTION = 'Participant Prompt Submitted From Action',
+  /** Tracks when a new chat was opened from an action such as clicking on a tree view. */
+  PARTICIPANT_CHAT_OPENED_FROM_ACTION = 'Participant Chat Opened From Action',
+  /** Tracks when we open an input box to let the user write the prompt for participant. */
+  PARTICIPANT_INPUT_BOX_OPENED = 'Participant Inbox Box Opened',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
-  PARTICIPANT_SUBMITTED_FROM_INPUT_BOX = 'Participant Submitted From Input Box',
   COPILOT_INTRODUCTION_CLICKED = 'Copilot Introduction Clicked',
   COPILOT_INTRODUCTION_DISMISSED = 'Copilot Introduction Dismissed',
 }
@@ -326,7 +352,7 @@ export default class TelemetryService {
     );
   }
 
-  trackCommandRun(command: string): void {
+  trackCommandRun(command: ExtensionCommand): void {
     this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
   }
 
@@ -435,17 +461,30 @@ export default class TelemetryService {
     );
   }
 
-  trackCopilotParticipantFeedback(props: ParticipantFeedbackProperties): void {
+  trackParticipantFeedback(props: ParticipantFeedbackProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_FEEDBACK, props);
   }
 
-  trackCopilotParticipantSubmittedFromInputBox(
-    props: ParticipantOpenedFromInputBoxProperties
+  trackParticipantPromptSubmittedFromAction(
+    props: ParticipantPromptSubmittedFromActionProperties
   ): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_SUBMITTED_FROM_INPUT_BOX, props);
+    this.track(
+      TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED_FROM_ACTION,
+      props
+    );
   }
 
-  trackCopilotParticipantError(err: any, command: string): void {
+  trackParticipantChatOpenedFromAction(
+    props: ParticipantChatOpenedFromActionProperties
+  ): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_CHAT_OPENED_FROM_ACTION, props);
+  }
+
+  trackParticipantInputBoxOpened(props: ParticipantInputBoxOpened): void {
+    this.track(TelemetryEventTypes.PARTICIPANT_INPUT_BOX_OPENED, props);
+  }
+
+  trackParticipantError(err: any, command: ParticipantResponseType): void {
     let errorCode: string | undefined;
     let errorName: ParticipantErrorTypes;
     // Making the chat request might fail because
@@ -477,14 +516,14 @@ export default class TelemetryService {
       command,
       error_code: errorCode,
       error_name: errorName,
-    });
+    } as ParticipantResponseFailedProperties);
   }
 
-  trackCopilotParticipantPrompt(stats: ParticipantPromptProperties): void {
+  trackParticipantPrompt(stats: ParticipantPromptProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED, stats);
   }
 
-  trackCopilotParticipantResponse(props: ParticipantResponseProperties): void {
+  trackParticipantResponse(props: ParticipantResponseProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
   }
 

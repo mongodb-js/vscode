@@ -53,10 +53,13 @@ import { PromptHistory } from './prompts/promptHistory';
 import type {
   SendMessageToParticipantOptions,
   SendMessageToParticipantFromInputOptions,
+  ParticipantCommand,
+  ParticipantCommandType,
 } from './participantTypes';
 import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
 import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
+import { DocumentSource } from '../documentSource';
 
 const log = createLogger('participant');
 
@@ -72,8 +75,6 @@ interface ParticipantQuickPicks {
 export type RunParticipantCodeCommandArgs = {
   runnableContent: string;
 };
-
-export type ParticipantCommand = '/query' | '/schema' | '/docs';
 
 const MAX_MARKDOWN_LIST_LENGTH = 10;
 
@@ -179,6 +180,8 @@ export default class ParticipantController {
       message,
       isNewChat = false,
       isPartialQuery = false,
+      metadata,
+      command,
       ...otherOptions
     } = options;
 
@@ -188,10 +191,28 @@ export default class ParticipantController {
         'workbench.action.chat.clearHistory'
       );
     }
+    const commandPrefix = command ? `/${command} ` : '';
+    const query = `@MongoDB ${commandPrefix}${message}`;
+
+    if (metadata) {
+      if (isNewChat) {
+        this._telemetryService.trackParticipantChatOpenedFromAction({
+          ...metadata,
+          command,
+        });
+      }
+      if (!isPartialQuery) {
+        this._telemetryService.trackParticipantPromptSubmittedFromAction({
+          ...metadata,
+          command: command ?? 'generic',
+          input_length: query.length,
+        });
+      }
+    }
 
     return await vscode.commands.executeCommand('workbench.action.chat.open', {
       ...otherOptions,
-      query: `@MongoDB ${message}`,
+      query,
       isPartialQuery,
     });
   }
@@ -199,28 +220,29 @@ export default class ParticipantController {
   async sendMessageToParticipantFromInput(
     options: SendMessageToParticipantFromInputOptions
   ): Promise<unknown> {
-    const {
-      messagePrefix = '',
-      isNewChat = false,
-      isPartialQuery = false,
-      source,
-      ...inputBoxOptions
-    } = options;
-
-    this._telemetryService.trackCopilotParticipantSubmittedFromInputBox({
-      source,
-    });
+    const { isNewChat, isPartialQuery, metadata, command, ...inputBoxOptions } =
+      options;
 
     const message = await vscode.window.showInputBox({
       ...inputBoxOptions,
     });
+
+    if (metadata) {
+      this._telemetryService.trackParticipantInputBoxOpened({
+        ...metadata,
+        input_length: message?.length,
+        command,
+      });
+    }
 
     if (message === undefined || message.trim() === '') {
       return Promise.resolve();
     }
 
     return this.sendMessageToParticipant({
-      message: `${messagePrefix ? `${messagePrefix} ` : ''}${message}`,
+      message,
+      metadata,
+      command,
       isNewChat,
       isPartialQuery,
     });
@@ -235,6 +257,10 @@ export default class ParticipantController {
       await this.sendMessageToParticipant({
         message: `I want to ask questions about the \`${databaseName}\` database.`,
         isNewChat: true,
+        metadata: {
+          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+          sourceDetails: 'copilot button on database tree item',
+        },
       });
     } else if (treeItem instanceof CollectionTreeItem) {
       const { databaseName, collectionName } = treeItem;
@@ -242,6 +268,10 @@ export default class ParticipantController {
       await this.sendMessageToParticipant({
         message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
         isNewChat: true,
+        metadata: {
+          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+          sourceDetails: 'copilot button on collection tree item',
+        },
       });
     } else {
       throw new Error('Unsupported tree item type');
@@ -276,7 +306,7 @@ export default class ParticipantController {
           })
       ),
     });
-    this._telemetryService.trackCopilotParticipantPrompt(modelInput.stats);
+    this._telemetryService.trackParticipantPrompt(modelInput.stats);
 
     const modelResponse = await model.sendRequest(
       modelInput.messages,
@@ -456,7 +486,7 @@ export default class ParticipantController {
         stream,
       });
 
-    this._telemetryService.trackCopilotParticipantResponse({
+    this._telemetryService.trackParticipantResponse({
       command: 'generic',
       has_cta: false,
       found_namespace: false,
@@ -1423,7 +1453,7 @@ export default class ParticipantController {
       ],
     });
 
-    this._telemetryService.trackCopilotParticipantResponse({
+    this._telemetryService.trackParticipantResponse({
       command: 'schema',
       has_cta: true,
       found_namespace: true,
@@ -1534,7 +1564,7 @@ export default class ParticipantController {
         token,
       });
 
-    this._telemetryService.trackCopilotParticipantResponse({
+    this._telemetryService.trackParticipantResponse({
       command: 'query',
       has_cta: false,
       found_namespace: true,
@@ -1640,7 +1670,7 @@ export default class ParticipantController {
 
     this._streamGenericDocsLink(stream);
 
-    this._telemetryService.trackCopilotParticipantResponse({
+    this._telemetryService.trackParticipantResponse({
       command: 'docs/copilot',
       has_cta: true,
       found_namespace: false,
@@ -1720,7 +1750,7 @@ export default class ParticipantController {
         }
       }
 
-      this._telemetryService.trackCopilotParticipantResponse({
+      this._telemetryService.trackParticipantResponse({
         command: 'docs/chatbot',
         has_cta: !!docsResult.responseReferences,
         found_namespace: false,
@@ -1838,10 +1868,7 @@ export default class ParticipantController {
       return true;
     } catch (error) {
       const message = formatError(error).message;
-      this._telemetryService.trackCopilotParticipantError(
-        error,
-        'exportToPlayground'
-      );
+      this._telemetryService.trackParticipantError(error, 'exportToPlayground');
       void vscode.window.showErrorMessage(
         `An error occurred exporting to a playground: ${message}`
       );
@@ -1948,9 +1975,9 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
           return await this.handleGenericRequest(...args);
       }
     } catch (error) {
-      this._telemetryService.trackCopilotParticipantError(
+      this._telemetryService.trackParticipantError(
         error,
-        request.command || 'generic'
+        (request.command as ParticipantCommandType) || 'generic'
       );
       // Re-throw other errors so they show up in the UI.
       throw error;
@@ -1999,7 +2026,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       'unhelpfulReason' in feedback
         ? (feedback.unhelpfulReason as string)
         : undefined;
-    this._telemetryService.trackCopilotParticipantFeedback({
+    this._telemetryService.trackParticipantFeedback({
       feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
       reason: unhelpfulReason,
       response_type: (feedback.result as ChatResult)?.metadata.intent,

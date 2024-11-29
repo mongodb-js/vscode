@@ -2583,7 +2583,7 @@ Schema:
 
     test('reports error', function () {
       const err = Error('Filtered by Responsible AI Service');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'query'
       );
@@ -2604,7 +2604,7 @@ Schema:
     test('reports nested error', function () {
       const err = new Error('Parent error');
       err.cause = Error('This message is flagged as off topic: off_topic.');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'docs'
       );
@@ -2623,7 +2623,7 @@ Schema:
     test('Reports error code when available', function () {
       // eslint-disable-next-line new-cap
       const err = vscode.LanguageModelError.NotFound('Model not found');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'schema'
       );
