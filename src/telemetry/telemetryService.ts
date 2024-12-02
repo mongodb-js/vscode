@@ -517,7 +517,7 @@ export default class TelemetryService {
       command,
       error_code: errorCode,
       error_name: errorName,
-    } as ParticipantResponseFailedProperties);
+    } satisfies ParticipantResponseFailedProperties);
   }
 
   trackParticipantPrompt(stats: ParticipantPromptProperties): void {
