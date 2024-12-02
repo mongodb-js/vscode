@@ -256,7 +256,7 @@ export default class ParticipantController {
 
   async askCopilotFromTreeItem(
     treeItem: DatabaseTreeItem | CollectionTreeItem
-  ): Promise<unknown> {
+  ): Promise<void> {
     if (treeItem instanceof DatabaseTreeItem) {
       const { databaseName } = treeItem;
 
@@ -287,7 +287,6 @@ export default class ParticipantController {
       message: '',
       isPartialQuery: true,
     });
-    return undefined;
   }
 
   async _getChatResponse({
