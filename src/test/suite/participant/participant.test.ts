@@ -2038,7 +2038,7 @@ Schema:
   suite('prompt builders', function () {
     suite('prompt history', function () {
       test('gets filtered once history goes over maxInputTokens', async function () {
-        const expectedMaxMessages = 8;
+        const expectedMaxMessages = 10;
 
         const mockedMessages = Array.from(
           { length: 20 },
@@ -2065,11 +2065,18 @@ Schema:
           connectionNames: [],
         });
 
-        // Should include the limit and the initial generic prompt and the newly sent request
-        expect(messages.length + 2).equals(expectedMaxMessages);
+        expect(messages.length).equals(expectedMaxMessages);
+
+        // Should consist of the assistant prompt (1 token), 8 history messages (8 tokens),
+        // and the new request (1 token)
         expect(
           messages.slice(1).map((message) => getMessageContent(message))
-        ).deep.equal([...mockedMessages, chatRequestMock.prompt]);
+        ).deep.equal([
+          ...mockedMessages.slice(
+            mockedMessages.length - (expectedMaxMessages - 2)
+          ),
+          chatRequestMock.prompt,
+        ]);
       });
     });
 

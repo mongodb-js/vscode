@@ -101,9 +101,9 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
     return undefined;
   }
 
-  protected getUserPrompt(
-    request: PromptArgsBase['request']
-  ): Promise<UserPromptResponse> {
+  protected getUserPrompt({
+    request,
+  }: PromptArgs): Promise<UserPromptResponse> {
     return Promise.resolve({
       prompt: request.prompt,
       hasSampleDocs: false,
@@ -121,7 +121,7 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
       this.getAssistantPrompt(args)
     );
 
-    const { prompt, hasSampleDocs } = await this.getUserPrompt(request);
+    const { prompt, hasSampleDocs } = await this.getUserPrompt(args);
     // eslint-disable-next-line new-cap
     const userPrompt = vscode.LanguageModelChatMessage.User(prompt);
 
