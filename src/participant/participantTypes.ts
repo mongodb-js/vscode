@@ -1,7 +1,6 @@
 import type * as vscode from 'vscode';
 import type { DocumentSource } from '../documentSource';
 
-/** Based on options from Copilot's chat open command IChatViewOpenOptions */
 export type SendMessageToParticipantOptions = {
   message: string;
   isNewChat?: boolean;
