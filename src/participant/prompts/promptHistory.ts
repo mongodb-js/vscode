@@ -105,26 +105,28 @@ export class PromptHistory {
   /** When passing the history to the model we only want contextual messages
   to be passed. This function parses through the history and returns
   the messages that are valuable to keep. */
-  static getFilteredHistory({
+  static async getFilteredHistory({
+    model,
+    tokenLimit,
     connectionNames,
     history,
-    databaseName,
-    collectionName,
+    namespaceIsKnown,
   }: {
+    model?: vscode.LanguageModelChat | undefined;
+    tokenLimit?: number;
     connectionNames?: string[]; // Used to scrape the connecting messages from the history.
     history?: vscode.ChatContext['history'];
-    databaseName?: string;
-    collectionName?: string;
-  }): vscode.LanguageModelChatMessage[] {
+    namespaceIsKnown: boolean;
+  }): Promise<vscode.LanguageModelChatMessage[]> {
     const messages: vscode.LanguageModelChatMessage[] = [];
 
     if (!history) {
       return [];
     }
 
-    const namespaceIsKnown =
-      databaseName !== undefined && collectionName !== undefined;
-    for (let i = 0; i < history.length; i++) {
+    let totalUsedTokens = 0;
+
+    for (let i = history.length - 1; i >= 0; i--) {
       const currentTurn = history[i];
 
       let addedMessage: vscode.LanguageModelChatMessage | undefined;
@@ -146,16 +148,22 @@ export class PromptHistory {
         });
       }
       if (addedMessage) {
+        if (model && tokenLimit) {
+          totalUsedTokens += await model.countTokens(addedMessage);
+          if (totalUsedTokens > tokenLimit) {
+            break;
+          }
+        }
         messages.push(addedMessage);
       }
     }
 
-    return messages;
+    return messages.reverse();
   }
 
   /** The docs chatbot keeps its own history so we avoid any
    * we need to include history only since last docs message. */
-  static getFilteredHistoryForDocs({
+  static async getFilteredHistoryForDocs({
     connectionNames,
     context,
     databaseName,
@@ -165,7 +173,7 @@ export class PromptHistory {
     context?: vscode.ChatContext;
     databaseName?: string;
     collectionName?: string;
-  }): vscode.LanguageModelChatMessage[] {
+  }): Promise<vscode.LanguageModelChatMessage[]> {
     if (!context) {
       return [];
     }
@@ -191,8 +199,8 @@ export class PromptHistory {
     return this.getFilteredHistory({
       connectionNames,
       history: historySinceLastDocs.reverse(),
-      databaseName,
-      collectionName,
+      namespaceIsKnown:
+        databaseName !== undefined && collectionName !== undefined,
     });
   }
 }

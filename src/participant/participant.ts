@@ -1511,7 +1511,7 @@ export default class ParticipantController {
       log.info('Docs chatbot created for chatId', chatId);
     }
 
-    const history = PromptHistory.getFilteredHistoryForDocs({
+    const history = await PromptHistory.getFilteredHistoryForDocs({
       connectionNames: this._getConnectionNames(),
       context: context,
     });

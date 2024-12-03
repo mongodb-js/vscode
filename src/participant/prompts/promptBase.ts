@@ -5,6 +5,7 @@ import type {
   ParticipantPromptProperties,
 } from '../../telemetry/telemetryService';
 import { PromptHistory } from './promptHistory';
+import { getCopilotModel } from '../model';
 
 export interface PromptArgsBase {
   request: {
@@ -93,34 +94,64 @@ export function isContentEmpty(
   return true;
 }
 
-export abstract class PromptBase<TArgs extends PromptArgsBase> {
-  protected abstract getAssistantPrompt(args: TArgs): string;
+export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
+  protected abstract getAssistantPrompt(args: PromptArgs): string;
 
   protected get internalPurposeForTelemetry(): InternalPromptPurpose {
     return undefined;
   }
 
-  protected getUserPrompt(args: TArgs): Promise<UserPromptResponse> {
+  protected getUserPrompt(
+    request: PromptArgsBase['request']
+  ): Promise<UserPromptResponse> {
     return Promise.resolve({
-      prompt: args.request.prompt,
+      prompt: request.prompt,
       hasSampleDocs: false,
     });
   }
 
-  async buildMessages(args: TArgs): Promise<ModelInput> {
-    let historyMessages = PromptHistory.getFilteredHistory({
-      history: args.context?.history,
-      ...args,
+  async buildMessages(args: PromptArgs): Promise<ModelInput> {
+    const { context, request, databaseName, collectionName, connectionNames } =
+      args;
+
+    const model = await getCopilotModel();
+
+    // eslint-disable-next-line new-cap
+    const assistantPrompt = vscode.LanguageModelChatMessage.Assistant(
+      this.getAssistantPrompt(args)
+    );
+
+    const { prompt, hasSampleDocs } = await this.getUserPrompt(request);
+    // eslint-disable-next-line new-cap
+    const userPrompt = vscode.LanguageModelChatMessage.User(prompt);
+
+    let tokenLimit: number | undefined;
+    if (model) {
+      const [assistantPromptTokens, userPromptTokens] = await Promise.all([
+        model.countTokens(assistantPrompt),
+        model.countTokens(userPrompt),
+      ]);
+      tokenLimit =
+        model.maxInputTokens - (assistantPromptTokens + userPromptTokens);
+    }
+
+    let historyMessages = await PromptHistory.getFilteredHistory({
+      history: context?.history,
+      model,
+      tokenLimit,
+      namespaceIsKnown:
+        databaseName !== undefined && collectionName !== undefined,
+      connectionNames,
     });
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
-    if (args.connectionNames?.includes(args.request.prompt)) {
-      const history = args.context?.history;
+    if (connectionNames?.includes(request.prompt)) {
+      const history = context?.history;
       if (!history) {
         return {
           messages: [],
-          stats: this.getStats([], args, false),
+          stats: this.getStats([], { request, context }, false),
         };
       }
       const previousResponse = history[
@@ -135,7 +166,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
             args = {
               ...args,
               request: {
-                ...args.request,
+                ...request,
                 prompt: (history[i] as vscode.ChatRequestTurn).prompt,
               },
             };
@@ -148,24 +179,17 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       }
     }
 
-    const { prompt, hasSampleDocs } = await this.getUserPrompt(args);
-    const messages = [
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.Assistant(this.getAssistantPrompt(args)),
-      ...historyMessages,
-      // eslint-disable-next-line new-cap
-      vscode.LanguageModelChatMessage.User(prompt),
-    ];
+    const messages = [assistantPrompt, ...historyMessages, userPrompt];
 
     return {
       messages,
-      stats: this.getStats(messages, args, hasSampleDocs),
+      stats: this.getStats(messages, { request, context }, hasSampleDocs),
     };
   }
 
   protected getStats(
     messages: vscode.LanguageModelChatMessage[],
-    { request, context }: TArgs,
+    { request, context }: Pick<PromptArgsBase, 'request' | 'context'>,
     hasSampleDocs: boolean
   ): ParticipantPromptProperties {
     return {

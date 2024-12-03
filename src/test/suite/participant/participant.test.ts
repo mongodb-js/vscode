@@ -2036,6 +2036,43 @@ Schema:
   });
 
   suite('prompt builders', function () {
+    suite('prompt history', function () {
+      test('gets filtered once history goes over maxInputTokens', async function () {
+        const expectedMaxMessages = 8;
+
+        const mockedMessages = Array.from(
+          { length: 20 },
+          (_, index) => `Message ${index}`
+        );
+
+        sinon.stub(model, 'getCopilotModel').resolves({
+          maxInputTokens: expectedMaxMessages,
+          // Make each message count as 1 token
+          countTokens: () => 1,
+        } as unknown as vscode.LanguageModelChat);
+
+        chatContextStub = {
+          history: mockedMessages.map((messageText) =>
+            createChatRequestTurn(undefined, messageText)
+          ),
+        };
+        const chatRequestMock = {
+          prompt: 'find all docs by a name example',
+        };
+        const { messages } = await Prompts.generic.buildMessages({
+          context: chatContextStub,
+          request: chatRequestMock,
+          connectionNames: [],
+        });
+
+        // Should include the limit and the initial generic prompt and the newly sent request
+        expect(messages.length + 2).equals(expectedMaxMessages);
+        expect(
+          messages.slice(1).map((message) => getMessageContent(message))
+        ).deep.equal([...mockedMessages, chatRequestMock.prompt]);
+      });
+    });
+
     test('generic', async function () {
       const chatRequestMock = {
         prompt: 'find all docs by a name example',
