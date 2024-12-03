@@ -244,7 +244,7 @@ export default class PlaygroundController {
 
     if (element instanceof DatabaseTreeItem) {
       content = content
-        .replace('CURRENT_DATABASE', element.databaseName)
+        .replace('NEW_DATABASE_NAME', element.databaseName)
         .replace('Create a new database', 'The current database to use');
       this._telemetryService.trackPlaygroundCreated('createCollection');
     } else {
