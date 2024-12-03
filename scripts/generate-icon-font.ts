@@ -1,6 +1,7 @@
 import webfont from 'webfont';
 import fs from 'fs/promises';
 import { GlyphData } from 'webfont/dist/src/types';
+import prettier from 'prettier';
 
 /** Icons to include in the generated icon font */
 const INCLUDED_ICONS = ['connection-active', 'connection-inactive'];
@@ -40,14 +41,19 @@ async function main(): Promise<void> {
   });
 
   // Prints out the VSCode configuration package.json
-  console.info(
-    JSON.stringify(
-      {
-        icons: iconsConfig,
-      },
-      undefined,
-      2
-    )
+  const currentConfiguration = JSON.parse(
+    await fs.readFile('./package.json', 'utf8')
+  );
+
+  currentConfiguration.contributes.icons = iconsConfig;
+
+  const prettierConfig = await prettier.resolveConfig('./.prettierrc.json');
+  await fs.writeFile(
+    './package.json',
+    prettier.format(JSON.stringify(currentConfiguration), {
+      ...prettierConfig,
+      parser: 'json-stringify',
+    })
   );
 }
 
