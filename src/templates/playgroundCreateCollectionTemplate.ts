@@ -2,11 +2,14 @@ const template = `/* global use, db */
 // MongoDB Playground
 // Use Ctrl+Space inside a snippet or a string literal to trigger completions.
 
+const database = 'NEW_DATABASE_NAME';
+const collection = 'NEW_COLLECTION_NAME';
+
 // Create a new database.
-use('CURRENT_DATABASE');
+use(database);
 
 // Create a new collection.
-db.createCollection('NEW_COLLECTION_NAME');
+db.createCollection(collection);
 
 // The prototype form to create a collection:
 /* db.createCollection( <name>,

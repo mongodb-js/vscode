@@ -184,6 +184,19 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.isCopilotActive',
       copilot?.isActive
     );
+
+    // TODO: This is a workaround related to https://github.com/microsoft/vscode/issues/234426
+    // If the extension was found but is not activated, there is a chance that the MongoDB extension
+    // was activated before the Copilot one, so we check again after a delay.
+    if (copilot && !copilot?.isActive) {
+      setTimeout(() => {
+        void vscode.commands.executeCommand(
+          'setContext',
+          'mdb.isCopilotActive',
+          copilot?.isActive === true
+        );
+      }, 3000);
+    }
   }
 
   registerCommands = (): void => {

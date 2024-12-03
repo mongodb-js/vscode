@@ -42,6 +42,8 @@ import {
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
+import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 
 const log = createLogger('playground controller');
 
@@ -322,15 +324,13 @@ export default class PlaygroundController {
   ): Promise<boolean> {
     let content = '';
     if (treeItem instanceof DatabaseTreeItem) {
-      content = playgroundInsertDocumentTemplate.replace(
-        'CURRENT_DATABASE',
-        treeItem.databaseName
-      );
+      content = playgroundFromDatabaseTreeItemTemplate(treeItem.databaseName);
       this._telemetryService.trackPlaygroundCreated('fromDatabaseTreeItem');
     } else if (treeItem instanceof CollectionTreeItem) {
-      content = playgroundInsertDocumentTemplate
-        .replace('CURRENT_DATABASE', treeItem.databaseName)
-        .replace('CURRENT_COLLECTION', treeItem.collectionName);
+      content = playgroundFromCollectionTreeItemTemplate(
+        treeItem.databaseName,
+        treeItem.collectionName
+      );
       this._telemetryService.trackPlaygroundCreated('fromCollectionTreeItem');
     }
 
