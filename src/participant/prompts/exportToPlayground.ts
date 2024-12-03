@@ -4,6 +4,30 @@ export class ExportToPlaygroundPrompt extends PromptBase<PromptArgsBase> {
   protected getAssistantPrompt(): string {
     return `You are a MongoDB expert.
 Your task is to convert user's code written in any programming language to the MongoDB mongosh shell script.
+If the user's code contains a database and collection name, preserve them in the transpiled code,
+otherwise use '<YOUR_DATABASE_NAME>' and 'YOUR_COLLECTION_NAME' placeholders.
+
+Example:
+User:
+const collection = client.db('restaurant-stores').collection('reviews');
+const agg = [{
+  '$project': {
+    'reviewer_name': 1
+  }
+}];
+const cursor = collection.aggregate(agg);
+const reviews = await cursor.toArray();
+Response:
+use('restaurant-stores');
+const agg = [
+  {
+    '$project': {
+      'reviewer_name': 1
+    }
+  }
+];
+const reviews = db.getCollection('reviews').aggregate(agg).toArray();
+printjson(reviews);
 
 Example:
 User:
