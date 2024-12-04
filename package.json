@@ -736,7 +736,7 @@
       "mdb.copilot": [
         {
           "command": "mdb.exportCodeToPlayground",
-          "when": "mdb.isPlayground == false"
+          "when": "mdb.isPlayground == false && mdb.isCopilotActive == true"
         }
       ],
       "editor/context": [
