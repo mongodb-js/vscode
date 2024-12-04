@@ -1833,7 +1833,7 @@ Schema:
             mockDatabaseItem
           );
 
-          expect(sendMessageToParticipantStub).has.callCount(2);
+          expect(sendMessageToParticipantStub).has.callCount(1);
 
           expect(sendMessageToParticipantStub.getCall(0).args).deep.equals([
             {
@@ -1871,7 +1871,7 @@ Schema:
             mockCollectionItem
           );
 
-          expect(sendMessageToParticipantStub).has.callCount(2);
+          expect(sendMessageToParticipantStub).has.callCount(1);
 
           expect(sendMessageToParticipantStub.getCall(0).args).deep.equals([
             {

@@ -522,7 +522,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
       assert(content.includes('// Create a new database.'));
-      assert(content.includes('CURRENT_DATABASE'));
+      assert(content.includes('NEW_DATABASE_NAME'));
       assert(content.includes('NEW_COLLECTION_NAME'));
     });
 

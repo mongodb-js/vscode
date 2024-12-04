@@ -183,6 +183,20 @@ export default class MDBExtensionController implements vscode.Disposable {
       'mdb.isCopilotActive',
       copilot?.isActive
     );
+
+    // TODO: This is a workaround related to https://github.com/microsoft/vscode/issues/234426
+    // If the extension was found but is not activated, there is a chance that the MongoDB extension
+    // was activated before the Copilot one, so we check again after a delay.
+    if (copilot && !copilot?.isActive) {
+      setTimeout(() => {
+        const copilot = vscode.extensions.getExtension('GitHub.copilot');
+        void vscode.commands.executeCommand(
+          'setContext',
+          'mdb.isCopilotActive',
+          copilot?.isActive === true
+        );
+      }, 3000);
+    }
   }
 
   registerCommands = (): void => {
@@ -332,7 +346,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.ASK_COPILOT_FROM_TREE_ITEM,
-      async (treeItem: DatabaseTreeItem) => {
+      async (treeItem: DatabaseTreeItem | CollectionTreeItem) => {
         await this._participantController.askCopilotFromTreeItem(treeItem);
         return true;
       }
@@ -750,9 +764,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => this._playgroundController.createPlayground()
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_CONNECTION_TREE_VIEW,
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_ITEM,
       (treeItem: DatabaseTreeItem | CollectionTreeItem) =>
-        this._playgroundController.createPlaygroundFromTreeView(treeItem)
+        this._playgroundController.createPlaygroundFromTreeItem(treeItem)
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,

@@ -256,7 +256,7 @@
         }
       },
       {
-        "command": "mdb.createNewPlaygroundFromConnectionTreeView",
+        "command": "mdb.createNewPlaygroundFromTreeItem",
         "title": "Create MongoDB Playground",
         "icon": "$(mdb-playground)"
       },
@@ -613,12 +613,12 @@
           "group": "3@1"
         },
         {
-          "command": "mdb.createNewPlaygroundFromConnectionTreeView",
+          "command": "mdb.createNewPlaygroundFromTreeItem",
           "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
           "group": "inline@2"
         },
         {
-          "command": "mdb.createNewPlaygroundFromConnectionTreeView",
+          "command": "mdb.createNewPlaygroundFromTreeItem",
           "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
           "group": "3@2"
         },
