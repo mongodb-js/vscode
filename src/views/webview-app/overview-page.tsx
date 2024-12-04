@@ -4,6 +4,8 @@ import {
   css,
   resetGlobalCSS,
   spacing,
+  // FileInputBackendProvider,
+  // createElectronFileInputBackend,
 } from '@mongodb-js/compass-components';
 
 import OverviewHeader from './overview-header';
@@ -39,6 +41,7 @@ const OverviewPage: React.FC = () => {
     handleCancelConnectClicked,
     handleSaveConnectionClicked,
     handleConnectClicked,
+    // dialog,
   } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
     () => setShowResourcesPanel(false),
@@ -55,12 +58,19 @@ const OverviewPage: React.FC = () => {
     resetGlobalCSS();
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const util = require('util');
+  console.log('(globalThis as any).vscode----------------------');
+  console.log(`${util.inspect((globalThis as any).vscode)}`);
+  console.log('----------------------');
+
   return (
     <div data-testid="overview-page" className={pageStyles}>
       {showResourcesPanel && (
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
       {isConnectionFormOpen && (
+        // <FileInputBackendProvider createFileInputBackend={createElectronFileInputBackend(dialog, (globalThis as any).vscode?.webUtils)}>
         <ConnectionForm
           isConnecting={isConnecting}
           initialConnectionInfo={initialConnectionInfo}
@@ -79,6 +89,7 @@ const OverviewPage: React.FC = () => {
           open={isConnectionFormOpen}
           connectionErrorMessage={connectionErrorMessage}
         />
+        // </FileInputBackendProvider>
       )}
       <OverviewHeader onResourcesClick={handleResourcesClick} />
       <HorizontalRule />

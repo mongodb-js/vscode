@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import path from 'path';
 import crypto from 'crypto';
 import type { ConnectionOptions } from 'mongodb-data-service';
+import { dialog } from 'electron';
 
 import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
@@ -189,6 +190,10 @@ export default class WebviewController {
         // If the connection string input is open we want to close it
         // when the user opens the form.
         this._connectionController.closeConnectionStringInput();
+        void panel.webview.postMessage({
+          command: MESSAGE_TYPES.ELECTRON_FILE_INPUT_BACKEND,
+          dialog,
+        });
         return;
       case MESSAGE_TYPES.GET_CONNECTION_STATUS:
         void panel.webview.postMessage({

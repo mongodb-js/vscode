@@ -1,6 +1,8 @@
 import { useEffect, useReducer } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { ConnectionOptions } from 'mongodb-data-service';
+import type { BaseWindow } from 'electron';
+import type { ElectronShowFileDialogProvider } from '@mongodb-js/compass-components';
 
 import {
   sendConnectToExtension,
@@ -34,6 +36,7 @@ type State = {
   isConnectionFormOpen: boolean;
   isEditingConnection: boolean;
   connectionErrorMessage: string;
+  dialog: ElectronShowFileDialogProvider<BaseWindow> | null;
 };
 
 export function getDefaultConnectionFormState(): State {
@@ -43,6 +46,7 @@ export function getDefaultConnectionFormState(): State {
     isConnectionFormOpen: false,
     isEditingConnection: false,
     connectionErrorMessage: '',
+    dialog: null,
   };
 }
 
@@ -70,6 +74,10 @@ type Action =
     }
   | {
       type: 'attempt-connect';
+    }
+  | {
+      type: 'electron-file-input-backend';
+      dialog: ElectronShowFileDialogProvider<BaseWindow>;
     };
 
 function connectionFormReducer(state: State, action: Action): State {
@@ -94,6 +102,11 @@ function connectionFormReducer(state: State, action: Action): State {
         isConnecting: false,
         connectionErrorMessage: action.connectionMessage,
         isConnectionFormOpen: !action.connectionSuccess,
+      };
+    case 'electron-file-input-backend':
+      return {
+        ...state,
+        dialog: action.dialog,
       };
     case 'open-edit-connection':
       return {
@@ -124,6 +137,7 @@ export default function useConnectionForm() {
       isConnectionFormOpen,
       isEditingConnection,
       connectionErrorMessage,
+      dialog,
     },
     dispatch,
   ] = useReducer(connectionFormReducer, {
@@ -141,6 +155,13 @@ export default function useConnectionForm() {
           type: 'connection-result',
           connectionSuccess: message.connectionSuccess,
           connectionMessage: message.connectionMessage,
+        });
+      } else if (
+        message.command === MESSAGE_TYPES.ELECTRON_FILE_INPUT_BACKEND
+      ) {
+        dispatch({
+          type: 'electron-file-input-backend',
+          dialog: message.dialog,
         });
       }
     };
@@ -177,6 +198,7 @@ export default function useConnectionForm() {
     isConnecting,
     initialConnectionInfo,
     connectionErrorMessage,
+    dialog,
     openConnectionForm: () => {
       dispatch({
         type: 'open-connection-form',

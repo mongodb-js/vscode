@@ -37,10 +37,6 @@ module.exports = (env, argv) => {
         // This alias can be removed once `mongodb-data-service` will not include `mongodb-connection-model` anymore.
         'ampersand-sync': false,
 
-        // Removes `electron`: is an optional dependency of `oidc-plugin`, but also installed as dev-dep,
-        // webpack would bring it inside the bundle otherwise.
-        electron: false,
-
         'hadron-ipc': false,
 
         // We don't currently support kerberos in our extension.
@@ -60,7 +56,7 @@ module.exports = (env, argv) => {
       // own keytar dependency. Here we are telling it to use vscode's keytar.
       keytar: 'keytar',
 
-      '@electron/remote': '@electron/remote',
+      electron: 'electron',
 
       // MongoDB node driver externals:
       snappy: 'snappy',
