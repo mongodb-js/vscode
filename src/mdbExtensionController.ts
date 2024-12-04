@@ -190,6 +190,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // was activated before the Copilot one, so we check again after a delay.
     if (copilot && !copilot?.isActive) {
       setTimeout(() => {
+        const copilot = vscode.extensions.getExtension('GitHub.copilot');
         void vscode.commands.executeCommand(
           'setContext',
           'mdb.isCopilotActive',
@@ -346,7 +347,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.ASK_COPILOT_FROM_TREE_ITEM,
-      async (treeItem: DatabaseTreeItem) => {
+      async (treeItem: DatabaseTreeItem | CollectionTreeItem) => {
         await this._participantController.askCopilotFromTreeItem(treeItem);
         return true;
       }
@@ -764,9 +765,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => this._playgroundController.createPlayground()
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_CONNECTION_TREE_VIEW,
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_ITEM,
       (treeItem: DatabaseTreeItem | CollectionTreeItem) =>
-        this._playgroundController.createPlaygroundFromTreeView(treeItem)
+        this._playgroundController.createPlaygroundFromTreeItem(treeItem)
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,

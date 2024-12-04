@@ -84,7 +84,6 @@ export default class ParticipantController {
   _docsChatbotAIService: DocsChatbotAIService;
   _telemetryService: TelemetryService;
   _playgroundResultProvider: PlaygroundResultProvider;
-  _copilotStatusSubscription?: vscode.Disposable;
 
   constructor({
     connectionController,
@@ -124,10 +123,6 @@ export default class ParticipantController {
     this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
 
     return this._participant;
-  }
-
-  dispose(): void {
-    this._copilotStatusSubscription?.dispose();
   }
 
   getParticipant(): vscode.ChatParticipant | undefined {
@@ -215,11 +210,6 @@ export default class ParticipantController {
     } else {
       throw new Error('Unsupported tree item type');
     }
-
-    await this.sendMessageToParticipant({
-      message: '',
-      isPartialQuery: true,
-    });
   }
 
   async _getChatResponse({

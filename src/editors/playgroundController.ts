@@ -319,7 +319,7 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
-  async createPlaygroundFromTreeView(
+  async createPlaygroundFromTreeItem(
     treeItem: DatabaseTreeItem | CollectionTreeItem
   ): Promise<boolean> {
     let content = '';
