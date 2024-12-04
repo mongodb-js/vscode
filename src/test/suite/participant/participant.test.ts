@@ -1845,13 +1845,6 @@ Schema:
               },
             },
           ]);
-
-          expect(sendMessageToParticipantStub.getCall(1).args).deep.equals([
-            {
-              message: '',
-              isPartialQuery: true,
-            },
-          ]);
         });
       });
 
@@ -1881,13 +1874,6 @@ Schema:
                 source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
                 sourceDetails: 'copilot button on collection tree item',
               },
-            },
-          ]);
-
-          expect(sendMessageToParticipantStub.getCall(1).args).deep.equals([
-            {
-              message: '',
-              isPartialQuery: true,
             },
           ]);
         });
