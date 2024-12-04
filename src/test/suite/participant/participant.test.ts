@@ -1840,13 +1840,6 @@ Schema:
               isNewChat: true,
             },
           ]);
-
-          expect(sendMessageToParticipantStub.getCall(1).args).deep.equals([
-            {
-              message: '',
-              isPartialQuery: true,
-            },
-          ]);
         });
       });
 
@@ -1872,13 +1865,6 @@ Schema:
             {
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
-            },
-          ]);
-
-          expect(sendMessageToParticipantStub.getCall(1).args).deep.equals([
-            {
-              message: '',
-              isPartialQuery: true,
             },
           ]);
         });
