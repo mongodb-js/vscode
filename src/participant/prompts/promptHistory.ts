@@ -148,12 +148,13 @@ export class PromptHistory {
         });
       }
       if (addedMessage) {
-        if (model && tokenLimit) {
-          totalUsedTokens += await model.countTokens(addedMessage);
+        if (tokenLimit) {
+          totalUsedTokens += (await model?.countTokens(addedMessage)) || 0;
           if (totalUsedTokens > tokenLimit) {
             break;
           }
         }
+
         messages.push(addedMessage);
       }
     }
