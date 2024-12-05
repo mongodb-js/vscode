@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import path from 'path';
 import crypto from 'crypto';
 import type { ConnectionOptions } from 'mongodb-data-service';
-import { dialog } from 'electron';
 
 import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
@@ -181,6 +180,14 @@ export default class WebviewController {
         });
         this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
         return;
+      case MESSAGE_TYPES.OPEN_FILE_CHOOSER:
+        const files = await vscode.window.showOpenDialog();
+        void panel.webview.postMessage({
+          command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT,
+          files,
+          requestId: message.requestId,
+        });
+        return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
           EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE
@@ -190,10 +197,6 @@ export default class WebviewController {
         // If the connection string input is open we want to close it
         // when the user opens the form.
         this._connectionController.closeConnectionStringInput();
-        void panel.webview.postMessage({
-          command: MESSAGE_TYPES.ELECTRON_FILE_INPUT_BACKEND,
-          dialog,
-        });
         return;
       case MESSAGE_TYPES.GET_CONNECTION_STATUS:
         void panel.webview.postMessage({

@@ -1,6 +1,4 @@
 import type { ConnectionOptions } from 'mongodb-data-service';
-import type { ElectronShowFileDialogProvider } from '@mongodb-js/compass-components';
-import type { BaseWindow } from 'electron';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -21,7 +19,8 @@ export enum MESSAGE_TYPES {
   CANCEL_CONNECT = 'CANCEL_CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
   CONNECTION_FORM_OPENED = 'CONNECTION_FORM_OPENED',
-  ELECTRON_FILE_INPUT_BACKEND = 'ELECTRON_FILE_INPUT_BACKEND',
+  OPEN_FILE_CHOOSER = 'OPEN_FILE_CHOOSER',
+  OPEN_FILE_CHOOSER_RESULT = 'OPEN_FILE_CHOOSER_RESULT',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
   OPEN_EDIT_CONNECTION = 'OPEN_EDIT_CONNECTION',
   EDIT_AND_CONNECT_CONNECTION = 'EDIT_AND_CONNECT_CONNECTION',
@@ -69,6 +68,11 @@ export interface EditAndConnectConnection extends BasicWebviewMessage {
   };
 }
 
+export interface OpenFileChooser extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_FILE_CHOOSER;
+  requestId: string;
+}
+
 export interface ConnectMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.CONNECT;
   connectionInfo: {
@@ -88,9 +92,10 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
   connectionId: string;
 }
 
-export interface ElectronFileInputBackendMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.ELECTRON_FILE_INPUT_BACKEND;
-  dialog: ElectronShowFileDialogProvider<BaseWindow>;
+export interface OpenFileChooserResultMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
+  files: any;
+  requestId: string;
 }
 
 export interface GetConnectionStatusMessage extends BasicWebviewMessage {
@@ -131,11 +136,12 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | OpenConnectionStringInputMessage
   | OpenTrustedLinkMessage
   | RenameConnectionMessage
-  | EditAndConnectConnection;
+  | EditAndConnectConnection
+  | OpenFileChooser;
 
 export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
   | ConnectResultsMessage
   | ConnectionStatusMessage
   | ThemeChangedMessage
   | OpenEditConnectionMessage
-  | ElectronFileInputBackendMessage;
+  | OpenFileChooserResultMessage;

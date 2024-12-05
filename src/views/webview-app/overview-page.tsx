@@ -4,9 +4,10 @@ import {
   css,
   resetGlobalCSS,
   spacing,
-  // FileInputBackendProvider,
-  // createElectronFileInputBackend,
+  FileInputBackendProvider,
+  createElectronFileInputBackend,
 } from '@mongodb-js/compass-components';
+import type { Uri } from 'vscode';
 
 import OverviewHeader from './overview-header';
 import ConnectionStatus from './connection-status';
@@ -15,6 +16,8 @@ import AtlasCta from './atlas-cta';
 import ResourcesPanel from './resources-panel/panel';
 import { ConnectionForm } from './connection-form';
 import useConnectionForm from './use-connection-form';
+import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from './extension-app-message-constants';
+import { MESSAGE_TYPES } from './extension-app-message-constants';
 
 const pageStyles = css({
   width: '90%',
@@ -41,7 +44,7 @@ const OverviewPage: React.FC = () => {
     handleCancelConnectClicked,
     handleSaveConnectionClicked,
     handleConnectClicked,
-    // dialog,
+    handleOpenFileChooser,
   } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
     () => setShowResourcesPanel(false),
@@ -58,11 +61,45 @@ const OverviewPage: React.FC = () => {
     resetGlobalCSS();
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const util = require('util');
-  console.log('(globalThis as any).vscode----------------------');
-  console.log(`${util.inspect((globalThis as any).vscode)}`);
-  console.log('----------------------');
+  function handleOpenFileChooserResult<T>(): Promise<T> {
+    const requestId = handleOpenFileChooser();
+    return new Promise((resolve) => {
+      const messageHandler = (event) => {
+        const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
+        if (
+          message.command === MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT &&
+          message.requestId === requestId
+        ) {
+          window.removeEventListener('message', messageHandler);
+          resolve(message.files);
+        }
+      };
+      window.addEventListener('message', messageHandler);
+    });
+  }
+
+  const dialogProvider = {
+    getCurrentWindow(): void {},
+    dialog: {
+      showSaveDialog(): Promise<{ canceled: boolean; filePath?: string }> {
+        return handleOpenFileChooserResult<Uri | undefined>().then(
+          (file?: Uri) => {
+            return { canceled: false, filePath: file?.path };
+          }
+        );
+      },
+      showOpenDialog(): Promise<{ canceled: boolean; filePaths: string[] }> {
+        return handleOpenFileChooserResult<Uri[] | undefined>().then(
+          (files?: Uri[]) => {
+            return {
+              canceled: false,
+              filePaths: files ? files?.map((file) => file.path) : [],
+            };
+          }
+        );
+      },
+    },
+  };
 
   return (
     <div data-testid="overview-page" className={pageStyles}>
@@ -70,26 +107,31 @@ const OverviewPage: React.FC = () => {
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
       {isConnectionFormOpen && (
-        // <FileInputBackendProvider createFileInputBackend={createElectronFileInputBackend(dialog, (globalThis as any).vscode?.webUtils)}>
-        <ConnectionForm
-          isConnecting={isConnecting}
-          initialConnectionInfo={initialConnectionInfo}
-          onSaveAndConnectClicked={({ id, connectionOptions }) => {
-            void handleSaveConnectionClicked({
-              id,
-              connectionOptions,
-            });
-            handleConnectClicked({
-              id,
-              connectionOptions,
-            });
-          }}
-          onCancelConnectClicked={handleCancelConnectClicked}
-          onClose={closeConnectionForm}
-          open={isConnectionFormOpen}
-          connectionErrorMessage={connectionErrorMessage}
-        />
-        // </FileInputBackendProvider>
+        <FileInputBackendProvider
+          createFileInputBackend={createElectronFileInputBackend(
+            dialogProvider,
+            null
+          )}
+        >
+          <ConnectionForm
+            isConnecting={isConnecting}
+            initialConnectionInfo={initialConnectionInfo}
+            onSaveAndConnectClicked={({ id, connectionOptions }) => {
+              void handleSaveConnectionClicked({
+                id,
+                connectionOptions,
+              });
+              handleConnectClicked({
+                id,
+                connectionOptions,
+              });
+            }}
+            onCancelConnectClicked={handleCancelConnectClicked}
+            onClose={closeConnectionForm}
+            open={isConnectionFormOpen}
+            connectionErrorMessage={connectionErrorMessage}
+          />
+        </FileInputBackendProvider>
       )}
       <OverviewHeader onResourcesClick={handleResourcesClick} />
       <HorizontalRule />

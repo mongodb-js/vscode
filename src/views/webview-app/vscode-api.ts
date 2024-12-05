@@ -29,6 +29,13 @@ export const sendConnectToExtension = (
   });
 };
 
+export const sendOpenFileChooserToExtension = (requestId: string) => {
+  vscode.postMessage({
+    command: MESSAGE_TYPES.OPEN_FILE_CHOOSER,
+    requestId,
+  });
+};
+
 export const sendCancelConnectToExtension = () => {
   vscode.postMessage({
     command: MESSAGE_TYPES.CANCEL_CONNECT,
