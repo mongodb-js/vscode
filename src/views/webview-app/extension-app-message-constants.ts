@@ -1,4 +1,5 @@
 import type { ConnectionOptions } from 'mongodb-data-service';
+import type { Uri } from 'vscode';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -94,7 +95,7 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
 
 export interface OpenFileChooserResultMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
-  files: any;
+  files: Uri | Uri[] | undefined;
   requestId: string;
 }
 

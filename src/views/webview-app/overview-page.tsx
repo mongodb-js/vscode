@@ -71,7 +71,7 @@ const OverviewPage: React.FC = () => {
           message.requestId === requestId
         ) {
           window.removeEventListener('message', messageHandler);
-          resolve(message.files);
+          resolve(message.files as T);
         }
       };
       window.addEventListener('message', messageHandler);
