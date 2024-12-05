@@ -857,12 +857,13 @@ suite('Participant Controller Test Suite', function () {
               ];
 
               // This is to offset the previous countTokens calls
-              // (1 for user prompt and 1 for assistant prompt calculation)
-              const callsOffset = 2;
+              // buildMessages gets called twice for namespace so it is adjusted accordingly
+              // (1 for request prompt and 1 for assistant prompt calculation)
+              const countTokenCallsOffset = 4;
 
               // Called when including sample documents
               countTokensStub
-                .onCall(callsOffset)
+                .onCall(countTokenCallsOffset)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
 
               sampleStub.resolves(sampleDocs);
@@ -932,14 +933,14 @@ suite('Participant Controller Test Suite', function () {
               // This is to offset the previous countTokens calls
               // buildMessages gets called twice for namespace so it is adjusted accordingly
               // (1 for request prompt and 1 for assistant prompt calculation)
-              const callsOffset = 4;
+              const countTokenCallsOffset = 4;
 
               // Called when including sample documents
               countTokensStub
-                .onCall(callsOffset)
+                .onCall(countTokenCallsOffset)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
               countTokensStub
-                .onCall(callsOffset + 1)
+                .onCall(countTokenCallsOffset + 1)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
 
               sampleStub.resolves(sampleDocs);
@@ -983,14 +984,14 @@ suite('Participant Controller Test Suite', function () {
               // This is to offset the previous countTokens calls
               // buildMessages gets called twice for namespace so it is adjusted accordingly
               // (1 for request prompt and 1 for assistant prompt calculation)
-              const callsOffset = 4;
+              const countTokenCallsOffset = 4;
 
               // Called when including sample documents
               countTokensStub
-                .onCall(callsOffset)
+                .onCall(countTokenCallsOffset)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
               countTokensStub
-                .onCall(callsOffset + 1)
+                .onCall(countTokenCallsOffset + 1)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
 
               const sampleDocs = [
