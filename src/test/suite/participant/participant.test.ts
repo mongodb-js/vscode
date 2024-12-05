@@ -854,8 +854,9 @@ suite('Participant Controller Test Suite', function () {
                 },
               ];
 
-              // This is the offset of the history token calculation calls
-              const callsOffset = 5;
+              // This is to offset the previous countTokens calls
+              // (1 for user prompt and 1 for assistant prompt calculation)
+              const callsOffset = 2;
 
               // Called when including sample documents
               countTokensStub
@@ -871,7 +872,10 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
 
-              expect(countTokensStub).callCount(callsOffset + 1);
+              // +1 call when counting tokens of 3 sample documents
+              // +1 call when counting tokens in the history.
+              // +1 to account for zero-based indexing of the offset)
+              expect(countTokensStub).callCount(callsOffset + 3);
 
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
@@ -928,15 +932,21 @@ suite('Participant Controller Test Suite', function () {
                 },
               ];
 
-              // This is the offset of the history token calculation calls
-              const callsOffset = 5;
+              // This is to offset the previous countTokens calls
+              // (1 for user prompt and 1 for assistant prompt calculation)
+              const callsOffset = 2;
 
               // Called when including sample documents
               countTokensStub
                 .onCall(callsOffset)
-                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
+                .returns(Promise.resolve(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1));
               countTokensStub
                 .onCall(callsOffset + 1)
+                .returns(Promise.resolve(MAX_TOTAL_PROMPT_LENGTH_MOCK));
+
+              // Called when calculating the added finalized user prompt
+              countTokensStub
+                .onCall(callsOffset + 2)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
 
               sampleStub.resolves(sampleDocs);
@@ -948,7 +958,11 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
 
-              expect(countTokensStub).callCount(callsOffset + 1);
+              // +1 call when counting tokens of 3 sample documents
+              // +1 call for the retry with 1 sample documents
+              // +1 call when counting tokens in the history.
+              // +1 to account for zero-based indexing of the offset)
+              expect(countTokensStub).callCount(callsOffset + 4);
 
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
@@ -979,8 +993,9 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('does not include sample documents when even 1 makes prompt too long', async function () {
-              // This is the offset of the history token calculation calls
-              const callsOffset = 5;
+              // This is to offset the previous countTokens calls
+              // (1 for user prompt and 1 for assistant prompt calculation)
+              const callsOffset = 2;
 
               // Called when including sample documents
               countTokensStub
@@ -1020,7 +1035,11 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
 
-              expect(countTokensStub).callCount(callsOffset + 1);
+              // +1 call when counting tokens of 3 sample documents
+              // +1 call for the retry with 1 sample documents
+              // +1 call when counting tokens in the history.
+              // +1 to account for zero-based indexing of the offset)
+              expect(countTokensStub).callCount(callsOffset + 4);
 
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
