@@ -174,13 +174,11 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
         // Go through the history in reverse order to find the last user message.
         for (let i = history.length - 1; i >= 0; i--) {
           if (history[i] instanceof vscode.ChatRequestTurn) {
+            request.prompt = (history[i] as vscode.ChatRequestTurn).prompt;
             // Rewrite the arguments so that the prompt is the last user message from history
             args = {
               ...args,
-              request: {
-                ...request,
-                prompt: (history[i] as vscode.ChatRequestTurn).prompt,
-              },
+              request,
             };
 
             // Remove the item from the history messages array.

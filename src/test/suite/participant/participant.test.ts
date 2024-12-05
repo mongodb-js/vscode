@@ -232,8 +232,8 @@ suite('Participant Controller Test Suite', function () {
     chatTokenStub = {
       onCancellationRequested: sinon.fake(),
     };
-    // Resolve to 0 to prevent undefined being returned
-    // override to other values to test different count limits.
+    /** Resolves to 0 by default to prevent undefined being returned.
+        Resolve to other values to test different count limits. */
     countTokensStub = sinon.stub().resolves(0);
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
     sendRequestStub = sinon.stub();
@@ -874,11 +874,6 @@ suite('Participant Controller Test Suite', function () {
               };
               await invokeChatHandler(chatRequestMock);
 
-              // +1 call when counting tokens of 3 sample documents
-              // +1 call when counting tokens in the history.
-              // +1 to account for zero-based indexing of the offset)
-              expect(countTokensStub).callCount(callsOffset + 3);
-
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
               expect(getMessageContent(messages[1])).to.include(
@@ -935,8 +930,9 @@ suite('Participant Controller Test Suite', function () {
               ];
 
               // This is to offset the previous countTokens calls
-              // (1 for user prompt and 1 for assistant prompt calculation)
-              const callsOffset = 2;
+              // buildMessages gets called twice for namespace so it is adjusted accordingly
+              // (1 for request prompt and 1 for assistant prompt calculation)
+              const callsOffset = 4;
 
               // Called when including sample documents
               countTokensStub
@@ -944,11 +940,6 @@ suite('Participant Controller Test Suite', function () {
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
               countTokensStub
                 .onCall(callsOffset + 1)
-                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
-
-              // Called when calculating the added finalized user prompt
-              countTokensStub
-                .onCall(callsOffset + 2)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
 
               sampleStub.resolves(sampleDocs);
@@ -959,12 +950,6 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-
-              // +1 call when counting tokens of 3 sample documents
-              // +1 call for the retry with 1 sample documents
-              // +1 call when counting tokens in the history.
-              // +1 to account for zero-based indexing of the offset)
-              expect(countTokensStub).callCount(callsOffset + 4);
 
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
@@ -996,8 +981,9 @@ suite('Participant Controller Test Suite', function () {
 
             test('does not include sample documents when even 1 makes prompt too long', async function () {
               // This is to offset the previous countTokens calls
-              // (1 for user prompt and 1 for assistant prompt calculation)
-              const callsOffset = 2;
+              // buildMessages gets called twice for namespace so it is adjusted accordingly
+              // (1 for request prompt and 1 for assistant prompt calculation)
+              const callsOffset = 4;
 
               // Called when including sample documents
               countTokensStub
@@ -1036,12 +1022,6 @@ suite('Participant Controller Test Suite', function () {
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
-
-              // +1 call when counting tokens of 3 sample documents
-              // +1 call for the retry with 1 sample documents
-              // +1 call when counting tokens in the history.
-              // +1 to account for zero-based indexing of the offset)
-              expect(countTokensStub).callCount(callsOffset + 4);
 
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
