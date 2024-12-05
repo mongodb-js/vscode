@@ -110,6 +110,25 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
     });
   }
 
+  private async _countRemainingTokens({
+    model,
+    assistantPrompt,
+    requestPrompt,
+  }: {
+    model: vscode.LanguageModelChat | undefined;
+    assistantPrompt: vscode.LanguageModelChatMessage;
+    requestPrompt: string;
+  }): Promise<number | undefined> {
+    if (model) {
+      const [assistantPromptTokens, userPromptTokens] = await Promise.all([
+        model.countTokens(assistantPrompt),
+        model.countTokens(requestPrompt),
+      ]);
+      return model.maxInputTokens - (assistantPromptTokens + userPromptTokens);
+    }
+    return undefined;
+  }
+
   async buildMessages(args: PromptArgs): Promise<ModelInput> {
     const { context, request, databaseName, collectionName, connectionNames } =
       args;
@@ -121,19 +140,11 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
       this.getAssistantPrompt(args)
     );
 
-    const { prompt, hasSampleDocs } = await this.getUserPrompt(args);
-    // eslint-disable-next-line new-cap
-    const userPrompt = vscode.LanguageModelChatMessage.User(prompt);
-
-    let tokenLimit: number | undefined;
-    if (model) {
-      const [assistantPromptTokens, userPromptTokens] = await Promise.all([
-        model.countTokens(assistantPrompt),
-        model.countTokens(userPrompt),
-      ]);
-      tokenLimit =
-        model.maxInputTokens - (assistantPromptTokens + userPromptTokens);
-    }
+    const tokenLimit = await this._countRemainingTokens({
+      model,
+      assistantPrompt,
+      requestPrompt: request.prompt,
+    });
 
     let historyMessages = await PromptHistory.getFilteredHistory({
       history: context?.history,
@@ -143,6 +154,7 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
         databaseName !== undefined && collectionName !== undefined,
       connectionNames,
     });
+
     // If the current user's prompt is a connection name, and the last
     // message was to connect. We want to use the last
     // message they sent before the connection name as their prompt.
@@ -178,6 +190,10 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
         }
       }
     }
+
+    const { prompt, hasSampleDocs } = await this.getUserPrompt(args);
+    // eslint-disable-next-line new-cap
+    const userPrompt = vscode.LanguageModelChatMessage.User(prompt);
 
     const messages = [assistantPrompt, ...historyMessages, userPrompt];
 

@@ -232,7 +232,9 @@ suite('Participant Controller Test Suite', function () {
     chatTokenStub = {
       onCancellationRequested: sinon.fake(),
     };
-    countTokensStub = sinon.stub();
+    // Resolve to 0 to prevent undefined being returned
+    // override to other values to test different count limits.
+    countTokensStub = sinon.stub().resolves(0);
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
     sendRequestStub = sinon.stub();
     getCopilotModelStub = sinon.stub(model, 'getCopilotModel');
@@ -939,10 +941,10 @@ suite('Participant Controller Test Suite', function () {
               // Called when including sample documents
               countTokensStub
                 .onCall(callsOffset)
-                .returns(Promise.resolve(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1));
+                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
               countTokensStub
                 .onCall(callsOffset + 1)
-                .returns(Promise.resolve(MAX_TOTAL_PROMPT_LENGTH_MOCK));
+                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
 
               // Called when calculating the added finalized user prompt
               countTokensStub
@@ -2376,7 +2378,7 @@ Schema:
           vscode.LanguageModelChatMessageRole.Assistant
         );
 
-        // We don't expect history because we're removing the askForConnect message as well
+        // We don't expect history because we're removing the askToConnect message as well
         // as the user response to it. Therefore the actual user prompt should be the first
         // message that we supplied in the history.
         expect(messages[1].role).to.equal(
@@ -2407,7 +2409,7 @@ Schema:
           vscode.LanguageModelChatMessageRole.Assistant
         );
 
-        // We don't expect history because we're removing the askForConnect message as well
+        // We don't expect history because we're removing the askToConnect message as well
         // as the user response to it. Therefore the actual user prompt should be the first
         // message that we supplied in the history.
         expect(messages[1].role).to.equal(
@@ -2418,7 +2420,7 @@ Schema:
       });
     });
 
-    test('removes askForConnect messages from history', async function () {
+    test('removes askToConnect messages from history', async function () {
       // The user is responding to an `askToConnect` message, so the prompt is just the
       // name of the connection
       const chatRequestMock = {
@@ -2473,7 +2475,7 @@ Schema:
         vscode.LanguageModelChatMessageRole.Assistant
       );
 
-      // We don't expect history because we're removing the askForConnect message as well
+      // We don't expect history because we're removing the askToConnect message as well
       // as the user response to it. Therefore the actual user prompt should be the first
       // message that we supplied in the history.
       expect(messages[1].role).to.equal(
