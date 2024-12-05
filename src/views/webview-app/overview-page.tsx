@@ -78,6 +78,11 @@ const OverviewPage: React.FC = () => {
     });
   }
 
+  // Electron 32.0 removed support for the `path` property of the Web File object
+  // https://github.com/electron/electron/blob/83d704009687956fb4b69cb13ab03664d7950118/docs/breaking-changes.md%23removed-filepath
+  // To work around this, we use a custom dialog provider that returns the file path from the electron file input backend.
+  // The overview page uses webview APIs to send a message to the extension to open the file chooser dialog,
+  // and listens for the response to get the file path.
   const dialogProvider = {
     getCurrentWindow(): void {},
     dialog: {
