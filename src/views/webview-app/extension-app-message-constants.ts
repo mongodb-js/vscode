@@ -1,5 +1,4 @@
 import type { ConnectionOptions } from 'mongodb-data-service';
-import type { Uri } from 'vscode';
 import type { FileChooserOptions } from './use-connection-form';
 
 export enum CONNECTION_STATUS {
@@ -95,11 +94,13 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
   connectionId: string;
 }
 
+export type FileChooserResult =
+  | { canceled: false; filePaths: string[] }
+  | { canceled: false; filePath?: string };
+
 export interface OpenFileChooserResultMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
-  fileChooserResult:
-    | { canceled: false; filePaths?: Uri[] }
-    | { canceled: false; filePath?: Uri };
+  fileChooserResult: FileChooserResult;
   requestId: string;
 }
 
