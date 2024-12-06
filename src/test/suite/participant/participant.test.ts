@@ -42,6 +42,8 @@ import {
 } from './participantHelpers';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import { CollectionTreeItem, DatabaseTreeItem } from '../../../explorer';
+import type { SendMessageToParticipantOptions } from '../../../participant/participantTypes';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -1798,6 +1800,73 @@ Schema:
           expect(
             vscode.window.activeTextEditor?.document.getText()
           ).to.not.include('"Success! Documents were inserted"');
+        });
+      });
+    });
+
+    suite('opened from tree view', function () {
+      let sendMessageToParticipantStub: SinonStub<
+        [options: SendMessageToParticipantOptions],
+        Promise<unknown>
+      >;
+
+      beforeEach(function () {
+        sendMessageToParticipantStub = sinon.stub(
+          testParticipantController,
+          'sendMessageToParticipant'
+        );
+      });
+
+      suite('with a database item', function () {
+        const mockDatabaseItem = Object.assign(
+          Object.create(DatabaseTreeItem.prototype),
+          {
+            databaseName: 'testDb',
+          } as DatabaseTreeItem
+        );
+
+        test('opens the chat and sends a message to set database context', async function () {
+          expect(sendMessageToParticipantStub).not.called;
+
+          await testParticipantController.askCopilotFromTreeItem(
+            mockDatabaseItem
+          );
+
+          expect(sendMessageToParticipantStub).has.callCount(1);
+
+          expect(sendMessageToParticipantStub.getCall(0).args).deep.equals([
+            {
+              message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
+              isNewChat: true,
+            },
+          ]);
+        });
+      });
+
+      suite('with a collection item', function () {
+        const mockCollectionItem = Object.assign(
+          Object.create(CollectionTreeItem.prototype),
+          {
+            databaseName: 'testDb',
+            collectionName: 'testColl',
+          } as CollectionTreeItem
+        );
+
+        test('opens the chat and sends a message to set database and collection context', async function () {
+          expect(sendMessageToParticipantStub).not.called;
+
+          await testParticipantController.askCopilotFromTreeItem(
+            mockCollectionItem
+          );
+
+          expect(sendMessageToParticipantStub).has.callCount(1);
+
+          expect(sendMessageToParticipantStub.getCall(0).args).deep.equals([
+            {
+              message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
+              isNewChat: true,
+            },
+          ]);
         });
       });
     });

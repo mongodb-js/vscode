@@ -55,6 +55,7 @@ import type {
 } from './participantTypes';
 import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
 import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
+import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
 
 const log = createLogger('participant');
 
@@ -137,7 +138,12 @@ export default class ParticipantController {
   async sendMessageToParticipant(
     options: SendMessageToParticipantOptions
   ): Promise<unknown> {
-    const { message, isNewChat = false, isPartialQuery = false } = options;
+    const {
+      message,
+      isNewChat = false,
+      isPartialQuery = false,
+      ...otherOptions
+    } = options;
 
     if (isNewChat) {
       await vscode.commands.executeCommand('workbench.action.chat.newChat');
@@ -146,7 +152,8 @@ export default class ParticipantController {
       );
     }
 
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
+    return await vscode.commands.executeCommand('workbench.action.chat.open', {
+      ...otherOptions,
       query: `@MongoDB ${message}`,
       isPartialQuery,
     });
@@ -180,6 +187,28 @@ export default class ParticipantController {
       isNewChat,
       isPartialQuery,
     });
+  }
+
+  async askCopilotFromTreeItem(
+    treeItem: DatabaseTreeItem | CollectionTreeItem
+  ): Promise<void> {
+    if (treeItem instanceof DatabaseTreeItem) {
+      const { databaseName } = treeItem;
+
+      await this.sendMessageToParticipant({
+        message: `I want to ask questions about the \`${databaseName}\` database.`,
+        isNewChat: true,
+      });
+    } else if (treeItem instanceof CollectionTreeItem) {
+      const { databaseName, collectionName } = treeItem;
+
+      await this.sendMessageToParticipant({
+        message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
+        isNewChat: true,
+      });
+    } else {
+      throw new Error('Unsupported tree item type');
+    }
   }
 
   async _getChatResponse({
