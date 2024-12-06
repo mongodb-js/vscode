@@ -6,7 +6,6 @@ import type { StoreConnectionInfo } from './connectionStorage';
 export enum StorageVariables {
   // Only exists on globalState.
   GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW = 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
-  GLOBAL_COPILOT_INTRODUCTION_SHOWN = 'GLOBAL_COPILOT_INTRODUCTION_SHOWN',
   GLOBAL_SAVED_CONNECTIONS = 'GLOBAL_SAVED_CONNECTIONS',
   // Analytics user identify.
   GLOBAL_USER_ID = 'GLOBAL_USER_ID',
@@ -52,7 +51,6 @@ interface StorageVariableContents {
   [StorageVariables.GLOBAL_USER_ID]: string;
   [StorageVariables.GLOBAL_ANONYMOUS_ID]: string;
   [StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW]: boolean;
-  [StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN]: boolean;
   [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: ConnectionsFromStorage;
   [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: ConnectionsFromStorage;
   [StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE]: boolean;
