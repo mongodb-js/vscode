@@ -48,7 +48,6 @@ import type {
   SendMessageToParticipantOptions,
   SendMessageToParticipantFromInputOptions,
 } from './participant/participantTypes';
-import { COPILOT_CHAT_EXTENSION_ID } from './participant/constants';
 import type { ParticipantCommand } from './participant/participantTypes';
 import EXTENSION_COMMANDS from './commands';
 
