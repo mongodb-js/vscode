@@ -6,8 +6,8 @@ import {
   spacing,
   FileInputBackendProvider,
   createElectronFileInputBackend,
+  type ElectronFileDialogOptions,
 } from '@mongodb-js/compass-components';
-import type { Uri } from 'vscode';
 
 import OverviewHeader from './overview-header';
 import ConnectionStatus from './connection-status';
@@ -15,8 +15,11 @@ import ConnectHelper from './connect-helper';
 import AtlasCta from './atlas-cta';
 import ResourcesPanel from './resources-panel/panel';
 import { ConnectionForm } from './connection-form';
-import useConnectionForm from './use-connection-form';
-import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from './extension-app-message-constants';
+import useConnectionForm, {
+  FILE_CHOOSER_MODE,
+  type FileChooserOptions,
+} from './use-connection-form';
+import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import { MESSAGE_TYPES } from './extension-app-message-constants';
 
 const pageStyles = css({
@@ -61,17 +64,19 @@ const OverviewPage: React.FC = () => {
     resetGlobalCSS();
   }, []);
 
-  function handleOpenFileChooserResult<T>(): Promise<T> {
-    const requestId = handleOpenFileChooser();
+  function handleOpenFileChooserResult<T>(
+    options: FileChooserOptions
+  ): Promise<T> {
+    const requestId = handleOpenFileChooser(options);
     return new Promise((resolve) => {
       const messageHandler = (event) => {
-        const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
+        const message: MessageFromExtensionToWebview = event.data;
         if (
           message.command === MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT &&
           message.requestId === requestId
         ) {
           window.removeEventListener('message', messageHandler);
-          resolve(message.files as T);
+          resolve(message.fileChooserResult as T);
         }
       };
       window.addEventListener('message', messageHandler);
@@ -87,22 +92,23 @@ const OverviewPage: React.FC = () => {
   const dialogProvider = {
     getCurrentWindow(): void {},
     dialog: {
-      showSaveDialog(): Promise<{ canceled: boolean; filePath?: string }> {
-        return handleOpenFileChooserResult<Uri | undefined>().then(
-          (file?: Uri) => {
-            return { canceled: false, filePath: file?.path };
-          }
-        );
+      async showSaveDialog(
+        window: void,
+        electronFileDialogOptions: Partial<ElectronFileDialogOptions>
+      ): Promise<{ canceled: boolean; filePath?: string }> {
+        return handleOpenFileChooserResult({
+          electronFileDialogOptions,
+          mode: FILE_CHOOSER_MODE.SAVE,
+        });
       },
-      showOpenDialog(): Promise<{ canceled: boolean; filePaths: string[] }> {
-        return handleOpenFileChooserResult<Uri[] | undefined>().then(
-          (files?: Uri[]) => {
-            return {
-              canceled: false,
-              filePaths: files ? files?.map((file) => file.path) : [],
-            };
-          }
-        );
+      async showOpenDialog(
+        window: void,
+        electronFileDialogOptions: Partial<ElectronFileDialogOptions>
+      ): Promise<{ canceled: boolean; filePaths: string[] }> {
+        return handleOpenFileChooserResult({
+          electronFileDialogOptions,
+          mode: FILE_CHOOSER_MODE.OPEN,
+        });
       },
     },
   };

@@ -1,5 +1,6 @@
 import type { ConnectionOptions } from 'mongodb-data-service';
 import type { Uri } from 'vscode';
+import type { FileChooserOptions } from './use-connection-form';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -24,7 +25,7 @@ export enum MESSAGE_TYPES {
   OPEN_FILE_CHOOSER_RESULT = 'OPEN_FILE_CHOOSER_RESULT',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
   OPEN_EDIT_CONNECTION = 'OPEN_EDIT_CONNECTION',
-  EDIT_AND_CONNECT_CONNECTION = 'EDIT_AND_CONNECT_CONNECTION',
+  EDIT_CONNECTION_AND_CONNECT = 'EDIT_CONNECTION_AND_CONNECT',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
   CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
   GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
@@ -61,16 +62,17 @@ export interface OpenEditConnectionMessage extends BasicWebviewMessage {
   };
 }
 
-export interface EditAndConnectConnection extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION;
+export interface EditConnectionAndConnectMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT;
   connectionInfo: {
     id: string;
     connectionOptions: ConnectionOptions;
   };
 }
 
-export interface OpenFileChooser extends BasicWebviewMessage {
+export interface OpenFileChooserMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.OPEN_FILE_CHOOSER;
+  fileChooserOptions: FileChooserOptions;
   requestId: string;
 }
 
@@ -95,7 +97,9 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
 
 export interface OpenFileChooserResultMessage extends BasicWebviewMessage {
   command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
-  files: Uri | Uri[] | undefined;
+  fileChooserResult:
+    | { canceled: false; filePaths?: Uri[] }
+    | { canceled: false; filePath?: Uri };
   requestId: string;
 }
 
@@ -127,7 +131,7 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
   darkMode: boolean;
 }
 
-export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
+export type MessageFromWebviewToExtension =
   | ConnectMessage
   | CancelConnectMessage
   | ConnectionFormOpenedMessage
@@ -137,10 +141,10 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | OpenConnectionStringInputMessage
   | OpenTrustedLinkMessage
   | RenameConnectionMessage
-  | EditAndConnectConnection
-  | OpenFileChooser;
+  | EditConnectionAndConnectMessage
+  | OpenFileChooserMessage;
 
-export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
+export type MessageFromExtensionToWebview =
   | ConnectResultsMessage
   | ConnectionStatusMessage
   | ThemeChangedMessage

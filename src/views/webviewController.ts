@@ -7,7 +7,7 @@ import type ConnectionController from '../connectionController';
 import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import EXTENSION_COMMANDS from '../commands';
-import type { MESSAGE_FROM_WEBVIEW_TO_EXTENSION } from './webview-app/extension-app-message-constants';
+import type { MessageFromWebviewToExtension } from './webview-app/extension-app-message-constants';
 import {
   MESSAGE_TYPES,
   VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID,
@@ -18,6 +18,7 @@ import type { StorageController } from '../storage';
 import type TelemetryService from '../telemetry/telemetryService';
 import { getFeatureFlagsScript } from '../featureFlags';
 import { TelemetryEventTypes } from '../telemetry/telemetryService';
+import type { FileChooserOptions } from './webview-app/use-connection-form';
 
 const log = createLogger('webview controller');
 
@@ -105,6 +106,54 @@ export default class WebviewController {
     this._themeChangedSubscription?.dispose();
   }
 
+  handleWebviewOpenFileChooserAttempt = async ({
+    panel,
+    fileChooserOptions,
+    requestId,
+  }: {
+    panel: vscode.WebviewPanel;
+    fileChooserOptions: FileChooserOptions;
+    requestId: string;
+  }): Promise<void> => {
+    let files;
+
+    try {
+      files = await vscode.window[
+        fileChooserOptions.mode === 'open' ? 'showOpenDialog' : 'showSaveDialog'
+      ]({
+        defaultUri: vscode.Uri.from({
+          path: fileChooserOptions.electronFileDialogOptions?.defaultPath,
+          scheme: 'file',
+        }),
+        [`${fileChooserOptions.mode}Label`]:
+          fileChooserOptions.electronFileDialogOptions?.buttonLabel,
+        filters: fileChooserOptions.electronFileDialogOptions?.filters?.reduce(
+          (acc, filter) => {
+            acc[filter.name] = filter.extensions;
+            return acc;
+          },
+          {}
+        ),
+        title: fileChooserOptions.electronFileDialogOptions?.title,
+      });
+    } catch (error) {
+      void vscode.window.showErrorMessage(
+        `Unable to open file chooser dialog: ${error}`
+      );
+    }
+
+    void panel.webview.postMessage({
+      command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT,
+      fileChooserResult: {
+        canceled: false,
+        ...(fileChooserOptions.mode === 'open'
+          ? { filePaths: files ? files?.map((file) => file.path) : [] }
+          : { filePath: files?.path }),
+      },
+      requestId,
+    });
+  };
+
   handleWebviewConnectAttempt = async ({
     panel,
     connection,
@@ -159,7 +208,7 @@ export default class WebviewController {
 
   // eslint-disable-next-line complexity
   handleWebviewMessage = async (
-    message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
+    message: MessageFromWebviewToExtension,
     panel: vscode.WebviewPanel
   ): Promise<void> => {
     switch (message.command) {
@@ -172,7 +221,7 @@ export default class WebviewController {
       case MESSAGE_TYPES.CANCEL_CONNECT:
         this._connectionController.cancelConnectionAttempt();
         return;
-      case MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION:
+      case MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT:
         await this.handleWebviewConnectAttempt({
           panel,
           connection: message.connectionInfo,
@@ -181,10 +230,9 @@ export default class WebviewController {
         this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
         return;
       case MESSAGE_TYPES.OPEN_FILE_CHOOSER:
-        const files = await vscode.window.showOpenDialog();
-        void panel.webview.postMessage({
-          command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT,
-          files,
+        await this.handleWebviewOpenFileChooserAttempt({
+          panel,
+          fileChooserOptions: message.fileChooserOptions,
           requestId: message.requestId,
         });
         return;
@@ -239,7 +287,7 @@ export default class WebviewController {
   };
 
   onReceivedWebviewMessage = async (
-    message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
+    message: MessageFromWebviewToExtension,
     panel: vscode.WebviewPanel
   ): Promise<void> => {
     // Ensure handling message from the webview can't crash the extension.
@@ -342,7 +390,7 @@ export default class WebviewController {
 
     // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
-      (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) =>
+      (message: MessageFromWebviewToExtension) =>
         this.onReceivedWebviewMessage(message, panel),
       undefined,
       context.subscriptions

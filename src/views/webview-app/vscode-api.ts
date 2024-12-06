@@ -1,11 +1,12 @@
 import {
   MESSAGE_TYPES,
-  type MESSAGE_FROM_WEBVIEW_TO_EXTENSION,
+  type MessageFromWebviewToExtension,
   type ConnectMessage,
 } from './extension-app-message-constants';
+import type { FileChooserOptions } from './use-connection-form';
 
 interface VSCodeApi {
-  postMessage: (message: MESSAGE_FROM_WEBVIEW_TO_EXTENSION) => void;
+  postMessage: (message: MessageFromWebviewToExtension) => void;
 }
 
 declare const acquireVsCodeApi: () => VSCodeApi;
@@ -15,7 +16,7 @@ export const sendEditConnectionToExtension = (
   connectionInfo: ConnectMessage['connectionInfo']
 ) => {
   vscode.postMessage({
-    command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION,
+    command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
     connectionInfo,
   });
 };
@@ -29,9 +30,13 @@ export const sendConnectToExtension = (
   });
 };
 
-export const sendOpenFileChooserToExtension = (requestId: string) => {
+export const sendOpenFileChooserToExtension = (
+  fileChooserOptions: FileChooserOptions,
+  requestId: string
+) => {
   vscode.postMessage({
     command: MESSAGE_TYPES.OPEN_FILE_CHOOSER,
+    fileChooserOptions,
     requestId,
   });
 };
