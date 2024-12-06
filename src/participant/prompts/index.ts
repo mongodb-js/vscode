@@ -8,11 +8,13 @@ import { SchemaPrompt } from './schema';
 import { ExportToPlaygroundPrompt } from './exportToPlayground';
 import { ExportToLanguagePrompt } from './exportToLanguage';
 import { isContentEmpty } from './promptBase';
+import { DocsPrompt } from './docs';
 
 export { getContentLength } from './promptBase';
 
 export class Prompts {
   public static generic = new GenericPrompt();
+  public static docs = new DocsPrompt();
   public static intent = new IntentPrompt();
   public static namespace = new NamespacePrompt();
   public static query = new QueryPrompt();
