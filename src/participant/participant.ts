@@ -121,7 +121,6 @@ export default class ParticipantController {
       participantId: this._participant?.id,
     });
     this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
-
     return this._participant;
   }
 
