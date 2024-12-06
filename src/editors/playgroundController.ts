@@ -8,6 +8,7 @@ import type ConnectionController from '../connectionController';
 import { DataServiceEventTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import type { ConnectionTreeItem } from '../explorer';
+import { CollectionTreeItem } from '../explorer';
 import { DatabaseTreeItem } from '../explorer';
 import formatError from '../utils/formatError';
 import type { LanguageServerController } from '../language';
@@ -41,6 +42,8 @@ import {
   getPlaygroundExtensionForTelemetry,
 } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
+import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 
 const log = createLogger('playground controller');
 
@@ -316,13 +319,36 @@ export default class PlaygroundController {
     return this._createPlaygroundFileWithContent(content);
   }
 
+  async createPlaygroundFromTreeItem(
+    treeItem: DatabaseTreeItem | CollectionTreeItem
+  ): Promise<boolean> {
+    let content = '';
+    if (treeItem instanceof DatabaseTreeItem) {
+      content = playgroundFromDatabaseTreeItemTemplate(treeItem.databaseName);
+      this._telemetryService.trackPlaygroundCreated('fromDatabaseTreeItem');
+    } else if (treeItem instanceof CollectionTreeItem) {
+      content = playgroundFromCollectionTreeItemTemplate(
+        treeItem.databaseName,
+        treeItem.collectionName
+      );
+      this._telemetryService.trackPlaygroundCreated('fromCollectionTreeItem');
+    }
+
+    return this._createPlaygroundFileWithContent(content);
+  }
+
   async createPlayground(): Promise<boolean> {
     const useDefaultTemplate = !!vscode.workspace
       .getConfiguration('mdb')
       .get('useDefaultTemplateForPlayground');
-    const isStreams = this._connectionController.isConnectedToAtlasStreams();
-    const template = isStreams ? playgroundStreamsTemplate : playgroundTemplate;
-    const content = useDefaultTemplate ? template : '';
+    let content = '';
+    if (useDefaultTemplate) {
+      const isStreams = this._connectionController.isConnectedToAtlasStreams();
+      const template = isStreams
+        ? playgroundStreamsTemplate
+        : playgroundTemplate;
+      content = template;
+    }
 
     this._telemetryService.trackPlaygroundCreated('crud');
     return this._createPlaygroundFileWithContent(content);

@@ -51,6 +51,10 @@ import type {
   SendMessageToParticipantOptions,
   SendMessageToParticipantFromInputOptions,
 } from './participant/participantTypes';
+import {
+  COPILOT_CHAT_EXTENSION_ID,
+  COPILOT_EXTENSION_ID,
+} from './participant/constants';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -177,12 +181,26 @@ export default class MDBExtensionController implements vscode.Disposable {
     // ------ In-app notifications ------ //
     void this.showCopilotIntroductionForEstablishedUsers();
 
-    const copilot = vscode.extensions.getExtension('GitHub.copilot');
+    const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.isCopilotActive',
       copilot?.isActive
     );
+
+    // TODO: This is a workaround related to https://github.com/microsoft/vscode/issues/234426
+    // If the extension was found but is not activated, there is a chance that the MongoDB extension
+    // was activated before the Copilot one, so we check again after a delay.
+    if (copilot && !copilot?.isActive) {
+      setTimeout(() => {
+        const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
+        void vscode.commands.executeCommand(
+          'setContext',
+          'mdb.isCopilotActive',
+          copilot?.isActive === true
+        );
+      }, 3000);
+    }
   }
 
   registerCommands = (): void => {
@@ -327,6 +345,13 @@ export default class MDBExtensionController implements vscode.Disposable {
         await this._participantController.sendMessageToParticipantFromInput(
           options
         );
+        return true;
+      }
+    );
+    this.registerParticipantCommand(
+      EXTENSION_COMMANDS.ASK_COPILOT_FROM_TREE_ITEM,
+      async (treeItem: DatabaseTreeItem | CollectionTreeItem) => {
+        await this._participantController.askCopilotFromTreeItem(treeItem);
         return true;
       }
     );
@@ -743,6 +768,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       () => this._playgroundController.createPlayground()
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_ITEM,
+      (treeItem: DatabaseTreeItem | CollectionTreeItem) =>
+        this._playgroundController.createPlaygroundFromTreeItem(treeItem)
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
       () => this._playgroundsExplorer.refresh()
     );
@@ -972,7 +1002,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
 
-    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    const copilot = vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID);
     if (result?.title === action) {
       await this._participantController.sendMessageToParticipant({
         message: '',
