@@ -1660,8 +1660,12 @@ Schema:
           expect(fetchStub).to.have.been.called;
           expect(sendRequestStub).to.have.not.been.called;
 
+          expect(telemetryTrackStub.firstCall).to.equal(
+            'Participant Prompt Submitted'
+          );
+
           assertResponseTelemetry('docs/chatbot', {
-            callIndex: 0,
+            callIndex: 1,
           });
         });
 
