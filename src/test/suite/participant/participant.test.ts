@@ -1660,9 +1660,11 @@ Schema:
           expect(fetchStub).to.have.been.called;
           expect(sendRequestStub).to.have.not.been.called;
 
-          expect(telemetryTrackStub.firstCall.firstArg).to.equal(
-            'Participant Prompt Submitted'
-          );
+          assertCommandTelemetry('docs', chatRequestMock, {
+            expectSampleDocs: false,
+            callIndex: 0,
+            expectedInternalPurpose: undefined,
+          });
 
           assertResponseTelemetry('docs/chatbot', {
             callIndex: 1,
