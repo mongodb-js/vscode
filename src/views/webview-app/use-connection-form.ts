@@ -7,9 +7,21 @@ import {
   sendCancelConnectToExtension,
   sendFormOpenedToExtension,
   sendEditConnectionToExtension,
+  sendOpenFileChooserToExtension,
 } from './vscode-api';
 import { MESSAGE_TYPES } from './extension-app-message-constants';
-import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from './extension-app-message-constants';
+import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
+import type { ElectronFileDialogOptions } from '@mongodb-js/compass-components';
+
+export enum FILE_CHOOSER_MODE {
+  OPEN = 'open',
+  SAVE = 'save',
+}
+
+export type FileChooserOptions = {
+  electronFileDialogOptions?: Partial<ElectronFileDialogOptions>;
+  mode: FILE_CHOOSER_MODE;
+};
 
 type ConnectionInfo = {
   id: string;
@@ -132,7 +144,7 @@ export default function useConnectionForm() {
 
   useEffect(() => {
     const handleConnectResultResponse = (event) => {
-      const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
+      const message: MessageFromExtensionToWebview = event.data;
       if (
         message.command === MESSAGE_TYPES.CONNECT_RESULT &&
         message.connectionId === initialConnectionInfo.id
@@ -152,7 +164,7 @@ export default function useConnectionForm() {
 
   useEffect(() => {
     const handleConnectResultResponse = (event) => {
-      const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
+      const message: MessageFromExtensionToWebview = event.data;
       if (message.command === MESSAGE_TYPES.OPEN_EDIT_CONNECTION) {
         dispatch({
           type: 'open-edit-connection',
@@ -187,6 +199,11 @@ export default function useConnectionForm() {
       dispatch({
         type: 'close-connection-form',
       });
+    },
+    handleOpenFileChooser: (options: FileChooserOptions) => {
+      const requestId = uuidv4();
+      sendOpenFileChooserToExtension(options, requestId);
+      return requestId;
     },
     handleCancelConnectClicked: () => {
       sendCancelConnectToExtension();

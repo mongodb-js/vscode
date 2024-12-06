@@ -538,7 +538,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection status request call.
     messageReceived({
-      command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION,
+      command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
       connectionInfo: {
         id: 'pineapple',
         connectionOptions: {

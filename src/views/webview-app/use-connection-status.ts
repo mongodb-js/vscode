@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   CONNECTION_STATUS,
-  type MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
+  type MessageFromExtensionToWebview,
   MESSAGE_TYPES,
 } from './extension-app-message-constants';
 import vscode from './vscode-api';
@@ -15,7 +15,7 @@ const useConnectionStatus = () => {
   const [connectionName, setConnectionName] = useState('');
   useEffect(() => {
     const handleConnectionStatusResponse = (event) => {
-      const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
+      const message: MessageFromExtensionToWebview = event.data;
       if (message.command === MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE) {
         setConnectionStatus(message.connectionStatus);
         setConnectionName(message.activeConnectionName);
