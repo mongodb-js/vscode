@@ -127,10 +127,6 @@ export type ParticipantResponseProperties = {
   output_length: number;
 };
 
-export type CopilotIntroductionProperties = {
-  is_copilot_active: boolean;
-};
-
 export type ParticipantPromptSubmittedFromActionProperties = {
   source: DocumentSource;
   input_length: number;
@@ -181,8 +177,7 @@ type TelemetryEventProperties =
   | ParticipantPromptProperties
   | ParticipantPromptSubmittedFromActionProperties
   | ParticipantChatOpenedFromActionProperties
-  | ParticipantResponseProperties
-  | CopilotIntroductionProperties;
+  | ParticipantResponseProperties;
 
 export enum TelemetryEventTypes {
   PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
