@@ -43,7 +43,10 @@ import {
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../../../explorer';
-import type { SendMessageToParticipantOptions } from '../../../participant/participantTypes';
+import type {
+  ParticipantRequestType,
+  SendMessageToParticipantOptions,
+} from '../../../participant/participantTypes';
 import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
@@ -121,7 +124,7 @@ suite('Participant Controller Test Suite', function () {
     );
 
   const assertCommandTelemetry = (
-    command: string,
+    command: ParticipantRequestType,
     chatRequest: vscode.ChatRequest,
     {
       expectSampleDocs = false,
@@ -144,10 +147,13 @@ suite('Participant Controller Test Suite', function () {
     expect(properties.has_sample_documents).to.equal(expectSampleDocs);
     expect(properties.history_size).to.equal(chatContextStub.history.length);
 
-    // Total message length includes participant as well as user prompt
-    expect(properties.total_message_length).to.be.greaterThan(
-      properties.user_input_length
-    );
+    /** For docs chatbot requests, the length of the prompt would be longer as it gets the prompt history prepended.*/
+    if (command !== 'docs') {
+      // Total message length includes participant as well as user prompt
+      expect(properties.total_message_length).to.be.greaterThan(
+        properties.user_input_length
+      );
+    }
 
     // User prompt length should be at least equal to the supplied user prompt, but my occasionally
     // be greater - e.g. when we enhance the context.
