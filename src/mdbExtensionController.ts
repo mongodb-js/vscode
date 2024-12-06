@@ -76,7 +76,6 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
-  _startupNotificationShown = false;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -173,9 +172,6 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
-
-    // ------ In-app notifications ------ //
-    void this.showCopilotIntroductionForEstablishedUsers();
 
     const copilot = vscode.extensions.getExtension('GitHub.copilot');
     void vscode.commands.executeCommand(
@@ -966,59 +962,6 @@ export default class MDBExtensionController implements vscode.Disposable {
         true
       );
     }
-  }
-
-  async showCopilotIntroductionForEstablishedUsers(): Promise<void> {
-    const copilotIntroductionShown =
-      this._storageController.get(
-        StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN
-      ) === true;
-
-    // Show the toast when startup notifications have not been shown
-    // to the user yet and they have saved connections
-    // -> they haven't just started using this extension.
-    if (
-      this._startupNotificationShown ||
-      copilotIntroductionShown ||
-      !this._connectionStorage.hasSavedConnections()
-    ) {
-      return;
-    }
-
-    this._startupNotificationShown = true;
-
-    const action = 'Chat with @MongoDB';
-    const text =
-      'Generate queries, interact with documentation, and explore your database schema using the MongoDB Copilot extension. Give it a try!';
-    const result = await vscode.window.showInformationMessage(
-      text,
-      {},
-      {
-        title: action,
-      }
-    );
-
-    const copilot = vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID);
-    if (result?.title === action) {
-      await this._participantController.sendMessageToParticipant({
-        message: '',
-        isNewChat: true,
-        isPartialQuery: true,
-      });
-      this._telemetryService.trackCopilotIntroductionClicked({
-        is_copilot_active: !!copilot?.isActive,
-      });
-    } else {
-      this._telemetryService.trackCopilotIntroductionDismissed({
-        is_copilot_active: !!copilot?.isActive,
-      });
-    }
-
-    // Whether action was taken or the prompt dismissed, we won't show this again.
-    void this._storageController.update(
-      StorageVariables.GLOBAL_COPILOT_INTRODUCTION_SHOWN,
-      true
-    );
   }
 
   async dispose(): Promise<void> {

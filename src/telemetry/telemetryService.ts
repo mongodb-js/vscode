@@ -212,8 +212,7 @@ export enum TelemetryEventTypes {
   /** Tracks after a participant interacts with the input box we open to let the user write the prompt for participant. */
   PARTICIPANT_INPUT_BOX_SUBMITTED = 'Participant Inbox Box Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
-  COPILOT_INTRODUCTION_CLICKED = 'Copilot Introduction Clicked',
-  COPILOT_INTRODUCTION_DISMISSED = 'Copilot Introduction Dismissed',
+  PARTICIPANT_SUBMITTED_FROM_INPUT_BOX = 'Participant Submitted From Input Box',
 }
 
 /**
@@ -526,15 +525,5 @@ export default class TelemetryService {
 
   trackParticipantResponse(props: ParticipantResponseProperties): void {
     this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
-  }
-
-  trackCopilotIntroductionClicked(props: CopilotIntroductionProperties): void {
-    this.track(TelemetryEventTypes.COPILOT_INTRODUCTION_CLICKED, props);
-  }
-
-  trackCopilotIntroductionDismissed(
-    props: CopilotIntroductionProperties
-  ): void {
-    this.track(TelemetryEventTypes.COPILOT_INTRODUCTION_DISMISSED, props);
   }
 }
