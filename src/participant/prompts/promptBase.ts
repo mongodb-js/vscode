@@ -5,6 +5,7 @@ import type {
   ParticipantPromptProperties,
 } from '../../telemetry/telemetryService';
 import { PromptHistory } from './promptHistory';
+import type { ParticipantCommandType } from '../participantTypes';
 
 export interface PromptArgsBase {
   request: {
@@ -175,7 +176,7 @@ export abstract class PromptBase<TArgs extends PromptArgsBase> {
       ),
       user_input_length: request.prompt.length,
       has_sample_documents: hasSampleDocs,
-      command: request.command || 'generic',
+      command: (request.command as ParticipantCommandType) || 'generic',
       history_size: context?.history.length || 0,
       internal_purpose: this.internalPurposeForTelemetry,
     };
