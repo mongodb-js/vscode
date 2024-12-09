@@ -21,7 +21,7 @@ export type ParticipantResponseType =
 
 type TelemetryMetadata = {
   source: DocumentSource;
-  sourceDetails?: string;
+  source_details?: 'database' | 'collection';
 };
 
 /** Based on options from Copilot's chat open command IChatViewOpenOptions */

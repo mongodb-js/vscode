@@ -43,10 +43,7 @@ import {
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../../../explorer';
-import type {
-  ParticipantRequestType,
-  SendMessageToParticipantOptions,
-} from '../../../participant/participantTypes';
+import type { SendMessageToParticipantOptions } from '../../../participant/participantTypes';
 import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
@@ -1853,7 +1850,7 @@ Schema:
               isNewChat: true,
               telemetry: {
                 source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-                sourceDetails: 'copilot button on database tree item',
+                source_details: 'database',
               },
             },
           ]);
@@ -1884,7 +1881,7 @@ Schema:
               isNewChat: true,
               telemetry: {
                 source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-                sourceDetails: 'copilot button on collection tree item',
+                source_details: 'collection',
               },
             },
           ]);
