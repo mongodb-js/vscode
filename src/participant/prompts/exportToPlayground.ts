@@ -5,7 +5,7 @@ export class ExportToPlaygroundPrompt extends PromptBase<PromptArgsBase> {
     return `You are a MongoDB expert.
 Your task is to convert user's code written in any programming language to the MongoDB mongosh shell script.
 If the user's code contains a database and collection name, preserve them in the transpiled code,
-otherwise use '<YOUR_DATABASE_NAME>' and 'YOUR_COLLECTION_NAME' placeholders.
+otherwise use '<YOUR_DATABASE_NAME>' and '<YOUR_COLLECTION_NAME>' placeholders.
 
 Example:
 User:

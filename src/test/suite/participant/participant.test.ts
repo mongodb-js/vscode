@@ -42,6 +42,9 @@ import {
 } from './participantHelpers';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
+import { CollectionTreeItem, DatabaseTreeItem } from '../../../explorer';
+import type { SendMessageToParticipantOptions } from '../../../participant/participantTypes';
+import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -1851,6 +1854,81 @@ Schema:
       });
     });
 
+    suite('opened from tree view', function () {
+      let sendMessageToParticipantStub: SinonStub<
+        [options: SendMessageToParticipantOptions],
+        Promise<unknown>
+      >;
+
+      beforeEach(function () {
+        sendMessageToParticipantStub = sinon.stub(
+          testParticipantController,
+          'sendMessageToParticipant'
+        );
+      });
+
+      suite('with a database item', function () {
+        const mockDatabaseItem = Object.assign(
+          Object.create(DatabaseTreeItem.prototype),
+          {
+            databaseName: 'testDb',
+          } as DatabaseTreeItem
+        );
+
+        test('opens the chat and sends a message to set database context', async function () {
+          expect(sendMessageToParticipantStub).not.called;
+
+          await testParticipantController.askCopilotFromTreeItem(
+            mockDatabaseItem
+          );
+
+          expect(sendMessageToParticipantStub).has.callCount(1);
+
+          expect(sendMessageToParticipantStub.getCall(0).args).deep.equals([
+            {
+              message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
+              isNewChat: true,
+              telemetry: {
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source_details: 'database',
+              },
+            },
+          ]);
+        });
+      });
+
+      suite('with a collection item', function () {
+        const mockCollectionItem = Object.assign(
+          Object.create(CollectionTreeItem.prototype),
+          {
+            databaseName: 'testDb',
+            collectionName: 'testColl',
+          } as CollectionTreeItem
+        );
+
+        test('opens the chat and sends a message to set database and collection context', async function () {
+          expect(sendMessageToParticipantStub).not.called;
+
+          await testParticipantController.askCopilotFromTreeItem(
+            mockCollectionItem
+          );
+
+          expect(sendMessageToParticipantStub).has.callCount(1);
+
+          expect(sendMessageToParticipantStub.getCall(0).args).deep.equals([
+            {
+              message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
+              isNewChat: true,
+              telemetry: {
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source_details: 'collection',
+              },
+            },
+          ]);
+        });
+      });
+    });
+
     suite('determining the namespace', function () {
       ['query', 'schema'].forEach(function (command) {
         suite(`${command} command`, function () {
@@ -2592,7 +2670,7 @@ Schema:
 
     test('reports error', function () {
       const err = Error('Filtered by Responsible AI Service');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'query'
       );
@@ -2613,7 +2691,7 @@ Schema:
     test('reports nested error', function () {
       const err = new Error('Parent error');
       err.cause = Error('This message is flagged as off topic: off_topic.');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'docs'
       );
@@ -2632,7 +2710,7 @@ Schema:
     test('Reports error code when available', function () {
       // eslint-disable-next-line new-cap
       const err = vscode.LanguageModelError.NotFound('Model not found');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'schema'
       );
