@@ -6,6 +6,7 @@ import type {
 } from '../../telemetry/telemetryService';
 import { PromptHistory } from './promptHistory';
 import type { ParticipantCommandType } from '../participantTypes';
+import { getCopilotModel } from '../model';
 
 export interface PromptArgsBase {
   request: {
