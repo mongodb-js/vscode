@@ -124,7 +124,7 @@ suite('Webview Test Suite', () => {
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
-      telemetryUserId: 'MOCK_ANONYMOU_ID',
+      telemetryUserId: 'MOCK_ANONYMOUS_ID',
       webview: {
         asWebviewUri: (jsUri) => {
           return jsUri;
@@ -133,7 +133,7 @@ suite('Webview Test Suite', () => {
     });
 
     expect(htmlString).to.include(
-      ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOU_ID';"
+      ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOUS_ID';"
     );
   });
 
@@ -143,7 +143,7 @@ suite('Webview Test Suite', () => {
       extensionPath,
       telemetryUserId: 'test',
       webview: {
-        asWebviewUri: (jsUri) => {
+        asWebviewUri: (jsUri: vscode.Uri) => {
           return jsUri;
         },
       } as unknown as vscode.Webview,
@@ -177,7 +177,7 @@ suite('Webview Test Suite', () => {
         extensionPath,
         telemetryUserId: 'test',
         webview: {
-          asWebviewUri: (jsUri) => {
+          asWebviewUri: (jsUri: vscode.Uri) => {
             return jsUri;
           },
         } as unknown as vscode.Webview,
@@ -368,7 +368,7 @@ suite('Webview Test Suite', () => {
       onDidReceiveMessage: (callback): void => {
         messageReceived = callback;
       },
-      asWebviewUri: () => '',
+      asWebviewUri: (): string => '',
     };
     const fakeVSCodeExecuteCommand = sandbox
       .stub(vscode.commands, 'executeCommand')
@@ -538,7 +538,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection status request call.
     messageReceived({
-      command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION,
+      command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
       connectionInfo: {
         id: 'pineapple',
         connectionOptions: {
