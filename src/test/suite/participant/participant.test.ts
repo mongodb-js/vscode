@@ -1841,7 +1841,7 @@ Schema:
               isNewChat: true,
               telemetry: {
                 source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-                sourceDetails: 'copilot button on database tree item',
+                source_details: 'database',
               },
             },
           ]);
@@ -1872,7 +1872,7 @@ Schema:
               isNewChat: true,
               telemetry: {
                 source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-                sourceDetails: 'copilot button on collection tree item',
+                source_details: 'collection',
               },
             },
           ]);
