@@ -8,7 +8,10 @@ import vscode from './vscode-api';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 
-const useConnectionStatus = () => {
+const useConnectionStatus = (): {
+  connectionStatus: CONNECTION_STATUS;
+  connectionName: string;
+} => {
   const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(
     CONNECTION_STATUS.LOADING
   );
@@ -23,7 +26,7 @@ const useConnectionStatus = () => {
     };
     window.addEventListener('message', handleConnectionStatusResponse);
 
-    const requestConnectionStatus = () =>
+    const requestConnectionStatus = (): void =>
       vscode.postMessage({
         command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
       });

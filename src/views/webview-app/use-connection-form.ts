@@ -179,7 +179,7 @@ export default function useConnectionForm() {
       }
     };
     window.addEventListener('message', handleConnectResultResponse);
-    return () => {
+    return (): void => {
       window.removeEventListener('message', handleConnectResultResponse);
     };
   }, []);
@@ -189,38 +189,34 @@ export default function useConnectionForm() {
     isConnecting,
     initialConnectionInfo,
     connectionErrorMessage,
-    openConnectionForm: () => {
+    openConnectionForm: (): void => {
       dispatch({
         type: 'open-connection-form',
       });
       sendFormOpenedToExtension();
     },
-    closeConnectionForm: () => {
+    closeConnectionForm: (): void => {
       dispatch({
         type: 'close-connection-form',
       });
     },
-    handleOpenFileChooser: (options: FileChooserOptions) => {
+    handleOpenFileChooser: (options: FileChooserOptions): string => {
       const requestId = uuidv4();
       sendOpenFileChooserToExtension(options, requestId);
       return requestId;
     },
-    handleCancelConnectClicked: () => {
+    handleCancelConnectClicked: (): void => {
       sendCancelConnectToExtension();
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    handleSaveConnectionClicked: (connectionAttempt: {
-      id: string;
-      connectionOptions: ConnectionOptions;
-    }) => {
+    handleSaveConnectionClicked: (): Promise<void> => {
       // no-op, this cannot be called as don't set the `showFavoriteActions` setting.
-
       return Promise.resolve();
     },
     handleConnectClicked: (connectionAttempt: {
       id: string;
       connectionOptions: ConnectionOptions;
-    }) => {
+    }): void => {
       dispatch({
         type: 'attempt-connect',
       });

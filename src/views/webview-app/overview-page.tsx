@@ -1,4 +1,5 @@
 import React, { useCallback, useLayoutEffect, useState } from 'react';
+import type { ElectronShowFileDialogProvider } from '@mongodb-js/compass-components';
 import {
   HorizontalRule,
   css,
@@ -8,6 +9,7 @@ import {
   createElectronFileInputBackend,
   type ElectronFileDialogOptions,
 } from '@mongodb-js/compass-components';
+import type { ConnectionOptions } from 'mongodb-data-service';
 
 import OverviewHeader from './overview-header';
 import ConnectionStatus from './connection-status';
@@ -69,8 +71,10 @@ const OverviewPage: React.FC = () => {
   ): Promise<T> {
     const requestId = handleOpenFileChooser(options);
     return new Promise((resolve) => {
-      const messageHandler = (event) => {
-        const message: MessageFromExtensionToWebview = event.data;
+      const messageHandler = (
+        event: MessageEvent<MessageFromExtensionToWebview>
+      ): void => {
+        const message = event.data;
         if (
           message.command === MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT &&
           message.requestId === requestId
@@ -89,7 +93,7 @@ const OverviewPage: React.FC = () => {
   // To work around this, we use a custom dialog provider that uses webview APIs
   // to send a message to the extension process to open the electron file dialog
   // and listen for the response to get the file path and send them to the electron file input backend.
-  const dialogProvider = {
+  const dialogProvider: ElectronShowFileDialogProvider<void> = {
     getCurrentWindow(): void {},
     dialog: {
       async showSaveDialog(
@@ -128,11 +132,14 @@ const OverviewPage: React.FC = () => {
           <ConnectionForm
             isConnecting={isConnecting}
             initialConnectionInfo={initialConnectionInfo}
-            onSaveAndConnectClicked={({ id, connectionOptions }) => {
-              void handleSaveConnectionClicked({
-                id,
-                connectionOptions,
-              });
+            onSaveAndConnectClicked={({
+              id,
+              connectionOptions,
+            }: {
+              id: string;
+              connectionOptions: ConnectionOptions;
+            }): void => {
+              void handleSaveConnectionClicked();
               handleConnectClicked({
                 id,
                 connectionOptions,

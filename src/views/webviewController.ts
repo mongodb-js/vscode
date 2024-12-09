@@ -22,7 +22,7 @@ import type { FileChooserOptions } from './webview-app/use-connection-form';
 
 const log = createLogger('webview controller');
 
-const getNonce = () => {
+const getNonce = (): string => {
   return crypto.randomBytes(16).toString('base64');
 };
 
@@ -115,27 +115,44 @@ export default class WebviewController {
     fileChooserOptions: FileChooserOptions;
     requestId: string;
   }): Promise<void> => {
-    let files;
+    let files: vscode.Uri[] | vscode.Uri | undefined;
 
     try {
-      files = await vscode.window[
-        fileChooserOptions.mode === 'open' ? 'showOpenDialog' : 'showSaveDialog'
-      ]({
-        defaultUri: vscode.Uri.from({
-          path: fileChooserOptions.electronFileDialogOptions?.defaultPath,
-          scheme: 'file',
-        }),
-        [`${fileChooserOptions.mode}Label`]:
-          fileChooserOptions.electronFileDialogOptions?.buttonLabel,
-        filters: fileChooserOptions.electronFileDialogOptions?.filters?.reduce(
-          (acc, filter) => {
-            acc[filter.name] = filter.extensions;
-            return acc;
-          },
-          {}
-        ),
-        title: fileChooserOptions.electronFileDialogOptions?.title,
-      });
+      if (fileChooserOptions.mode === 'open') {
+        files = await vscode.window.showOpenDialog({
+          defaultUri: vscode.Uri.from({
+            path: fileChooserOptions.electronFileDialogOptions?.defaultPath,
+            scheme: 'file',
+          }),
+          openLabel: fileChooserOptions.electronFileDialogOptions?.buttonLabel,
+          filters:
+            fileChooserOptions.electronFileDialogOptions?.filters?.reduce(
+              (acc, filter) => {
+                acc[filter.name] = filter.extensions;
+                return acc;
+              },
+              {}
+            ),
+          title: fileChooserOptions.electronFileDialogOptions?.title,
+        });
+      } else if (fileChooserOptions.mode === 'save') {
+        files = await vscode.window.showSaveDialog({
+          defaultUri: vscode.Uri.from({
+            path: fileChooserOptions.electronFileDialogOptions?.defaultPath,
+            scheme: 'file',
+          }),
+          saveLabel: fileChooserOptions.electronFileDialogOptions?.buttonLabel,
+          filters:
+            fileChooserOptions.electronFileDialogOptions?.filters?.reduce(
+              (acc, filter) => {
+                acc[filter.name] = filter.extensions;
+                return acc;
+              },
+              {}
+            ),
+          title: fileChooserOptions.electronFileDialogOptions?.title,
+        });
+      }
     } catch (error) {
       void vscode.window.showErrorMessage(
         `Unable to open file chooser dialog: ${error}`
@@ -146,9 +163,13 @@ export default class WebviewController {
       command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT,
       fileChooserResult: {
         canceled: false,
-        ...(fileChooserOptions.mode === 'open'
-          ? { filePaths: files ? files?.map((file) => file.path) : [] }
-          : { filePath: files?.path }),
+        ...(Array.isArray(files)
+          ? {
+              filePaths: files
+                ? files?.map((file: vscode.Uri) => file.fsPath)
+                : [],
+            }
+          : { filePath: files?.fsPath }),
       },
       requestId,
     });
@@ -165,7 +186,7 @@ export default class WebviewController {
       id: string;
     };
     isEditingConnection?: boolean;
-  }) => {
+  }): Promise<void> => {
     try {
       const { successfullyConnected, connectionErrorMessage } =
         isEditingConnection
@@ -299,13 +320,13 @@ export default class WebviewController {
     }
   };
 
-  onWebviewPanelClosed = (disposedPanel: vscode.WebviewPanel) => {
+  onWebviewPanelClosed = (disposedPanel: vscode.WebviewPanel): void => {
     this._activeWebviewPanels = this._activeWebviewPanels.filter(
       (panel) => panel !== disposedPanel
     );
   };
 
-  onThemeChanged = (theme: vscode.ColorTheme) => {
+  onThemeChanged = (theme: vscode.ColorTheme): void => {
     const darkModeDetected =
       theme.kind === vscode.ColorThemeKind.Dark ||
       theme.kind === vscode.ColorThemeKind.HighContrast;
@@ -334,7 +355,7 @@ export default class WebviewController {
       connectionOptions: ConnectionOptions;
     };
     context: vscode.ExtensionContext;
-  }) => {
+  }): Promise<void> => {
     const webviewPanel = this.openWebview(context);
 
     // Wait for the panel to open.

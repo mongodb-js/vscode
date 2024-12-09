@@ -4,7 +4,7 @@ import {
   MESSAGE_TYPES,
 } from './extension-app-message-constants';
 
-export const useDetectVsCodeDarkMode = () => {
+export const useDetectVsCodeDarkMode = (): boolean => {
   const [darkModeDetected, setDarkModeDetected] = useState(
     globalThis.document.body.classList.contains('vscode-dark') ||
       globalThis.document.body.classList.contains('vscode-high-contrast')
@@ -17,7 +17,7 @@ export const useDetectVsCodeDarkMode = () => {
       }
     };
     window.addEventListener('message', onThemeChanged);
-    return () => window.removeEventListener('message', onThemeChanged);
+    return (): void => window.removeEventListener('message', onThemeChanged);
   }, []);
 
   return darkModeDetected;
