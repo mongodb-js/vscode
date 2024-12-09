@@ -856,9 +856,11 @@ suite('Participant Controller Test Suite', function () {
                 },
               ];
 
-              // This is to offset the previous countTokens calls
-              // buildMessages gets called twice for namespace so it is adjusted accordingly
-              // (1 for request prompt and 1 for assistant prompt calculation)
+              // This is to offset the previous countTokens calls buildMessages gets called twice for namespace so it is adjusted accordingly
+              // 1. called calculating user's request prompt when buildMessages get called in _getNamespaceFromChat
+              // 2. called calculating assistant prompt when buildMessages get called in _getNamespaceFromChat
+              // 3. called calculating user's request prompt when buildMessages get called as part of the query request handling
+              // 4. called calculating assistant prompt when buildMessages get called as part of the query request handling
               const countTokenCallsOffset = 4;
 
               // Called when including sample documents
@@ -930,9 +932,11 @@ suite('Participant Controller Test Suite', function () {
                 },
               ];
 
-              // This is to offset the previous countTokens calls
-              // buildMessages gets called twice for namespace so it is adjusted accordingly
-              // (1 for request prompt and 1 for assistant prompt calculation)
+              // This is to offset the previous countTokens calls buildMessages gets called twice for namespace so it is adjusted accordingly
+              // 1. called calculating user's request prompt when buildMessages get called in _getNamespaceFromChat
+              // 2. called calculating assistant prompt when buildMessages get called in _getNamespaceFromChat
+              // 3. called calculating user's request prompt when buildMessages get called as part of the query request handling
+              // 4. called calculating assistant prompt when buildMessages get called as part of the query request handling
               const countTokenCallsOffset = 4;
 
               // Called when including sample documents
@@ -981,9 +985,11 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('does not include sample documents when even 1 makes prompt too long', async function () {
-              // This is to offset the previous countTokens calls
-              // buildMessages gets called twice for namespace so it is adjusted accordingly
-              // (1 for request prompt and 1 for assistant prompt calculation)
+              // This is to offset the previous countTokens calls buildMessages gets called twice for namespace so it is adjusted accordingly
+              // 1. called calculating user's request prompt when buildMessages get called in _getNamespaceFromChat
+              // 2. called calculating assistant prompt when buildMessages get called in _getNamespaceFromChat
+              // 3. called calculating user's request prompt when buildMessages get called as part of the query request handling
+              // 4. called calculating assistant prompt when buildMessages get called as part of the query request handling
               const countTokenCallsOffset = 4;
 
               // Called when including sample documents
