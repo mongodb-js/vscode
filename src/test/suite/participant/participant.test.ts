@@ -43,7 +43,10 @@ import {
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../../../explorer';
-import type { SendMessageToParticipantOptions } from '../../../participant/participantTypes';
+import type {
+  ParticipantRequestType,
+  SendMessageToParticipantOptions,
+} from '../../../participant/participantTypes';
 import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
