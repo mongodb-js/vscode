@@ -1540,22 +1540,23 @@ export default class ParticipantController {
   }
 
   async _handleDocsRequestWithChatbot({
-    prompt,
+    request,
     chatId,
     token,
     stream,
     context,
   }: {
-    prompt: string;
     chatId: string;
     token: vscode.CancellationToken;
     context: vscode.ChatContext;
+    request: vscode.ChatRequest;
     stream: vscode.ChatResponseStream;
   }): Promise<{
     responseContent: string;
     responseReferences?: Reference[];
     docsChatbotMessageId: string;
   }> {
+    const prompt = request.prompt;
     stream.push(
       new vscode.ChatResponseProgressPart('Consulting MongoDB documentation...')
     );
@@ -1596,6 +1597,10 @@ export default class ParticipantController {
       conversationId: docsChatbotConversationId,
       signal: abortController.signal,
     });
+
+    const stats = Prompts.docs.getStats(history, { request, context });
+
+    this._telemetryService.trackParticipantPrompt(stats);
 
     log.info('Docs chatbot message sent', {
       chatId,
@@ -1694,7 +1699,7 @@ export default class ParticipantController {
 
     try {
       docsResult = await this._handleDocsRequestWithChatbot({
-        prompt: request.prompt,
+        request,
         chatId,
         token,
         stream,
