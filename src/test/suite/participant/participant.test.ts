@@ -44,6 +44,7 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../../../explorer';
 import type { SendMessageToParticipantOptions } from '../../../participant/participantTypes';
+import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -1838,6 +1839,10 @@ Schema:
             {
               message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
               isNewChat: true,
+              telemetry: {
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source_details: 'database',
+              },
             },
           ]);
         });
@@ -1865,6 +1870,10 @@ Schema:
             {
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
+              telemetry: {
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source_details: 'collection',
+              },
             },
           ]);
         });
@@ -2569,7 +2578,7 @@ Schema:
 
     test('reports error', function () {
       const err = Error('Filtered by Responsible AI Service');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'query'
       );
@@ -2590,7 +2599,7 @@ Schema:
     test('reports nested error', function () {
       const err = new Error('Parent error');
       err.cause = Error('This message is flagged as off topic: off_topic.');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'docs'
       );
@@ -2609,7 +2618,7 @@ Schema:
     test('Reports error code when available', function () {
       // eslint-disable-next-line new-cap
       const err = vscode.LanguageModelError.NotFound('Model not found');
-      testParticipantController._telemetryService.trackCopilotParticipantError(
+      testParticipantController._telemetryService.trackParticipantError(
         err,
         'schema'
       );

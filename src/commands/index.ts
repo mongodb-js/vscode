@@ -85,4 +85,6 @@ enum EXTENSION_COMMANDS {
   SHOW_EXPORT_TO_LANGUAGE_RESULT = 'mdb.showExportToLanguageResult',
 }
 
+export type ExtensionCommand = EXTENSION_COMMANDS;
+
 export default EXTENSION_COMMANDS;
