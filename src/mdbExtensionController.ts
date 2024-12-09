@@ -47,9 +47,12 @@ import { QueryWithCopilotCodeLensProvider } from './editors/queryWithCopilotCode
 import type {
   SendMessageToParticipantOptions,
   SendMessageToParticipantFromInputOptions,
+  ParticipantCommand,
 } from './participant/participantTypes';
-import { COPILOT_CHAT_EXTENSION_ID } from './participant/constants';
-import type { ParticipantCommand } from './participant/participantTypes';
+import {
+  COPILOT_CHAT_EXTENSION_ID,
+  COPILOT_EXTENSION_ID,
+} from './participant/constants';
 import EXTENSION_COMMANDS from './commands';
 
 // This class is the top-level controller for our extension.
@@ -177,7 +180,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // ------ In-app notifications ------ //
     void this.showCopilotIntroductionForEstablishedUsers();
 
-    const copilot = vscode.extensions.getExtension('GitHub.copilot');
+    const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.isCopilotActive',
@@ -189,7 +192,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     // was activated before the Copilot one, so we check again after a delay.
     if (copilot && !copilot?.isActive) {
       setTimeout(() => {
-        const copilot = vscode.extensions.getExtension('GitHub.copilot');
+        const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
         void vscode.commands.executeCommand(
           'setContext',
           'mdb.isCopilotActive',
