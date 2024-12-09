@@ -133,6 +133,12 @@ export type ParticipantPromptSubmittedFromActionProperties = {
   command: ParticipantRequestType;
 };
 
+export type ParticipantPromptSubmittedFromActionProperties = {
+  source: DocumentSource;
+  input_length: number;
+  command: ParticipantRequestType;
+};
+
 export type ParticipantChatOpenedFromActionProperties = {
   source: DocumentSource;
   command?: ParticipantCommandType;
