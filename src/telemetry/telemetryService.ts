@@ -207,7 +207,6 @@ export enum TelemetryEventTypes {
   /** Tracks after a participant interacts with the input box we open to let the user write the prompt for participant. */
   PARTICIPANT_INPUT_BOX_SUBMITTED = 'Participant Inbox Box Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
-  PARTICIPANT_SUBMITTED_FROM_INPUT_BOX = 'Participant Submitted From Input Box',
 }
 
 /**

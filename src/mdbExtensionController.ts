@@ -173,7 +173,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
 
-    const copilot = vscode.extensions.getExtension('GitHub.copilot');
+    const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.isCopilotActive',
