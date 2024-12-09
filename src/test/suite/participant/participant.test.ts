@@ -106,8 +106,12 @@ suite('Participant Controller Test Suite', function () {
     button: sinon.SinonSpy;
   };
   let chatTokenStub;
-  let countTokensStub;
+  let countTokensStub: sinon.SinonStub;
   let sendRequestStub: sinon.SinonStub;
+  let getCopilotModelStub: SinonStub<
+    [],
+    Promise<vscode.LanguageModelChat | undefined>
+  >;
   let telemetryTrackStub: SinonSpy;
 
   const invokeChatHandler = async (
@@ -231,21 +235,23 @@ suite('Participant Controller Test Suite', function () {
     chatTokenStub = {
       onCancellationRequested: sinon.fake(),
     };
-    countTokensStub = sinon.stub();
+    /** Resolves to 0 by default to prevent undefined being returned.
+        Resolve to other values to test different count limits. */
+    countTokensStub = sinon.stub().resolves(0);
     // The model returned by vscode.lm.selectChatModels is always undefined in tests.
     sendRequestStub = sinon.stub();
-    sinon.replace(model, 'getCopilotModel', () =>
-      Promise.resolve({
-        id: 'modelId',
-        vendor: 'copilot',
-        family: 'gpt-4o',
-        version: 'gpt-4o-date',
-        name: 'GPT 4o (date)',
-        maxInputTokens: MAX_TOTAL_PROMPT_LENGTH_MOCK,
-        countTokens: countTokensStub,
-        sendRequest: sendRequestStub,
-      })
-    );
+    getCopilotModelStub = sinon.stub(model, 'getCopilotModel');
+
+    getCopilotModelStub.resolves({
+      id: 'modelId',
+      vendor: 'copilot',
+      family: 'gpt-4o',
+      version: 'gpt-4o-date',
+      name: 'GPT 4o (date)',
+      maxInputTokens: MAX_TOTAL_PROMPT_LENGTH_MOCK,
+      countTokens: countTokensStub,
+      sendRequest: sendRequestStub,
+    });
 
     sinon.replace(testTelemetryService, 'track', telemetryTrackStub);
   });
@@ -832,8 +838,7 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('includes 1 sample document as an object', async function () {
-              countTokensStub.resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
-              sampleStub.resolves([
+              const sampleDocs = [
                 {
                   _id: new ObjectId('63ed1d522d8573fa5c203660'),
                   field: {
@@ -852,13 +857,29 @@ suite('Participant Controller Test Suite', function () {
                     ],
                   },
                 },
-              ]);
+              ];
+
+              // This is to offset the previous countTokens calls buildMessages gets called twice for namespace so it is adjusted accordingly
+              // 1. called calculating user's request prompt when buildMessages get called in _getNamespaceFromChat
+              // 2. called calculating assistant prompt when buildMessages get called in _getNamespaceFromChat
+              // 3. called calculating user's request prompt when buildMessages get called as part of the query request handling
+              // 4. called calculating assistant prompt when buildMessages get called as part of the query request handling
+              const countTokenCallsOffset = 4;
+
+              // Called when including sample documents
+              countTokensStub
+                .onCall(countTokenCallsOffset)
+                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
+
+              sampleStub.resolves(sampleDocs);
+
               const chatRequestMock = {
                 prompt: 'find all docs by a name example',
                 command: 'query',
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
+
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
               expect(getMessageContent(messages[1])).to.include(
@@ -893,11 +914,7 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('includes 1 sample documents when 3 make prompt too long', async function () {
-              countTokensStub
-                .onCall(0)
-                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
-              countTokensStub.onCall(1).resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
-              sampleStub.resolves([
+              const sampleDocs = [
                 {
                   _id: new ObjectId('63ed1d522d8573fa5c203661'),
                   field: {
@@ -916,13 +933,32 @@ suite('Participant Controller Test Suite', function () {
                     stringField: 'Text 3',
                   },
                 },
-              ]);
+              ];
+
+              // This is to offset the previous countTokens calls buildMessages gets called twice for namespace so it is adjusted accordingly
+              // 1. called calculating user's request prompt when buildMessages get called in _getNamespaceFromChat
+              // 2. called calculating assistant prompt when buildMessages get called in _getNamespaceFromChat
+              // 3. called calculating user's request prompt when buildMessages get called as part of the query request handling
+              // 4. called calculating assistant prompt when buildMessages get called as part of the query request handling
+              const countTokenCallsOffset = 4;
+
+              // Called when including sample documents
+              countTokensStub
+                .onCall(countTokenCallsOffset)
+                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
+              countTokensStub
+                .onCall(countTokenCallsOffset + 1)
+                .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK);
+
+              sampleStub.resolves(sampleDocs);
+
               const chatRequestMock = {
                 prompt: 'find all docs by a name example',
                 command: 'query',
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
+
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
               expect(getMessageContent(messages[1])).to.include(
@@ -952,13 +988,22 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('does not include sample documents when even 1 makes prompt too long', async function () {
+              // This is to offset the previous countTokens calls buildMessages gets called twice for namespace so it is adjusted accordingly
+              // 1. called calculating user's request prompt when buildMessages get called in _getNamespaceFromChat
+              // 2. called calculating assistant prompt when buildMessages get called in _getNamespaceFromChat
+              // 3. called calculating user's request prompt when buildMessages get called as part of the query request handling
+              // 4. called calculating assistant prompt when buildMessages get called as part of the query request handling
+              const countTokenCallsOffset = 4;
+
+              // Called when including sample documents
               countTokensStub
-                .onCall(0)
+                .onCall(countTokenCallsOffset)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
               countTokensStub
-                .onCall(1)
+                .onCall(countTokenCallsOffset + 1)
                 .resolves(MAX_TOTAL_PROMPT_LENGTH_MOCK + 1);
-              sampleStub.resolves([
+
+              const sampleDocs = [
                 {
                   _id: new ObjectId('63ed1d522d8573fa5c203661'),
                   field: {
@@ -977,13 +1022,17 @@ suite('Participant Controller Test Suite', function () {
                     stringField: 'Text 3',
                   },
                 },
-              ]);
+              ];
+
+              sampleStub.resolves(sampleDocs);
+
               const chatRequestMock = {
                 prompt: 'find all docs by a name example',
                 command: 'query',
                 references: [],
               };
               await invokeChatHandler(chatRequestMock);
+
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
               expect(getMessageContent(messages[1])).to.not.include(
@@ -2114,6 +2163,49 @@ Schema:
   });
 
   suite('prompt builders', function () {
+    suite('prompt history', function () {
+      test('gets filtered once history goes over maxInputTokens', async function () {
+        const expectedMaxMessages = 10;
+
+        const mockedMessages = Array.from(
+          { length: 20 },
+          (_, index) => `Message ${index}`
+        );
+
+        getCopilotModelStub.resolves({
+          // Make each message count as 1 token for testing
+          countTokens: countTokensStub.resolves(1),
+          maxInputTokens: expectedMaxMessages,
+        } as unknown as vscode.LanguageModelChat);
+        chatContextStub = {
+          history: mockedMessages.map((messageText) =>
+            createChatRequestTurn(undefined, messageText)
+          ),
+        };
+        const chatRequestMock = {
+          prompt: 'find all docs by a name example',
+        };
+        const { messages } = await Prompts.generic.buildMessages({
+          context: chatContextStub,
+          request: chatRequestMock,
+          connectionNames: [],
+        });
+
+        expect(messages.length).equals(expectedMaxMessages);
+
+        // Should consist of the assistant prompt (1 token), 8 history messages (8 tokens),
+        // and the new request (1 token)
+        expect(
+          messages.slice(1).map((message) => getMessageContent(message))
+        ).deep.equal([
+          ...mockedMessages.slice(
+            mockedMessages.length - (expectedMaxMessages - 2)
+          ),
+          chatRequestMock.prompt,
+        ]);
+      });
+    });
+
     test('generic', async function () {
       const chatRequestMock = {
         prompt: 'find all docs by a name example',
@@ -2351,7 +2443,7 @@ Schema:
           vscode.LanguageModelChatMessageRole.Assistant
         );
 
-        // We don't expect history because we're removing the askForConnect message as well
+        // We don't expect history because we're removing the askToConnect message as well
         // as the user response to it. Therefore the actual user prompt should be the first
         // message that we supplied in the history.
         expect(messages[1].role).to.equal(
@@ -2382,7 +2474,7 @@ Schema:
           vscode.LanguageModelChatMessageRole.Assistant
         );
 
-        // We don't expect history because we're removing the askForConnect message as well
+        // We don't expect history because we're removing the askToConnect message as well
         // as the user response to it. Therefore the actual user prompt should be the first
         // message that we supplied in the history.
         expect(messages[1].role).to.equal(
@@ -2393,7 +2485,7 @@ Schema:
       });
     });
 
-    test('removes askForConnect messages from history', async function () {
+    test('removes askToConnect messages from history', async function () {
       // The user is responding to an `askToConnect` message, so the prompt is just the
       // name of the connection
       const chatRequestMock = {
@@ -2448,7 +2540,7 @@ Schema:
         vscode.LanguageModelChatMessageRole.Assistant
       );
 
-      // We don't expect history because we're removing the askForConnect message as well
+      // We don't expect history because we're removing the askToConnect message as well
       // as the user response to it. Therefore the actual user prompt should be the first
       // message that we supplied in the history.
       expect(messages[1].role).to.equal(

@@ -59,9 +59,11 @@ export async function getStringifiedSampleDocuments({
 
   const stringifiedDocuments = toJSString(additionToPrompt);
 
-  // TODO: model.countTokens will sometimes return undefined - at least in tests. We should investigate why.
-  promptInputTokens =
-    (await model.countTokens(prompt + stringifiedDocuments)) || 0;
+  // Re-evaluate promptInputTokens with less documents if necessary.
+  if (promptInputTokens > model.maxInputTokens) {
+    promptInputTokens =
+      (await model.countTokens(prompt + stringifiedDocuments)) || 0;
+  }
 
   // Add sample documents to the prompt only when it fits in the context window.
   if (promptInputTokens <= model.maxInputTokens) {
