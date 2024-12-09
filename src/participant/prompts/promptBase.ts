@@ -5,8 +5,8 @@ import type {
   ParticipantPromptProperties,
 } from '../../telemetry/telemetryService';
 import { PromptHistory } from './promptHistory';
-import { getCopilotModel } from '../model';
 import type { ParticipantCommandType } from '../participantTypes';
+import { getCopilotModel } from '../model';
 
 export interface PromptArgsBase {
   request: {
