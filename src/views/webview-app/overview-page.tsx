@@ -1,10 +1,15 @@
 import React, { useCallback, useLayoutEffect, useState } from 'react';
+import type { ElectronShowFileDialogProvider } from '@mongodb-js/compass-components';
 import {
   HorizontalRule,
   css,
   resetGlobalCSS,
   spacing,
+  FileInputBackendProvider,
+  createElectronFileInputBackend,
+  type ElectronFileDialogOptions,
 } from '@mongodb-js/compass-components';
+import type { ConnectionOptions } from 'mongodb-data-service';
 
 import OverviewHeader from './overview-header';
 import ConnectionStatus from './connection-status';
@@ -12,7 +17,12 @@ import ConnectHelper from './connect-helper';
 import AtlasCta from './atlas-cta';
 import ResourcesPanel from './resources-panel/panel';
 import { ConnectionForm } from './connection-form';
-import useConnectionForm from './use-connection-form';
+import useConnectionForm, {
+  FILE_CHOOSER_MODE,
+  type FileChooserOptions,
+} from './use-connection-form';
+import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
+import { MESSAGE_TYPES } from './extension-app-message-constants';
 
 const pageStyles = css({
   width: '90%',
@@ -39,6 +49,7 @@ const OverviewPage: React.FC = () => {
     handleCancelConnectClicked,
     handleSaveConnectionClicked,
     handleConnectClicked,
+    handleOpenFileChooser,
   } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
     () => setShowResourcesPanel(false),
@@ -55,30 +66,91 @@ const OverviewPage: React.FC = () => {
     resetGlobalCSS();
   }, []);
 
+  function handleOpenFileChooserResult<T>(
+    options: FileChooserOptions
+  ): Promise<T> {
+    const requestId = handleOpenFileChooser(options);
+    return new Promise((resolve) => {
+      const messageHandler = (
+        event: MessageEvent<MessageFromExtensionToWebview>
+      ): void => {
+        const message = event.data;
+        if (
+          message.command === MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT &&
+          message.requestId === requestId
+        ) {
+          window.removeEventListener('message', messageHandler);
+          resolve(message.fileChooserResult as T);
+        }
+      };
+      window.addEventListener('message', messageHandler);
+    });
+  }
+
+  // Electron 32.0 removed support for the `path` property of the Web File object in favor of the webUtils.getPathForFile method.
+  // https://github.com/electron/electron/blob/83d704009687956fb4b69cb13ab03664d7950118/docs/breaking-changes.md%23removed-filepath
+  // We can not import `dialog` and `webUtils` from 'electron' in the sandboxed webview.
+  // To work around this, we use a custom dialog provider that uses webview APIs
+  // to send a message to the extension process to open the electron file dialog
+  // and listen for the response to get the file path and send them to the electron file input backend.
+  const dialogProvider: ElectronShowFileDialogProvider<void> = {
+    getCurrentWindow(): void {},
+    dialog: {
+      async showSaveDialog(
+        window: void,
+        electronFileDialogOptions: Partial<ElectronFileDialogOptions>
+      ): Promise<{ canceled: boolean; filePath?: string }> {
+        return handleOpenFileChooserResult({
+          electronFileDialogOptions,
+          mode: FILE_CHOOSER_MODE.SAVE,
+        });
+      },
+      async showOpenDialog(
+        window: void,
+        electronFileDialogOptions: Partial<ElectronFileDialogOptions>
+      ): Promise<{ canceled: boolean; filePaths: string[] }> {
+        return handleOpenFileChooserResult({
+          electronFileDialogOptions,
+          mode: FILE_CHOOSER_MODE.OPEN,
+        });
+      },
+    },
+  };
+
   return (
     <div data-testid="overview-page" className={pageStyles}>
       {showResourcesPanel && (
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
       {isConnectionFormOpen && (
-        <ConnectionForm
-          isConnecting={isConnecting}
-          initialConnectionInfo={initialConnectionInfo}
-          onSaveAndConnectClicked={({ id, connectionOptions }) => {
-            void handleSaveConnectionClicked({
+        <FileInputBackendProvider
+          createFileInputBackend={createElectronFileInputBackend(
+            dialogProvider,
+            null
+          )}
+        >
+          <ConnectionForm
+            isConnecting={isConnecting}
+            initialConnectionInfo={initialConnectionInfo}
+            onSaveAndConnectClicked={({
               id,
               connectionOptions,
-            });
-            handleConnectClicked({
-              id,
-              connectionOptions,
-            });
-          }}
-          onCancelConnectClicked={handleCancelConnectClicked}
-          onClose={closeConnectionForm}
-          open={isConnectionFormOpen}
-          connectionErrorMessage={connectionErrorMessage}
-        />
+            }: {
+              id: string;
+              connectionOptions: ConnectionOptions;
+            }): void => {
+              void handleSaveConnectionClicked();
+              handleConnectClicked({
+                id,
+                connectionOptions,
+              });
+            }}
+            onCancelConnectClicked={handleCancelConnectClicked}
+            onClose={closeConnectionForm}
+            open={isConnectionFormOpen}
+            connectionErrorMessage={connectionErrorMessage}
+          />
+        </FileInputBackendProvider>
       )}
       <OverviewHeader onResourcesClick={handleResourcesClick} />
       <HorizontalRule />

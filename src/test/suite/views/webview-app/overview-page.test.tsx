@@ -156,7 +156,7 @@ describe('OverviewPage test suite', function () {
           .getCalls()
           .filter(
             (call) =>
-              call.args[0].command === MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION
+              call.args[0].command === MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT
           );
       };
       expect(getConnectMessages()).to.have.length(0);
@@ -165,7 +165,7 @@ describe('OverviewPage test suite', function () {
       expect(connectMessages).to.have.length(1);
 
       expect(connectMessages[0].args[0]).to.deep.equal({
-        command: 'EDIT_AND_CONNECT_CONNECTION',
+        command: 'EDIT_CONNECTION_AND_CONNECT',
         connectionInfo: {
           id: 'pear',
           connectionOptions: {

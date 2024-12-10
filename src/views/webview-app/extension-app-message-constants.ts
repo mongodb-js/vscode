@@ -1,4 +1,5 @@
 import type { ConnectionOptions } from 'mongodb-data-service';
+import type { FileChooserOptions } from './use-connection-form';
 
 export enum CONNECTION_STATUS {
   LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
@@ -19,9 +20,11 @@ export enum MESSAGE_TYPES {
   CANCEL_CONNECT = 'CANCEL_CONNECT',
   CONNECT_RESULT = 'CONNECT_RESULT',
   CONNECTION_FORM_OPENED = 'CONNECTION_FORM_OPENED',
+  OPEN_FILE_CHOOSER = 'OPEN_FILE_CHOOSER',
+  OPEN_FILE_CHOOSER_RESULT = 'OPEN_FILE_CHOOSER_RESULT',
   CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
   OPEN_EDIT_CONNECTION = 'OPEN_EDIT_CONNECTION',
-  EDIT_AND_CONNECT_CONNECTION = 'EDIT_AND_CONNECT_CONNECTION',
+  EDIT_CONNECTION_AND_CONNECT = 'EDIT_CONNECTION_AND_CONNECT',
   EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
   CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
   GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
@@ -58,12 +61,18 @@ export interface OpenEditConnectionMessage extends BasicWebviewMessage {
   };
 }
 
-export interface EditAndConnectConnection extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION;
+export interface EditConnectionAndConnectMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT;
   connectionInfo: {
     id: string;
     connectionOptions: ConnectionOptions;
   };
+}
+
+export interface OpenFileChooserMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_FILE_CHOOSER;
+  fileChooserOptions: FileChooserOptions;
+  requestId: string;
 }
 
 export interface ConnectMessage extends BasicWebviewMessage {
@@ -83,6 +92,16 @@ export interface ConnectResultsMessage extends BasicWebviewMessage {
   connectionSuccess: boolean;
   connectionMessage: string;
   connectionId: string;
+}
+
+export type FileChooserResult =
+  | { canceled: false; filePaths: string[] }
+  | { canceled: false; filePath?: string };
+
+export interface OpenFileChooserResultMessage extends BasicWebviewMessage {
+  command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
+  fileChooserResult: FileChooserResult;
+  requestId: string;
 }
 
 export interface GetConnectionStatusMessage extends BasicWebviewMessage {
@@ -113,7 +132,7 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
   darkMode: boolean;
 }
 
-export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
+export type MessageFromWebviewToExtension =
   | ConnectMessage
   | CancelConnectMessage
   | ConnectionFormOpenedMessage
@@ -123,10 +142,12 @@ export type MESSAGE_FROM_WEBVIEW_TO_EXTENSION =
   | OpenConnectionStringInputMessage
   | OpenTrustedLinkMessage
   | RenameConnectionMessage
-  | EditAndConnectConnection;
+  | EditConnectionAndConnectMessage
+  | OpenFileChooserMessage;
 
-export type MESSAGE_FROM_EXTENSION_TO_WEBVIEW =
+export type MessageFromExtensionToWebview =
   | ConnectResultsMessage
   | ConnectionStatusMessage
   | ThemeChangedMessage
-  | OpenEditConnectionMessage;
+  | OpenEditConnectionMessage
+  | OpenFileChooserResultMessage;
