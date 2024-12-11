@@ -1,5 +1,19 @@
 # Change Log
 
+## [v1.11.0](https://github.com/mongodb-js/vscode/releases/tag/v1.11.0) - 2024-12-11
+
+## What's Changed
+* feat(playground): add Generate Query with Copilot code lens in playgrounds VSCODE-650 by @gagik in https://github.com/mongodb-js/vscode/pull/881
+* feat(copilot): optimize namespace for export to playground VSCODE-654 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/887
+* feat(tree-explorer): add buttons to ask Copilot and create playgrounds from tree view VSCODE-651 by @gagik in https://github.com/mongodb-js/vscode/pull/890
+* feat(participant): filter message history when it goes over maxInputTokens VSCODE-653 by @gagik in https://github.com/mongodb-js/vscode/pull/894
+* feat(participant): remove in-app notification for participant VSCODE-662 by @gagik in https://github.com/mongodb-js/vscode/pull/899
+* fix(connect): can not select files on the connection form VSCODE-658 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/898
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.10.0...v1.11.0
+
+
 ## [v1.10.0](https://github.com/mongodb-js/vscode/releases/tag/v1.10.0) - 2024-11-25
 
 ## What's Changed
@@ -400,17 +414,5 @@ To dig deeper please feel free to follow the links mentioned below:
 ### Fixed
 
 - Fixed image locations in the published VSCode marketplace README resolving to an incorrect branch (VSCODE-281, #331)
-
-
-## [v0.6.8](https://github.com/mongodb-js/vscode/releases/tag/v0.6.8) - 2021-07-27
-
-### Added
-
-- Added support for showing databases a user has permissions to when they cannot `listDatabases` (VSCODE-157, #317)
-
-### Changed
-
-- Updated code lenses in playgrounds to now appear at the end of a selection for partially running (#324)
-- Update our CI release pipeline - this is the first automated release ✨ 
 
 
