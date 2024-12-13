@@ -77,7 +77,6 @@
           value: [JSON.stringify(note, null, 2)].join('\n'),
           language: 'json',
           theme: 'vs-custom',
-          folding: false,
           automaticLayout: true,
           padding: { top: 0, bottom: 0 },
           scrollBeyondLastLine: false,
