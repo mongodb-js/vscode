@@ -76,7 +76,7 @@ export function getViewCollectionDocumentsUri(
 
   // The part of the URI after the scheme and before the query is the file name.
   return vscode.Uri.parse(
-    `${VIEW_COLLECTION_SCHEME}:Results: ${namespaceDisplayName}.json${uriQuery}`
+    `${VIEW_COLLECTION_SCHEME}:Results: ${namespaceDisplayName}.mongodb.json${uriQuery}`
   );
 }
 
@@ -202,7 +202,7 @@ export default class EditorsController {
       const fileTitle = encodeURIComponent(
         getFileDisplayNameForDocument(data.documentId, data.namespace)
       );
-      const fileName = `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.json`;
+      const fileName = `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.mongodb.json`;
 
       const fileUri = vscode.Uri.parse(fileName, true).with({
         query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}&${documentSourceUriQuery}`,
