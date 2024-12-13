@@ -3,6 +3,13 @@
     "_id": "6744698295384c46e1b91d1a",
     "item": "abc",
     "price": 10,
+    "folding": {
+      "folding": {
+        "folding": {
+          "folding": {}
+        }
+      }
+    },
     "quantity": 3,
     "date": "2014-03-01T08:00:00.000Z"
   },
