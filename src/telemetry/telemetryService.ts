@@ -56,7 +56,7 @@ type DocumentEditedTelemetryEventProperties = {
 
 type ExportToPlaygroundFailedEventProperties = {
   input_length: number | undefined;
-  details: string;
+  details?: string;
 };
 
 type PlaygroundExportedToLanguageTelemetryEventProperties = {

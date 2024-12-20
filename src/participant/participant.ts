@@ -45,7 +45,10 @@ import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
-import { ParticipantErrorTypes } from './participantErrorTypes';
+import {
+  ExportToPlaygroundFailure,
+  ParticipantErrorTypes,
+} from './participantErrorTypes';
 import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
 import { isExportToLanguageResult } from '../types/playgroundType';
 import { PromptHistory } from './prompts/promptHistory';
@@ -1792,7 +1795,9 @@ export default class ParticipantController {
     const codeToExport = getSelectedText() || getAllText();
 
     try {
-      const content = await vscode.window.withProgress(
+      const contentOrFailure = await vscode.window.withProgress<
+        string | ExportToPlaygroundFailure | null
+      >(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Exporting code to a playground...',
@@ -1805,15 +1810,7 @@ export default class ParticipantController {
               request: { prompt: codeToExport },
             });
           } catch (error) {
-            void vscode.window.showErrorMessage(
-              'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
-            );
-
-            this._telemetryService.trackExportToPlaygroundFailed({
-              input_length: codeToExport?.length,
-              details: 'modelInput',
-            });
-            return null;
+            return ExportToPlaygroundFailure.STREAM_CHAT_RESPONSE;
           }
 
           const result = await Promise.race([
@@ -1821,52 +1818,62 @@ export default class ParticipantController {
               modelInput,
               token,
             }),
-            new Promise<'cancelled'>((resolve) =>
+            new Promise<ExportToPlaygroundFailure>((resolve) =>
               token.onCancellationRequested(() => {
                 log.info('The export to a playground operation was canceled.');
-                resolve('cancelled');
+                resolve(ExportToPlaygroundFailure.CANCELLED);
               })
             ),
           ]);
 
-          if (result === 'cancelled') {
-            return null;
+          if (result === ExportToPlaygroundFailure.CANCELLED) {
+            return ExportToPlaygroundFailure.CANCELLED;
           }
 
           if (!result || result?.includes("Sorry, I can't assist with that.")) {
-            void vscode.window.showErrorMessage(
-              'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
-            );
-
-            this._telemetryService.trackExportToPlaygroundFailed({
-              input_length: codeToExport?.length,
-              details: 'streamChatResponseWithExportToLanguage',
-            });
-
-            return null;
+            return ExportToPlaygroundFailure.STREAM_CHAT_RESPONSE;
           }
 
           return result;
         }
       );
 
-      if (!content) {
+      if (
+        !contentOrFailure ||
+        contentOrFailure === ExportToPlaygroundFailure.CANCELLED
+      ) {
         return true;
       }
 
-      try {
-        await vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
-          {
-            runnableContent: content,
-          }
+      if (
+        Object.values(ExportToPlaygroundFailure).includes(
+          contentOrFailure as ExportToPlaygroundFailure
+        )
+      ) {
+        void vscode.window.showErrorMessage(
+          'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
         );
-      } catch (error) {
+
+        // Content in this case is already equal to the failureType; this is just to make it explicit
+        // and avoid accidentally sending actual contents of the message.
+        const failureType = Object.values(ExportToPlaygroundFailure).find(
+          (value) => value === contentOrFailure
+        );
         this._telemetryService.trackExportToPlaygroundFailed({
-          input_length: content.length,
-          details: 'executeCommand',
+          input_length: codeToExport?.length,
+
+          details: failureType,
         });
+        return false;
       }
+
+      const content = contentOrFailure;
+      await vscode.commands.executeCommand(
+        EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+        {
+          runnableContent: content,
+        }
+      );
 
       return true;
     } catch (error) {
