@@ -371,7 +371,10 @@ export default class ParticipantController {
       return runnableContent.length ? runnableContent.join('') : null;
     } catch (error) {
       /** If anything goes wrong with the response or the stream, return null instead of throwing. */
-      log.error('Error while exporting to playground', error);
+      log.error(
+        'Error while streaming chat response with export to language',
+        error
+      );
       return null;
     }
   }
