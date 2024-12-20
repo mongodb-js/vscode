@@ -12,6 +12,7 @@ import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
 import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
+import type { ExportToPlaygroundError } from '../participant/participantErrorTypes';
 import { ParticipantErrorTypes } from '../participant/participantErrorTypes';
 import type { ExtensionCommand } from '../commands';
 import type {
@@ -56,7 +57,7 @@ type DocumentEditedTelemetryEventProperties = {
 
 type ExportToPlaygroundFailedEventProperties = {
   input_length: number | undefined;
-  details?: string;
+  error_name?: ExportToPlaygroundError;
 };
 
 type PlaygroundExportedToLanguageTelemetryEventProperties = {

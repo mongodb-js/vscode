@@ -1840,7 +1840,7 @@ Schema:
             TelemetryEventTypes.EXPORT_TO_PLAYGROUND_FAILED,
             {
               input_length: code.trim().length,
-              details: 'streamChatResponseWithExportToLanguage',
+              error_name: 'streamChatResponseWithExportToLanguage',
             }
           );
 

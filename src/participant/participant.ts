@@ -46,8 +46,8 @@ import type { PromptIntent } from './prompts/intent';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
 import {
-  ExportToPlaygroundFailure,
   ParticipantErrorTypes,
+  type ExportToPlaygroundError,
 } from './participantErrorTypes';
 import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
 import { isExportToLanguageResult } from '../types/playgroundType';
@@ -1795,22 +1795,25 @@ export default class ParticipantController {
     const codeToExport = getSelectedText() || getAllText();
 
     try {
-      const contentOrFailure = await vscode.window.withProgress<
-        string | ExportToPlaygroundFailure | null
+      const contentOrError = await vscode.window.withProgress<
+        { value: string } | { error: ExportToPlaygroundError }
       >(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Exporting code to a playground...',
           cancellable: true,
         },
-        async (progress, token): Promise<string | null> => {
+        async (
+          progress,
+          token
+        ): Promise<{ value: string } | { error: ExportToPlaygroundError }> => {
           let modelInput: ModelInput | undefined;
           try {
             modelInput = await Prompts.exportToPlayground.buildMessages({
               request: { prompt: codeToExport },
             });
           } catch (error) {
-            return ExportToPlaygroundFailure.STREAM_CHAT_RESPONSE;
+            return { error: 'modelInput' };
           }
 
           const result = await Promise.race([
@@ -1818,56 +1821,42 @@ export default class ParticipantController {
               modelInput,
               token,
             }),
-            new Promise<ExportToPlaygroundFailure>((resolve) =>
+            new Promise<ExportToPlaygroundError>((resolve) =>
               token.onCancellationRequested(() => {
                 log.info('The export to a playground operation was canceled.');
-                resolve(ExportToPlaygroundFailure.CANCELLED);
+                resolve('cancelled');
               })
             ),
           ]);
 
-          if (result === ExportToPlaygroundFailure.CANCELLED) {
-            return ExportToPlaygroundFailure.CANCELLED;
+          if (result === 'cancelled') {
+            return { error: 'cancelled' };
           }
 
           if (!result || result?.includes("Sorry, I can't assist with that.")) {
-            return ExportToPlaygroundFailure.STREAM_CHAT_RESPONSE;
+            return { error: 'streamChatResponseWithExportToLanguage' };
           }
 
-          return result;
+          return { value: result };
         }
       );
 
-      if (
-        !contentOrFailure ||
-        contentOrFailure === ExportToPlaygroundFailure.CANCELLED
-      ) {
-        return true;
-      }
-
-      if (
-        Object.values(ExportToPlaygroundFailure).includes(
-          contentOrFailure as ExportToPlaygroundFailure
-        )
-      ) {
+      if ('error' in contentOrError) {
+        const { error } = contentOrError;
         void vscode.window.showErrorMessage(
           'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
         );
 
         // Content in this case is already equal to the failureType; this is just to make it explicit
         // and avoid accidentally sending actual contents of the message.
-        const failureType = Object.values(ExportToPlaygroundFailure).find(
-          (value) => value === contentOrFailure
-        );
         this._telemetryService.trackExportToPlaygroundFailed({
           input_length: codeToExport?.length,
-
-          details: failureType,
+          error_name: error,
         });
         return false;
       }
 
-      const content = contentOrFailure;
+      const content = contentOrError.value;
       await vscode.commands.executeCommand(
         EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
         {
