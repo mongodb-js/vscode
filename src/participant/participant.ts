@@ -45,7 +45,10 @@ import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
-import { ParticipantErrorTypes } from './participantErrorTypes';
+import {
+  ParticipantErrorTypes,
+  type ExportToPlaygroundError,
+} from './participantErrorTypes';
 import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
 import { isExportToLanguageResult } from '../types/playgroundType';
 import { PromptHistory } from './prompts/promptHistory';
@@ -345,26 +348,35 @@ export default class ParticipantController {
     token: vscode.CancellationToken;
     language?: string;
   }): Promise<string | null> {
-    const chatResponse = await this._getChatResponse({
-      modelInput,
-      token,
-    });
+    try {
+      const chatResponse = await this._getChatResponse({
+        modelInput,
+        token,
+      });
 
-    const languageCodeBlockIdentifier = {
-      start: `\`\`\`${language ? language : 'javascript'}`,
-      end: '```',
-    };
+      const languageCodeBlockIdentifier = {
+        start: `\`\`\`${language ? language : 'javascript'}`,
+        end: '```',
+      };
 
-    const runnableContent: string[] = [];
-    await processStreamWithIdentifiers({
-      processStreamFragment: () => {},
-      onStreamIdentifier: (content: string) => {
-        runnableContent.push(content.trim());
-      },
-      inputIterable: chatResponse.text,
-      identifier: languageCodeBlockIdentifier,
-    });
-    return runnableContent.length ? runnableContent.join('') : null;
+      const runnableContent: string[] = [];
+      await processStreamWithIdentifiers({
+        processStreamFragment: () => {},
+        onStreamIdentifier: (content: string) => {
+          runnableContent.push(content.trim());
+        },
+        inputIterable: chatResponse.text,
+        identifier: languageCodeBlockIdentifier,
+      });
+      return runnableContent.length ? runnableContent.join('') : null;
+    } catch (error) {
+      /** If anything goes wrong with the response or the stream, return null instead of throwing. */
+      log.error(
+        'Error while streaming chat response with export to language',
+        error
+      );
+      return null;
+    }
   }
 
   async streamChatResponseContentWithCodeActions({
@@ -1784,49 +1796,75 @@ export default class ParticipantController {
   }
 
   async exportCodeToPlayground(): Promise<boolean> {
-    const selectedText = getSelectedText();
-    const codeToExport = selectedText || getAllText();
+    const codeToExport = getSelectedText() || getAllText();
 
     try {
-      const content = await vscode.window.withProgress(
+      const contentOrError = await vscode.window.withProgress<
+        { value: string } | { error: ExportToPlaygroundError }
+      >(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Exporting code to a playground...',
           cancellable: true,
         },
-        async (progress, token): Promise<string | null> => {
-          const modelInput = await Prompts.exportToPlayground.buildMessages({
-            request: { prompt: codeToExport },
-          });
+        async (
+          progress,
+          token
+        ): Promise<{ value: string } | { error: ExportToPlaygroundError }> => {
+          let modelInput: ModelInput | undefined;
+          try {
+            modelInput = await Prompts.exportToPlayground.buildMessages({
+              request: { prompt: codeToExport },
+            });
+          } catch (error) {
+            return { error: 'modelInput' };
+          }
 
           const result = await Promise.race([
             this.streamChatResponseWithExportToLanguage({
               modelInput,
               token,
             }),
-            new Promise<null>((resolve) =>
+            new Promise<ExportToPlaygroundError>((resolve) =>
               token.onCancellationRequested(() => {
                 log.info('The export to a playground operation was canceled.');
-                resolve(null);
+                resolve('cancelled');
               })
             ),
           ]);
 
-          if (result?.includes("Sorry, I can't assist with that.")) {
-            void vscode.window.showErrorMessage(
-              'Sorry, we were unable to generate the playground, please try again. If the error persists, try changing your selected code.'
-            );
-            return null;
+          if (result === 'cancelled') {
+            return { error: 'cancelled' };
           }
 
-          return result;
+          if (!result || result?.includes("Sorry, I can't assist with that.")) {
+            return { error: 'streamChatResponseWithExportToLanguage' };
+          }
+
+          return { value: result };
         }
       );
 
-      if (!content) {
-        return true;
+      if ('error' in contentOrError) {
+        const { error } = contentOrError;
+        if (error === 'cancelled') {
+          return true;
+        }
+
+        void vscode.window.showErrorMessage(
+          'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
+        );
+
+        // Content in this case is already equal to the failureType; this is just to make it explicit
+        // and avoid accidentally sending actual contents of the message.
+        this._telemetryService.trackExportToPlaygroundFailed({
+          input_length: codeToExport?.length,
+          error_name: error,
+        });
+        return false;
       }
 
+      const content = contentOrError.value;
       await vscode.commands.executeCommand(
         EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
         {

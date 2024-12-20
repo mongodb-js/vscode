@@ -5,3 +5,8 @@ export enum ParticipantErrorTypes {
   OTHER = 'Other',
   DOCS_CHATBOT_API = 'Docs Chatbot API Issue',
 }
+
+export type ExportToPlaygroundError =
+  | 'cancelled'
+  | 'modelInput'
+  | 'streamChatResponseWithExportToLanguage';
