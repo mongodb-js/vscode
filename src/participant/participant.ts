@@ -1847,6 +1847,10 @@ export default class ParticipantController {
 
       if ('error' in contentOrError) {
         const { error } = contentOrError;
+        if (error === 'cancelled') {
+          return true;
+        }
+
         void vscode.window.showErrorMessage(
           'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
         );
