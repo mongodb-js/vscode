@@ -345,26 +345,31 @@ export default class ParticipantController {
     token: vscode.CancellationToken;
     language?: string;
   }): Promise<string | null> {
-    const chatResponse = await this._getChatResponse({
-      modelInput,
-      token,
-    });
+    try {
+      const chatResponse = await this._getChatResponse({
+        modelInput,
+        token,
+      });
 
-    const languageCodeBlockIdentifier = {
-      start: `\`\`\`${language ? language : 'javascript'}`,
-      end: '```',
-    };
+      const languageCodeBlockIdentifier = {
+        start: `\`\`\`${language ? language : 'javascript'}`,
+        end: '```',
+      };
 
-    const runnableContent: string[] = [];
-    await processStreamWithIdentifiers({
-      processStreamFragment: () => {},
-      onStreamIdentifier: (content: string) => {
-        runnableContent.push(content.trim());
-      },
-      inputIterable: chatResponse.text,
-      identifier: languageCodeBlockIdentifier,
-    });
-    return runnableContent.length ? runnableContent.join('') : null;
+      const runnableContent: string[] = [];
+      await processStreamWithIdentifiers({
+        processStreamFragment: () => {},
+        onStreamIdentifier: (content: string) => {
+          runnableContent.push(content.trim());
+        },
+        inputIterable: chatResponse.text,
+        identifier: languageCodeBlockIdentifier,
+      });
+      return runnableContent.length ? runnableContent.join('') : null;
+    } catch (error) {
+      /** If anything goes wrong with the response or the stream, return null instead of throwing. */
+      return null;
+    }
   }
 
   async streamChatResponseContentWithCodeActions({
@@ -1784,8 +1789,7 @@ export default class ParticipantController {
   }
 
   async exportCodeToPlayground(): Promise<boolean> {
-    const selectedText = getSelectedText();
-    const codeToExport = selectedText || getAllText();
+    const codeToExport = getSelectedText() || getAllText();
 
     try {
       const content = await vscode.window.withProgress(
@@ -1795,27 +1799,50 @@ export default class ParticipantController {
           cancellable: true,
         },
         async (progress, token): Promise<string | null> => {
-          const modelInput = await Prompts.exportToPlayground.buildMessages({
-            request: { prompt: codeToExport },
-          });
+          let modelInput: ModelInput | undefined;
+          try {
+            modelInput = await Prompts.exportToPlayground.buildMessages({
+              request: { prompt: codeToExport },
+            });
+          } catch (error) {
+            void vscode.window.showErrorMessage(
+              'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
+            );
+
+            this._telemetryService.trackExportToPlaygroundFailed({
+              input_length: codeToExport?.length,
+              details: 'modelInput',
+            });
+            return null;
+          }
 
           const result = await Promise.race([
             this.streamChatResponseWithExportToLanguage({
               modelInput,
               token,
             }),
-            new Promise<null>((resolve) =>
+            new Promise<'cancelled'>((resolve) =>
               token.onCancellationRequested(() => {
                 log.info('The export to a playground operation was canceled.');
-                resolve(null);
+                resolve('cancelled');
               })
             ),
           ]);
 
-          if (result?.includes("Sorry, I can't assist with that.")) {
+          if (result === 'cancelled') {
+            return null;
+          }
+
+          if (!result || result?.includes("Sorry, I can't assist with that.")) {
             void vscode.window.showErrorMessage(
-              'Sorry, we were unable to generate the playground, please try again. If the error persists, try changing your selected code.'
+              'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.'
             );
+
+            this._telemetryService.trackExportToPlaygroundFailed({
+              input_length: codeToExport?.length,
+              details: 'streamChatResponseWithExportToLanguage',
+            });
+
             return null;
           }
 
@@ -1827,12 +1854,19 @@ export default class ParticipantController {
         return true;
       }
 
-      await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
-        {
-          runnableContent: content,
-        }
-      );
+      try {
+        await vscode.commands.executeCommand(
+          EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+          {
+            runnableContent: content,
+          }
+        );
+      } catch (error) {
+        this._telemetryService.trackExportToPlaygroundFailed({
+          input_length: content.length,
+          details: 'executeCommand',
+        });
+      }
 
       return true;
     } catch (error) {

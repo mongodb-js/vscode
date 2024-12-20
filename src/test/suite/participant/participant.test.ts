@@ -1818,6 +1818,37 @@ Schema:
           );
         });
 
+        test('tracks failures with export to playground and not as a failed prompt', async function () {
+          const editor = vscode.window.activeTextEditor;
+          if (!editor) {
+            throw new Error('Window active text editor is undefined');
+          }
+
+          const testDocumentUri = editor.document.uri;
+          const edit = new vscode.WorkspaceEdit();
+          const code = `
+          THIS IS SOME ERROR CAUSING CODE.
+`;
+          edit.replace(testDocumentUri, getFullRange(editor.document), code);
+          await vscode.workspace.applyEdit(edit);
+
+          await testParticipantController.exportCodeToPlayground();
+          sendRequestStub.rejects();
+          const messages = sendRequestStub.firstCall.args[0];
+          expect(getMessageContent(messages[1])).to.equal(code.trim());
+          expect(telemetryTrackStub).calledWith(
+            TelemetryEventTypes.EXPORT_TO_PLAYGROUND_FAILED,
+            {
+              input_length: code.trim().length,
+              details: 'streamChatResponseWithExportToLanguage',
+            }
+          );
+
+          expect(telemetryTrackStub).not.calledWith(
+            TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED
+          );
+        });
+
         test('exports selected lines of code to a playground', async function () {
           const editor = vscode.window.activeTextEditor;
           if (!editor) {

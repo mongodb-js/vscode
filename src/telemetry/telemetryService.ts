@@ -54,6 +54,11 @@ type DocumentEditedTelemetryEventProperties = {
   source: DocumentSource;
 };
 
+type ExportToPlaygroundFailedEventProperties = {
+  input_length: number | undefined;
+  details: string;
+};
+
 type PlaygroundExportedToLanguageTelemetryEventProperties = {
   language?: string;
   exported_code_length: number;
@@ -106,6 +111,7 @@ type ParticipantResponseFailedProperties = {
   command: ParticipantResponseType;
   error_code?: string;
   error_name: ParticipantErrorTypes;
+  error_details?: string;
 };
 
 export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
@@ -171,6 +177,7 @@ type TelemetryEventProperties =
   | PlaygroundSavedTelemetryEventProperties
   | PlaygroundLoadedTelemetryEventProperties
   | KeytarSecretsMigrationFailedProperties
+  | ExportToPlaygroundFailedEventProperties
   | SavedConnectionsLoadedProperties
   | ParticipantFeedbackProperties
   | ParticipantResponseFailedProperties
@@ -193,6 +200,7 @@ export enum TelemetryEventTypes {
   PLAYGROUND_EXPORTED_TO_LANGUAGE = 'Playground Exported To Language',
   PLAYGROUND_CREATED = 'Playground Created',
   KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
+  EXPORT_TO_PLAYGROUND_FAILED = 'Export To Playground Failed',
   SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
   PARTICIPANT_FEEDBACK = 'Participant Feedback',
   PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
@@ -344,6 +352,12 @@ export default class TelemetryService {
       TelemetryEventTypes.NEW_CONNECTION,
       connectionTelemetryProperties
     );
+  }
+
+  trackExportToPlaygroundFailed(
+    props: ExportToPlaygroundFailedEventProperties
+  ): void {
+    this.track(TelemetryEventTypes.EXPORT_TO_PLAYGROUND_FAILED, props);
   }
 
   trackCommandRun(command: ExtensionCommand): void {

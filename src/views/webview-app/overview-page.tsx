@@ -126,6 +126,7 @@ const OverviewPage: React.FC = () => {
         <FileInputBackendProvider
           createFileInputBackend={createElectronFileInputBackend(
             dialogProvider,
+            // @ts-expect-error Type for this may not be accurate.
             null
           )}
         >
