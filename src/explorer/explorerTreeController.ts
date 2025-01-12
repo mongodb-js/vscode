@@ -8,6 +8,7 @@ import { DOCUMENT_ITEM } from './documentTreeItem';
 import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import EXTENSION_COMMANDS from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
+import type { LoadedConnection } from '../storage/connectionStorage';
 
 const log = createLogger('explorer tree controller');
 
@@ -130,6 +131,46 @@ export default class ExplorerTreeController
     return element;
   }
 
+  private _getConnectionExpandedState(connection: LoadedConnection): {
+    collapsibleState: vscode.TreeItemCollapsibleState;
+    isExpanded: boolean;
+  } {
+    const pastConnectionTreeItems = this._connectionTreeItems;
+    const isActiveConnection =
+      connection.id === this._connectionController.getActiveConnectionId();
+    const isBeingConnectedTo =
+      this._connectionController.isConnecting() &&
+      connection.id === this._connectionController.getConnectingConnectionId();
+
+    let collapsibleState = isActiveConnection
+      ? vscode.TreeItemCollapsibleState.Expanded
+      : vscode.TreeItemCollapsibleState.Collapsed;
+
+    if (
+      pastConnectionTreeItems[connection.id] &&
+      !pastConnectionTreeItems[connection.id].isExpanded
+    ) {
+      // Connection was manually collapsed while being active.
+      collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+    }
+    if (isActiveConnection && this._connectionController.isDisconnecting()) {
+      // Don't show a collapsable state when the connection is being disconnected from.
+      collapsibleState = vscode.TreeItemCollapsibleState.None;
+    }
+    if (isBeingConnectedTo) {
+      // Don't show a collapsable state when the connection is being connected to.
+      collapsibleState = vscode.TreeItemCollapsibleState.None;
+    }
+    return {
+      collapsibleState,
+      // Set expanded when we're connecting to a connection so that it
+      // expands when it's connected.
+      isExpanded:
+        isBeingConnectedTo ||
+        collapsibleState === vscode.TreeItemCollapsibleState.Expanded,
+    };
+  }
+
   getChildren(element?: any): Thenable<any[]> {
     // When no element is present we are at the root.
     if (!element) {
@@ -139,45 +180,14 @@ export default class ExplorerTreeController
 
       // Create new connection tree items, using cached children wherever possible.
       connections.forEach((connection) => {
-        const isActiveConnection =
-          connection.id === this._connectionController.getActiveConnectionId();
-        const isBeingConnectedTo =
-          this._connectionController.isConnecting() &&
-          connection.id ===
-            this._connectionController.getConnectingConnectionId();
-
-        let connectionExpandedState = isActiveConnection
-          ? vscode.TreeItemCollapsibleState.Expanded
-          : vscode.TreeItemCollapsibleState.Collapsed;
-
-        if (
-          pastConnectionTreeItems[connection.id] &&
-          !pastConnectionTreeItems[connection.id].isExpanded
-        ) {
-          // Connection was manually collapsed while being active.
-          connectionExpandedState = vscode.TreeItemCollapsibleState.Collapsed;
-        }
-        if (
-          isActiveConnection &&
-          this._connectionController.isDisconnecting()
-        ) {
-          // Don't show a collapsable state when the connection is being disconnected from.
-          connectionExpandedState = vscode.TreeItemCollapsibleState.None;
-        }
-        if (isBeingConnectedTo) {
-          // Don't show a collapsable state when the connection is being connected to.
-          connectionExpandedState = vscode.TreeItemCollapsibleState.None;
-        }
+        const { collapsibleState, isExpanded } =
+          this._getConnectionExpandedState(connection);
 
         this._connectionTreeItems[connection.id] = new ConnectionTreeItem({
           connectionId: connection.id,
-          collapsibleState: connectionExpandedState,
-          // Set expanded when we're connecting to a connection so that it
-          // expands when it's connected.
-          isExpanded:
-            isBeingConnectedTo ||
-            connectionExpandedState ===
-              vscode.TreeItemCollapsibleState.Expanded,
+          collapsibleState,
+          isExpanded,
+          isMutable: connection.isMutable ?? true,
           connectionController: this._connectionController,
           cacheIsUpToDate: pastConnectionTreeItems[connection.id]
             ? pastConnectionTreeItems[connection.id].cacheIsUpToDate

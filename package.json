@@ -321,6 +321,10 @@
         "title": "Copy Connection String"
       },
       {
+        "command": "mdb.openWorkspaceSettingsFile",
+        "title": "Open Workspace Settings"
+      },
+      {
         "command": "mdb.renameConnection",
         "title": "Rename Connection..."
       },
@@ -499,32 +503,32 @@
       "view/item/context": [
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == false",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem) && mdb.isAtlasStreams == false",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == false",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem) && mdb.isAtlasStreams == false",
           "group": "1@1"
         },
         {
           "command": "mdb.addStreamProcessor",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == true",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem) && mdb.isAtlasStreams == true",
           "group": "inline"
         },
         {
           "command": "mdb.addStreamProcessor",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == true",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem) && mdb.isAtlasStreams == true",
           "group": "1@1"
         },
         {
           "command": "mdb.refreshConnection",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem)",
           "group": "1@2"
         },
         {
           "command": "mdb.treeViewOpenMongoDBShell",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem)",
           "group": "2@1"
         },
         {
@@ -538,13 +542,18 @@
           "group": "3@2"
         },
         {
+          "command": "mdb.openWorkspaceSettingsFile",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedImmutableConnectionTreeItem)",
+          "group": "3@2"
+        },
+        {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem)",
           "group": "4@1"
         },
         {
           "command": "mdb.disconnectFromConnectionTreeItem",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedImmutableConnectionTreeItem)",
           "group": "5@1"
         },
         {
@@ -559,7 +568,7 @@
         },
         {
           "command": "mdb.connectToConnectionTreeItem",
-          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == disconnectedConnectionTreeItem || viewItem == disconnectedImmutableConnectionTreeItem)",
           "group": "1@1"
         },
         {
@@ -573,8 +582,13 @@
           "group": "2@2"
         },
         {
+          "command": "mdb.openWorkspaceSettingsFile",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == disconnectedImmutableConnectionTreeItem)",
+          "group": "2@2"
+        },
+        {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == disconnectedConnectionTreeItem || viewItem == disconnectedImmutableConnectionTreeItem)",
           "group": "3@1"
         },
         {
@@ -1171,6 +1185,28 @@
           "type": "string",
           "default": "",
           "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
+        },
+        "mdb.presetSavedConnections": {
+          "scope": "window",
+          "type": "array",
+          "description": "Defines preset saved connections.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the connection."
+              },
+              "connectionString": {
+                "type": "string",
+                "description": "Connection string. Do not store sensitive credentials here."
+              }
+            },
+            "required": [
+              "name",
+              "connectionString"
+            ]
+          }
         }
       }
     },

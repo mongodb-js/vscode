@@ -11,9 +11,11 @@ import type StorageController from './storageController';
 import type { SecretStorageLocationType } from './storageController';
 import {
   DefaultSavingLocations,
+  SecretStorageLocation,
   StorageLocation,
   StorageVariables,
 } from './storageController';
+import { v4 as uuidv4 } from 'uuid';
 
 const log = createLogger('connection storage');
 
@@ -21,20 +23,18 @@ export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
-  secretStorageLocation?: SecretStorageLocationType;
-  connectionOptions?: ConnectionOptions;
+  secretStorageLocation: SecretStorageLocationType;
+  connectionOptions: ConnectionOptions;
+  isMutable?: boolean;
   lastUsed?: Date; // Date and time when the connection was last used, i.e. connected with.
 }
 
-type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
-  Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
+export type PresetSavedConnection = {
+  name: string;
+  connectionString: string;
+};
 
-type StoreConnectionInfoWithSecretStorageLocation = StoreConnectionInfo &
-  Required<Pick<StoreConnectionInfo, 'secretStorageLocation'>>;
-
-export type LoadedConnection = StoreConnectionInfoWithConnectionOptions &
-  StoreConnectionInfoWithSecretStorageLocation;
-
+export type LoadedConnection = StoreConnectionInfo;
 export class ConnectionStorage {
   _storageController: StorageController;
 
@@ -56,6 +56,7 @@ export class ConnectionStorage {
     return {
       id: connectionId,
       name,
+      isMutable: true,
       storageLocation: this.getPreferredStorageLocationFromConfiguration(),
       secretStorageLocation: 'vscode.SecretStorage',
       connectionOptions: connectionOptions,
@@ -83,7 +84,7 @@ export class ConnectionStorage {
         (await this._storageController.getSecret(connectionInfo.id)) ?? '';
 
       return this._mergedConnectionInfoWithSecrets(
-        connectionInfo as LoadedConnection,
+        connectionInfo,
         unparsedSecrets
       );
     } catch (error) {
@@ -166,7 +167,27 @@ export class ConnectionStorage {
     );
   }
 
-  async loadConnections() {
+  _loadPresetSavedConnections(): LoadedConnection[] {
+    const presetSavedConnections: PresetSavedConnection[] | undefined =
+      vscode.workspace.getConfiguration('mdb').get('presetSavedConnections');
+
+    if (!presetSavedConnections) {
+      return [];
+    }
+
+    return presetSavedConnections.map((presetConnection) => ({
+      id: uuidv4(),
+      name: `${presetConnection.name} (From Configuration)`,
+      connectionOptions: {
+        connectionString: presetConnection.connectionString,
+      },
+      isMutable: false,
+      storageLocation: StorageLocation.NONE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
+    }));
+  }
+
+  async loadConnections(): Promise<LoadedConnection[]> {
     const globalAndWorkspaceConnections = Object.values({
       ...this._storageController.get(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -203,10 +224,12 @@ export class ConnectionStorage {
       })
     );
 
-    return loadedConnections;
+    const presetSavedConnections = this._loadPresetSavedConnections();
+
+    return [...presetSavedConnections, ...loadedConnections];
   }
 
-  async removeConnection(connectionId: string) {
+  async removeConnection(connectionId: string): Promise<void> {
     await this._storageController.deleteSecret(connectionId);
 
     // See if the connection exists in the saved global or workspace connections

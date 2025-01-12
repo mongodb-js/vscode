@@ -12,10 +12,9 @@ import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 import StreamProcessorTreeItem from './streamProcessorTreeItem';
 
-export enum ConnectionItemContextValues {
-  disconnected = 'disconnectedConnectionTreeItem',
-  connected = 'connectedConnectionTreeItem',
-}
+export type ConnectionItemContextValue = `${'disconnected' | 'connected'}${
+  | ''
+  | 'Immutable'}ConnectionTreeItem`;
 
 function getIconPath(isActiveConnection: boolean): {
   light: string;
@@ -39,7 +38,7 @@ export default class ConnectionTreeItem
   extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem>
 {
-  contextValue = ConnectionItemContextValues.disconnected;
+  contextValue: ConnectionItemContextValue = 'disconnectedConnectionTreeItem';
 
   private _childrenCache: {
     [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
@@ -50,6 +49,7 @@ export default class ConnectionTreeItem
   connectionId: string;
 
   isExpanded: boolean;
+  isMutable: boolean;
 
   constructor({
     connectionId,
@@ -58,6 +58,7 @@ export default class ConnectionTreeItem
     connectionController,
     cacheIsUpToDate,
     childrenCache,
+    isMutable,
   }: {
     connectionId: string;
     collapsibleState: vscode.TreeItemCollapsibleState;
@@ -67,21 +68,24 @@ export default class ConnectionTreeItem
     childrenCache: {
       [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
     }; // Existing cache.
+    isMutable: boolean;
   }) {
     super(
       connectionController.getSavedConnectionName(connectionId),
       collapsibleState
     );
 
-    if (
+    const isConnected =
       connectionController.getActiveConnectionId() === connectionId &&
       !connectionController.isDisconnecting() &&
-      !connectionController.isConnecting()
-    ) {
-      this.contextValue = ConnectionItemContextValues.connected;
-    }
+      !connectionController.isConnecting();
+
+    this.contextValue = `${isConnected ? 'connected' : 'disconnected'}${
+      isMutable ? '' : 'Immutable'
+    }ConnectionTreeItem`;
 
     this.connectionId = connectionId;
+    this.isMutable = isMutable;
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = childrenCache;

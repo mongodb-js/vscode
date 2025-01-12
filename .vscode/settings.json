@@ -16,5 +16,11 @@
     "out": true
   },
   // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-  "typescript.tsc.autoDetect": "off"
+  "typescript.tsc.autoDetect": "off",
+  "mdb.presetSavedConnections": [
+    {
+      "name": "Local Test",
+      "connectionString": "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000"
+    }
+  ]
 }

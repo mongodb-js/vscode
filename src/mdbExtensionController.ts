@@ -481,6 +481,16 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
+      EXTENSION_COMMANDS.MDB_OPEN_WORKSPACE_SETTINGS_FILE,
+      async () => {
+        await vscode.commands.executeCommand(
+          'workbench.action.openWorkspaceSettingsFile'
+        );
+
+        return true;
+      }
+    );
+    this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_CONNECTION_STRING,
       async (element: ConnectionTreeItem): Promise<boolean> => {
         const connectionString =
