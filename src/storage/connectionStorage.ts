@@ -23,8 +23,8 @@ export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
-  secretStorageLocation: SecretStorageLocationType;
-  connectionOptions: ConnectionOptions;
+  secretStorageLocation?: SecretStorageLocationType;
+  connectionOptions?: ConnectionOptions;
   isMutable?: boolean;
   lastUsed?: Date; // Date and time when the connection was last used, i.e. connected with.
 }
@@ -34,7 +34,15 @@ export type PresetSavedConnection = {
   connectionString: string;
 };
 
-export type LoadedConnection = StoreConnectionInfo;
+type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
+  Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
+
+type StoreConnectionInfoWithSecretStorageLocation = StoreConnectionInfo &
+  Required<Pick<StoreConnectionInfo, 'secretStorageLocation'>>;
+
+export type LoadedConnection = StoreConnectionInfoWithConnectionOptions &
+  StoreConnectionInfoWithSecretStorageLocation;
+
 export class ConnectionStorage {
   _storageController: StorageController;
 
@@ -84,7 +92,7 @@ export class ConnectionStorage {
         (await this._storageController.getSecret(connectionInfo.id)) ?? '';
 
       return this._mergedConnectionInfoWithSecrets(
-        connectionInfo,
+        connectionInfo as LoadedConnection,
         unparsedSecrets
       );
     } catch (error) {

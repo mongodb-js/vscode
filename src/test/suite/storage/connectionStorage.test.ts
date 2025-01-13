@@ -15,12 +15,15 @@ import {
   TEST_DATABASE_URI_USER,
   TEST_USER_PASSWORD,
 } from '../dbTestHelper';
-import type { StoreConnectionInfo } from '../../../storage/connectionStorage';
+import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ConnectionStorage } from '../../../storage/connectionStorage';
 
 const testDatabaseConnectionName = 'localhost:27088';
 
-const newTestConnection = (connectionStorage: ConnectionStorage, id: string) =>
+const newTestConnection = (
+  connectionStorage: ConnectionStorage,
+  id: string
+): LoadedConnection =>
   connectionStorage.createNewConnection({
     connectionId: id,
     connectionOptions: {
@@ -305,9 +308,7 @@ suite('Connection Storage Test Suite', function () {
     expect(connections.length).to.equal(1);
 
     const newSavedConnectionInfoWithSecrets =
-      await testConnectionStorage._getConnectionInfoWithSecrets(
-        connections[0] as StoreConnectionInfo
-      );
+      await testConnectionStorage._getConnectionInfoWithSecrets(connections[0]);
 
     expect(newSavedConnectionInfoWithSecrets).to.deep.equal(connectionInfo);
   });
@@ -319,6 +320,104 @@ suite('Connection Storage Test Suite', function () {
     afterEach(() => {
       testSandbox.restore();
       extensionSandbox.restore();
+    });
+
+    suite('when there are preset connections', () => {
+      const presetConnections = [
+        {
+          name: 'Preset Connection 1',
+          connectionString: 'mongodb://localhost:27017/',
+        },
+        {
+          name: 'Preset Connection 2',
+          connectionString: 'mongodb://localhost:27018/',
+        },
+      ];
+
+      let getConfigurationStub: sinon.SinonStub<
+        [
+          section?: string | undefined,
+          scope?: vscode.ConfigurationScope | null | undefined
+        ],
+        vscode.WorkspaceConfiguration
+      >;
+      let getPresetSavedConnectionsStub: sinon.SinonStub;
+
+      beforeEach(() => {
+        testSandbox.restore();
+        getPresetSavedConnectionsStub = testSandbox.stub();
+      });
+
+      test('loads the preset connections', async () => {
+        getConfigurationStub = testSandbox.stub(
+          vscode.workspace,
+          'getConfiguration'
+        );
+        getConfigurationStub.returns({
+          get: getPresetSavedConnectionsStub,
+        } as any);
+
+        getPresetSavedConnectionsStub
+          .withArgs('presetSavedConnections')
+          .returns(presetConnections);
+
+        const connections = await testConnectionStorage.loadConnections();
+
+        expect(connections.length).to.equal(2);
+
+        for (let i = 0; i < connections.length; i++) {
+          const connection = connections[i];
+          const presetConnection = presetConnections[i];
+          expect(connection.name).equals(
+            `${presetConnection.name} (From Configuration)`
+          );
+          expect(connection.connectionOptions.connectionString).equals(
+            presetConnection.connectionString
+          );
+          expect(connection.isMutable).equals(false);
+        }
+      });
+
+      test('loads both preset and other saved connections', async () => {
+        const savedConnection = newTestConnection(testConnectionStorage, '1');
+        await testConnectionStorage.saveConnection(savedConnection);
+
+        getConfigurationStub = testSandbox.stub(
+          vscode.workspace,
+          'getConfiguration'
+        );
+        getConfigurationStub.returns({
+          get: getPresetSavedConnectionsStub,
+        } as any);
+
+        getPresetSavedConnectionsStub
+          .withArgs('presetSavedConnections')
+          .returns(presetConnections);
+
+        const loadedConnections = await testConnectionStorage.loadConnections();
+
+        expect(loadedConnections.length).equals(3);
+
+        for (let i = 0; i < presetConnections.length; i++) {
+          const connection = loadedConnections[i];
+          const presetConnection = presetConnections[i];
+          expect(connection.name).equals(
+            `${presetConnection.name} (From Configuration)`
+          );
+          expect(connection.connectionOptions.connectionString).equals(
+            presetConnection.connectionString
+          );
+          expect(connection.isMutable).equals(false);
+        }
+
+        const savedLoadedConnection = loadedConnections[2];
+
+        expect(savedLoadedConnection.name).equals(savedConnection.name);
+        expect(
+          savedLoadedConnection.connectionOptions.connectionString
+        ).contains(savedConnection.connectionOptions.connectionString);
+        expect(savedLoadedConnection.isMutable).equals(true);
+      });
     });
 
     suite('when connection secrets are already in SecretStorage', () => {
@@ -341,6 +440,8 @@ suite('Connection Storage Test Suite', function () {
 
         // By default the connection secrets are already stored in SecretStorage
         const savedConnections = await testConnectionStorage.loadConnections();
+
+        expect(savedConnections.length).equals(2);
         expect(
           savedConnections.every(
             ({ secretStorageLocation }) =>
