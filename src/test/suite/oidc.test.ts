@@ -125,6 +125,7 @@ suite('OIDC Tests', function () {
       downloadOptions: { enterprise: true },
       args: [
         '--setParameter',
+        '--debug',
         'authenticationMechanisms=SCRAM-SHA-256,MONGODB-OIDC',
         // enableTestCommands allows using http:// issuers such as http://localhost
         '--setParameter',
