@@ -119,21 +119,26 @@ suite('OIDC Tests', function () {
       authNamePrefix: 'dev',
     };
 
-    cluster = await MongoCluster.start({
-      ...defaultClusterOptions,
-      version: '7.0.x',
-      downloadOptions: { enterprise: true },
-      args: [
-        '--setParameter',
-        '--debug',
-        'authenticationMechanisms=SCRAM-SHA-256,MONGODB-OIDC',
-        // enableTestCommands allows using http:// issuers such as http://localhost
-        '--setParameter',
-        'enableTestCommands=true',
-        '--setParameter',
-        `oidcIdentityProviders=${JSON.stringify([serverOidcConfig])}`,
-      ],
-    });
+    try {
+      cluster = await MongoCluster.start({
+        ...defaultClusterOptions,
+        version: '7.0.x',
+        downloadOptions: { enterprise: true },
+        args: [
+          '--setParameter',
+          '--debug',
+          'authenticationMechanisms=SCRAM-SHA-256,MONGODB-OIDC',
+          // enableTestCommands allows using http:// issuers such as http://localhost
+          '--setParameter',
+          'enableTestCommands=true',
+          '--setParameter',
+          `oidcIdentityProviders=${JSON.stringify([serverOidcConfig])}`,
+        ],
+      });
+    } catch (error) {
+      console.error(JSON.stringify((error as any).errorLogEntries, null, 2));
+      throw error;
+    }
 
     const cs = new ConnectionString(cluster.connectionString);
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
