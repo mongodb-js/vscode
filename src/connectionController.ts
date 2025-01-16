@@ -162,6 +162,8 @@ export default class ConnectionController {
   }
 
   async loadSavedConnections(): Promise<void> {
+    this._connections = Object.create(null);
+
     const loadedConnections = await this._connectionStorage.loadConnections();
 
     for (const connection of loadedConnections) {

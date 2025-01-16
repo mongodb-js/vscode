@@ -185,7 +185,7 @@ export class ConnectionStorage {
 
     return presetSavedConnections.map((presetConnection) => ({
       id: uuidv4(),
-      name: `${presetConnection.name} (From Configuration)`,
+      name: presetConnection.name,
       connectionOptions: {
         connectionString: presetConnection.connectionString,
       },

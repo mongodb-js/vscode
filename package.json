@@ -1190,8 +1190,22 @@
           "scope": "window",
           "type": "array",
           "description": "Defines preset saved connections.",
+          "examples": [
+            [
+              {
+                "name": "Local Test Connection",
+                "connectionString": "mongodb://localhost:27017"
+              }
+            ]
+          ],
           "items": {
             "type": "object",
+            "examples": [
+              {
+                "name": "Local Test Connection",
+                "connectionString": "mongodb://localhost:27017"
+              }
+            ],
             "properties": {
               "name": {
                 "type": "string",

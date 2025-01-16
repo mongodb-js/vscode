@@ -160,6 +160,15 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._editorsController.registerProviders();
   }
 
+  subscribeToConfigurationChanges(): void {
+    const subscription = vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('mdb.presetSavedConnections')) {
+        void this._connectionController.loadSavedConnections();
+      }
+    });
+    this._context.subscriptions.push(subscription);
+  }
+
   async activate(): Promise<void> {
     this._explorerController.activateConnectionsTreeView();
     this._helpExplorer.activateHelpTreeView(this._telemetryService);
@@ -172,6 +181,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
+    this.subscribeToConfigurationChanges();
 
     const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
     void vscode.commands.executeCommand(

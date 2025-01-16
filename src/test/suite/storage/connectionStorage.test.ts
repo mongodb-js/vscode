@@ -368,9 +368,7 @@ suite('Connection Storage Test Suite', function () {
         for (let i = 0; i < connections.length; i++) {
           const connection = connections[i];
           const presetConnection = presetConnections[i];
-          expect(connection.name).equals(
-            `${presetConnection.name} (From Configuration)`
-          );
+          expect(connection.name).equals(presetConnection.name);
           expect(connection.connectionOptions.connectionString).equals(
             presetConnection.connectionString
           );
@@ -401,9 +399,7 @@ suite('Connection Storage Test Suite', function () {
         for (let i = 0; i < presetConnections.length; i++) {
           const connection = loadedConnections[i];
           const presetConnection = presetConnections[i];
-          expect(connection.name).equals(
-            `${presetConnection.name} (From Configuration)`
-          );
+          expect(connection.name).equals(presetConnection.name);
           expect(connection.connectionOptions.connectionString).equals(
             presetConnection.connectionString
           );
