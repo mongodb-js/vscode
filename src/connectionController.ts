@@ -21,10 +21,15 @@ import type { StorageController } from './storage';
 import type { StatusView } from './views';
 import type TelemetryService from './telemetry/telemetryService';
 import { openLink } from './utils/linkHelper';
-import type { LoadedConnection } from './storage/connectionStorage';
+import type {
+  ConnectionSource,
+  LoadedConnection,
+} from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
+import { DocumentSource } from './documentSource';
+import type { ConnectionTreeItem } from './explorer';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -159,6 +164,46 @@ export default class ConnectionController {
     this._connectionStorage = new ConnectionStorage({
       storageController,
     });
+  }
+
+  async openPresetConnectionsSettings(
+    originTreeItem: ConnectionTreeItem | undefined
+  ): Promise<void> {
+    this._telemetryService.trackPresetConnectionEdited({
+      source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+      source_details: originTreeItem ? 'tree_item' : 'header',
+    });
+    let source: ConnectionSource | undefined = originTreeItem?.source;
+    if (!source) {
+      const mdbConfiguration = vscode.workspace.getConfiguration('mdb');
+
+      const presetConnections = mdbConfiguration?.inspect(
+        'presetSavedConnections'
+      );
+
+      if (presetConnections?.workspaceValue) {
+        source = 'workspaceSettings';
+      } else if (presetConnections?.globalValue) {
+        source = 'globalSettings';
+      } else {
+        // If no preset settings exist in workspace and global scope,
+        // set a default one inside the workspace and open it.
+        source = 'workspaceSettings';
+        await mdbConfiguration.update('presetSavedConnections', [
+          {
+            name: 'Preset Database',
+            connectionString: 'mongodb://localhost:27017',
+          },
+        ]);
+      }
+    }
+    if (originTreeItem?.source === 'globalSettings') {
+      await vscode.commands.executeCommand('workbench.action.openSettingsJson');
+    } else {
+      await vscode.commands.executeCommand(
+        'workbench.action.openWorkspaceSettingsFile'
+      );
+    }
   }
 
   async loadSavedConnections(): Promise<void> {

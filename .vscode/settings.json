@@ -17,13 +17,10 @@
   },
   // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
   "typescript.tsc.autoDetect": "off",
-  "mdb.presetSavedConnections":[
+  "mdb.presetSavedConnections": [
     {
-      "name": "Local Test Connection",
+      "name": "Preset Database",
       "connectionString": "mongodb://localhost:27017"
     }
-  ],
-  "conventionalCommits.scopes": [
-    "tree-explorer"
   ]
 }
