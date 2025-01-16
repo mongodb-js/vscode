@@ -324,6 +324,12 @@ suite('Connection Storage Test Suite', function () {
 
     suite('when there are preset connections', () => {
       const presetConnections = {
+        globalValue: [
+          {
+            name: 'Global Connection 1',
+            connectionString: 'mongodb://localhost:27017/',
+          },
+        ],
         workspaceValue: [
           {
             name: 'Preset Connection 1',
@@ -343,11 +349,11 @@ suite('Connection Storage Test Suite', function () {
         ],
         vscode.WorkspaceConfiguration
       >;
-      let getPresetSavedConnectionsStub: sinon.SinonStub;
+      let inspectPresetSavedConnectionsStub: sinon.SinonStub;
 
       beforeEach(() => {
         testSandbox.restore();
-        getPresetSavedConnectionsStub = testSandbox.stub();
+        inspectPresetSavedConnectionsStub = testSandbox.stub();
       });
 
       test('loads the preset connections', async () => {
@@ -356,25 +362,39 @@ suite('Connection Storage Test Suite', function () {
           'getConfiguration'
         );
         getConfigurationStub.returns({
-          inspect: getPresetSavedConnectionsStub,
+          inspect: inspectPresetSavedConnectionsStub,
+          get: () => undefined,
         } as any);
 
-        getPresetSavedConnectionsStub
+        inspectPresetSavedConnectionsStub
           .withArgs('presetSavedConnections')
           .returns(presetConnections);
 
-        const connections = await testConnectionStorage.loadConnections();
+        const loadedConnections = await testConnectionStorage.loadConnections();
 
-        expect(connections.length).to.equal(2);
+        const expectedConnectionValues = [
+          ...presetConnections.globalValue.map((connection) => ({
+            ...connection,
+            source: 'globalSettings',
+          })),
+          ...presetConnections.workspaceValue.map((connection) => ({
+            ...connection,
+            source: 'workspaceSettings',
+          })),
+        ];
 
-        for (let i = 0; i < connections.length; i++) {
-          const connection = connections[i];
-          const presetConnection = presetConnections[i];
-          expect(connection.name).equals(presetConnection.name);
-          expect(connection.connectionOptions.connectionString).equals(
-            presetConnection.connectionString
+        expect(loadedConnections.length).equals(
+          expectedConnectionValues.length
+        );
+
+        for (let i = 0; i < expectedConnectionValues.length; i++) {
+          const connection = loadedConnections[i];
+          const expected = expectedConnectionValues[i];
+          expect(connection.name).equals(expected.name);
+          expect(connection.connectionOptions.connectionString).contains(
+            expected.connectionString
           );
-          expect(connection.source).equals('workspaceSettings');
+          expect(connection.source).equals(expected.source);
         }
       });
 
@@ -387,34 +407,46 @@ suite('Connection Storage Test Suite', function () {
           'getConfiguration'
         );
         getConfigurationStub.returns({
-          get: getPresetSavedConnectionsStub,
+          inspect: inspectPresetSavedConnectionsStub,
+          get: () => undefined,
         } as any);
 
-        getPresetSavedConnectionsStub
+        inspectPresetSavedConnectionsStub
           .withArgs('presetSavedConnections')
           .returns(presetConnections);
 
         const loadedConnections = await testConnectionStorage.loadConnections();
 
-        expect(loadedConnections.length).equals(3);
+        const expectedConnectionValues = [
+          {
+            name: savedConnection.name,
+            source: 'user',
+            connectionString:
+              savedConnection.connectionOptions.connectionString,
+          },
+          ...presetConnections.globalValue.map((connection) => ({
+            ...connection,
+            source: 'globalSettings',
+          })),
+          ...presetConnections.workspaceValue.map((connection) => ({
+            ...connection,
+            source: 'workspaceSettings',
+          })),
+        ];
 
-        for (let i = 0; i < presetConnections.workspaceValue.length; i++) {
+        expect(loadedConnections.length).equals(
+          expectedConnectionValues.length
+        );
+
+        for (let i = 0; i < expectedConnectionValues.length; i++) {
           const connection = loadedConnections[i];
-          const presetConnection = presetConnections[i];
-          expect(connection.name).equals(presetConnection.name);
-          expect(connection.connectionOptions.connectionString).equals(
-            presetConnection.connectionString
+          const expected = expectedConnectionValues[i];
+          expect(connection.name).equals(expected.name);
+          expect(connection.connectionOptions.connectionString).contains(
+            expected.connectionString
           );
-          expect(connection.source).equals('workspaceSettings');
+          expect(connection.source).equals(expected.source);
         }
-
-        const savedLoadedConnection = loadedConnections[2];
-
-        expect(savedLoadedConnection.name).equals(savedConnection.name);
-        expect(
-          savedLoadedConnection.connectionOptions.connectionString
-        ).contains(savedConnection.connectionOptions.connectionString);
-        expect(savedLoadedConnection.source).equals('workspaceSettings');
       });
     });
 

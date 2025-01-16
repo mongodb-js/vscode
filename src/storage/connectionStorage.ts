@@ -191,13 +191,13 @@ export class ConnectionStorage {
     }
 
     const combinedPresetSavedConnections: PresetSavedConnectionWithSource[] = [
-      ...(presetSavedConnectionsInfo?.workspaceValue ?? []).map((preset) => ({
-        ...preset,
-        source: 'workspaceSettings' as const,
-      })),
       ...(presetSavedConnectionsInfo?.globalValue ?? []).map((preset) => ({
         ...preset,
         source: 'globalSettings' as const,
+      })),
+      ...(presetSavedConnectionsInfo?.workspaceValue ?? []).map((preset) => ({
+        ...preset,
+        source: 'workspaceSettings' as const,
       })),
     ];
 
@@ -252,7 +252,7 @@ export class ConnectionStorage {
 
     const presetSavedConnections = this._loadPresetSavedConnections();
 
-    return [...presetSavedConnections, ...loadedConnections];
+    return [...loadedConnections, ...presetSavedConnections];
   }
 
   async removeConnection(connectionId: string): Promise<void> {
