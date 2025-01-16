@@ -187,7 +187,7 @@ export default class ExplorerTreeController
           connectionId: connection.id,
           collapsibleState,
           isExpanded,
-          isMutable: connection.isMutable ?? true,
+          source: connection.source ?? 'user',
           connectionController: this._connectionController,
           cacheIsUpToDate: pastConnectionTreeItems[connection.id]
             ? pastConnectionTreeItems[connection.id].cacheIsUpToDate

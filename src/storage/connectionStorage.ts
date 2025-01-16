@@ -19,19 +19,24 @@ import { v4 as uuidv4 } from 'uuid';
 
 const log = createLogger('connection storage');
 
+export type ConnectionSource = 'globalSettings' | 'workspaceSettings' | 'user';
 export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
   secretStorageLocation?: SecretStorageLocationType;
   connectionOptions?: ConnectionOptions;
-  isMutable?: boolean;
+  source?: ConnectionSource;
   lastUsed?: Date; // Date and time when the connection was last used, i.e. connected with.
 }
 
 export type PresetSavedConnection = {
   name: string;
   connectionString: string;
+};
+
+export type PresetSavedConnectionWithSource = PresetSavedConnection & {
+  source: ConnectionSource;
 };
 
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
@@ -64,7 +69,7 @@ export class ConnectionStorage {
     return {
       id: connectionId,
       name,
-      isMutable: true,
+      source: 'user',
       storageLocation: this.getPreferredStorageLocationFromConfiguration(),
       secretStorageLocation: 'vscode.SecretStorage',
       connectionOptions: connectionOptions,
@@ -176,20 +181,33 @@ export class ConnectionStorage {
   }
 
   _loadPresetSavedConnections(): LoadedConnection[] {
-    const presetSavedConnections: PresetSavedConnection[] | undefined =
-      vscode.workspace.getConfiguration('mdb').get('presetSavedConnections');
+    const configuration = vscode.workspace.getConfiguration('mdb');
+    const presetSavedConnectionsInfo = configuration.inspect<
+      PresetSavedConnection[]
+    >('presetSavedConnections');
 
-    if (!presetSavedConnections) {
+    if (!presetSavedConnectionsInfo) {
       return [];
     }
 
-    return presetSavedConnections.map((presetConnection) => ({
+    const combinedPresetSavedConnections: PresetSavedConnectionWithSource[] = [
+      ...(presetSavedConnectionsInfo?.workspaceValue ?? []).map((preset) => ({
+        ...preset,
+        source: 'workspaceSettings' as const,
+      })),
+      ...(presetSavedConnectionsInfo?.globalValue ?? []).map((preset) => ({
+        ...preset,
+        source: 'globalSettings' as const,
+      })),
+    ];
+
+    return combinedPresetSavedConnections.map((presetConnection) => ({
       id: uuidv4(),
       name: presetConnection.name,
       connectionOptions: {
         connectionString: presetConnection.connectionString,
       },
-      isMutable: false,
+      source: presetConnection.source,
       storageLocation: StorageLocation.NONE,
       secretStorageLocation: SecretStorageLocation.SecretStorage,
     }));

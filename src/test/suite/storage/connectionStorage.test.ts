@@ -323,16 +323,18 @@ suite('Connection Storage Test Suite', function () {
     });
 
     suite('when there are preset connections', () => {
-      const presetConnections = [
-        {
-          name: 'Preset Connection 1',
-          connectionString: 'mongodb://localhost:27017/',
-        },
-        {
-          name: 'Preset Connection 2',
-          connectionString: 'mongodb://localhost:27018/',
-        },
-      ];
+      const presetConnections = {
+        workspaceValue: [
+          {
+            name: 'Preset Connection 1',
+            connectionString: 'mongodb://localhost:27017/',
+          },
+          {
+            name: 'Preset Connection 2',
+            connectionString: 'mongodb://localhost:27018/',
+          },
+        ],
+      };
 
       let getConfigurationStub: sinon.SinonStub<
         [
@@ -354,7 +356,7 @@ suite('Connection Storage Test Suite', function () {
           'getConfiguration'
         );
         getConfigurationStub.returns({
-          get: getPresetSavedConnectionsStub,
+          inspect: getPresetSavedConnectionsStub,
         } as any);
 
         getPresetSavedConnectionsStub
@@ -372,7 +374,7 @@ suite('Connection Storage Test Suite', function () {
           expect(connection.connectionOptions.connectionString).equals(
             presetConnection.connectionString
           );
-          expect(connection.isMutable).equals(false);
+          expect(connection.source).equals('workspaceSettings');
         }
       });
 
@@ -396,14 +398,14 @@ suite('Connection Storage Test Suite', function () {
 
         expect(loadedConnections.length).equals(3);
 
-        for (let i = 0; i < presetConnections.length; i++) {
+        for (let i = 0; i < presetConnections.workspaceValue.length; i++) {
           const connection = loadedConnections[i];
           const presetConnection = presetConnections[i];
           expect(connection.name).equals(presetConnection.name);
           expect(connection.connectionOptions.connectionString).equals(
             presetConnection.connectionString
           );
-          expect(connection.isMutable).equals(false);
+          expect(connection.source).equals('workspaceSettings');
         }
 
         const savedLoadedConnection = loadedConnections[2];
@@ -412,7 +414,7 @@ suite('Connection Storage Test Suite', function () {
         expect(
           savedLoadedConnection.connectionOptions.connectionString
         ).contains(savedConnection.connectionOptions.connectionString);
-        expect(savedLoadedConnection.isMutable).equals(true);
+        expect(savedLoadedConnection.source).equals('workspaceSettings');
       });
     });
 

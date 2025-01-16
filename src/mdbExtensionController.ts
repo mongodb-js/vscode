@@ -491,12 +491,17 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_WORKSPACE_SETTINGS_FILE,
-      async () => {
-        await vscode.commands.executeCommand(
-          'workbench.action.openWorkspaceSettingsFile'
-        );
-
+      EXTENSION_COMMANDS.MDB_EDIT_PRESET_CONNECTIONS,
+      async (element: ConnectionTreeItem) => {
+        if (element.source === 'workspaceSettings') {
+          await vscode.commands.executeCommand(
+            'workbench.action.openWorkspaceSettingsFile'
+          );
+        } else if (element.source === 'globalSettings') {
+          await vscode.commands.executeCommand(
+            'workbench.action.openSettingsJson'
+          );
+        }
         return true;
       }
     );

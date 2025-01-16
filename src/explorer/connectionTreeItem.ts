@@ -11,10 +11,11 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 import StreamProcessorTreeItem from './streamProcessorTreeItem';
+import type { ConnectionSource } from '../storage/connectionStorage';
 
 export type ConnectionItemContextValue = `${'disconnected' | 'connected'}${
   | ''
-  | 'Immutable'}ConnectionTreeItem`;
+  | 'Preset'}ConnectionTreeItem`;
 
 function getIconPath(isActiveConnection: boolean): {
   light: string;
@@ -49,7 +50,7 @@ export default class ConnectionTreeItem
   connectionId: string;
 
   isExpanded: boolean;
-  isMutable: boolean;
+  source: ConnectionSource;
 
   constructor({
     connectionId,
@@ -58,7 +59,7 @@ export default class ConnectionTreeItem
     connectionController,
     cacheIsUpToDate,
     childrenCache,
-    isMutable,
+    source,
   }: {
     connectionId: string;
     collapsibleState: vscode.TreeItemCollapsibleState;
@@ -68,7 +69,7 @@ export default class ConnectionTreeItem
     childrenCache: {
       [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
     }; // Existing cache.
-    isMutable: boolean;
+    source: ConnectionSource;
   }) {
     super(
       connectionController.getSavedConnectionName(connectionId),
@@ -81,11 +82,11 @@ export default class ConnectionTreeItem
       !connectionController.isConnecting();
 
     this.contextValue = `${isConnected ? 'connected' : 'disconnected'}${
-      isMutable ? '' : 'Immutable'
+      source === 'user' ? '' : 'Preset'
     }ConnectionTreeItem`;
 
     this.connectionId = connectionId;
-    this.isMutable = isMutable;
+    this.source = source;
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = childrenCache;
