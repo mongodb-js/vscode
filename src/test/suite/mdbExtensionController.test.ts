@@ -42,6 +42,7 @@ function getTestConnectionTreeItem(
       mdbTestExtension.testExtensionController._connectionController,
     cacheIsUpToDate: false,
     childrenCache: {},
+    source: 'user',
     ...options,
   });
 }

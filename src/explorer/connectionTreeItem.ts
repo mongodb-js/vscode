@@ -11,11 +11,11 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 import StreamProcessorTreeItem from './streamProcessorTreeItem';
+import type { ConnectionSource } from '../storage/connectionStorage';
 
-export enum ConnectionItemContextValues {
-  disconnected = 'disconnectedConnectionTreeItem',
-  connected = 'connectedConnectionTreeItem',
-}
+export type ConnectionItemContextValue = `${'disconnected' | 'connected'}${
+  | ''
+  | 'Preset'}ConnectionTreeItem`;
 
 function getIconPath(isActiveConnection: boolean): {
   light: string;
@@ -39,7 +39,7 @@ export default class ConnectionTreeItem
   extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<ConnectionTreeItem>
 {
-  contextValue = ConnectionItemContextValues.disconnected;
+  contextValue: ConnectionItemContextValue = 'disconnectedConnectionTreeItem';
 
   private _childrenCache: {
     [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
@@ -50,6 +50,7 @@ export default class ConnectionTreeItem
   connectionId: string;
 
   isExpanded: boolean;
+  source: ConnectionSource;
 
   constructor({
     connectionId,
@@ -58,6 +59,7 @@ export default class ConnectionTreeItem
     connectionController,
     cacheIsUpToDate,
     childrenCache,
+    source,
   }: {
     connectionId: string;
     collapsibleState: vscode.TreeItemCollapsibleState;
@@ -67,21 +69,24 @@ export default class ConnectionTreeItem
     childrenCache: {
       [key: string]: DatabaseTreeItem | StreamProcessorTreeItem;
     }; // Existing cache.
+    source: ConnectionSource;
   }) {
     super(
       connectionController.getSavedConnectionName(connectionId),
       collapsibleState
     );
 
-    if (
+    const isConnected =
       connectionController.getActiveConnectionId() === connectionId &&
       !connectionController.isDisconnecting() &&
-      !connectionController.isConnecting()
-    ) {
-      this.contextValue = ConnectionItemContextValues.connected;
-    }
+      !connectionController.isConnecting();
+
+    this.contextValue = `${isConnected ? 'connected' : 'disconnected'}${
+      source === 'user' ? '' : 'Preset'
+    }ConnectionTreeItem`;
 
     this.connectionId = connectionId;
+    this.source = source;
     this._connectionController = connectionController;
     this.isExpanded = isExpanded;
     this._childrenCache = childrenCache;
@@ -204,7 +209,9 @@ export default class ConnectionTreeItem
     return Object.values(this._childrenCache);
   }
 
-  private async _buildChildrenCacheForDatabases(dataService: DataService) {
+  private async _buildChildrenCacheForDatabases(
+    dataService: DataService
+  ): Promise<Record<string, DatabaseTreeItem>> {
     const databases = await this.listDatabases();
     databases.sort((a: string, b: string) => a.localeCompare(b));
 
@@ -226,7 +233,9 @@ export default class ConnectionTreeItem
     return newChildrenCache;
   }
 
-  private async _buildChildrenCacheForStreams(dataService: DataService) {
+  private async _buildChildrenCacheForStreams(
+    dataService: DataService
+  ): Promise<Record<string, StreamProcessorTreeItem>> {
     const processors = await this.listStreamProcessors();
     processors.sort((a, b) => a.name.localeCompare(b.name));
 

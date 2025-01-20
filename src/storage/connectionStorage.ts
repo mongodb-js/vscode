@@ -11,20 +11,33 @@ import type StorageController from './storageController';
 import type { SecretStorageLocationType } from './storageController';
 import {
   DefaultSavingLocations,
+  SecretStorageLocation,
   StorageLocation,
   StorageVariables,
 } from './storageController';
+import { v4 as uuidv4 } from 'uuid';
 
 const log = createLogger('connection storage');
 
+export type ConnectionSource = 'globalSettings' | 'workspaceSettings' | 'user';
 export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
   secretStorageLocation?: SecretStorageLocationType;
   connectionOptions?: ConnectionOptions;
+  source?: ConnectionSource;
   lastUsed?: Date; // Date and time when the connection was last used, i.e. connected with.
 }
+
+export type PresetSavedConnection = {
+  name: string;
+  connectionString: string;
+};
+
+export type PresetSavedConnectionWithSource = PresetSavedConnection & {
+  source: ConnectionSource;
+};
 
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
@@ -56,6 +69,7 @@ export class ConnectionStorage {
     return {
       id: connectionId,
       name,
+      source: 'user',
       storageLocation: this.getPreferredStorageLocationFromConfiguration(),
       secretStorageLocation: 'vscode.SecretStorage',
       connectionOptions: connectionOptions,
@@ -166,7 +180,42 @@ export class ConnectionStorage {
     );
   }
 
-  async loadConnections() {
+  _loadPresetConnections(): LoadedConnection[] {
+    const configuration = vscode.workspace.getConfiguration('mdb');
+    const presetConnectionsInfo =
+      configuration.inspect<PresetSavedConnection[]>('presetConnections');
+
+    if (!presetConnectionsInfo) {
+      return [];
+    }
+
+    const combinedPresetConnections: PresetSavedConnectionWithSource[] = [
+      ...(presetConnectionsInfo?.globalValue ?? []).map((preset) => ({
+        ...preset,
+        source: 'globalSettings' as const,
+      })),
+      ...(presetConnectionsInfo?.workspaceValue ?? []).map((preset) => ({
+        ...preset,
+        source: 'workspaceSettings' as const,
+      })),
+    ];
+
+    return combinedPresetConnections.map(
+      (presetConnection) =>
+        ({
+          id: uuidv4(),
+          name: presetConnection.name,
+          connectionOptions: {
+            connectionString: presetConnection.connectionString,
+          },
+          source: presetConnection.source,
+          storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
+        } satisfies LoadedConnection)
+    );
+  }
+
+  async loadConnections(): Promise<LoadedConnection[]> {
     const globalAndWorkspaceConnections = Object.values({
       ...this._storageController.get(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -203,10 +252,12 @@ export class ConnectionStorage {
       })
     );
 
-    return loadedConnections;
+    const presetConnections = this._loadPresetConnections();
+
+    return [...loadedConnections, ...presetConnections];
   }
 
-  async removeConnection(connectionId: string) {
+  async removeConnection(connectionId: string): Promise<void> {
     await this._storageController.deleteSecret(connectionId);
 
     // See if the connection exists in the saved global or workspace connections

@@ -4,9 +4,7 @@ import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 
-import ConnectionTreeItem, {
-  ConnectionItemContextValues,
-} from '../../../explorer/connectionTreeItem';
+import ConnectionTreeItem from '../../../explorer/connectionTreeItem';
 import { DataServiceStub } from '../stubs';
 import formatError from '../../../utils/formatError';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -14,7 +12,7 @@ import { mdbTestExtension } from '../stubbableMdbExtension';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
-function getTestConnectionTreeItem() {
+function getTestConnectionTreeItem(): ConnectionTreeItem {
   return new ConnectionTreeItem({
     connectionId: 'test',
     collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
@@ -23,6 +21,7 @@ function getTestConnectionTreeItem() {
       mdbTestExtension.testExtensionController._connectionController,
     cacheIsUpToDate: false,
     childrenCache: {},
+    source: 'user',
   });
 }
 
@@ -32,10 +31,10 @@ suite('ConnectionTreeItem Test Suite', () => {
     let disconnectedRegisteredCommandInPackageJson = false;
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
-      if (contextItem.when.includes(ConnectionItemContextValues.connected)) {
+      if (contextItem.when.includes('connected')) {
         connectedRegisteredCommandInPackageJson = true;
       }
-      if (contextItem.when.includes(ConnectionItemContextValues.disconnected)) {
+      if (contextItem.when.includes('disconnected')) {
         disconnectedRegisteredCommandInPackageJson = true;
       }
     });

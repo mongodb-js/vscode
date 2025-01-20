@@ -44,6 +44,7 @@ enum EXTENSION_COMMANDS {
   MDB_EDIT_CONNECTION = 'mdb.editConnection',
   MDB_REFRESH_CONNECTION = 'mdb.refreshConnection',
   MDB_COPY_CONNECTION_STRING = 'mdb.copyConnectionString',
+  MDB_EDIT_PRESET_CONNECTIONS = 'mdb.editPresetConnections',
   MDB_REMOVE_CONNECTION_TREE_VIEW = 'mdb.treeItemRemoveConnection',
   MDB_RENAME_CONNECTION = 'mdb.renameConnection',
   MDB_ADD_DATABASE = 'mdb.addDatabase',

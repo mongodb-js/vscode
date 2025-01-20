@@ -240,6 +240,31 @@ suite('Connection Controller Test Suite', function () {
     expect(testConnectionController.getSavedConnections().length).to.equal(0);
   });
 
+  test('clears connections when loading saved connections', async () => {
+    // This might happen if i.e. one defines a preset connection and then deletes it.
+    // In that case we'd have defined this connection but there was never a follow up
+    // delete event to clear it. So on reload we need to start from a clean slate.
+    testConnectionController._connections['1234'] = {
+      id: '1234',
+      name: 'orphan',
+      connectionOptions: {
+        connectionString: 'localhost:3000',
+      },
+      storageLocation: StorageLocation.NONE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
+    };
+
+    // Should persist as this is a saved connection.
+    await testConnectionController.addNewConnectionStringAndConnect(
+      TEST_DATABASE_URI
+    );
+
+    await testConnectionController.loadSavedConnections();
+
+    expect(testConnectionController.getSavedConnections().length).to.equal(1);
+    expect(testConnectionController._connections['1234']).is.undefined;
+  });
+
   test('the connection model loads both global and workspace stored connection models', async () => {
     const expectedDriverUrl = `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`;
 

@@ -91,6 +91,8 @@ type ConnectionEditedTelemetryEventProperties = {
 type SavedConnectionsLoadedProperties = {
   // Total number of connections saved on disk
   saved_connections: number;
+  // Total number of connections from preset settings
+  preset_connections: number;
   // Total number of connections that extension was able to load, it might
   // differ from saved_connections since there might be failures in loading
   // secrets for a connection in which case we don't list the connections in the
@@ -143,6 +145,11 @@ export type ParticipantPromptSubmittedFromActionProperties = {
 export type ParticipantChatOpenedFromActionProperties = {
   source: DocumentSource;
   command?: ParticipantCommandType;
+};
+
+export type PresetSavedConnectionEditedProperties = {
+  source: DocumentSource;
+  source_details: 'tree_item' | 'header';
 };
 
 export type ParticipantInputBoxSubmitted = {
@@ -216,6 +223,7 @@ export enum TelemetryEventTypes {
   /** Tracks after a participant interacts with the input box we open to let the user write the prompt for participant. */
   PARTICIPANT_INPUT_BOX_SUBMITTED = 'Participant Inbox Box Submitted',
   PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
+  PRESET_CONNECTION_EDITED = 'Preset Connection Edited',
 }
 
 /**
@@ -444,6 +452,12 @@ export default class TelemetryService {
       TelemetryEventTypes.PLAYGROUND_EXPORTED_TO_LANGUAGE,
       playgroundExportedProps
     );
+  }
+
+  trackPresetConnectionEdited(
+    props: PresetSavedConnectionEditedProperties
+  ): void {
+    this.track(TelemetryEventTypes.PRESET_CONNECTION_EDITED, props);
   }
 
   trackPlaygroundCreated(playgroundType: string): void {

@@ -672,6 +672,7 @@ suite('Telemetry Controller Test Suite', () => {
     testTelemetryService.trackSavedConnectionsLoaded({
       saved_connections: 3,
       loaded_connections: 3,
+      preset_connections: 3,
       connections_with_secrets_in_keytar: 0,
       connections_with_secrets_in_secret_storage: 3,
     });
@@ -684,6 +685,7 @@ suite('Telemetry Controller Test Suite', () => {
         properties: {
           saved_connections: 3,
           loaded_connections: 3,
+          preset_connections: 3,
           connections_with_secrets_in_keytar: 0,
           connections_with_secrets_in_secret_storage: 3,
         },
