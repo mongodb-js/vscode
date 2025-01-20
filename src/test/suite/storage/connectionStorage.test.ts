@@ -349,11 +349,11 @@ suite('Connection Storage Test Suite', function () {
         ],
         vscode.WorkspaceConfiguration
       >;
-      let inspectPresetSavedConnectionsStub: sinon.SinonStub;
+      let inspectPresetConnectionsStub: sinon.SinonStub;
 
       beforeEach(() => {
         testSandbox.restore();
-        inspectPresetSavedConnectionsStub = testSandbox.stub();
+        inspectPresetConnectionsStub = testSandbox.stub();
       });
 
       test('loads the preset connections', async () => {
@@ -362,12 +362,12 @@ suite('Connection Storage Test Suite', function () {
           'getConfiguration'
         );
         getConfigurationStub.returns({
-          inspect: inspectPresetSavedConnectionsStub,
+          inspect: inspectPresetConnectionsStub,
           get: () => undefined,
         } as any);
 
-        inspectPresetSavedConnectionsStub
-          .withArgs('presetSavedConnections')
+        inspectPresetConnectionsStub
+          .withArgs('presetConnections')
           .returns(presetConnections);
 
         const loadedConnections = await testConnectionStorage.loadConnections();
@@ -391,7 +391,7 @@ suite('Connection Storage Test Suite', function () {
           const connection = loadedConnections[i];
           const expected = expectedConnectionValues[i];
           expect(connection.name).equals(expected.name);
-          expect(connection.connectionOptions.connectionString).contains(
+          expect(connection.connectionOptions.connectionString).equals(
             expected.connectionString
           );
           expect(connection.source).equals(expected.source);
@@ -407,12 +407,12 @@ suite('Connection Storage Test Suite', function () {
           'getConfiguration'
         );
         getConfigurationStub.returns({
-          inspect: inspectPresetSavedConnectionsStub,
+          inspect: inspectPresetConnectionsStub,
           get: () => undefined,
         } as any);
 
-        inspectPresetSavedConnectionsStub
-          .withArgs('presetSavedConnections')
+        inspectPresetConnectionsStub
+          .withArgs('presetConnections')
           .returns(presetConnections);
 
         const loadedConnections = await testConnectionStorage.loadConnections();
@@ -442,7 +442,7 @@ suite('Connection Storage Test Suite', function () {
           const connection = loadedConnections[i];
           const expected = expectedConnectionValues[i];
           expect(connection.name).equals(expected.name);
-          expect(connection.connectionOptions.connectionString).contains(
+          expect(connection.connectionOptions.connectionString).equals(
             expected.connectionString
           );
           expect(connection.source).equals(expected.source);

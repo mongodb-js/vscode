@@ -180,28 +180,27 @@ export class ConnectionStorage {
     );
   }
 
-  _loadPresetSavedConnections(): LoadedConnection[] {
+  _loadPresetConnections(): LoadedConnection[] {
     const configuration = vscode.workspace.getConfiguration('mdb');
-    const presetSavedConnectionsInfo = configuration.inspect<
-      PresetSavedConnection[]
-    >('presetSavedConnections');
+    const presetConnectionsInfo =
+      configuration.inspect<PresetSavedConnection[]>('presetConnections');
 
-    if (!presetSavedConnectionsInfo) {
+    if (!presetConnectionsInfo) {
       return [];
     }
 
-    const combinedPresetSavedConnections: PresetSavedConnectionWithSource[] = [
-      ...(presetSavedConnectionsInfo?.globalValue ?? []).map((preset) => ({
+    const combinedPresetConnections: PresetSavedConnectionWithSource[] = [
+      ...(presetConnectionsInfo?.globalValue ?? []).map((preset) => ({
         ...preset,
         source: 'globalSettings' as const,
       })),
-      ...(presetSavedConnectionsInfo?.workspaceValue ?? []).map((preset) => ({
+      ...(presetConnectionsInfo?.workspaceValue ?? []).map((preset) => ({
         ...preset,
         source: 'workspaceSettings' as const,
       })),
     ];
 
-    return combinedPresetSavedConnections.map((presetConnection) => ({
+    return combinedPresetConnections.map((presetConnection) => ({
       id: uuidv4(),
       name: presetConnection.name,
       connectionOptions: {
@@ -250,9 +249,9 @@ export class ConnectionStorage {
       })
     );
 
-    const presetSavedConnections = this._loadPresetSavedConnections();
+    const presetConnections = this._loadPresetConnections();
 
-    return [...loadedConnections, ...presetSavedConnections];
+    return [...loadedConnections, ...presetConnections];
   }
 
   async removeConnection(connectionId: string): Promise<void> {

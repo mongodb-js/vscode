@@ -162,7 +162,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   subscribeToConfigurationChanges(): void {
     const subscription = vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration('mdb.presetSavedConnections')) {
+      if (event.affectsConfiguration('mdb.presetConnections')) {
         void this._connectionController.loadSavedConnections();
       }
     });

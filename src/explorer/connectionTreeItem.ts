@@ -209,7 +209,9 @@ export default class ConnectionTreeItem
     return Object.values(this._childrenCache);
   }
 
-  private async _buildChildrenCacheForDatabases(dataService: DataService) {
+  private async _buildChildrenCacheForDatabases(
+    dataService: DataService
+  ): Promise<Record<string, DatabaseTreeItem>> {
     const databases = await this.listDatabases();
     databases.sort((a: string, b: string) => a.localeCompare(b));
 
@@ -231,7 +233,9 @@ export default class ConnectionTreeItem
     return newChildrenCache;
   }
 
-  private async _buildChildrenCacheForStreams(dataService: DataService) {
+  private async _buildChildrenCacheForStreams(
+    dataService: DataService
+  ): Promise<Record<string, StreamProcessorTreeItem>> {
     const processors = await this.listStreamProcessors();
     processors.sort((a, b) => a.name.localeCompare(b.name));
 

@@ -177,9 +177,7 @@ export default class ConnectionController {
     if (!source) {
       const mdbConfiguration = vscode.workspace.getConfiguration('mdb');
 
-      const presetConnections = mdbConfiguration?.inspect(
-        'presetSavedConnections'
-      );
+      const presetConnections = mdbConfiguration?.inspect('presetConnections');
 
       if (presetConnections?.workspaceValue) {
         source = 'workspaceSettings';
@@ -189,7 +187,7 @@ export default class ConnectionController {
         // If no preset settings exist in workspace and global scope,
         // set a default one inside the workspace and open it.
         source = 'workspaceSettings';
-        await mdbConfiguration.update('presetSavedConnections', [
+        await mdbConfiguration.update('presetConnections', [
           {
             name: 'Preset Database',
             connectionString: 'mongodb://localhost:27017',
@@ -197,12 +195,20 @@ export default class ConnectionController {
         ]);
       }
     }
-    if (originTreeItem?.source === 'globalSettings') {
-      await vscode.commands.executeCommand('workbench.action.openSettingsJson');
-    } else {
-      await vscode.commands.executeCommand(
-        'workbench.action.openWorkspaceSettingsFile'
-      );
+    switch (source) {
+      case 'globalSettings':
+        await vscode.commands.executeCommand(
+          'workbench.action.openSettingsJson'
+        );
+        break;
+      case 'workspaceSettings':
+      case 'user':
+        await vscode.commands.executeCommand(
+          'workbench.action.openWorkspaceSettingsFile'
+        );
+        break;
+      default:
+        throw new Error('Unknown preset connection source');
     }
   }
 
