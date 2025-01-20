@@ -327,17 +327,18 @@ suite('Connection Storage Test Suite', function () {
         globalValue: [
           {
             name: 'Global Connection 1',
-            connectionString: 'mongodb://localhost:27017/',
+            connectionString:
+              'mongodb://localhost:27017/?readPreference=primary&ssl=false',
           },
         ],
         workspaceValue: [
           {
             name: 'Preset Connection 1',
-            connectionString: 'mongodb://localhost:27017/',
+            connectionString: 'mongodb://localhost:27017',
           },
           {
             name: 'Preset Connection 2',
-            connectionString: 'mongodb://localhost:27018/',
+            connectionString: 'mongodb://localhost:27018',
           },
         ],
       };
@@ -421,8 +422,7 @@ suite('Connection Storage Test Suite', function () {
           {
             name: savedConnection.name,
             source: 'user',
-            connectionString:
-              savedConnection.connectionOptions.connectionString,
+            connectionString: `${savedConnection.connectionOptions.connectionString}/`,
           },
           ...presetConnections.globalValue.map((connection) => ({
             ...connection,

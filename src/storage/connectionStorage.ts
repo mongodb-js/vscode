@@ -200,16 +200,19 @@ export class ConnectionStorage {
       })),
     ];
 
-    return combinedPresetConnections.map((presetConnection) => ({
-      id: uuidv4(),
-      name: presetConnection.name,
-      connectionOptions: {
-        connectionString: presetConnection.connectionString,
-      },
-      source: presetConnection.source,
-      storageLocation: StorageLocation.NONE,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
-    }));
+    return combinedPresetConnections.map(
+      (presetConnection) =>
+        ({
+          id: uuidv4(),
+          name: presetConnection.name,
+          connectionOptions: {
+            connectionString: presetConnection.connectionString,
+          },
+          source: presetConnection.source,
+          storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
+        } satisfies LoadedConnection)
+    );
   }
 
   async loadConnections(): Promise<LoadedConnection[]> {
