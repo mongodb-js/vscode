@@ -131,11 +131,15 @@ export default class ExplorerTreeController
     return element;
   }
 
-  private _getConnectionExpandedState(connection: LoadedConnection): {
+  private _getConnectionExpandedState(
+    connection: LoadedConnection,
+    pastConnectionTreeItems: {
+      [key: string]: ConnectionTreeItem;
+    }
+  ): {
     collapsibleState: vscode.TreeItemCollapsibleState;
     isExpanded: boolean;
   } {
-    const pastConnectionTreeItems = this._connectionTreeItems;
     const isActiveConnection =
       connection.id === this._connectionController.getActiveConnectionId();
     const isBeingConnectedTo =
@@ -181,7 +185,7 @@ export default class ExplorerTreeController
       // Create new connection tree items, using cached children wherever possible.
       connections.forEach((connection) => {
         const { collapsibleState, isExpanded } =
-          this._getConnectionExpandedState(connection);
+          this._getConnectionExpandedState(connection, pastConnectionTreeItems);
 
         this._connectionTreeItems[connection.id] = new ConnectionTreeItem({
           connectionId: connection.id,
