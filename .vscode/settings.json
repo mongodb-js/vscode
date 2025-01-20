@@ -19,7 +19,7 @@
   "typescript.tsc.autoDetect": "off",
   "mdb.presetConnections": [
     {
-      "name": "Preset Database",
+      "name": "Preset Connection",
       "connectionString": "mongodb://localhost:27017"
     }
   ]

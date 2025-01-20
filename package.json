@@ -1196,11 +1196,11 @@
         "mdb.presetConnections": {
           "scope": "window",
           "type": "array",
-          "description": "Defines preset saved connections. Can be used to share connection configurations in a workspace or global scope. Do not store sensitive credentials here.",
+          "description": "Defines preset connections. Can be used to share connection configurations in a workspace or global scope. Do not store sensitive credentials here.",
           "examples": [
             [
               {
-                "name": "Preset Database",
+                "name": "Preset Connection",
                 "connectionString": "mongodb://localhost:27017"
               }
             ]
@@ -1209,7 +1209,7 @@
             "type": "object",
             "examples": [
               {
-                "name": "Preset Database",
+                "name": "Preset Connection",
                 "connectionString": "mongodb://localhost:27017"
               }
             ],

@@ -189,7 +189,7 @@ export default class ConnectionController {
         source = 'workspaceSettings';
         await mdbConfiguration.update('presetConnections', [
           {
-            name: 'Preset Database',
+            name: 'Preset Connection',
             connectionString: 'mongodb://localhost:27017',
           },
         ]);
