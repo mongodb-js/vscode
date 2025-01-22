@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import HelpTree from './helpTree';
-import type { TelemetryService } from '../telemetry';
+import type TelemetryService from '../telemetry';
 
 export default class HelpExplorer {
   _treeController: HelpTree;

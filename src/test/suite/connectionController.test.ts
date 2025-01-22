@@ -19,7 +19,7 @@ import {
   SecretStorageLocation,
 } from '../../storage/storageController';
 import { StatusView } from '../../views';
-import TelemetryService from '../../telemetry/telemetryService';
+import TelemetryService from '../../telemetry';
 import { ExtensionContextStub } from './stubs';
 import {
   TEST_DATABASE_URI,
@@ -818,7 +818,7 @@ suite('Connection Controller Test Suite', function () {
 
     test('two disconnects on one connection at once complete without erroring', (done) => {
       let disconnectsCompleted = 0;
-      async function disconnect() {
+      async function disconnect(): Promise<void> {
         try {
           await testConnectionController.disconnect();
 
@@ -1213,10 +1213,7 @@ suite('Connection Controller Test Suite', function () {
         '_getConnectionInfoWithSecrets',
         (connectionInfo) => Promise.resolve(connectionInfo as LoadedConnection)
       );
-      const trackStub = testSandbox.stub(
-        testTelemetryService,
-        'trackSavedConnectionsLoaded'
-      );
+      const trackStub = testSandbox.stub(testTelemetryService, 'track');
 
       // Clear any connections and load so we get our stubbed connections from above.
       testConnectionController.clearAllConnections();

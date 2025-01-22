@@ -103,20 +103,6 @@ export const getAllText = (): string => {
   return vscode.window.activeTextEditor?.document.getText().trim() || '';
 };
 
-export const getPlaygroundExtensionForTelemetry = (
-  fileUri?: vscode.Uri
-): string => {
-  let fileType = 'other';
-
-  if (fileUri?.fsPath.match(/\.(mongodb\.js)$/gi)) {
-    fileType = 'mongodbjs';
-  } else if (fileUri?.fsPath.match(/\.(mongodb)$/gi)) {
-    fileType = 'mongodb';
-  }
-
-  return fileType;
-};
-
 export const getPlaygrounds = async ({
   fsPath,
   excludeFromPlaygroundsSearch,

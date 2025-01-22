@@ -7,8 +7,9 @@ import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
-import type TelemetryService from '../telemetry/telemetryService';
+import type TelemetryService from '../telemetry';
 import { getEJSON } from '../utils/ejson';
+import { DocumentUpdatedTelemetryEvent } from '../telemetry';
 
 const log = createLogger('document controller');
 
@@ -50,9 +51,11 @@ export default class MongoDBDocumentService {
   _saveDocumentFailed(message: string): void {
     const errorMessage = `Unable to save document: ${message}`;
 
-    this._telemetryService.trackDocumentUpdated(
-      DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-      false
+    this._telemetryService.track(
+      new DocumentUpdatedTelemetryEvent(
+        DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+        false
+      )
     );
 
     throw new Error(errorMessage);
@@ -98,7 +101,9 @@ export default class MongoDBDocumentService {
           returnDocument: 'after',
         }
       );
-      this._telemetryService.trackDocumentUpdated(source, true);
+      this._telemetryService.track(
+        new DocumentUpdatedTelemetryEvent(source, true)
+      );
     } catch (error) {
       return this._saveDocumentFailed(formatError(error).message);
     } finally {

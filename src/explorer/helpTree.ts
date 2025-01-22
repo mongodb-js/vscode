@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import { getImagesPath } from '../extensionConstants';
-import type { TelemetryService } from '../telemetry';
+import type TelemetryService from '../telemetry';
 import { openLink } from '../utils/linkHelper';
 import LINKS from '../utils/links';
+import { LinkClickedTelemetryEvent } from '../telemetry';
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
@@ -144,7 +145,9 @@ export default class HelpTree
     telemetryService: TelemetryService
   ): Promise<void> {
     if (helpItem.contextValue === HELP_LINK_CONTEXT_VALUE) {
-      telemetryService.trackLinkClicked('helpPanel', helpItem.linkId);
+      telemetryService.track(
+        new LinkClickedTelemetryEvent('helpPanel', helpItem.linkId)
+      );
 
       if (helpItem.useRedirect) {
         try {

@@ -10,7 +10,7 @@ import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { ExtensionContextStub } from '../stubs';
-import TelemetryService from '../../../telemetry/telemetryService';
+import TelemetryService from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 suite('Active Connection CodeLens Provider Test Suite', () => {

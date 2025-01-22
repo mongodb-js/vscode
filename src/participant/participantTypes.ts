@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { DocumentSource } from '../documentSource';
+import type { ParticipantTelemetryMetadata } from '../telemetry';
 
 export type ParticipantCommandType = 'query' | 'schema' | 'docs';
 export type ParticipantCommand = `/${ParticipantCommandType}`;
@@ -19,18 +19,13 @@ export type ParticipantResponseType =
   | 'askToConnect'
   | 'askForNamespace';
 
-type TelemetryMetadata = {
-  source: DocumentSource;
-  source_details?: 'database' | 'collection';
-};
-
 /** Based on options from Copilot's chat open command IChatViewOpenOptions */
 export type SendMessageToParticipantOptions = {
   message: string;
   command?: ParticipantCommandType;
   isNewChat?: boolean;
   isPartialQuery?: boolean;
-  telemetry?: TelemetryMetadata;
+  telemetry?: ParticipantTelemetryMetadata;
 };
 
 export type SendMessageToParticipantFromInputOptions = Pick<

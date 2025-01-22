@@ -7,7 +7,7 @@ import ExportToLanguageCodeLensProvider, {
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import StorageController from '../../../storage/storageController';
 import { ExtensionContextStub } from '../stubs';
-import TelemetryService from '../../../telemetry/telemetryService';
+import TelemetryService from '../../../telemetry';
 import StatusView from '../../../views/statusView';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';

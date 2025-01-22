@@ -39,13 +39,13 @@ export type HostInformation = {
 
 function getHostnameForConnection(dataService: DataService): string | null {
   const lastSeenTopology = dataService.getLastSeenTopology();
-  const resolvedHost = lastSeenTopology?.servers.values().next().value.address;
+  const resolvedHost = lastSeenTopology?.servers.values().next().value?.address;
 
-  if (resolvedHost.startsWith('[')) {
+  if (resolvedHost?.startsWith('[')) {
     return resolvedHost.slice(1).split(']')[0]; // IPv6
   }
 
-  return resolvedHost.split(':')[0];
+  return resolvedHost?.split(':')[0] || null;
 }
 
 async function getPublicCloudInfo(host: string): Promise<{

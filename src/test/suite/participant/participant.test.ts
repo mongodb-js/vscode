@@ -12,13 +12,13 @@ import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import { ExtensionContextStub } from '../stubs';
 import type {
+  ExportToPlaygroundFailedTelemetryEvent,
   InternalPromptPurpose,
-  ParticipantPromptProperties,
-  ParticipantResponseProperties,
-} from '../../../telemetry/telemetryService';
-import TelemetryService, {
-  TelemetryEventTypes,
-} from '../../../telemetry/telemetryService';
+  ParticipantFeedbackTelemetryEvent,
+  ParticipantPromptSubmittedTelemetryEvent,
+  ParticipantResponseFailedTelemetryEvent,
+  ParticipantResponseGeneratedTelemetryEvent,
+} from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import type { ChatResult } from '../../../participant/constants';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
@@ -48,6 +48,7 @@ import type {
   SendMessageToParticipantOptions,
 } from '../../../participant/participantTypes';
 import { DocumentSource } from '../../../documentSource';
+import TelemetryService from '../../../telemetry';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -143,28 +144,29 @@ suite('Participant Controller Test Suite', function () {
     expect(telemetryTrackStub.callCount).to.be.greaterThan(callIndex);
 
     const call = telemetryTrackStub.getCalls()[callIndex];
-    expect(call.args[0]).to.equal('Participant Prompt Submitted');
+    const arg = call.args[0] as ParticipantPromptSubmittedTelemetryEvent;
+    expect(arg.type).to.equal('Participant Prompt Submitted');
 
-    const properties = call.args[1] as ParticipantPromptProperties;
-
-    expect(properties.command).to.equal(command);
-    expect(properties.has_sample_documents).to.equal(expectSampleDocs);
-    expect(properties.history_size).to.equal(chatContextStub.history.length);
+    expect(arg.properties.command).to.equal(command);
+    expect(arg.properties.has_sample_documents).to.equal(expectSampleDocs);
+    expect(arg.properties.history_size).to.equal(
+      chatContextStub.history.length
+    );
 
     /** For docs chatbot requests, the length of the prompt would be longer as it gets the prompt history prepended.*/
     if (command !== 'docs') {
       // Total message length includes participant as well as user prompt
-      expect(properties.total_message_length).to.be.greaterThan(
-        properties.user_input_length
+      expect(arg.properties.total_message_length).to.be.greaterThan(
+        arg.properties.user_input_length
       );
     }
 
     // User prompt length should be at least equal to the supplied user prompt, but my occasionally
     // be greater - e.g. when we enhance the context.
-    expect(properties.user_input_length).to.be.greaterThanOrEqual(
+    expect(arg.properties.user_input_length).to.be.greaterThanOrEqual(
       chatRequest.prompt.length
     );
-    expect(properties.internal_purpose).to.equal(expectedInternalPurpose);
+    expect(arg.properties.internal_purpose).to.equal(expectedInternalPurpose);
   };
 
   const assertResponseTelemetry = (
@@ -183,15 +185,14 @@ suite('Participant Controller Test Suite', function () {
   ): void => {
     expect(telemetryTrackStub.callCount).to.be.greaterThan(callIndex);
     const call = telemetryTrackStub.getCalls()[callIndex];
-    expect(call.args[0]).to.equal('Participant Response Generated');
+    const arg = call.args[0] as ParticipantResponseGeneratedTelemetryEvent;
+    expect(arg.type).to.equal('Participant Response Generated');
 
-    const properties = call.args[1] as ParticipantResponseProperties;
-
-    expect(properties.command).to.equal(command);
-    expect(properties.found_namespace).to.equal(foundNamespace);
-    expect(properties.has_cta).to.equal(hasCTA);
-    expect(properties.has_runnable_content).to.equal(hasRunnableContent);
-    expect(properties.output_length).to.be.greaterThan(0);
+    expect(arg.properties.command).to.equal(command);
+    expect(arg.properties.found_namespace).to.equal(foundNamespace);
+    expect(arg.properties.has_cta).to.equal(hasCTA);
+    expect(arg.properties.has_runnable_content).to.equal(hasRunnableContent);
+    expect(arg.properties.output_length).to.be.greaterThan(0);
   };
 
   beforeEach(function () {
@@ -515,10 +516,9 @@ suite('Participant Controller Test Suite', function () {
 
         // Once to report welcome screen shown, second time to track the user prompt
         expect(telemetryTrackStub).to.have.been.calledTwice;
-        expect(telemetryTrackStub.firstCall.args[0]).to.equal(
-          TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+        expect(telemetryTrackStub.firstCall.args[0].type).to.equal(
+          'Participant Welcome Shown'
         );
-        expect(telemetryTrackStub.firstCall.args[1]).to.be.undefined;
         assertCommandTelemetry('query', chatRequestMock, {
           callIndex: 1,
           expectedInternalPurpose: 'namespace',
@@ -551,9 +551,7 @@ suite('Participant Controller Test Suite', function () {
         const telemetryEvents = telemetryTrackStub
           .getCalls()
           .map((call) => call.args[0])
-          .filter(
-            (arg) => arg === TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
-          );
+          .filter((arg) => arg === 'Participant Welcome Shown');
 
         expect(telemetryEvents).to.be.empty;
       });
@@ -1746,13 +1744,17 @@ Schema:
           expect(
             telemetryTrackStub.getCalls()
           ).to.have.length.greaterThanOrEqual(2);
-          expect(telemetryTrackStub.firstCall.args[0]).to.equal(
-            TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED
+
+          const firstTelemetryEvent = telemetryTrackStub.firstCall
+            .args[0] as ParticipantResponseFailedTelemetryEvent;
+          expect(firstTelemetryEvent.type).to.equal(
+            'Participant Response Failed'
           );
 
-          const properties = telemetryTrackStub.firstCall.args[1];
-          expect(properties.command).to.equal('docs');
-          expect(properties.error_name).to.equal('Docs Chatbot API Issue');
+          expect(firstTelemetryEvent.properties.command).to.equal('docs');
+          expect(firstTelemetryEvent.properties.error_name).to.equal(
+            'Docs Chatbot API Issue'
+          );
 
           assertResponseTelemetry('docs/copilot', {
             callIndex: 2,
@@ -1836,17 +1838,25 @@ Schema:
           sendRequestStub.rejects();
           const messages = sendRequestStub.firstCall.args[0];
           expect(getMessageContent(messages[1])).to.equal(code.trim());
-          expect(telemetryTrackStub).calledWith(
-            TelemetryEventTypes.EXPORT_TO_PLAYGROUND_FAILED,
-            {
-              input_length: code.trim().length,
-              error_name: 'streamChatResponseWithExportToLanguage',
-            }
-          );
 
-          expect(telemetryTrackStub).not.calledWith(
-            TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED
+          const playgroundFailedTelemetryEvent = telemetryTrackStub
+            .getCalls()
+            .find((c) => c.args[0].type === 'Export To Playground Failed')
+            ?.args[0] as ExportToPlaygroundFailedTelemetryEvent;
+          expect(playgroundFailedTelemetryEvent.type).to.equal(
+            'Export To Playground Failed'
           );
+          expect(playgroundFailedTelemetryEvent.properties.error_name).to.equal(
+            'streamChatResponseWithExportToLanguage'
+          );
+          expect(
+            playgroundFailedTelemetryEvent.properties.input_length
+          ).to.equal(code.trim().length);
+
+          const participantResponseFailedTelemetryEvent = telemetryTrackStub
+            .getCalls()
+            .find((c) => c.args[0].type === 'Participant Response Failed');
+          expect(participantResponseFailedTelemetryEvent).to.be.undefined;
         });
 
         test('exports selected lines of code to a playground', async function () {
@@ -2268,9 +2278,9 @@ Schema:
       );
 
       expect(stats.command).to.equal('generic');
-      expect(stats.has_sample_documents).to.be.false;
-      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
-      expect(stats.total_message_length).to.equal(
+      expect(stats.hasSampleDocuments).to.be.false;
+      expect(stats.userInputLength).to.equal(chatRequestMock.prompt.length);
+      expect(stats.totalMessageLength).to.equal(
         getContentLength(messages[0]) + getContentLength(messages[1])
       );
     });
@@ -2335,9 +2345,9 @@ Schema:
       );
 
       expect(stats.command).to.equal('query');
-      expect(stats.has_sample_documents).to.be.true;
-      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
-      expect(stats.total_message_length).to.equal(
+      expect(stats.hasSampleDocuments).to.be.true;
+      expect(stats.userInputLength).to.equal(chatRequestMock.prompt.length);
+      expect(stats.totalMessageLength).to.equal(
         getContentLength(messages[0]) +
           getContentLength(messages[1]) +
           getContentLength(messages[2])
@@ -2345,7 +2355,7 @@ Schema:
 
       // The length of the user prompt length should be taken from the prompt supplied
       // by the user, even if we enhance it with sample docs and schema.
-      expect(stats.user_input_length).to.be.lessThan(
+      expect(stats.userInputLength).to.be.lessThan(
         getContentLength(messages[2])
       );
     });
@@ -2390,9 +2400,9 @@ Schema:
       expect(getMessageContent(messages[1])).to.include(schema);
 
       expect(stats.command).to.equal('schema');
-      expect(stats.has_sample_documents).to.be.false;
-      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
-      expect(stats.total_message_length).to.equal(
+      expect(stats.hasSampleDocuments).to.be.false;
+      expect(stats.userInputLength).to.equal(chatRequestMock.prompt.length);
+      expect(stats.totalMessageLength).to.equal(
         getContentLength(messages[0]) + getContentLength(messages[1])
       );
     });
@@ -2417,9 +2427,9 @@ Schema:
       );
 
       expect(stats.command).to.equal('query');
-      expect(stats.has_sample_documents).to.be.false;
-      expect(stats.user_input_length).to.equal(chatRequestMock.prompt.length);
-      expect(stats.total_message_length).to.equal(
+      expect(stats.hasSampleDocuments).to.be.false;
+      expect(stats.userInputLength).to.equal(chatRequestMock.prompt.length);
+      expect(stats.totalMessageLength).to.equal(
         getContentLength(messages[0]) + getContentLength(messages[1])
       );
     });
@@ -2592,14 +2602,14 @@ Schema:
       expect(getMessageContent(messages[1])).to.contain(expectedPrompt);
 
       expect(stats.command).to.equal('query');
-      expect(stats.has_sample_documents).to.be.false;
-      expect(stats.user_input_length).to.equal(expectedPrompt.length);
-      expect(stats.total_message_length).to.equal(
+      expect(stats.hasSampleDocuments).to.be.false;
+      expect(stats.userInputLength).to.equal(expectedPrompt.length);
+      expect(stats.totalMessageLength).to.equal(
         getContentLength(messages[0]) + getContentLength(messages[1])
       );
 
       // The prompt builder may add extra info, but we're only reporting the actual user input
-      expect(stats.user_input_length).to.be.lessThan(
+      expect(stats.userInputLength).to.be.lessThan(
         getContentLength(messages[1])
       );
     });
@@ -2668,17 +2678,18 @@ Schema:
       });
 
       sinon.assert.calledOnce(telemetryTrackStub);
-      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
-        'Participant Feedback'
+      const telemetryEvent = telemetryTrackStub.lastCall
+        .args[0] as ParticipantFeedbackTelemetryEvent;
+      expect(telemetryEvent.type).to.be.equal('Participant Feedback');
+
+      expect(telemetryEvent.properties.feedback).to.be.equal('positive');
+      expect(telemetryEvent.properties.reason).to.be.undefined;
+      expect(telemetryEvent.properties.response_type).to.be.equal(
+        'askToConnect'
       );
 
-      const properties = telemetryTrackStub.lastCall.args[1];
-      expect(properties.feedback).to.be.equal('positive');
-      expect(properties.reason).to.be.undefined;
-      expect(properties.response_type).to.be.equal('askToConnect');
-
       // Ensure we're not leaking the response content into the telemetry payload
-      expect(JSON.stringify(properties))
+      expect(JSON.stringify(telemetryEvent.properties))
         .to.not.include('creditCardNumber')
         .and.not.include('1234-5678-9012-3456');
     });
@@ -2696,17 +2707,16 @@ Schema:
       } as vscode.ChatResultFeedback);
 
       sinon.assert.calledOnce(telemetryTrackStub);
-      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
-        'Participant Feedback'
-      );
+      const telemetryEvent = telemetryTrackStub.lastCall
+        .args[0] as ParticipantFeedbackTelemetryEvent;
+      expect(telemetryEvent.type).to.be.equal('Participant Feedback');
 
-      const properties = telemetryTrackStub.lastCall.args[1];
-      expect(properties.feedback).to.be.equal('negative');
-      expect(properties.reason).to.be.equal('incompleteCode');
-      expect(properties.response_type).to.be.equal('query');
+      expect(telemetryEvent.properties.feedback).to.be.equal('negative');
+      expect(telemetryEvent.properties.reason).to.be.equal('incompleteCode');
+      expect(telemetryEvent.properties.response_type).to.be.equal('query');
 
       // Ensure we're not leaking the response content into the telemetry payload
-      expect(JSON.stringify(properties))
+      expect(JSON.stringify(telemetryEvent.properties))
         .to.not.include('SSN')
         .and.not.include('123456789');
     });
@@ -2719,14 +2729,13 @@ Schema:
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 
-      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
-        'Participant Response Failed'
-      );
+      const telemetryEvent = telemetryTrackStub.lastCall
+        .args[0] as ParticipantResponseFailedTelemetryEvent;
+      expect(telemetryEvent.type).to.be.equal('Participant Response Failed');
 
-      const properties = telemetryTrackStub.lastCall.args[1];
-      expect(properties.command).to.be.equal('query');
-      expect(properties.error_code).to.be.undefined;
-      expect(properties.error_name).to.be.equal(
+      expect(telemetryEvent.properties.command).to.be.equal('query');
+      expect(telemetryEvent.properties.error_code).to.be.undefined;
+      expect(telemetryEvent.properties.error_name).to.be.equal(
         'Filtered by Responsible AI Service'
       );
     });
@@ -2740,14 +2749,15 @@ Schema:
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 
-      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
-        'Participant Response Failed'
-      );
+      const telemetryEvent = telemetryTrackStub.lastCall
+        .args[0] as ParticipantResponseFailedTelemetryEvent;
+      expect(telemetryEvent.type).to.be.equal('Participant Response Failed');
 
-      const properties = telemetryTrackStub.lastCall.args[1];
-      expect(properties.command).to.be.equal('docs');
-      expect(properties.error_code).to.be.undefined;
-      expect(properties.error_name).to.be.equal('Chat Model Off Topic');
+      expect(telemetryEvent.properties.command).to.be.equal('docs');
+      expect(telemetryEvent.properties.error_code).to.be.undefined;
+      expect(telemetryEvent.properties.error_name).to.be.equal(
+        'Chat Model Off Topic'
+      );
     });
 
     test('Reports error code when available', function () {
@@ -2759,14 +2769,13 @@ Schema:
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 
-      expect(telemetryTrackStub.lastCall.args[0]).to.be.equal(
-        'Participant Response Failed'
-      );
+      const telemetryEvent = telemetryTrackStub.lastCall
+        .args[0] as ParticipantResponseFailedTelemetryEvent;
+      expect(telemetryEvent.type).to.be.equal('Participant Response Failed');
 
-      const properties = telemetryTrackStub.lastCall.args[1];
-      expect(properties.command).to.be.equal('schema');
-      expect(properties.error_code).to.be.equal('NotFound');
-      expect(properties.error_name).to.be.equal('Other');
+      expect(telemetryEvent.properties.command).to.be.equal('schema');
+      expect(telemetryEvent.properties.error_code).to.be.equal('NotFound');
+      expect(telemetryEvent.properties.error_name).to.be.equal('Other');
     });
   });
 });

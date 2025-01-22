@@ -3,7 +3,7 @@ import type { ChatResult } from '../constants';
 import type {
   InternalPromptPurpose,
   ParticipantPromptProperties,
-} from '../../telemetry/telemetryService';
+} from '../../telemetry';
 import { PromptHistory } from './promptHistory';
 import type { ParticipantCommandType } from '../participantTypes';
 import { getCopilotModel } from '../model';
@@ -208,15 +208,15 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
     hasSampleDocs: boolean
   ): ParticipantPromptProperties {
     return {
-      total_message_length: messages.reduce(
+      totalMessageLength: messages.reduce(
         (acc, message) => acc + getContentLength(message),
         0
       ),
-      user_input_length: request.prompt.length,
-      has_sample_documents: hasSampleDocs,
+      userInputLength: request.prompt.length,
+      hasSampleDocuments: hasSampleDocs,
       command: (request.command as ParticipantCommandType) || 'generic',
-      history_size: context?.history.length || 0,
-      internal_purpose: this.internalPurposeForTelemetry,
+      historySize: context?.history.length || 0,
+      internalPurpose: this.internalPurposeForTelemetry,
     };
   }
 }

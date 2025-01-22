@@ -11,7 +11,7 @@ import { before, after, afterEach, beforeEach } from 'mocha';
 import EventEmitter, { once } from 'events';
 import { ExtensionContextStub } from './stubs';
 import { StorageController } from '../../storage';
-import { TelemetryService } from '../../telemetry';
+import TelemetryService from '../../telemetry';
 import ConnectionController from '../../connectionController';
 import { StatusView } from '../../views';
 import { waitFor } from './waitFor';

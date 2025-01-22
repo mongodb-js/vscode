@@ -1,3 +1,4 @@
 import TelemetryService from './telemetryService';
+export * from './telemetryEvents';
 
-export { TelemetryService };
+export default TelemetryService;

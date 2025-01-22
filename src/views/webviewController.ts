@@ -15,9 +15,13 @@ import {
 } from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
-import type TelemetryService from '../telemetry/telemetryService';
+import type TelemetryService from '../telemetry';
 import { getFeatureFlagsScript } from '../featureFlags';
-import { TelemetryEventTypes } from '../telemetry/telemetryService';
+import {
+  ConnectionEditedTelemetryEvent,
+  LinkClickedTelemetryEvent,
+  OpenEditConnectionTelemetryEvent,
+} from '../telemetry';
 import type { FileChooserOptions } from './webview-app/use-connection-form';
 
 const log = createLogger('webview controller');
@@ -248,7 +252,7 @@ export default class WebviewController {
           connection: message.connectionInfo,
           isEditingConnection: true,
         });
-        this._telemetryService.track(TelemetryEventTypes.CONNECTION_EDITED);
+        this._telemetryService.track(new ConnectionEditedTelemetryEvent());
         return;
       case MESSAGE_TYPES.OPEN_FILE_CHOOSER:
         await this.handleWebviewOpenFileChooserAttempt({
@@ -292,7 +296,9 @@ export default class WebviewController {
         }
         return;
       case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
-        this._telemetryService.trackLinkClicked(message.screen, message.linkId);
+        this._telemetryService.track(
+          new LinkClickedTelemetryEvent(message.screen, message.linkId)
+        );
         return;
       case MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION:
         if (this._connectionController.isCurrentlyConnected()) {
@@ -360,7 +366,7 @@ export default class WebviewController {
 
     // Wait for the panel to open.
     await new Promise((resolve) => setTimeout(resolve, 200));
-    this._telemetryService.track(TelemetryEventTypes.OPEN_EDIT_CONNECTION);
+    this._telemetryService.track(new OpenEditConnectionTelemetryEvent());
 
     void webviewPanel.webview.postMessage({
       command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
