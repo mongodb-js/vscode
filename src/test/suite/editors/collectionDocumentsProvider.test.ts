@@ -20,7 +20,6 @@ import {
 import TelemetryService from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, mockTextEditor } from '../stubs';
-import { expect } from 'chai';
 
 const mockDocumentsAsJsonString = `[
   {

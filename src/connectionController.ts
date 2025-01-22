@@ -28,7 +28,6 @@ import type {
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
-import { DocumentSource } from './documentSource';
 import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
 
