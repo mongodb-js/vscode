@@ -641,6 +641,27 @@ export class PanelOpenedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
+/**
+ * Reported when a tree item from the collection explorer is expanded.
+ */
+export class TreeItemExpandedTelemetryEvent implements TelemetryEventBase {
+  type = 'Section Expanded';
+  properties: {
+    /**
+     * The name of the section - e.g. database, collection, etc. This is obtained from the
+     * `contextValue` field of the tree item.
+     * */
+    section_name?: string;
+  };
+
+  constructor(item: vscode.TreeItem) {
+    // We suffix all tree item context values with 'TreeItem', which is redundant when sending to analytics.
+    this.properties = {
+      section_name: item.contextValue?.replace('TreeItem', ''),
+    };
+  }
+}
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent
@@ -663,4 +684,6 @@ export type TelemetryEvent =
   | ParticipantChatOpenedFromActionTelemetryEvent
   | ParticipantInputBoxSubmittedTelemetryEvent
   | ParticipantResponseGeneratedTelemetryEvent
-  | PresetConnectionEditedTelemetryEvent;
+  | PresetConnectionEditedTelemetryEvent
+  | PanelOpenedTelemetryEvent
+  | TreeItemExpandedTelemetryEvent;

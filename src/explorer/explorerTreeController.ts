@@ -9,19 +9,25 @@ import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
 import EXTENSION_COMMANDS from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import type { LoadedConnection } from '../storage/connectionStorage';
+import {
+  TreeItemExpandedTelemetryEvent,
+  type TelemetryService,
+} from '../telemetry';
+import type TreeItemParentInterface from './treeItemParentInterface';
 
 const log = createLogger('explorer tree controller');
 
 export default class ExplorerTreeController
   implements vscode.TreeDataProvider<vscode.TreeItem>
 {
-  private _connectionController: ConnectionController;
   private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
 
-  constructor(connectionController: ConnectionController) {
+  constructor(
+    private _connectionController: ConnectionController,
+    private _telemetryService: TelemetryService
+  ) {
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-    this._connectionController = connectionController;
 
     // Subscribe to changes in the connections.
     this._connectionController.addEventListener(
@@ -46,14 +52,19 @@ export default class ExplorerTreeController
   activateTreeViewEventHandlers = (
     treeView: vscode.TreeView<vscode.TreeItem>
   ): void => {
-    treeView.onDidCollapseElement((event: any) => {
+    treeView.onDidCollapseElement((event) => {
       log.info('Tree item was collapsed', event.element.label);
 
-      if (event.element.onDidCollapse) {
-        event.element.onDidCollapse();
+      const treeItem = event.element as vscode.TreeItem &
+        TreeItemParentInterface;
+      if (treeItem.onDidCollapse) {
+        treeItem.onDidCollapse();
       }
 
-      if (event.element.doesNotRequireTreeUpdate) {
+      if (
+        'doesNotRequireTreeUpdate' in treeItem &&
+        treeItem.doesNotRequireTreeUpdate
+      ) {
         // When the element is already loaded (synchronous), we do not need to
         // fully refresh the tree.
         return;
@@ -62,20 +73,29 @@ export default class ExplorerTreeController
       this._onTreeItemUpdate();
     });
 
-    treeView.onDidExpandElement(async (event: any): Promise<void> => {
-      log.info('Connection tree item was expanded', {
-        connectionId: event.element.connectionId,
-        connectionName: event.element.label,
-        isExpanded: event.element.isExpanded,
+    treeView.onDidExpandElement(async (event): Promise<void> => {
+      const treeItem = event.element as vscode.TreeItem &
+        TreeItemParentInterface;
+      this._telemetryService.track(
+        new TreeItemExpandedTelemetryEvent(treeItem)
+      );
+
+      log.info('Explorer tree item was expanded', {
+        type: treeItem.contextValue,
+        connectionName: treeItem.label,
+        isExpanded: treeItem.isExpanded,
       });
 
-      if (!event.element.onDidExpand) {
+      if (!treeItem.onDidExpand) {
         return;
       }
 
-      await event.element.onDidExpand();
+      await treeItem.onDidExpand();
 
-      if (event.element.doesNotRequireTreeUpdate) {
+      if (
+        'doesNotRequireTreeUpdate' in treeItem &&
+        treeItem.doesNotRequireTreeUpdate
+      ) {
         // When the element is already loaded (synchronous), we do not
         // need to fully refresh the tree.
         return;

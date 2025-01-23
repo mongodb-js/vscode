@@ -15,7 +15,8 @@ export default class ExplorerController {
     private _telemetryService: TelemetryService
   ) {
     this._treeController = new ExplorerTreeController(
-      this._connectionController
+      this._connectionController,
+      this._telemetryService
     );
   }
 
