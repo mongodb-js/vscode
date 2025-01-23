@@ -31,7 +31,7 @@ import type PlaygroundController from './playgroundController';
 import type PlaygroundResultProvider from './playgroundResultProvider';
 import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import { StatusView } from '../views';
-import type TelemetryService from '../telemetry/telemetryService';
+import type { TelemetryService } from '../telemetry';
 import type { QueryWithCopilotCodeLensProvider } from './queryWithCopilotCodeLensProvider';
 
 const log = createLogger('editors controller');

@@ -14,7 +14,16 @@ import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { DatabaseTreeItem, DocumentTreeItem } from '../../../explorer';
 import { DataServiceStub } from '../stubs';
-import { chatResultFeedbackKindToTelemetryValue } from '../../../telemetry/telemetryService';
+import {
+  DocumentEditedTelemetryEvent,
+  DocumentUpdatedTelemetryEvent,
+  LinkClickedTelemetryEvent,
+  ParticipantFeedbackTelemetryEvent,
+  PlaygroundExecutedTelemetryEvent,
+  PlaygroundExportedToLanguageTelemetryEvent,
+  PlaygroundSavedTelemetryEvent,
+  SavedConnectionsLoadedTelemetryEvent,
+} from '../../../telemetry';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -93,7 +102,7 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('get segment key', () => {
-    let segmentKey;
+    let segmentKey: string | undefined;
 
     try {
       const segmentKeyFileLocation = '../../../../constants';
@@ -187,7 +196,7 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track document saved form a tree-view event', () => {
     const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
-    testTelemetryService.trackDocumentUpdated(source, true);
+    testTelemetryService.track(new DocumentUpdatedTelemetryEvent(source, true));
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
       sinon.match({
@@ -204,7 +213,7 @@ suite('Telemetry Controller Test Suite', () => {
 
   test('track document opened form playground results', () => {
     const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
-    testTelemetryService.trackDocumentOpenedInEditor(source);
+    testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
       sinon.match({
@@ -280,7 +289,11 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track playground saved event', () => {
-    testTelemetryService.trackPlaygroundSaved('mongodbjs');
+    testTelemetryService.track(
+      new PlaygroundSavedTelemetryEvent(
+        vscode.Uri.file('/users/peter/projects/test/myplayground.mongodb.js')
+      )
+    );
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
       sinon.match({
@@ -295,7 +308,9 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track link clicked event', () => {
-    testTelemetryService.trackLinkClicked('helpPanel', 'linkId');
+    testTelemetryService.track(
+      new LinkClickedTelemetryEvent('helpPanel', 'linkId')
+    );
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
       sinon.match({
@@ -311,11 +326,9 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test('track playground exported to language', () => {
-    testTelemetryService.trackPlaygroundExportedToLanguageExported({
-      language: 'java',
-      exported_code_length: 3,
-      with_driver_syntax: false,
-    });
+    testTelemetryService.track(
+      new PlaygroundExportedToLanguageTelemetryEvent('java', 3, false)
+    );
 
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
@@ -341,7 +354,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('aggregation');
     });
 
@@ -354,7 +368,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('other');
     });
 
@@ -367,7 +382,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('other');
     });
 
@@ -380,7 +396,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('query');
     });
 
@@ -393,7 +410,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('other');
     });
 
@@ -406,7 +424,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('delete');
     });
 
@@ -419,7 +438,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('insert');
     });
 
@@ -432,7 +452,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('insert');
     });
 
@@ -445,7 +466,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('other');
     });
 
@@ -458,7 +480,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('other');
     });
 
@@ -471,7 +494,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('other');
     });
 
@@ -484,7 +508,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('update');
     });
 
@@ -497,7 +522,8 @@ suite('Telemetry Controller Test Suite', () => {
           language: 'plaintext',
         },
       };
-      const type = testTelemetryService.getPlaygroundResultType(res);
+      const type = new PlaygroundExecutedTelemetryEvent(res, false, false)
+        .properties.type;
       expect(type).to.deep.equal('other');
     });
   });
@@ -669,13 +695,15 @@ suite('Telemetry Controller Test Suite', () => {
   });
 
   test.skip('track saved connections loaded', () => {
-    testTelemetryService.trackSavedConnectionsLoaded({
-      saved_connections: 3,
-      loaded_connections: 3,
-      preset_connections: 3,
-      connections_with_secrets_in_keytar: 0,
-      connections_with_secrets_in_secret_storage: 3,
-    });
+    testTelemetryService.track(
+      new SavedConnectionsLoadedTelemetryEvent({
+        savedConnections: 3,
+        loadedConnections: 3,
+        presetConnections: 3,
+        connectionsWithSecretsInKeytar: 0,
+        connectionsWithSecretsInSecretStorage: 3,
+      })
+    );
 
     sandbox.assert.calledWith(
       fakeSegmentAnalyticsTrack,
@@ -693,27 +721,6 @@ suite('Telemetry Controller Test Suite', () => {
     );
   });
 
-  test('track failed keytar secrets migrations', () => {
-    testTelemetryService.trackKeytarSecretsMigrationFailed({
-      saved_connections: 3,
-      loaded_connections: 3,
-      connections_with_failed_keytar_migration: 1,
-    });
-
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Keytar Secrets Migration Failed',
-        properties: {
-          saved_connections: 3,
-          loaded_connections: 3,
-          connections_with_failed_keytar_migration: 1,
-        },
-      })
-    );
-  });
-
   function enumKeys<
     TEnum extends object,
     TKey extends keyof TEnum = keyof TEnum
@@ -724,9 +731,10 @@ suite('Telemetry Controller Test Suite', () => {
   test('ChatResultFeedbackKind to TelemetryFeedbackKind maps all values', () => {
     for (const kind of enumKeys(vscode.ChatResultFeedbackKind)) {
       expect(
-        chatResultFeedbackKindToTelemetryValue(
-          vscode.ChatResultFeedbackKind[kind]
-        ),
+        new ParticipantFeedbackTelemetryEvent(
+          vscode.ChatResultFeedbackKind[kind],
+          'generic'
+        ).properties.feedback,
         `Expect ${kind} to produce a concrete telemetry value`
       ).to.not.be.undefined;
     }

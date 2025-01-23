@@ -7,29 +7,19 @@ import { Analytics as SegmentAnalytics } from '@segment/analytics-node';
 
 import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
-import type { DocumentSource } from '../documentSource';
 import { getConnectionTelemetryProperties } from './connectionTelemetry';
-import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
-import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
-import type { ExportToPlaygroundError } from '../participant/participantErrorTypes';
 import { ParticipantErrorTypes } from '../participant/participantErrorTypes';
-import type { ExtensionCommand } from '../commands';
-import type {
-  ParticipantCommandType,
-  ParticipantRequestType,
-  ParticipantResponseType,
-} from '../participant/participantTypes';
+import type { ParticipantResponseType } from '../participant/participantTypes';
+import type { TelemetryEvent } from './telemetryEvents';
+import {
+  NewConnectionTelemetryEvent,
+  ParticipantResponseFailedTelemetryEvent,
+} from './telemetryEvents';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../package.json');
-
-type PlaygroundTelemetryEventProperties = {
-  type: string | null;
-  partial: boolean;
-  error: boolean;
-};
 
 export type SegmentProperties = {
   event: string;
@@ -37,199 +27,10 @@ export type SegmentProperties = {
   properties: Record<string, any>;
 };
 
-type LinkClickedTelemetryEventProperties = {
-  screen: string;
-  link_id: string;
-};
-
-type ExtensionCommandRunTelemetryEventProperties = {
-  command: ExtensionCommand;
-};
-
-type DocumentUpdatedTelemetryEventProperties = {
-  source: DocumentSource;
-  success: boolean;
-};
-
-type DocumentEditedTelemetryEventProperties = {
-  source: DocumentSource;
-};
-
-type ExportToPlaygroundFailedEventProperties = {
-  input_length: number | undefined;
-  error_name?: ExportToPlaygroundError;
-};
-
-type PlaygroundExportedToLanguageTelemetryEventProperties = {
-  language?: string;
-  exported_code_length: number;
-  with_driver_syntax?: boolean;
-};
-
-type PlaygroundCreatedTelemetryEventProperties = {
-  playground_type: string;
-};
-
-type PlaygroundSavedTelemetryEventProperties = {
-  file_type?: string;
-};
-
-type PlaygroundLoadedTelemetryEventProperties = {
-  file_type?: string;
-};
-
-type KeytarSecretsMigrationFailedProperties = {
-  saved_connections: number;
-  loaded_connections: number;
-  connections_with_failed_keytar_migration: number;
-};
-
-type ConnectionEditedTelemetryEventProperties = {
-  success: boolean;
-};
-
-type SavedConnectionsLoadedProperties = {
-  // Total number of connections saved on disk
-  saved_connections: number;
-  // Total number of connections from preset settings
-  preset_connections: number;
-  // Total number of connections that extension was able to load, it might
-  // differ from saved_connections since there might be failures in loading
-  // secrets for a connection in which case we don't list the connections in the
-  // list of loaded connections.
-  loaded_connections: number;
-  connections_with_secrets_in_keytar: number;
-  connections_with_secrets_in_secret_storage: number;
-};
-
-type TelemetryFeedbackKind = 'positive' | 'negative' | undefined;
-
-type ParticipantFeedbackProperties = {
-  feedback: TelemetryFeedbackKind;
-  response_type: ParticipantResponseType;
-  reason?: String;
-};
-
-type ParticipantResponseFailedProperties = {
-  command: ParticipantResponseType;
-  error_code?: string;
-  error_name: ParticipantErrorTypes;
-  error_details?: string;
-};
-
-export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
-
-export type ParticipantPromptProperties = {
-  command: ParticipantCommandType;
-  user_input_length: number;
-  total_message_length: number;
-  has_sample_documents: boolean;
-  history_size: number;
-  internal_purpose: InternalPromptPurpose;
-};
-
-export type ParticipantResponseProperties = {
-  command: ParticipantResponseType;
-  has_cta: boolean;
-  has_runnable_content: boolean;
-  found_namespace: boolean;
-  output_length: number;
-};
-
-export type ParticipantPromptSubmittedFromActionProperties = {
-  source: DocumentSource;
-  input_length: number;
-  command: ParticipantRequestType;
-};
-
-export type ParticipantChatOpenedFromActionProperties = {
-  source: DocumentSource;
-  command?: ParticipantCommandType;
-};
-
-export type PresetSavedConnectionEditedProperties = {
-  source: DocumentSource;
-  source_details: 'tree_item' | 'header';
-};
-
-export type ParticipantInputBoxSubmitted = {
-  source: DocumentSource;
-  input_length: number | undefined;
-  dismissed: boolean;
-  command?: ParticipantCommandType;
-};
-
-export function chatResultFeedbackKindToTelemetryValue(
-  kind: vscode.ChatResultFeedbackKind
-): TelemetryFeedbackKind {
-  switch (kind) {
-    case vscode.ChatResultFeedbackKind.Helpful:
-      return 'positive';
-    case vscode.ChatResultFeedbackKind.Unhelpful:
-      return 'negative';
-    default:
-      return undefined;
-  }
-}
-
-type TelemetryEventProperties =
-  | PlaygroundTelemetryEventProperties
-  | LinkClickedTelemetryEventProperties
-  | ExtensionCommandRunTelemetryEventProperties
-  | NewConnectionTelemetryEventProperties
-  | DocumentUpdatedTelemetryEventProperties
-  | ConnectionEditedTelemetryEventProperties
-  | DocumentEditedTelemetryEventProperties
-  | PlaygroundExportedToLanguageTelemetryEventProperties
-  | PlaygroundCreatedTelemetryEventProperties
-  | PlaygroundSavedTelemetryEventProperties
-  | PlaygroundLoadedTelemetryEventProperties
-  | KeytarSecretsMigrationFailedProperties
-  | ExportToPlaygroundFailedEventProperties
-  | SavedConnectionsLoadedProperties
-  | ParticipantFeedbackProperties
-  | ParticipantResponseFailedProperties
-  | ParticipantPromptProperties
-  | ParticipantPromptSubmittedFromActionProperties
-  | ParticipantChatOpenedFromActionProperties
-  | ParticipantResponseProperties;
-
-export enum TelemetryEventTypes {
-  PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
-  EXTENSION_LINK_CLICKED = 'Link Clicked',
-  EXTENSION_COMMAND_RUN = 'Command Run',
-  NEW_CONNECTION = 'New Connection',
-  CONNECTION_EDITED = 'Connection Edited',
-  OPEN_EDIT_CONNECTION = 'Open Edit Connection',
-  PLAYGROUND_SAVED = 'Playground Saved',
-  PLAYGROUND_LOADED = 'Playground Loaded',
-  DOCUMENT_UPDATED = 'Document Updated',
-  DOCUMENT_EDITED = 'Document Edited',
-  PLAYGROUND_EXPORTED_TO_LANGUAGE = 'Playground Exported To Language',
-  PLAYGROUND_CREATED = 'Playground Created',
-  KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
-  EXPORT_TO_PLAYGROUND_FAILED = 'Export To Playground Failed',
-  SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
-  PARTICIPANT_FEEDBACK = 'Participant Feedback',
-  PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
-  PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
-  /** Tracks all submitted prompts */
-  PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
-  /** Tracks prompts that were submitted as a result of an action other than
-   * the user typing the message, such as clicking on an item in tree view or a codelens */
-  PARTICIPANT_PROMPT_SUBMITTED_FROM_ACTION = 'Participant Prompt Submitted From Action',
-  /** Tracks when a new chat was opened from an action such as clicking on a tree view. */
-  PARTICIPANT_CHAT_OPENED_FROM_ACTION = 'Participant Chat Opened From Action',
-  /** Tracks after a participant interacts with the input box we open to let the user write the prompt for participant. */
-  PARTICIPANT_INPUT_BOX_SUBMITTED = 'Participant Inbox Box Submitted',
-  PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
-  PRESET_CONNECTION_EDITED = 'Preset Connection Edited',
-}
-
 /**
  * This controller manages telemetry.
  */
-export default class TelemetryService {
+export class TelemetryService {
   _segmentAnalytics?: SegmentAnalytics;
   _segmentAnonymousId: string;
   _segmentKey?: string; // The segment API write key.
@@ -325,16 +126,13 @@ export default class TelemetryService {
     });
   }
 
-  track(
-    eventType: TelemetryEventTypes,
-    properties?: TelemetryEventProperties
-  ): void {
+  track(event: TelemetryEvent): void {
     try {
       this._segmentAnalyticsTrack({
         ...this.getTelemetryUserIdentity(),
-        event: eventType,
+        event: event.type,
         properties: {
-          ...properties,
+          ...event.properties,
           extension_version: `${version}`,
         },
       });
@@ -343,168 +141,20 @@ export default class TelemetryService {
     }
   }
 
-  async _getConnectionTelemetryProperties(
-    dataService: DataService,
-    connectionType: ConnectionTypes
-  ): Promise<NewConnectionTelemetryEventProperties> {
-    return await getConnectionTelemetryProperties(dataService, connectionType);
-  }
-
   async trackNewConnection(
     dataService: DataService,
     connectionType: ConnectionTypes
   ): Promise<void> {
     const connectionTelemetryProperties =
-      await this._getConnectionTelemetryProperties(dataService, connectionType);
+      await getConnectionTelemetryProperties(dataService, connectionType);
 
-    this.track(
-      TelemetryEventTypes.NEW_CONNECTION,
-      connectionTelemetryProperties
-    );
-  }
-
-  trackExportToPlaygroundFailed(
-    props: ExportToPlaygroundFailedEventProperties
-  ): void {
-    this.track(TelemetryEventTypes.EXPORT_TO_PLAYGROUND_FAILED, props);
-  }
-
-  trackCommandRun(command: ExtensionCommand): void {
-    this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
-  }
-
-  getPlaygroundResultType(res: ShellEvaluateResult): string {
-    if (!res || !res.result || !res.result.type) {
-      return 'other';
-    }
-
-    const shellApiType = res.result.type.toLocaleLowerCase();
-
-    // See: https://github.com/mongodb-js/mongosh/blob/main/packages/shell-api/src/shell-api.js
-    if (shellApiType.includes('insert')) {
-      return 'insert';
-    }
-    if (shellApiType.includes('update')) {
-      return 'update';
-    }
-    if (shellApiType.includes('delete')) {
-      return 'delete';
-    }
-    if (shellApiType.includes('aggregation')) {
-      return 'aggregation';
-    }
-    if (shellApiType.includes('cursor')) {
-      return 'query';
-    }
-
-    return 'other';
+    this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
   }
 
   getTelemetryUserIdentity(): { anonymousId: string } {
     return {
       anonymousId: this._segmentAnonymousId,
     };
-  }
-
-  trackPlaygroundCodeExecuted(
-    result: ShellEvaluateResult,
-    partial: boolean,
-    error: boolean
-  ): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED, {
-      type: result ? this.getPlaygroundResultType(result) : null,
-      partial,
-      error,
-    });
-  }
-
-  trackLinkClicked(screen: string, linkId: string): void {
-    this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
-      screen,
-      link_id: linkId,
-    });
-  }
-
-  trackPlaygroundLoaded(fileType?: string): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_LOADED, {
-      file_type: fileType,
-    });
-  }
-
-  trackPlaygroundSaved(fileType?: string): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_SAVED, {
-      file_type: fileType,
-    });
-  }
-
-  trackDocumentUpdated(source: DocumentSource, success: boolean): void {
-    this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
-  }
-
-  trackDocumentOpenedInEditor(source: DocumentSource): void {
-    this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
-  }
-
-  trackPlaygroundExportedToLanguageExported(
-    playgroundExportedProps: PlaygroundExportedToLanguageTelemetryEventProperties
-  ): void {
-    this.track(
-      TelemetryEventTypes.PLAYGROUND_EXPORTED_TO_LANGUAGE,
-      playgroundExportedProps
-    );
-  }
-
-  trackPresetConnectionEdited(
-    props: PresetSavedConnectionEditedProperties
-  ): void {
-    this.track(TelemetryEventTypes.PRESET_CONNECTION_EDITED, props);
-  }
-
-  trackPlaygroundCreated(playgroundType: string): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_CREATED, {
-      playground_type: playgroundType,
-    });
-  }
-
-  trackSavedConnectionsLoaded(
-    savedConnectionsLoadedProps: SavedConnectionsLoadedProperties
-  ): void {
-    this.track(
-      TelemetryEventTypes.SAVED_CONNECTIONS_LOADED,
-      savedConnectionsLoadedProps
-    );
-  }
-
-  trackKeytarSecretsMigrationFailed(
-    keytarSecretsMigrationFailedProps: KeytarSecretsMigrationFailedProperties
-  ): void {
-    this.track(
-      TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
-      keytarSecretsMigrationFailedProps
-    );
-  }
-
-  trackParticipantFeedback(props: ParticipantFeedbackProperties): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_FEEDBACK, props);
-  }
-
-  trackParticipantPromptSubmittedFromAction(
-    props: ParticipantPromptSubmittedFromActionProperties
-  ): void {
-    this.track(
-      TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED_FROM_ACTION,
-      props
-    );
-  }
-
-  trackParticipantChatOpenedFromAction(
-    props: ParticipantChatOpenedFromActionProperties
-  ): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_CHAT_OPENED_FROM_ACTION, props);
-  }
-
-  trackParticipantInputBoxSubmitted(props: ParticipantInputBoxSubmitted): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_INPUT_BOX_SUBMITTED, props);
   }
 
   trackParticipantError(err: any, command: ParticipantResponseType): void {
@@ -535,18 +185,8 @@ export default class TelemetryService {
       errorName = ParticipantErrorTypes.OTHER;
     }
 
-    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED, {
-      command,
-      error_code: errorCode,
-      error_name: errorName,
-    } satisfies ParticipantResponseFailedProperties);
-  }
-
-  trackParticipantPrompt(stats: ParticipantPromptProperties): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED, stats);
-  }
-
-  trackParticipantResponse(props: ParticipantResponseProperties): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
+    this.track(
+      new ParticipantResponseFailedTelemetryEvent(command, errorName, errorCode)
+    );
   }
 }

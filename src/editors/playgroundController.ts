@@ -34,16 +34,16 @@ import {
 import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import type { StatusView } from '../views';
-import type TelemetryService from '../telemetry/telemetryService';
-import {
-  isPlayground,
-  getSelectedText,
-  getAllText,
-  getPlaygroundExtensionForTelemetry,
-} from '../utils/playground';
+import type { TelemetryService } from '../telemetry';
+import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
+import {
+  PlaygroundCreatedTelemetryEvent,
+  PlaygroundExecutedTelemetryEvent,
+  PlaygroundSavedTelemetryEvent,
+} from '../telemetry';
 
 const log = createLogger('playground controller');
 
@@ -135,17 +135,15 @@ export default class PlaygroundController {
       if (isPlayground(document.uri)) {
         // TODO: re-enable with fewer 'Playground Loaded' events
         // https://jira.mongodb.org/browse/VSCODE-432
-        /* this._telemetryService.trackPlaygroundLoaded(
-          getPlaygroundExtensionForTelemetry(document.uri)
-        ); */
+        // this._telemetryService.track(new PlaygroundLoadedTelemetryEvent(document.uri));
         await vscode.languages.setTextDocumentLanguage(document, 'javascript');
       }
     });
 
     vscode.workspace.onDidSaveTextDocument((document) => {
       if (isPlayground(document.uri)) {
-        this._telemetryService.trackPlaygroundSaved(
-          getPlaygroundExtensionForTelemetry(document.uri)
+        this._telemetryService.track(
+          new PlaygroundSavedTelemetryEvent(document.uri)
         );
       }
     });
@@ -231,7 +229,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
-    this._telemetryService.trackPlaygroundCreated('search');
+    this._telemetryService.track(new PlaygroundCreatedTelemetryEvent('search'));
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -246,9 +244,13 @@ export default class PlaygroundController {
       content = content
         .replace('NEW_DATABASE_NAME', element.databaseName)
         .replace('Create a new database', 'The current database to use');
-      this._telemetryService.trackPlaygroundCreated('createCollection');
+      this._telemetryService.track(
+        new PlaygroundCreatedTelemetryEvent('createCollection')
+      );
     } else {
-      this._telemetryService.trackPlaygroundCreated('createDatabase');
+      this._telemetryService.track(
+        new PlaygroundCreatedTelemetryEvent('createDatabase')
+      );
     }
 
     return this._createPlaygroundFileWithContent(content);
@@ -262,7 +264,7 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
-    this._telemetryService.trackPlaygroundCreated('index');
+    this._telemetryService.track(new PlaygroundCreatedTelemetryEvent('index'));
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -277,7 +279,7 @@ export default class PlaygroundController {
     const content = useDefaultTemplate
       ? playgroundBasicTextTemplate.replace('PLAYGROUND_CONTENT', text)
       : text;
-    this._telemetryService.trackPlaygroundCreated('agent');
+    this._telemetryService.track(new PlaygroundCreatedTelemetryEvent('agent'));
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -291,7 +293,9 @@ export default class PlaygroundController {
       .replace('CURRENT_COLLECTION', collectionName)
       .replace('DOCUMENT_CONTENTS', documentContents);
 
-    this._telemetryService.trackPlaygroundCreated('cloneDocument');
+    this._telemetryService.track(
+      new PlaygroundCreatedTelemetryEvent('cloneDocument')
+    );
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -303,7 +307,9 @@ export default class PlaygroundController {
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
-    this._telemetryService.trackPlaygroundCreated('insertDocument');
+    this._telemetryService.track(
+      new PlaygroundCreatedTelemetryEvent('insertDocument')
+    );
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -314,7 +320,9 @@ export default class PlaygroundController {
 
     element.cacheIsUpToDate = false;
 
-    this._telemetryService.trackPlaygroundCreated('createStreamProcessor');
+    this._telemetryService.track(
+      new PlaygroundCreatedTelemetryEvent('createStreamProcessor')
+    );
 
     return this._createPlaygroundFileWithContent(content);
   }
@@ -325,13 +333,17 @@ export default class PlaygroundController {
     let content = '';
     if (treeItem instanceof DatabaseTreeItem) {
       content = playgroundFromDatabaseTreeItemTemplate(treeItem.databaseName);
-      this._telemetryService.trackPlaygroundCreated('fromDatabaseTreeItem');
+      this._telemetryService.track(
+        new PlaygroundCreatedTelemetryEvent('fromDatabaseTreeItem')
+      );
     } else if (treeItem instanceof CollectionTreeItem) {
       content = playgroundFromCollectionTreeItemTemplate(
         treeItem.databaseName,
         treeItem.collectionName
       );
-      this._telemetryService.trackPlaygroundCreated('fromCollectionTreeItem');
+      this._telemetryService.track(
+        new PlaygroundCreatedTelemetryEvent('fromCollectionTreeItem')
+      );
     }
 
     return this._createPlaygroundFileWithContent(content);
@@ -350,7 +362,7 @@ export default class PlaygroundController {
       content = template;
     }
 
-    this._telemetryService.trackPlaygroundCreated('crud');
+    this._telemetryService.track(new PlaygroundCreatedTelemetryEvent('crud'));
     return this._createPlaygroundFileWithContent(content);
   }
 
@@ -391,10 +403,12 @@ export default class PlaygroundController {
     }
 
     this._statusView.hideMessage();
-    this._telemetryService.trackPlaygroundCodeExecuted(
-      result,
-      this._isPartialRun,
-      result ? false : true
+    this._telemetryService.track(
+      new PlaygroundExecutedTelemetryEvent(
+        result,
+        this._isPartialRun,
+        result ? false : true
+      )
     );
 
     return result;

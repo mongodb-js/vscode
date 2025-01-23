@@ -1,4 +1,4 @@
-import type { ParticipantPromptProperties } from '../../telemetry/telemetryService';
+import type { ParticipantPromptProperties } from '../../telemetry';
 import type { PromptArgsBase } from './promptBase';
 import { PromptBase } from './promptBase';
 import type * as vscode from 'vscode';

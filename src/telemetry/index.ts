@@ -1,3 +1,2 @@
-import TelemetryService from './telemetryService';
-
-export { TelemetryService };
+export * from './telemetryEvents';
+export { TelemetryService } from './telemetryService';

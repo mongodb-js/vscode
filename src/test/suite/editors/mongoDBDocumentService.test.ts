@@ -11,7 +11,7 @@ import MongoDBDocumentService from '../../../editors/mongoDBDocumentService';
 
 import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;

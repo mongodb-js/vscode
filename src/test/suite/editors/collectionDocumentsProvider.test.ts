@@ -17,7 +17,7 @@ import {
   SecretStorageLocation,
   StorageLocation,
 } from '../../../storage/storageController';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, mockTextEditor } from '../stubs';
 
@@ -172,6 +172,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
+
     assert(
       testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
       'Expected not to have more documents to show.'
@@ -202,7 +203,7 @@ suite('Collection Documents Provider Test Suite', () => {
     const showMessageStub = sandbox.stub(testStatusView, 'showMessage');
     const hideMessageStub = sandbox.stub(testStatusView, 'hideMessage');
 
-    mockActiveDataService.find = () => {
+    mockActiveDataService.find = (): Promise<{ field: string }[]> => {
       assert(showMessageStub.called);
       assert(!hideMessageStub.called);
       assert(showMessageStub.firstCall.args[0] === 'Fetching documents...');

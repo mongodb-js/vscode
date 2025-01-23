@@ -19,7 +19,7 @@ import { createLogger } from './logging';
 import formatError from './utils/formatError';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
-import type TelemetryService from './telemetry/telemetryService';
+import type { TelemetryService } from './telemetry';
 import { openLink } from './utils/linkHelper';
 import type {
   ConnectionSource,
@@ -28,8 +28,8 @@ import type {
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
-import { DocumentSource } from './documentSource';
 import type { ConnectionTreeItem } from './explorer';
+import { PresetConnectionEditedTelemetryEvent } from './telemetry';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -129,10 +129,12 @@ export default class ConnectionController {
   // have a setting on the system for storing credentials.
   // When the setting is on this `connectionMergeInfos` would have the session
   // credential information and merge it before connecting.
-  connectionMergeInfos: Record<string, RecursivePartial<LoadedConnection>> =
-    Object.create(null);
+  private _connectionMergeInfos: Record<
+    string,
+    RecursivePartial<LoadedConnection>
+  > = Object.create(null);
 
-  _activeDataService: DataService | null = null;
+  private _activeDataService: DataService | null = null;
   _connectionStorage: ConnectionStorage;
   _telemetryService: TelemetryService;
 
@@ -140,7 +142,7 @@ export default class ConnectionController {
   private _currentConnectionId: null | string = null;
 
   _connectionAttempt: null | ConnectionAttempt = null;
-  _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
+  private _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
     null;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
@@ -169,10 +171,11 @@ export default class ConnectionController {
   async openPresetConnectionsSettings(
     originTreeItem: ConnectionTreeItem | undefined
   ): Promise<void> {
-    this._telemetryService.trackPresetConnectionEdited({
-      source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-      source_details: originTreeItem ? 'tree_item' : 'header',
-    });
+    this._telemetryService.track(
+      new PresetConnectionEditedTelemetryEvent(
+        originTreeItem ? 'tree_item' : 'header'
+      )
+    );
     let source: ConnectionSource | undefined = originTreeItem?.source;
     if (!source) {
       const mdbConfiguration = vscode.workspace.getConfiguration('mdb');
@@ -227,7 +230,7 @@ export default class ConnectionController {
 
     // TODO: re-enable with fewer 'Saved Connections Loaded' events
     // https://jira.mongodb.org/browse/VSCODE-462
-    /* this._telemetryService.trackSavedConnectionsLoaded({
+    /* this._telemetryService.track(new SavedConnectionsLoadedTelemetryEvent({
       saved_connections: globalAndWorkspaceConnections.length,
       loaded_connections: loadedConnections.length,
       ).length,
@@ -236,7 +239,7 @@ export default class ConnectionController {
           connection.secretStorageLocation ===
           SecretStorageLocation.SecretStorage
       ).length,
-    }); */
+    })); */
   }
 
   async connectWithURI(): Promise<boolean> {
@@ -402,7 +405,7 @@ export default class ConnectionController {
 
     const connectionInfo: LoadedConnection = merge(
       cloneDeep(this._connections[connectionId]),
-      this.connectionMergeInfos[connectionId] ?? {}
+      this._connectionMergeInfos[connectionId] ?? {}
     );
 
     if (!connectionInfo.connectionOptions) {
@@ -557,8 +560,8 @@ export default class ConnectionController {
       mergeConnectionInfo = {
         connectionOptions: await dataService.getUpdatedSecrets(),
       };
-      this.connectionMergeInfos[connectionInfo.id] = merge(
-        cloneDeep(this.connectionMergeInfos[connectionInfo.id]),
+      this._connectionMergeInfos[connectionInfo.id] = merge(
+        cloneDeep(this._connectionMergeInfos[connectionInfo.id]),
         mergeConnectionInfo
       );
     }
@@ -585,8 +588,8 @@ export default class ConnectionController {
             connectionOptions: await dataService.getUpdatedSecrets(),
           };
           if (!mergeConnectionInfo) return;
-          this.connectionMergeInfos[connectionInfo.id] = merge(
-            cloneDeep(this.connectionMergeInfos[connectionInfo.id]),
+          this._connectionMergeInfos[connectionInfo.id] = merge(
+            cloneDeep(this._connectionMergeInfos[connectionInfo.id]),
             mergeConnectionInfo
           );
 

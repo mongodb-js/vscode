@@ -110,11 +110,11 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 
-    const stubLinkClickedTelemetry = sandbox.fake();
+    const stubTrackTelemetry = sandbox.fake();
     sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
-      'trackLinkClicked',
-      stubLinkClickedTelemetry
+      'track',
+      stubTrackTelemetry
     );
     testHelpExplorer.activateHelpTreeView(
       mdbTestExtension.testExtensionController._telemetryService
@@ -127,8 +127,13 @@ suite('Help Explorer Test Suite', function () {
       atlasHelpItem,
       mdbTestExtension.testExtensionController._telemetryService
     );
-    assert(stubLinkClickedTelemetry.called);
-    assert(stubLinkClickedTelemetry.firstCall.args[0] === 'helpPanel');
-    assert(stubLinkClickedTelemetry.firstCall.args[1] === 'freeClusterCTA');
+    assert(stubTrackTelemetry.called);
+    assert(
+      stubTrackTelemetry.firstCall.args[0].properties.screen === 'helpPanel'
+    );
+    assert(
+      stubTrackTelemetry.firstCall.args[0].properties.link_id ===
+        'freeClusterCTA'
+    );
   });
 });

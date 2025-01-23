@@ -11,7 +11,7 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 import { mockTextEditor } from '../stubs';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 
 suite('Edit Document Code Lens Provider Test Suite', () => {

@@ -33,7 +33,7 @@ import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
-import TelemetryService from './telemetry/telemetryService';
+import { TelemetryService } from './telemetry';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
@@ -51,6 +51,10 @@ import type {
 } from './participant/participantTypes';
 import EXTENSION_COMMANDS from './commands';
 import { COPILOT_EXTENSION_ID } from './participant/constants';
+import {
+  CommandRunTelemetryEvent,
+  DocumentEditedTelemetryEvent,
+} from './telemetry';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -313,7 +317,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
       (data: EditDocumentInfo) => {
-        this._telemetryService.trackDocumentOpenedInEditor(data.source);
+        this._telemetryService.track(
+          new DocumentEditedTelemetryEvent(data.source)
+        );
 
         return this._editorsController.openMongoDBDocument(data);
       }
@@ -408,7 +414,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
-      this._telemetryService.trackCommandRun(command);
+      this._telemetryService.track(new CommandRunTelemetryEvent(command));
 
       return commandHandler(args);
     };
@@ -426,7 +432,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     commandHandler: (...args: any[]) => Promise<boolean>
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
-      this._telemetryService.trackCommandRun(command);
+      this._telemetryService.track(new CommandRunTelemetryEvent(command));
 
       return commandHandler(args);
     };

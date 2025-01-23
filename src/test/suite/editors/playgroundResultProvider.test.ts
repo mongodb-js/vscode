@@ -14,7 +14,7 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;

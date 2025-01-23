@@ -34,11 +34,19 @@ import {
   type OpenSchemaCommandArgs,
 } from './prompts/schema';
 import {
-  chatResultFeedbackKindToTelemetryValue,
-  TelemetryEventTypes,
-} from '../telemetry/telemetryService';
+  ExportToPlaygroundFailedTelemetryEvent,
+  ParticipantChatOpenedFromActionTelemetryEvent,
+  ParticipantFeedbackTelemetryEvent,
+  ParticipantInputBoxSubmittedTelemetryEvent,
+  ParticipantPromptSubmittedFromActionTelemetryEvent,
+  ParticipantPromptSubmittedTelemetryEvent,
+  ParticipantResponseFailedTelemetryEvent,
+  ParticipantResponseGeneratedTelemetryEvent,
+  ParticipantWelcomeShownTelemetryEvent,
+  PlaygroundExportedToLanguageTelemetryEvent,
+} from '../telemetry';
 import { DocsChatbotAIService } from './docsChatbotAIService';
-import type TelemetryService from '../telemetry/telemetryService';
+import type { TelemetryService } from '../telemetry';
 import formatError from '../utils/formatError';
 import { getContent, type ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
@@ -163,17 +171,18 @@ export default class ParticipantController {
 
     if (telemetry) {
       if (isNewChat) {
-        this._telemetryService.trackParticipantChatOpenedFromAction({
-          ...telemetry,
-          command,
-        });
+        this._telemetryService.track(
+          new ParticipantChatOpenedFromActionTelemetryEvent(telemetry, command)
+        );
       }
       if (!isPartialQuery) {
-        this._telemetryService.trackParticipantPromptSubmittedFromAction({
-          ...telemetry,
-          command: command ?? 'generic',
-          input_length: query.length,
-        });
+        this._telemetryService.track(
+          new ParticipantPromptSubmittedFromActionTelemetryEvent(
+            telemetry,
+            command ?? 'generic',
+            query.length
+          )
+        );
       }
     }
 
@@ -200,12 +209,13 @@ export default class ParticipantController {
     });
 
     if (telemetry) {
-      this._telemetryService.trackParticipantInputBoxSubmitted({
-        ...telemetry,
-        input_length: message?.length,
-        dismissed: message === undefined,
-        command,
-      });
+      this._telemetryService.track(
+        new ParticipantInputBoxSubmittedTelemetryEvent(
+          telemetry,
+          message,
+          command
+        )
+      );
     }
 
     if (message === undefined || message.trim() === '') {
@@ -273,7 +283,9 @@ export default class ParticipantController {
           })
       ),
     });
-    this._telemetryService.trackParticipantPrompt(modelInput.stats);
+    this._telemetryService.track(
+      new ParticipantPromptSubmittedTelemetryEvent(modelInput.stats)
+    );
 
     const modelResponse = await model.sendRequest(
       modelInput.messages,
@@ -462,13 +474,15 @@ export default class ParticipantController {
         stream,
       });
 
-    this._telemetryService.trackParticipantResponse({
-      command: 'generic',
-      has_cta: false,
-      found_namespace: false,
-      has_runnable_content: hasCodeBlock,
-      output_length: outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'generic',
+        hasCta: false,
+        foundNamespace: false,
+        hasRunnableContent: hasCodeBlock,
+        outputLength: outputLength,
+      })
+    );
 
     return genericRequestChatResult(context.history);
   }
@@ -1429,13 +1443,15 @@ export default class ParticipantController {
       ],
     });
 
-    this._telemetryService.trackParticipantResponse({
-      command: 'schema',
-      has_cta: true,
-      found_namespace: true,
-      has_runnable_content: false,
-      output_length: response.outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'schema',
+        hasCta: true,
+        foundNamespace: true,
+        hasRunnableContent: false,
+        outputLength: response.outputLength,
+      })
+    );
 
     return schemaRequestChatResult(context.history);
   }
@@ -1540,13 +1556,15 @@ export default class ParticipantController {
         token,
       });
 
-    this._telemetryService.trackParticipantResponse({
-      command: 'query',
-      has_cta: false,
-      found_namespace: true,
-      has_runnable_content: hasCodeBlock,
-      output_length: outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'query',
+        hasCta: false,
+        foundNamespace: true,
+        hasRunnableContent: hasCodeBlock,
+        outputLength: outputLength,
+      })
+    );
 
     return queryRequestChatResult(context.history);
   }
@@ -1612,7 +1630,9 @@ export default class ParticipantController {
 
     const stats = Prompts.docs.getStats(history, { request, context });
 
-    this._telemetryService.trackParticipantPrompt(stats);
+    this._telemetryService.track(
+      new ParticipantPromptSubmittedTelemetryEvent(stats)
+    );
 
     log.info('Docs chatbot message sent', {
       chatId,
@@ -1651,13 +1671,15 @@ export default class ParticipantController {
 
     this._streamGenericDocsLink(stream);
 
-    this._telemetryService.trackParticipantResponse({
-      command: 'docs/copilot',
-      has_cta: true,
-      found_namespace: false,
-      has_runnable_content: hasCodeBlock,
-      output_length: outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'docs/copilot',
+        hasCta: true,
+        foundNamespace: false,
+        hasRunnableContent: hasCodeBlock,
+        outputLength: outputLength,
+      })
+    );
   }
 
   _streamResponseReference({
@@ -1731,13 +1753,15 @@ export default class ParticipantController {
         }
       }
 
-      this._telemetryService.trackParticipantResponse({
-        command: 'docs/chatbot',
-        has_cta: !!docsResult.responseReferences,
-        found_namespace: false,
-        has_runnable_content: false,
-        output_length: docsResult.responseContent?.length ?? 0,
-      });
+      this._telemetryService.track(
+        new ParticipantResponseGeneratedTelemetryEvent({
+          command: 'docs/chatbot',
+          hasCta: !!docsResult.responseReferences,
+          foundNamespace: false,
+          hasRunnableContent: false,
+          outputLength: docsResult.responseContent?.length ?? 0,
+        })
+      );
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
@@ -1751,11 +1775,10 @@ export default class ParticipantController {
       }
 
       this._telemetryService.track(
-        TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
-        {
-          command: 'docs',
-          error_name: ParticipantErrorTypes.DOCS_CHATBOT_API,
-        }
+        new ParticipantResponseFailedTelemetryEvent(
+          'docs',
+          ParticipantErrorTypes.DOCS_CHATBOT_API
+        )
       );
 
       await this._handleDocsRequestWithCopilot(...args);
@@ -1857,10 +1880,12 @@ export default class ParticipantController {
 
         // Content in this case is already equal to the failureType; this is just to make it explicit
         // and avoid accidentally sending actual contents of the message.
-        this._telemetryService.trackExportToPlaygroundFailed({
-          input_length: codeToExport?.length,
-          error_name: error,
-        });
+        this._telemetryService.track(
+          new ExportToPlaygroundFailedTelemetryEvent(
+            codeToExport?.length,
+            error
+          )
+        );
         return false;
       }
 
@@ -1957,7 +1982,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
         );
 
         this._telemetryService.track(
-          TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+          new ParticipantWelcomeShownTelemetryEvent()
         );
 
         await this._storageController.update(
@@ -2033,11 +2058,13 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       'unhelpfulReason' in feedback
         ? (feedback.unhelpfulReason as string)
         : undefined;
-    this._telemetryService.trackParticipantFeedback({
-      feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
-      reason: unhelpfulReason,
-      response_type: (feedback.result as ChatResult)?.metadata.intent,
-    });
+    this._telemetryService.track(
+      new ParticipantFeedbackTelemetryEvent(
+        feedback.kind,
+        (feedback.result as ChatResult)?.metadata.intent,
+        unhelpfulReason
+      )
+    );
   }
 
   _getConnectionNames(): string[] {
@@ -2119,11 +2146,14 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
         language,
         includeDriverSyntax,
       });
-      this._telemetryService.trackPlaygroundExportedToLanguageExported({
-        language,
-        exported_code_length: transpiledContent?.length || 0,
-        with_driver_syntax: includeDriverSyntax,
-      });
+
+      this._telemetryService.track(
+        new PlaygroundExportedToLanguageTelemetryEvent(
+          language,
+          transpiledContent?.length,
+          includeDriverSyntax
+        )
+      );
 
       await vscode.commands.executeCommand(
         EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
