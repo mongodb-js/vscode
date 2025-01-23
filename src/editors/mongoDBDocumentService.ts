@@ -7,7 +7,7 @@ import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
-import type TelemetryService from '../telemetry';
+import type { TelemetryService } from '../telemetry';
 import { getEJSON } from '../utils/ejson';
 import { DocumentUpdatedTelemetryEvent } from '../telemetry';
 

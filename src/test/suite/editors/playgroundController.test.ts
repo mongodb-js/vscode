@@ -14,7 +14,7 @@ import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-import TelemetryService from '../../../telemetry';
+import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
 import { mockTextEditor } from '../stubs';

@@ -18,13 +18,16 @@ type PlaygroundFileType = 'other' | 'mongodbjs' | 'mongodb';
 
 type TelemetryFeedbackKind = 'positive' | 'negative' | undefined;
 
+/**
+ * The purpose of the internal prompt - e.g. 'intent', 'namespace'
+ */
 export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
 
 export type ParticipantTelemetryMetadata = {
-  // The source of the participant prompt - e.g. 'codelens', 'treeview', etc.
+  /** The source of the participant prompt - e.g. 'codelens', 'treeview', etc. */
   source: DocumentSource;
 
-  // Additional details about the source - e.g. if it's 'treeview', the detail can be 'database' or 'collection'.
+  /** Additional details about the source - e.g. if it's 'treeview', the detail can be 'database' or 'collection'. */
   source_details: DocumentSourceDetails;
 };
 
@@ -51,7 +54,7 @@ function getPlaygroundFileTypeFromUri(
   return fileType;
 }
 
-type PlaygrdoundType =
+type PlaygroundType =
   | 'search'
   | 'createCollection'
   | 'createDatabase'
@@ -64,52 +67,22 @@ type PlaygrdoundType =
   | 'fromCollectionTreeItem'
   | 'crud';
 
-type TelemetryEventType =
-  | 'Playground Code Executed'
-  | 'Link Clicked'
-  | 'Command Run'
-  | 'New Connection'
-  | 'Connection Edited'
-  | 'Open Edit Connection'
-  | 'Playground Saved'
-  | 'Playground Loaded'
-  | 'Document Updated'
-  | 'Document Edited'
-  | 'Playground Exported To Language'
-  | 'Playground Created'
-  | 'Export To Playground Failed'
-  | 'Saved Connections Loaded'
-  | 'Participant Feedback'
-  | 'Participant Welcome Shown'
-  | 'Participant Response Failed'
-  /** Tracks all submitted prompts */
-  | 'Participant Prompt Submitted'
-  /** Tracks prompts that were submitted as a result of an action other than
-   * the user typing the message, such as clicking on an item in tree view or a codelens */
-  | 'Participant Prompt Submitted From Action'
-  /** Tracks when a new chat was opened from an action such as clicking on a tree view. */
-  | 'Participant Chat Opened From Action'
-  /** Tracks after a participant interacts with the input box we open to let the user write the prompt for participant. */
-  | 'Participant Inbox Box Submitted'
-  | 'Participant Response Generated'
-  | 'Preset Connection Edited';
-
 abstract class TelemetryEventBase {
-  abstract type: TelemetryEventType;
+  abstract type: string;
   abstract properties: Record<string, any>;
 }
 
-// Reported when a playground file is run
+/** Reported when a playground file is run */
 export class PlaygroundExecutedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Playground Code Executed';
+  type = 'Playground Code Executed';
   properties: {
-    // The type of the executed operation, e.g. 'insert', 'update', 'delete', 'query', 'aggregation', 'other'
+    /** The type of the executed operation, e.g. 'insert', 'update', 'delete', 'query', 'aggregation', 'other' */
     type: string | null;
 
-    // Whether the entire script was run or just a part of it
+    /** Whether the entire script was run or just a part of it */
     partial: boolean;
 
-    // Whether an error occurred during execution
+    /** Whether an error occurred during execution */
     error: boolean;
   };
 
@@ -149,14 +122,14 @@ export class PlaygroundExecutedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when a user clicks a hyperlink - e.g. from the Help pane
+/** Reported when a user clicks a hyperlink - e.g. from the Help pane */
 export class LinkClickedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Link Clicked';
+  type = 'Link Clicked';
   properties: {
-    // The screen where the link was clicked
+    /** The screen where the link was clicked */
     screen: string;
 
-    // The ID of the clicked link - e.g. `whatsNew`, `extensionDocumentation`, etc.
+    /** The ID of the clicked link - e.g. `whatsNew`, `extensionDocumentation`, etc. */
     link_id: string;
   };
 
@@ -165,14 +138,16 @@ export class LinkClickedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when any command is run by the user. Commands are the building blocks
-// of the extension and can be executed either by clicking a UI element or by opening
-// the command pallette (CMD+Shift+P). This event is likely to duplicate other events
-// as it's fired automatically, regardless of other more-specific events.
+/**
+ * Reported when any command is run by the user. Commands are the building blocks
+ * of the extension and can be executed either by clicking a UI element or by opening
+ * the command pallette (CMD+Shift+P). This event is likely to duplicate other events
+ * as it's fired automatically, regardless of other more-specific events.
+ */
 export class CommandRunTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Command Run';
+  type = 'Command Run';
   properties: {
-    // The command that was executed - e.g. `mdb.connect`, `mdb.openMongoDBIssueReporter`, etc.
+    /** The command that was executed - e.g. `mdb.connect`, `mdb.openMongoDBIssueReporter`, etc. */
     command: ExtensionCommand;
   };
 
@@ -181,9 +156,9 @@ export class CommandRunTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported every time we connect to a cluster/db
+/** Reported every time we connect to a cluster/db */
 export class NewConnectionTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'New Connection';
+  type = 'New Connection';
   properties: NewConnectionTelemetryEventProperties;
 
   constructor(properties: NewConnectionTelemetryEventProperties) {
@@ -191,23 +166,23 @@ export class NewConnectionTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when a connection is edited
+/** Reported when a connection is edited */
 export class ConnectionEditedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Connection Edited';
+  type = 'Connection Edited';
   properties = {};
 }
 
-// Reported when the user opens the connection editor
+/** Reported when the user opens the connection editor */
 export class OpenEditConnectionTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Open Edit Connection';
+  type = 'Open Edit Connection';
   properties = {};
 }
 
-// Reported when a playground file is saved
+/** Reported when a playground file is saved */
 export class PlaygroundSavedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Playground Saved';
+  type = 'Playground Saved';
   properties: {
-    // The type of the file, e.g. 'mongodbjs' for .mongodb.js or 'mongodb' for .mongodb
+    /** The type of the file, e.g. 'mongodbjs' for .mongodb.js or 'mongodb' for .mongodb */
     file_type: PlaygroundFileType;
   };
 
@@ -216,11 +191,11 @@ export class PlaygroundSavedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when a playground file is opened
+/** Reported when a playground file is opened */
 export class PlaygroundLoadedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Playground Loaded';
+  type = 'Playground Loaded';
   properties: {
-    // The type of the file, e.g. 'mongodbjs' for .mongodb.js or 'mongodb' for .mongodb
+    /** The type of the file, e.g. 'mongodbjs' for .mongodb.js or 'mongodb' for .mongodb */
     file_type: PlaygroundFileType;
   };
 
@@ -229,14 +204,14 @@ export class PlaygroundLoadedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when a document is saved (e.g. when the user edits a document from a collection)
+/** Reported when a document is saved (e.g. when the user edits a document from a collection) */
 export class DocumentUpdatedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Document Updated';
+  type = 'Document Updated';
   properties: {
-    // The source of the document update, e.g. 'editor', 'tree_view', etc.
+    /** The source of the document update, e.g. 'editor', 'tree_view', etc. */
     source: DocumentSource;
 
-    // Whether the operation was successful
+    /** Whether the operation was successful */
     success: boolean;
   };
 
@@ -245,11 +220,11 @@ export class DocumentUpdatedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when a document is opened in the editor, e.g. from a query results view
+/** Reported when a document is opened in the editor, e.g. from a query results view */
 export class DocumentEditedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Document Edited';
+  type = 'Document Edited';
   properties: {
-    // The source of the document - e.g. codelens, treeview, etc.
+    /** The source of the document - e.g. codelens, treeview, etc. */
     source: DocumentSource;
   };
 
@@ -258,19 +233,19 @@ export class DocumentEditedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when a playground file is exported to a language
+/** Reported when a playground file is exported to a language */
 export class PlaygroundExportedToLanguageTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Playground Exported To Language';
+  type = 'Playground Exported To Language';
   properties: {
-    // The target language of the export
+    /** The target language of the export */
     language: string;
 
-    // The length of the exported code
+    /** The length of the exported code */
     exported_code_length: number;
 
-    // Whether the user opted to include driver syntax (e.g. import statements)
+    /** Whether the user opted to include driver syntax (e.g. import statements) */
     with_driver_syntax: boolean;
   };
 
@@ -287,29 +262,31 @@ export class PlaygroundExportedToLanguageTelemetryEvent
   }
 }
 
-// Reported when a new playground is created
+/** Reported when a new playground is created */
 export class PlaygroundCreatedTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Playground Created';
+  type = 'Playground Created';
   properties: {
-    // The playground type - e.g. 'search', 'createCollection', 'createDatabase', etc. This is typically
-    // indicative of the element the user clicked to create the playground.
-    playground_type: PlaygrdoundType;
+    /**
+     * The playground type - e.g. 'search', 'createCollection', 'createDatabase', etc. This is typically
+     * indicative of the element the user clicked to create the playground.
+     */
+    playground_type: PlaygroundType;
   };
 
-  constructor(playgroundType: PlaygrdoundType) {
+  constructor(playgroundType: PlaygroundType) {
     this.properties = { playground_type: playgroundType };
   }
 }
-// Reported when exporting to playground fails
+/** Reported when exporting to playground fails */
 export class ExportToPlaygroundFailedTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Export To Playground Failed';
+  type = 'Export To Playground Failed';
   properties: {
-    // The length of the playground code
+    /** The length of the playground code */
     input_length: number | undefined;
 
-    // The name of the error that occurred
+    /** The name of the error that occurred */
     error_name?: ExportToPlaygroundError;
   };
 
@@ -321,29 +298,33 @@ export class ExportToPlaygroundFailedTelemetryEvent
   }
 }
 
-// Reported when saved connections are loaded from disk. This is currently disabled
-// due to the large volume of events.
+/**
+ * Reported when saved connections are loaded from disk. This is currently disabled
+ * due to the large volume of events.
+ */
 export class SavedConnectionsLoadedTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Saved Connections Loaded';
+  type = 'Saved Connections Loaded';
   properties: {
-    // Total number of connections saved on disk
+    /** Total number of connections saved on disk */
     saved_connections: number;
 
-    // Total number of connections from preset settings
+    /** Total number of connections from preset settings */
     preset_connections: number;
 
-    // Total number of connections that extension was able to load, it might
-    // differ from saved_connections since there might be failures in loading
-    // secrets for a connection in which case we don't list the connections in the
-    // list of loaded connections.
+    /**
+     * Total number of connections that extension was able to load, it might
+     * differ from saved_connections since there might be failures in loading
+     * secrets for a connection in which case we don't list the connections in the
+     * list of loaded connections.
+     *  */
     loaded_connections: number;
 
-    // Total number of connections that have secrets stored in keytar
+    /** Total number of connections that have secrets stored in keytar */
     connections_with_secrets_in_keytar: number;
 
-    // Total number of connections that have secrets stored in secret storage
+    /** Total number of connections that have secrets stored in secret storage */
     connections_with_secrets_in_secret_storage: number;
   };
 
@@ -371,18 +352,19 @@ export class SavedConnectionsLoadedTelemetryEvent
   }
 }
 
-// Reported when the user provides feedback to the chatbot on a response
+/** Reported when the user provides feedback to the chatbot on a response */
 export class ParticipantFeedbackTelemetryEvent implements TelemetryEventBase {
-  type: TelemetryEventType = 'Participant Feedback';
+  type = 'Participant Feedback';
   properties: {
-    // The type of feedback provided - e.g. 'positive', 'negative'
+    /** The type of feedback provided - e.g. 'positive', 'negative' */
     feedback: TelemetryFeedbackKind;
 
-    // The response type that the feedback was provided for - e.g. 'query', 'schema', 'docs'
+    /** The response type that the feedback was provided for - e.g. 'query', 'schema', 'docs' */
     response_type: ParticipantResponseType;
 
-    // If the feedback was negative, the reason for the negative feedback. It's picked from
-    // a set of predefined options and not a free-form text field.
+    /** If the feedback was negative, the reason for the negative feedback. It's picked from
+     * a set of predefined options and not a free-form text field.
+     *  */
     reason?: String;
   };
 
@@ -412,30 +394,30 @@ export class ParticipantFeedbackTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-// Reported when the participant welcome message is shown
+/** Reported when the participant welcome message is shown */
 export class ParticipantWelcomeShownTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Participant Welcome Shown';
+  type = 'Participant Welcome Shown';
   properties = {};
 }
 
-// Reported when a participant response fails
+/** Reported when a participant response fails */
 export class ParticipantResponseFailedTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Participant Response Failed';
+  type = 'Participant Response Failed';
   properties: {
-    // The type of the command that failed - e.g. 'query', 'schema', 'docs'
+    /** The type of the command that failed - e.g. 'query', 'schema', 'docs' */
     command: ParticipantResponseType;
 
-    // The error code that caused the failure
+    /** The error code that caused the failure */
     error_code?: string;
 
-    // The name of the error that caused the failure
+    /** The name of the error that caused the failure */
     error_name: ParticipantErrorTypes;
 
-    // Additional details about the error if any.
+    /** Additional details about the error if any. */
     error_details?: string;
   };
 
@@ -454,29 +436,30 @@ export class ParticipantResponseFailedTelemetryEvent
   }
 }
 
-// Reported when a participant prompt is submitted
+/** Reported when a participant prompt is submitted */
 export class ParticipantPromptSubmittedTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Participant Prompt Submitted';
+  type = 'Participant Prompt Submitted';
   properties: {
-    // The type of the command that was submitted - e.g. 'query', 'schema', 'docs'
+    /** The type of the command that was submitted - e.g. 'query', 'schema', 'docs' */
     command: ParticipantCommandType;
 
-    // The length of the user input
+    /** The length of the user input */
     user_input_length: number;
 
-    // The total length of the message - i.e. user input + participant prompt
+    /** The total length of the message - i.e. user input + participant prompt */
     total_message_length: number;
 
-    // Whether the prompt has sample documents
+    /** Whether the prompt has sample documents */
     has_sample_documents: boolean;
 
-    // The size of the history
+    /** The size of the history */
     history_size: number;
 
-    // For internal prompts - e.g. trying to extract the 'intent', 'namespace' or the
-    // namespace from the chat history.
+    /** For internal prompts - e.g. trying to extract the 'intent', 'namespace' or the
+     * namespace from the chat history.
+     */
     internal_purpose: InternalPromptPurpose;
   };
 
@@ -499,17 +482,19 @@ export class ParticipantPromptSubmittedTelemetryEvent
   }
 }
 
-// Reported when a participant prompt is submitted from an action other than typing directly.
-// This is typically one of the activation points - e.g. clicking on the tree view, a codelens, etc.
+/**
+ * Reported when a participant prompt is submitted from an action other than typing directly.
+ * This is typically one of the activation points - e.g. clicking on the tree view, a codelens, etc.
+ */
 export class ParticipantPromptSubmittedFromActionTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Participant Prompt Submitted From Action';
+  type = 'Participant Prompt Submitted From Action';
   properties: ParticipantTelemetryMetadata & {
-    // The length of the input
+    /** The length of the input */
     input_length: number;
 
-    // The command we're requesting - e.g. 'query', 'schema', 'docs'
+    /** The command we're requesting - e.g. 'query', 'schema', 'docs' */
     command: ParticipantRequestType;
   };
 
@@ -526,13 +511,13 @@ export class ParticipantPromptSubmittedFromActionTelemetryEvent
   }
 }
 
-// Reported when a new chat is initiated from an activation point in the extension (e.g. the database tree view)
+/** Reported when a new chat is initiated from an activation point in the extension (e.g. the database tree view) */
 export class ParticipantChatOpenedFromActionTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Participant Chat Opened From Action';
+  type = 'Participant Chat Opened From Action';
   properties: ParticipantTelemetryMetadata & {
-    // The command - if any - we're opening a chat for - e.g. 'query', 'schema', 'docs'
+    /** The command - if any - we're opening a chat for - e.g. 'query', 'schema', 'docs' */
     command?: ParticipantCommandType;
   };
 
@@ -544,19 +529,19 @@ export class ParticipantChatOpenedFromActionTelemetryEvent
   }
 }
 
-// Reported when we open an input box to ask the user for a message that we'll send to copilot
+/** Reported when we open an input box to ask the user for a message that we'll send to copilot */
 export class ParticipantInputBoxSubmittedTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Participant Inbox Box Submitted';
+  type = 'Participant Inbox Box Submitted';
   properties: ParticipantTelemetryMetadata & {
-    // The supplied input length
+    /** The supplied input length */
     input_length: number;
 
-    // Whether the input was dismissed
+    /** Whether the input was dismissed */
     dismissed: boolean;
 
-    // The command we're requesting - e.g. 'query', 'schema', 'docs'
+    /** The command we're requesting - e.g. 'query', 'schema', 'docs' */
     command?: ParticipantCommandType;
   };
 
@@ -574,25 +559,25 @@ export class ParticipantInputBoxSubmittedTelemetryEvent
   }
 }
 
-// Reported when a participant response is generated
+/** Reported when a participant response is generated */
 export class ParticipantResponseGeneratedTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Participant Response Generated';
+  type = 'Participant Response Generated';
   properties: {
-    // The type of the command that was requested - e.g. 'query', 'schema', 'docs'
+    /** The type of the command that was requested - e.g. 'query', 'schema', 'docs' */
     command: ParticipantResponseType;
 
-    // Whether the response has a call to action (e.g. 'Open in playground' button)
+    /** Whether the response has a call to action (e.g. 'Open in playground' button) */
     has_cta: boolean;
 
-    // Whether the response has runnable content (e.g. a code block)
+    /** Whether the response has runnable content (e.g. a code block) */
     has_runnable_content: boolean;
 
-    // Whether the response contains namespace information
+    /** Whether the response contains namespace information */
     found_namespace: boolean;
 
-    // The length of the output
+    /** The length of the output */
     output_length: number;
   };
 
@@ -619,17 +604,18 @@ export class ParticipantResponseGeneratedTelemetryEvent
   }
 }
 
-// Reported when a preset connection is edited
+/** Reported when a preset connection is edited */
 export class PresetConnectionEditedTelemetryEvent
   implements TelemetryEventBase
 {
-  type: TelemetryEventType = 'Preset Connection Edited';
+  type = 'Preset Connection Edited';
   properties: {
-    // The source of the interaction - currently, only treeview
+    /** The source of the interaction - currently, only treeview */
     source: Extract<DocumentSource, 'treeview'>;
 
-    // Additional details about the source - e.g. if it's a specific connection element,
-    // it'll be 'tree_item', otherwise it'll be 'header'.
+    /** Additional details about the source - e.g. if it's a specific connection element,
+     * it'll be 'tree_item', otherwise it'll be 'header'.
+     */
     source_details: 'tree_item' | 'header';
   };
 

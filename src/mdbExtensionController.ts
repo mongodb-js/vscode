@@ -33,7 +33,7 @@ import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
-import TelemetryService from './telemetry';
+import { TelemetryService } from './telemetry';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';

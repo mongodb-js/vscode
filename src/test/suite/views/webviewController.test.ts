@@ -10,7 +10,7 @@ import { mdbTestExtension } from '../stubbableMdbExtension';
 import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
-import TelemetryService from '../../../telemetry';
+import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import WebviewController, {

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import { getImagesPath } from '../extensionConstants';
-import type TelemetryService from '../telemetry';
+import type { TelemetryService } from '../telemetry';
 import { openLink } from '../utils/linkHelper';
 import LINKS from '../utils/links';
 import { LinkClickedTelemetryEvent } from '../telemetry';

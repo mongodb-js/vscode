@@ -19,7 +19,7 @@ import {
   SecretStorageLocation,
 } from '../../storage/storageController';
 import { StatusView } from '../../views';
-import TelemetryService from '../../telemetry';
+import { TelemetryService } from '../../telemetry';
 import { ExtensionContextStub } from './stubs';
 import {
   TEST_DATABASE_URI,

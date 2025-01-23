@@ -48,7 +48,7 @@ import type {
   SendMessageToParticipantOptions,
 } from '../../../participant/participantTypes';
 import { DocumentSource } from '../../../documentSource';
-import TelemetryService from '../../../telemetry';
+import { TelemetryService } from '../../../telemetry';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.

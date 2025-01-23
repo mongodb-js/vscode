@@ -15,7 +15,7 @@ import {
 } from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
-import type TelemetryService from '../telemetry';
+import type { TelemetryService } from '../telemetry';
 import { getFeatureFlagsScript } from '../featureFlags';
 import {
   ConnectionEditedTelemetryEvent,

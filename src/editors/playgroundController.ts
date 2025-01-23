@@ -34,7 +34,7 @@ import {
 import playgroundSearchTemplate from '../templates/playgroundSearchTemplate';
 import playgroundTemplate from '../templates/playgroundTemplate';
 import type { StatusView } from '../views';
-import type TelemetryService from '../telemetry';
+import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';

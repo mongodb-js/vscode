@@ -19,7 +19,7 @@ import { createLogger } from './logging';
 import formatError from './utils/formatError';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
-import type TelemetryService from './telemetry';
+import type { TelemetryService } from './telemetry';
 import { openLink } from './utils/linkHelper';
 import type {
   ConnectionSource,

@@ -30,7 +30,7 @@ export type SegmentProperties = {
 /**
  * This controller manages telemetry.
  */
-export default class TelemetryService {
+export class TelemetryService {
   _segmentAnalytics?: SegmentAnalytics;
   _segmentAnonymousId: string;
   _segmentKey?: string; // The segment API write key.

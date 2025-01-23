@@ -17,7 +17,7 @@ import {
   SecretStorageLocation,
   StorageLocation,
 } from '../../../storage/storageController';
-import TelemetryService from '../../../telemetry';
+import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, mockTextEditor } from '../stubs';
 

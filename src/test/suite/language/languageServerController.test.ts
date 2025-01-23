@@ -18,7 +18,7 @@ import PlaygroundResultProvider from '../../../editors/playgroundResultProvider'
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import TelemetryService from '../../../telemetry';
+import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 

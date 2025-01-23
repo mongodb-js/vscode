@@ -46,7 +46,7 @@ import {
   PlaygroundExportedToLanguageTelemetryEvent,
 } from '../telemetry';
 import { DocsChatbotAIService } from './docsChatbotAIService';
-import type TelemetryService from '../telemetry';
+import type { TelemetryService } from '../telemetry';
 import formatError from '../utils/formatError';
 import { getContent, type ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
