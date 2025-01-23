@@ -331,7 +331,7 @@ export default class ConnectionController {
     }
   }
 
-  public sendTelemetry(
+  private sendTelemetry(
     newDataService: DataService,
     connectionType: ConnectionTypes
   ): void {
@@ -442,7 +442,7 @@ export default class ConnectionController {
         oidc: {
           ...cloneDeep(connectionOptions.oidc),
           openBrowser: browserAuthCommand
-            ? { command: browserAuthCommand }
+            ? { command: browserAuthCommand as string }
             : async ({ signal, url }): Promise<void> => {
                 try {
                   await openLink(url);

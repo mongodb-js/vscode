@@ -24,6 +24,7 @@ import {
   PlaygroundSavedTelemetryEvent,
   SavedConnectionsLoadedTelemetryEvent,
 } from '../../../telemetry';
+import type { SegmentProperties } from '../../../telemetry/telemetryService';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -738,5 +739,41 @@ suite('Telemetry Controller Test Suite', () => {
         `Expect ${kind} to produce a concrete telemetry value`
       ).to.not.be.undefined;
     }
+  });
+
+  test('trackTreeViewActivated throttles invocations', async function () {
+    this.timeout(6000);
+
+    const verifyEvent = (call: sinon.SinonSpyCall): void => {
+      const event = call.args[0] as SegmentProperties;
+      expect(event.event).to.equal('Side Panel Opened');
+      expect(event.properties).to.have.keys(['extension_version']);
+      expect(Object.keys(event.properties)).to.have.length(1);
+    };
+
+    expect(fakeSegmentAnalyticsTrack.getCalls()).has.length(0);
+
+    // First time we call track - should be reported immediately
+    testTelemetryService.trackTreeViewActivated();
+    expect(fakeSegmentAnalyticsTrack.getCalls()).has.length(1);
+    verifyEvent(fakeSegmentAnalyticsTrack.getCall(0));
+
+    // Calling track again without waiting - call should be throttled
+    testTelemetryService.trackTreeViewActivated();
+    expect(fakeSegmentAnalyticsTrack.getCalls()).has.length(1);
+
+    // Wait less than the throttle time - call should still be throttled
+    for (let i = 0; i < 4; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      testTelemetryService.trackTreeViewActivated();
+      expect(fakeSegmentAnalyticsTrack.getCalls()).has.length(1);
+    }
+
+    // Wait more than throttle time - 4x1000 + 1100 = 5100 ms, this time the
+    // call should be reported.
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    testTelemetryService.trackTreeViewActivated();
+    expect(fakeSegmentAnalyticsTrack.getCalls()).has.length(2);
+    verifyEvent(fakeSegmentAnalyticsTrack.getCall(1));
   });
 });

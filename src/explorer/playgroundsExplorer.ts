@@ -1,21 +1,22 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import PlaygroundsTree from './playgroundsTree';
+import type { TelemetryService } from '../telemetry';
+import { createTrackedTreeView } from '../utils/treeViewHelper';
 
 export default class PlaygroundsExplorer {
   private _treeController: PlaygroundsTree;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
-  constructor() {
+  constructor(private _telemetryService: TelemetryService) {
     this._treeController = new PlaygroundsTree();
   }
 
   private createPlaygroundsTreeView = (): void => {
     if (!this._treeView) {
-      this._treeView = vscode.window.createTreeView(
+      this._treeView = createTrackedTreeView(
         'mongoDBPlaygroundsExplorer',
-        {
-          treeDataProvider: this._treeController,
-        }
+        this._treeController,
+        this._telemetryService
       );
       this._treeController.activateTreeViewEventHandlers(this._treeView);
     }

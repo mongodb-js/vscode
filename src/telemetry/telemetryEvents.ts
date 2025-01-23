@@ -627,6 +627,20 @@ export class PresetConnectionEditedTelemetryEvent
   }
 }
 
+/** Reported when the extension side panel is opened. VSCode doesn't expose
+ * a subscribable event for this, so we're inferring it by subscribing to
+ * treeView.onDidChangeVisibility for all the extension treeviews and throttling
+ * the events.
+ */
+export class PanelOpenedTelemetryEvent implements TelemetryEventBase {
+  type = 'Side Panel Opened';
+  properties: {};
+
+  constructor() {
+    this.properties = {};
+  }
+}
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent

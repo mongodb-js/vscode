@@ -103,10 +103,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
     this._languageServerController = new LanguageServerController(context);
     this._explorerController = new ExplorerController(
-      this._connectionController
+      this._connectionController,
+      this._telemetryService
     );
-    this._helpExplorer = new HelpExplorer();
-    this._playgroundsExplorer = new PlaygroundsExplorer();
+    this._helpExplorer = new HelpExplorer(this._telemetryService);
+    this._playgroundsExplorer = new PlaygroundsExplorer(this._telemetryService);
     this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
       this._connectionController
     );
@@ -175,7 +176,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   async activate(): Promise<void> {
     this._explorerController.activateConnectionsTreeView();
-    this._helpExplorer.activateHelpTreeView(this._telemetryService);
+    this._helpExplorer.activateHelpTreeView();
     this._playgroundsExplorer.activatePlaygroundsTreeView();
     this._telemetryService.activateSegmentAnalytics();
     this._participantController.createParticipant(this._context);
