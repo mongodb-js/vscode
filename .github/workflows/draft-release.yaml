@@ -18,6 +18,9 @@ on:
         description: 'Exact version: (Only effective selecting "exact-version" as version bump)'
         required: false
 
+permissions:
+  contents: write
+
 jobs:
   prepare-release:
     runs-on: ubuntu-latest
