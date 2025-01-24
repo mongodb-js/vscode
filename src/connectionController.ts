@@ -436,13 +436,13 @@ export default class ConnectionController {
       });
       const browserAuthCommand = vscode.workspace
         .getConfiguration('mdb')
-        .get('browserCommandForOIDCAuth');
+        .get<string>('browserCommandForOIDCAuth');
       dataService = await connectionAttempt.connect({
         ...connectionOptions,
         oidc: {
           ...cloneDeep(connectionOptions.oidc),
           openBrowser: browserAuthCommand
-            ? { command: browserAuthCommand as string }
+            ? { command: browserAuthCommand }
             : async ({ signal, url }): Promise<void> => {
                 try {
                   await openLink(url);
