@@ -76,7 +76,14 @@ abstract class TelemetryEventBase {
 export class PlaygroundExecutedTelemetryEvent implements TelemetryEventBase {
   type = 'Playground Code Executed';
   properties: {
-    /** The type of the executed operation, e.g. 'insert', 'update', 'delete', 'query', 'aggregation', 'other' */
+    /**
+     * The type of the executed operation. Common CRUD operations are mapped to
+     * 'insert', 'update', 'delete', 'query', 'aggregation'. Other operations return
+     * the type of the result returned by the shell API - e.g. 'collection', 'database',
+     * 'help', etc. for known shell types and 'string', 'number', 'undefined', etc. for
+     * plain JS types. In the unlikely case the shell evaluator was unable to determine
+     * a type, 'other' is returned.
+     */
     type: string | null;
 
     /** Whether the entire script was run or just a part of it */
@@ -118,7 +125,7 @@ export class PlaygroundExecutedTelemetryEvent implements TelemetryEventBase {
       return 'query';
     }
 
-    return 'other';
+    return shellApiType;
   }
 }
 
