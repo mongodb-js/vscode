@@ -91,7 +91,7 @@ export default class StorageController {
     return Promise.resolve();
   }
 
-  getUserIdentity() {
+  getUserIdentity(): { anonymousId: string } {
     let anonymousId = this.get(StorageVariables.GLOBAL_ANONYMOUS_ID);
 
     // The anonymousId becomes required with analytics-node v6.

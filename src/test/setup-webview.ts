@@ -64,9 +64,9 @@ Object.assign(global, { TextDecoder, TextEncoder });
 
 (global as any).vscodeFake = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  postMessage: (message: unknown) => {},
+  postMessage: (message: unknown): void => {},
 };
 
-(global as any).acquireVsCodeApi = () => {
+(global as any).acquireVsCodeApi = (): any => {
   return (global as any).vscodeFake;
 };

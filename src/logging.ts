@@ -57,7 +57,7 @@ class Logger implements ILogger {
     );
   }
 
-  private append(type: string, message: string) {
+  private append(type: string, message: string): void {
     // https://code.visualstudio.com/api/references/vscode-api#window.createOutputChannel
 
     Logger.channel.appendLine(

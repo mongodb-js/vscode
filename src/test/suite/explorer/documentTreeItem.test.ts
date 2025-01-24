@@ -8,7 +8,7 @@ const dataServiceStub = new DataServiceStub() as unknown as DataService;
 
 function getTestDocumentTreeItem(
   options?: Partial<ConstructorParameters<typeof DocumentTreeItem>[0]>
-) {
+): DocumentTreeItem {
   return new DocumentTreeItem({
     document: {},
     namespace: 'name.space',

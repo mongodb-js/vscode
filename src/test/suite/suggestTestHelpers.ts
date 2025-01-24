@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 const onChangedDocument = (
   documentUri: vscode.Uri,
   disposables: vscode.Disposable[]
-) => {
+): Promise<vscode.TextDocument> => {
   return new Promise<vscode.TextDocument>((resolve) =>
     vscode.workspace.onDidChangeTextDocument(
       (e) => {
@@ -21,7 +21,7 @@ export async function typeCommitCharacter(
   uri: vscode.Uri,
   character: string,
   _disposables: vscode.Disposable[]
-) {
+): Promise<vscode.TextDocument> {
   const didChangeDocument = onChangedDocument(uri, _disposables);
   await vscode.commands.executeCommand('editor.action.triggerSuggest');
   await wait(2000); // Give time for suggestions to show.
@@ -34,14 +34,14 @@ const retryUntilDocumentChanges = async (
   options: { retries: number; timeout: number },
   disposables: vscode.Disposable[],
   exec: () => Thenable<unknown>
-) => {
+): Promise<void | vscode.TextDocument> => {
   const didChangeDocument = onChangedDocument(documentUri, disposables);
 
   let done = false;
 
   const result = await Promise.race([
     didChangeDocument,
-    (async () => {
+    (async (): Promise<void> => {
       for (let i = 0; i < options.retries; ++i) {
         await wait(options.timeout);
         if (done) {
@@ -58,7 +58,7 @@ const retryUntilDocumentChanges = async (
 export function acceptFirstSuggestion(
   uri: vscode.Uri,
   _disposables: vscode.Disposable[]
-) {
+): Promise<void | vscode.TextDocument> {
   return retryUntilDocumentChanges(
     uri,
     { retries: 10, timeout: 0 },
@@ -71,10 +71,10 @@ export function acceptFirstSuggestion(
   );
 }
 
-export const wait = (ms: number) =>
+export const wait = (ms: number): Promise<void> =>
   new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
 
-export function disposeAll(disposables: vscode.Disposable[]) {
+export function disposeAll(disposables: vscode.Disposable[]): void {
   while (disposables.length) {
     const item = disposables.pop();
     item?.dispose();

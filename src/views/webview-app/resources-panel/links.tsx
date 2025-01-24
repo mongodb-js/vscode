@@ -80,7 +80,7 @@ const ResourcesPanelLinks: React.FC = () => {
             [linkLightModeStyles]: !isDarkMode,
           })}
           href={resourceLink.url}
-          onClick={() => {
+          onClick={(): void => {
             trackExtensionLinkClicked(TELEMETRY_SCREEN_ID, resourceLink.linkId);
           }}
           key={`link-${resourceLink.linkId}`}

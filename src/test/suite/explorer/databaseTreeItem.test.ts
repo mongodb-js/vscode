@@ -20,7 +20,7 @@ const { contributes } = require('../../../../package.json');
 
 function getTestDatabaseTreeItem(
   options?: Partial<ConstructorParameters<typeof DatabaseTreeItem>[0]>
-) {
+): DatabaseTreeItem {
   return new DatabaseTreeItem({
     databaseName: mockDatabaseNames[1],
     dataService: new DataServiceStub() as unknown as DataService,
