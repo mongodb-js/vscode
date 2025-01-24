@@ -25,7 +25,7 @@ const { contributes } = require('../../../../package.json');
 
 function getTestSchemaTreeItem(
   options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>
-) {
+): SchemaTreeItem {
   return new SchemaTreeItem({
     databaseName: TEST_DB_NAME,
     collectionName: 'cheesePizza',

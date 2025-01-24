@@ -19,7 +19,10 @@ import { waitFor } from './waitFor';
 import { MongoCluster } from 'mongodb-runner';
 import type { MongoClusterOptions } from 'mongodb-runner';
 import { OIDCMockProvider } from '@mongodb-js/oidc-mock-provider';
-import type { OIDCMockProviderConfig } from '@mongodb-js/oidc-mock-provider';
+import type {
+  MaybePromise,
+  OIDCMockProviderConfig,
+} from '@mongodb-js/oidc-mock-provider';
 import { ConnectionString } from 'mongodb-connection-string-url';
 
 import launchMongoShell from '../../commands/launchMongoShell';
@@ -96,10 +99,12 @@ suite('OIDC Tests', function () {
 
     oidcMockProviderEndpointAccesses = {};
     oidcMockProviderConfig = {
-      getTokenPayload(metadata: Parameters<typeof getTokenPayload>[0]) {
+      getTokenPayload(
+        metadata: Parameters<typeof getTokenPayload>[0]
+      ): ReturnType<typeof oidcMockProviderConfig.getTokenPayload> {
         return getTokenPayload(metadata);
       },
-      overrideRequestHandler(url, req, res) {
+      overrideRequestHandler(url, req, res): MaybePromise<void> {
         const { pathname } = new URL(url);
         oidcMockProviderEndpointAccesses[pathname] ??= 0;
         oidcMockProviderEndpointAccesses[pathname]++;
@@ -217,7 +222,9 @@ suite('OIDC Tests', function () {
       .getConfiguration('mdb')
       .update('persistOIDCTokens', true);
     let tokenFetchCalls = 0;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return DEFAULT_TOKEN_PAYLOAD;
     };
@@ -247,7 +254,9 @@ suite('OIDC Tests', function () {
       .getConfiguration('mdb')
       .update('persistOIDCTokens', false);
     let tokenFetchCalls = 0;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return DEFAULT_TOKEN_PAYLOAD;
     };
@@ -278,7 +287,7 @@ suite('OIDC Tests', function () {
       emitter,
       'secondConnectionEstablished'
     );
-    overrideRequestHandler = async (url) => {
+    overrideRequestHandler = async (url): Promise<void> => {
       if (new URL(url).pathname === '/authorize') {
         emitter.emit('authorizeEndpointCalled');
         // This does effectively mean that our 'fake browser'
@@ -297,7 +306,7 @@ suite('OIDC Tests', function () {
       });
 
     await once(emitter, 'authorizeEndpointCalled');
-    overrideRequestHandler = () => {};
+    overrideRequestHandler = (): void => {};
     const connected =
       await testConnectionController.addNewConnectionStringAndConnect(
         connectionString
@@ -326,7 +335,9 @@ suite('OIDC Tests', function () {
       });
     let tokenFetchCalls = 0;
     let afterReauth = false;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return {
         ...DEFAULT_TOKEN_PAYLOAD,
@@ -373,7 +384,9 @@ suite('OIDC Tests', function () {
       });
     let tokenFetchCalls = 0;
     let afterReauth = false;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return {
         ...DEFAULT_TOKEN_PAYLOAD,
@@ -412,7 +425,9 @@ suite('OIDC Tests', function () {
 
   test('shares the oidc state also with the playgrounds', async function () {
     let tokenFetchCalls = 0;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return DEFAULT_TOKEN_PAYLOAD;
     };

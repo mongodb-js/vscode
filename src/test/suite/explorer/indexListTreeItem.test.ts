@@ -13,7 +13,7 @@ const { contributes } = require('../../../../package.json');
 
 function getTestIndexListTreeItem(
   options?: Partial<ConstructorParameters<typeof IndexListTreeItem>[0]>
-) {
+): IndexListTreeItem {
   return new IndexListTreeItem({
     collectionName: 'zebraWearwolf',
     databaseName: 'giraffeVampire',

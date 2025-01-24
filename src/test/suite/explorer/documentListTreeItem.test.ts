@@ -17,7 +17,7 @@ const dataServiceStub = new DataServiceStub() as unknown as DataService;
 
 function getTestDocumentListTreeItem(
   options?: Partial<ConstructorParameters<typeof DocumentListTreeItem>[0]>
-) {
+): DocumentListTreeItem {
   return new DocumentListTreeItem({
     collectionName: 'collectionName',
     databaseName: 'mock_db_name',

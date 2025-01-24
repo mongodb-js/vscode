@@ -146,7 +146,7 @@ suite('Playground', function () {
     await vscode.workspace.applyEdit(edit);
     await vscode.commands.executeCommand('mdb.runPlayground');
 
-    const onDidChangeDiagnostics = () =>
+    const onDidChangeDiagnostics = (): Promise<unknown> =>
       new Promise((resolve) => {
         // The diagnostics are set again when the server restarts.
         vscode.languages.onDidChangeDiagnostics(resolve);

@@ -12,7 +12,7 @@ const launchMongoDBShellWithEnv = ({
   mdbConnectionString: string;
   envVariableString: string;
   parentHandle?: string;
-}) => {
+}): void => {
   const mongoDBShell = vscode.window.createTerminal({
     name: 'MongoDB Shell',
     env: {
@@ -29,19 +29,19 @@ const launchMongoDBShellWithEnv = ({
   mongoDBShell.show();
 };
 
-const getPowershellEnvString = () => {
+const getPowershellEnvString = (): string => {
   return '$Env:MDB_CONNECTION_STRING';
 };
 
-const getCmdEnvString = () => {
+const getCmdEnvString = (): string => {
   return '%MDB_CONNECTION_STRING%';
 };
 
-const getGitBashEnvString = () => {
+const getGitBashEnvString = (): string => {
   return '$MDB_CONNECTION_STRING';
 };
 
-const getBashEnvString = () => {
+const getBashEnvString = (): string => {
   return '$MDB_CONNECTION_STRING';
 };
 

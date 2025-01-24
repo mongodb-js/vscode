@@ -12,7 +12,7 @@ const { contributes } = require('../../../../package.json');
 
 function getTestCollectionTreeItem(
   options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>
-) {
+): CollectionTreeItem {
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',

@@ -10,7 +10,7 @@ describe('ConnectHelper test suite', function () {
   it('when rendered it should show both connection options', function () {
     render(
       <ConnectHelper
-        onClickOpenConnectionForm={() => {
+        onClickOpenConnectionForm={(): void => {
           /* noop */
         }}
       />
@@ -24,7 +24,7 @@ describe('ConnectHelper test suite', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(
       <ConnectHelper
-        onClickOpenConnectionForm={() => {
+        onClickOpenConnectionForm={(): void => {
           /* noop */
         }}
       />

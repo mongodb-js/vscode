@@ -10,7 +10,7 @@ const { contributes } = require('../../../../package.json');
 
 function getTestTreeItem(
   options?: Partial<ConstructorParameters<typeof StreamProcessorTreeItem>[0]>
-) {
+): StreamProcessorTreeItem {
   const { name, state } = mockStreamProcessors[1];
   return new StreamProcessorTreeItem({
     streamProcessorName: name,

@@ -32,7 +32,7 @@ export default class DocumentIdStore {
     return newDocument.documentIdReference;
   }
 
-  get(documentIdReference: string) {
+  get(documentIdReference: string): any {
     const existingDocument = this._documents.find(
       (item) => item.documentIdReference === documentIdReference
     );
