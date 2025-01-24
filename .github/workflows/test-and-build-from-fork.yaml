@@ -1,0 +1,48 @@
+name: Test and Build (from fork)
+on:
+  pull_request_target:
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test-and-build:
+    name: Test and Build
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.16.0
+
+      - name: Install Dependencies
+        run: npm ci --omit=optional
+
+      - name: Run Checks
+        run: npm run check
+
+      - name: Run Tests
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
+        run: npm run test
+
+      - name: Enable auto-merge for Dependabot PRs
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
