@@ -40,7 +40,7 @@ function getTestFieldTreeItem(
 
 function getTestSchemaTreeItem(
   options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>
-) {
+): SchemaTreeItem {
   return new SchemaTreeItem({
     databaseName: 'zebraWearwolf',
     collectionName: 'giraffeVampire',

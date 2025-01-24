@@ -1,6 +1,8 @@
 name: Test and Build (from fork)
 on:
-  pull_request:
+  pull_request_target:
+    branches:
+      - main
 permissions:
   contents: write
   pull-requests: write
@@ -8,7 +10,7 @@ permissions:
 jobs:
   test-and-build:
     name: Test and Build
-    if: github.event.pull_request.user.login == 'nirinchev' || github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
     strategy:
       matrix:
