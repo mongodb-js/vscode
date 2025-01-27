@@ -1334,7 +1334,7 @@
     "mongodb-cloud-info": "^2.1.5",
     "mongodb-connection-string-url": "^3.0.1",
     "mongodb-data-service": "^22.23.5",
-    "mongodb-log-writer": "^1.4.2",
+    "mongodb-log-writer": "^2.1.0",
     "mongodb-query-parser": "^4.2.6",
     "mongodb-schema": "^12.2.0",
     "numeral": "^2.0.6",
