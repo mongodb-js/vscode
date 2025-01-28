@@ -10,7 +10,7 @@ export const useDetectVsCodeDarkMode = (): boolean => {
       globalThis.document.body.classList.contains('vscode-high-contrast')
   );
   useEffect(() => {
-    const onThemeChanged = (event) => {
+    const onThemeChanged = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === MESSAGE_TYPES.THEME_CHANGED) {
         setDarkModeDetected(message.darkMode);

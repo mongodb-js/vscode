@@ -1,7 +1,7 @@
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
-const isObjectOrArray = (value: unknown) =>
+const isObjectOrArray = (value: unknown): boolean =>
   value !== null && typeof value === 'object';
 
 function simplifyEJSON(item: Document[] | Document): Document {
@@ -39,7 +39,7 @@ function simplifyEJSON(item: Document[] | Document): Document {
   );
 }
 
-export function getEJSON(item: Document[] | Document) {
+export function getEJSON(item: Document[] | Document): Document {
   const ejson = EJSON.serialize(item);
   return simplifyEJSON(ejson);
 }

@@ -54,7 +54,7 @@ const linkLightModeStyles = css({
 const AtlasCta: React.FC = () => {
   const isDarkMode = useDarkMode();
 
-  const handleAtlasCTAClicked = () => {
+  const handleAtlasCTAClicked = (): void => {
     const telemetryUserId = window[VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID];
     const atlasLink = LINKS.createAtlasCluster(telemetryUserId);
     openTrustedLink(atlasLink);
@@ -80,7 +80,7 @@ const AtlasCta: React.FC = () => {
               target="_blank"
               rel="noopener"
               href={LINKS.atlas}
-              onClick={() =>
+              onClick={(): void =>
                 trackExtensionLinkClicked('overviewPage', 'atlasLanding')
               }
             >

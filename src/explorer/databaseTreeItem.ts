@@ -129,7 +129,8 @@ export default class DatabaseTreeItem
       const sortFunction = (
         collectionA: CollectionDetailsType,
         collectionB: CollectionDetailsType
-      ) => (collectionA.name || '').localeCompare(collectionB.name || '');
+      ): number =>
+        (collectionA.name || '').localeCompare(collectionB.name || '');
 
       const collectionTreeEntries = [
         ...otherCollections.sort(sortFunction),

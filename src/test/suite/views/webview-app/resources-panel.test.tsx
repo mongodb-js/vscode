@@ -14,7 +14,7 @@ describe('Resources panel test suite', function () {
   });
 
   it('should render resources panel', function () {
-    render(<ResourcesPanel onClose={() => {}} />);
+    render(<ResourcesPanel onClose={(): void => {}} />);
     expect(() => screen.getByLabelText('Close')).to.not.throw;
     expect(screen.getAllByTestId(/link-\w+/)).to.have.length.greaterThan(0);
     expect(
@@ -34,7 +34,7 @@ describe('Resources panel test suite', function () {
 
   it('should track link clicked event on click of any link', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
-    render(<ResourcesPanel onClose={() => {}} />);
+    render(<ResourcesPanel onClose={(): void => {}} />);
     screen.getAllByTestId(/^link-\w+/).forEach((link) => {
       link.click();
       expect(postMessageStub).to.have.been.calledWithExactly({

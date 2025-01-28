@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 
 import OverviewPage from '../../../../views/webview-app/overview-page';
 import vscode from '../../../../views/webview-app/vscode-api';
+import type { MessageFromWebviewToExtension } from '../../../../views/webview-app/extension-app-message-constants';
 import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
 
 const connectionFormTestId = 'connection-form-modal';
@@ -151,7 +152,10 @@ describe('OverviewPage test suite', function () {
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
       expect(screen.getByText('pineapple')).to.exist;
 
-      const getConnectMessages = () => {
+      const getConnectMessages = (): sinon.SinonSpyCall<
+        [message: MessageFromWebviewToExtension],
+        void
+      >[] => {
         return postMessageSpy
           .getCalls()
           .filter(

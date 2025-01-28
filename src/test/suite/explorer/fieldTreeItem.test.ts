@@ -24,7 +24,7 @@ const { contributes } = require('../../../../package.json');
 
 function getTestFieldTreeItem(
   options?: Partial<ConstructorParameters<typeof FieldTreeItem>[0]>
-) {
+): FieldTreeItem {
   return new FieldTreeItem({
     field: {
       name: 'test',
@@ -40,7 +40,7 @@ function getTestFieldTreeItem(
 
 function getTestSchemaTreeItem(
   options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>
-) {
+): SchemaTreeItem {
   return new SchemaTreeItem({
     databaseName: 'zebraWearwolf',
     collectionName: 'giraffeVampire',

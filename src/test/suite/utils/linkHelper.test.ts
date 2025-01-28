@@ -75,7 +75,7 @@ suite('Open Link Test Suite', () => {
 
   test('handles errors', (done) => {
     class EventEmitterStub extends EventEmitter {
-      listen() {}
+      listen(): void {}
     }
     const eventEmitterStub: any = new EventEmitterStub();
     const createServerStub: any = sinon

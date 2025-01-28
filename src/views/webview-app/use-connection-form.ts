@@ -128,7 +128,21 @@ function connectionFormReducer(state: State, action: Action): State {
   }
 }
 
-export default function useConnectionForm() {
+export default function useConnectionForm(): {
+  isConnectionFormOpen: boolean;
+  isConnecting: boolean;
+  initialConnectionInfo: ConnectionInfo;
+  connectionErrorMessage: string;
+  openConnectionForm: () => void;
+  closeConnectionForm: () => void;
+  handleOpenFileChooser: (options: FileChooserOptions) => string;
+  handleCancelConnectClicked: () => void;
+  handleSaveConnectionClicked: () => Promise<void>;
+  handleConnectClicked: (connectionAttempt: {
+    id: string;
+    connectionOptions: ConnectionOptions;
+  }) => void;
+} {
   const [
     {
       initialConnectionInfo,
@@ -143,7 +157,7 @@ export default function useConnectionForm() {
   });
 
   useEffect(() => {
-    const handleConnectResultResponse = (event) => {
+    const handleConnectResultResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (
         message.command === MESSAGE_TYPES.CONNECT_RESULT &&
@@ -163,7 +177,7 @@ export default function useConnectionForm() {
   }, [initialConnectionInfo]);
 
   useEffect(() => {
-    const handleConnectResultResponse = (event) => {
+    const handleConnectResultResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === MESSAGE_TYPES.OPEN_EDIT_CONNECTION) {
         dispatch({

@@ -17,7 +17,7 @@ const useConnectionStatus = (): {
   );
   const [connectionName, setConnectionName] = useState('');
   useEffect(() => {
-    const handleConnectionStatusResponse = (event) => {
+    const handleConnectionStatusResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE) {
         setConnectionStatus(message.connectionStatus);

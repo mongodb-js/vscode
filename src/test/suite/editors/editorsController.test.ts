@@ -223,7 +223,7 @@ suite('Editors Controller Test Suite', () => {
         'source=treeview',
       ].join('')
     );
-    activeTextEditor.document.getText = () => '{';
+    activeTextEditor.document.getText = (): string => '{';
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
