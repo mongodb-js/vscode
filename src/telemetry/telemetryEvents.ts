@@ -639,7 +639,7 @@ export class PresetConnectionEditedTelemetryEvent
  * treeView.onDidChangeVisibility for all the extension treeviews and throttling
  * the events.
  */
-export class PanelOpenedTelemetryEvent implements TelemetryEventBase {
+export class SidePanelOpenedTelemetryEvent implements TelemetryEventBase {
   type = 'Side Panel Opened';
   properties: {};
 
@@ -692,5 +692,5 @@ export type TelemetryEvent =
   | ParticipantInputBoxSubmittedTelemetryEvent
   | ParticipantResponseGeneratedTelemetryEvent
   | PresetConnectionEditedTelemetryEvent
-  | PanelOpenedTelemetryEvent
+  | SidePanelOpenedTelemetryEvent
   | TreeItemExpandedTelemetryEvent;

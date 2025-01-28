@@ -15,7 +15,7 @@ import type { ParticipantResponseType } from '../participant/participantTypes';
 import type { TelemetryEvent } from './telemetryEvents';
 import {
   NewConnectionTelemetryEvent,
-  PanelOpenedTelemetryEvent,
+  SidePanelOpenedTelemetryEvent,
   ParticipantResponseFailedTelemetryEvent,
 } from './telemetryEvents';
 
@@ -194,7 +194,7 @@ export class TelemetryService {
 
   trackTreeViewActivated: () => void = throttle(
     () => {
-      this.track(new PanelOpenedTelemetryEvent());
+      this.track(new SidePanelOpenedTelemetryEvent());
     },
     5000,
     { leading: true, trailing: false }
