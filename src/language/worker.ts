@@ -16,7 +16,7 @@ interface EvaluationResult {
   type: string | null;
 }
 
-const getContent = ({ type, printable }: EvaluationResult): any => {
+const getContent = ({ type, printable }: EvaluationResult): unknown => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
     return getEJSON(printable.documents);
   }
@@ -26,7 +26,7 @@ const getContent = ({ type, printable }: EvaluationResult): any => {
     : getEJSON(printable);
 };
 
-export const getLanguage = (content: any): 'json' | 'plaintext' => {
+export const getLanguage = (content: unknown): 'json' | 'plaintext' => {
   if (typeof content === 'object' && content !== null) {
     return 'json';
   }
