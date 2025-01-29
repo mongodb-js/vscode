@@ -2,7 +2,6 @@ import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import { ServerCommands } from './serverCommands';
-import type { Document } from 'bson';
 
 import type {
   ShellEvaluateResult,
@@ -17,7 +16,7 @@ interface EvaluationResult {
   type: string | null;
 }
 
-const getContent = ({ type, printable }: EvaluationResult): Document => {
+const getContent = ({ type, printable }: EvaluationResult): unknown => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
     return getEJSON(printable.documents);
   }
@@ -27,11 +26,7 @@ const getContent = ({ type, printable }: EvaluationResult): Document => {
     : getEJSON(printable);
 };
 
-export const getLanguage = (
-  evaluationResult: EvaluationResult
-): 'json' | 'plaintext' => {
-  const content = getContent(evaluationResult);
-
+export const getLanguage = (content: unknown): 'json' | 'plaintext' => {
   if (typeof content === 'object' && content !== null) {
     return 'json';
   }
@@ -105,12 +100,19 @@ export const execute = async ({
         ? `${source.namespace.db}.${source.namespace.collection}`
         : undefined;
 
+    // The RPC protocol can't handle functions and it wouldn't make sense to return them anyway. Since just
+    // declaring a function doesn't execute it, the best thing we can do is return undefined, similarly to
+    // what we do when there's no return value from the script.
+    const rpcSafePrintable =
+      typeof printable !== 'function' ? printable : undefined;
+
     // Prepare a playground result.
+    const content = getContent({ type, printable: rpcSafePrintable });
     const result = {
       namespace,
-      type: type ? type : typeof printable,
-      content: getContent({ type, printable }),
-      language: getLanguage({ type, printable }),
+      type: type ? type : typeof rpcSafePrintable,
+      content,
+      language: getLanguage(content),
     };
 
     return { data: { result } };
