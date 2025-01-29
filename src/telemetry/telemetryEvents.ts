@@ -76,7 +76,14 @@ abstract class TelemetryEventBase {
 export class PlaygroundExecutedTelemetryEvent implements TelemetryEventBase {
   type = 'Playground Code Executed';
   properties: {
-    /** The type of the executed operation, e.g. 'insert', 'update', 'delete', 'query', 'aggregation', 'other' */
+    /**
+     * The type of the executed operation. Common CRUD operations are mapped to
+     * 'insert', 'update', 'delete', 'query', 'aggregation'. Other operations return
+     * the type of the result returned by the shell API - e.g. 'collection', 'database',
+     * 'help', etc. for known shell types and 'string', 'number', 'undefined', etc. for
+     * plain JS types. In the unlikely case the shell evaluator was unable to determine
+     * a type, 'other' is returned.
+     */
     type: string | null;
 
     /** Whether the entire script was run or just a part of it */
@@ -118,7 +125,7 @@ export class PlaygroundExecutedTelemetryEvent implements TelemetryEventBase {
       return 'query';
     }
 
-    return 'other';
+    return shellApiType;
   }
 }
 
@@ -627,6 +634,41 @@ export class PresetConnectionEditedTelemetryEvent
   }
 }
 
+/** Reported when the extension side panel is opened. VSCode doesn't expose
+ * a subscribable event for this, so we're inferring it by subscribing to
+ * treeView.onDidChangeVisibility for all the extension treeviews and throttling
+ * the events.
+ */
+export class SidePanelOpenedTelemetryEvent implements TelemetryEventBase {
+  type = 'Side Panel Opened';
+  properties: {};
+
+  constructor() {
+    this.properties = {};
+  }
+}
+
+/**
+ * Reported when a tree item from the collection explorer is expanded.
+ */
+export class TreeItemExpandedTelemetryEvent implements TelemetryEventBase {
+  type = 'Section Expanded';
+  properties: {
+    /**
+     * The name of the section - e.g. database, collection, etc. This is obtained from the
+     * `contextValue` field of the tree item.
+     * */
+    section_name?: string;
+  };
+
+  constructor(item: vscode.TreeItem) {
+    // We suffix all tree item context values with 'TreeItem', which is redundant when sending to analytics.
+    this.properties = {
+      section_name: item.contextValue?.replace('TreeItem', ''),
+    };
+  }
+}
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent
@@ -649,4 +691,6 @@ export type TelemetryEvent =
   | ParticipantChatOpenedFromActionTelemetryEvent
   | ParticipantInputBoxSubmittedTelemetryEvent
   | ParticipantResponseGeneratedTelemetryEvent
-  | PresetConnectionEditedTelemetryEvent;
+  | PresetConnectionEditedTelemetryEvent
+  | SidePanelOpenedTelemetryEvent
+  | TreeItemExpandedTelemetryEvent;

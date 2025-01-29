@@ -331,7 +331,7 @@ export default class ConnectionController {
     }
   }
 
-  public sendTelemetry(
+  private sendTelemetry(
     newDataService: DataService,
     connectionType: ConnectionTypes
   ): void {
@@ -436,7 +436,7 @@ export default class ConnectionController {
       });
       const browserAuthCommand = vscode.workspace
         .getConfiguration('mdb')
-        .get('browserCommandForOIDCAuth');
+        .get<string>('browserCommandForOIDCAuth');
       dataService = await connectionAttempt.connect({
         ...connectionOptions,
         oidc: {

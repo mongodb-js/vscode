@@ -1,20 +1,26 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
 import { DataServiceEventTypes } from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
+import { createTrackedTreeView } from '../utils/treeViewHelper';
+import type { TelemetryService } from '../telemetry';
 
 export default class ExplorerController {
-  private _connectionController: ConnectionController;
   private _treeController: ExplorerTreeController;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
-  constructor(connectionController: ConnectionController) {
-    this._connectionController = connectionController;
-    this._treeController = new ExplorerTreeController(connectionController);
+  constructor(
+    private _connectionController: ConnectionController,
+    private _telemetryService: TelemetryService
+  ) {
+    this._treeController = new ExplorerTreeController(
+      this._connectionController,
+      this._telemetryService
+    );
   }
 
-  createTreeView = (): void => {
+  private createTreeView = (): void => {
     // Remove the listener that called this function.
     this._connectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
@@ -22,17 +28,16 @@ export default class ExplorerController {
     );
 
     if (!this._treeView) {
-      this._treeView = vscode.window.createTreeView(
+      this._treeView = createTrackedTreeView(
         'mongoDBConnectionExplorer',
-        {
-          treeDataProvider: this._treeController,
-        }
+        this._treeController,
+        this._telemetryService
       );
       this._treeController.activateTreeViewEventHandlers(this._treeView);
     }
   };
 
-  activateConnectionsTreeView(): void {
+  public activateConnectionsTreeView(): void {
     // Listen for a change in connections to occur before we create the tree
     // so that we show the `viewsWelcome` before any connections are added.
     this._connectionController.addEventListener(
@@ -41,7 +46,7 @@ export default class ExplorerController {
     );
   }
 
-  deactivate(): void {
+  public deactivate(): void {
     if (this._treeController) {
       this._treeController.removeListeners();
     }
@@ -52,7 +57,7 @@ export default class ExplorerController {
     }
   }
 
-  refresh(): boolean {
+  public refresh(): boolean {
     if (this._treeController) {
       return this._treeController.refresh();
     }

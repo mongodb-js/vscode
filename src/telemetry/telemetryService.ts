@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import type { DataService } from 'mongodb-data-service';
 import fs from 'fs';
 import { Analytics as SegmentAnalytics } from '@segment/analytics-node';
+import { throttle } from 'lodash';
 
 import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
@@ -14,6 +15,7 @@ import type { ParticipantResponseType } from '../participant/participantTypes';
 import type { TelemetryEvent } from './telemetryEvents';
 import {
   NewConnectionTelemetryEvent,
+  SidePanelOpenedTelemetryEvent,
   ParticipantResponseFailedTelemetryEvent,
 } from './telemetryEvents';
 
@@ -189,4 +191,12 @@ export class TelemetryService {
       new ParticipantResponseFailedTelemetryEvent(command, errorName, errorCode)
     );
   }
+
+  trackTreeViewActivated: () => void = throttle(
+    () => {
+      this.track(new SidePanelOpenedTelemetryEvent());
+    },
+    5000,
+    { leading: true, trailing: false }
+  );
 }

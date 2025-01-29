@@ -1361,6 +1361,7 @@
     "@types/chai": "^4.3.20",
     "@types/debug": "^4.1.12",
     "@types/glob": "^7.2.0",
+    "@types/lodash": "^4.17.14",
     "@types/micromatch": "^4.0.9",
     "@types/mkdirp": "^2.0.0",
     "@types/mocha": "^8.2.3",

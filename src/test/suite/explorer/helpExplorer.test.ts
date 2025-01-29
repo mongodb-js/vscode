@@ -16,20 +16,18 @@ suite('Help Explorer Test Suite', function () {
   });
 
   test('tree view should be not created until it is activated', () => {
-    const testHelpExplorer = new HelpExplorer();
-    assert(testHelpExplorer._treeView === undefined);
-    testHelpExplorer.activateHelpTreeView(
+    const testHelpExplorer = new HelpExplorer(
       mdbTestExtension.testExtensionController._telemetryService
     );
+    assert(testHelpExplorer._treeView === undefined);
+    testHelpExplorer.activateHelpTreeView();
     assert(testHelpExplorer._treeView !== undefined);
   });
 
   test('the tree should have 5 help tree items', async () => {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
-    testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryService
-    );
+    testHelpExplorer.activateHelpTreeView();
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     assert(helpTreeItems.length === 6);
   });
@@ -37,9 +35,7 @@ suite('Help Explorer Test Suite', function () {
   test('the tree should have an atlas item with a url and atlas icon', async () => {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
-    testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryService
-    );
+    testHelpExplorer.activateHelpTreeView();
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();
     const atlasHelpItem = helpTreeItems[5];
 
@@ -62,9 +58,7 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 
-    testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryService
-    );
+    testHelpExplorer.activateHelpTreeView();
 
     const stubExecuteCommand = sandbox.fake();
     sandbox.replace(vscode.commands, 'executeCommand', stubExecuteCommand);
@@ -90,9 +84,7 @@ suite('Help Explorer Test Suite', function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 
-    testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryService
-    );
+    testHelpExplorer.activateHelpTreeView();
 
     const stubExecuteCommand = sandbox.fake();
     sandbox.replace(linkHelper, 'openLink', stubExecuteCommand);
@@ -116,9 +108,7 @@ suite('Help Explorer Test Suite', function () {
       'track',
       stubTrackTelemetry
     );
-    testHelpExplorer.activateHelpTreeView(
-      mdbTestExtension.testExtensionController._telemetryService
-    );
+    testHelpExplorer.activateHelpTreeView();
 
     sandbox.replace(vscode.commands, 'executeCommand', sandbox.fake());
     const helpTreeItems = await testHelpExplorer._treeController.getChildren();

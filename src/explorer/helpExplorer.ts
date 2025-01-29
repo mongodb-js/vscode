@@ -1,23 +1,26 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import HelpTree from './helpTree';
 import type { TelemetryService } from '../telemetry';
+import { createTrackedTreeView } from '../utils/treeViewHelper';
 
 export default class HelpExplorer {
   _treeController: HelpTree;
   _treeView?: vscode.TreeView<vscode.TreeItem>;
 
-  constructor() {
+  constructor(private _telemetryService: TelemetryService) {
     this._treeController = new HelpTree();
   }
 
-  activateHelpTreeView(telemetryService: TelemetryService): void {
+  activateHelpTreeView(): void {
     if (!this._treeView) {
-      this._treeView = vscode.window.createTreeView('mongoDBHelpExplorer', {
-        treeDataProvider: this._treeController,
-      });
+      this._treeView = createTrackedTreeView(
+        'mongoDBHelpExplorer',
+        this._treeController,
+        this._telemetryService
+      );
       this._treeController.activateTreeViewEventHandlers(
         this._treeView,
-        telemetryService
+        this._telemetryService
       );
     }
   }
