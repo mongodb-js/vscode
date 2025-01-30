@@ -31,11 +31,6 @@ jobs:
           # the whole history to generate the CHANGELOG
           fetch-depth: '0'
 
-      - name: Set up Git
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
       - name: Update CHANGELOG.md
         # List all the releases and rebuild
         # the changelog with the last 30
@@ -53,7 +48,7 @@ jobs:
 
             json=$(gh release view $tagName --json=name,publishedAt,url,body)
             date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
-            if [[ -z "$date" ]]
+            if [[ "$date" = "null" ]]
             then
               echo "Skipping $tagName because it's not published yet"
               continue
