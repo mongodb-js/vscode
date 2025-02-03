@@ -31,11 +31,6 @@ jobs:
           # the whole history to generate the CHANGELOG
           fetch-depth: '0'
 
-      - name: Set up Git
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-
       - name: Update CHANGELOG.md
         # List all the releases and rebuild
         # the changelog with the last 30
@@ -46,15 +41,21 @@ jobs:
           echo "# Change Log" > CHANGELOG.md
           echo "" >> CHANGELOG.md
 
-          tags=$(gh api repos/mongodb-js/vscode/releases | jq -r .[].tag_name | grep -v internal | grep -v pre | grep -v beta)
+          tags=$(gh api --paginate repos/mongodb-js/vscode/releases --jq '.[].tag_name' | grep -v internal | grep -v pre | grep -v beta)
 
           # NOTE: here the quotes around $tags are necessary
           echo "$tags" | while read tagName; do
 
             json=$(gh release view $tagName --json=name,publishedAt,url,body)
+            date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
+            if [[ "$date" = "null" ]]
+            then
+              echo "Skipping $tagName because it's not published yet"
+              continue
+            fi
+
             url=$(echo $json | jq -r .url)
             name=$(echo $json | jq -r .name)
-            date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
             body=$(echo $json | jq -r .body)
             echo "## [$name]($url) - $date" >> CHANGELOG.md
             echo "" >> CHANGELOG.md
