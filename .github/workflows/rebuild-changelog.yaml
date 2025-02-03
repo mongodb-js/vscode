@@ -88,4 +88,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          gh pr merge ${{steps.cpr.outputs.pull-request-number}} --squash --delete-branch
+          gh pr merge ${{steps.cpr.outputs.pull-request-number}} --squash --delete-branch --auto
