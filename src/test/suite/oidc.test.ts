@@ -99,6 +99,7 @@ suite('OIDC Tests', function () {
 
     oidcMockProviderEndpointAccesses = {};
     oidcMockProviderConfig = {
+      port: 28111,
       getTokenPayload(
         metadata: Parameters<typeof getTokenPayload>[0]
       ): ReturnType<typeof oidcMockProviderConfig.getTokenPayload> {
@@ -140,6 +141,7 @@ suite('OIDC Tests', function () {
     });
 
     const cs = new ConnectionString(cluster.connectionString);
+    console.info('connection string:', cs);
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
 
     connectionString = cs.toString();

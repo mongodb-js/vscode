@@ -245,7 +245,7 @@ export default class ConnectionController {
   async connectWithURI(): Promise<boolean> {
     let connectionString: string | undefined;
 
-    log.info('connectWithURI command called');
+    console.log('connectWithURI command called');
 
     const cancellationToken = new vscode.CancellationTokenSource();
     this._connectionStringInputCancellationToken = cancellationToken;
@@ -300,7 +300,7 @@ export default class ConnectionController {
   async addNewConnectionStringAndConnect(
     connectionString: string
   ): Promise<boolean> {
-    log.info('Trying to connect to a new connection configuration...');
+    console.log('Trying to connect to a new connection configuration...');
 
     const connectionStringData = new ConnectionString(connectionString);
 
@@ -327,7 +327,7 @@ export default class ConnectionController {
       void vscode.window.showErrorMessage(
         `Unable to connect: ${printableError.message}`
       );
-      return false;
+      throw error;
     }
   }
 
@@ -367,7 +367,7 @@ export default class ConnectionController {
     connectionId: string,
     connectionType: ConnectionTypes
   ): Promise<ConnectionAttemptResult> {
-    log.info(
+    console.log(
       'Connect called to connect to instance',
       this._connections[connectionId]?.name || 'empty connection name'
     );
@@ -390,7 +390,7 @@ export default class ConnectionController {
     this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
 
     if (this._activeDataService) {
-      log.info('Disconnecting from the previous connection...', {
+      console.log('Disconnecting from the previous connection...', {
         connectionId: this._currentConnectionId,
       });
       await this.disconnect();
@@ -413,7 +413,7 @@ export default class ConnectionController {
     }
 
     this._statusView.showMessage('Connecting to MongoDB...');
-    log.info('Connecting to MongoDB...', {
+    console.log('Connecting to MongoDB...', {
       connectionInfo: JSON.stringify(
         extractSecrets(this._connections[connectionId]).connectionInfo
       ),
@@ -480,7 +480,7 @@ export default class ConnectionController {
       this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
     }
 
-    log.info('Successfully connected', { connectionId });
+    console.log('Successfully connected', { connectionId });
 
     const message = 'MongoDB connection successful.';
     this._statusView.showMessage(message);
@@ -640,7 +640,7 @@ export default class ConnectionController {
   }
 
   async disconnect(): Promise<boolean> {
-    log.info(
+    console.log(
       'Disconnect called, currently connected to',
       this._currentConnectionId
     );
@@ -741,7 +741,7 @@ export default class ConnectionController {
   }
 
   async onRemoveMongoDBConnection(): Promise<boolean> {
-    log.info('mdb.removeConnection command called');
+    console.log('mdb.removeConnection command called');
 
     const connectionIds = Object.keys(this._connections);
 
