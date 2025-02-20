@@ -13,6 +13,7 @@ describe('AtlasCta test suite', function () {
   });
 
   it('should render Atlas CTA', function () {
+    expect.fail('this is meant to fail');
     render(<AtlasCta />);
     expect(screen.getByText('Create free cluster')).to.not.be.null;
     expect(screen.getByTestId('link-atlas')).to.not.be.null;

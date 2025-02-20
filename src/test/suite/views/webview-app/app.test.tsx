@@ -6,6 +6,7 @@ import App from '../../../../views/webview-app/app';
 
 describe('App Component Test Suite', () => {
   it('it renders the overview page', () => {
+    expect.fail('this is meant to fail');
     render(<App />);
     expect(screen.getByTestId('overview-page')).to.exist;
   });
