@@ -16,4 +16,5 @@ ignores:
  - ts-loader
  - mongodb-runner
  - tabbable # Mocha register testing workaround stub.
+ - focus-trap # Mocha register testing workaround stub.
  - ejson-shell-parser # Used by the connection-form.
