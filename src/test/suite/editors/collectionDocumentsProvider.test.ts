@@ -252,7 +252,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${firstCollectionOperationId}`,
     ].join('&');
     const firstCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.mongodb.json?${firstCollectionQuery}`
     );
 
     const activeTextEditor = mockTextEditor;
@@ -323,7 +323,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${secondCollectionOperationId}`,
     ].join('&');
     const secondCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.mongodb.json?${secondCollectionQuery}`
     );
 
     // Fake a new response from find.
@@ -439,7 +439,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${firstCollectionOperationId}`,
     ].join('&');
     const firstCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.mongodb.json?${firstCollectionQuery}`
     );
 
     const activeTextEditor = mockTextEditor;
@@ -512,7 +512,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${secondCollectionOperationId}`,
     ].join('&');
     const secondCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.mongodb.json?${secondCollectionQuery}`
     );
 
     mockTextEditor.document.uri = secondCollectionUri;
