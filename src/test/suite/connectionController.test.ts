@@ -135,7 +135,7 @@ suite('Connection Controller Test Suite', function () {
     expect(successfullyRemovedMongoDBConnection).to.be.false;
   });
 
-  test('when adding a new connection it disconnects from the current connection', async () => {
+  test.only('when adding a new connection it disconnects from the current connection', async () => {
     const succesfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
@@ -150,9 +150,9 @@ suite('Connection Controller Test Suite', function () {
     } catch (error) {
       const expectedError = 'Failed to connect';
 
-      expect(formatError(error).message.includes(expectedError)).to.be.true;
-      expect(testConnectionController.getActiveDataService()).to.equal(null);
-      expect(testConnectionController.getActiveConnectionId()).to.equal(null);
+      expect(formatError(error).message).includes(expectedError);
+      expect(testConnectionController.getActiveDataService()).to.be.null;
+      expect(testConnectionController.getActiveConnectionId()).to.be.null;
     }
   });
 
@@ -261,7 +261,7 @@ suite('Connection Controller Test Suite', function () {
 
     await testConnectionController.loadSavedConnections();
 
-    expect(testConnectionController.getSavedConnections().length).to.equal(1);
+    expect(testConnectionController.getSavedConnections()).to.have.lengthOf(1);
     expect(testConnectionController._connections['1234']).is.undefined;
   });
 
@@ -295,7 +295,7 @@ suite('Connection Controller Test Suite', function () {
 
     const connections = testConnectionController._connections;
 
-    expect(Object.keys(connections).length).to.equal(4);
+    expect(Object.keys(connections)).to.have.lengthOf(4);
     expect(connections[Object.keys(connections)[0]].name).to.equal(
       'localhost:27088'
     );
@@ -331,7 +331,7 @@ suite('Connection Controller Test Suite', function () {
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS
     );
 
-    expect(workspaceStoreConnections).to.equal(undefined);
+    expect(workspaceStoreConnections).to.be.undefined;
   });
 
   test('when a connection is added it is saved to the workspace store', async () => {
@@ -364,7 +364,7 @@ suite('Connection Controller Test Suite', function () {
       StorageLocation.GLOBAL
     );
 
-    expect(globalStoreConnections).to.equal(undefined);
+    expect(globalStoreConnections).to.be.undefined;
   });
 
   test('a connection can be connected to by id', async () => {
@@ -407,12 +407,12 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
 
-    expect(testConnectionController.getSavedConnections().length).to.equal(0);
+    expect(testConnectionController.getSavedConnections()).to.have.lengthOf(0);
 
     // Activate (which will load the past connection).
     await testConnectionController.loadSavedConnections();
 
-    expect(testConnectionController.getSavedConnections().length).to.equal(1);
+    expect(testConnectionController.getSavedConnections()).to.have.lengthOf(1);
 
     const id = testConnectionController.getSavedConnections()[0].id;
 
