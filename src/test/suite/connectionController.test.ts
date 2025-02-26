@@ -135,7 +135,7 @@ suite('Connection Controller Test Suite', function () {
     expect(successfullyRemovedMongoDBConnection).to.be.false;
   });
 
-  test.only('when adding a new connection it disconnects from the current connection', async () => {
+  test('when adding a new connection it disconnects from the current connection', async () => {
     const succesfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
