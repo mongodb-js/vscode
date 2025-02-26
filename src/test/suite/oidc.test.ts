@@ -231,7 +231,7 @@ suite('OIDC Tests', function () {
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
+      await testConnectionController.addNewConnectionStringAndConnect2(
         connectionString
       )
     ).to.be.true;

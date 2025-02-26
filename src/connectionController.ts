@@ -362,7 +362,9 @@ export default class ConnectionController {
         `Unable to connect: ${printableError.message}`
       );
 
-      throw error;
+      throw new Error(
+        `Failed to connect: connection string: ${connectionString}, error: ${error}`
+      );
     }
   }
 
@@ -476,6 +478,7 @@ export default class ConnectionController {
         ...connectionOptions,
         oidc: {
           ...cloneDeep(connectionOptions.oidc),
+          redirectURI: 'http://localhost:37197/redirect',
           openBrowser: browserAuthCommand
             ? { command: browserAuthCommand }
             : async ({ signal, url }): Promise<void> => {
