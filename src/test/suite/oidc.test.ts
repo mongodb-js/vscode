@@ -189,7 +189,7 @@ suite('OIDC Tests', function () {
 
   test('can successfully connect with a connection string', async function () {
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
+      await testConnectionController.addNewConnectionStringAndConnect2(
         connectionString
       );
     expect(succesfullyConnected).to.be.true;

@@ -331,6 +331,41 @@ export default class ConnectionController {
     }
   }
 
+  async addNewConnectionStringAndConnect2(
+    connectionString: string
+  ): Promise<boolean> {
+    log.info('Trying to connect to a new connection configuration...');
+
+    const connectionStringData = new ConnectionString(connectionString);
+
+    // TODO: Allow overriding appname + use driverInfo instead
+    // (https://jira.mongodb.org/browse/MONGOSH-1015)
+    connectionStringData.searchParams.set(
+      'appname',
+      `${packageJSON.name} ${packageJSON.version}`
+    );
+
+    try {
+      const connectResult = await this.saveNewConnectionAndConnect({
+        connectionId: uuidv4(),
+        connectionOptions: {
+          connectionString: connectionStringData.toString(),
+        },
+        connectionType: ConnectionTypes.CONNECTION_STRING,
+      });
+
+      return connectResult.successfullyConnected;
+    } catch (error) {
+      const printableError = formatError(error);
+      log.error('Failed to connect with a connection string', error);
+      void vscode.window.showErrorMessage(
+        `Unable to connect: ${printableError.message}`
+      );
+
+      throw error;
+    }
+  }
+
   private sendTelemetry(
     newDataService: DataService,
     connectionType: ConnectionTypes
