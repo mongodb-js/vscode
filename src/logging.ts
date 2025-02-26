@@ -60,6 +60,9 @@ class Logger implements ILogger {
   private append(type: string, message: string): void {
     // https://code.visualstudio.com/api/references/vscode-api#window.createOutputChannel
 
+    console.log(
+      `aaa - ${new Date().toISOString()} ${this.name} ${type} ${message}`
+    );
     Logger.channel.appendLine(
       `${new Date().toISOString()} ${this.name} ${type} ${message}\n`
     );

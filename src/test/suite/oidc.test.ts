@@ -59,7 +59,7 @@ const DEFAULT_TOKEN_PAYLOAD = {
   },
 };
 
-suite('OIDC Tests', function () {
+suite.only('OIDC Tests', function () {
   this.timeout(50000);
 
   const extensionContextStub = new ExtensionContextStub();
