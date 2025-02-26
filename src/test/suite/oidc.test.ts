@@ -128,6 +128,7 @@ suite('OIDC Tests', function () {
       ...defaultClusterOptions,
       version: '8.0.x',
       downloadOptions: { enterprise: true },
+      logDir: path.join(tmpdir, 'logs'),
       args: [
         '--setParameter',
         'authenticationMechanisms=SCRAM-SHA-256,MONGODB-OIDC',
