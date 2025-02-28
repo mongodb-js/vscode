@@ -1395,7 +1395,7 @@
     "mocha": "^10.7.3",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi": "^1.1.7",
-    "mongodb-client-encryption": "^6.2.0",
+    "mongodb-client-encryption": "^6.3.0",
     "mongodb-rag-core": "^0.5.1",
     "mongodb-runner": "^5.8.0",
     "node-fetch": "^2.7.0",
