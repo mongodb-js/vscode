@@ -135,6 +135,53 @@ suite('Connection Controller Test Suite', function () {
     expect(successfullyRemovedMongoDBConnection).to.be.false;
   });
 
+  test('"removeMongoDBConnection()" hides preset connections', async () => {
+    const connectionBase: Omit<LoadedConnection, 'id' | 'name'> = {
+      connectionOptions: {
+        connectionString: 'localhost:3000',
+      },
+      storageLocation: StorageLocation.NONE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
+    };
+
+    testConnectionController._connections['1234'] = {
+      ...connectionBase,
+      name: 'valid 1',
+      id: '1234',
+    };
+    testConnectionController._connections['5678'] = {
+      ...connectionBase,
+      name: 'valid 2',
+      id: '5678',
+      source: 'user',
+    };
+    testConnectionController._connections['3333'] = {
+      ...connectionBase,
+      id: '3333',
+      name: 'invalid 1',
+      source: 'workspaceSettings',
+    };
+    testConnectionController._connections['3333'] = {
+      ...connectionBase,
+      id: '3333',
+      name: 'invalid 2',
+      source: 'globalSettings',
+    };
+
+    const showQuickPickStub = sinon
+      .stub(vscode.window, 'showQuickPick')
+      .resolves(undefined);
+    const successfullyRemovedMongoDBConnection =
+      await testConnectionController.onRemoveMongoDBConnection();
+
+    expect(showErrorMessageStub).not.called;
+    expect(showQuickPickStub.firstCall.firstArg).deep.equal([
+      '1: valid 1',
+      '2: valid 2',
+    ]);
+    expect(successfullyRemovedMongoDBConnection).to.be.false;
+  });
+
   test('when adding a new connection it disconnects from the current connection', async () => {
     const succesfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
