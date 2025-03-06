@@ -30,6 +30,7 @@ import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
 import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
+import getBuildInfo from 'mongodb-build-info';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -304,13 +305,6 @@ export default class ConnectionController {
 
     const connectionStringData = new ConnectionString(connectionString);
 
-    // TODO: Allow overriding appname + use driverInfo instead
-    // (https://jira.mongodb.org/browse/MONGOSH-1015)
-    connectionStringData.searchParams.set(
-      'appname',
-      `${packageJSON.name} ${packageJSON.version}`
-    );
-
     try {
       const connectResult = await this.saveNewConnectionAndConnect({
         connectionId: uuidv4(),
@@ -427,10 +421,17 @@ export default class ConnectionController {
 
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
-        defaultAppName: packageJSON.name,
+        connectionInfo: {
+          id: connectionId,
+          isAtlas: getBuildInfo.isAtlas(
+            connectionInfo.connectionOptions.connectionString
+          ),
+        },
+        defaultAppName: `${packageJSON.name} ${packageJSON.version}`,
         notifyDeviceFlow,
         preferences: {
           forceConnectionOptions: [],
+          telemetryAnonymousId: this._connectionStorage.getUserAnonymousId(),
           browserCommandForOIDCAuth: undefined, // We overwrite this below.
         },
       });

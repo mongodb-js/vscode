@@ -28,6 +28,7 @@ import {
   TEST_USER_PASSWORD,
 } from './dbTestHelper';
 import type { LoadedConnection } from '../../storage/connectionStorage';
+import getBuildInfo from 'mongodb-build-info';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../package.json');
@@ -79,16 +80,15 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('it connects to mongodb', async () => {
-    const succesfullyConnected =
+    const successfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
       );
-    const connnectionId =
-      testConnectionController.getActiveConnectionId() || '';
-    const name = testConnectionController._connections[connnectionId].name;
+    const connectionId = testConnectionController.getActiveConnectionId() || '';
+    const name = testConnectionController._connections[connectionId].name;
     const dataService = testConnectionController.getActiveDataService();
 
-    expect(succesfullyConnected).to.be.true;
+    expect(successfullyConnected).to.be.true;
     expect(testConnectionController.getSavedConnections()).to.have.lengthOf(1);
     expect(name).to.equal('localhost:27088');
     expect(testConnectionController.isCurrentlyConnected()).to.be.true;
@@ -96,13 +96,100 @@ suite('Connection Controller Test Suite', function () {
     expect(dataService).to.not.be.null;
   });
 
+  suite('with Atlas connections', function () {
+    beforeEach(() => {
+      // Simulate Atlas URI
+      sandbox.stub(getBuildInfo, 'isAtlas').returns(true);
+    });
+
+    test('should append appName with connection and anonymous id', async () => {
+      const successfullyConnected =
+        await testConnectionController.addNewConnectionStringAndConnect(
+          TEST_DATABASE_URI
+        );
+      const connectionId =
+        testConnectionController.getActiveConnectionId() || '';
+      const connection = testConnectionController._connections[connectionId];
+
+      expect(successfullyConnected).to.be.true;
+      expect(testConnectionController.getSavedConnections()).to.have.lengthOf(
+        1
+      );
+      expect(connection.name).to.equal('localhost:27088');
+      expect(testConnectionController.isCurrentlyConnected()).to.be.true;
+
+      const anonymousId =
+        testConnectionController._connectionStorage.getUserAnonymousId();
+
+      // The stored connection string should not have the appName appended
+      expect(connection.connectionOptions.connectionString).equals(
+        `${TEST_DATABASE_URI}/`
+      );
+      // But the active connection should
+      expect(testConnectionController.getActiveConnectionString()).equals(
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}-${anonymousId}-${connectionId}`
+      );
+    });
+
+    test('preserves appName if it is already set', async () => {
+      const successfullyConnected =
+        await testConnectionController.addNewConnectionStringAndConnect(
+          `${TEST_DATABASE_URI}/?appName=test-123`
+        );
+      const connectionId =
+        testConnectionController.getActiveConnectionId() || '';
+      const connection = testConnectionController._connections[connectionId];
+
+      expect(successfullyConnected).to.be.true;
+
+      expect(connection.connectionOptions.connectionString).equals(
+        `${TEST_DATABASE_URI}/?appName=test-123`
+      );
+      expect(testConnectionController.getActiveConnectionString()).equals(
+        `${TEST_DATABASE_URI}/?appName=test-123`
+      );
+    });
+
+    test('getMongoClientConnectionOptions appends anonymous and connection ID and options properties', function () {
+      const mongoClientConnectionOptions =
+        testConnectionController.getMongoClientConnectionOptions();
+
+      expect(mongoClientConnectionOptions).to.not.be.undefined;
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      delete mongoClientConnectionOptions!.options.parentHandle;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
+
+      const connectionIds = Object.keys(testConnectionController._connections);
+      const latestConnectionId = connectionIds[connectionIds.length - 1];
+
+      const anonymousId =
+        testConnectionController._connectionStorage.getUserAnonymousId();
+
+      expect(mongoClientConnectionOptions).to.deep.equal({
+        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}-${anonymousId}-${latestConnectionId}`,
+        options: {
+          autoEncryption: undefined,
+          monitorCommands: true,
+          applyProxyToOIDC: false,
+          authMechanismProperties: {},
+          oidc: { customHttpOptions: {} },
+          productDocsLink:
+            'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
+          productName: 'mongodb-vscode',
+        },
+      });
+    });
+  });
+
   test('"disconnect()" disconnects from the active connection', async () => {
-    const succesfullyConnected =
+    const successfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect(
         TEST_DATABASE_URI
       );
 
-    expect(succesfullyConnected).to.be.true;
+    expect(successfullyConnected).to.be.true;
     expect(testConnectionController.getConnectionStatus()).to.equal(
       'CONNECTED'
     );
@@ -113,7 +200,7 @@ suite('Connection Controller Test Suite', function () {
     // Disconnecting should keep the connection contract, just disconnected.
     const connectionsCount =
       testConnectionController.getSavedConnections().length;
-    const connnectionId = testConnectionController.getActiveConnectionId();
+    const connectionId = testConnectionController.getActiveConnectionId();
     const dataService = testConnectionController.getActiveDataService();
 
     expect(testConnectionController.getConnectionStatus()).to.equal(
@@ -121,7 +208,7 @@ suite('Connection Controller Test Suite', function () {
     );
     expect(successfullyDisconnected).to.be.true;
     expect(connectionsCount).to.equal(1);
-    expect(connnectionId).to.be.null;
+    expect(connectionId).to.be.null;
     expect(testConnectionController.isCurrentlyConnected()).to.be.false;
     expect(dataService).to.be.null;
   });
@@ -999,7 +1086,7 @@ suite('Connection Controller Test Suite', function () {
       TEST_USER_PASSWORD
     );
     expect(connections[0].connectionOptions?.connectionString).to.include(
-      `appname=mongodb-vscode+${version}`
+      `appName=mongodb-vscode+${version}`
     );
     expect(
       testConnectionController._connections[connections[0].id].connectionOptions
@@ -1026,7 +1113,7 @@ suite('Connection Controller Test Suite', function () {
     delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
     expect(mongoClientConnectionOptions).to.deep.equal({
-      url: `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`,
+      url: 'mongodb://localhost:27088/?appName=mongodb-vscode+0.0.0-dev.0',
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
@@ -1041,10 +1128,10 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('_getConnectionStringWithProxy returns string with proxy options', () => {
-    const expectedConnectionStringWithProxy = `mongodb://localhost:27088/?appname=mongodb-vscode+${version}&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test`;
+    const expectedConnectionStringWithProxy = `mongodb://localhost:27088/?appName=mongodb-vscode+${version}&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test`;
     const connectionString =
       testConnectionController._getConnectionStringWithProxy({
-        url: `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`,
+        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}`,
         options: {
           proxyHost: 'localhost',
           proxyPassword: 'gwce7tr8733ujbr',
