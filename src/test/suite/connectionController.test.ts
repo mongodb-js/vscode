@@ -150,7 +150,11 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('getMongoClientConnectionOptions appends anonymous and connection ID and options properties', function () {
+    test('getMongoClientConnectionOptions appends anonymous and connection ID and options properties', async function () {
+      await testConnectionController.addNewConnectionStringAndConnect(
+        `${TEST_DATABASE_URI}`
+      );
+
       const mongoClientConnectionOptions =
         testConnectionController.getMongoClientConnectionOptions();
 
@@ -400,8 +404,6 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('the connection model loads both global and workspace stored connection models', async () => {
-    const expectedDriverUrl = `mongodb://localhost:27088/?appname=mongodb-vscode+${version}`;
-
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
@@ -436,7 +438,7 @@ suite('Connection Controller Test Suite', function () {
     expect(
       connections[Object.keys(connections)[2]].connectionOptions
         ?.connectionString
-    ).to.equal(expectedDriverUrl);
+    ).to.equal('mongodb://localhost:27088/');
   });
 
   test('when a connection is added it is saved to the global storage', async () => {
@@ -1084,9 +1086,6 @@ suite('Connection Controller Test Suite', function () {
     );
     expect(connections[0].connectionOptions?.connectionString).to.not.include(
       TEST_USER_PASSWORD
-    );
-    expect(connections[0].connectionOptions?.connectionString).to.include(
-      `appName=mongodb-vscode+${version}`
     );
     expect(
       testConnectionController._connections[connections[0].id].connectionOptions
