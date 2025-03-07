@@ -743,7 +743,15 @@ export default class ConnectionController {
   async onRemoveMongoDBConnection(): Promise<boolean> {
     log.info('mdb.removeConnection command called');
 
-    const connectionIds = Object.keys(this._connections);
+    const connectionIds = Object.entries(this._connections)
+      .map(([id, connection]) => {
+        return { id, connection };
+      })
+      .filter(
+        ({ connection }) =>
+          connection.source !== 'globalSettings' &&
+          connection.source !== 'workspaceSettings'
+      );
 
     if (connectionIds.length === 0) {
       // No active connection(s) to remove.
@@ -753,7 +761,7 @@ export default class ConnectionController {
     }
 
     if (connectionIds.length === 1) {
-      return this.removeMongoDBConnection(connectionIds[0]);
+      return this.removeMongoDBConnection(connectionIds[0].id);
     }
 
     // There is more than 1 possible connection to remove.
@@ -761,7 +769,7 @@ export default class ConnectionController {
     const connectionNameToRemove: string | undefined =
       await vscode.window.showQuickPick(
         connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
+          ({ connection }, index) => `${index + 1}: ${connection.name}`
         ),
         {
           placeHolder: 'Choose a connection to remove...',
@@ -775,7 +783,7 @@ export default class ConnectionController {
     // We attach the index of the connection so that we can infer their pick.
     const connectionIndexToRemove =
       Number(connectionNameToRemove.split(':', 1)[0]) - 1;
-    const connectionIdToRemove = connectionIds[connectionIndexToRemove];
+    const connectionIdToRemove = connectionIds[connectionIndexToRemove].id;
 
     return this.removeMongoDBConnection(connectionIdToRemove);
   }
