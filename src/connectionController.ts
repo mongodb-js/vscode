@@ -356,6 +356,30 @@ export default class ConnectionController {
     return this._connect(connection.id, connectionType);
   }
 
+  /**
+   * In older versions, we'd manually store a connectionString with an appended
+   * appName with the VSCode extension name and version. This checks for this and
+   * removes the previously appended appName.
+   */
+  private _clearLegacyAppNameOverride(connectionId: string): void {
+    const connectionString = new ConnectionString(
+      this._connections[connectionId].connectionOptions.connectionString
+    );
+
+    if (
+      connectionString.searchParams
+        .get('appname')
+        ?.match(/mongodb-vscode \d\.\d\.\d.*/)
+    ) {
+      connectionString.searchParams.delete('appname');
+      this._connections[connectionId].connectionOptions.connectionString =
+        connectionString.toString();
+      void this._connectionStorage.saveConnection(
+        this._connections[connectionId]
+      );
+    }
+  }
+
   // eslint-disable-next-line complexity
   async _connect(
     connectionId: string,
@@ -396,6 +420,8 @@ export default class ConnectionController {
         connectionErrorMessage: 'connection attempt cancelled',
       };
     }
+
+    this._clearLegacyAppNameOverride(connectionId);
 
     const connectionInfo: LoadedConnection = merge(
       cloneDeep(this._connections[connectionId]),
