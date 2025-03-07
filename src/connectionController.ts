@@ -30,6 +30,7 @@ import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
 import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
+import getBuildInfo from 'mongodb-build-info';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -304,13 +305,6 @@ export default class ConnectionController {
 
     const connectionStringData = new ConnectionString(connectionString);
 
-    // TODO: Allow overriding appname + use driverInfo instead
-    // (https://jira.mongodb.org/browse/MONGOSH-1015)
-    connectionStringData.searchParams.set(
-      'appname',
-      `${packageJSON.name} ${packageJSON.version}`
-    );
-
     try {
       const connectResult = await this.saveNewConnectionAndConnect({
         connectionId: uuidv4(),
@@ -362,6 +356,30 @@ export default class ConnectionController {
     return this._connect(connection.id, connectionType);
   }
 
+  /**
+   * In older versions, we'd manually store a connectionString with an appended
+   * appName with the VSCode extension name and version. This checks for this and
+   * removes the previously appended appName.
+   */
+  private _clearLegacyAppNameOverride(connectionId: string): void {
+    const connectionString = new ConnectionString(
+      this._connections[connectionId].connectionOptions.connectionString
+    );
+
+    if (
+      connectionString.searchParams
+        .get('appname')
+        ?.match(/mongodb-vscode \d\.\d\.\d.*/)
+    ) {
+      connectionString.searchParams.delete('appname');
+      this._connections[connectionId].connectionOptions.connectionString =
+        connectionString.toString();
+      void this._connectionStorage.saveConnection(
+        this._connections[connectionId]
+      );
+    }
+  }
+
   // eslint-disable-next-line complexity
   async _connect(
     connectionId: string,
@@ -403,6 +421,8 @@ export default class ConnectionController {
       };
     }
 
+    this._clearLegacyAppNameOverride(connectionId);
+
     const connectionInfo: LoadedConnection = merge(
       cloneDeep(this._connections[connectionId]),
       this._connectionMergeInfos[connectionId] ?? {}
@@ -427,10 +447,17 @@ export default class ConnectionController {
 
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
-        defaultAppName: packageJSON.name,
+        connectionInfo: {
+          id: connectionId,
+          isAtlas: getBuildInfo.isAtlas(
+            connectionInfo.connectionOptions.connectionString
+          ),
+        },
+        defaultAppName: `${packageJSON.name} ${packageJSON.version}`,
         notifyDeviceFlow,
         preferences: {
           forceConnectionOptions: [],
+          telemetryAnonymousId: this._connectionStorage.getUserAnonymousId(),
           browserCommandForOIDCAuth: undefined, // We overwrite this below.
         },
       });
