@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.12.1](https://github.com/mongodb-js/vscode/releases/tag/v1.12.1) - 2025-03-07
+
+## What's Changed
+* chore(deps): bump remaining driver, shell, compass deps VSCODE-680 by @addaleax in https://github.com/mongodb-js/vscode/pull/981
+* fix: hide preset connections from the Remove Connection command VSCODE-674 by @gagik in https://github.com/mongodb-js/vscode/pull/969
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.12.0...v1.12.1
+
+
 ## [v1.12.0](https://github.com/mongodb-js/vscode/releases/tag/v1.12.0) - 2025-01-30
 
 ## What's Changed
