@@ -131,6 +131,30 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
+    test('should override legacy appended appName', async () => {
+      const successfullyConnected =
+        await testConnectionController.addNewConnectionStringAndConnect(
+          `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`
+        );
+      const connectionId =
+        testConnectionController.getActiveConnectionId() || '';
+      const connection = testConnectionController._connections[connectionId];
+
+      expect(successfullyConnected).to.be.true;
+
+      const anonymousId =
+        testConnectionController._connectionStorage.getUserAnonymousId();
+
+      // The stored connection string should not have the appName appended
+      expect(connection.connectionOptions.connectionString).equals(
+        `${TEST_DATABASE_URI}/`
+      );
+      // But the active connection should
+      expect(testConnectionController.getActiveConnectionString()).equals(
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}-${anonymousId}-${connectionId}`
+      );
+    });
+
     test('preserves appName if it is already set', async () => {
       const successfullyConnected =
         await testConnectionController.addNewConnectionStringAndConnect(
