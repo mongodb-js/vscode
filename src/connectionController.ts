@@ -361,7 +361,9 @@ export default class ConnectionController {
    * appName with the VSCode extension name and version. This checks for this and
    * removes the previously appended appName.
    */
-  private _clearLegacyAppNameOverride(connectionId: string): void {
+  private async _clearLegacyAppNameOverride(
+    connectionId: string
+  ): Promise<void> {
     const connectionString = new ConnectionString(
       this._connections[connectionId].connectionOptions.connectionString
     );
@@ -374,7 +376,7 @@ export default class ConnectionController {
       connectionString.searchParams.delete('appname');
       this._connections[connectionId].connectionOptions.connectionString =
         connectionString.toString();
-      void this._connectionStorage.saveConnection(
+      await this._connectionStorage.saveConnection(
         this._connections[connectionId]
       );
     }
@@ -420,8 +422,6 @@ export default class ConnectionController {
         connectionErrorMessage: 'connection attempt cancelled',
       };
     }
-
-    this._clearLegacyAppNameOverride(connectionId);
 
     const connectionInfo: LoadedConnection = merge(
       cloneDeep(this._connections[connectionId]),
@@ -648,6 +648,8 @@ export default class ConnectionController {
 
     try {
       await this._connect(connectionId, ConnectionTypes.CONNECTION_ID);
+
+      await this._clearLegacyAppNameOverride(connectionId);
 
       return {
         successfullyConnected: true,
