@@ -358,12 +358,12 @@ export default class ConnectionController {
 
   /**
    * In older versions, we'd manually store a connectionString with an appended
-   * appName with the VSCode extension name and version. This checks for this and
-   * removes the previously appended appName.
+   * appName with the VSCode extension name and version. This overrides the
+   * connection string if needed and returns true if it does so, false otherwise.
    */
-  private async _clearLegacyAppNameOverride(
+  private _overrideLegacyConnectionStringAppName(
     connectionId: string
-  ): Promise<void> {
+  ): boolean {
     const connectionString = new ConnectionString(
       this._connections[connectionId].connectionOptions.connectionString
     );
@@ -374,12 +374,13 @@ export default class ConnectionController {
         ?.match(/mongodb-vscode \d\.\d\.\d.*/)
     ) {
       connectionString.searchParams.delete('appname');
+
       this._connections[connectionId].connectionOptions.connectionString =
         connectionString.toString();
-      await this._connectionStorage.saveConnection(
-        this._connections[connectionId]
-      );
+
+      return true;
     }
+    return false;
   }
 
   // eslint-disable-next-line complexity
@@ -647,14 +648,23 @@ export default class ConnectionController {
     }
 
     try {
-      await this._connect(connectionId, ConnectionTypes.CONNECTION_ID);
+      const wasOverridden =
+        this._overrideLegacyConnectionStringAppName(connectionId);
 
-      await this._clearLegacyAppNameOverride(connectionId);
+      const result = await this._connect(
+        connectionId,
+        ConnectionTypes.CONNECTION_ID
+      );
 
-      return {
-        successfullyConnected: true,
-        connectionErrorMessage: '',
-      };
+      /** After successfully connecting with an overridden connection
+       *  string, save it to storage for the future. */
+      if (result.successfullyConnected && wasOverridden) {
+        await this._connectionStorage.saveConnection(
+          this._connections[connectionId]
+        );
+      }
+
+      return result;
     } catch (error) {
       log.error('Failed to connect by a connection id', error);
       const printableError = formatError(error);

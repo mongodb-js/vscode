@@ -127,20 +127,34 @@ suite('Connection Controller Test Suite', function () {
       );
       // But the active connection should
       expect(testConnectionController.getActiveConnectionString()).equals(
-        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}-${anonymousId}-${connectionId}`
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}--${anonymousId}--${connectionId}`
       );
     });
 
-    test('should override legacy appended appName', async () => {
+    test('should override legacy appended appName and persist it', async () => {
+      // Simulate legacy behavior of appending vscode appName by manually creating one
       const successfullyConnected =
         await testConnectionController.addNewConnectionStringAndConnect(
           `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`
         );
+
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
-      const connection = testConnectionController._connections[connectionId];
+      let connection = testConnectionController._connections[connectionId];
 
       expect(successfullyConnected).to.be.true;
+
+      await testConnectionController.disconnect();
+
+      // Re-connect to the new connection and let it remove the appName
+      await testConnectionController.connectWithConnectionId(connectionId);
+
+      // Reload connection from storage
+      await testConnectionController.loadSavedConnections();
+      connection = testConnectionController._connections[connectionId];
+      expect(connection.connectionOptions.connectionString).equals(
+        `${TEST_DATABASE_URI}/`
+      );
 
       const anonymousId =
         testConnectionController._connectionStorage.getUserAnonymousId();
@@ -151,26 +165,41 @@ suite('Connection Controller Test Suite', function () {
       );
       // But the active connection should
       expect(testConnectionController.getActiveConnectionString()).equals(
-        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}-${anonymousId}-${connectionId}`
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}--${anonymousId}--${connectionId}`
       );
     });
 
-    test('preserves appName if it is already set', async () => {
+    test('does not override other user-set appName', async () => {
       const successfullyConnected =
         await testConnectionController.addNewConnectionStringAndConnect(
-          `${TEST_DATABASE_URI}/?appName=test-123`
+          `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`
         );
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
-      const connection = testConnectionController._connections[connectionId];
+      let connection = testConnectionController._connections[connectionId];
 
       expect(successfullyConnected).to.be.true;
 
       expect(connection.connectionOptions.connectionString).equals(
-        `${TEST_DATABASE_URI}/?appName=test-123`
+        `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`
       );
       expect(testConnectionController.getActiveConnectionString()).equals(
-        `${TEST_DATABASE_URI}/?appName=test-123`
+        `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`
+      );
+
+      // Reconnect
+      await testConnectionController.disconnect();
+      await testConnectionController.connectWithConnectionId(connectionId);
+
+      // Reload connection from storage
+      await testConnectionController.loadSavedConnections();
+      connection = testConnectionController._connections[connectionId];
+
+      expect(connection.connectionOptions.connectionString).equals(
+        `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`
+      );
+      expect(testConnectionController.getActiveConnectionString()).equals(
+        `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`
       );
     });
 
@@ -196,7 +225,7 @@ suite('Connection Controller Test Suite', function () {
         testConnectionController._connectionStorage.getUserAnonymousId();
 
       expect(mongoClientConnectionOptions).to.deep.equal({
-        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}-${anonymousId}-${latestConnectionId}`,
+        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}--${anonymousId}--${latestConnectionId}`,
         options: {
           autoEncryption: undefined,
           monitorCommands: true,
