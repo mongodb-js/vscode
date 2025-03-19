@@ -1317,7 +1317,7 @@
     "@mongodb-js/compass-components": "^1.34.5",
     "@mongodb-js/connection-form": "1.47.2",
     "@mongodb-js/connection-info": "^0.11.5",
-    "@mongodb-js/mongodb-constants": "^0.10.4",
+    "@mongodb-js/mongodb-constants": "^0.11.0",
     "@mongosh/browser-runtime-electron": "^3.8.0",
     "@mongosh/i18n": "^2.9.1",
     "@mongosh/service-provider-node-driver": "^3.6.0",
