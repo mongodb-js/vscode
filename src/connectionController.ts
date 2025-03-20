@@ -298,7 +298,8 @@ export default class ConnectionController {
   // Resolves false when it is added and not connected.
   // The connection can fail to connect but be successfully added.
   async addNewConnectionStringAndConnect(
-    connectionString: string
+    connectionString: string,
+    reuseExisting = false
   ): Promise<boolean> {
     log.info('Trying to connect to a new connection configuration...');
 
@@ -312,13 +313,23 @@ export default class ConnectionController {
     );
 
     try {
-      const connectResult = await this.saveNewConnectionAndConnect({
-        connectionId: uuidv4(),
-        connectionOptions: {
-          connectionString: connectionStringData.toString(),
-        },
-        connectionType: ConnectionTypes.CONNECTION_STRING,
-      });
+      let existingId: string | undefined;
+      if (reuseExisting) {
+        existingId = this.getSavedConnections().find(
+          (connection) =>
+            connection.connectionOptions?.connectionString === connectionString
+        )?.id;
+      }
+
+      const connectResult = await (existingId
+        ? this.connectWithConnectionId(existingId)
+        : this.saveNewConnectionAndConnect({
+            connectionId: uuidv4(),
+            connectionOptions: {
+              connectionString: connectionStringData.toString(),
+            },
+            connectionType: ConnectionTypes.CONNECTION_STRING,
+          }));
 
       return connectResult.successfullyConnected;
     } catch (error) {

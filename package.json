@@ -81,7 +81,8 @@
     "onChatParticipant:mongodb.participant",
     "onLanguage:json",
     "onLanguage:javascript",
-    "onLanguage:plaintext"
+    "onLanguage:plaintext",
+    "onUri"
   ],
   "contributes": {
     "chatParticipants": [

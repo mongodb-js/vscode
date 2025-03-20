@@ -187,6 +187,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
     this.subscribeToConfigurationChanges();
+    this.registerUriHandler();
 
     const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
     void vscode.commands.executeCommand(
@@ -210,6 +211,27 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
   }
 
+  registerUriHandler = (): void => {
+    vscode.window.registerUriHandler({
+      handleUri: async (uri: vscode.Uri): Promise<void> => {
+        const command = uri.path.replace(/^\//, '');
+        const parameters = uri.query.split('&').reduce((acc, param) => {
+          const [key, value] = param.split('=');
+          acc[key] = value;
+          return acc;
+        }, {} as Record<string, string>);
+
+        try {
+          await vscode.commands.executeCommand(command, parameters);
+        } catch (error) {
+          await vscode.window.showErrorMessage(
+            `Failed to handle '${uri}': ${error}`
+          );
+        }
+      },
+    });
+  };
+
   registerCommands = (): void => {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
@@ -222,6 +244,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._webviewController.openWebview(this._context);
       return Promise.resolve(true);
     });
+    this.registerCommand(
+      EXTENSION_COMMANDS.MDB_CONNECT_WITH_CONNECTION_STRING,
+      ({ connectionString, reuseExisting }) =>
+        this._connectionController.addNewConnectionStringAndConnect(
+          connectionString,
+          reuseExisting
+        )
+    );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, () =>
       this._connectionController.connectWithURI()
     );

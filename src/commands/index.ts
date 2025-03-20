@@ -1,6 +1,7 @@
 enum EXTENSION_COMMANDS {
   MDB_CONNECT = 'mdb.connect',
   MDB_CONNECT_WITH_URI = 'mdb.connectWithURI',
+  MDB_CONNECT_WITH_CONNECTION_STRING = 'mdb.connectWithConnectionString',
   MDB_OPEN_OVERVIEW_PAGE = 'mdb.openOverviewPage',
   MDB_DISCONNECT = 'mdb.disconnect',
   MDB_REMOVE_CONNECTION = 'mdb.removeConnection',
