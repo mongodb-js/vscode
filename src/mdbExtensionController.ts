@@ -215,11 +215,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     vscode.window.registerUriHandler({
       handleUri: async (uri: vscode.Uri): Promise<void> => {
         const command = uri.path.replace(/^\//, '');
-        const parameters = uri.query.split('&').reduce((acc, param) => {
-          const [key, value] = param.split('=');
-          acc[key] = value;
-          return acc;
-        }, {} as Record<string, string>);
+        const parameters = Object.fromEntries(new URLSearchParams(uri.query));
 
         try {
           if (
