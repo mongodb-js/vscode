@@ -324,4 +324,8 @@ export class ConnectionStorage {
 
     return StorageLocation.NONE;
   }
+
+  getUserAnonymousId(): string {
+    return this._storageController.getUserIdentity().anonymousId;
+  }
 }
