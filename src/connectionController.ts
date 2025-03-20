@@ -242,16 +242,17 @@ export default class ConnectionController {
     })); */
   }
 
-  async connectWithURI(): Promise<boolean> {
-    let connectionString: string | undefined;
-
+  async connectWithURI(
+    connectionString?: string,
+    reuseExisting = false
+  ): Promise<boolean> {
     log.info('connectWithURI command called');
 
     const cancellationToken = new vscode.CancellationTokenSource();
     this._connectionStringInputCancellationToken = cancellationToken;
 
     try {
-      connectionString = await vscode.window.showInputBox(
+      connectionString ??= await vscode.window.showInputBox(
         {
           value: '',
           ignoreFocusOut: true,
@@ -291,7 +292,10 @@ export default class ConnectionController {
       return false;
     }
 
-    return this.addNewConnectionStringAndConnect(connectionString);
+    return this.addNewConnectionStringAndConnect(
+      connectionString,
+      reuseExisting
+    );
   }
 
   // Resolves the new connection id when the connection is successfully added.

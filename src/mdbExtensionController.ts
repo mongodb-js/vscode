@@ -222,6 +222,15 @@ export default class MDBExtensionController implements vscode.Disposable {
         }, {} as Record<string, string>);
 
         try {
+          if (
+            !Object.values(EXTENSION_COMMANDS).includes(
+              command as EXTENSION_COMMANDS
+            )
+          ) {
+            throw new Error(
+              `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`
+            );
+          }
           await vscode.commands.executeCommand(command, parameters);
         } catch (error) {
           await vscode.window.showErrorMessage(
@@ -244,17 +253,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._webviewController.openWebview(this._context);
       return Promise.resolve(true);
     });
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CONNECT_WITH_CONNECTION_STRING,
-      ({ connectionString, reuseExisting }) =>
-        this._connectionController.addNewConnectionStringAndConnect(
-          connectionString,
-          reuseExisting
-        )
-    );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, () =>
-      this._connectionController.connectWithURI()
-    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, (params) => {
+      return this._connectionController.connectWithURI(
+        params?.connectionString,
+        params?.reuseExisting || false
+      );
+    });
     this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT, () =>
       this._connectionController.disconnect()
     );
