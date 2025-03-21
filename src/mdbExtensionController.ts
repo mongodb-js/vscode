@@ -56,6 +56,8 @@ import {
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
+import queryString from 'query-string';
+
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
 export default class MDBExtensionController implements vscode.Disposable {
@@ -215,7 +217,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     vscode.window.registerUriHandler({
       handleUri: async (uri: vscode.Uri): Promise<void> => {
         const command = uri.path.replace(/^\//, '');
-        const parameters = Object.fromEntries(new URLSearchParams(uri.query));
+        const parameters = queryString.parse(uri.query, {
+          parseBooleans: true,
+          parseNumbers: true,
+        });
 
         try {
           if (
@@ -250,16 +255,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       return Promise.resolve(true);
     });
     this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, (params) => {
-      return this._connectionController.connectWithURI(
-        params?.connectionString,
-        params?.reuseExisting || false
-      );
+      return this._connectionController.connectWithURI(params);
     });
     this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT, () =>
       this._connectionController.disconnect()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION, () =>
-      this._connectionController.onRemoveMongoDBConnection()
+    this.registerCommand(EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION, (params) =>
+      this._connectionController.onRemoveMongoDBConnection(params)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
       this._connectionController.changeActiveConnection()

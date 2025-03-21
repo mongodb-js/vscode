@@ -31,6 +31,7 @@ import { isAtlasStream } from 'mongodb-build-info';
 import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
 import getBuildInfo from 'mongodb-build-info';
+import type { RequiredBy } from './utils/types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -72,6 +73,12 @@ type RecursivePartial<T> = {
     ? RecursivePartial<T[P]>
     : T[P];
 };
+
+interface NewConnectionParams {
+  connectionString?: string;
+  name?: string;
+  reuseExisting?: boolean;
+}
 
 function isOIDCAuth(connectionString: string): boolean {
   const authMechanismString = (
@@ -243,10 +250,11 @@ export default class ConnectionController {
     })); */
   }
 
-  async connectWithURI(
-    connectionString?: string,
-    reuseExisting = false
-  ): Promise<boolean> {
+  async connectWithURI({
+    connectionString,
+    reuseExisting,
+    name,
+  }: NewConnectionParams = {}): Promise<boolean> {
     log.info('connectWithURI command called');
 
     const cancellationToken = new vscode.CancellationTokenSource();
@@ -293,19 +301,21 @@ export default class ConnectionController {
       return false;
     }
 
-    return this.addNewConnectionStringAndConnect(
+    return this.addNewConnectionStringAndConnect({
       connectionString,
-      reuseExisting
-    );
+      reuseExisting,
+      name,
+    });
   }
 
   // Resolves the new connection id when the connection is successfully added.
   // Resolves false when it is added and not connected.
   // The connection can fail to connect but be successfully added.
-  async addNewConnectionStringAndConnect(
-    connectionString: string,
-    reuseExisting = false
-  ): Promise<boolean> {
+  async addNewConnectionStringAndConnect({
+    connectionString,
+    reuseExisting,
+    name,
+  }: RequiredBy<NewConnectionParams, 'connectionString'>): Promise<boolean> {
     log.info('Trying to connect to a new connection configuration...');
 
     const connectionStringData = new ConnectionString(connectionString);
@@ -313,10 +323,7 @@ export default class ConnectionController {
     try {
       let existingId: string | undefined;
       if (reuseExisting) {
-        existingId = this.getSavedConnections().find(
-          (connection) =>
-            connection.connectionOptions?.connectionString === connectionString
-        )?.id;
+        existingId = this._findConnectionIdByConnectionString(connectionString);
       }
 
       const connectResult = await (existingId
@@ -327,6 +334,7 @@ export default class ConnectionController {
               connectionString: connectionStringData.toString(),
             },
             connectionType: ConnectionTypes.CONNECTION_STRING,
+            name,
           }));
 
       return connectResult.successfullyConnected;
@@ -354,14 +362,17 @@ export default class ConnectionController {
     connectionOptions,
     connectionId,
     connectionType,
+    name,
   }: {
     connectionOptions: ConnectionOptions;
     connectionId: string;
     connectionType: ConnectionTypes;
+    name?: string;
   }): Promise<ConnectionAttemptResult> {
     const connection = this._connectionStorage.createNewConnection({
       connectionId,
       connectionOptions,
+      name,
     });
 
     await this._connectionStorage.saveConnection(connection);
@@ -587,6 +598,15 @@ export default class ConnectionController {
     }
   }
 
+  _findConnectionIdByConnectionString(
+    connectionString: string
+  ): string | undefined {
+    return this.getSavedConnections().find(
+      (connection) =>
+        connection.connectionOptions?.connectionString === connectionString
+    )?.id;
+  }
+
   private async onConnectSuccess({
     connectionInfo,
     dataService,
@@ -759,23 +779,29 @@ export default class ConnectionController {
   }
 
   // Prompts the user to remove the connection then removes it on affirmation.
-  async removeMongoDBConnection(connectionId: string): Promise<boolean> {
-    if (!this._connections[connectionId]) {
+  async removeMongoDBConnection(
+    connectionId: string,
+    promptForRemove = true
+  ): Promise<boolean> {
+    const connection = this._connections[connectionId];
+    if (!connection) {
       // No active connection(s) to remove.
       void vscode.window.showErrorMessage('Connection does not exist.');
 
       return false;
     }
 
-    const removeConfirmationResponse =
-      await vscode.window.showInformationMessage(
-        `Are you sure to want to remove connection ${this._connections[connectionId].name}?`,
-        { modal: true },
-        'Yes'
-      );
+    if (promptForRemove) {
+      const removeConfirmationResponse =
+        await vscode.window.showInformationMessage(
+          `Are you sure to want to remove connection ${connection.name}?`,
+          { modal: true },
+          'Yes'
+        );
 
-    if (removeConfirmationResponse !== 'Yes') {
-      return false;
+      if (removeConfirmationResponse !== 'Yes') {
+        return false;
+      }
     }
 
     if (this._activeDataService && connectionId === this._currentConnectionId) {
@@ -789,57 +815,78 @@ export default class ConnectionController {
 
     await this.removeSavedConnection(connectionId);
 
-    void vscode.window.showInformationMessage('MongoDB connection removed.');
+    void vscode.window.showInformationMessage(
+      `MongoDB connection '${connection.name}' removed.`
+    );
 
     return true;
   }
 
-  async onRemoveMongoDBConnection(): Promise<boolean> {
+  async onRemoveMongoDBConnection({
+    connectionString,
+    promptForRemove = true,
+  }: {
+    connectionString?: string;
+    promptForRemove?: boolean;
+  } = {}): Promise<boolean> {
     log.info('mdb.removeConnection command called');
 
-    const connectionIds = Object.entries(this._connections)
-      .map(([id, connection]) => {
-        return { id, connection };
-      })
-      .filter(
-        ({ connection }) =>
-          connection.source !== 'globalSettings' &&
-          connection.source !== 'workspaceSettings'
-      );
+    let connectionIdToRemove: string;
+    if (connectionString) {
+      const connectionId =
+        this._findConnectionIdByConnectionString(connectionString);
 
-    if (connectionIds.length === 0) {
-      // No active connection(s) to remove.
-      void vscode.window.showErrorMessage('No connections to remove.');
+      if (!connectionId) {
+        // No connection to remove, so just return silently.
+        return false;
+      }
 
-      return false;
-    }
+      connectionIdToRemove = connectionId;
+    } else {
+      const connectionIds = Object.entries(this._connections)
+        .map(([id, connection]) => {
+          return { id, connection };
+        })
+        .filter(
+          ({ connection }) =>
+            connection.source !== 'globalSettings' &&
+            connection.source !== 'workspaceSettings'
+        );
 
-    if (connectionIds.length === 1) {
-      return this.removeMongoDBConnection(connectionIds[0].id);
-    }
+      if (connectionIds.length === 0) {
+        // No active connection(s) to remove.
+        void vscode.window.showErrorMessage('No connections to remove.');
 
-    // There is more than 1 possible connection to remove.
-    // We attach the index of the connection so that we can infer their pick.
-    const connectionNameToRemove: string | undefined =
-      await vscode.window.showQuickPick(
-        connectionIds.map(
-          ({ connection }, index) => `${index + 1}: ${connection.name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...',
+        return false;
+      }
+
+      if (connectionIds.length === 1) {
+        connectionIdToRemove = connectionIds[0].id;
+      } else {
+        // There is more than 1 possible connection to remove.
+        // We attach the index of the connection so that we can infer their pick.
+        const connectionNameToRemove: string | undefined =
+          await vscode.window.showQuickPick(
+            connectionIds.map(
+              ({ connection }, index) => `${index + 1}: ${connection.name}`
+            ),
+            {
+              placeHolder: 'Choose a connection to remove...',
+            }
+          );
+
+        if (!connectionNameToRemove) {
+          return false;
         }
-      );
 
-    if (!connectionNameToRemove) {
-      return false;
+        // We attach the index of the connection so that we can infer their pick.
+        const connectionIndexToRemove =
+          Number(connectionNameToRemove.split(':', 1)[0]) - 1;
+        connectionIdToRemove = connectionIds[connectionIndexToRemove].id;
+      }
     }
 
-    // We attach the index of the connection so that we can infer their pick.
-    const connectionIndexToRemove =
-      Number(connectionNameToRemove.split(':', 1)[0]) - 1;
-    const connectionIdToRemove = connectionIds[connectionIndexToRemove].id;
-
-    return this.removeMongoDBConnection(connectionIdToRemove);
+    return this.removeMongoDBConnection(connectionIdToRemove, promptForRemove);
   }
 
   async updateConnection({

@@ -710,9 +710,9 @@ suite('MDBExtensionController Test Suite', function () {
     test.skip('mdb.dropCollection fails when a collection does not exist', async () => {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
-      await testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: testDatabaseURI,
+      });
 
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
@@ -802,9 +802,9 @@ suite('MDBExtensionController Test Suite', function () {
     test('mdb.dropDatabase succeeds even when a database doesnt exist (mdb behavior)', async () => {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
-      await testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: testDatabaseURI,
+      });
 
       const testDatabaseTreeItem = getTestDatabaseTreeItem({
         databaseName: 'narnia____a',

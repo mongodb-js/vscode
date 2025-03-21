@@ -188,9 +188,9 @@ suite('OIDC Tests', function () {
 
   test('can successfully connect with a connection string', async function () {
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      });
     expect(succesfullyConnected).to.be.true;
 
     await launchMongoShell(testConnectionController);
@@ -230,9 +230,9 @@ suite('OIDC Tests', function () {
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      })
     ).to.be.true;
 
     const connectionId = testConnectionController.getActiveConnectionId();
@@ -262,9 +262,9 @@ suite('OIDC Tests', function () {
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      })
     ).to.be.true;
 
     const connectionId = testConnectionController.getActiveConnectionId();
@@ -300,7 +300,7 @@ suite('OIDC Tests', function () {
     };
 
     testConnectionController
-      .addNewConnectionStringAndConnect(connectionString)
+      .addNewConnectionStringAndConnect({ connectionString })
       .catch(() => {
         // ignored
       });
@@ -308,9 +308,9 @@ suite('OIDC Tests', function () {
     await once(emitter, 'authorizeEndpointCalled');
     overrideRequestHandler = (): void => {};
     const connected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      });
     emitter.emit('secondConnectionEstablished');
     expect(connected).to.be.true;
   });
@@ -346,9 +346,9 @@ suite('OIDC Tests', function () {
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      })
     ).to.be.true;
     afterReauth = true;
 
@@ -395,9 +395,9 @@ suite('OIDC Tests', function () {
     };
 
     const isConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      });
 
     expect(isConnected).to.be.true;
 
@@ -433,9 +433,9 @@ suite('OIDC Tests', function () {
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      })
     ).to.be.true;
 
     await vscode.commands.executeCommand('mdb.createPlayground');
