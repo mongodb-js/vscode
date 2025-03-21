@@ -56,7 +56,7 @@ import {
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
-import queryString from 'query-string';
+import * as queryString from 'query-string';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
