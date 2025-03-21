@@ -312,10 +312,9 @@ suite('MDBExtensionController Test Suite', function () {
         testTreeItem
       );
       assert.strictEqual(fakeRemoveMongoDBConnection.calledOnce, true);
-      assert.strictEqual(
-        fakeRemoveMongoDBConnection.firstCall.args[0],
-        'craving_for_pancakes_with_maple_syrup'
-      );
+      assert.deepStrictEqual(fakeRemoveMongoDBConnection.firstCall.args[0], {
+        connectionId: 'craving_for_pancakes_with_maple_syrup',
+      });
     });
 
     test('mdb.copyConnectionString command should try to copy the driver url to the vscode env clipboard', async () => {

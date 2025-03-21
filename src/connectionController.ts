@@ -779,10 +779,13 @@ export default class ConnectionController {
   }
 
   // Prompts the user to remove the connection then removes it on affirmation.
-  async removeMongoDBConnection(
-    connectionId: string,
-    promptForRemove = true
-  ): Promise<boolean> {
+  async removeMongoDBConnection({
+    connectionId,
+    force = false,
+  }: {
+    connectionId: string;
+    force?: boolean;
+  }): Promise<boolean> {
     const connection = this._connections[connectionId];
     if (!connection) {
       // No active connection(s) to remove.
@@ -791,7 +794,7 @@ export default class ConnectionController {
       return false;
     }
 
-    if (promptForRemove) {
+    if (!force) {
       const removeConfirmationResponse =
         await vscode.window.showInformationMessage(
           `Are you sure to want to remove connection ${connection.name}?`,
@@ -824,10 +827,10 @@ export default class ConnectionController {
 
   async onRemoveMongoDBConnection({
     connectionString,
-    promptForRemove = true,
+    force = false,
   }: {
     connectionString?: string;
-    promptForRemove?: boolean;
+    force?: boolean;
   } = {}): Promise<boolean> {
     log.info('mdb.removeConnection command called');
 
@@ -886,7 +889,10 @@ export default class ConnectionController {
       }
     }
 
-    return this.removeMongoDBConnection(connectionIdToRemove, promptForRemove);
+    return this.removeMongoDBConnection({
+      connectionId: connectionIdToRemove,
+      force,
+    });
   }
 
   async updateConnection({
