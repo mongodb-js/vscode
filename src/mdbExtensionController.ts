@@ -216,7 +216,11 @@ export default class MDBExtensionController implements vscode.Disposable {
   registerUriHandler = (): void => {
     vscode.window.registerUriHandler({
       handleUri: async (uri: vscode.Uri): Promise<void> => {
-        const command = uri.path.replace(/^\//, '');
+        let command = uri.path.replace(/^\//, '');
+        if (!command.startsWith('mdb.')) {
+          command = `mdb.${command}`;
+        }
+
         const parameters = queryString.parse(uri.query, {
           parseBooleans: true,
           parseNumbers: true,
