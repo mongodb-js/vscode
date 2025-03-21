@@ -98,9 +98,9 @@ suite('Explorer Controller Test Suite', function () {
     const treeController = testExplorerController.getTreeController();
 
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     assert(
       succesfullyConnected === true,
@@ -144,9 +144,9 @@ suite('Explorer Controller Test Suite', function () {
     const treeController = testExplorerController.getTreeController();
 
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     assert(
       succesfullyConnected === true,
@@ -168,9 +168,9 @@ suite('Explorer Controller Test Suite', function () {
     assert(connectionsItemsFirstConnect[0].isExpanded);
 
     try {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI2WithTimeout
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: testDatabaseURI2WithTimeout,
+      });
     } catch (error) {
       /* Silent fail (should fail) */
     }
@@ -202,9 +202,9 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const connectionId = testConnectionController.getActiveConnectionId() || '';
 
@@ -258,9 +258,9 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const connectionsItems = await treeController.getChildren();
     const databaseItems = await connectionsItems[0].getChildren();
@@ -282,9 +282,9 @@ suite('Explorer Controller Test Suite', function () {
       mdbTestExtension.testExtensionController._explorerController;
     const treeController = testExplorerController.getTreeController();
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const connectionsItems = await treeController.getChildren();
 
@@ -355,9 +355,9 @@ suite('Explorer Controller Test Suite', function () {
 
     sandbox.replace(vscode.window, 'createTreeView', vscodeCreateTreeViewStub);
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await testConnectionController.disconnect();
 
     assert(vscodeCreateTreeViewStub.called);

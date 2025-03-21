@@ -44,7 +44,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       );
 
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
+        { connectionString: TEST_DATABASE_URI }
       );
 
       const testExportToLanguageCodeLensProvider =

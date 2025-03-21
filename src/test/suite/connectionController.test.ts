@@ -81,9 +81,9 @@ suite('Connection Controller Test Suite', function () {
 
   test('it connects to mongodb', async () => {
     const successfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
     const connectionId = testConnectionController.getActiveConnectionId() || '';
     const name = testConnectionController._connections[connectionId].name;
     const dataService = testConnectionController.getActiveDataService();
@@ -104,9 +104,9 @@ suite('Connection Controller Test Suite', function () {
 
     test('should append appName with connection and anonymous id', async () => {
       const successfullyConnected =
-        await testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        });
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
       const connection = testConnectionController._connections[connectionId];
@@ -134,9 +134,9 @@ suite('Connection Controller Test Suite', function () {
     test('should override legacy appended appName and persist it', async () => {
       // Simulate legacy behavior of appending vscode appName by manually creating one
       const successfullyConnected =
-        await testConnectionController.addNewConnectionStringAndConnect(
-          `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`,
+        });
 
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
@@ -171,9 +171,9 @@ suite('Connection Controller Test Suite', function () {
 
     test('does not override other user-set appName', async () => {
       const successfullyConnected =
-        await testConnectionController.addNewConnectionStringAndConnect(
-          `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`,
+        });
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
       let connection = testConnectionController._connections[connectionId];
@@ -204,9 +204,9 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('getMongoClientConnectionOptions appends anonymous and connection ID and options properties', async function () {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        `${TEST_DATABASE_URI}`
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
       const mongoClientConnectionOptions =
         testConnectionController.getMongoClientConnectionOptions();
@@ -242,9 +242,9 @@ suite('Connection Controller Test Suite', function () {
 
   test('"disconnect()" disconnects from the active connection', async () => {
     const successfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(successfullyConnected).to.be.true;
     expect(testConnectionController.getConnectionStatus()).to.equal(
@@ -328,16 +328,16 @@ suite('Connection Controller Test Suite', function () {
 
   test('when adding a new connection it disconnects from the current connection', async () => {
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(succesfullyConnected).to.be.true;
 
     try {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI2WithTimeout
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: testDatabaseURI2WithTimeout,
+      });
     } catch (error) {
       const expectedError = 'Failed to connect';
 
@@ -349,9 +349,9 @@ suite('Connection Controller Test Suite', function () {
 
   test('when adding a new connection it sets the connection controller as connecting while it disconnects from the current connection', async () => {
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(succesfullyConnected).to.be.true;
 
@@ -363,9 +363,9 @@ suite('Connection Controller Test Suite', function () {
     });
 
     const succesfullyConnected2 =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(succesfullyConnected2).to.be.true;
     expect(wasSetToConnectingWhenDisconnecting).to.be.true;
@@ -385,9 +385,9 @@ suite('Connection Controller Test Suite', function () {
       }
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     testConnectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
@@ -412,9 +412,9 @@ suite('Connection Controller Test Suite', function () {
       }
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await testConnectionController.disconnect();
 
     testConnectionController.removeEventListener(
@@ -446,9 +446,9 @@ suite('Connection Controller Test Suite', function () {
     };
 
     // Should persist as this is a saved connection.
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     await testConnectionController.loadSavedConnections();
 
@@ -460,24 +460,24 @@ suite('Connection Controller Test Suite', function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
     await testConnectionController.loadSavedConnections();
@@ -499,9 +499,9 @@ suite('Connection Controller Test Suite', function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -531,9 +531,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -582,9 +582,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -618,9 +618,9 @@ suite('Connection Controller Test Suite', function () {
     const expectedDriverUrl = 'mongodb://localhost:27088/';
 
     await testConnectionController.loadSavedConnections();
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const activeConnectionId = testConnectionController.getActiveConnectionId();
 
@@ -644,9 +644,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations['Session Only']
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const objectString = JSON.stringify(undefined);
     const globalStoreConnections = testStorageController.get(
@@ -705,9 +705,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -735,9 +735,9 @@ suite('Connection Controller Test Suite', function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -764,9 +764,9 @@ suite('Connection Controller Test Suite', function () {
       'deleteSecret'
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI_USER
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI_USER,
+    });
 
     const [connection] = testConnectionController.getSavedConnections();
     await testConnectionController.removeSavedConnection(connection.id);
@@ -781,9 +781,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -830,9 +830,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -906,12 +906,12 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await testConnectionController.disconnect();
 
     testConnectionController.clearAllConnections();
@@ -951,12 +951,12 @@ suite('Connection Controller Test Suite', function () {
   suite('connecting to a new connection when already connecting', () => {
     test('connects to the new connection', async () => {
       await Promise.all([
-        testConnectionController.addNewConnectionStringAndConnect(
-          testDatabaseURI2WithTimeout
-        ),
-        testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI
-        ),
+        testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: testDatabaseURI2WithTimeout,
+        }),
+        testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        }),
       ]);
 
       expect(testConnectionController.isConnecting()).to.be.false;
@@ -1000,9 +1000,9 @@ suite('Connection Controller Test Suite', function () {
 
   suite('when connected', function () {
     beforeEach(async function () {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
     });
 
     test('two disconnects on one connection at once complete without erroring', (done) => {
@@ -1122,9 +1122,9 @@ suite('Connection Controller Test Suite', function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI_USER
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI_USER,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS
@@ -1150,9 +1150,9 @@ suite('Connection Controller Test Suite', function () {
   });
 
   test('getMongoClientConnectionOptions returns url and options properties', async () => {
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const mongoClientConnectionOptions =
       testConnectionController.getMongoClientConnectionOptions();
@@ -1218,12 +1218,12 @@ suite('Connection Controller Test Suite', function () {
       });
 
       test('should be able to load connection with its secrets', async () => {
-        await testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI
-        );
-        await testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI_USER
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        });
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+        });
 
         // By default the connection secrets are already stored in SecretStorage
         const savedConnections = testConnectionController.getSavedConnections();
@@ -1252,9 +1252,9 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('should fire a CONNECTIONS_DID_CHANGE event if connections are loaded successfully', async () => {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI_USER
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI_USER,
+      });
 
       await testConnectionController.disconnect();
       testConnectionController.clearAllConnections();

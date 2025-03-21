@@ -356,9 +356,9 @@ suite('Webview Test Suite', () => {
       },
     });
 
-    void testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    void testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
   });
 
   test('web view runs the "connectWithURI" command when open connection string input is received', async () => {
@@ -455,7 +455,7 @@ suite('Webview Test Suite', () => {
     );
 
     void testConnectionController
-      .addNewConnectionStringAndConnect(TEST_DATABASE_URI)
+      .addNewConnectionStringAndConnect({ connectionString: TEST_DATABASE_URI })
       .then(() => {
         // Mock a connection status request call.
         messageReceived({
@@ -492,9 +492,9 @@ suite('Webview Test Suite', () => {
       mdbTestExtension.extensionContextStub
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     // Mock a connection status request call.
     messageReceived({
