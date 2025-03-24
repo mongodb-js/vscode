@@ -324,7 +324,7 @@ suite('Connection Controller Test Suite', function () {
     test('when connection does not exist, shows error', async () => {
       const didRemove =
         await testConnectionController.onRemoveMongoDBConnection({
-          connectionId: 'abc',
+          id: 'abc',
         });
       expect(didRemove).to.be.false;
       expect(showErrorMessageStub).to.be.calledOnceWith(
@@ -338,7 +338,7 @@ suite('Connection Controller Test Suite', function () {
 
       const didRemove =
         await testConnectionController.onRemoveMongoDBConnection({
-          connectionId: '1234',
+          id: '1234',
         });
 
       expect(didRemove).to.be.false;
@@ -354,7 +354,7 @@ suite('Connection Controller Test Suite', function () {
 
       const didRemove =
         await testConnectionController.onRemoveMongoDBConnection({
-          connectionId: '1234',
+          id: '1234',
           force: true,
         });
 
@@ -367,7 +367,7 @@ suite('Connection Controller Test Suite', function () {
 
       const didRemove =
         await testConnectionController.onRemoveMongoDBConnection({
-          connectionName: 'bar',
+          name: 'bar',
           force: true,
         });
 
@@ -380,7 +380,7 @@ suite('Connection Controller Test Suite', function () {
 
       const didRemove =
         await testConnectionController.onRemoveMongoDBConnection({
-          connectionName: 'foo',
+          name: 'foo',
           force: true,
         });
 
@@ -395,7 +395,7 @@ suite('Connection Controller Test Suite', function () {
 
       const didRemove =
         await testConnectionController.onRemoveMongoDBConnection({
-          connectionName: 'bar',
+          name: 'bar',
           force: true,
         });
 

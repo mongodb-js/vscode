@@ -560,7 +560,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
       (element: ConnectionTreeItem) =>
         this._connectionController.onRemoveMongoDBConnection({
-          connectionId: element.connectionId,
+          id: element.connectionId,
         })
     );
     this.registerCommand(

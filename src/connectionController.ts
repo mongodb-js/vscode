@@ -832,8 +832,8 @@ export default class ConnectionController {
   async onRemoveMongoDBConnection(
     options: (
       | { connectionString: string }
-      | { connectionName: string }
-      | { connectionId: string }
+      | { name: string }
+      | { id: string }
       | {}
     ) & {
       force?: boolean;
@@ -842,8 +842,8 @@ export default class ConnectionController {
     log.info('mdb.removeConnection command called');
 
     let connectionIdToRemove: string;
-    if ('connectionId' in options) {
-      connectionIdToRemove = options.connectionId;
+    if ('id' in options) {
+      connectionIdToRemove = options.id;
     } else if ('connectionString' in options) {
       const connectionId = this._findConnectionIdByConnectionString(
         options.connectionString
@@ -855,9 +855,9 @@ export default class ConnectionController {
       }
 
       connectionIdToRemove = connectionId;
-    } else if ('connectionName' in options) {
+    } else if ('name' in options) {
       const connectionId = this.getConnectionsFromHistory().find(
-        (connection) => connection.name === options.connectionName
+        (connection) => connection.name === options.name
       )?.id;
       if (!connectionId) {
         // No connection to remove, so just return silently.
