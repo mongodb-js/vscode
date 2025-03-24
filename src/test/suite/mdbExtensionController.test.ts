@@ -315,6 +315,7 @@ suite('MDBExtensionController Test Suite', function () {
       assert.strictEqual(fakeRemoveMongoDBConnection.calledOnce, true);
       assert.deepStrictEqual(fakeRemoveMongoDBConnection.firstCall.args[0], {
         connectionId: 'craving_for_pancakes_with_maple_syrup',
+        force: undefined,
       });
     });
 
