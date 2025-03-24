@@ -215,35 +215,37 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   registerUriHandler = (): void => {
     vscode.window.registerUriHandler({
-      handleUri: async (uri: vscode.Uri): Promise<void> => {
-        let command = uri.path.replace(/^\//, '');
-        if (!command.startsWith('mdb.')) {
-          command = `mdb.${command}`;
-        }
-
-        const parameters = queryString.parse(uri.query, {
-          parseBooleans: true,
-          parseNumbers: true,
-        });
-
-        try {
-          if (
-            !Object.values(EXTENSION_COMMANDS).includes(
-              command as EXTENSION_COMMANDS
-            )
-          ) {
-            throw new Error(
-              `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`
-            );
-          }
-          await vscode.commands.executeCommand(command, parameters);
-        } catch (error) {
-          await vscode.window.showErrorMessage(
-            `Failed to handle '${uri}': ${error}`
-          );
-        }
-      },
+      handleUri: this._handleDeepLink,
     });
+  };
+
+  _handleDeepLink = async (uri: vscode.Uri): Promise<void> => {
+    let command = uri.path.replace(/^\//, '');
+    if (!command.startsWith('mdb.')) {
+      command = `mdb.${command}`;
+    }
+
+    const parameters = queryString.parse(uri.query, {
+      parseBooleans: true,
+      parseNumbers: true,
+    });
+
+    try {
+      if (
+        !Object.values(EXTENSION_COMMANDS).includes(
+          command as EXTENSION_COMMANDS
+        )
+      ) {
+        throw new Error(
+          `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`
+        );
+      }
+      await vscode.commands.executeCommand(command, parameters);
+    } catch (error) {
+      await vscode.window.showErrorMessage(
+        `Failed to handle '${uri}': ${error}`
+      );
+    }
   };
 
   registerCommands = (): void => {
@@ -557,7 +559,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
       (element: ConnectionTreeItem) =>
-        this._connectionController.removeMongoDBConnection({
+        this._connectionController.onRemoveMongoDBConnection({
           connectionId: element.connectionId,
         })
     );

@@ -303,7 +303,7 @@ export default class ConnectionController {
 
     return this.addNewConnectionStringAndConnect({
       connectionString,
-      reuseExisting,
+      reuseExisting: reuseExisting ?? false,
       name,
     });
   }
@@ -601,9 +601,13 @@ export default class ConnectionController {
   _findConnectionIdByConnectionString(
     connectionString: string
   ): string | undefined {
-    return this.getSavedConnections().find(
-      (connection) =>
-        connection.connectionOptions?.connectionString === connectionString
+    const searchStrings = [connectionString];
+    if (!connectionString.endsWith('/')) {
+      searchStrings.push(`${connectionString}/`);
+    }
+
+    return this.getConnectionsFromHistory().find((connection) =>
+      searchStrings.includes(connection.connectionOptions?.connectionString)
     )?.id;
   }
 
@@ -779,7 +783,7 @@ export default class ConnectionController {
   }
 
   // Prompts the user to remove the connection then removes it on affirmation.
-  async removeMongoDBConnection({
+  async _removeMongoDBConnection({
     connectionId,
     force = false,
   }: {
@@ -825,19 +829,25 @@ export default class ConnectionController {
     return true;
   }
 
-  async onRemoveMongoDBConnection({
-    connectionString,
-    force = false,
-  }: {
-    connectionString?: string;
-    force?: boolean;
-  } = {}): Promise<boolean> {
+  async onRemoveMongoDBConnection(
+    options: (
+      | { connectionString: string }
+      | { connectionName: string }
+      | { connectionId: string }
+      | {}
+    ) & {
+      force?: boolean;
+    } = {}
+  ): Promise<boolean> {
     log.info('mdb.removeConnection command called');
 
     let connectionIdToRemove: string;
-    if (connectionString) {
-      const connectionId =
-        this._findConnectionIdByConnectionString(connectionString);
+    if ('connectionId' in options) {
+      connectionIdToRemove = options.connectionId;
+    } else if ('connectionString' in options) {
+      const connectionId = this._findConnectionIdByConnectionString(
+        options.connectionString
+      );
 
       if (!connectionId) {
         // No connection to remove, so just return silently.
@@ -845,16 +855,18 @@ export default class ConnectionController {
       }
 
       connectionIdToRemove = connectionId;
+    } else if ('connectionName' in options) {
+      const connectionId = this.getConnectionsFromHistory().find(
+        (connection) => connection.name === options.connectionName
+      )?.id;
+      if (!connectionId) {
+        // No connection to remove, so just return silently.
+        return false;
+      }
+
+      connectionIdToRemove = connectionId;
     } else {
-      const connectionIds = Object.entries(this._connections)
-        .map(([id, connection]) => {
-          return { id, connection };
-        })
-        .filter(
-          ({ connection }) =>
-            connection.source !== 'globalSettings' &&
-            connection.source !== 'workspaceSettings'
-        );
+      const connectionIds = this.getConnectionsFromHistory();
 
       if (connectionIds.length === 0) {
         // No active connection(s) to remove.
@@ -871,7 +883,7 @@ export default class ConnectionController {
         const connectionNameToRemove: string | undefined =
           await vscode.window.showQuickPick(
             connectionIds.map(
-              ({ connection }, index) => `${index + 1}: ${connection.name}`
+              (connection, index) => `${index + 1}: ${connection.name}`
             ),
             {
               placeHolder: 'Choose a connection to remove...',
@@ -889,9 +901,9 @@ export default class ConnectionController {
       }
     }
 
-    return this.removeMongoDBConnection({
+    return this._removeMongoDBConnection({
       connectionId: connectionIdToRemove,
-      force,
+      force: options.force,
     });
   }
 
@@ -1005,6 +1017,15 @@ export default class ConnectionController {
 
   getSavedConnections(): LoadedConnection[] {
     return Object.values(this._connections);
+  }
+
+  private getConnectionsFromHistory(): LoadedConnection[] {
+    return this.getSavedConnections().filter((connection) => {
+      return (
+        connection.source !== 'globalSettings' &&
+        connection.source !== 'workspaceSettings'
+      );
+    });
   }
 
   getSavedConnectionName(connectionId: string): string {
