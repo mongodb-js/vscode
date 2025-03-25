@@ -1624,6 +1624,7 @@ suite('Connection Controller Test Suite', function () {
           2
         );
         expect(fakeConnect).to.have.been.calledTwice;
+        expect(showInformationMessageStub).to.not.have.been.called;
       });
 
       test('true, reuses existing connection', async () => {
@@ -1638,10 +1639,11 @@ suite('Connection Controller Test Suite', function () {
         );
 
         expect(fakeConnect).to.have.been.calledOnce;
+        expect(showInformationMessageStub).to.not.have.been.called; // First time we're adding this connection
 
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI_USER,
-          name: 'bar',
+          name: 'foo',
           reuseExisting: true,
         });
 
@@ -1649,6 +1651,9 @@ suite('Connection Controller Test Suite', function () {
           1
         );
         expect(fakeConnect).to.have.been.calledTwice;
+
+        // Adding a connection with the same connection string and name should not show a message
+        expect(showInformationMessageStub).to.not.have.been.called;
       });
 
       test('true, does not override existing connection name', async () => {
@@ -1661,6 +1666,7 @@ suite('Connection Controller Test Suite', function () {
         let connections = testConnectionController.getSavedConnections();
         expect(connections).to.have.lengthOf(1);
         expect(connections[0].name).to.equal('foo');
+        expect(showInformationMessageStub).to.not.have.been.called; // First time we're adding this connection
 
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI_USER,
@@ -1671,6 +1677,11 @@ suite('Connection Controller Test Suite', function () {
         connections = testConnectionController.getSavedConnections();
         expect(connections).to.have.lengthOf(1);
         expect(connections[0].name).to.equal('foo'); // not 'bar'
+
+        // Connecting with a different name should show a message
+        expect(showInformationMessageStub).to.have.been.calledOnceWith(
+          "Connection with the same connection string already exists, under a different name: 'foo'. Connecting to the existing one..."
+        );
       });
 
       test('true, matches connection regardless of trailing slash', async () => {

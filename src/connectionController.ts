@@ -146,7 +146,6 @@ export default class ConnectionController {
   _connectionStorage: ConnectionStorage;
   _telemetryService: TelemetryService;
 
-  private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _currentConnectionId: null | string = null;
 
   _connectionAttempt: null | ConnectionAttempt = null;
@@ -321,13 +320,20 @@ export default class ConnectionController {
     const connectionStringData = new ConnectionString(connectionString);
 
     try {
-      let existingId: string | undefined;
+      let existingConnection: LoadedConnection | undefined;
       if (reuseExisting) {
-        existingId = this._findConnectionIdByConnectionString(connectionString);
+        existingConnection =
+          this._findConnectionByConnectionString(connectionString);
+
+        if (existingConnection && existingConnection.name !== name) {
+          void vscode.window.showInformationMessage(
+            `Connection with the same connection string already exists, under a different name: '${existingConnection.name}'. Connecting to the existing one...`
+          );
+        }
       }
 
-      const connectResult = await (existingId
-        ? this.connectWithConnectionId(existingId)
+      const connectResult = await (existingConnection
+        ? this.connectWithConnectionId(existingConnection.id)
         : this.saveNewConnectionAndConnect({
             connectionId: uuidv4(),
             connectionOptions: {
@@ -536,13 +542,7 @@ export default class ConnectionController {
 
     log.info('Successfully connected', { connectionId });
 
-    const message = 'MongoDB connection successful.';
-    this._statusView.showMessage(message);
-    setTimeout(() => {
-      if (this._statusView._statusBarItem.text === message) {
-        this._statusView.hideMessage();
-      }
-    }, 5000);
+    this._statusView.showTemporaryMessage('MongoDB connection successful.');
 
     dataService.addReauthenticationHandler(
       this._reauthenticationHandler.bind(this)
@@ -598,9 +598,9 @@ export default class ConnectionController {
     }
   }
 
-  _findConnectionIdByConnectionString(
+  _findConnectionByConnectionString(
     connectionString: string
-  ): string | undefined {
+  ): LoadedConnection | undefined {
     const searchStrings = [connectionString];
     if (!connectionString.endsWith('/')) {
       searchStrings.push(`${connectionString}/`);
@@ -608,7 +608,7 @@ export default class ConnectionController {
 
     return this.getConnectionsFromHistory().find((connection) =>
       searchStrings.includes(connection.connectionOptions?.connectionString)
-    )?.id;
+    );
   }
 
   private async onConnectSuccess({
@@ -758,14 +758,7 @@ export default class ConnectionController {
 
     this._disconnecting = false;
 
-    const message = 'MongoDB disconnected.';
-    this._statusView.showMessage(message);
-    setTimeout(() => {
-      if (this._statusView._statusBarItem.text === message) {
-        this._statusView.hideMessage();
-      }
-    }, 5000);
-
+    this._statusView.showTemporaryMessage('MongoDB disconnected.');
     return true;
   }
 
@@ -845,9 +838,9 @@ export default class ConnectionController {
     if ('id' in options) {
       connectionIdToRemove = options.id;
     } else if ('connectionString' in options) {
-      const connectionId = this._findConnectionIdByConnectionString(
+      const connectionId = this._findConnectionByConnectionString(
         options.connectionString
-      );
+      )?.id;
 
       if (!connectionId) {
         // No connection to remove, so just return silently.

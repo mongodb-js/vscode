@@ -33,7 +33,7 @@ import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
-import { TelemetryService } from './telemetry';
+import { DeepLinkTelemetryEvent, TelemetryService } from './telemetry';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
@@ -230,6 +230,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       parseNumbers: true,
     });
 
+    const source =
+      'utm_source' in parameters && typeof parameters.utm_source === 'string'
+        ? parameters.utm_source
+        : undefined;
+
+    delete parameters.utm_source; // Don't propagate after tracking.
+    this._telemetryService.track(new DeepLinkTelemetryEvent(command, source));
+
     try {
       if (
         !Object.values(EXTENSION_COMMANDS).includes(
@@ -240,6 +248,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`
         );
       }
+
       await vscode.commands.executeCommand(command, parameters);
     } catch (error) {
       await vscode.window.showErrorMessage(

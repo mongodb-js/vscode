@@ -29,6 +29,7 @@ import {
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 import { expect } from 'chai';
+import { DeepLinkTelemetryEvent } from '../../telemetry';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -1770,12 +1771,17 @@ suite('MDBExtensionController Test Suite', function () {
 
   suite('handleDeepLink', () => {
     let fakeExecuteCommand: sinon.SinonStub;
+    let fakeTrack: sinon.SinonStub;
 
     let fakeShowErrorMessage: sinon.SinonSpy;
 
     beforeEach(() => {
       fakeExecuteCommand = sandbox.stub(vscode.commands, 'executeCommand');
       fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
+      fakeTrack = sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'track'
+      );
     });
 
     afterEach(() => {
@@ -1875,6 +1881,61 @@ suite('MDBExtensionController Test Suite', function () {
       expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
         "Failed to handle 'vscode://mongodb.mongodb-vscode/mdb.connectWithURI': Error: fake error"
       );
+    });
+
+    test('reports telemetry event', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=true&bar=987&baz=str'
+        )
+      );
+
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.connectWithURI')
+      );
+    });
+
+    test('reports utm_source if present', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=true&bar=987&baz=str&utm_source=AtlasCLI'
+        )
+      );
+
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.connectWithURI', 'AtlasCLI')
+      );
+    });
+
+    test('reports even non-existent commands', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/invalid_command?foo=true&bar=987&baz=str&utm_source=RogueActor'
+        )
+      );
+
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.invalid_command', 'RogueActor')
+      );
+    });
+
+    test('removes utm_source from parameters passed to command', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/mdb.connectWithURI?foo=bar&utm_source=abc'
+        )
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
+        foo: 'bar',
+      });
+      expect(fakeExecuteCommand.firstCall.args[1]).to.not.have.property(
+        'utm_source'
+      );
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.connectWithURI', 'abc')
+      );
+      expect(fakeShowErrorMessage).to.not.have.been.called;
     });
   });
 });

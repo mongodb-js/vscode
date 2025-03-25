@@ -669,6 +669,32 @@ export class TreeItemExpandedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
+/**
+ * Reported when the extension handles a deep link (e.g. vscode://mongodb.mongodb-vscode/command)
+ */
+export class DeepLinkTelemetryEvent implements TelemetryEventBase {
+  type = 'Deep Link Handled';
+  properties: {
+    /**
+     * The command that the deeplink requested - e.g. `mdb.connectWithURI`. This event is reported even
+     * if the command is not valid and an error eventually shown to the user.
+     */
+    command: string;
+
+    /**
+     * The source of the deep link - e.g. the Atlas CLI or the docs website.
+     */
+    source?: string;
+  };
+
+  constructor(command: string, source?: string) {
+    this.properties = {
+      command,
+      source,
+    };
+  }
+}
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent
@@ -693,4 +719,5 @@ export type TelemetryEvent =
   | ParticipantResponseGeneratedTelemetryEvent
   | PresetConnectionEditedTelemetryEvent
   | SidePanelOpenedTelemetryEvent
-  | TreeItemExpandedTelemetryEvent;
+  | TreeItemExpandedTelemetryEvent
+  | DeepLinkTelemetryEvent;

@@ -17,6 +17,15 @@ export default class StatusView {
     this._statusBarItem.show();
   }
 
+  public showTemporaryMessage(message: string): void {
+    this.showMessage(message);
+    setTimeout(() => {
+      if (this._statusBarItem.text === message) {
+        this.hideMessage();
+      }
+    }, 5000);
+  }
+
   public hideMessage(): void {
     this._statusBarItem.hide();
   }
