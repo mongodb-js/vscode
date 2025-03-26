@@ -8,6 +8,7 @@ import { expect } from 'chai';
 import ConnectionString from 'mongodb-connection-string-url';
 
 import ConnectionController, {
+  ConnectionTypes,
   DataServiceEventTypes,
   getNotifyDeviceFlowForConnectionAttempt,
 } from '../../connectionController';
@@ -81,9 +82,9 @@ suite('Connection Controller Test Suite', function () {
 
   test('it connects to mongodb', async () => {
     const successfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
     const connectionId = testConnectionController.getActiveConnectionId() || '';
     const name = testConnectionController._connections[connectionId].name;
     const dataService = testConnectionController.getActiveDataService();
@@ -104,9 +105,9 @@ suite('Connection Controller Test Suite', function () {
 
     test('should append appName with connection and anonymous id', async () => {
       const successfullyConnected =
-        await testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        });
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
       const connection = testConnectionController._connections[connectionId];
@@ -134,9 +135,9 @@ suite('Connection Controller Test Suite', function () {
     test('should override legacy appended appName and persist it', async () => {
       // Simulate legacy behavior of appending vscode appName by manually creating one
       const successfullyConnected =
-        await testConnectionController.addNewConnectionStringAndConnect(
-          `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`,
+        });
 
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
@@ -171,9 +172,9 @@ suite('Connection Controller Test Suite', function () {
 
     test('does not override other user-set appName', async () => {
       const successfullyConnected =
-        await testConnectionController.addNewConnectionStringAndConnect(
-          `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`,
+        });
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
       let connection = testConnectionController._connections[connectionId];
@@ -204,9 +205,9 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('getMongoClientConnectionOptions appends anonymous and connection ID and options properties', async function () {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        `${TEST_DATABASE_URI}`
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
       const mongoClientConnectionOptions =
         testConnectionController.getMongoClientConnectionOptions();
@@ -242,9 +243,9 @@ suite('Connection Controller Test Suite', function () {
 
   test('"disconnect()" disconnects from the active connection', async () => {
     const successfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(successfullyConnected).to.be.true;
     expect(testConnectionController.getConnectionStatus()).to.equal(
@@ -270,74 +271,194 @@ suite('Connection Controller Test Suite', function () {
     expect(dataService).to.be.null;
   });
 
-  test('"removeMongoDBConnection()" returns a reject promise when there is no active connection', async () => {
-    const expectedMessage = 'No connections to remove.';
-    const successfullyRemovedMongoDBConnection =
-      await testConnectionController.onRemoveMongoDBConnection();
-
-    expect(showErrorMessageStub.firstCall.args[0]).to.equal(expectedMessage);
-    expect(successfullyRemovedMongoDBConnection).to.be.false;
-  });
-
-  test('"removeMongoDBConnection()" hides preset connections', async () => {
-    const connectionBase: Omit<LoadedConnection, 'id' | 'name'> = {
-      connectionOptions: {
-        connectionString: 'localhost:3000',
-      },
-      storageLocation: StorageLocation.NONE,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
+  suite('onRemoveMongoDBConnection', () => {
+    const addConnection = (
+      id: string,
+      name: string,
+      connectionString = 'mongodb://localhost:12345',
+      otherOptions: Partial<LoadedConnection> = {}
+    ): void => {
+      testConnectionController._connections[id] = {
+        connectionOptions: { connectionString },
+        storageLocation: StorageLocation.NONE,
+        secretStorageLocation: SecretStorageLocation.SecretStorage,
+        name,
+        id,
+        ...otherOptions,
+      };
     };
 
-    testConnectionController._connections['1234'] = {
-      ...connectionBase,
-      name: 'valid 1',
-      id: '1234',
-    };
-    testConnectionController._connections['5678'] = {
-      ...connectionBase,
-      name: 'valid 2',
-      id: '5678',
-      source: 'user',
-    };
-    testConnectionController._connections['3333'] = {
-      ...connectionBase,
-      id: '3333',
-      name: 'invalid 1',
-      source: 'workspaceSettings',
-    };
-    testConnectionController._connections['3333'] = {
-      ...connectionBase,
-      id: '3333',
-      name: 'invalid 2',
-      source: 'globalSettings',
-    };
+    test('returns a reject promise when there is no active connection', async () => {
+      const expectedMessage = 'No connections to remove.';
+      const successfullyRemovedMongoDBConnection =
+        await testConnectionController.onRemoveMongoDBConnection();
 
-    const showQuickPickStub = sinon
-      .stub(vscode.window, 'showQuickPick')
-      .resolves(undefined);
-    const successfullyRemovedMongoDBConnection =
-      await testConnectionController.onRemoveMongoDBConnection();
+      expect(showErrorMessageStub.firstCall.args[0]).to.equal(expectedMessage);
+      expect(successfullyRemovedMongoDBConnection).to.be.false;
+    });
 
-    expect(showErrorMessageStub).not.called;
-    expect(showQuickPickStub.firstCall.firstArg).deep.equal([
-      '1: valid 1',
-      '2: valid 2',
-    ]);
-    expect(successfullyRemovedMongoDBConnection).to.be.false;
+    test('hides preset connections', async () => {
+      addConnection('1234', 'valid 1');
+      addConnection('5678', 'valid 2', undefined, { source: 'user' });
+      addConnection('3333', 'invalid 1', undefined, {
+        source: 'workspaceSettings',
+      });
+      addConnection('4444', 'invalid 2', undefined, {
+        source: 'globalSettings',
+      });
+
+      const showQuickPickStub = sinon
+        .stub(vscode.window, 'showQuickPick')
+        .resolves(undefined);
+      const successfullyRemovedMongoDBConnection =
+        await testConnectionController.onRemoveMongoDBConnection();
+
+      expect(showErrorMessageStub).not.called;
+      expect(showQuickPickStub.firstCall.firstArg).deep.equal([
+        '1: valid 1',
+        '2: valid 2',
+      ]);
+      expect(successfullyRemovedMongoDBConnection).to.be.false;
+    });
+
+    test('when connection does not exist, shows error', async () => {
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          id: 'abc',
+        });
+      expect(didRemove).to.be.false;
+      expect(showErrorMessageStub).to.be.calledOnceWith(
+        'Connection does not exist.'
+      );
+    });
+
+    test('when force: false, prompts user for confirmation', async () => {
+      addConnection('1234', 'foo');
+      showInformationMessageStub.resolves('No');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          id: '1234',
+        });
+
+      expect(didRemove).to.be.false;
+      expect(showInformationMessageStub).to.be.calledOnceWith(
+        'Are you sure to want to remove connection foo?',
+        { modal: true },
+        'Yes'
+      );
+    });
+
+    test('when force: true, does not prompt user for confirmation', async () => {
+      addConnection('1234', 'foo');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          id: '1234',
+          force: true,
+        });
+
+      expect(didRemove).to.be.true;
+      expect(testConnectionController._connections['1234']).to.be.undefined;
+    });
+
+    test('with connection name, removes connection', async () => {
+      addConnection('1234', 'bar');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          name: 'bar',
+          force: true,
+        });
+
+      expect(didRemove).to.be.true;
+      expect(testConnectionController._connections['1234']).to.be.undefined;
+    });
+
+    test('with connection name, when not found, silently returns', async () => {
+      addConnection('1234', 'bar');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          name: 'foo',
+          force: true,
+        });
+
+      expect(didRemove).to.be.false;
+      expect(showInformationMessageStub).to.not.have.been.called;
+      expect(testConnectionController._connections['1234']).to.not.be.undefined;
+    });
+
+    test('with connection name, when multiple connections match, removes first one', async () => {
+      addConnection('1234', 'bar');
+      addConnection('5678', 'bar');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          name: 'bar',
+          force: true,
+        });
+
+      expect(didRemove).to.be.true;
+      expect(testConnectionController._connections['1234']).to.be.undefined;
+      expect(testConnectionController._connections['5678']).to.not.be.undefined;
+    });
+
+    test('with connection string, removes connection', async () => {
+      addConnection('1234', 'bar', 'mongodb://localhost:12345');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          connectionString: 'mongodb://localhost:12345',
+          force: true,
+        });
+
+      expect(didRemove).to.be.true;
+      expect(testConnectionController._connections['1234']).to.be.undefined;
+    });
+
+    test('with connection name, when not found, silently returns', async () => {
+      addConnection('1234', 'bar', 'mongodb://localhost:12345');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          connectionString: 'mongodb://localhost:27017',
+          force: true,
+        });
+
+      expect(didRemove).to.be.false;
+      expect(showInformationMessageStub).to.not.have.been.called;
+      expect(testConnectionController._connections['1234']).to.not.be.undefined;
+    });
+
+    test('with connection name, when multiple connections match, removes first one', async () => {
+      addConnection('1234', 'foo', 'mongodb://localhost:12345');
+      addConnection('5678', 'bar', 'mongodb://localhost:12345');
+
+      const didRemove =
+        await testConnectionController.onRemoveMongoDBConnection({
+          connectionString: 'mongodb://localhost:12345',
+          force: true,
+        });
+
+      expect(didRemove).to.be.true;
+      expect(testConnectionController._connections['1234']).to.be.undefined;
+      expect(testConnectionController._connections['5678']).to.not.be.undefined;
+    });
   });
 
   test('when adding a new connection it disconnects from the current connection', async () => {
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(succesfullyConnected).to.be.true;
 
     try {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI2WithTimeout
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: testDatabaseURI2WithTimeout,
+      });
     } catch (error) {
       const expectedError = 'Failed to connect';
 
@@ -349,9 +470,9 @@ suite('Connection Controller Test Suite', function () {
 
   test('when adding a new connection it sets the connection controller as connecting while it disconnects from the current connection', async () => {
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(succesfullyConnected).to.be.true;
 
@@ -363,9 +484,9 @@ suite('Connection Controller Test Suite', function () {
     });
 
     const succesfullyConnected2 =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
 
     expect(succesfullyConnected2).to.be.true;
     expect(wasSetToConnectingWhenDisconnecting).to.be.true;
@@ -385,9 +506,9 @@ suite('Connection Controller Test Suite', function () {
       }
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     testConnectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
@@ -412,9 +533,9 @@ suite('Connection Controller Test Suite', function () {
       }
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await testConnectionController.disconnect();
 
     testConnectionController.removeEventListener(
@@ -446,9 +567,9 @@ suite('Connection Controller Test Suite', function () {
     };
 
     // Should persist as this is a saved connection.
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     await testConnectionController.loadSavedConnections();
 
@@ -460,24 +581,24 @@ suite('Connection Controller Test Suite', function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
     await testConnectionController.loadSavedConnections();
@@ -499,9 +620,9 @@ suite('Connection Controller Test Suite', function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -531,9 +652,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -582,9 +703,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -618,9 +739,9 @@ suite('Connection Controller Test Suite', function () {
     const expectedDriverUrl = 'mongodb://localhost:27088/';
 
     await testConnectionController.loadSavedConnections();
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const activeConnectionId = testConnectionController.getActiveConnectionId();
 
@@ -644,9 +765,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations['Session Only']
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const objectString = JSON.stringify(undefined);
     const globalStoreConnections = testStorageController.get(
@@ -705,9 +826,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -735,9 +856,9 @@ suite('Connection Controller Test Suite', function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const globalStoreConnections = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
@@ -764,9 +885,9 @@ suite('Connection Controller Test Suite', function () {
       'deleteSecret'
     );
 
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI_USER
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI_USER,
+    });
 
     const [connection] = testConnectionController.getSavedConnections();
     await testConnectionController.removeSavedConnection(connection.id);
@@ -781,9 +902,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -830,9 +951,9 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const workspaceStoreConnections = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
@@ -906,12 +1027,12 @@ suite('Connection Controller Test Suite', function () {
         'defaultConnectionSavingLocation',
         DefaultSavingLocations.Workspace
       );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
     await testConnectionController.disconnect();
 
     testConnectionController.clearAllConnections();
@@ -951,12 +1072,12 @@ suite('Connection Controller Test Suite', function () {
   suite('connecting to a new connection when already connecting', () => {
     test('connects to the new connection', async () => {
       await Promise.all([
-        testConnectionController.addNewConnectionStringAndConnect(
-          testDatabaseURI2WithTimeout
-        ),
-        testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI
-        ),
+        testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: testDatabaseURI2WithTimeout,
+        }),
+        testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        }),
       ]);
 
       expect(testConnectionController.isConnecting()).to.be.false;
@@ -1000,9 +1121,9 @@ suite('Connection Controller Test Suite', function () {
 
   suite('when connected', function () {
     beforeEach(async function () {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
     });
 
     test('two disconnects on one connection at once complete without erroring', (done) => {
@@ -1113,46 +1234,10 @@ suite('Connection Controller Test Suite', function () {
     expect(newSavedConnectionInfoWithSecrets).to.deep.equal(connectionInfo);
   });
 
-  test('addNewConnectionStringAndConnect saves connection without secrets to the global storage', async () => {
-    const fakeConnect = sandbox.fake.resolves({
-      successfullyConnected: true,
-    });
-    sandbox.replace(testConnectionController, '_connect', fakeConnect);
-
-    await vscode.workspace
-      .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI_USER
-    );
-
-    const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS
-    );
-
-    expect(workspaceStoreConnections).to.not.be.empty;
-    const connections = Object.values(workspaceStoreConnections);
-
-    expect(connections).to.have.lengthOf(1);
-    expect(connections[0].connectionOptions?.connectionString).to.include(
-      TEST_USER_USERNAME
-    );
-    expect(connections[0].connectionOptions?.connectionString).to.not.include(
-      TEST_USER_PASSWORD
-    );
-    expect(
-      testConnectionController._connections[connections[0].id].connectionOptions
-        ?.connectionString
-    ).to.include(TEST_USER_PASSWORD);
-    expect(
-      testConnectionController._connections[connections[0].id].name
-    ).to.equal('localhost:27088');
-  });
-
   test('getMongoClientConnectionOptions returns url and options properties', async () => {
-    await testConnectionController.addNewConnectionStringAndConnect(
-      TEST_DATABASE_URI
-    );
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
 
     const mongoClientConnectionOptions =
       testConnectionController.getMongoClientConnectionOptions();
@@ -1213,17 +1298,13 @@ suite('Connection Controller Test Suite', function () {
     });
 
     suite('when connection secrets are already in SecretStorage', () => {
-      afterEach(() => {
-        testSandbox.restore();
-      });
-
       test('should be able to load connection with its secrets', async () => {
-        await testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI
-        );
-        await testConnectionController.addNewConnectionStringAndConnect(
-          TEST_DATABASE_URI_USER
-        );
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        });
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+        });
 
         // By default the connection secrets are already stored in SecretStorage
         const savedConnections = testConnectionController.getSavedConnections();
@@ -1252,9 +1333,9 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('should fire a CONNECTIONS_DID_CHANGE event if connections are loaded successfully', async () => {
-      await testConnectionController.addNewConnectionStringAndConnect(
-        TEST_DATABASE_URI_USER
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI_USER,
+      });
 
       await testConnectionController.disconnect();
       testConnectionController.clearAllConnections();
@@ -1417,6 +1498,245 @@ suite('Connection Controller Test Suite', function () {
           loaded_connections: 4,
         },
       ]);
+    });
+  });
+
+  suite('connectWithURI', () => {
+    let showInputBoxStub: sinon.SinonStub;
+    let addNewConnectionAndConnectStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+      addNewConnectionAndConnectStub = sandbox.stub(
+        testConnectionController,
+        'addNewConnectionStringAndConnect'
+      );
+    });
+
+    test('without arguments, prompts for input', async () => {
+      showInputBoxStub.returns(undefined);
+
+      const result = await testConnectionController.connectWithURI();
+      expect(result).to.be.false;
+      expect(showInputBoxStub).to.have.been.calledOnce;
+    });
+
+    test('without arguments, uses input provided by user', async () => {
+      showInputBoxStub.returns(TEST_DATABASE_URI);
+      addNewConnectionAndConnectStub.returns(true);
+
+      const result = await testConnectionController.connectWithURI();
+      expect(result).to.be.true;
+      expect(showInputBoxStub).to.have.been.calledOnce;
+      expect(addNewConnectionAndConnectStub).to.have.been.calledOnceWithExactly(
+        {
+          connectionString: TEST_DATABASE_URI,
+          reuseExisting: false,
+          name: undefined,
+        }
+      );
+    });
+
+    test('with arguments, uses provided connection string', async () => {
+      addNewConnectionAndConnectStub.returns(true);
+
+      const result = await testConnectionController.connectWithURI({
+        connectionString: 'mongodb://127.0.0.1:12345',
+        reuseExisting: true,
+        name: 'foo',
+      });
+      expect(result).to.be.true;
+      expect(showInputBoxStub).to.not.have.been.called;
+      expect(addNewConnectionAndConnectStub).to.have.been.calledOnceWithExactly(
+        {
+          connectionString: 'mongodb://127.0.0.1:12345',
+          reuseExisting: true,
+          name: 'foo',
+        }
+      );
+    });
+  });
+
+  suite('addNewConnectionStringAndConnect', () => {
+    let fakeConnect: sinon.SinonStub;
+
+    beforeEach(() => {
+      fakeConnect = sandbox
+        .stub(testConnectionController, '_connect')
+        .resolves({ successfullyConnected: true, connectionErrorMessage: '' });
+    });
+
+    test('saves connection without secrets to the global storage', async () => {
+      await vscode.workspace
+        .getConfiguration('mdb.connectionSaving')
+        .update(
+          'defaultConnectionSavingLocation',
+          DefaultSavingLocations.Global
+        );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI_USER,
+      });
+
+      const workspaceStoreConnections = testStorageController.get(
+        StorageVariables.GLOBAL_SAVED_CONNECTIONS
+      );
+
+      expect(workspaceStoreConnections).to.not.be.empty;
+      const connections = Object.values(workspaceStoreConnections);
+
+      expect(connections).to.have.lengthOf(1);
+      expect(connections[0].connectionOptions?.connectionString).to.include(
+        TEST_USER_USERNAME
+      );
+      expect(connections[0].connectionOptions?.connectionString).to.not.include(
+        TEST_USER_PASSWORD
+      );
+      expect(
+        testConnectionController._connections[connections[0].id]
+          .connectionOptions?.connectionString
+      ).to.include(TEST_USER_PASSWORD);
+      expect(
+        testConnectionController._connections[connections[0].id].name
+      ).to.equal('localhost:27088');
+    });
+
+    suite('with reuseExisting: ', () => {
+      test('false, adds a new connection', async () => {
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+          name: 'foo',
+          reuseExisting: false,
+        });
+
+        expect(testConnectionController.getSavedConnections()).to.have.lengthOf(
+          1
+        );
+
+        expect(fakeConnect).to.have.been.calledOnce;
+
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+          name: 'foo',
+          reuseExisting: false,
+        });
+
+        expect(testConnectionController.getSavedConnections()).to.have.lengthOf(
+          2
+        );
+        expect(fakeConnect).to.have.been.calledTwice;
+        expect(showInformationMessageStub).to.not.have.been.called;
+      });
+
+      test('true, reuses existing connection', async () => {
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+          name: 'foo',
+          reuseExisting: true,
+        });
+
+        expect(testConnectionController.getSavedConnections()).to.have.lengthOf(
+          1
+        );
+
+        expect(fakeConnect).to.have.been.calledOnce;
+        expect(showInformationMessageStub).to.not.have.been.called; // First time we're adding this connection
+
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+          name: 'foo',
+          reuseExisting: true,
+        });
+
+        expect(testConnectionController.getSavedConnections()).to.have.lengthOf(
+          1
+        );
+        expect(fakeConnect).to.have.been.calledTwice;
+
+        // Adding a connection with the same connection string and name should not show a message
+        expect(showInformationMessageStub).to.not.have.been.called;
+      });
+
+      test('true, does not override existing connection name', async () => {
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+          name: 'foo',
+          reuseExisting: true,
+        });
+
+        let connections = testConnectionController.getSavedConnections();
+        expect(connections).to.have.lengthOf(1);
+        expect(connections[0].name).to.equal('foo');
+        expect(showInformationMessageStub).to.not.have.been.called; // First time we're adding this connection
+
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI_USER,
+          name: 'bar',
+          reuseExisting: true,
+        });
+
+        connections = testConnectionController.getSavedConnections();
+        expect(connections).to.have.lengthOf(1);
+        expect(connections[0].name).to.equal('foo'); // not 'bar'
+
+        // Connecting with a different name should show a message
+        expect(showInformationMessageStub).to.have.been.calledOnceWith(
+          "Connection with the same connection string already exists, under a different name: 'foo'. Connecting to the existing one..."
+        );
+      });
+
+      test('true, matches connection regardless of trailing slash', async () => {
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: 'mongodb://localhost:12345/',
+          reuseExisting: true,
+        });
+
+        let connections = testConnectionController.getSavedConnections();
+        expect(connections[0].connectionOptions?.connectionString).to.equal(
+          'mongodb://localhost:12345/'
+        );
+
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: 'mongodb://localhost:12345/',
+          reuseExisting: true,
+        });
+        expect(fakeConnect).to.have.been.calledWith(
+          connections[0].id,
+          ConnectionTypes.CONNECTION_ID
+        );
+        connections = testConnectionController.getSavedConnections();
+        expect(connections).to.have.lengthOf(1);
+
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: 'mongodb://localhost:12345', // No-slash
+          reuseExisting: true,
+        });
+        expect(fakeConnect).to.have.been.calledWith(connections[0].id);
+        connections = testConnectionController.getSavedConnections();
+        expect(connections).to.have.lengthOf(1);
+      });
+    });
+
+    suite('with name: ', () => {
+      test('supplied, uses provided name', async () => {
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: 'mongodb://localhost:12345/',
+          name: 'foo',
+        });
+
+        const connections = testConnectionController.getSavedConnections();
+        expect(connections).to.have.lengthOf(1);
+        expect(connections[0].name).to.equal('foo');
+      });
+
+      test('not supplied, generates one', async () => {
+        await testConnectionController.addNewConnectionStringAndConnect({
+          connectionString: 'mongodb://localhost:12345/',
+        });
+
+        const connections = testConnectionController.getSavedConnections();
+        expect(connections).to.have.lengthOf(1);
+        expect(connections[0].name).to.equal('localhost:12345');
+      });
     });
   });
 });

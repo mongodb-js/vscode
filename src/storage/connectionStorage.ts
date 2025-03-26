@@ -58,11 +58,13 @@ export class ConnectionStorage {
   createNewConnection({
     connectionOptions,
     connectionId,
+    name,
   }: {
     connectionOptions: ConnectionOptions;
     connectionId: string;
+    name?: string;
   }): LoadedConnection {
-    const name = getConnectionTitle({
+    name ??= getConnectionTitle({
       connectionOptions,
     });
 

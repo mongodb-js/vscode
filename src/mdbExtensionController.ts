@@ -33,7 +33,7 @@ import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
 import { StorageController, StorageVariables } from './storage';
-import { TelemetryService } from './telemetry';
+import { DeepLinkTelemetryEvent, TelemetryService } from './telemetry';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
 import WebviewController from './views/webviewController';
@@ -55,6 +55,8 @@ import {
   CommandRunTelemetryEvent,
   DocumentEditedTelemetryEvent,
 } from './telemetry';
+
+import * as queryString from 'query-string';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -187,6 +189,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
     this.subscribeToConfigurationChanges();
+    this.registerUriHandler();
 
     const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
     void vscode.commands.executeCommand(
@@ -210,6 +213,50 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
   }
 
+  registerUriHandler = (): void => {
+    vscode.window.registerUriHandler({
+      handleUri: this._handleDeepLink,
+    });
+  };
+
+  _handleDeepLink = async (uri: vscode.Uri): Promise<void> => {
+    let command = uri.path.replace(/^\//, '');
+    if (!command.startsWith('mdb.')) {
+      command = `mdb.${command}`;
+    }
+
+    const parameters = queryString.parse(uri.query, {
+      parseBooleans: true,
+      parseNumbers: true,
+    });
+
+    const source =
+      'utm_source' in parameters && typeof parameters.utm_source === 'string'
+        ? parameters.utm_source
+        : undefined;
+
+    delete parameters.utm_source; // Don't propagate after tracking.
+    this._telemetryService.track(new DeepLinkTelemetryEvent(command, source));
+
+    try {
+      if (
+        !Object.values(EXTENSION_COMMANDS).includes(
+          command as EXTENSION_COMMANDS
+        )
+      ) {
+        throw new Error(
+          `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`
+        );
+      }
+
+      await vscode.commands.executeCommand(command, parameters);
+    } catch (error) {
+      await vscode.window.showErrorMessage(
+        `Failed to handle '${uri}': ${error}`
+      );
+    }
+  };
+
   registerCommands = (): void => {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
@@ -222,14 +269,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._webviewController.openWebview(this._context);
       return Promise.resolve(true);
     });
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, () =>
-      this._connectionController.connectWithURI()
-    );
+    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, (params) => {
+      return this._connectionController.connectWithURI(params);
+    });
     this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT, () =>
       this._connectionController.disconnect()
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION, () =>
-      this._connectionController.onRemoveMongoDBConnection()
+    this.registerCommand(EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION, (params) =>
+      this._connectionController.onRemoveMongoDBConnection(params)
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
       this._connectionController.changeActiveConnection()
@@ -521,7 +568,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
       (element: ConnectionTreeItem) =>
-        this._connectionController.removeMongoDBConnection(element.connectionId)
+        this._connectionController.onRemoveMongoDBConnection({
+          id: element.connectionId,
+        })
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_EDIT_CONNECTION,
