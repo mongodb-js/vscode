@@ -1249,8 +1249,10 @@ suite('Connection Controller Test Suite', function () {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const expectedVersion = require('../../../package.json').version;
     expect(mongoClientConnectionOptions).to.deep.equal({
-      url: 'mongodb://localhost:27088/?appName=mongodb-vscode+0.0.0-dev.0',
+      url: `mongodb://localhost:27088/?appName=mongodb-vscode+${expectedVersion}`,
       options: {
         autoEncryption: undefined,
         monitorCommands: true,

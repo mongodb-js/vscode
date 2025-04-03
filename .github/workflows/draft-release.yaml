@@ -18,6 +18,11 @@ on:
         description: 'Exact version: (Only effective selecting "exact-version" as version bump)'
         required: false
 
+description: |
+  Run manually to prepare a draft release for the next version of the extension. The workflow will create a draft
+  github release where the .vsix can be downloaded and manually tested before publishing. To release the version,
+  publish the draft release, which will trigger the publish-release workflow.
+
 permissions:
   contents: write
 
