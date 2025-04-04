@@ -126,6 +126,7 @@ const OverviewPage: React.FC = () => {
         <FileInputBackendProvider
           createFileInputBackend={createElectronFileInputBackend(
             dialogProvider,
+            // @ts-expect-error Not sure why this is happening but not related.
             null
           )}
         >

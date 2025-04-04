@@ -365,7 +365,7 @@ suite('Playground Result Provider Test Suite', () => {
       `operationId=${operationId}`,
     ].join('&');
     const collectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${collectionNamespace}.json?${collectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${collectionNamespace}.mongodb.json?${collectionQuery}`
     );
 
     activeTextEditorDocument.uri = collectionUri; // Switch active editor.
