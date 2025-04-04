@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.13.0](https://github.com/mongodb-js/vscode/releases/tag/v1.13.0) - 2025-04-04
+
+## What's Changed
+* chore(telemetry): append user anonymousId & connectionId to appName passed to server COMPASS-8591 by @gagik in https://github.com/mongodb-js/vscode/pull/982
+* feat: handle deep links to commands VSCODE-683 VSCODE-684 VSCODE-685 by @nirinchev in https://github.com/mongodb-js/vscode/pull/995
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.12.1...v1.13.0
+
+
 ## [v1.12.1](https://github.com/mongodb-js/vscode/releases/tag/v1.12.1) - 2025-03-07
 
 ## What's Changed
