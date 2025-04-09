@@ -1354,7 +1354,7 @@
     "@mongodb-js/oidc-mock-provider": "^0.10.2",
     "@mongodb-js/oidc-plugin": "^1.1.6",
     "@mongodb-js/prettier-config-devtools": "^1.0.1",
-    "@mongodb-js/sbom-tools": "^0.7.2",
+    "@mongodb-js/sbom-tools": "^0.7.3",
     "@mongodb-js/signing-utils": "^0.3.8",
     "@mongosh/service-provider-core": "^3.0.0",
     "@testing-library/react": "^14.3.1",
