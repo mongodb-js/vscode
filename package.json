@@ -1332,7 +1332,7 @@
     "micromatch": "^4.0.8",
     "mongodb": "^6.15.0",
     "mongodb-build-info": "^1.7.2",
-    "mongodb-cloud-info": "^2.1.5",
+    "mongodb-cloud-info": "^2.1.7",
     "mongodb-connection-string-url": "^3.0.2",
     "mongodb-data-service": "^22.25.5",
     "mongodb-log-writer": "^2.4.1",
