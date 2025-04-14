@@ -1351,7 +1351,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.25.7",
     "@babel/types": "^7.25.8",
-    "@mongodb-js/oidc-mock-provider": "^0.10.2",
+    "@mongodb-js/oidc-mock-provider": "^0.10.3",
     "@mongodb-js/oidc-plugin": "^1.1.6",
     "@mongodb-js/prettier-config-devtools": "^1.0.1",
     "@mongodb-js/sbom-tools": "^0.7.3",
