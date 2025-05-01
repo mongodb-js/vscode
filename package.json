@@ -1353,7 +1353,7 @@
     "@babel/types": "^7.25.8",
     "@mongodb-js/oidc-mock-provider": "^0.10.3",
     "@mongodb-js/oidc-plugin": "^1.1.7",
-    "@mongodb-js/prettier-config-devtools": "^1.0.1",
+    "@mongodb-js/prettier-config-devtools": "^1.0.2",
     "@mongodb-js/sbom-tools": "^0.7.3",
     "@mongodb-js/signing-utils": "^0.3.9",
     "@mongosh/service-provider-core": "^3.0.0",
