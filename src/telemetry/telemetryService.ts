@@ -103,11 +103,9 @@ export class TelemetryService {
     log.info('Segment analytics activated', this.userIdentity);
 
     // Process buffered events
-    if (this.eventBuffer.length > 0) {
-      for (const event of this.eventBuffer) {
-        this.track(event);
-      }
-      this.eventBuffer = [];
+    let event: TelemetryEvent | undefined;
+    while ((event = this.eventBuffer.shift())) {
+      this.track(event);
     }
   }
 
