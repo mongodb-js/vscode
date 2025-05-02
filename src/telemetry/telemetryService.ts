@@ -2,7 +2,7 @@ import path from 'path';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
 import type { DataService } from 'mongodb-data-service';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { Analytics as SegmentAnalytics } from '@segment/analytics-node';
 import { throttle } from 'lodash';
 
@@ -18,6 +18,10 @@ import {
   SidePanelOpenedTelemetryEvent,
   ParticipantResponseFailedTelemetryEvent,
 } from './telemetryEvents';
+import { createHmac } from 'crypto';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const nodeMachineId = require('node-machine-id');
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -26,6 +30,7 @@ const { version } = require('../../package.json');
 export type SegmentProperties = {
   event: string;
   anonymousId: string;
+  deviceId?: string;
   properties: Record<string, any>;
 };
 
@@ -33,12 +38,17 @@ export type SegmentProperties = {
  * This controller manages telemetry.
  */
 export class TelemetryService {
-  _segmentAnalytics?: SegmentAnalytics;
-  _segmentAnonymousId: string;
-  _segmentKey?: string; // The segment API write key.
-
-  private _context: vscode.ExtensionContext;
-  private _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
+  private _segmentAnalytics?: SegmentAnalytics;
+  public _segmentKey?: string; // The segment API write key.
+  private eventBuffer: TelemetryEvent[] = [];
+  private isBufferingEvents = true;
+  public userIdentity: {
+    anonymousId: string;
+    deviceId?: string;
+  };
+  private resolveDeviceId: ((value: string) => void) | undefined;
+  private readonly _context: vscode.ExtensionContext;
+  private readonly _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
 
   constructor(
     storageController: StorageController,
@@ -48,11 +58,12 @@ export class TelemetryService {
     const { anonymousId } = storageController.getUserIdentity();
     this._context = context;
     this._shouldTrackTelemetry = shouldTrackTelemetry || false;
-    this._segmentAnonymousId = anonymousId;
-    this._segmentKey = this._readSegmentKey();
+    this.userIdentity = {
+      anonymousId,
+    };
   }
 
-  private _readSegmentKey(): string | undefined {
+  private async readSegmentKey(): Promise<string | undefined> {
     config({ path: path.join(this._context.extensionPath, '.env') });
 
     try {
@@ -61,18 +72,21 @@ export class TelemetryService {
         './constants.json'
       );
       // eslint-disable-next-line no-sync
-      const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
+      const constantsFile = await fs.readFile(segmentKeyFileLocation, {
+        encoding: 'utf8',
+      });
       const { segmentKey } = JSON.parse(constantsFile) as {
         segmentKey?: string;
       };
       return segmentKey;
     } catch (error) {
       log.error('Failed to read segmentKey from the constants file', error);
-      return;
+      return undefined;
     }
   }
 
-  activateSegmentAnalytics(): void {
+  async activateSegmentAnalytics(): Promise<void> {
+    this._segmentKey = await this.readSegmentKey();
     if (!this._segmentKey) {
       return;
     }
@@ -83,12 +97,22 @@ export class TelemetryService {
       flushInterval: 10000, // 10 seconds is the default libraries' value.
     });
 
-    const segmentProperties = this.getTelemetryUserIdentity();
-    this._segmentAnalytics.identify(segmentProperties);
-    log.info('Segment analytics activated', segmentProperties);
+    this.userIdentity = await this.getTelemetryUserIdentity();
+    this._segmentAnalytics.identify(this.userIdentity);
+    this.isBufferingEvents = false;
+    log.info('Segment analytics activated', this.userIdentity);
+
+    // Process buffered events
+    if (this.eventBuffer.length > 0) {
+      for (const event of this.eventBuffer) {
+        this.track(event);
+      }
+      this.eventBuffer = [];
+    }
   }
 
   deactivate(): void {
+    this.resolveDeviceId?.('unknown');
     // Flush on demand to make sure that nothing is left in the queue.
     void this._segmentAnalytics?.closeAndFlush();
   }
@@ -130,8 +154,13 @@ export class TelemetryService {
 
   track(event: TelemetryEvent): void {
     try {
+      if (this.isBufferingEvents) {
+        this.eventBuffer.push(event);
+        return;
+      }
+
       this._segmentAnalyticsTrack({
-        ...this.getTelemetryUserIdentity(),
+        ...this.userIdentity,
         event: event.type,
         properties: {
           ...event.properties,
@@ -153,9 +182,15 @@ export class TelemetryService {
     this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
   }
 
-  getTelemetryUserIdentity(): { anonymousId: string } {
+  private async getTelemetryUserIdentity(): Promise<typeof this.userIdentity> {
     return {
-      anonymousId: this._segmentAnonymousId,
+      anonymousId: this.userIdentity.anonymousId,
+      deviceId: await Promise.race([
+        getDeviceId(),
+        new Promise<string>((resolve) => {
+          this.resolveDeviceId = resolve;
+        }),
+      ]),
     };
   }
 
@@ -199,4 +234,31 @@ export class TelemetryService {
     5000,
     { leading: true, trailing: false }
   );
+}
+
+/**
+ * TODO: This hashing function should be moved to devtools-shared.
+ * @returns A hashed, unique identifier for the running device or `"unknown"` if not known.
+ */
+export async function getDeviceId({
+  onError,
+}: {
+  onError?: (error: Error) => void;
+} = {}): Promise<string> {
+  try {
+    const originalId: string = await nodeMachineId.machineId(true);
+
+    // Create a hashed format from the all uppercase version of the machine ID
+    // to match it exactly with the denisbrodbeck/machineid library that Atlas CLI uses.
+    const hmac = createHmac('sha256', originalId.toUpperCase());
+
+    /** This matches the message used to create the hashes in Atlas CLI */
+    const DEVICE_ID_HASH_MESSAGE = 'atlascli';
+
+    hmac.update(DEVICE_ID_HASH_MESSAGE);
+    return hmac.digest('hex');
+  } catch (error) {
+    onError?.(error as Error);
+    return 'unknown';
+  }
 }
