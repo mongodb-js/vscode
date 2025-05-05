@@ -18,7 +18,7 @@ import {
   SidePanelOpenedTelemetryEvent,
   ParticipantResponseFailedTelemetryEvent,
 } from './telemetryEvents';
-import { createHmac } from 'crypto';
+import { getDeviceId } from '@mongodb-js/device-id';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const nodeMachineId = require('node-machine-id');
@@ -181,14 +181,16 @@ export class TelemetryService {
   }
 
   private async getTelemetryUserIdentity(): Promise<typeof this.userIdentity> {
+    const { value: deviceId, resolve: resolveDeviceId } = getDeviceId({
+      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
+      isNodeMachineId: true,
+    });
+
+    this.resolveDeviceId = resolveDeviceId;
+
     return {
       anonymousId: this.userIdentity.anonymousId,
-      deviceId: await Promise.race([
-        getDeviceId(),
-        new Promise<string>((resolve) => {
-          this.resolveDeviceId = resolve;
-        }),
-      ]),
+      deviceId: await deviceId,
     };
   }
 
@@ -232,31 +234,4 @@ export class TelemetryService {
     5000,
     { leading: true, trailing: false }
   );
-}
-
-/**
- * TODO: This hashing function should be moved to devtools-shared.
- * @returns A hashed, unique identifier for the running device or `"unknown"` if not known.
- */
-export async function getDeviceId({
-  onError,
-}: {
-  onError?: (error: Error) => void;
-} = {}): Promise<string> {
-  try {
-    const originalId: string = await nodeMachineId.machineId(true);
-
-    // Create a hashed format from the all uppercase version of the machine ID
-    // to match it exactly with the denisbrodbeck/machineid library that Atlas CLI uses.
-    const hmac = createHmac('sha256', originalId.toUpperCase());
-
-    /** This matches the message used to create the hashes in Atlas CLI */
-    const DEVICE_ID_HASH_MESSAGE = 'atlascli';
-
-    hmac.update(DEVICE_ID_HASH_MESSAGE);
-    return hmac.digest('hex');
-  } catch (error) {
-    onError?.(error as Error);
-    return 'unknown';
-  }
 }
