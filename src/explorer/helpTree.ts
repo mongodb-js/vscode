@@ -116,8 +116,7 @@ export default class HelpTree
         iconName: 'report',
       });
 
-      const telemetryUserIdentity =
-        this._telemetryService?.getTelemetryUserIdentity();
+      const telemetryUserIdentity = this._telemetryService?.userIdentity;
 
       const atlas = new HelpLinkTreeItem({
         title: 'Create Free Atlas Cluster',

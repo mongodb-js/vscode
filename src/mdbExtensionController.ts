@@ -180,7 +180,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._explorerController.activateConnectionsTreeView();
     this._helpExplorer.activateHelpTreeView();
     this._playgroundsExplorer.activatePlaygroundsTreeView();
-    this._telemetryService.activateSegmentAnalytics();
+    void this._telemetryService.activateSegmentAnalytics();
     this._participantController.createParticipant(this._context);
 
     await this._connectionController.loadSavedConnections();
