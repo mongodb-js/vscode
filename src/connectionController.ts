@@ -480,12 +480,7 @@ export default class ConnectionController {
 
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
-        connectionInfo: {
-          id: connectionId,
-          isAtlas: getBuildInfo.isAtlas(
-            connectionInfo.connectionOptions.connectionString
-          ),
-        },
+        connectionId,
         defaultAppName: `${packageJSON.name} ${packageJSON.version}`,
         notifyDeviceFlow,
         preferences: {
