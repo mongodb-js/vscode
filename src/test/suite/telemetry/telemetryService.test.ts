@@ -38,8 +38,12 @@ config({ path: resolve(__dirname, '../../../../.env') });
 suite('Telemetry Controller Test Suite', () => {
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
+
   let dataServiceStub: DataService;
-  const { anonymousId } = testTelemetryService.getTelemetryUserIdentity();
+  const telemetryIdentity = {
+    ...testTelemetryService.userIdentity,
+    deviceId: 'testDeviceId',
+  };
 
   let fakeSegmentAnalyticsTrack: SinonSpy;
 
@@ -62,6 +66,14 @@ suite('Telemetry Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._telemetryService,
       '_segmentAnalyticsTrack',
       fakeSegmentAnalyticsTrack
+    );
+    sandbox.replace(
+      mdbTestExtension.testExtensionController._telemetryService,
+      // @ts-expect-error This is a private method
+      'getTelemetryUserIdentity',
+      () => {
+        return Promise.resolve(telemetryIdentity);
+      }
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
@@ -117,232 +129,433 @@ suite('Telemetry Controller Test Suite', () => {
     expect(testTelemetryService._segmentKey).to.be.a('string');
   });
 
-  test('track command run event', async () => {
-    await vscode.commands.executeCommand('mdb.addConnection');
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Command Run',
-        properties: {
-          command: 'mdb.addConnection',
-          extension_version: version,
+  suite('after setup is complete', () => {
+    beforeEach(async () => {
+      await testTelemetryService.activateSegmentAnalytics();
+    });
+
+    test('track command run event', async () => {
+      await vscode.commands.executeCommand('mdb.addConnection');
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Command Run',
+          properties: {
+            command: 'mdb.addConnection',
+            extension_version: version,
+          },
+        })
+      );
+    });
+
+    test('track new connection event when connecting via connection string', async () => {
+      await testTelemetryService.trackNewConnection(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_STRING
+      );
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'New Connection',
+          properties: {
+            is_used_connect_screen: false,
+            is_used_command_palette: true,
+            is_used_saved_connection: false,
+            vscode_mdb_extension_version: version,
+            extension_version: version,
+          },
+        })
+      );
+    });
+
+    test('track new connection event when connecting via connection form', async () => {
+      await testTelemetryService.trackNewConnection(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_FORM
+      );
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'New Connection',
+          properties: {
+            is_used_connect_screen: true,
+            is_used_command_palette: false,
+            is_used_saved_connection: false,
+            vscode_mdb_extension_version: version,
+            extension_version: version,
+          },
+        })
+      );
+    });
+
+    test('track new connection event when connecting via saved connection', async () => {
+      await testTelemetryService.trackNewConnection(
+        dataServiceStub,
+        ConnectionTypes.CONNECTION_ID
+      );
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'New Connection',
+          properties: {
+            is_used_connect_screen: false,
+            is_used_command_palette: false,
+            is_used_saved_connection: true,
+            vscode_mdb_extension_version: version,
+            extension_version: version,
+          },
+        })
+      );
+    });
+
+    test('track document saved form a tree-view event', () => {
+      const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+      testTelemetryService.track(
+        new DocumentUpdatedTelemetryEvent(source, true)
+      );
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Document Updated',
+          properties: {
+            source: 'treeview',
+            success: true,
+            extension_version: version,
+          },
+        })
+      );
+    });
+
+    test('track document opened form playground results', () => {
+      const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+      testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Document Edited',
+          properties: { source: 'playground', extension_version: version },
+        })
+      );
+    });
+
+    test('track playground code executed event', async () => {
+      const testPlaygroundController =
+        mdbTestExtension.testExtensionController._playgroundController;
+      const source = new vscode.CancellationTokenSource();
+      await testPlaygroundController._evaluate(
+        {
+          codeToEvaluate: 'show dbs',
         },
-      })
-    );
-  });
+        source.token
+      );
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Playground Code Executed',
+          properties: {
+            type: 'other',
+            partial: false,
+            error: false,
+            extension_version: version,
+          },
+        })
+      );
+    });
 
-  test('track new connection event when connecting via connection string', async () => {
-    await testTelemetryService.trackNewConnection(
-      dataServiceStub,
-      ConnectionTypes.CONNECTION_STRING
-    );
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'New Connection',
-        properties: {
-          is_used_connect_screen: false,
-          is_used_command_palette: true,
-          is_used_saved_connection: false,
-          vscode_mdb_extension_version: version,
-          extension_version: version,
-        },
-      })
-    );
-  });
+    // TODO: re-enable two tests after https://jira.mongodb.org/browse/VSCODE-432
+    test.skip('track mongodb playground loaded event', async () => {
+      const docPath = path.resolve(
+        __dirname,
+        '../../../../src/test/fixture/testPlayground.mongodb'
+      );
+      await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Playground Loaded',
+          properties: {
+            file_type: 'mongodb',
+            extension_version: version,
+          },
+        })
+      );
+    });
 
-  test('track new connection event when connecting via connection form', async () => {
-    await testTelemetryService.trackNewConnection(
-      dataServiceStub,
-      ConnectionTypes.CONNECTION_FORM
-    );
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'New Connection',
-        properties: {
-          is_used_connect_screen: true,
-          is_used_command_palette: false,
-          is_used_saved_connection: false,
-          vscode_mdb_extension_version: version,
-          extension_version: version,
-        },
-      })
-    );
-  });
+    test.skip('track mongodbjs playground loaded event', async () => {
+      const docPath = path.resolve(
+        __dirname,
+        '../../../../src/test/fixture/testPlayground.mongodb.js'
+      );
+      await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Playground Loaded',
+          properties: {
+            file_type: 'mongodbjs',
+            extension_version: version,
+          },
+        })
+      );
+    });
 
-  test('track new connection event when connecting via saved connection', async () => {
-    await testTelemetryService.trackNewConnection(
-      dataServiceStub,
-      ConnectionTypes.CONNECTION_ID
-    );
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'New Connection',
-        properties: {
-          is_used_connect_screen: false,
-          is_used_command_palette: false,
-          is_used_saved_connection: true,
-          vscode_mdb_extension_version: version,
-          extension_version: version,
-        },
-      })
-    );
-  });
+    test('track playground saved event', () => {
+      testTelemetryService.track(
+        new PlaygroundSavedTelemetryEvent(
+          vscode.Uri.file('/users/peter/projects/test/myplayground.mongodb.js')
+        )
+      );
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Playground Saved',
+          properties: {
+            file_type: 'mongodbjs',
+            extension_version: version,
+          },
+        })
+      );
+    });
 
-  test('track document saved form a tree-view event', () => {
-    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
-    testTelemetryService.track(new DocumentUpdatedTelemetryEvent(source, true));
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Document Updated',
-        properties: {
-          source: 'treeview',
-          success: true,
-          extension_version: version,
-        },
-      })
-    );
-  });
+    test('track link clicked event', () => {
+      testTelemetryService.track(
+        new LinkClickedTelemetryEvent('helpPanel', 'linkId')
+      );
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Link Clicked',
+          properties: {
+            screen: 'helpPanel',
+            link_id: 'linkId',
+            extension_version: version,
+          },
+        })
+      );
+    });
 
-  test('track document opened form playground results', () => {
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
-    testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Document Edited',
-        properties: { source: 'playground', extension_version: version },
-      })
-    );
-  });
+    test('track playground exported to language', () => {
+      testTelemetryService.track(
+        new PlaygroundExportedToLanguageTelemetryEvent('java', 3, false)
+      );
 
-  test('track playground code executed event', async () => {
-    const testPlaygroundController =
-      mdbTestExtension.testExtensionController._playgroundController;
-    const source = new vscode.CancellationTokenSource();
-    await testPlaygroundController._evaluate(
-      {
-        codeToEvaluate: 'show dbs',
-      },
-      source.token
-    );
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Playground Code Executed',
-        properties: {
-          type: 'other',
-          partial: false,
-          error: false,
-          extension_version: version,
-        },
-      })
-    );
-  });
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Playground Exported To Language',
+          properties: {
+            language: 'java',
+            with_driver_syntax: false,
+            extension_version: version,
+          },
+        })
+      );
+    });
 
-  // TODO: re-enable two tests after https://jira.mongodb.org/browse/VSCODE-432
-  test.skip('track mongodb playground loaded event', async () => {
-    const docPath = path.resolve(
-      __dirname,
-      '../../../../src/test/fixture/testPlayground.mongodb'
-    );
-    await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Playground Loaded',
-        properties: {
-          file_type: 'mongodb',
-          extension_version: version,
-        },
-      })
-    );
-  });
+    suite('playground created', () => {
+      test('track on search for documents', async () => {
+        await vscode.commands.executeCommand('mdb.searchForDocuments', {
+          databaseName: 'databaseName',
+          collectionName: 'collectionName',
+        });
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'search',
+              extension_version: version,
+            },
+          })
+        );
+      });
 
-  test.skip('track mongodbjs playground loaded event', async () => {
-    const docPath = path.resolve(
-      __dirname,
-      '../../../../src/test/fixture/testPlayground.mongodb.js'
-    );
-    await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Playground Loaded',
-        properties: {
-          file_type: 'mongodbjs',
-          extension_version: version,
-        },
-      })
-    );
-  });
+      test('track on create collection', async () => {
+        const testDatabaseTreeItem = new DatabaseTreeItem({
+          databaseName: 'databaseName',
+          dataService: new DataServiceStub() as unknown as DataService,
+          isExpanded: false,
+          cacheIsUpToDate: false,
+          childrenCache: {},
+        });
+        await vscode.commands.executeCommand(
+          'mdb.addCollection',
+          testDatabaseTreeItem
+        );
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'createCollection',
+              extension_version: version,
+            },
+          })
+        );
+      });
 
-  test('track playground saved event', () => {
-    testTelemetryService.track(
-      new PlaygroundSavedTelemetryEvent(
-        vscode.Uri.file('/users/peter/projects/test/myplayground.mongodb.js')
-      )
-    );
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Playground Saved',
-        properties: {
-          file_type: 'mongodbjs',
-          extension_version: version,
-        },
-      })
-    );
-  });
+      test('track on create database', async () => {
+        await vscode.commands.executeCommand('mdb.addDatabase', {
+          connectionId: 'testconnectionId',
+        });
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'createDatabase',
+              extension_version: version,
+            },
+          })
+        );
+      });
 
-  test('track link clicked event', () => {
-    testTelemetryService.track(
-      new LinkClickedTelemetryEvent('helpPanel', 'linkId')
-    );
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Link Clicked',
-        properties: {
-          screen: 'helpPanel',
-          link_id: 'linkId',
-          extension_version: version,
-        },
-      })
-    );
-  });
+      test('track on create index', async () => {
+        await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
+          databaseName: 'databaseName',
+          collectionName: 'collectionName',
+        });
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'index',
+              extension_version: version,
+            },
+          })
+        );
+      });
 
-  test('track playground exported to language', () => {
-    testTelemetryService.track(
-      new PlaygroundExportedToLanguageTelemetryEvent('java', 3, false)
-    );
+      test('track on clone document', async () => {
+        const mockDocument = {
+          _id: 'pancakes',
+          name: '',
+          time: {
+            $time: '12345',
+          },
+        };
+        const dataServiceStub = {
+          find: () => {
+            return Promise.resolve([mockDocument]);
+          },
+        } as unknown as DataService;
+        const documentItem = new DocumentTreeItem({
+          document: mockDocument,
+          namespace: 'waffle.house',
+          documentIndexInTree: 0,
+          dataService: dataServiceStub,
+          resetDocumentListCache: (): Promise<void> => Promise.resolve(),
+        });
+        await vscode.commands.executeCommand(
+          'mdb.cloneDocumentFromTreeView',
+          documentItem
+        );
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'cloneDocument',
+              extension_version: version,
+            },
+          })
+        );
+      });
 
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Playground Exported To Language',
-        properties: {
-          language: 'java',
-          with_driver_syntax: false,
-          extension_version: version,
-        },
-      })
-    );
+      test('track on crud from the command palette', async () => {
+        await vscode.commands.executeCommand('mdb.createPlayground');
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'crud',
+              extension_version: version,
+            },
+          })
+        );
+      });
+
+      test('track on crud from overview page', async () => {
+        await vscode.commands.executeCommand(
+          'mdb.createNewPlaygroundFromOverviewPage'
+        );
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'crud',
+              extension_version: version,
+            },
+          })
+        );
+      });
+
+      test('track on crud from tree view', async () => {
+        await vscode.commands.executeCommand(
+          'mdb.createNewPlaygroundFromTreeView'
+        );
+        sandbox.assert.calledWith(
+          fakeSegmentAnalyticsTrack,
+          sinon.match({
+            ...telemetryIdentity,
+            event: 'Playground Created',
+            properties: {
+              playground_type: 'crud',
+              extension_version: version,
+            },
+          })
+        );
+      });
+    });
+
+    test.skip('track saved connections loaded', () => {
+      testTelemetryService.track(
+        new SavedConnectionsLoadedTelemetryEvent({
+          savedConnections: 3,
+          loadedConnections: 3,
+          presetConnections: 3,
+          connectionsWithSecretsInKeytar: 0,
+          connectionsWithSecretsInSecretStorage: 3,
+        })
+      );
+
+      sandbox.assert.calledWith(
+        fakeSegmentAnalyticsTrack,
+        sinon.match({
+          ...telemetryIdentity,
+          event: 'Saved Connections Loaded',
+          properties: {
+            saved_connections: 3,
+            loaded_connections: 3,
+            preset_connections: 3,
+            connections_with_secrets_in_keytar: 0,
+            connections_with_secrets_in_secret_storage: 3,
+          },
+        })
+      );
+    });
   });
 
   suite('prepare playground result types', () => {
@@ -429,199 +642,6 @@ suite('Telemetry Controller Test Suite', () => {
         .properties.type;
       expect(type).to.be.null;
     });
-  });
-
-  suite('playground created', () => {
-    test('track on search for documents', async () => {
-      await vscode.commands.executeCommand('mdb.searchForDocuments', {
-        databaseName: 'databaseName',
-        collectionName: 'collectionName',
-      });
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'search',
-            extension_version: version,
-          },
-        })
-      );
-    });
-
-    test('track on create collection', async () => {
-      const testDatabaseTreeItem = new DatabaseTreeItem({
-        databaseName: 'databaseName',
-        dataService: new DataServiceStub() as unknown as DataService,
-        isExpanded: false,
-        cacheIsUpToDate: false,
-        childrenCache: {},
-      });
-      await vscode.commands.executeCommand(
-        'mdb.addCollection',
-        testDatabaseTreeItem
-      );
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'createCollection',
-            extension_version: version,
-          },
-        })
-      );
-    });
-
-    test('track on create database', async () => {
-      await vscode.commands.executeCommand('mdb.addDatabase', {
-        connectionId: 'testconnectionId',
-      });
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'createDatabase',
-            extension_version: version,
-          },
-        })
-      );
-    });
-
-    test('track on create index', async () => {
-      await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
-        databaseName: 'databaseName',
-        collectionName: 'collectionName',
-      });
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'index',
-            extension_version: version,
-          },
-        })
-      );
-    });
-
-    test('track on clone document', async () => {
-      const mockDocument = {
-        _id: 'pancakes',
-        name: '',
-        time: {
-          $time: '12345',
-        },
-      };
-      const dataServiceStub = {
-        find: () => {
-          return Promise.resolve([mockDocument]);
-        },
-      } as unknown as DataService;
-      const documentItem = new DocumentTreeItem({
-        document: mockDocument,
-        namespace: 'waffle.house',
-        documentIndexInTree: 0,
-        dataService: dataServiceStub,
-        resetDocumentListCache: (): Promise<void> => Promise.resolve(),
-      });
-      await vscode.commands.executeCommand(
-        'mdb.cloneDocumentFromTreeView',
-        documentItem
-      );
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'cloneDocument',
-            extension_version: version,
-          },
-        })
-      );
-    });
-
-    test('track on crud from the command palette', async () => {
-      await vscode.commands.executeCommand('mdb.createPlayground');
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'crud',
-            extension_version: version,
-          },
-        })
-      );
-    });
-
-    test('track on crud from overview page', async () => {
-      await vscode.commands.executeCommand(
-        'mdb.createNewPlaygroundFromOverviewPage'
-      );
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'crud',
-            extension_version: version,
-          },
-        })
-      );
-    });
-
-    test('track on crud from tree view', async () => {
-      await vscode.commands.executeCommand(
-        'mdb.createNewPlaygroundFromTreeView'
-      );
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          anonymousId,
-          event: 'Playground Created',
-          properties: {
-            playground_type: 'crud',
-            extension_version: version,
-          },
-        })
-      );
-    });
-  });
-
-  test.skip('track saved connections loaded', () => {
-    testTelemetryService.track(
-      new SavedConnectionsLoadedTelemetryEvent({
-        savedConnections: 3,
-        loadedConnections: 3,
-        presetConnections: 3,
-        connectionsWithSecretsInKeytar: 0,
-        connectionsWithSecretsInSecretStorage: 3,
-      })
-    );
-
-    sandbox.assert.calledWith(
-      fakeSegmentAnalyticsTrack,
-      sinon.match({
-        anonymousId,
-        event: 'Saved Connections Loaded',
-        properties: {
-          saved_connections: 3,
-          loaded_connections: 3,
-          preset_connections: 3,
-          connections_with_secrets_in_keytar: 0,
-          connections_with_secrets_in_secret_storage: 3,
-        },
-      })
-    );
   });
 
   function enumKeys<
