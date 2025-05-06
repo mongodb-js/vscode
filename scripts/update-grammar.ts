@@ -49,7 +49,7 @@ const injectionGrammar = {
   ui.succeed(`The '${SYNTAXES_DIR}' folder has been created`);
   await writeFile(
     `${SYNTAXES_DIR}/mongodbInjection.tmLanguage.json`,
-    JSON.stringify(injectionGrammar, null, 2)
+    JSON.stringify(injectionGrammar, null, 2),
   );
   ui.succeed('MongoDB injection grammar has been saved');
 })();

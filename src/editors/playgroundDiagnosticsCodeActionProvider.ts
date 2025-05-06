@@ -25,7 +25,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
   provideCodeActions(
     document: vscode.TextDocument,
     _range: vscode.Range | vscode.Selection,
-    context: vscode.CodeActionContext
+    context: vscode.CodeActionContext,
   ): vscode.ProviderResult<(vscode.CodeAction | vscode.Command)[]> {
     const fixCodeActions: vscode.CodeAction[] = [];
     const diagnostics = context.diagnostics as unknown as Diagnostic[];
@@ -36,7 +36,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
           {
             const fix = new vscode.CodeAction(
               'Fix this interactive syntax problem',
-              vscode.CodeActionKind.QuickFix
+              vscode.CodeActionKind.QuickFix,
             );
             fix.command = {
               command:
@@ -65,7 +65,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
     if (allDiagnostics.length > 1) {
       const fix = new vscode.CodeAction(
         'Fix all interactive syntax problems',
-        vscode.CodeActionKind.QuickFix
+        vscode.CodeActionKind.QuickFix,
       );
 
       fix.command = {

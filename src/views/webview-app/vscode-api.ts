@@ -13,7 +13,7 @@ declare const acquireVsCodeApi: () => VSCodeApi;
 const vscode = acquireVsCodeApi();
 
 export const sendEditConnectionToExtension = (
-  connectionInfo: ConnectMessage['connectionInfo']
+  connectionInfo: ConnectMessage['connectionInfo'],
 ): void => {
   vscode.postMessage({
     command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
@@ -22,7 +22,7 @@ export const sendEditConnectionToExtension = (
 };
 
 export const sendConnectToExtension = (
-  connectionInfo: ConnectMessage['connectionInfo']
+  connectionInfo: ConnectMessage['connectionInfo'],
 ): void => {
   vscode.postMessage({
     command: MESSAGE_TYPES.CONNECT,
@@ -32,7 +32,7 @@ export const sendConnectToExtension = (
 
 export const sendOpenFileChooserToExtension = (
   fileChooserOptions: FileChooserOptions,
-  requestId: string
+  requestId: string,
 ): void => {
   vscode.postMessage({
     command: MESSAGE_TYPES.OPEN_FILE_CHOOSER,
@@ -75,7 +75,7 @@ export const connectWithConnectionString = (): void => {
 
 export const trackExtensionLinkClicked = (
   screen: string,
-  linkId: string
+  linkId: string,
 ): void => {
   vscode.postMessage({
     command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,

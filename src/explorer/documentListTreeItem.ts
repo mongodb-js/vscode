@@ -51,7 +51,7 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
 
 const getCollapsableStateForDocumentList = (
   isExpanded: boolean,
-  type: string
+  type: string,
 ): vscode.TreeItemCollapsibleState => {
   if (type === CollectionTypes.view) {
     return vscode.TreeItemCollapsibleState.None;
@@ -194,7 +194,7 @@ export default class DocumentListTreeItem
             documentIndexInTree: index,
             dataService: this._dataService,
             resetDocumentListCache: () => this.resetCache(),
-          })
+          }),
         );
       });
 
@@ -222,11 +222,11 @@ export default class DocumentListTreeItem
       documents = await this._dataService.find(
         this.namespace,
         {}, // No filter.
-        { limit: this._maxDocumentsToShow }
+        { limit: this._maxDocumentsToShow },
       );
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Fetch documents failed: ${formatError(error).message}`
+        `Fetch documents failed: ${formatError(error).message}`,
       );
       return [];
     }
@@ -240,7 +240,7 @@ export default class DocumentListTreeItem
             documentIndexInTree: index,
             dataService: this._dataService,
             resetDocumentListCache: () => this.resetCache(),
-          })
+          }),
         );
       });
     }
@@ -261,7 +261,7 @@ export default class DocumentListTreeItem
 
   onShowMoreClicked(): void {
     log.info(
-      `Show more documents clicked for the '${this.namespace}' namespace`
+      `Show more documents clicked for the '${this.namespace}' namespace`,
     );
 
     this._maxDocumentsToShow += MAX_DOCUMENTS_VISIBLE;

@@ -14,7 +14,7 @@ export const getFeatureFlag = (flag: FeatureFlag): boolean => {
 export const getFeatureFlagsScript = (nonce: string): string => {
   return `
     <script nonce="${nonce}">window['MDB_FEATURE_FLAGS']=${JSON.stringify(
-    FEATURE_FLAGS
-  )}</script>
+      FEATURE_FLAGS,
+    )}</script>
   `;
 };

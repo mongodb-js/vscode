@@ -28,7 +28,7 @@ export async function run(): Promise<void> {
   mdbTestExtension.extensionContextStub = new ExtensionContextStub();
   mdbTestExtension.testExtensionController = new MDBExtensionController(
     mdbTestExtension.extensionContextStub,
-    { shouldTrackTelemetry: false }
+    { shouldTrackTelemetry: false },
   );
 
   await mdbTestExtension.testExtensionController.activate();
@@ -61,7 +61,7 @@ export async function run(): Promise<void> {
           console.error(mochaRunErr);
           e(mochaRunErr);
         }
-      }
+      },
     );
   });
 }

@@ -9,7 +9,7 @@ import { LinkClickedTelemetryEvent } from '../telemetry';
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
 function getIconPath(
-  iconName?: string
+  iconName?: string,
 ): string | { light: string; dark: string } {
   if (!iconName || iconName === '') {
     return '';
@@ -66,7 +66,7 @@ export default class HelpTree
 
   activateTreeViewEventHandlers = (
     treeView: vscode.TreeView<vscode.TreeItem>,
-    telemetryService: TelemetryService
+    telemetryService: TelemetryService,
   ): void => {
     this._telemetryService = telemetryService;
     treeView.onDidChangeSelection(async (event: any) => {
@@ -141,11 +141,11 @@ export default class HelpTree
 
   async onClickHelpItem(
     helpItem: HelpLinkTreeItem,
-    telemetryService: TelemetryService
+    telemetryService: TelemetryService,
   ): Promise<void> {
     if (helpItem.contextValue === HELP_LINK_CONTEXT_VALUE) {
       telemetryService.track(
-        new LinkClickedTelemetryEvent('helpPanel', helpItem.linkId)
+        new LinkClickedTelemetryEvent('helpPanel', helpItem.linkId),
       );
 
       if (helpItem.useRedirect) {
@@ -155,13 +155,13 @@ export default class HelpTree
           // If opening the link fails we default to regular link opening.
           await vscode.commands.executeCommand(
             'vscode.open',
-            vscode.Uri.parse(helpItem.url)
+            vscode.Uri.parse(helpItem.url),
           );
         }
       } else {
         await vscode.commands.executeCommand(
           'vscode.open',
-          vscode.Uri.parse(helpItem.url)
+          vscode.Uri.parse(helpItem.url),
         );
       }
     }

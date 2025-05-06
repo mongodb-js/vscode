@@ -42,7 +42,7 @@ suite('IndexTreeItem Test Suite', () => {
       assert(
         iconPath.dark.includes('index') &&
           iconPath.dark.includes('geospatial.svg'),
-        'Expected icon path to point to an svg by the name "geospatial" in the index folder'
+        'Expected icon path to point to an svg by the name "geospatial" in the index folder',
       );
     });
   });

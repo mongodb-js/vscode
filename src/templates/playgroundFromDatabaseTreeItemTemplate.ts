@@ -7,5 +7,5 @@ export const playgroundFromDatabaseTreeItemTemplate = createTemplate(
 // The current database to use.
 use(${currentDatabase});
 
-`
+`,
 );

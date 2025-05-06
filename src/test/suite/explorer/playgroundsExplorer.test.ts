@@ -23,7 +23,7 @@ suite('Playgrounds Controller Test Suite', function () {
       .getConfiguration('mdb')
       .update(
         'excludeFromPlaygroundsSearch',
-        excludeFromPlaygroundsSearchDefault
+        excludeFromPlaygroundsSearchDefault,
       );
   });
 
@@ -37,7 +37,7 @@ suite('Playgrounds Controller Test Suite', function () {
 
       assert(
         treeControllerChildren.length === 0,
-        `Tree controller should have 0 child, found ${treeControllerChildren.length}`
+        `Tree controller should have 0 child, found ${treeControllerChildren.length}`,
       );
     } catch (error) {
       assert(false, error as Error);
@@ -66,7 +66,7 @@ suite('Playgrounds Controller Test Suite', function () {
         .getConfiguration('mdb')
         .update(
           'excludeFromPlaygroundsSearch',
-          excludeFromPlaygroundsSearchDefault.concat(['**/playgrounds/**'])
+          excludeFromPlaygroundsSearchDefault.concat(['**/playgrounds/**']),
         );
       const rootPath = path.resolve(__dirname, '../../../..');
       const children = await treeController.getPlaygrounds(rootPath);
@@ -85,22 +85,22 @@ suite('Playgrounds Controller Test Suite', function () {
 
       assert(
         !treeController.excludeFromPlaygroundsSearch.includes(
-          '**/playgrounds/**'
-        )
+          '**/playgrounds/**',
+        ),
       );
 
       await vscode.workspace
         .getConfiguration('mdb')
         .update(
           'excludeFromPlaygroundsSearch',
-          excludeFromPlaygroundsSearchDefault.concat(['**/playgrounds/**'])
+          excludeFromPlaygroundsSearchDefault.concat(['**/playgrounds/**']),
         );
       await treeController.refresh();
 
       assert(
         treeController.excludeFromPlaygroundsSearch.includes(
-          '**/playgrounds/**'
-        )
+          '**/playgrounds/**',
+        ),
       );
     } catch (error) {
       assert(false, error as Error);

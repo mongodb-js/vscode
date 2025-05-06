@@ -24,7 +24,7 @@ async function snykTest(cwd) {
           '--dev',
           `--json-file-output=${tmpPath}`,
         ],
-        { cwd, stdio: 'inherit' }
+        { cwd, stdio: 'inherit' },
       );
     } catch (err) {
       console.warn(err);
@@ -51,7 +51,7 @@ async function main() {
 
   await fs.writeFile(
     path.join(rootPath, `.sbom/snyk-test-result.json`),
-    JSON.stringify(results, null, 2)
+    JSON.stringify(results, null, 2),
   );
 
   await execFile(
@@ -63,7 +63,7 @@ async function main() {
       '-o',
       path.join(rootPath, `.sbom/snyk-test-result.html`),
     ],
-    { cwd: rootPath }
+    { cwd: rootPath },
   );
 }
 

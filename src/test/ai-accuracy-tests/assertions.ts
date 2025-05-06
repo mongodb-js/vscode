@@ -11,7 +11,7 @@ import { processStreamWithIdentifiers } from '../../participant/streamParsing';
 
 export const runCodeInMessage = async (
   message: string,
-  connectionString: string
+  connectionString: string,
 ): Promise<{
   printOutput: string[];
   data: ShellEvaluateResult;
@@ -48,15 +48,15 @@ export const runCodeInMessage = async (
         ...values.map((v) =>
           typeof v.printable === 'string'
             ? v.printable
-            : util.inspect(v.printable)
-        )
+            : util.inspect(v.printable),
+        ),
       );
     },
   });
 
   if (error) {
     throw new Error(
-      `An error occurred when attempting to run the code in the message: \n${message}\n___Error:\n${error}`
+      `An error occurred when attempting to run the code in the message: \n${message}\n___Error:\n${error}`,
     );
   }
 
@@ -77,7 +77,7 @@ export const isDeepStrictEqualToFixtures =
     db: string,
     coll: string,
     fixtures: Fixtures,
-    comparator: (document: Document) => boolean
+    comparator: (document: Document) => boolean,
   ) =>
   (actual: unknown): void => {
     const expected = fixtures[db][coll].documents.filter(comparator);

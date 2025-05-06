@@ -6,7 +6,7 @@ export default class StatusView {
   constructor(context: vscode.ExtensionContext) {
     this._statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
-      0
+      0,
     );
 
     context.subscriptions.push(this._statusBarItem);

@@ -53,7 +53,7 @@ export default class CollectionViewProvider
 
     if (!operationId) {
       void vscode.window.showErrorMessage(
-        'Unable to list documents: invalid operation'
+        'Unable to list documents: invalid operation',
       );
 
       throw new Error('Unable to list documents: invalid operation');
@@ -69,11 +69,11 @@ export default class CollectionViewProvider
         this._connectionController.getSavedConnectionName(connectionId || '') ||
         'the database';
       void vscode.window.showErrorMessage(
-        `Unable to list documents: no longer connected to ${oldConnectionName}`
+        `Unable to list documents: no longer connected to ${oldConnectionName}`,
       );
 
       throw new Error(
-        `Unable to list documents: no longer connected to ${oldConnectionName}`
+        `Unable to list documents: no longer connected to ${oldConnectionName}`,
       );
     }
 
@@ -93,7 +93,7 @@ export default class CollectionViewProvider
       const documents = await dataservice.find(
         namespace,
         {}, // No filter.
-        { limit: documentLimit }
+        { limit: documentLimit },
       );
 
       operation.isCurrentlyFetchingMoreDocuments = false;

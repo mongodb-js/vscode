@@ -9,7 +9,7 @@ function simplifyEJSON(item: Document[] | Document): Document {
 
   if (Array.isArray(item)) {
     return item.map((arrayItem) =>
-      isObjectOrArray(arrayItem) ? simplifyEJSON(arrayItem) : arrayItem
+      isObjectOrArray(arrayItem) ? simplifyEJSON(arrayItem) : arrayItem,
     );
   }
 
@@ -23,7 +23,7 @@ function simplifyEJSON(item: Document[] | Document): Document {
     typeof item.$binary?.base64 === 'string'
   ) {
     const hexString = Buffer.from(item.$binary.base64, 'base64').toString(
-      'hex'
+      'hex',
     );
     const match = /^(.{8})(.{4})(.{4})(.{4})(.{12})$/.exec(hexString);
     if (!match) return item;
@@ -35,7 +35,7 @@ function simplifyEJSON(item: Document[] | Document): Document {
     Object.entries(item).map(([key, value]) => [
       key,
       isObjectOrArray(value) ? simplifyEJSON(value) : value,
-    ])
+    ]),
   );
 }
 

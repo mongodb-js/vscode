@@ -13,7 +13,7 @@ describe('ConnectHelper test suite', function () {
         onClickOpenConnectionForm={(): void => {
           /* noop */
         }}
-      />
+      />,
     );
     expect(screen.getByLabelText('Connect with connection string')).to.not.be
       .null;
@@ -27,7 +27,7 @@ describe('ConnectHelper test suite', function () {
         onClickOpenConnectionForm={(): void => {
           /* noop */
         }}
-      />
+      />,
     );
     screen.getByLabelText('Connect with connection string').click();
     expect(postMessageStub).to.have.been.calledWithExactly({

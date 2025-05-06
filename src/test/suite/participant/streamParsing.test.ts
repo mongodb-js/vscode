@@ -248,7 +248,7 @@ suite('processStreamWithIdentifiers', () => {
     }[] = [];
 
     const getFragmentHandler = (
-      source: 'processStreamFragment' | 'onStreamIdentifier'
+      source: 'processStreamFragment' | 'onStreamIdentifier',
     ): ((fragment: string) => void) => {
       return (fragment: string): void => {
         // It's an implementation detail, but the way the code is structured today, we're splitting the emitted fragments
@@ -275,7 +275,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(fragmentsEmitted).to.have.length(5);
     expect(fragmentsEmitted[0].source).to.equal('processStreamFragment');
     expect(fragmentsEmitted[0].content).to.equal(
-      'Text before code.\n```js\ncode1\n```'
+      'Text before code.\n```js\ncode1\n```',
     );
 
     expect(fragmentsEmitted[1].source).to.equal('onStreamIdentifier');
@@ -283,7 +283,7 @@ suite('processStreamWithIdentifiers', () => {
 
     expect(fragmentsEmitted[2].source).to.equal('processStreamFragment');
     expect(fragmentsEmitted[2].content).to.equal(
-      '\nText between code.\n```js\ncode2\n```'
+      '\nText between code.\n```js\ncode2\n```',
     );
 
     expect(fragmentsEmitted[3].source).to.equal('onStreamIdentifier');

@@ -49,8 +49,8 @@ export default class CollectionDocumentsCodeLensProvider
       new vscode.CodeLens(
         new vscode.Range(
           new vscode.Position(document.lineCount - 1, 0),
-          new vscode.Position(document.lineCount, 0)
-        )
+          new vscode.Position(document.lineCount, 0),
+        ),
       ),
     ];
 

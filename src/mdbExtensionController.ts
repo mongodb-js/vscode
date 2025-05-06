@@ -85,7 +85,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   constructor(
     context: vscode.ExtensionContext,
-    options: { shouldTrackTelemetry: boolean }
+    options: { shouldTrackTelemetry: boolean },
   ) {
     this._context = context;
     this._statusView = new StatusView(context);
@@ -96,7 +96,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryService = new TelemetryService(
       this._storageController,
       context,
-      options.shouldTrackTelemetry
+      options.shouldTrackTelemetry,
     );
     this._connectionController = new ConnectionController({
       statusView: this._statusView,
@@ -106,16 +106,16 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._languageServerController = new LanguageServerController(context);
     this._explorerController = new ExplorerController(
       this._connectionController,
-      this._telemetryService
+      this._telemetryService,
     );
     this._helpExplorer = new HelpExplorer(this._telemetryService);
     this._playgroundsExplorer = new PlaygroundsExplorer(this._telemetryService);
     this._editDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      this._connectionController
+      this._connectionController,
     );
     this._playgroundResultProvider = new PlaygroundResultProvider(
       this._connectionController,
-      this._editDocumentCodeLensProvider
+      this._editDocumentCodeLensProvider,
     );
     this._queryWithCopilotCodeLensProvider =
       new QueryWithCopilotCodeLensProvider();
@@ -195,7 +195,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.isCopilotActive',
-      copilot?.isActive
+      copilot?.isActive,
     );
 
     // TODO: This is a workaround related to https://github.com/microsoft/vscode/issues/234426
@@ -207,7 +207,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         void vscode.commands.executeCommand(
           'setContext',
           'mdb.isCopilotActive',
-          copilot?.isActive === true
+          copilot?.isActive === true,
         );
       }, 3000);
     }
@@ -241,18 +241,18 @@ export default class MDBExtensionController implements vscode.Disposable {
     try {
       if (
         !Object.values(EXTENSION_COMMANDS).includes(
-          command as EXTENSION_COMMANDS
+          command as EXTENSION_COMMANDS,
         )
       ) {
         throw new Error(
-          `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`
+          `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`,
         );
       }
 
       await vscode.commands.executeCommand(command, parameters);
     } catch (error) {
       await vscode.window.showErrorMessage(
-        `Failed to handle '${uri}': ${error}`
+        `Failed to handle '${uri}': ${error}`,
       );
     }
   };
@@ -273,13 +273,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       return this._connectionController.connectWithURI(params);
     });
     this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT, () =>
-      this._connectionController.disconnect()
+      this._connectionController.disconnect(),
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION, (params) =>
-      this._connectionController.onRemoveMongoDBConnection(params)
+      this._connectionController.onRemoveMongoDBConnection(params),
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
-      this._connectionController.changeActiveConnection()
+      this._connectionController.changeActiveConnection(),
     );
 
     this.registerCommand(
@@ -290,75 +290,76 @@ export default class MDBExtensionController implements vscode.Disposable {
           {
             extensionId: 'mongodb.mongodb-vscode',
             issueSource: 'extension',
-          }
+          },
         );
-      }
+      },
     );
 
     // ------ SHELL ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL, () =>
-      launchMongoShell(this._connectionController)
+      launchMongoShell(this._connectionController),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW,
-      () => launchMongoShell(this._connectionController)
+      () => launchMongoShell(this._connectionController),
     );
 
     // ------ PLAYGROUND ------ //
     this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND, () =>
-      this._playgroundController.createPlayground()
+      this._playgroundController.createPlayground(),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
-      () => this._playgroundController.createPlayground()
+      () => this._playgroundController.createPlayground(),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
-      () => this._playgroundController.runSelectedPlaygroundBlocks()
+      () => this._playgroundController.runSelectedPlaygroundBlocks(),
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_RUN_ALL_PLAYGROUND_BLOCKS, () =>
-      this._playgroundController.runAllPlaygroundBlocks()
+      this._playgroundController.runAllPlaygroundBlocks(),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
-      () => this._playgroundController.runAllOrSelectedPlaygroundBlocks()
+      () => this._playgroundController.runAllOrSelectedPlaygroundBlocks(),
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_CODE_TO_PLAYGROUND, () =>
-      this._participantController.exportCodeToPlayground()
+      this._participantController.exportCodeToPlayground(),
     );
 
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
-      (data) => this._playgroundController.fixThisInvalidInteractiveSyntax(data)
+      (data) =>
+        this._playgroundController.fixThisInvalidInteractiveSyntax(data),
     );
 
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
-      (data) => this._playgroundController.fixAllInvalidInteractiveSyntax(data)
+      (data) => this._playgroundController.fixAllInvalidInteractiveSyntax(data),
     );
 
     // ------ EXPORT TO LANGUAGE ------ //
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_SELECT_TARGET_FOR_EXPORT_TO_LANGUAGE,
-      () => this._participantController.selectTargetForExportToLanguage()
+      () => this._participantController.selectTargetForExportToLanguage(),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
       (language: string) =>
-        this._participantController.exportPlaygroundToLanguage(language)
+        this._participantController.exportPlaygroundToLanguage(language),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE,
       (includeDriverSyntax: boolean) =>
         this._participantController.changeDriverSyntaxForExportToLanguage(
-          includeDriverSyntax
-        )
+          includeDriverSyntax,
+        ),
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
       (data: ExportToLanguageResult) => {
         return this._playgroundController.showExportToLanguageResult(data);
-      }
+      },
     );
 
     // ------ DOCUMENTS ------ //
@@ -366,14 +367,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
       (data: EditDocumentInfo) => {
         this._telemetryService.track(
-          new DocumentEditedTelemetryEvent(data.source)
+          new DocumentEditedTelemetryEvent(data.source),
         );
 
         return this._editorsController.openMongoDBDocument(data);
-      }
+      },
     );
     this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_MONGODB_DOCUMENT, () =>
-      this._editorsController.saveMongoDBDocument()
+      this._editorsController.saveMongoDBDocument(),
     );
 
     this.registerEditorCommands();
@@ -386,44 +387,44 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.createPlaygroundFromParticipantCode({
           text: runnableContent,
         });
-      }
+      },
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT,
       async (options: SendMessageToParticipantOptions) => {
         await this._participantController.sendMessageToParticipant(options);
         return true;
-      }
+      },
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
       async (options: SendMessageToParticipantFromInputOptions) => {
         await this._participantController.sendMessageToParticipantFromInput(
-          options
+          options,
         );
         return true;
-      }
+      },
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.ASK_COPILOT_FROM_TREE_ITEM,
       async (treeItem: DatabaseTreeItem | CollectionTreeItem) => {
         await this._participantController.askCopilotFromTreeItem(treeItem);
         return true;
-      }
+      },
     );
     this.registerParticipantCommand(
       EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
       ({ runnableContent }: RunParticipantCodeCommandArgs) => {
         return this._playgroundController.evaluateParticipantCode(
-          runnableContent
+          runnableContent,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
       (data: { id?: string; command?: string }) => {
         return this._participantController.connectWithParticipant(data);
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
@@ -433,15 +434,15 @@ export default class MDBExtensionController implements vscode.Disposable {
         databaseName?: string;
       }) => {
         return this._participantController.selectDatabaseWithParticipant(data);
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
       (data: any) => {
         return this._participantController.selectCollectionWithParticipant(
-          data
+          data,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
@@ -453,13 +454,13 @@ export default class MDBExtensionController implements vscode.Disposable {
         await vscode.window.showTextDocument(document, { preview: true });
 
         return !!document;
-      }
+      },
     );
   };
 
   registerParticipantCommand = (
     command: ExtensionCommand,
-    commandHandler: (...args: any[]) => Promise<boolean>
+    commandHandler: (...args: any[]) => Promise<boolean>,
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
       this._telemetryService.track(new CommandRunTelemetryEvent(command));
@@ -470,14 +471,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     if (participant) {
       this._context.subscriptions.push(
         participant,
-        vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
+        vscode.commands.registerCommand(command, commandHandlerWithTelemetry),
       );
     }
   };
 
   registerCommand = (
     command: ExtensionCommand,
-    commandHandler: (...args: any[]) => Promise<boolean>
+    commandHandler: (...args: any[]) => Promise<boolean>,
   ): void => {
     const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
       this._telemetryService.track(new CommandRunTelemetryEvent(command));
@@ -486,7 +487,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     };
 
     this._context.subscriptions.push(
-      vscode.commands.registerCommand(command, commandHandlerWithTelemetry)
+      vscode.commands.registerCommand(command, commandHandlerWithTelemetry),
     );
   };
 
@@ -497,9 +498,9 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._editorsController.onViewMoreCollectionDocuments(
           operationId,
           connectionId,
-          namespace
+          namespace,
         );
-      }
+      },
     );
   }
 
@@ -509,17 +510,17 @@ export default class MDBExtensionController implements vscode.Disposable {
       return Promise.resolve(true);
     });
     this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION_WITH_URI, () =>
-      this._connectionController.connectWithURI()
+      this._connectionController.connectWithURI(),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CONNECT_TO_CONNECTION_TREE_VIEW,
       async (connectionTreeItem: ConnectionTreeItem) => {
         const { successfullyConnected } =
           await this._connectionController.connectWithConnectionId(
-            connectionTreeItem.connectionId
+            connectionTreeItem.connectionId,
           );
         return successfullyConnected;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW,
@@ -527,7 +528,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         // In order for this command to be activated, the connection must
         // be the active connection, so we can just generally disconnect.
         return this._connectionController.disconnect();
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
@@ -542,42 +543,42 @@ export default class MDBExtensionController implements vscode.Disposable {
         });
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_EDIT_PRESET_CONNECTIONS,
       async (element: ConnectionTreeItem | undefined) => {
         await this._connectionController.openPresetConnectionsSettings(element);
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_CONNECTION_STRING,
       async (element: ConnectionTreeItem): Promise<boolean> => {
         const connectionString =
           this._connectionController.copyConnectionStringByConnectionId(
-            element.connectionId
+            element.connectionId,
           );
 
         await vscode.env.clipboard.writeText(connectionString);
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
       (element: ConnectionTreeItem) =>
         this._connectionController.onRemoveMongoDBConnection({
           id: element.connectionId,
-        })
+        }),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_EDIT_CONNECTION,
       (element: ConnectionTreeItem) => {
         const connectionOptions =
           this._connectionController.getConnectionConnectionOptions(
-            element.connectionId
+            element.connectionId,
           );
 
         if (!connectionOptions) {
@@ -588,26 +589,26 @@ export default class MDBExtensionController implements vscode.Disposable {
           connection: {
             id: element.connectionId,
             name: this._connectionController.getSavedConnectionName(
-              element.connectionId
+              element.connectionId,
             ),
             connectionOptions,
           },
           context: this._context,
         });
         return Promise.resolve(true);
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_RENAME_CONNECTION,
       (element: ConnectionTreeItem) =>
-        this._connectionController.renameConnection(element.connectionId)
+        this._connectionController.renameConnection(element.connectionId),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_ADD_DATABASE,
       async (element: ConnectionTreeItem): Promise<boolean> => {
         if (!element) {
           void vscode.window.showErrorMessage(
-            'Please wait for the connection to finish loading before adding a database.'
+            'Please wait for the connection to finish loading before adding a database.',
           );
 
           return false;
@@ -618,7 +619,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           this._connectionController.getActiveConnectionId()
         ) {
           void vscode.window.showErrorMessage(
-            'Please connect to this connection before adding a database.'
+            'Please connect to this connection before adding a database.',
           );
 
           return false;
@@ -626,7 +627,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (this._connectionController.isDisconnecting()) {
           void vscode.window.showErrorMessage(
-            'Unable to add database: currently disconnecting.'
+            'Unable to add database: currently disconnecting.',
           );
 
           return false;
@@ -634,16 +635,16 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (this._connectionController.isConnecting()) {
           void vscode.window.showErrorMessage(
-            'Unable to add database: currently connecting.'
+            'Unable to add database: currently connecting.',
           );
 
           return false;
         }
 
         return this._playgroundController.createPlaygroundForCreateCollection(
-          element
+          element,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_DATABASE_NAME,
@@ -652,7 +653,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DROP_DATABASE,
@@ -662,7 +663,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (successfullyDroppedDatabase) {
           void vscode.window.showInformationMessage(
-            'Database successfully dropped.'
+            'Database successfully dropped.',
           );
 
           // When we successfully drop a database, we need
@@ -671,7 +672,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         return successfullyDroppedDatabase;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_DATABASE,
@@ -684,23 +685,23 @@ export default class MDBExtensionController implements vscode.Disposable {
         });
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_ADD_COLLECTION,
       async (element: DatabaseTreeItem): Promise<boolean> => {
         if (this._connectionController.isDisconnecting()) {
           void vscode.window.showErrorMessage(
-            'Unable to add collection: currently disconnecting.'
+            'Unable to add collection: currently disconnecting.',
           );
 
           return false;
         }
 
         return this._playgroundController.createPlaygroundForCreateCollection(
-          element
+          element,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_COLLECTION_NAME,
@@ -709,7 +710,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DROP_COLLECTION,
@@ -719,7 +720,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (successfullyDroppedCollection) {
           void vscode.window.showInformationMessage(
-            'Collection successfully dropped.'
+            'Collection successfully dropped.',
           );
 
           // When we successfully drop a collection, we need
@@ -728,17 +729,17 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         return successfullyDroppedCollection;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,
       (
-        element: CollectionTreeItem | DocumentListTreeItem
+        element: CollectionTreeItem | DocumentListTreeItem,
       ): Promise<boolean> => {
         const namespace = `${element.databaseName}.${element.collectionName}`;
 
         return this._editorsController.onViewCollectionDocuments(namespace);
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_COLLECTION,
@@ -748,15 +749,15 @@ export default class MDBExtensionController implements vscode.Disposable {
         await this._languageServerController.resetCache({ fields: true });
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_SEARCH_FOR_DOCUMENTS,
       (element: DocumentListTreeItem): Promise<boolean> =>
         this._playgroundController.createPlaygroundForSearch(
           element.databaseName,
-          element.collectionName
-        )
+          element.collectionName,
+        ),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
@@ -768,7 +769,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           connectionId: this._connectionController.getActiveConnectionId(),
           line: 1,
         });
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_DOCUMENT_LIST,
@@ -778,18 +779,18 @@ export default class MDBExtensionController implements vscode.Disposable {
         await this._languageServerController.resetCache({ fields: true });
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_INSERT_DOCUMENT_FROM_TREE_VIEW,
       async (
-        documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem
+        documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem,
       ): Promise<boolean> => {
         return this._playgroundController.createPlaygroundForInsertDocument(
           documentsListTreeItem.databaseName,
-          documentsListTreeItem.collectionName
+          documentsListTreeItem.collectionName,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_SCHEMA,
@@ -799,7 +800,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         await this._languageServerController.resetCache({ fields: true });
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_SCHEMA_FIELD_NAME,
@@ -808,7 +809,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_INDEXES,
@@ -817,34 +818,34 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._explorerController.refresh();
 
         return Promise.resolve(true);
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CREATE_INDEX_TREE_VIEW,
       (indexListTreeItem: IndexListTreeItem): Promise<boolean> => {
         return this._playgroundController.createPlaygroundForNewIndex(
           indexListTreeItem.databaseName,
-          indexListTreeItem.collectionName
+          indexListTreeItem.collectionName,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW,
-      () => this._playgroundController.createPlayground()
+      () => this._playgroundController.createPlayground(),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_ITEM,
       (treeItem: DatabaseTreeItem | CollectionTreeItem) =>
-        this._playgroundController.createPlaygroundFromTreeItem(treeItem)
+        this._playgroundController.createPlaygroundFromTreeItem(treeItem),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
-      () => this._playgroundsExplorer.refresh()
+      () => this._playgroundsExplorer.refresh(),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
       (playgroundsTreeItem: PlaygroundsTreeItem) =>
-        this._playgroundController.openPlayground(playgroundsTreeItem.filePath)
+        this._playgroundController.openPlayground(playgroundsTreeItem.filePath),
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW,
@@ -855,7 +856,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_CLONE_DOCUMENT_FROM_TREE_VIEW,
@@ -869,9 +870,9 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.createPlaygroundForCloneDocument(
           documentContents,
           databaseName,
-          collectionName
+          collectionName,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DELETE_DOCUMENT_FROM_TREE_VIEW,
@@ -881,7 +882,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (successfullyDropped) {
           void vscode.window.showInformationMessage(
-            'Document successfully deleted.'
+            'Document successfully deleted.',
           );
 
           // When we successfully drop a document, we need
@@ -890,7 +891,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         }
 
         return successfullyDropped;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_INSERT_OBJECTID_TO_EDITOR,
@@ -899,7 +900,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (!editor) {
           void vscode.window.showInformationMessage(
-            'No active editor to insert to.'
+            'No active editor to insert to.',
           );
           return false;
         }
@@ -914,7 +915,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           }
         });
         return true;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_GENERATE_OBJECTID_TO_CLIPBOARD,
@@ -923,7 +924,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
         return true;
-      }
+      },
     );
     this.registerAtlasStreamsTreeViewCommands();
   }
@@ -934,7 +935,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (element: ConnectionTreeItem): Promise<boolean> => {
         if (!element) {
           void vscode.window.showErrorMessage(
-            'Please wait for the connection to finish loading before adding a stream processor.'
+            'Please wait for the connection to finish loading before adding a stream processor.',
           );
 
           return false;
@@ -945,7 +946,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           this._connectionController.getActiveConnectionId()
         ) {
           void vscode.window.showErrorMessage(
-            'Please connect to this connection before adding a stream processor.'
+            'Please connect to this connection before adding a stream processor.',
           );
 
           return false;
@@ -953,7 +954,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (this._connectionController.isDisconnecting()) {
           void vscode.window.showErrorMessage(
-            'Unable to add stream processor: currently disconnecting.'
+            'Unable to add stream processor: currently disconnecting.',
           );
 
           return false;
@@ -961,16 +962,16 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (this._connectionController.isConnecting()) {
           void vscode.window.showErrorMessage(
-            'Unable to add stream processor: currently connecting.'
+            'Unable to add stream processor: currently connecting.',
           );
 
           return false;
         }
 
         return this._playgroundController.createPlaygroundForCreateStreamProcessor(
-          element
+          element,
         );
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_START_STREAM_PROCESSOR,
@@ -978,13 +979,13 @@ export default class MDBExtensionController implements vscode.Disposable {
         const started = await element.onStartClicked();
         if (started) {
           void vscode.window.showInformationMessage(
-            'Stream processor successfully started.'
+            'Stream processor successfully started.',
           );
           // Refresh explorer view after a processor is started.
           this._explorerController.refresh();
         }
         return started;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_STOP_STREAM_PROCESSOR,
@@ -992,13 +993,13 @@ export default class MDBExtensionController implements vscode.Disposable {
         const stopped = await element.onStopClicked();
         if (stopped) {
           void vscode.window.showInformationMessage(
-            'Stream processor successfully stopped.'
+            'Stream processor successfully stopped.',
           );
           // Refresh explorer view after a processor is stopped.
           this._explorerController.refresh();
         }
         return stopped;
-      }
+      },
     );
     this.registerCommand(
       EXTENSION_COMMANDS.MDB_DROP_STREAM_PROCESSOR,
@@ -1006,19 +1007,19 @@ export default class MDBExtensionController implements vscode.Disposable {
         const dropped = await element.onDropClicked();
         if (dropped) {
           void vscode.window.showInformationMessage(
-            'Stream processor successfully dropped.'
+            'Stream processor successfully dropped.',
           );
           // Refresh explorer view after a processor is dropped.
           this._explorerController.refresh();
         }
         return dropped;
-      }
+      },
     );
   }
 
   showOverviewPageIfRecentlyInstalled(): void {
     const hasBeenShownViewAlready = !!this._storageController.get(
-      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
+      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
     );
 
     // Show the overview page when it hasn't been show to the
@@ -1026,13 +1027,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     if (!hasBeenShownViewAlready) {
       if (!this._connectionStorage.hasSavedConnections()) {
         void vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE
+          EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE,
         );
       }
 
       void this._storageController.update(
         StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
-        true
+        true,
       );
     }
   }

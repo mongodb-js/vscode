@@ -60,7 +60,7 @@ const namespaceTestCases: (TestCase & {
     assertResult: ({ responseContent }: AssertProps): void => {
       const namespace =
         Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
-          responseContent
+          responseContent,
         );
 
       expect(namespace.databaseName).to.equal('pools');
@@ -74,7 +74,7 @@ const namespaceTestCases: (TestCase & {
     assertResult: ({ responseContent }: AssertProps): void => {
       const namespace =
         Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
-          responseContent
+          responseContent,
         );
 
       expect(namespace.databaseName).to.equal(undefined);
@@ -89,7 +89,7 @@ const namespaceTestCases: (TestCase & {
     assertResult: ({ responseContent }: AssertProps): void => {
       const namespace =
         Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
-          responseContent
+          responseContent,
         );
 
       expect(namespace.databaseName).to.equal(undefined);
@@ -104,7 +104,7 @@ const namespaceTestCases: (TestCase & {
     assertResult: ({ responseContent }: AssertProps): void => {
       const namespace =
         Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
-          responseContent
+          responseContent,
         );
 
       expect(namespace.databaseName).to.equal('orders');
@@ -156,7 +156,7 @@ const queryTestCases: (TestCase & {
         .find()
         .toArray();
       expect(documentsBefore).to.deep.equal(
-        fixtures.CookBook.recipes.documents
+        fixtures.CookBook.recipes.documents,
       );
 
       await runCodeInMessage(responseContent, connectionString);
@@ -176,7 +176,7 @@ const queryTestCases: (TestCase & {
             };
           }
           return doc;
-        })
+        }),
       );
     },
   },
@@ -227,7 +227,7 @@ const queryTestCases: (TestCase & {
 
       expect(indexes.length).to.equal(2);
       expect(
-        indexes.filter((index) => index.name !== '_id_')[0]?.key
+        indexes.filter((index) => index.name !== '_id_')[0]?.key,
       ).to.have.keys(['harvestedDate', 'sweetnessScale']);
     },
   },
@@ -276,12 +276,12 @@ const queryTestCases: (TestCase & {
         },
         (): void => {
           expect(output.printOutput[output.printOutput.length - 1]).to.equal(
-            "{ saltPercentage: '67%' }"
+            "{ saltPercentage: '67%' }",
           );
         },
         (): void => {
           expect(output.data?.result?.content[0].saltPercentage).to.equal(
-            '67%'
+            '67%',
           );
         },
       ])(null);
@@ -385,12 +385,12 @@ const genericTestCases: (TestCase & {
         },
         (): void => {
           expect(
-            Object.entries(output.data?.result?.content[0])[0][1]
+            Object.entries(output.data?.result?.content[0])[0][1],
           ).to.equal(2);
         },
         (): void => {
           expect(
-            Object.entries(output.data?.result?.content[0])[0][1]
+            Object.entries(output.data?.result?.content[0])[0][1],
           ).to.equal('2');
         },
       ])(null);
@@ -450,7 +450,7 @@ async function pushResultsToDB({
   httpErrors: number;
 }): Promise<void> {
   const client = new MongoClient(
-    process.env.AI_ACCURACY_RESULTS_MONGODB_CONNECTION_STRING || ''
+    process.env.AI_ACCURACY_RESULTS_MONGODB_CONNECTION_STRING || '',
   );
 
   try {
@@ -697,7 +697,7 @@ describe('AI Accuracy Tests', function () {
             });
             executionTimeMS = Date.now() - startTime;
             testOutputs[testCase.testCase].outputs.push(
-              responseContent.content
+              responseContent.content,
             );
             await testCase.assertResult({
               responseContent: responseContent.content,
@@ -709,12 +709,12 @@ describe('AI Accuracy Tests', function () {
             success = true;
 
             console.log(
-              `Test run of ${testCase.testCase}. Run ${i} of ${numberOfRunsPerTest} succeeded`
+              `Test run of ${testCase.testCase}. Run ${i} of ${numberOfRunsPerTest} succeeded`,
             );
           } catch (err) {
             console.log(
               `Test run of ${testCase.testCase}. Run ${i} of ${numberOfRunsPerTest} failed with error:`,
-              err
+              err,
             );
           }
 
@@ -768,9 +768,9 @@ describe('AI Accuracy Tests', function () {
 
         expect(averageAccuracy).to.be.at.least(
           accuracyThreshold,
-          `Average accuracy (${averageAccuracy}) for input "${testCase.userInput}" is below the threshold (${accuracyThreshold})`
+          `Average accuracy (${averageAccuracy}) for input "${testCase.userInput}" is below the threshold (${accuracyThreshold})`,
         );
-      }
+      },
     );
   }
 });

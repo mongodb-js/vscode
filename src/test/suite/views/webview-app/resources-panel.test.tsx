@@ -18,10 +18,10 @@ describe('Resources panel test suite', function () {
     expect(() => screen.getByLabelText('Close')).to.not.throw;
     expect(screen.getAllByTestId(/link-\w+/)).to.have.length.greaterThan(0);
     expect(
-      screen.getAllByTestId(/footer-feature-\w+/)
+      screen.getAllByTestId(/footer-feature-\w+/),
     ).to.have.length.greaterThan(0);
     expect(screen.getAllByTestId(/footer-link-\w+/)).to.have.length.greaterThan(
-      0
+      0,
     );
   });
 

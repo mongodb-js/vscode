@@ -70,7 +70,7 @@ suite('Extension Test Suite', () => {
       assert.notStrictEqual(
         registeredCommands.indexOf(expectedCommand),
         -1,
-        `command ${expectedCommand} not registered and was expected`
+        `command ${expectedCommand} not registered and was expected`,
       );
     }
   });

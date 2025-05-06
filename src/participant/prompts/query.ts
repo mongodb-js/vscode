@@ -80,7 +80,7 @@ db.getCollection('');\n`;
 
   get emptyRequestResponse(): string {
     return vscode.l10n.t(
-      'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".'
+      'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".',
     );
   }
 }

@@ -53,11 +53,11 @@ const OverviewPage: React.FC = () => {
   } = useConnectionForm();
   const handleResourcesPanelClose = useCallback(
     () => setShowResourcesPanel(false),
-    []
+    [],
   );
   const handleResourcesClick = useCallback(
     () => setShowResourcesPanel(true),
-    []
+    [],
   );
 
   useLayoutEffect(() => {
@@ -67,12 +67,12 @@ const OverviewPage: React.FC = () => {
   }, []);
 
   function handleOpenFileChooserResult<T>(
-    options: FileChooserOptions
+    options: FileChooserOptions,
   ): Promise<T> {
     const requestId = handleOpenFileChooser(options);
     return new Promise((resolve) => {
       const messageHandler = (
-        event: MessageEvent<MessageFromExtensionToWebview>
+        event: MessageEvent<MessageFromExtensionToWebview>,
       ): void => {
         const message = event.data;
         if (
@@ -98,7 +98,7 @@ const OverviewPage: React.FC = () => {
     dialog: {
       async showSaveDialog(
         window: void,
-        electronFileDialogOptions: Partial<ElectronFileDialogOptions>
+        electronFileDialogOptions: Partial<ElectronFileDialogOptions>,
       ): Promise<{ canceled: boolean; filePath?: string }> {
         return handleOpenFileChooserResult({
           electronFileDialogOptions,
@@ -107,7 +107,7 @@ const OverviewPage: React.FC = () => {
       },
       async showOpenDialog(
         window: void,
-        electronFileDialogOptions: Partial<ElectronFileDialogOptions>
+        electronFileDialogOptions: Partial<ElectronFileDialogOptions>,
       ): Promise<{ canceled: boolean; filePaths: string[] }> {
         return handleOpenFileChooserResult({
           electronFileDialogOptions,
@@ -126,7 +126,7 @@ const OverviewPage: React.FC = () => {
         <FileInputBackendProvider
           createFileInputBackend={createElectronFileInputBackend(
             dialogProvider,
-            null
+            null,
           )}
         >
           <ConnectionForm

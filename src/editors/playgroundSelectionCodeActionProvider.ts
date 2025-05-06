@@ -35,7 +35,7 @@ export default class PlaygroundSelectionCodeActionProvider
   createCodeAction(command: vscode.Command): vscode.CodeAction {
     const codeAction = new vscode.CodeAction(
       command.title,
-      vscode.CodeActionKind.Empty
+      vscode.CodeActionKind.Empty,
     );
     codeAction.command = command;
     return codeAction;
@@ -63,7 +63,7 @@ export default class PlaygroundSelectionCodeActionProvider
             title: `Export To ${alias}`,
             command: EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
             arguments: [id],
-          })
+          }),
         ),
       ];
     }

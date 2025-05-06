@@ -104,11 +104,11 @@ export default class PlaygroundController {
     };
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      this._activeConnectionChangedHandler
+      this._activeConnectionChangedHandler,
     );
 
     const onDidChangeActiveTextEditor = (
-      editor: vscode.TextEditor | undefined
+      editor: vscode.TextEditor | undefined,
     ): void => {
       if (editor?.document.uri.scheme === PLAYGROUND_RESULT_SCHEME) {
         this._playgroundResultViewColumn = editor.viewColumn;
@@ -118,7 +118,7 @@ export default class PlaygroundController {
       void vscode.commands.executeCommand(
         'setContext',
         'mdb.isPlayground',
-        isPlaygroundEditor
+        isPlaygroundEditor,
       );
     };
 
@@ -143,7 +143,7 @@ export default class PlaygroundController {
     vscode.workspace.onDidSaveTextDocument((document) => {
       if (isPlayground(document.uri)) {
         this._telemetryService.track(
-          new PlaygroundSavedTelemetryEvent(document.uri)
+          new PlaygroundSavedTelemetryEvent(document.uri),
         );
       }
     });
@@ -168,7 +168,7 @@ export default class PlaygroundController {
   }
 
   async _createPlaygroundFileWithContent(
-    content: string | undefined
+    content: string | undefined,
   ): Promise<boolean> {
     try {
       // The MacOS default folder for saving files is a read-only root (/) directory,
@@ -179,7 +179,7 @@ export default class PlaygroundController {
 
       // We count open untitled playground files to use this number as part of a new playground path.
       const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter(
-        (doc) => isPlayground(doc.uri)
+        (doc) => isPlayground(doc.uri),
       ).length;
 
       // We need a secondary `mongodb` extension otherwise VSCode will
@@ -188,7 +188,7 @@ export default class PlaygroundController {
       // and we need a way to distinguish this files from regular JS files.
       const fileName = path.join(
         filePath,
-        `playground-${numberUntitledPlaygrounds + 1}.mongodb.js`
+        `playground-${numberUntitledPlaygrounds + 1}.mongodb.js`,
       );
 
       // Does not create a physical file, it only creates a URI from specified component parts.
@@ -214,7 +214,7 @@ export default class PlaygroundController {
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to create a playground: ${formatError(error).message}`
+        `Unable to create a playground: ${formatError(error).message}`,
       );
 
       return false;
@@ -223,7 +223,7 @@ export default class PlaygroundController {
 
   createPlaygroundForSearch(
     databaseName: string,
-    collectionName: string
+    collectionName: string,
   ): Promise<boolean> {
     const content = playgroundSearchTemplate
       .replace('CURRENT_DATABASE', databaseName)
@@ -234,7 +234,7 @@ export default class PlaygroundController {
   }
 
   async createPlaygroundForCreateCollection(
-    element: ConnectionTreeItem | DatabaseTreeItem
+    element: ConnectionTreeItem | DatabaseTreeItem,
   ): Promise<boolean> {
     let content = playgroundCreateCollectionTemplate;
 
@@ -245,11 +245,11 @@ export default class PlaygroundController {
         .replace('NEW_DATABASE_NAME', element.databaseName)
         .replace('Create a new database', 'The current database to use');
       this._telemetryService.track(
-        new PlaygroundCreatedTelemetryEvent('createCollection')
+        new PlaygroundCreatedTelemetryEvent('createCollection'),
       );
     } else {
       this._telemetryService.track(
-        new PlaygroundCreatedTelemetryEvent('createDatabase')
+        new PlaygroundCreatedTelemetryEvent('createDatabase'),
       );
     }
 
@@ -258,7 +258,7 @@ export default class PlaygroundController {
 
   createPlaygroundForNewIndex(
     databaseName: string,
-    collectionName: string
+    collectionName: string,
   ): Promise<boolean> {
     const content = playgroundCreateIndexTemplate
       .replace('CURRENT_DATABASE', databaseName)
@@ -286,7 +286,7 @@ export default class PlaygroundController {
   createPlaygroundForCloneDocument(
     documentContents: string,
     databaseName: string,
-    collectionName: string
+    collectionName: string,
   ): Promise<boolean> {
     const content = playgroundCloneDocumentTemplate
       .replace('CURRENT_DATABASE', databaseName)
@@ -294,55 +294,55 @@ export default class PlaygroundController {
       .replace('DOCUMENT_CONTENTS', documentContents);
 
     this._telemetryService.track(
-      new PlaygroundCreatedTelemetryEvent('cloneDocument')
+      new PlaygroundCreatedTelemetryEvent('cloneDocument'),
     );
     return this._createPlaygroundFileWithContent(content);
   }
 
   createPlaygroundForInsertDocument(
     databaseName: string,
-    collectionName: string
+    collectionName: string,
   ): Promise<boolean> {
     const content = playgroundInsertDocumentTemplate
       .replace('CURRENT_DATABASE', databaseName)
       .replace('CURRENT_COLLECTION', collectionName);
 
     this._telemetryService.track(
-      new PlaygroundCreatedTelemetryEvent('insertDocument')
+      new PlaygroundCreatedTelemetryEvent('insertDocument'),
     );
     return this._createPlaygroundFileWithContent(content);
   }
 
   async createPlaygroundForCreateStreamProcessor(
-    element: ConnectionTreeItem
+    element: ConnectionTreeItem,
   ): Promise<boolean> {
     const content = playgroundCreateStreamProcessorTemplate;
 
     element.cacheIsUpToDate = false;
 
     this._telemetryService.track(
-      new PlaygroundCreatedTelemetryEvent('createStreamProcessor')
+      new PlaygroundCreatedTelemetryEvent('createStreamProcessor'),
     );
 
     return this._createPlaygroundFileWithContent(content);
   }
 
   async createPlaygroundFromTreeItem(
-    treeItem: DatabaseTreeItem | CollectionTreeItem
+    treeItem: DatabaseTreeItem | CollectionTreeItem,
   ): Promise<boolean> {
     let content = '';
     if (treeItem instanceof DatabaseTreeItem) {
       content = playgroundFromDatabaseTreeItemTemplate(treeItem.databaseName);
       this._telemetryService.track(
-        new PlaygroundCreatedTelemetryEvent('fromDatabaseTreeItem')
+        new PlaygroundCreatedTelemetryEvent('fromDatabaseTreeItem'),
       );
     } else if (treeItem instanceof CollectionTreeItem) {
       content = playgroundFromCollectionTreeItemTemplate(
         treeItem.databaseName,
-        treeItem.collectionName
+        treeItem.collectionName,
       );
       this._telemetryService.track(
-        new PlaygroundCreatedTelemetryEvent('fromCollectionTreeItem')
+        new PlaygroundCreatedTelemetryEvent('fromCollectionTreeItem'),
       );
     }
 
@@ -374,7 +374,7 @@ export default class PlaygroundController {
       codeToEvaluate: string;
       filePath?: string;
     },
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<ShellEvaluateResult> {
     const connectionId = this._connectionController.getActiveConnectionId();
 
@@ -393,7 +393,7 @@ export default class PlaygroundController {
           connectionId,
           filePath,
         },
-        token
+        token,
       );
     } catch (error) {
       const msg =
@@ -407,8 +407,8 @@ export default class PlaygroundController {
       new PlaygroundExecutedTelemetryEvent(
         result,
         this._isPartialRun,
-        result ? false : true
-      )
+        result ? false : true,
+      ),
     );
 
     return result;
@@ -437,14 +437,14 @@ export default class PlaygroundController {
             codeToEvaluate,
             filePath,
           },
-          token
+          token,
         );
-      }
+      },
     );
   }
 
   async _openInResultPane(
-    result: PlaygroundRunResult | ExportToLanguageResult
+    result: PlaygroundRunResult | ExportToLanguageResult,
   ): Promise<void> {
     this._playgroundResultProvider.setPlaygroundResult(result);
 
@@ -461,7 +461,7 @@ export default class PlaygroundController {
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,
-        language
+        language,
       );
     }
   }
@@ -484,7 +484,7 @@ export default class PlaygroundController {
         await vscode.workspace.openTextDocument(PLAYGROUND_RESULT_URI);
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to open a result document: ${formatError(error).message}`
+        `Unable to open a result document: ${formatError(error).message}`,
       );
     }
   }
@@ -509,7 +509,7 @@ export default class PlaygroundController {
       const confirmRunCopilotCode = await vscode.window.showInformationMessage(
         `Are you sure you want to run this code generated by the MongoDB participant against ${name}? This confirmation can be disabled in the extension settings.`,
         { modal: true },
-        'Yes'
+        'Yes',
       );
 
       if (confirmRunCopilotCode !== 'Yes') {
@@ -532,7 +532,7 @@ export default class PlaygroundController {
   }
 
   async showExportToLanguageResult(
-    result: ExportToLanguageResult
+    result: ExportToLanguageResult,
   ): Promise<boolean> {
     await this._openInResultPane(result);
     return true;
@@ -560,7 +560,7 @@ export default class PlaygroundController {
       const confirmRunAll = await vscode.window.showInformationMessage(
         `Are you sure you want to run this playground against ${name}? This confirmation can be disabled in the extension settings.`,
         { modal: true },
-        'Yes'
+        'Yes',
       );
 
       if (confirmRunAll !== 'Yes') {
@@ -590,7 +590,7 @@ export default class PlaygroundController {
 
     if (!isPlayground(editor?.document.uri) || !getSelectedText()) {
       void vscode.window.showInformationMessage(
-        'Please select one or more lines in the playground.'
+        'Please select one or more lines in the playground.',
       );
       return Promise.resolve(false);
     }
@@ -608,7 +608,7 @@ export default class PlaygroundController {
 
     if (!codeToEvaluate) {
       void vscode.window.showErrorMessage(
-        'Please open a MongoDB playground file before running it.'
+        'Please open a MongoDB playground file before running it.',
       );
       return Promise.resolve(false);
     }
@@ -630,7 +630,7 @@ export default class PlaygroundController {
 
     if (!isPlayground(editor?.document.uri)) {
       void vscode.window.showErrorMessage(
-        'Please open a MongoDB playground file before running it.'
+        'Please open a MongoDB playground file before running it.',
       );
       return Promise.resolve(false);
     }
@@ -675,7 +675,7 @@ export default class PlaygroundController {
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to open a playground: ${formatError(error).message}`
+        `Unable to open a playground: ${formatError(error).message}`,
       );
 
       return false;
@@ -685,7 +685,7 @@ export default class PlaygroundController {
   deactivate(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      this._activeConnectionChangedHandler
+      this._activeConnectionChangedHandler,
     );
   }
 }

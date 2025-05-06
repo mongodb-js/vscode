@@ -39,7 +39,7 @@ describe('ConnectionStatus test suite', function () {
               connectionStatus: CONNECTION_STATUS.DISCONNECTING,
               activeConnectionName: '',
             },
-          })
+          }),
         );
       });
       expect(screen.getByText('Disconnecting...')).to.not.be.null;
@@ -57,7 +57,7 @@ describe('ConnectionStatus test suite', function () {
               connectionStatus: CONNECTION_STATUS.DISCONNECTED,
               activeConnectionName: '',
             },
-          })
+          }),
         );
       });
       expect(screen.getByText('Not connected.')).to.not.be.null;
@@ -75,7 +75,7 @@ describe('ConnectionStatus test suite', function () {
               connectionStatus: CONNECTION_STATUS.CONNECTING,
               activeConnectionName: '',
             },
-          })
+          }),
         );
       });
       expect(screen.getByText('Connecting...')).to.not.be.null;
@@ -93,7 +93,7 @@ describe('ConnectionStatus test suite', function () {
               connectionStatus: CONNECTION_STATUS.CONNECTED,
               activeConnectionName: 'vscode-connection',
             },
-          })
+          }),
         );
       });
     });

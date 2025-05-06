@@ -33,7 +33,7 @@ async function main(fileList: string[]) {
 
 const fileList = process.argv
   .slice(
-    process.argv.findIndex((filename) => filename.includes('precommit')) + 1
+    process.argv.findIndex((filename) => filename.includes('precommit')) + 1,
   )
   .filter((arg) => !arg.startsWith('-'))
   .map((filePath) => {
@@ -43,5 +43,5 @@ const fileList = process.argv
 main(fileList).catch((err) =>
   process.nextTick(() => {
     throw err;
-  })
+  }),
 );

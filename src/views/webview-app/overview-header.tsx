@@ -40,7 +40,7 @@ const resourcesBtnStyles = css(
       cursor: 'pointer',
     },
   },
-  focusRing
+  focusRing,
 );
 
 const OverviewHeader: React.FC<{ onResourcesClick: () => void }> = ({

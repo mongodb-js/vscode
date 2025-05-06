@@ -129,7 +129,7 @@ export default class IndexTreeItem
       index.name,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.index = index;
@@ -158,8 +158,8 @@ export default class IndexTreeItem
           new IndexFieldTreeItem({
             indexKey,
             indexKeyType: this.index.key[indexKey],
-          })
-      )
+          }),
+      ),
     );
   }
 

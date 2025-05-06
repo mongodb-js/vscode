@@ -17,7 +17,7 @@ suite('Help Explorer Test Suite', function () {
 
   test('tree view should be not created until it is activated', () => {
     const testHelpExplorer = new HelpExplorer(
-      mdbTestExtension.testExtensionController._telemetryService
+      mdbTestExtension.testExtensionController._telemetryService,
     );
     assert(testHelpExplorer._treeView === undefined);
     testHelpExplorer.activateHelpTreeView();
@@ -45,7 +45,7 @@ suite('Help Explorer Test Suite', function () {
       mdbTestExtension.testExtensionController._telemetryService.userIdentity;
     assert.strictEqual(
       new URL(atlasHelpItem.url).searchParams.get('ajs_aid'),
-      anonymousId
+      anonymousId,
     );
     assert.strictEqual(atlasHelpItem.iconName, 'atlas');
     assert.strictEqual(atlasHelpItem.linkId, 'freeClusterCTA');
@@ -66,17 +66,17 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[1];
     void testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
-      mdbTestExtension.testExtensionController._telemetryService
+      mdbTestExtension.testExtensionController._telemetryService,
     );
     assert(stubExecuteCommand.called);
     assert(stubExecuteCommand.firstCall.args[0] === 'vscode.open');
     assert(
       stubExecuteCommand.firstCall.args[1].path ===
-        vscode.Uri.parse(atlasHelpItem.url).path
+        vscode.Uri.parse(atlasHelpItem.url).path,
     );
     assert(
       stubExecuteCommand.firstCall.args[1].authority ===
-        vscode.Uri.parse(atlasHelpItem.url).authority
+        vscode.Uri.parse(atlasHelpItem.url).authority,
     );
   });
 
@@ -92,7 +92,7 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[5];
     void testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
-      mdbTestExtension.testExtensionController._telemetryService
+      mdbTestExtension.testExtensionController._telemetryService,
     );
     assert(stubExecuteCommand.called);
     assert(stubExecuteCommand.firstCall.args[0] === atlasHelpItem.url);
@@ -106,7 +106,7 @@ suite('Help Explorer Test Suite', function () {
     sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       'track',
-      stubTrackTelemetry
+      stubTrackTelemetry,
     );
     testHelpExplorer.activateHelpTreeView();
 
@@ -115,15 +115,15 @@ suite('Help Explorer Test Suite', function () {
     const atlasHelpItem = helpTreeItems[5];
     void testHelpExplorer._treeController.onClickHelpItem(
       atlasHelpItem,
-      mdbTestExtension.testExtensionController._telemetryService
+      mdbTestExtension.testExtensionController._telemetryService,
     );
     assert(stubTrackTelemetry.called);
     assert(
-      stubTrackTelemetry.firstCall.args[0].properties.screen === 'helpPanel'
+      stubTrackTelemetry.firstCall.args[0].properties.screen === 'helpPanel',
     );
     assert(
       stubTrackTelemetry.firstCall.args[0].properties.link_id ===
-        'freeClusterCTA'
+        'freeClusterCTA',
     );
   });
 });

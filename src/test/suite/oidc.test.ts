@@ -66,7 +66,7 @@ suite('OIDC Tests', function () {
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    extensionContextStub
+    extensionContextStub,
   );
   const testConnectionController = new ConnectionController({
     statusView: new StatusView(extensionContextStub),
@@ -100,7 +100,7 @@ suite('OIDC Tests', function () {
     oidcMockProviderEndpointAccesses = {};
     oidcMockProviderConfig = {
       getTokenPayload(
-        metadata: Parameters<typeof getTokenPayload>[0]
+        metadata: Parameters<typeof getTokenPayload>[0],
       ): ReturnType<typeof oidcMockProviderConfig.getTokenPayload> {
         return getTokenPayload(metadata);
       },
@@ -158,7 +158,7 @@ suite('OIDC Tests', function () {
     sandbox.stub(testTelemetryService, 'trackNewConnection');
     showInformationMessageStub = sandbox.stub(
       vscode.window,
-      'showInformationMessage'
+      'showInformationMessage',
     );
 
     // This is required to follow through the redirect while establishing
@@ -204,7 +204,7 @@ suite('OIDC Tests', function () {
       expect.fail('Terminal connection string not found');
     }
     const terminalCsWithoutAppName = new ConnectionString(
-      terminalConnectionString
+      terminalConnectionString,
     );
     terminalCsWithoutAppName.searchParams.delete('appname');
 
@@ -232,7 +232,7 @@ suite('OIDC Tests', function () {
     expect(
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString,
-      })
+      }),
     ).to.be.true;
 
     const connectionId = testConnectionController.getActiveConnectionId();
@@ -244,7 +244,7 @@ suite('OIDC Tests', function () {
 
     expect(
       (await testConnectionController.connectWithConnectionId(connectionId))
-        .successfullyConnected
+        .successfullyConnected,
     ).to.be.true;
     expect(tokenFetchCalls).to.equal(1);
   });
@@ -264,7 +264,7 @@ suite('OIDC Tests', function () {
     expect(
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString,
-      })
+      }),
     ).to.be.true;
 
     const connectionId = testConnectionController.getActiveConnectionId();
@@ -276,7 +276,7 @@ suite('OIDC Tests', function () {
 
     expect(
       (await testConnectionController.connectWithConnectionId(connectionId))
-        .successfullyConnected
+        .successfullyConnected,
     ).to.be.true;
     expect(tokenFetchCalls).to.equal(2);
   });
@@ -285,7 +285,7 @@ suite('OIDC Tests', function () {
     const emitter = new EventEmitter();
     const secondConnectionEstablished = once(
       emitter,
-      'secondConnectionEstablished'
+      'secondConnectionEstablished',
     );
     overrideRequestHandler = async (url): Promise<void> => {
       if (new URL(url).pathname === '/authorize') {
@@ -319,7 +319,7 @@ suite('OIDC Tests', function () {
     showInformationMessageStub.resolves('Confirm');
     const originalReAuthHandler =
       testConnectionController._reauthenticationHandler.bind(
-        testConnectionController
+        testConnectionController,
       );
     let reAuthCalled = false;
     let resolveReAuthPromise: (value?: unknown) => void;
@@ -348,7 +348,7 @@ suite('OIDC Tests', function () {
     expect(
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString,
-      })
+      }),
     ).to.be.true;
     afterReauth = true;
 
@@ -368,7 +368,7 @@ suite('OIDC Tests', function () {
     showInformationMessageStub.resolves('Declined');
     const originalReAuthHandler =
       testConnectionController._reauthenticationHandler.bind(
-        testConnectionController
+        testConnectionController,
       );
     let reAuthCalled = false;
     let resolveReAuthPromise: (value?: unknown) => void;
@@ -435,7 +435,7 @@ suite('OIDC Tests', function () {
     expect(
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString,
-      })
+      }),
     ).to.be.true;
 
     await vscode.commands.executeCommand('mdb.createPlayground');
@@ -450,7 +450,7 @@ suite('OIDC Tests', function () {
     edit.replace(
       testDocumentUri,
       getFullRange(editor.document),
-      "use('random'); db.randomColl.find({}).count();"
+      "use('random'); db.randomColl.find({}).count();",
     );
     await vscode.workspace.applyEdit(edit);
     await vscode.commands.executeCommand('mdb.runPlayground');

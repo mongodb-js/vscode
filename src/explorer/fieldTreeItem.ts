@@ -51,7 +51,7 @@ export const fieldIsExpandable = (field: SchemaFieldType): boolean => {
 
 const getCollapsibleStateForField = (
   field: SchemaFieldType,
-  isExpanded: boolean
+  isExpanded: boolean,
 ): vscode.TreeItemCollapsibleState => {
   if (!fieldIsExpandable(field)) {
     return vscode.TreeItemCollapsibleState.None;
@@ -64,7 +64,7 @@ const getCollapsibleStateForField = (
 
 // eslint-disable-next-line complexity
 export const getIconFileNameForField = (
-  field: SchemaFieldType
+  field: SchemaFieldType,
 ): null | string => {
   if (field.probability !== 1) {
     // The field doesn't exist on every document.
@@ -134,7 +134,7 @@ function getFieldTypeString(field: SchemaFieldType): string {
 }
 
 function getIconPath(
-  field: SchemaFieldType
+  field: SchemaFieldType,
 ): string | { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');

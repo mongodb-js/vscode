@@ -32,7 +32,7 @@ suite('Webview Test Suite', () => {
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
       testStorageController,
-      extensionContextStub
+      extensionContextStub,
     );
     testConnectionController = new ConnectionController({
       statusView: new StatusView(extensionContextStub),
@@ -46,7 +46,7 @@ suite('Webview Test Suite', () => {
     });
     sandbox.stub(
       mdbTestExtension.testExtensionController._telemetryService,
-      'trackNewConnection'
+      'trackNewConnection',
     );
     sandbox.stub(testTelemetryService, 'trackNewConnection');
   });
@@ -79,7 +79,7 @@ suite('Webview Test Suite', () => {
     });
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     expect(fakeVSCodeCreateWebviewPanel).to.be.calledOnce;
@@ -114,7 +114,7 @@ suite('Webview Test Suite', () => {
 
     const webviewAppFileName = (): string => 'dist/webviewApp.js';
     const jsFileString = await readFile(
-      path.join(extensionPath, webviewAppFileName())
+      path.join(extensionPath, webviewAppFileName()),
     );
 
     expect(`${jsFileString}`).to.include('OverviewPage');
@@ -133,7 +133,7 @@ suite('Webview Test Suite', () => {
     });
 
     expect(htmlString).to.include(
-      ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOUS_ID';"
+      ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOUS_ID';",
     );
   });
 
@@ -150,7 +150,7 @@ suite('Webview Test Suite', () => {
     });
 
     expect(htmlString).to.include(
-      ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = false;"
+      ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = false;",
     );
   });
 
@@ -158,7 +158,7 @@ suite('Webview Test Suite', () => {
     let originalDeviceAuthFlow;
     before(async function () {
       originalDeviceAuthFlow = vscode.workspace.getConfiguration(
-        'mdb.showOIDCDeviceAuthFlow'
+        'mdb.showOIDCDeviceAuthFlow',
       );
 
       await vscode.workspace
@@ -184,7 +184,7 @@ suite('Webview Test Suite', () => {
       });
 
       expect(htmlString).to.include(
-        ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = true;"
+        ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = true;",
       );
     });
   });
@@ -197,10 +197,10 @@ suite('Webview Test Suite', () => {
         html: '',
         postMessage: async (): Promise<void> => {
           expect(testConnectionController.isCurrentlyConnected()).to.equal(
-            true
+            true,
           );
           expect(testConnectionController.getActiveConnectionName()).to.include(
-            'localhost:27088'
+            'localhost:27088',
           );
 
           await testConnectionController.disconnect();
@@ -216,7 +216,7 @@ suite('Webview Test Suite', () => {
     } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     expect(messageReceivedSet).to.be.true;
@@ -257,7 +257,7 @@ suite('Webview Test Suite', () => {
     } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     expect(messageReceivedSet).to.be.true;
@@ -282,7 +282,7 @@ suite('Webview Test Suite', () => {
         postMessage: async (message): Promise<void> => {
           expect(message.connectionSuccess).to.be.false;
           expect(message.connectionMessage).to.include(
-            'Unable to load connection'
+            'Unable to load connection',
           );
 
           await testConnectionController.disconnect();
@@ -297,7 +297,7 @@ suite('Webview Test Suite', () => {
     } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     // Mock a connection call.
@@ -324,7 +324,7 @@ suite('Webview Test Suite', () => {
           try {
             expect(message.connectionSuccess).to.be.false;
             expect(message.connectionMessage).to.include(
-              'connection attempt cancelled'
+              'connection attempt cancelled',
             );
 
             void testConnectionController.disconnect();
@@ -341,7 +341,7 @@ suite('Webview Test Suite', () => {
       onDidDispose: sandbox.fake.returns(''),
     } as unknown as vscode.WebviewPanel);
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     // Mock a connection call.
@@ -380,7 +380,7 @@ suite('Webview Test Suite', () => {
     } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     messageReceived({
@@ -393,7 +393,7 @@ suite('Webview Test Suite', () => {
 
     expect(fakeVSCodeExecuteCommand).to.be.called;
     expect(fakeVSCodeExecuteCommand.firstCall.args[0]).to.equal(
-      'mdb.connectWithURI'
+      'mdb.connectWithURI',
     );
   });
 
@@ -419,7 +419,7 @@ suite('Webview Test Suite', () => {
     } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     // Mock a connection status request call.
@@ -451,7 +451,7 @@ suite('Webview Test Suite', () => {
     } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     void testConnectionController
@@ -485,11 +485,11 @@ suite('Webview Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'renameConnection',
-      mockRenameConnectionOnConnectionController
+      mockRenameConnectionOnConnectionController,
     );
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     await testConnectionController.addNewConnectionStringAndConnect({
@@ -503,7 +503,7 @@ suite('Webview Test Suite', () => {
 
     expect(mockRenameConnectionOnConnectionController).to.be.calledOnce;
     expect(
-      mockRenameConnectionOnConnectionController.firstCall.args[0]
+      mockRenameConnectionOnConnectionController.firstCall.args[0],
     ).to.equal(testConnectionController.getActiveConnectionId());
 
     await testConnectionController.disconnect();
@@ -529,11 +529,11 @@ suite('Webview Test Suite', () => {
         Promise.resolve({
           successfullyConnected: true,
           connectionErrorMessage: '',
-        })
+        }),
       );
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     // Mock a connection status request call.
@@ -549,7 +549,7 @@ suite('Webview Test Suite', () => {
 
     expect(mockEditConnectionOnConnectionController).to.be.calledOnce;
     expect(
-      mockEditConnectionOnConnectionController.firstCall.args[0]
+      mockEditConnectionOnConnectionController.firstCall.args[0],
     ).to.deep.equal({
       connectionId: 'pineapple',
       connectionOptions: {
@@ -585,15 +585,15 @@ suite('Webview Test Suite', () => {
     } as unknown as vscode.WebviewPanel);
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     void testWebviewController.openWebview(
-      mdbTestExtension.extensionContextStub
+      mdbTestExtension.extensionContextStub,
     );
 
     // Mock a theme change
@@ -607,7 +607,7 @@ suite('Webview Test Suite', () => {
     const testStorageController = new StorageController(extensionContextStub);
     const testTelemetryService = new TelemetryService(
       testStorageController,
-      extensionContextStub
+      extensionContextStub,
     );
     let messageReceived;
 
@@ -650,7 +650,7 @@ suite('Webview Test Suite', () => {
 
       expect(stubOpenLink).to.be.calledOnce;
       expect(stubOpenLink.firstCall.args[0]).to.equal(
-        'https://mongodb.com/test'
+        'https://mongodb.com/test',
       );
     });
   });
