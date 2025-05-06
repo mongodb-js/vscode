@@ -31,13 +31,13 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations['Session Only']
+        DefaultSavingLocations['Session Only'],
       );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(
       mdbTestExtension.testExtensionController._telemetryService,
-      'trackNewConnection'
+      'trackNewConnection',
     );
   });
 
@@ -47,7 +47,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace
+        DefaultSavingLocations.Workspace,
       );
     // Reset our connections.
     await mdbTestExtension.testExtensionController._connectionController.disconnect();
@@ -82,11 +82,11 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       connectionsItems.length === 1,
-      `Expected there to be 1 connection tree item, found ${connectionsItems.length}`
+      `Expected there to be 1 connection tree item, found ${connectionsItems.length}`,
     );
     assert(
       connectionsItems[0].label === 'testConnectionName',
-      'There should be a connection tree item with the label "testConnectionName"'
+      'There should be a connection tree item with the label "testConnectionName"',
     );
   });
 
@@ -104,11 +104,11 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       succesfullyConnected === true,
-      'Expected a successful connection response.'
+      'Expected a successful connection response.',
     );
     assert(
       Object.keys(testConnectionController._connections).length === 1,
-      'Expected there to be 1 connection in the connection list.'
+      'Expected there to be 1 connection in the connection list.',
     );
 
     const activeId = testConnectionController.getActiveConnectionId();
@@ -117,22 +117,22 @@ suite('Explorer Controller Test Suite', function () {
       activeId === Object.keys(testConnectionController._connections)[0],
       `Expected active connection to be '${
         Object.keys(testConnectionController._connections)[0]
-      }' found ${activeId}`
+      }' found ${activeId}`,
     );
 
     const connectionsItems = await treeController.getChildren();
 
     assert(
       connectionsItems.length === 1,
-      `Expected there be 1 connection tree item, found ${connectionsItems.length}`
+      `Expected there be 1 connection tree item, found ${connectionsItems.length}`,
     );
     assert(
       connectionsItems[0].label === 'localhost:27088',
-      'There should be a connection tree item with the label "localhost:27088"'
+      'There should be a connection tree item with the label "localhost:27088"',
     );
     assert(
       connectionsItems[0].description === 'connected',
-      'There should be a connection tree item with the description "connected"'
+      'There should be a connection tree item with the description "connected"',
     );
   });
 
@@ -150,11 +150,11 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       succesfullyConnected === true,
-      'Expected a successful connection response.'
+      'Expected a successful connection response.',
     );
     assert(
       Object.keys(testConnectionController._connections).length === 1,
-      'Expected there to be 1 connection in the connection list.'
+      'Expected there to be 1 connection in the connection list.',
     );
 
     const connectionId = testConnectionController.getActiveConnectionId() || '';
@@ -179,19 +179,19 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       connectionsItems.length === 2,
-      `Expected there be 2 connection tree item, found ${connectionsItems.length}`
+      `Expected there be 2 connection tree item, found ${connectionsItems.length}`,
     );
     assert(
       connectionsItems[0].label === 'localhost:27088',
-      `First connection tree item should have label "localhost:27088" found ${connectionsItems[0].label}`
+      `First connection tree item should have label "localhost:27088" found ${connectionsItems[0].label}`,
     );
     assert(
       connectionsItems[0].isExpanded === false,
-      'Expected the first connection tree item to not be expanded'
+      'Expected the first connection tree item to not be expanded',
     );
     assert(
       connectionsItems[1].label === 'shouldfail',
-      'Second connection tree item should have label "shouldfail"'
+      'Second connection tree item should have label "shouldfail"',
     );
   });
 
@@ -230,15 +230,15 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       connectionsItems.length === 3,
-      `Expected there be 3 connection tree item, found ${connectionsItems.length}`
+      `Expected there be 3 connection tree item, found ${connectionsItems.length}`,
     );
     assert(
       connectionsItems[0].label === 'aaa',
-      `First connection tree item should have label "aaa" found ${connectionsItems[0].label}`
+      `First connection tree item should have label "aaa" found ${connectionsItems[0].label}`,
     );
     assert(
       connectionsItems[2].label === 'zzz',
-      `First connection tree item should have label "zzz" found ${connectionsItems[0].label}`
+      `First connection tree item should have label "zzz" found ${connectionsItems[0].label}`,
     );
 
     testConnectionController._connections.zzz.name = '111';
@@ -247,7 +247,7 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       afterAdditionConnectionsItems[0].label === '111',
-      `First connection tree item should have label "111" found ${afterAdditionConnectionsItems[0].label}`
+      `First connection tree item should have label "111" found ${afterAdditionConnectionsItems[0].label}`,
     );
   });
 
@@ -267,11 +267,11 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       databaseItems.length >= 3,
-      `Expected there be 3 or more database tree items, found ${databaseItems.length}`
+      `Expected there be 3 or more database tree items, found ${databaseItems.length}`,
     );
     assert(
       databaseItems[0].label === 'admin',
-      `First database tree item should have label "admin" found ${connectionsItems[0].label}.`
+      `First database tree item should have label "admin" found ${connectionsItems[0].label}.`,
     );
   });
 
@@ -297,7 +297,7 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       databaseItems[1].isExpanded === false,
-      'Expected database tree item not to be expanded on default.'
+      'Expected database tree item not to be expanded on default.',
     );
 
     // Expand the first database item.
@@ -305,7 +305,7 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       databaseItems[1].isExpanded === true,
-      'Expected database tree item be expanded.'
+      'Expected database tree item be expanded.',
     );
 
     // Collapse the connection.
@@ -315,7 +315,7 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       databaseTreeItems.length === 0,
-      `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`
+      `Expected the connection tree to return no children when collapsed, found ${databaseTreeItems.length}`,
     );
 
     testConnectionTreeItem.onDidExpand();
@@ -324,7 +324,7 @@ suite('Explorer Controller Test Suite', function () {
 
     assert(
       newDatabaseItems[1].isExpanded === true,
-      'Expected database tree to be expanded from cache.'
+      'Expected database tree to be expanded from cache.',
     );
   });
 
@@ -348,7 +348,7 @@ suite('Explorer Controller Test Suite', function () {
     sandbox.replace(
       testExplorerController.getTreeController(),
       'activateTreeViewEventHandlers',
-      treeControllerStub
+      treeControllerStub,
     );
 
     const vscodeCreateTreeViewStub = sandbox.stub().returns('');

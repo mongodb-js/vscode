@@ -54,8 +54,8 @@ export default class MongoDBDocumentService {
     this._telemetryService.track(
       new DocumentUpdatedTelemetryEvent(
         DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-        false
-      )
+        false,
+      ),
     );
 
     throw new Error(errorMessage);
@@ -78,7 +78,7 @@ export default class MongoDBDocumentService {
 
     if (activeConnectionId !== connectionId) {
       return this._saveDocumentFailed(
-        `no longer connected to '${connectionName}'`
+        `no longer connected to '${connectionName}'`,
       );
     }
 
@@ -86,7 +86,7 @@ export default class MongoDBDocumentService {
 
     if (dataService === null) {
       return this._saveDocumentFailed(
-        `no longer connected to '${connectionName}'`
+        `no longer connected to '${connectionName}'`,
       );
     }
 
@@ -99,10 +99,10 @@ export default class MongoDBDocumentService {
         newDocument,
         {
           returnDocument: 'after',
-        }
+        },
       );
       this._telemetryService.track(
-        new DocumentUpdatedTelemetryEvent(source, true)
+        new DocumentUpdatedTelemetryEvent(source, true),
       );
     } catch (error) {
       return this._saveDocumentFailed(formatError(error).message);
@@ -123,7 +123,7 @@ export default class MongoDBDocumentService {
 
     if (activeConnectionId !== connectionId) {
       return this._fetchDocumentFailed(
-        `no longer connected to '${connectionName}'`
+        `no longer connected to '${connectionName}'`,
       );
     }
 
@@ -131,7 +131,7 @@ export default class MongoDBDocumentService {
 
     if (dataService === null) {
       return this._fetchDocumentFailed(
-        `no longer connected to ${connectionName}`
+        `no longer connected to ${connectionName}`,
       );
     }
 
@@ -141,7 +141,7 @@ export default class MongoDBDocumentService {
       const documents = await dataService.find(
         namespace,
         { _id: documentId },
-        { limit: 1 }
+        { limit: 1 },
       );
 
       if (!documents || documents.length === 0) {

@@ -11,7 +11,7 @@ import { ExtensionContextStub, DataServiceStub } from '../stubs';
 const { contributes } = require('../../../../package.json');
 
 function getTestCollectionTreeItem(
-  options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>,
 ): CollectionTreeItem {
   return new CollectionTreeItem({
     collection: {
@@ -73,7 +73,7 @@ suite('CollectionTreeItem Test Suite', () => {
     assert.strictEqual(collectionChildren[0].description, '5K');
     assert.strictEqual(
       collectionChildren[0].tooltip,
-      'Collection Documents - 5000'
+      'Collection Documents - 5000',
     );
   });
 
@@ -98,11 +98,11 @@ suite('CollectionTreeItem Test Suite', () => {
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert.strictEqual(
       collectionIconPath.light.includes('collection-folder-closed.svg'),
-      true
+      true,
     );
     assert.strictEqual(
       collectionIconPath.dark.includes('collection-folder-closed.svg'),
-      true
+      true,
     );
   });
 
@@ -116,11 +116,11 @@ suite('CollectionTreeItem Test Suite', () => {
     const viewIconPath = testCollectionTimeSeriesTreeItem.iconPath;
     assert.strictEqual(
       viewIconPath.light.includes('collection-timeseries.svg'),
-      true
+      true,
     );
     assert.strictEqual(
       viewIconPath.dark.includes('collection-timeseries.svg'),
-      true
+      true,
     );
 
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
@@ -132,11 +132,11 @@ suite('CollectionTreeItem Test Suite', () => {
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert.strictEqual(
       collectionIconPath.light.includes('collection-folder-closed.svg'),
-      true
+      true,
     );
     assert.strictEqual(
       collectionIconPath.dark.includes('collection-folder-closed.svg'),
-      true
+      true,
     );
   });
 });

@@ -35,7 +35,7 @@ export default class PlaygroundsTreeHeader
 
   public async getChildren(): Promise<vscode.TreeItem[]> {
     return Promise.resolve(
-      sortTreeItemsByLabel(Object.values(this._playgroundsTreeItems))
+      sortTreeItemsByLabel(Object.values(this._playgroundsTreeItems)),
     );
   }
 

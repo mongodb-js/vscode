@@ -16,11 +16,11 @@ export default class HelpExplorer {
       this._treeView = createTrackedTreeView(
         'mongoDBHelpExplorer',
         this._treeController,
-        this._telemetryService
+        this._telemetryService,
       );
       this._treeController.activateTreeViewEventHandlers(
         this._treeView,
-        this._telemetryService
+        this._telemetryService,
       );
     }
   }

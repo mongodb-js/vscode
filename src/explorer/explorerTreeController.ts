@@ -24,7 +24,7 @@ export default class ExplorerTreeController
 
   constructor(
     private _connectionController: ConnectionController,
-    private _telemetryService: TelemetryService
+    private _telemetryService: TelemetryService,
   ) {
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -34,7 +34,7 @@ export default class ExplorerTreeController
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
         this.refresh();
-      }
+      },
     );
 
     this._connectionTreeItems = {}; // No cache to start.
@@ -45,12 +45,12 @@ export default class ExplorerTreeController
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
       () => {
         this.refresh();
-      }
+      },
     );
   }
 
   activateTreeViewEventHandlers = (
-    treeView: vscode.TreeView<vscode.TreeItem>
+    treeView: vscode.TreeView<vscode.TreeItem>,
   ): void => {
     treeView.onDidCollapseElement((event) => {
       log.info('Tree item was collapsed', event.element.label);
@@ -77,7 +77,7 @@ export default class ExplorerTreeController
       const treeItem = event.element as vscode.TreeItem &
         TreeItemParentInterface;
       this._telemetryService.track(
-        new TreeItemExpandedTelemetryEvent(treeItem)
+        new TreeItemExpandedTelemetryEvent(treeItem),
       );
 
       log.info('Explorer tree item was expanded', {
@@ -117,7 +117,7 @@ export default class ExplorerTreeController
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
           await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
-            event.selection[0]
+            event.selection[0],
           );
         }
 
@@ -127,7 +127,7 @@ export default class ExplorerTreeController
         ) {
           await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,
-            event.selection[0]
+            event.selection[0],
           );
         }
       }
@@ -155,7 +155,7 @@ export default class ExplorerTreeController
     connection: LoadedConnection,
     pastConnectionTreeItems: {
       [key: string]: ConnectionTreeItem;
-    }
+    },
   ): {
     collapsibleState: vscode.TreeItemCollapsibleState;
     isExpanded: boolean;
@@ -223,7 +223,7 @@ export default class ExplorerTreeController
       });
 
       return Promise.resolve(
-        sortTreeItemsByLabel(Object.values(this._connectionTreeItems))
+        sortTreeItemsByLabel(Object.values(this._connectionTreeItems)),
       );
     }
 

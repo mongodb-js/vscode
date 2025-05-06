@@ -24,7 +24,7 @@ suite('Playground Result Provider Test Suite', () => {
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    extensionContextStub
+    extensionContextStub,
   );
   const testStatusView = new StatusView(extensionContextStub);
   const testConnectionController = new ConnectionController({
@@ -33,7 +33,7 @@ suite('Playground Result Provider Test Suite', () => {
     telemetryService: testTelemetryService,
   });
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-    testConnectionController
+    testConnectionController,
   );
   const sandbox = sinon.createSandbox();
 
@@ -44,7 +44,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('setPlaygroundResult refreshes private playground result property', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     const playgroundResult = {
       namespace: 'db.berlin',
@@ -57,14 +57,14 @@ suite('Playground Result Provider Test Suite', () => {
     };
     testPlaygroundResultProvider.setPlaygroundResult(playgroundResult);
     expect(testPlaygroundResultProvider._playgroundResult).to.be.deep.equal(
-      playgroundResult
+      playgroundResult,
     );
   });
 
   test('provideTextDocumentContent returns undefined formatted to string if content is undefined', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -80,7 +80,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('provideTextDocumentContent returns null formatted to string if content is null', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -96,7 +96,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('provideTextDocumentContent returns number formatted to string if content is number', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -112,7 +112,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('provideTextDocumentContent returns array formatted to string if content is array', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -128,7 +128,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('provideTextDocumentContent returns object formatted to string if content is object', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -144,7 +144,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('provideTextDocumentContent returns boolean formatted to string if content is boolean', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -160,7 +160,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('provideTextDocumentContent returns string if content is string', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testPlaygroundResultProvider._playgroundResult = {
       namespace: 'db.berlin',
@@ -176,7 +176,7 @@ suite('Playground Result Provider Test Suite', () => {
   test('provideTextDocumentContent returns Cursor formatted to string if content is string', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     const content = [
       {
@@ -199,7 +199,7 @@ suite('Playground Result Provider Test Suite', () => {
     sandbox.replace(
       testPlaygroundResultProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
-      fakeUpdateCodeLensesForPlayground
+      fakeUpdateCodeLensesForPlayground,
     );
 
     testPlaygroundResultProvider._playgroundResult = playgroundResult;
@@ -208,14 +208,14 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
     expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
     expect(
-      fakeUpdateCodeLensesForPlayground.firstCall.firstArg
+      fakeUpdateCodeLensesForPlayground.firstCall.firstArg,
     ).to.be.deep.equal(playgroundResult);
   });
 
   test('provideTextDocumentContent returns Document formatted to string if content is string', () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     const content = {
       _id: '20213a0d-83f6-4e6f-a575-af7ea6187lala',
@@ -232,7 +232,7 @@ suite('Playground Result Provider Test Suite', () => {
     sandbox.replace(
       testPlaygroundResultProvider._editDocumentCodeLensProvider,
       'updateCodeLensesForPlayground',
-      fakeUpdateCodeLensesForPlayground
+      fakeUpdateCodeLensesForPlayground,
     );
 
     testPlaygroundResultProvider._playgroundResult = playgroundResult;
@@ -241,14 +241,14 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal(JSON.stringify(content, null, 2));
     expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
     expect(
-      fakeUpdateCodeLensesForPlayground.firstCall.firstArg
+      fakeUpdateCodeLensesForPlayground.firstCall.firstArg,
     ).to.be.deep.equal(playgroundResult);
   });
 
   test('provideTextDocumentContent sets different code lenses for the playground and the collection', async () => {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     const playgroundNamespace = 'db.berlin';
     const playgroundResult = {
@@ -278,11 +278,11 @@ suite('Playground Result Provider Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeActiveConnectionId
+      fakeActiveConnectionId,
     );
 
     const playgroundResultUri = vscode.Uri.parse(
-      'PLAYGROUND_RESULT_SCHEME:/Playground Result'
+      'PLAYGROUND_RESULT_SCHEME:/Playground Result',
     );
     const activeTextEditorDocument = { uri: playgroundResultUri };
     sandbox.replaceGetter(
@@ -291,7 +291,7 @@ suite('Playground Result Provider Test Suite', () => {
       () =>
         ({
           document: activeTextEditorDocument,
-        } as unknown as typeof vscode.window.activeTextEditor)
+        }) as unknown as typeof vscode.window.activeTextEditor,
     );
 
     testPlaygroundResultProvider.setPlaygroundResult(playgroundResult);
@@ -320,7 +320,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstCodeLensesInfo[0].line).to.be.equal(2);
     expect(firstCodeLensesInfo[0].namespace).to.be.equal(playgroundNamespace);
     expect(firstCodeLensesInfo[0].connectionId).to.be.equal(
-      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'
+      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487',
     );
 
     expect(firstCodeLensesInfo[1].documentId).to.be.equal(2);
@@ -345,7 +345,7 @@ suite('Playground Result Provider Test Suite', () => {
     sinon
       .stub(
         testCollectionViewProvider._connectionController,
-        'getActiveDataService'
+        'getActiveDataService',
       )
       .returns({
         find: () => {
@@ -365,7 +365,7 @@ suite('Playground Result Provider Test Suite', () => {
       `operationId=${operationId}`,
     ].join('&');
     const collectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${collectionNamespace}.json?${collectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${collectionNamespace}.json?${collectionQuery}`,
     );
 
     activeTextEditorDocument.uri = collectionUri; // Switch active editor.
@@ -395,7 +395,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(firstCodeLensesInfo[0].line).to.be.equal(2);
     expect(firstCodeLensesInfo[0].namespace).to.be.equal(playgroundNamespace);
     expect(firstCodeLensesInfo[0].connectionId).to.be.equal(
-      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'
+      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487',
     );
 
     expect(firstCodeLensesInfo[1].documentId).to.be.equal(2);
@@ -405,13 +405,13 @@ suite('Playground Result Provider Test Suite', () => {
     const secondCodeLensesInfo = codeLensesInfo[collectionUri.toString()];
     expect(secondCodeLensesInfo.length).to.be.equal(1);
     expect(secondCodeLensesInfo[0].documentId).to.be.equal(
-      '5ea8745ee4811fafe8b65ecb'
+      '5ea8745ee4811fafe8b65ecb',
     );
     expect(secondCodeLensesInfo[0].source).to.be.equal('collectionview');
     expect(secondCodeLensesInfo[0].line).to.be.equal(2);
     expect(secondCodeLensesInfo[0].namespace).to.be.equal(collectionNamespace);
     expect(secondCodeLensesInfo[0].connectionId).to.be.equal(
-      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487'
+      '1c8c2b06-fbfb-40b7-bd8a-bd1f8333a487',
     );
   });
 });

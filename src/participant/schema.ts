@@ -21,7 +21,7 @@ export class SchemaFormatter {
 
   private processSchemaTypeList(
     prefix: string,
-    pTypes: SimplifiedSchemaType[]
+    pTypes: SimplifiedSchemaType[],
   ): void {
     if (pTypes.length !== 0) {
       this.processSchemaType(prefix, pTypes[0]);
@@ -53,7 +53,7 @@ export class SchemaFormatter {
       const firstType = types[0].bsonType;
       if (firstType !== 'Array' && firstType !== 'Document') {
         this.addToFormattedSchemaString(
-          prefix + ': ' + 'Array<' + firstType + '>'
+          prefix + ': ' + 'Array<' + firstType + '>',
         );
         return;
       }
@@ -76,7 +76,7 @@ export class SchemaFormatter {
       const keyAsString = this.getPropAsString(key);
       this.processSchemaTypeList(
         prefix + (prefix.length === 0 ? '' : '.') + keyAsString,
-        pDoc[key]?.types
+        pDoc[key]?.types,
       );
     });
   }

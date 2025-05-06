@@ -49,7 +49,7 @@ suite('Playground Controller Test Suite', function () {
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
       testStorageController,
-      extensionContextStub
+      extensionContextStub,
     );
     testStatusView = new StatusView(extensionContextStub);
     testConnectionController = new ConnectionController({
@@ -58,16 +58,16 @@ suite('Playground Controller Test Suite', function () {
       telemetryService: testTelemetryService,
     });
     testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
+      testConnectionController,
     );
     testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
     languageServerControllerStub = new LanguageServerControllerStub(
       extensionContextStub,
-      testStorageController
+      testStorageController,
     );
     const testExportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
@@ -105,22 +105,22 @@ suite('Playground Controller Test Suite', function () {
       sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionName',
-        () => 'fakeName'
+        () => 'fakeName',
       );
       sandbox.replace(
         testPlaygroundController._connectionController,
         'getActiveConnectionId',
-        () => 'pineapple'
+        () => 'pineapple',
       );
       sandbox.replace(
         testPlaygroundController._languageServerController,
         'activeConnectionChanged',
-        fakeConnectToServiceProvider
+        fakeConnectToServiceProvider,
       );
       sandbox.stub(vscode.window, 'showInformationMessage');
 
       testPlaygroundController._connectionController.setActiveDataService(
-        mockActiveDataService
+        mockActiveDataService,
       );
       await testPlaygroundController._activeConnectionChanged();
     });
@@ -131,7 +131,7 @@ suite('Playground Controller Test Suite', function () {
           fakeConnectToServiceProvider.firstCall.firstArg as {
             connectionId: string;
           }
-        ).connectionId
+        ).connectionId,
       ).to.equal('pineapple');
     });
 
@@ -141,14 +141,14 @@ suite('Playground Controller Test Suite', function () {
           fakeConnectToServiceProvider.firstCall.firstArg as {
             connectionString: string;
           }
-        ).connectionString
+        ).connectionString,
       ).includes('./path/to/cert');
       expect(
         (
           fakeConnectToServiceProvider.firstCall.firstArg as {
             connectionString: string;
           }
-        ).connectionString
+        ).connectionString,
       ).includes('./path/to/ca');
     });
   });
@@ -159,7 +159,7 @@ suite('Playground Controller Test Suite', function () {
     beforeEach(() => {
       showInformationMessageStub = sandbox.stub(
         vscode.window,
-        'showInformationMessage'
+        'showInformationMessage',
       );
       sandbox.stub(vscode.window, 'activeTextEditor').get(function getterFn() {
         return undefined;
@@ -171,7 +171,7 @@ suite('Playground Controller Test Suite', function () {
         'Please open a MongoDB playground file before running it.';
       await testPlaygroundController.runAllPlaygroundBlocks();
       expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
-        expectedMessage
+        expectedMessage,
       );
     });
 
@@ -180,7 +180,7 @@ suite('Playground Controller Test Suite', function () {
         'Please select one or more lines in the playground.';
       await testPlaygroundController.runSelectedPlaygroundBlocks();
       expect(showInformationMessageStub.firstCall.args[0]).to.be.equal(
-        expectedMessage
+        expectedMessage,
       );
     });
 
@@ -189,7 +189,7 @@ suite('Playground Controller Test Suite', function () {
         'Please open a MongoDB playground file before running it.';
       await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
       expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
-        expectedMessage
+        expectedMessage,
       );
     });
   });
@@ -200,7 +200,7 @@ suite('Playground Controller Test Suite', function () {
     beforeEach(() => {
       showInformationMessageStub = sandbox.stub(
         vscode.window,
-        'showInformationMessage'
+        'showInformationMessage',
       );
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
@@ -215,7 +215,7 @@ suite('Playground Controller Test Suite', function () {
         sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          () => false
+          () => false,
         );
       });
 
@@ -224,7 +224,7 @@ suite('Playground Controller Test Suite', function () {
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllPlaygroundBlocks();
         expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
-          expectedMessage
+          expectedMessage,
         );
       });
 
@@ -233,7 +233,7 @@ suite('Playground Controller Test Suite', function () {
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runSelectedPlaygroundBlocks();
         expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
-          expectedMessage
+          expectedMessage,
         );
       });
 
@@ -242,7 +242,7 @@ suite('Playground Controller Test Suite', function () {
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
         expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
-          expectedMessage
+          expectedMessage,
         );
       });
 
@@ -261,13 +261,13 @@ suite('Playground Controller Test Suite', function () {
         test('prompts to connect to a database and succeeds with selection', async () => {
           const changeActiveConnectionStub = sinon.stub(
             testPlaygroundController._connectionController,
-            'changeActiveConnection'
+            'changeActiveConnection',
           );
           // Mocks the user selecting a connection.
           changeActiveConnectionStub.resolves(true);
 
           const result = await testPlaygroundController.evaluateParticipantCode(
-            'console.log("test");'
+            'console.log("test");',
           );
 
           expect(showErrorMessageStub.notCalled).is.true;
@@ -280,20 +280,20 @@ suite('Playground Controller Test Suite', function () {
         test('prompts to connect to a database and errors if not selected', async () => {
           const changeActiveConnectionStub = sinon.stub(
             testPlaygroundController._connectionController,
-            'changeActiveConnection'
+            'changeActiveConnection',
           );
           // Mocks the user selecting a connection.
           changeActiveConnectionStub.resolves(false);
 
           const result = await testPlaygroundController.evaluateParticipantCode(
-            'console.log("test");'
+            'console.log("test");',
           );
 
           const expectedMessage =
             'Please connect to a database before running a playground.';
           await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
           expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
-            expectedMessage
+            expectedMessage,
           );
 
           expect(result).is.false;
@@ -308,12 +308,12 @@ suite('Playground Controller Test Suite', function () {
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionName',
-          () => 'fakeName'
+          () => 'fakeName',
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'isCurrentlyConnected',
-          () => true
+          () => true,
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
@@ -325,12 +325,12 @@ suite('Playground Controller Test Suite', function () {
                 options: {},
               }),
               once: sandbox.stub(),
-            } as unknown as DataService)
+            }) as unknown as DataService,
         );
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionId',
-          () => 'pineapple'
+          () => 'pineapple',
         );
         showTextDocumentStub = sandbox.stub(vscode.window, 'showTextDocument');
 
@@ -351,12 +351,12 @@ suite('Playground Controller Test Suite', function () {
           sandbox.replace(
             testPlaygroundController,
             '_evaluateWithCancelModal',
-            sandbox.stub().resolves({ result: '123' })
+            sandbox.stub().resolves({ result: '123' }),
           );
           sandbox.replace(
             testPlaygroundController,
             '_openInResultPane',
-            sandbox.stub()
+            sandbox.stub(),
           );
         });
 
@@ -417,10 +417,10 @@ suite('Playground Controller Test Suite', function () {
         test('does not prompt to connect to the database', async () => {
           const changeActiveConnectionStub = sinon.stub(
             testPlaygroundController._connectionController,
-            'changeActiveConnection'
+            'changeActiveConnection',
           );
           const result = await testPlaygroundController.evaluateParticipantCode(
-            'console.log("test");'
+            'console.log("test");',
           );
 
           expect(showErrorMessageStub.notCalled).is.true;

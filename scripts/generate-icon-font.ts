@@ -53,7 +53,7 @@ async function main(): Promise<void> {
 
   // Prints out the VSCode configuration package.json
   const currentConfiguration = JSON.parse(
-    await fs.readFile('./package.json', 'utf8')
+    await fs.readFile('./package.json', 'utf8'),
   );
 
   currentConfiguration.contributes.icons = iconsConfig;
@@ -64,7 +64,7 @@ async function main(): Promise<void> {
     prettier.format(JSON.stringify(currentConfiguration), {
       ...prettierConfig,
       parser: 'json-stringify',
-    })
+    }),
   );
 }
 

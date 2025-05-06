@@ -69,7 +69,7 @@ const encodeStringify = (obj: Record<string, any>): string => {
 };
 
 const getMessageContent = (
-  message: vscode.LanguageModelChatMessage
+  message: vscode.LanguageModelChatMessage,
 ): string => {
   const content = message.content as any;
   if (typeof content === 'string') {
@@ -119,13 +119,13 @@ suite('Participant Controller Test Suite', function () {
   let telemetryTrackStub: SinonSpy;
 
   const invokeChatHandler = async (
-    request: vscode.ChatRequest
+    request: vscode.ChatRequest,
   ): Promise<ChatResult | undefined> =>
     testParticipantController.chatHandler(
       request,
       chatContextStub,
       chatStreamStub as unknown as vscode.ChatResponseStream,
-      chatTokenStub
+      chatTokenStub,
     );
 
   const assertCommandTelemetry = (
@@ -139,7 +139,7 @@ suite('Participant Controller Test Suite', function () {
       expectSampleDocs?: boolean;
       callIndex: number;
       expectedInternalPurpose?: InternalPromptPurpose;
-    }
+    },
   ): void => {
     expect(telemetryTrackStub.callCount).to.be.greaterThan(callIndex);
 
@@ -150,21 +150,21 @@ suite('Participant Controller Test Suite', function () {
     expect(arg.properties.command).to.equal(command);
     expect(arg.properties.has_sample_documents).to.equal(expectSampleDocs);
     expect(arg.properties.history_size).to.equal(
-      chatContextStub.history.length
+      chatContextStub.history.length,
     );
 
     /** For docs chatbot requests, the length of the prompt would be longer as it gets the prompt history prepended.*/
     if (command !== 'docs') {
       // Total message length includes participant as well as user prompt
       expect(arg.properties.total_message_length).to.be.greaterThan(
-        arg.properties.user_input_length
+        arg.properties.user_input_length,
       );
     }
 
     // User prompt length should be at least equal to the supplied user prompt, but my occasionally
     // be greater - e.g. when we enhance the context.
     expect(arg.properties.user_input_length).to.be.greaterThanOrEqual(
-      chatRequest.prompt.length
+      chatRequest.prompt.length,
     );
     expect(arg.properties.internal_purpose).to.equal(expectedInternalPurpose);
   };
@@ -181,7 +181,7 @@ suite('Participant Controller Test Suite', function () {
       hasCTA?: boolean;
       hasRunnableContent?: boolean;
       foundNamespace?: boolean;
-    }
+    },
   ): void => {
     expect(telemetryTrackStub.callCount).to.be.greaterThan(callIndex);
     const call = telemetryTrackStub.getCalls()[callIndex];
@@ -203,7 +203,7 @@ suite('Participant Controller Test Suite', function () {
 
     testTelemetryService = new TelemetryService(
       testStorageController,
-      extensionContextStub
+      extensionContextStub,
     );
     testConnectionController = new ConnectionController({
       statusView: testStatusView,
@@ -212,11 +212,11 @@ suite('Participant Controller Test Suite', function () {
     });
     sinon.replace(ChatMetadataStore, 'createNewChatId', () => testChatId);
     testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
+      testConnectionController,
     );
     testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testParticipantController = new ParticipantController({
       connectionController: testConnectionController,
@@ -283,27 +283,27 @@ suite('Participant Controller Test Suite', function () {
     beforeEach(function () {
       connectWithConnectionIdStub = sinon.stub(
         testParticipantController._connectionController,
-        'connectWithConnectionId'
+        'connectWithConnectionId',
       );
       changeActiveConnectionStub = sinon.stub(
         testParticipantController._connectionController,
-        'changeActiveConnection'
+        'changeActiveConnection',
       );
       sinon.replace(
         testParticipantController._connectionController,
         'getActiveDataService',
-        () => null
+        () => null,
       );
       sinon.replace(
         testParticipantController._storageController,
         'get',
-        sinon.fake.returns(true)
+        sinon.fake.returns(true),
       );
       getSavedConnectionsStub = sinon.stub();
       sinon.replace(
         testParticipantController._connectionController,
         'getSavedConnections',
-        getSavedConnectionsStub
+        getSavedConnectionsStub,
       );
     });
 
@@ -317,18 +317,18 @@ suite('Participant Controller Test Suite', function () {
       const chatResult = await invokeChatHandler(chatRequestMock);
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
-        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
+        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.",
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
       const expectedContent = encodeStringify({ id: 'id', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        `- [localhost](command:mdb.connectWithParticipant?${expectedContent})`
+        `- [localhost](command:mdb.connectWithParticipant?${expectedContent})`,
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(2).args[0];
       expect(showMoreMessage.value).to.include(
         `- [Show more](command:mdb.connectWithParticipant?${encodeStringify({
           command: '/query',
-        })})`
+        })})`,
       );
       expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
       expect({
@@ -358,18 +358,18 @@ suite('Participant Controller Test Suite', function () {
       const chatResult = await invokeChatHandler(chatRequestMock);
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
-        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against."
+        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.",
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(1).args[0];
       const expectedContent = encodeStringify({ id: 'id0', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        `- [localhost0](command:mdb.connectWithParticipant?${expectedContent})`
+        `- [localhost0](command:mdb.connectWithParticipant?${expectedContent})`,
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(11).args[0];
       expect(showMoreMessage.value).to.include(
         `- [Show more](command:mdb.connectWithParticipant?${encodeStringify({
           command: '/query',
-        })})`
+        })})`,
       );
       expect(chatStreamStub.markdown.callCount).to.be.eql(12);
       expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
@@ -396,18 +396,18 @@ suite('Participant Controller Test Suite', function () {
 
       const emptyMessage = chatStreamStub.markdown.getCall(3).args[0];
       expect(emptyMessage).to.include(
-        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against"
+        "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against",
       );
       const listConnectionsMessage = chatStreamStub.markdown.getCall(4).args[0];
       const expectedContent = encodeStringify({ id: 'id', command: '/query' });
       expect(listConnectionsMessage.value).to.include(
-        `- [localhost](command:mdb.connectWithParticipant?${expectedContent})`
+        `- [localhost](command:mdb.connectWithParticipant?${expectedContent})`,
       );
       const showMoreMessage = chatStreamStub.markdown.getCall(5).args[0];
       expect(showMoreMessage.value).to.include(
         `- [Show more](command:mdb.connectWithParticipant?${encodeStringify({
           command: '/query',
-        })})`
+        })})`,
       );
       expect(chatResult?.metadata?.chatId.length).to.equal(testChatId.length);
       expect({
@@ -483,7 +483,7 @@ suite('Participant Controller Test Suite', function () {
             }),
             sample: sampleStub,
             once: sinon.stub(),
-          } as unknown as DataService)
+          }) as unknown as DataService,
       );
     });
 
@@ -492,7 +492,7 @@ suite('Participant Controller Test Suite', function () {
         sinon.replace(
           testParticipantController._storageController,
           'get',
-          sinon.fake.returns(false)
+          sinon.fake.returns(false),
         );
         sendRequestStub.resolves({
           text: [
@@ -517,7 +517,7 @@ suite('Participant Controller Test Suite', function () {
         // Once to report welcome screen shown, second time to track the user prompt
         expect(telemetryTrackStub).to.have.been.calledTwice;
         expect(telemetryTrackStub.firstCall.args[0].type).to.equal(
-          'Participant Welcome Shown'
+          'Participant Welcome Shown',
         );
         assertCommandTelemetry('query', chatRequestMock, {
           callIndex: 1,
@@ -531,7 +531,7 @@ suite('Participant Controller Test Suite', function () {
         sinon.replace(
           testParticipantController._storageController,
           'get',
-          sinon.fake.returns(true)
+          sinon.fake.returns(true),
         );
       });
 
@@ -543,7 +543,7 @@ suite('Participant Controller Test Suite', function () {
           .filter(
             (message) =>
               typeof message === 'string' &&
-              message.includes('Welcome to MongoDB Participant!')
+              message.includes('Welcome to MongoDB Participant!'),
           );
         expect(welcomeMessages).to.be.empty;
 
@@ -589,19 +589,19 @@ suite('Participant Controller Test Suite', function () {
               .args[0] as vscode.LanguageModelChatMessage[];
             expect(intentRequest).to.have.length(2);
             expect(getMessageContent(intentRequest[0])).to.include(
-              'Your task is to help guide a conversation with a user to the correct handler.'
+              'Your task is to help guide a conversation with a user to the correct handler.',
             );
             expect(getMessageContent(intentRequest[1])).to.equal(
-              'what is the shape of the documents in the pineapple collection?'
+              'what is the shape of the documents in the pineapple collection?',
             );
             const genericRequest = sendRequestStub.secondCall
               .args[0] as vscode.LanguageModelChatMessage[];
             expect(genericRequest).to.have.length(2);
             expect(getMessageContent(genericRequest[0])).to.include(
-              'Parse all user messages to find a database name and a collection name.'
+              'Parse all user messages to find a database name and a collection name.',
             );
             expect(getMessageContent(genericRequest[1])).to.equal(
-              'what is the shape of the documents in the pineapple collection?'
+              'what is the shape of the documents in the pineapple collection?',
             );
 
             expect(res?.metadata.intent).to.equal('askForNamespace');
@@ -621,19 +621,19 @@ suite('Participant Controller Test Suite', function () {
             .args[0] as vscode.LanguageModelChatMessage[];
           expect(intentRequest).to.have.length(2);
           expect(getMessageContent(intentRequest[0])).to.include(
-            'Your task is to help guide a conversation with a user to the correct handler.'
+            'Your task is to help guide a conversation with a user to the correct handler.',
           );
           expect(getMessageContent(intentRequest[1])).to.equal(
-            'how to find documents in my collection?'
+            'how to find documents in my collection?',
           );
           const genericRequest = sendRequestStub.secondCall
             .args[0] as vscode.LanguageModelChatMessage[];
           expect(genericRequest).to.have.length(2);
           expect(getMessageContent(genericRequest[0])).to.include(
-            'Your task is to help the user with MongoDB related questions.'
+            'Your task is to help the user with MongoDB related questions.',
           );
           expect(getMessageContent(genericRequest[1])).to.equal(
-            'how to find documents in my collection?'
+            'how to find documents in my collection?',
           );
 
           expect(res?.metadata.intent).to.equal('generic');
@@ -739,7 +739,7 @@ suite('Participant Controller Test Suite', function () {
             expect(getMessageContent(messages[1])).to.include(
               'Collection schema: _id: ObjectId\n' +
                 'field.stringField: String\n' +
-                'field.arrayField: Array<Int32>\n'
+                'field.arrayField: Array<Int32>\n',
             );
 
             assertCommandTelemetry('query', chatRequestMock, {
@@ -821,7 +821,7 @@ suite('Participant Controller Test Suite', function () {
                   "      stringField: 'Text 3'\n" +
                   '    }\n' +
                   '  }\n' +
-                  ']\n'
+                  ']\n',
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
@@ -897,7 +897,7 @@ suite('Participant Controller Test Suite', function () {
                   "      NumberInt('3')\n" +
                   '    ]\n' +
                   '  }\n' +
-                  '}\n'
+                  '}\n',
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
@@ -971,7 +971,7 @@ suite('Participant Controller Test Suite', function () {
                   '  field: {\n' +
                   "    stringField: 'Text 1'\n" +
                   '  }\n' +
-                  '}\n'
+                  '}\n',
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
@@ -1040,7 +1040,7 @@ suite('Participant Controller Test Suite', function () {
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
               expect(getMessageContent(messages[1])).to.not.include(
-                'Sample documents'
+                'Sample documents',
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
@@ -1071,7 +1071,7 @@ suite('Participant Controller Test Suite', function () {
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
               expect(getMessageContent(messages[1])).to.not.include(
-                'Sample documents'
+                'Sample documents',
               );
 
               assertCommandTelemetry('query', chatRequestMock, {
@@ -1102,7 +1102,7 @@ suite('Participant Controller Test Suite', function () {
             const chatResult = await invokeChatHandler(chatRequestMock);
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(askForDBMessage).to.include(
-              'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
+              'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
             const expectedContent = encodeStringify({
@@ -1111,19 +1111,19 @@ suite('Participant Controller Test Suite', function () {
               databaseName: 'dbOne',
             });
             expect(listDBsMessage.value).to.include(
-              `- [dbOne](command:mdb.selectDatabaseWithParticipant?${expectedContent})`
+              `- [dbOne](command:mdb.selectDatabaseWithParticipant?${expectedContent})`,
             );
             const showMoreDBsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
             expect(showMoreDBsMessage.value).to.include(
               `- [Show more](command:mdb.selectDatabaseWithParticipant?${encodeStringify(
-                { command: '/query', chatId: testChatId }
-              )})`
+                { command: '/query', chatId: testChatId },
+              )})`,
             );
             expect(chatStreamStub.markdown.callCount).to.be.eql(12);
             const firstChatId = chatResult?.metadata?.chatId;
             expect(chatResult?.metadata?.chatId.length).to.equal(
-              testChatId.length
+              testChatId.length,
             );
             expect({
               ...chatResult?.metadata,
@@ -1144,7 +1144,7 @@ suite('Participant Controller Test Suite', function () {
               history: [
                 createChatRequestTurn(
                   '/query',
-                  'find all docs by a name example'
+                  'find all docs by a name example',
                 ),
                 createChatResponseTurn(
                   '/query',
@@ -1156,7 +1156,7 @@ suite('Participant Controller Test Suite', function () {
                         chatId: firstChatId,
                       },
                     },
-                  }
+                  },
                 ),
               ],
             };
@@ -1166,7 +1166,7 @@ suite('Participant Controller Test Suite', function () {
             const askForCollMessage =
               chatStreamStub.markdown.getCall(12).args[0];
             expect(askForCollMessage).to.include(
-              'Which collection would you like to use within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
+              'Which collection would you like to use within dbOne? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
             );
             const listCollsMessage =
               chatStreamStub.markdown.getCall(13).args[0];
@@ -1177,7 +1177,7 @@ suite('Participant Controller Test Suite', function () {
               collectionName: 'collOne',
             });
             expect(listCollsMessage.value).to.include(
-              `- [collOne](command:mdb.selectCollectionWithParticipant?${expectedCollsContent})`
+              `- [collOne](command:mdb.selectCollectionWithParticipant?${expectedCollsContent})`,
             );
             const showMoreCollsMessage =
               chatStreamStub.markdown.getCall(23).args[0];
@@ -1187,8 +1187,8 @@ suite('Participant Controller Test Suite', function () {
                   command: '/query',
                   chatId: testChatId,
                   databaseName: 'dbOne',
-                }
-              )})`
+                },
+              )})`,
             );
             expect(chatStreamStub.markdown.callCount).to.be.eql(24);
             expect(chatResult2?.metadata?.chatId).to.equal(firstChatId);
@@ -1210,7 +1210,7 @@ suite('Participant Controller Test Suite', function () {
               history: [
                 createChatRequestTurn(
                   '/query',
-                  'find all docs by a name example'
+                  'find all docs by a name example',
                 ),
                 createChatResponseTurn(
                   '/query',
@@ -1221,7 +1221,7 @@ suite('Participant Controller Test Suite', function () {
                         intent: 'askForNamespace',
                       },
                     },
-                  }
+                  },
                 ),
                 createChatRequestTurn('/query', 'dbOne'),
                 createChatResponseTurn(
@@ -1236,7 +1236,7 @@ suite('Participant Controller Test Suite', function () {
                         chatId: firstChatId,
                       },
                     },
-                  }
+                  },
                 ),
               ],
             };
@@ -1275,7 +1275,7 @@ suite('Participant Controller Test Suite', function () {
               history: [
                 createChatRequestTurn(
                   '/query',
-                  'find all docs by a name example'
+                  'find all docs by a name example',
                 ),
                 createChatResponseTurn(
                   '/query',
@@ -1287,7 +1287,7 @@ suite('Participant Controller Test Suite', function () {
                         chatId: 'pineapple',
                       },
                     },
-                  }
+                  },
                 ),
               ],
             };
@@ -1295,7 +1295,7 @@ suite('Participant Controller Test Suite', function () {
 
             const emptyMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(emptyMessage).to.equal(
-              'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
+              'Which database would you like this query to run against? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
             );
             const listDBsMessage = chatStreamStub.markdown.getCall(1).args[0];
             expect(listDBsMessage.value).to.include(
@@ -1304,8 +1304,8 @@ suite('Participant Controller Test Suite', function () {
                   command: '/query',
                   chatId: 'pineapple',
                   databaseName: 'dbOne',
-                }
-              )})`
+                },
+              )})`,
             );
             const showMoreDBsMessage =
               chatStreamStub.markdown.getCall(11).args[0];
@@ -1314,8 +1314,8 @@ suite('Participant Controller Test Suite', function () {
                 {
                   command: '/query',
                   chatId: 'pineapple',
-                }
-              )})`
+                },
+              )})`,
             );
             expect({
               ...chatResult?.metadata,
@@ -1360,7 +1360,7 @@ suite('Participant Controller Test Suite', function () {
             expect(sendRequestStub.called).to.be.false;
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(askForDBMessage).to.include(
-              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
+              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
             );
           });
 
@@ -1376,12 +1376,12 @@ suite('Participant Controller Test Suite', function () {
             const messages = sendRequestStub.firstCall
               .args[0] as vscode.LanguageModelChatMessage[];
             expect(getMessageContent(messages[0])).to.include(
-              'Parse all user messages to find a database name and a collection name.'
+              'Parse all user messages to find a database name and a collection name.',
             );
 
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(askForDBMessage).to.equals(
-              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n'
+              'Which database would you like to use? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n',
             );
           });
 
@@ -1395,7 +1395,7 @@ suite('Participant Controller Test Suite', function () {
               history: [
                 createChatRequestTurn(
                   '/query',
-                  'how do I make a find request vs favorite_fruits.pineapple?'
+                  'how do I make a find request vs favorite_fruits.pineapple?',
                 ),
                 createChatResponseTurn('/query', 'some code', {
                   result: {
@@ -1414,10 +1414,10 @@ suite('Participant Controller Test Suite', function () {
             const messages = sendRequestStub.firstCall
               .args[0] as vscode.LanguageModelChatMessage[];
             expect(getMessageContent(messages[0])).to.include(
-              'Parse all user messages to find a database name and a collection name.'
+              'Parse all user messages to find a database name and a collection name.',
             );
             expect(getMessageContent(messages[3])).to.include(
-              'see previous messages'
+              'see previous messages',
             );
           });
         });
@@ -1522,7 +1522,7 @@ suite('Participant Controller Test Suite', function () {
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
               expect(getMessageContent(messages[0])).to.include(
-                'Amount of documents sampled: 2'
+                'Amount of documents sampled: 2',
               );
               expect(getMessageContent(messages[1])).to.include(
                 `Database name: dbOne
@@ -1530,7 +1530,7 @@ Collection name: collOne
 Schema:
 {
   "count": 2,
-  "fields": [`
+  "fields": [`,
               );
               expect(getMessageContent(messages[1])).to
                 .include(`"name": "arrayField",
@@ -1564,7 +1564,7 @@ Schema:
               };
               await invokeChatHandler(chatRequestMock);
               expect(chatStreamStub?.markdown.getCall(0).args[0]).to.include(
-                'Unable to generate a schema from the collection, no documents found.'
+                'Unable to generate a schema from the collection, no documents found.',
               );
 
               assertCommandTelemetry('schema', chatRequestMock, {
@@ -1572,7 +1572,7 @@ Schema:
                 expectedInternalPurpose: 'namespace',
               });
             });
-          }
+          },
         );
       });
 
@@ -1595,7 +1595,7 @@ Schema:
           beforeEach(function () {
             addMessageStub = sinon.stub(
               testParticipantController._docsChatbotAIService,
-              'addMessage'
+              'addMessage',
             );
           });
 
@@ -1627,7 +1627,7 @@ Schema:
                 'schema request',
                 'schema response',
                 'docs request',
-              ].join('\n\n')
+              ].join('\n\n'),
             );
           });
 
@@ -1653,7 +1653,9 @@ Schema:
 
             expect(addMessageStub.calledOnce).is.true;
             expect(addMessageStub.getCall(0).firstArg.message).equals(
-              ['schema request', 'schema response', 'docs request'].join('\n\n')
+              ['schema request', 'schema response', 'docs request'].join(
+                '\n\n',
+              ),
             );
 
             chatContextStub = {
@@ -1667,7 +1669,7 @@ Schema:
             await invokeChatHandler(chatRequestMock);
 
             expect(addMessageStub.getCall(1).firstArg.message).equals(
-              'docs request'
+              'docs request',
             );
           });
         });
@@ -1686,7 +1688,7 @@ Schema:
           expect(res?.metadata.intent).to.equal('emptyRequest');
           const defaultEmptyMsg = chatStreamStub.markdown.getCall(0).args[0];
           expect(defaultEmptyMsg).to.include(
-            'Ask anything about MongoDB, from writing queries to questions a'
+            'Ask anything about MongoDB, from writing queries to questions a',
           );
           const referenceMsg = chatStreamStub.markdown.getCall(1).args[0];
           expect(referenceMsg.value).to.include('View MongoDB documentation');
@@ -1742,18 +1744,18 @@ Schema:
 
           // Expect the error to be reported through the telemetry service
           expect(
-            telemetryTrackStub.getCalls()
+            telemetryTrackStub.getCalls(),
           ).to.have.length.greaterThanOrEqual(2);
 
           const firstTelemetryEvent = telemetryTrackStub.firstCall
             .args[0] as ParticipantResponseFailedTelemetryEvent;
           expect(firstTelemetryEvent.type).to.equal(
-            'Participant Response Failed'
+            'Participant Response Failed',
           );
 
           expect(firstTelemetryEvent.properties.command).to.equal('docs');
           expect(firstTelemetryEvent.properties.error_name).to.equal(
-            'Docs Chatbot API Issue'
+            'Docs Chatbot API Issue',
           );
 
           assertResponseTelemetry('docs/copilot', {
@@ -1768,13 +1770,13 @@ Schema:
 
         beforeEach(async function () {
           await vscode.commands.executeCommand(
-            'workbench.action.files.newUntitledFile'
+            'workbench.action.files.newUntitledFile',
           );
         });
 
         afterEach(async function () {
           await vscode.commands.executeCommand(
-            'workbench.action.closeActiveEditor'
+            'workbench.action.closeActiveEditor',
           );
         });
 
@@ -1810,13 +1812,13 @@ Schema:
           await testParticipantController.exportCodeToPlayground();
           const messages = sendRequestStub.firstCall.args[0];
           expect(getMessageContent(messages[1])).to.include(
-            'System.out.println'
+            'System.out.println',
           );
           expect(
-            isPlayground(vscode.window.activeTextEditor?.document.uri)
+            isPlayground(vscode.window.activeTextEditor?.document.uri),
           ).to.be.eql(true);
           expect(vscode.window.activeTextEditor?.document.getText()).to.include(
-            'Success! Documents were inserted'
+            'Success! Documents were inserted',
           );
         });
 
@@ -1844,13 +1846,13 @@ Schema:
             .find((c) => c.args[0].type === 'Export To Playground Failed')
             ?.args[0] as ExportToPlaygroundFailedTelemetryEvent;
           expect(playgroundFailedTelemetryEvent.type).to.equal(
-            'Export To Playground Failed'
+            'Export To Playground Failed',
           );
           expect(playgroundFailedTelemetryEvent.properties.error_name).to.equal(
-            'streamChatResponseWithExportToLanguage'
+            'streamChatResponseWithExportToLanguage',
           );
           expect(
-            playgroundFailedTelemetryEvent.properties.input_length
+            playgroundFailedTelemetryEvent.properties.input_length,
           ).to.equal(code.trim().length);
 
           const participantResponseFailedTelemetryEvent = telemetryTrackStub
@@ -1898,10 +1900,10 @@ Schema:
           const messages = sendRequestStub.firstCall.args[0];
           expect(messages[1].content).to.not.include('System.out.println');
           expect(
-            isPlayground(vscode.window.activeTextEditor?.document.uri)
+            isPlayground(vscode.window.activeTextEditor?.document.uri),
           ).to.be.eql(true);
           expect(
-            vscode.window.activeTextEditor?.document.getText()
+            vscode.window.activeTextEditor?.document.getText(),
           ).to.not.include('"Success! Documents were inserted"');
         });
       });
@@ -1916,7 +1918,7 @@ Schema:
       beforeEach(function () {
         sendMessageToParticipantStub = sinon.stub(
           testParticipantController,
-          'sendMessageToParticipant'
+          'sendMessageToParticipant',
         );
       });
 
@@ -1925,14 +1927,14 @@ Schema:
           Object.create(DatabaseTreeItem.prototype),
           {
             databaseName: 'testDb',
-          } as DatabaseTreeItem
+          } as DatabaseTreeItem,
         );
 
         test('opens the chat and sends a message to set database context', async function () {
           expect(sendMessageToParticipantStub).not.called;
 
           await testParticipantController.askCopilotFromTreeItem(
-            mockDatabaseItem
+            mockDatabaseItem,
           );
 
           expect(sendMessageToParticipantStub).has.callCount(1);
@@ -1956,14 +1958,14 @@ Schema:
           {
             databaseName: 'testDb',
             collectionName: 'testColl',
-          } as CollectionTreeItem
+          } as CollectionTreeItem,
         );
 
         test('opens the chat and sends a message to set database and collection context', async function () {
           expect(sendMessageToParticipantStub).not.called;
 
           await testParticipantController.askCopilotFromTreeItem(
-            mockCollectionItem
+            mockCollectionItem,
           );
 
           expect(sendMessageToParticipantStub).has.callCount(1);
@@ -1999,7 +2001,7 @@ Schema:
                 () => ({
                   databaseName: undefined,
                   collectionName: undefined,
-                })
+                }),
               );
             });
 
@@ -2022,7 +2024,7 @@ Schema:
               }
 
               expect(caughtError?.message).equals(
-                'Unable to fetch database names: Something went wrong.'
+                'Unable to fetch database names: Something went wrong.',
               );
             });
 
@@ -2049,11 +2051,11 @@ Schema:
 
               const renderDatabasesTreeSpy = sinon.spy(
                 testParticipantController,
-                'renderDatabasesTree'
+                'renderDatabasesTree',
               );
               const renderCollectionsTreeSpy = sinon.spy(
                 testParticipantController,
-                'renderCollectionsTree'
+                'renderCollectionsTree',
               );
 
               const chatResult = await invokeChatHandler({
@@ -2076,11 +2078,11 @@ Schema:
             test('prompts for database name if there are multiple available', async function () {
               const renderCollectionsTreeSpy = sinon.spy(
                 testParticipantController,
-                'renderCollectionsTree'
+                'renderCollectionsTree',
               );
               const renderDatabasesTreeSpy = sinon.spy(
                 testParticipantController,
-                'renderDatabasesTree'
+                'renderDatabasesTree',
               );
 
               const chatResult = await invokeChatHandler({
@@ -2109,7 +2111,7 @@ Schema:
                 () => ({
                   databaseName: 'dbOne',
                   collectionName: undefined,
-                })
+                }),
               );
             });
 
@@ -2128,7 +2130,7 @@ Schema:
               }
 
               expect(caughtError?.message).equals(
-                'Unable to fetch collection names from dbOne: Something went wrong.'
+                'Unable to fetch collection names from dbOne: Something went wrong.',
               );
             });
 
@@ -2146,7 +2148,7 @@ Schema:
               }
 
               expect(caughtError?.message).equals(
-                'No collections were found in the database dbOne.'
+                'No collections were found in the database dbOne.',
               );
             });
 
@@ -2154,11 +2156,11 @@ Schema:
               listCollectionsStub.resolves([{ name: 'onlyOneColl' }]);
               const renderCollectionsTreeSpy = sinon.spy(
                 testParticipantController,
-                'renderCollectionsTree'
+                'renderCollectionsTree',
               );
               const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
                 testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
+                '_fetchCollectionSchemaAndSampleDocuments',
               );
 
               const chatResult = await invokeChatHandler({
@@ -2170,7 +2172,7 @@ Schema:
               expect(renderCollectionsTreeSpy.called).to.be.false;
 
               expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0]
+                fetchCollectionSchemaAndSampleDocumentsSpy.firstCall.args[0],
               ).to.include({
                 collectionName: 'onlyOneColl',
               });
@@ -2184,11 +2186,11 @@ Schema:
             test('prompts for collection name if there are multiple available', async function () {
               const renderCollectionsTreeSpy = sinon.spy(
                 testParticipantController,
-                'renderCollectionsTree'
+                'renderCollectionsTree',
               );
               const fetchCollectionSchemaAndSampleDocumentsSpy = sinon.spy(
                 testParticipantController,
-                '_fetchCollectionSchemaAndSampleDocuments'
+                '_fetchCollectionSchemaAndSampleDocuments',
               );
 
               const chatResult = await invokeChatHandler({
@@ -2198,9 +2200,8 @@ Schema:
               });
 
               expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
-              expect(
-                fetchCollectionSchemaAndSampleDocumentsSpy.called
-              ).to.be.false;
+              expect(fetchCollectionSchemaAndSampleDocumentsSpy.called).to.be
+                .false;
 
               expect(chatResult?.metadata).deep.equals({
                 intent: 'askForNamespace',
@@ -2222,7 +2223,7 @@ Schema:
 
         const mockedMessages = Array.from(
           { length: 20 },
-          (_, index) => `Message ${index}`
+          (_, index) => `Message ${index}`,
         );
 
         getCopilotModelStub.resolves({
@@ -2232,7 +2233,7 @@ Schema:
         } as unknown as vscode.LanguageModelChat);
         chatContextStub = {
           history: mockedMessages.map((messageText) =>
-            createChatRequestTurn(undefined, messageText)
+            createChatRequestTurn(undefined, messageText),
           ),
         };
         const chatRequestMock = {
@@ -2249,10 +2250,10 @@ Schema:
         // Should consist of the assistant prompt (1 token), 8 history messages (8 tokens),
         // and the new request (1 token)
         expect(
-          messages.slice(1).map((message) => getMessageContent(message))
+          messages.slice(1).map((message) => getMessageContent(message)),
         ).deep.equal([
           ...mockedMessages.slice(
-            mockedMessages.length - (expectedMaxMessages - 2)
+            mockedMessages.length - (expectedMaxMessages - 2),
           ),
           chatRequestMock.prompt,
         ]);
@@ -2271,17 +2272,17 @@ Schema:
 
       expect(messages).to.have.lengthOf(2);
       expect(messages[0].role).to.equal(
-        vscode.LanguageModelChatMessageRole.Assistant
+        vscode.LanguageModelChatMessageRole.Assistant,
       );
       expect(messages[1].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
+        vscode.LanguageModelChatMessageRole.User,
       );
 
       expect(stats.command).to.equal('generic');
       expect(stats.hasSampleDocuments).to.be.false;
       expect(stats.userInputLength).to.equal(chatRequestMock.prompt.length);
       expect(stats.totalMessageLength).to.equal(
-        getContentLength(messages[0]) + getContentLength(messages[1])
+        getContentLength(messages[0]) + getContentLength(messages[1]),
       );
     });
 
@@ -2296,7 +2297,7 @@ Schema:
         history: [
           createChatRequestTurn(
             '/query',
-            'give me the count of all people in the prod database'
+            'give me the count of all people in the prod database',
           ),
         ],
       };
@@ -2328,20 +2329,20 @@ Schema:
 
       // Assistant prompt
       expect(messages[0].role).to.equal(
-        vscode.LanguageModelChatMessageRole.Assistant
+        vscode.LanguageModelChatMessageRole.Assistant,
       );
 
       // History
       expect(messages[1].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
+        vscode.LanguageModelChatMessageRole.User,
       );
       expect(getMessageContent(messages[1])).to.equal(
-        'give me the count of all people in the prod database'
+        'give me the count of all people in the prod database',
       );
 
       // Actual user prompt
       expect(messages[2].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
+        vscode.LanguageModelChatMessageRole.User,
       );
 
       expect(stats.command).to.equal('query');
@@ -2350,13 +2351,13 @@ Schema:
       expect(stats.totalMessageLength).to.equal(
         getContentLength(messages[0]) +
           getContentLength(messages[1]) +
-          getContentLength(messages[2])
+          getContentLength(messages[2]),
       );
 
       // The length of the user prompt length should be taken from the prompt supplied
       // by the user, even if we enhance it with sample docs and schema.
       expect(stats.userInputLength).to.be.lessThan(
-        getContentLength(messages[2])
+        getContentLength(messages[2]),
       );
     });
 
@@ -2386,14 +2387,14 @@ Schema:
 
       expect(messages).to.have.lengthOf(2);
       expect(messages[0].role).to.equal(
-        vscode.LanguageModelChatMessageRole.Assistant
+        vscode.LanguageModelChatMessageRole.Assistant,
       );
       expect(getMessageContent(messages[0])).to.include(
-        'Amount of documents sampled: 3'
+        'Amount of documents sampled: 3',
       );
 
       expect(messages[1].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
+        vscode.LanguageModelChatMessageRole.User,
       );
       expect(getMessageContent(messages[1])).to.include(databaseName);
       expect(getMessageContent(messages[1])).to.include(collectionName);
@@ -2403,7 +2404,7 @@ Schema:
       expect(stats.hasSampleDocuments).to.be.false;
       expect(stats.userInputLength).to.equal(chatRequestMock.prompt.length);
       expect(stats.totalMessageLength).to.equal(
-        getContentLength(messages[0]) + getContentLength(messages[1])
+        getContentLength(messages[0]) + getContentLength(messages[1]),
       );
     });
 
@@ -2420,17 +2421,17 @@ Schema:
 
       expect(messages).to.have.lengthOf(2);
       expect(messages[0].role).to.equal(
-        vscode.LanguageModelChatMessageRole.Assistant
+        vscode.LanguageModelChatMessageRole.Assistant,
       );
       expect(messages[1].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
+        vscode.LanguageModelChatMessageRole.User,
       );
 
       expect(stats.command).to.equal('query');
       expect(stats.hasSampleDocuments).to.be.false;
       expect(stats.userInputLength).to.equal(chatRequestMock.prompt.length);
       expect(stats.totalMessageLength).to.equal(
-        getContentLength(messages[0]) + getContentLength(messages[1])
+        getContentLength(messages[0]) + getContentLength(messages[1]),
       );
     });
 
@@ -2458,7 +2459,7 @@ Schema:
                     intent: 'askForNamespace',
                   },
                 },
-              }
+              },
             ),
             createChatRequestTurn('/query', 'dbOne'),
             createChatResponseTurn(
@@ -2473,7 +2474,7 @@ Schema:
                     chatId: testChatId,
                   },
                 },
-              }
+              },
             ),
             createChatRequestTurn('/query', 'collectionOne'),
             createChatRequestTurn('/query', userMessages[1]),
@@ -2493,18 +2494,18 @@ Schema:
 
         expect(messages.length).to.equal(4);
         expect(messages[0].role).to.equal(
-          vscode.LanguageModelChatMessageRole.Assistant
+          vscode.LanguageModelChatMessageRole.Assistant,
         );
 
         // We don't expect history because we're removing the askToConnect message as well
         // as the user response to it. Therefore the actual user prompt should be the first
         // message that we supplied in the history.
         expect(messages[1].role).to.equal(
-          vscode.LanguageModelChatMessageRole.User
+          vscode.LanguageModelChatMessageRole.User,
         );
 
         expect(
-          messages.slice(1, 3).map((message) => getMessageContent(message))
+          messages.slice(1, 3).map((message) => getMessageContent(message)),
         ).to.deep.equal(userMessages);
 
         expect(stats.command).to.equal('query');
@@ -2524,14 +2525,14 @@ Schema:
 
         expect(messages.length).to.equal(8);
         expect(messages[0].role).to.equal(
-          vscode.LanguageModelChatMessageRole.Assistant
+          vscode.LanguageModelChatMessageRole.Assistant,
         );
 
         // We don't expect history because we're removing the askToConnect message as well
         // as the user response to it. Therefore the actual user prompt should be the first
         // message that we supplied in the history.
         expect(messages[1].role).to.equal(
-          vscode.LanguageModelChatMessageRole.User
+          vscode.LanguageModelChatMessageRole.User,
         );
 
         expect(stats.command).to.equal('query');
@@ -2574,7 +2575,7 @@ Schema:
                   chatId: 'abc',
                 },
               },
-            }
+            },
           ),
         ],
       };
@@ -2590,14 +2591,14 @@ Schema:
 
       expect(messages.length).to.equal(2);
       expect(messages[0].role).to.equal(
-        vscode.LanguageModelChatMessageRole.Assistant
+        vscode.LanguageModelChatMessageRole.Assistant,
       );
 
       // We don't expect history because we're removing the askToConnect message as well
       // as the user response to it. Therefore the actual user prompt should be the first
       // message that we supplied in the history.
       expect(messages[1].role).to.equal(
-        vscode.LanguageModelChatMessageRole.User
+        vscode.LanguageModelChatMessageRole.User,
       );
       expect(getMessageContent(messages[1])).to.contain(expectedPrompt);
 
@@ -2605,12 +2606,12 @@ Schema:
       expect(stats.hasSampleDocuments).to.be.false;
       expect(stats.userInputLength).to.equal(expectedPrompt.length);
       expect(stats.totalMessageLength).to.equal(
-        getContentLength(messages[0]) + getContentLength(messages[1])
+        getContentLength(messages[0]) + getContentLength(messages[1]),
       );
 
       // The prompt builder may add extra info, but we're only reporting the actual user input
       expect(stats.userInputLength).to.be.lessThan(
-        getContentLength(messages[1])
+        getContentLength(messages[1]),
       );
     });
 
@@ -2624,7 +2625,7 @@ Schema:
           history: [
             createChatRequestTurn(
               '/query',
-              'give me the count of all people in the prod database'
+              'give me the count of all people in the prod database',
             ),
             createChatRequestTurn('/query', 'some disallowed message'),
             createChatResponseTurn('/query', undefined, {
@@ -2685,7 +2686,7 @@ Schema:
       expect(telemetryEvent.properties.feedback).to.be.equal('positive');
       expect(telemetryEvent.properties.reason).to.be.undefined;
       expect(telemetryEvent.properties.response_type).to.be.equal(
-        'askToConnect'
+        'askToConnect',
       );
 
       // Ensure we're not leaking the response content into the telemetry payload
@@ -2725,7 +2726,7 @@ Schema:
       const err = Error('Filtered by Responsible AI Service');
       testParticipantController._telemetryService.trackParticipantError(
         err,
-        'query'
+        'query',
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 
@@ -2736,7 +2737,7 @@ Schema:
       expect(telemetryEvent.properties.command).to.be.equal('query');
       expect(telemetryEvent.properties.error_code).to.be.undefined;
       expect(telemetryEvent.properties.error_name).to.be.equal(
-        'Filtered by Responsible AI Service'
+        'Filtered by Responsible AI Service',
       );
     });
 
@@ -2745,7 +2746,7 @@ Schema:
       err.cause = Error('This message is flagged as off topic: off_topic.');
       testParticipantController._telemetryService.trackParticipantError(
         err,
-        'docs'
+        'docs',
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 
@@ -2756,7 +2757,7 @@ Schema:
       expect(telemetryEvent.properties.command).to.be.equal('docs');
       expect(telemetryEvent.properties.error_code).to.be.undefined;
       expect(telemetryEvent.properties.error_name).to.be.equal(
-        'Chat Model Off Topic'
+        'Chat Model Off Topic',
       );
     });
 
@@ -2765,7 +2766,7 @@ Schema:
       const err = vscode.LanguageModelError.NotFound('Model not found');
       testParticipantController._telemetryService.trackParticipantError(
         err,
-        'schema'
+        'schema',
       );
       sinon.assert.calledOnce(telemetryTrackStub);
 

@@ -34,7 +34,7 @@ const connectedStatusDotStyles = cx(
   statusDotStyles,
   css({
     backgroundColor: palette.green.base,
-  })
+  }),
 );
 
 const connectedStatusDotLightModeStyles = css({
@@ -45,7 +45,7 @@ const disconnectedStatusDotStyles = cx(
   statusDotStyles,
   css({
     backgroundColor: palette.red.base,
-  })
+  }),
 );
 
 const statusContainerStyles = css({

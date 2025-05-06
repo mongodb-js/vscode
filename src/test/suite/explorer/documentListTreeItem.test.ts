@@ -16,7 +16,7 @@ import { DataServiceStub, mockDocuments } from '../stubs';
 const dataServiceStub = new DataServiceStub() as unknown as DataService;
 
 function getTestDocumentListTreeItem(
-  options?: Partial<ConstructorParameters<typeof DocumentListTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof DocumentListTreeItem>[0]>,
 ): DocumentListTreeItem {
   return new DocumentListTreeItem({
     collectionName: 'collectionName',
@@ -46,7 +46,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     assert(
       documentListRegisteredCommandInPackageJson,
-      'Expected document list tree item to be registered with a command in package json'
+      'Expected document list tree item to be registered with a command in package json',
     );
   });
 
@@ -87,7 +87,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     assert.strictEqual(
       testDocumentListTreeItem.collapsibleState,
-      vscode.TreeItemCollapsibleState.None
+      vscode.TreeItemCollapsibleState.None,
     );
   });
 
@@ -149,7 +149,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(documents.length, 25);
     assert.notStrictEqual(
       documents[documents.length - 1].label,
-      'Show more...'
+      'Show more...',
     );
   });
 
@@ -187,7 +187,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     const viewIconPath = testCollectionViewTreeItem.iconPath;
     assert(
       viewIconPath.dark.includes('documents.svg'),
-      'Expected icon path to point to an svg by the name "documents" a dark mode'
+      'Expected icon path to point to an svg by the name "documents" a dark mode',
     );
 
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
@@ -198,7 +198,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     const collectionIconPath = testDocumentListTreeItem.iconPath;
     assert(
       collectionIconPath.dark.includes('documents.svg'),
-      'Expected icon path to point to an svg by the name "documents" with a light mode'
+      'Expected icon path to point to an svg by the name "documents" with a light mode',
     );
   });
 
@@ -219,7 +219,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(testDocumentListTreeItem.description, '2M');
     assert.strictEqual(
       testDocumentListTreeItem.tooltip,
-      'Collection Documents - 2200000'
+      'Collection Documents - 2200000',
     );
   });
 

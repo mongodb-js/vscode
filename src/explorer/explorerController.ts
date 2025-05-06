@@ -12,11 +12,11 @@ export default class ExplorerController {
 
   constructor(
     private _connectionController: ConnectionController,
-    private _telemetryService: TelemetryService
+    private _telemetryService: TelemetryService,
   ) {
     this._treeController = new ExplorerTreeController(
       this._connectionController,
-      this._telemetryService
+      this._telemetryService,
     );
   }
 
@@ -24,14 +24,14 @@ export default class ExplorerController {
     // Remove the listener that called this function.
     this._connectionController.removeEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      this.createTreeView
+      this.createTreeView,
     );
 
     if (!this._treeView) {
       this._treeView = createTrackedTreeView(
         'mongoDBConnectionExplorer',
         this._treeController,
-        this._telemetryService
+        this._telemetryService,
       );
       this._treeController.activateTreeViewEventHandlers(this._treeView);
     }
@@ -42,7 +42,7 @@ export default class ExplorerController {
     // so that we show the `viewsWelcome` before any connections are added.
     this._connectionController.addEventListener(
       DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      this.createTreeView
+      this.createTreeView,
     );
   }
 

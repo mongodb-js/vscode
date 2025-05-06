@@ -59,5 +59,5 @@ export default Object.fromEntries(
             return addUTMAttrs(v(name));
           },
     ];
-  })
+  }),
 ) as typeof LINKS;

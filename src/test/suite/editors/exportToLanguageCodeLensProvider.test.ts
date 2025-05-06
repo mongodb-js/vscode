@@ -39,7 +39,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
       testStorageController,
-      extensionContextStub
+      extensionContextStub,
     );
     testStatusView = new StatusView(extensionContextStub);
     testConnectionController = new ConnectionController({
@@ -48,20 +48,20 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
       telemetryService: testTelemetryService,
     });
     testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
+      testConnectionController,
     );
     testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider(
-      testPlaygroundResultProvider
+      testPlaygroundResultProvider,
     );
   });
 
   test('renders the exclude driver syntax code lens by default for shell', () => {
     testPlaygroundResultProvider.setPlaygroundResult(
-      DEFAULT_EXPORT_TO_LANGUAGE_RESULT
+      DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
     );
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();

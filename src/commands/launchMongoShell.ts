@@ -46,11 +46,11 @@ const getBashEnvString = (): string => {
 };
 
 const openMongoDBShell = (
-  connectionController: ConnectionController
+  connectionController: ConnectionController,
 ): Promise<boolean> => {
   if (!connectionController.isCurrentlyConnected()) {
     void vscode.window.showErrorMessage(
-      'You need to be connected before launching the MongoDB Shell.'
+      'You need to be connected before launching the MongoDB Shell.',
     );
     return Promise.resolve(false);
   }
@@ -62,14 +62,14 @@ const openMongoDBShell = (
 
   if (!userShell) {
     void vscode.window.showErrorMessage(
-      'No shell found, please set your default shell environment in vscode.'
+      'No shell found, please set your default shell environment in vscode.',
     );
     return Promise.resolve(false);
   }
 
   if (!shellCommand) {
     void vscode.window.showErrorMessage(
-      'No MongoDB shell command found. Please set the shell command in the MongoDB extension settings.'
+      'No MongoDB shell command found. Please set the shell command in the MongoDB extension settings.',
     );
     return Promise.resolve(false);
   }

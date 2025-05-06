@@ -38,7 +38,7 @@ const log = createLogger('editors controller');
 
 export function getFileDisplayNameForDocument(
   documentId: any,
-  namespace: string
+  namespace: string,
 ): string {
   let displayName = `${namespace}:${EJSON.stringify(documentId)}`;
 
@@ -57,7 +57,7 @@ export function getFileDisplayNameForDocument(
 export function getViewCollectionDocumentsUri(
   operationId: string,
   namespace: string,
-  connectionId: string
+  connectionId: string,
 ): vscode.Uri {
   // We attach a unique id to the query so that it creates a new file in
   // the editor and so that we can virtually manage the amount of docs shown.
@@ -71,12 +71,12 @@ export function getViewCollectionDocumentsUri(
   const namespaceDisplayName = encodeURIComponent(
     namespace.replace(/[\\/%]/gi, function (c) {
       return `%${c.charCodeAt(0).toString(16)}`;
-    })
+    }),
   );
 
   // The part of the URI after the scheme and before the query is the file name.
   return vscode.Uri.parse(
-    `${VIEW_COLLECTION_SCHEME}:Results: ${namespaceDisplayName}.json${uriQuery}`
+    `${VIEW_COLLECTION_SCHEME}:Results: ${namespaceDisplayName}.json${uriQuery}`,
   );
 }
 
@@ -158,7 +158,7 @@ export default class EditorsController {
     this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._collectionDocumentsCodeLensProvider =
       new CollectionDocumentsCodeLensProvider(
-        this._collectionDocumentsOperationsStore
+        this._collectionDocumentsOperationsStore,
       );
     this._playgroundSelectionCodeActionProvider =
       playgroundSelectionCodeActionProvider;
@@ -177,14 +177,13 @@ export default class EditorsController {
 
   async openMongoDBDocument(data: EditDocumentInfo): Promise<boolean> {
     try {
-      const mdbDocument = await this._mongoDBDocumentService.fetchDocument(
-        data
-      );
+      const mdbDocument =
+        await this._mongoDBDocumentService.fetchDocument(data);
 
       if (!mdbDocument) {
         void vscode.window.showErrorMessage(`
           Unable to open mongodb document: document ${JSON.stringify(
-            data.documentId
+            data.documentId,
           )} not found
         `);
 
@@ -200,7 +199,7 @@ export default class EditorsController {
       const documentSourceUriQuery = `${DOCUMENT_SOURCE_URI_IDENTIFIER}=${data.source}`;
 
       const fileTitle = encodeURIComponent(
-        getFileDisplayNameForDocument(data.documentId, data.namespace)
+        getFileDisplayNameForDocument(data.documentId, data.namespace),
       );
       const fileName = `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.json`;
 
@@ -236,7 +235,7 @@ export default class EditorsController {
     const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
     const documentId = this._documentIdStore.get(documentIdReference);
     const source = uriParams.get(
-      DOCUMENT_SOURCE_URI_IDENTIFIER
+      DOCUMENT_SOURCE_URI_IDENTIFIER,
     ) as DocumentSource;
 
     if (
@@ -248,7 +247,7 @@ export default class EditorsController {
       documentId === undefined
     ) {
       void vscode.window.showErrorMessage(
-        `The current file can not be saved as a MongoDB document. Invalid URL: ${editor.document.uri.toString()}`
+        `The current file can not be saved as a MongoDB document. Invalid URL: ${editor.document.uri.toString()}`,
       );
       return false;
     }
@@ -268,7 +267,7 @@ export default class EditorsController {
       await editor?.document.save();
 
       void vscode.window.showInformationMessage(
-        `The document was saved successfully to '${namespace}'`
+        `The document was saved successfully to '${namespace}'`,
       );
 
       return true;
@@ -289,7 +288,7 @@ export default class EditorsController {
     const uri = getViewCollectionDocumentsUri(
       operationId,
       namespace,
-      activeConnectionId
+      activeConnectionId,
     );
 
     try {
@@ -300,7 +299,7 @@ export default class EditorsController {
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to open documents: ${formatError(error).message}`
+        `Unable to open documents: ${formatError(error).message}`,
       );
 
       return false;
@@ -310,7 +309,7 @@ export default class EditorsController {
   onViewMoreCollectionDocuments(
     operationId: string,
     connectionId: string,
-    namespace: string
+    namespace: string,
   ): Promise<boolean> {
     log.info('View more collection documents', namespace);
 
@@ -331,25 +330,25 @@ export default class EditorsController {
         'the database';
 
       void vscode.window.showErrorMessage(
-        `Unable to view more documents: no longer connected to ${oldConnectionName}`
+        `Unable to view more documents: no longer connected to ${oldConnectionName}`,
       );
       return Promise.resolve(false);
     }
 
     if (!this._collectionViewProvider) {
       return Promise.reject(
-        new Error('No registered collection view provider.')
+        new Error('No registered collection view provider.'),
       );
     }
 
     const uri = getViewCollectionDocumentsUri(
       operationId,
       namespace,
-      connectionId
+      connectionId,
     );
 
     this._collectionDocumentsOperationsStore.increaseOperationDocumentLimit(
-      operationId
+      operationId,
     );
 
     // Notify the document provider to update with the new document limit.
@@ -360,12 +359,12 @@ export default class EditorsController {
 
   _saveDocumentToMemoryFileSystem(
     fileUri: vscode.Uri,
-    document: Document
+    document: Document,
   ): void {
     this._memoryFileSystemProvider.writeFile(
       fileUri,
       Buffer.from(JSON.stringify(document, null, 2)),
-      { create: true, overwrite: true }
+      { create: true, overwrite: true },
     );
   }
 
@@ -373,10 +372,10 @@ export default class EditorsController {
     const prefix = `${VIEW_DOCUMENT_SCHEME}:/`;
 
     for (const [name] of this._memoryFileSystemProvider.readDirectory(
-      vscode.Uri.parse(prefix)
+      vscode.Uri.parse(prefix),
     )) {
       this._memoryFileSystemProvider.delete(
-        vscode.Uri.parse(`${prefix}${name}`)
+        vscode.Uri.parse(`${prefix}${name}`),
       );
     }
   }
@@ -388,21 +387,21 @@ export default class EditorsController {
         this._memoryFileSystemProvider,
         {
           isCaseSensitive: true,
-        }
-      )
+        },
+      ),
     );
     // REGISTER CONTENT PROVIDERS.
     this._context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
         VIEW_COLLECTION_SCHEME,
-        this._collectionViewProvider
-      )
+        this._collectionViewProvider,
+      ),
     );
     this._context.subscriptions.push(
       vscode.workspace.registerTextDocumentContentProvider(
         PLAYGROUND_RESULT_SCHEME,
-        this._playgroundResultProvider
-      )
+        this._playgroundResultProvider,
+      ),
     );
     // REGISTER CODE LENSES PROVIDERS.
     this._context.subscriptions.push(
@@ -411,26 +410,26 @@ export default class EditorsController {
           scheme: VIEW_COLLECTION_SCHEME,
           language: 'json',
         },
-        this._collectionDocumentsCodeLensProvider
-      )
+        this._collectionDocumentsCodeLensProvider,
+      ),
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         { language: 'javascript' },
-        this._queryWithCopilotCodeLensProvider
+        this._queryWithCopilotCodeLensProvider,
       ),
       vscode.languages.registerCodeLensProvider(
         { language: 'javascript' },
-        this._activeConnectionCodeLensProvider
-      )
+        this._activeConnectionCodeLensProvider,
+      ),
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
         {
           scheme: PLAYGROUND_RESULT_SCHEME,
         },
-        this._exportToLanguageCodeLensProvider
-      )
+        this._exportToLanguageCodeLensProvider,
+      ),
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
@@ -438,8 +437,8 @@ export default class EditorsController {
           scheme: PLAYGROUND_RESULT_SCHEME,
           language: 'json',
         },
-        this._editDocumentCodeLensProvider
-      )
+        this._editDocumentCodeLensProvider,
+      ),
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
@@ -447,8 +446,8 @@ export default class EditorsController {
           scheme: VIEW_COLLECTION_SCHEME,
           language: 'json',
         },
-        this._editDocumentCodeLensProvider
-      )
+        this._editDocumentCodeLensProvider,
+      ),
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
@@ -457,8 +456,8 @@ export default class EditorsController {
         {
           providedCodeActionKinds:
             PlaygroundSelectionCodeActionProvider.providedCodeActionKinds,
-        }
-      )
+        },
+      ),
     );
     this._context.subscriptions.push(
       vscode.languages.registerCodeActionsProvider(
@@ -467,8 +466,8 @@ export default class EditorsController {
         {
           providedCodeActionKinds:
             PlaygroundDiagnosticsCodeActionProvider.providedCodeActionKinds,
-        }
-      )
+        },
+      ),
     );
   }
 

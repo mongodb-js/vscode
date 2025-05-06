@@ -5,7 +5,7 @@ import util from 'util';
 class Logger implements ILogger {
   static channel: vscode.LogOutputChannel = vscode.window.createOutputChannel(
     'MongoDB Extension',
-    { log: true }
+    { log: true },
   );
 
   private name: string;
@@ -18,42 +18,42 @@ class Logger implements ILogger {
   public trace(message?: any, ...optionalParams: any[]): void {
     this.append(
       'TRACE',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
     );
   }
 
   public debug(message?: any, ...optionalParams: any[]): void {
     this.append(
       'DEBUG',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
     );
   }
 
   public info(message?: any, ...optionalParams: any[]): void {
     this.append(
       'INFO ',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
     );
   }
 
   public warn(message?: any, ...optionalParams: any[]): void {
     this.append(
       'WARN ',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
     );
   }
 
   public error(message?: any, ...optionalParams: any[]): void {
     this.append(
       'ERROR',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
     );
   }
 
   public fatal(message?: any, ...optionalParams: any[]): void {
     this.append(
       'FATAL',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`
+      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
     );
   }
 
@@ -61,7 +61,7 @@ class Logger implements ILogger {
     // https://code.visualstudio.com/api/references/vscode-api#window.createOutputChannel
 
     Logger.channel.appendLine(
-      `${new Date().toISOString()} ${this.name} ${type} ${message}\n`
+      `${new Date().toISOString()} ${this.name} ${type} ${message}\n`,
     );
   }
 }

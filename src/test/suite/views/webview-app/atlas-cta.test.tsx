@@ -35,10 +35,10 @@ describe('AtlasCta test suite', function () {
     screen.getByText('Create free cluster').click();
     expect(postMessageStub).calledTwice;
     expect(postMessageStub.firstCall.args[0].command).to.equal(
-      MESSAGE_TYPES.OPEN_TRUSTED_LINK
+      MESSAGE_TYPES.OPEN_TRUSTED_LINK,
     );
     expect(postMessageStub.secondCall.args[0].command).to.equal(
-      MESSAGE_TYPES.EXTENSION_LINK_CLICKED
+      MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
     );
   });
 });

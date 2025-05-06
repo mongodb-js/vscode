@@ -10,7 +10,7 @@ export class DocsPrompt extends PromptBase<PromptArgsBase> {
 
   public getStats(
     messages: vscode.LanguageModelChatMessage[],
-    { request, context }: PromptArgsBase
+    { request, context }: PromptArgsBase,
   ): ParticipantPromptProperties {
     return super.getStats(messages, { request, context }, false);
   }

@@ -14,7 +14,7 @@ export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 let testDataService;
 
 export const createTestDataService = async (
-  connectionString: string
+  connectionString: string,
 ): Promise<DataService> => {
   testDataService = await connect({
     connectionOptions: { connectionString },
@@ -24,12 +24,12 @@ export const createTestDataService = async (
 
 export const seedTestDB = async (
   collectionName: string,
-  documentsArray: Document[]
+  documentsArray: Document[],
 ): Promise<void> => {
   await testDataService.insertMany(
     `${TEST_DB_NAME}.${collectionName}`,
     documentsArray,
-    {}
+    {},
   );
 };
 

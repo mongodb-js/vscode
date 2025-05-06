@@ -79,14 +79,14 @@ connection.onInitialize((params: InitializeParams) => {
 connection.onInitialized(() => {
   void connection.sendNotification(
     ServerCommands.MONGODB_SERVICE_CREATED,
-    'An instance of MongoDBService is created'
+    'An instance of MongoDBService is created',
   );
 
   if (hasConfigurationCapability) {
     // Register for all configuration changes.
     void connection.client.register(
       DidChangeConfigurationNotification.type,
-      undefined
+      undefined,
     );
   }
 
@@ -133,7 +133,7 @@ documents.onDidChangeContent(async (change) => {
   const textFromEditor = change.document.getText();
 
   const diagnostics = mongoDBService.provideDiagnostics(
-    textFromEditor ? textFromEditor : ''
+    textFromEditor ? textFromEditor : '',
   );
 
   // Send the computed diagnostics to VSCode.
@@ -161,7 +161,7 @@ connection.onRequest(
   ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
   (evaluateParams: PlaygroundEvaluateParams, token: CancellationToken) => {
     return mongoDBService.evaluate(evaluateParams, token);
-  }
+  },
 );
 
 // Send default configurations to mongoDBService.
@@ -179,7 +179,7 @@ connection.onRequest(
   ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
   ({ namespace, schemaFields }) => {
     return mongoDBService.cacheFields(namespace, schemaFields);
-  }
+  },
 );
 
 // Clear cached completions by provided cache names.
@@ -187,7 +187,7 @@ connection.onRequest(
   ServerCommands.CLEAR_CACHED_COMPLETIONS,
   (clear: ClearCompletionsCache) => {
     return mongoDBService.clearCachedCompletions(clear);
-  }
+  },
 );
 
 // Provide MongoDB completion items.

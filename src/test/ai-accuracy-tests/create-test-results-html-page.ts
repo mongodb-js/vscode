@@ -40,7 +40,7 @@ function getTestResultsTable(testResults: TestResult[]): string {
               field === 'Test'
                 ? `<a href="#${createTestLinkId(value as string)}">${value}</a>`
                 : value
-            }</td>`
+            }</td>`,
         )
         .join('');
       return `<tr>${row}</tr>`;

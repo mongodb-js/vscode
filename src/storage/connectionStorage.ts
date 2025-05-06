@@ -79,7 +79,7 @@ export class ConnectionStorage {
   }
 
   async _getConnectionInfoWithSecrets(
-    connectionInfo: StoreConnectionInfo
+    connectionInfo: StoreConnectionInfo,
   ): Promise<LoadedConnection | undefined> {
     try {
       // We tried migrating this connection earlier but failed because Keytar was not
@@ -100,7 +100,7 @@ export class ConnectionStorage {
 
       return this._mergedConnectionInfoWithSecrets(
         connectionInfo as LoadedConnection,
-        unparsedSecrets
+        unparsedSecrets,
       );
     } catch (error) {
       log.error('Error while retrieving connection info', error);
@@ -110,7 +110,7 @@ export class ConnectionStorage {
 
   _mergedConnectionInfoWithSecrets(
     connectionInfo: LoadedConnection,
-    unparsedSecrets: string
+    unparsedSecrets: string,
   ): LoadedConnection {
     if (!unparsedSecrets) {
       return connectionInfo;
@@ -122,7 +122,7 @@ export class ConnectionStorage {
         id: connectionInfo.id,
         connectionOptions: connectionInfo.connectionOptions,
       },
-      secrets
+      secrets,
     );
 
     return {
@@ -134,7 +134,7 @@ export class ConnectionStorage {
   async saveConnection(connection: LoadedConnection): Promise<void> {
     if (
       ![StorageLocation.GLOBAL, StorageLocation.WORKSPACE].includes(
-        connection.storageLocation
+        connection.storageLocation,
       )
     ) {
       return;
@@ -149,12 +149,12 @@ export class ConnectionStorage {
 
     await this._storageController.setSecret(
       connection.id,
-      JSON.stringify(secrets)
+      JSON.stringify(secrets),
     );
   }
 
   async _saveConnectionToStore(
-    connectionWithoutSecrets: StoreConnectionInfo
+    connectionWithoutSecrets: StoreConnectionInfo,
   ): Promise<void> {
     const variableName =
       connectionWithoutSecrets.storageLocation === StorageLocation.GLOBAL
@@ -164,7 +164,7 @@ export class ConnectionStorage {
     // Get the current saved connections.
     let savedConnections = this._storageController.get(
       variableName,
-      connectionWithoutSecrets.storageLocation
+      connectionWithoutSecrets.storageLocation,
     );
 
     if (!savedConnections) {
@@ -178,7 +178,7 @@ export class ConnectionStorage {
     return this._storageController.update(
       variableName,
       savedConnections,
-      connectionWithoutSecrets.storageLocation
+      connectionWithoutSecrets.storageLocation,
     );
   }
 
@@ -213,7 +213,7 @@ export class ConnectionStorage {
           source: presetConnection.source,
           storageLocation: StorageLocation.NONE,
           secretStorageLocation: SecretStorageLocation.SecretStorage,
-        } satisfies LoadedConnection)
+        }) satisfies LoadedConnection,
     );
   }
 
@@ -221,11 +221,11 @@ export class ConnectionStorage {
     const globalAndWorkspaceConnections = Object.values({
       ...this._storageController.get(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-        StorageLocation.GLOBAL
+        StorageLocation.GLOBAL,
       ),
       ...this._storageController.get(
         StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-        StorageLocation.WORKSPACE
+        StorageLocation.WORKSPACE,
       ),
     });
 
@@ -233,7 +233,7 @@ export class ConnectionStorage {
       await Promise.all(
         globalAndWorkspaceConnections.map(async (connectionInfo) => {
           return await this._getConnectionInfoWithSecrets(connectionInfo);
-        })
+        }),
       )
     ).filter((connection): connection is LoadedConnection => !!connection);
 
@@ -251,7 +251,7 @@ export class ConnectionStorage {
     await Promise.all(
       toBeReSaved.map(async (connectionInfo) => {
         await this.saveConnection(connectionInfo);
-      })
+      }),
     );
 
     const presetConnections = this._loadPresetConnections();
@@ -266,20 +266,20 @@ export class ConnectionStorage {
     // and remove it if it is.
     const globalStoredConnections = this._storageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL
+      StorageLocation.GLOBAL,
     );
     if (globalStoredConnections && globalStoredConnections[connectionId]) {
       delete globalStoredConnections[connectionId];
       void this._storageController.update(
         StorageVariables.GLOBAL_SAVED_CONNECTIONS,
         globalStoredConnections,
-        StorageLocation.GLOBAL
+        StorageLocation.GLOBAL,
       );
     }
 
     const workspaceStoredConnections = this._storageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE
+      StorageLocation.WORKSPACE,
     );
     if (
       workspaceStoredConnections &&
@@ -289,7 +289,7 @@ export class ConnectionStorage {
       void this._storageController.update(
         StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
         workspaceStoredConnections,
-        StorageLocation.WORKSPACE
+        StorageLocation.WORKSPACE,
       );
     }
   }
@@ -297,11 +297,11 @@ export class ConnectionStorage {
   hasSavedConnections(): boolean {
     const savedWorkspaceConnections = this._storageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE
+      StorageLocation.WORKSPACE,
     );
     const savedGlobalConnections = this._storageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL
+      StorageLocation.GLOBAL,
     );
 
     return !!(

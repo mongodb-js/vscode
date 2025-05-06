@@ -17,7 +17,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', () => {
     sandbox.replaceGetter(
       vscode.extensions,
       'onDidChange',
-      () => mockExtensionChangeEmitter.event
+      () => mockExtensionChangeEmitter.event,
     );
 
     testCodeLensProvider = new QueryWithCopilotCodeLensProvider();
@@ -72,12 +72,12 @@ suite('Query with Copilot CodeLens Provider Test Suite', () => {
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
         expect(codeLens[0].command?.title).to.be.equal(
-          '✨ Generate query with MongoDB Copilot'
+          '✨ Generate query with MongoDB Copilot',
         );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
         expect(codeLens[0].command?.command).to.be.equal(
-          EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT
+          EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
         );
       });
     });

@@ -16,7 +16,7 @@ export function createMarkdownLink({
   const encodedData = encodeURIComponent(JSON.stringify(data));
   const commandQueryString = data ? `?${encodedData}` : '';
   const link = new vscode.MarkdownString(
-    `- [${name}](command:${commandId}${commandQueryString})\n`
+    `- [${name}](command:${commandId}${commandQueryString})\n`,
   );
   link.isTrusted = { enabledCommands: [commandId] };
   return link;

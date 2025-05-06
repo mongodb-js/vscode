@@ -39,7 +39,7 @@ export default class DocumentTreeItem
       document._id
         ? JSON.stringify(document._id)
         : `Document ${documentIndexInTree + 1}`,
-      vscode.TreeItemCollapsibleState.None
+      vscode.TreeItemCollapsibleState.None,
     );
 
     const documentLabel = document._id
@@ -67,7 +67,7 @@ export default class DocumentTreeItem
     const documents = await this.dataService.find(
       this.namespace,
       { _id: this.documentId },
-      { limit: 1 }
+      { limit: 1 },
     );
 
     if (!documents || documents.length === 0) {
@@ -100,7 +100,7 @@ export default class DocumentTreeItem
         {
           modal: true,
         },
-        'Yes'
+        'Yes',
       );
 
       if (confirmationResult !== 'Yes') {
@@ -112,7 +112,7 @@ export default class DocumentTreeItem
       const deleteResult = await this.dataService.deleteOne(
         this.namespace,
         { _id: this.documentId },
-        {}
+        {},
       );
 
       if (deleteResult.deletedCount !== 1) {

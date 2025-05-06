@@ -30,7 +30,7 @@ export interface ModelInput {
 }
 
 export function getContentLength(
-  message: vscode.LanguageModelChatMessage
+  message: vscode.LanguageModelChatMessage,
 ): number {
   const content = message.content as any;
   if (typeof content === 'string') {
@@ -76,7 +76,7 @@ export function getContent(message: vscode.LanguageModelChatMessage): string {
 }
 
 export function isContentEmpty(
-  message: vscode.LanguageModelChatMessage
+  message: vscode.LanguageModelChatMessage,
 ): boolean {
   const content = message.content as any;
   if (typeof content === 'string') {
@@ -138,7 +138,7 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
 
     // eslint-disable-next-line new-cap
     const assistantPrompt = vscode.LanguageModelChatMessage.Assistant(
-      this.getAssistantPrompt(args)
+      this.getAssistantPrompt(args),
     );
 
     const tokenLimit = await this._countRemainingTokens({
@@ -205,12 +205,12 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
   protected getStats(
     messages: vscode.LanguageModelChatMessage[],
     { request, context }: Pick<PromptArgsBase, 'request' | 'context'>,
-    hasSampleDocs: boolean
+    hasSampleDocs: boolean,
   ): ParticipantPromptProperties {
     return {
       totalMessageLength: messages.reduce(
         (acc, message) => acc + getContentLength(message),
-        0
+        0,
       ),
       userInputLength: request.prompt.length,
       hasSampleDocuments: hasSampleDocs,

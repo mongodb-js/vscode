@@ -34,10 +34,10 @@ export default class ExportToLanguageCodeLensProvider
     if (
       !this._playgroundResultProvider._playgroundResult?.language ||
       ['json', 'plaintext'].includes(
-        this._playgroundResultProvider._playgroundResult?.language
+        this._playgroundResultProvider._playgroundResult?.language,
       ) ||
       !isExportToLanguageResult(
-        this._playgroundResultProvider._playgroundResult
+        this._playgroundResultProvider._playgroundResult,
       )
     ) {
       return;

@@ -11,5 +11,5 @@ use(${databaseName});
 db.getCollection(${collectionName}).findOne({
 
 });
-`
+`,
 );

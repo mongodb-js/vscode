@@ -29,7 +29,7 @@ export default class ActiveConnectionCodeLensProvider
     };
     this._connectionController.addEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      this._activeConnectionChangedHandler
+      this._activeConnectionChangedHandler,
     );
   }
 
@@ -68,7 +68,7 @@ export default class ActiveConnectionCodeLensProvider
   deactivate(): void {
     this._connectionController.removeEventListener(
       DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      this._activeConnectionChangedHandler
+      this._activeConnectionChangedHandler,
     );
   }
 }

@@ -48,7 +48,7 @@ export const openLink = (url: string, serverPort = 3211): Promise<Server> =>
     server.listen(serverPort, () => {
       void vscode.commands.executeCommand(
         'vscode.open',
-        vscode.Uri.parse(`http://localhost:${serverPort}`)
+        vscode.Uri.parse(`http://localhost:${serverPort}`),
       );
     });
   });

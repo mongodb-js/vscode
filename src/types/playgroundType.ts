@@ -16,7 +16,7 @@ export type ExportToLanguageResult = {
 };
 
 export function isExportToLanguageResult(
-  result: PlaygroundRunResult | ExportToLanguageResult
+  result: PlaygroundRunResult | ExportToLanguageResult,
 ): result is ExportToLanguageResult {
   return (result as ExportToLanguageResult).prompt !== undefined;
 }

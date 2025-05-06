@@ -65,7 +65,7 @@ suite('Telemetry Controller Test Suite', () => {
     sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       '_segmentAnalyticsTrack',
-      fakeSegmentAnalyticsTrack
+      fakeSegmentAnalyticsTrack,
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
@@ -73,7 +73,7 @@ suite('Telemetry Controller Test Suite', () => {
       'getTelemetryUserIdentity',
       () => {
         return Promise.resolve(telemetryIdentity);
-      }
+      },
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
@@ -86,26 +86,26 @@ suite('Telemetry Controller Test Suite', () => {
           content: 'dbs',
           language: 'plaintext',
         },
-      })
+      }),
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getActiveConnectionId',
-      sandbox.fake.returns('testconnectionId')
+      sandbox.fake.returns('testconnectionId'),
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getMongoClientConnectionOptions',
-      sandbox.fake.returns('mongodb://localhost')
+      sandbox.fake.returns('mongodb://localhost'),
     );
     sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.replace(
       testTelemetryService,
       '_isTelemetryFeatureEnabled',
-      sandbox.fake.returns(true)
+      sandbox.fake.returns(true),
     );
   });
 
@@ -145,14 +145,14 @@ suite('Telemetry Controller Test Suite', () => {
             command: 'mdb.addConnection',
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test('track new connection event when connecting via connection string', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING
+        ConnectionTypes.CONNECTION_STRING,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -166,14 +166,14 @@ suite('Telemetry Controller Test Suite', () => {
             vscode_mdb_extension_version: version,
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test('track new connection event when connecting via connection form', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM
+        ConnectionTypes.CONNECTION_FORM,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -187,14 +187,14 @@ suite('Telemetry Controller Test Suite', () => {
             vscode_mdb_extension_version: version,
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test('track new connection event when connecting via saved connection', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_ID
+        ConnectionTypes.CONNECTION_ID,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -208,14 +208,14 @@ suite('Telemetry Controller Test Suite', () => {
             vscode_mdb_extension_version: version,
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test('track document saved form a tree-view event', () => {
       const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
       testTelemetryService.track(
-        new DocumentUpdatedTelemetryEvent(source, true)
+        new DocumentUpdatedTelemetryEvent(source, true),
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -227,7 +227,7 @@ suite('Telemetry Controller Test Suite', () => {
             success: true,
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
@@ -240,7 +240,7 @@ suite('Telemetry Controller Test Suite', () => {
           ...telemetryIdentity,
           event: 'Document Edited',
           properties: { source: 'playground', extension_version: version },
-        })
+        }),
       );
     });
 
@@ -252,7 +252,7 @@ suite('Telemetry Controller Test Suite', () => {
         {
           codeToEvaluate: 'show dbs',
         },
-        source.token
+        source.token,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -265,7 +265,7 @@ suite('Telemetry Controller Test Suite', () => {
             error: false,
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
@@ -273,7 +273,7 @@ suite('Telemetry Controller Test Suite', () => {
     test.skip('track mongodb playground loaded event', async () => {
       const docPath = path.resolve(
         __dirname,
-        '../../../../src/test/fixture/testPlayground.mongodb'
+        '../../../../src/test/fixture/testPlayground.mongodb',
       );
       await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
       sandbox.assert.calledWith(
@@ -285,14 +285,14 @@ suite('Telemetry Controller Test Suite', () => {
             file_type: 'mongodb',
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test.skip('track mongodbjs playground loaded event', async () => {
       const docPath = path.resolve(
         __dirname,
-        '../../../../src/test/fixture/testPlayground.mongodb.js'
+        '../../../../src/test/fixture/testPlayground.mongodb.js',
       );
       await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
       sandbox.assert.calledWith(
@@ -304,15 +304,15 @@ suite('Telemetry Controller Test Suite', () => {
             file_type: 'mongodbjs',
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test('track playground saved event', () => {
       testTelemetryService.track(
         new PlaygroundSavedTelemetryEvent(
-          vscode.Uri.file('/users/peter/projects/test/myplayground.mongodb.js')
-        )
+          vscode.Uri.file('/users/peter/projects/test/myplayground.mongodb.js'),
+        ),
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -323,13 +323,13 @@ suite('Telemetry Controller Test Suite', () => {
             file_type: 'mongodbjs',
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test('track link clicked event', () => {
       testTelemetryService.track(
-        new LinkClickedTelemetryEvent('helpPanel', 'linkId')
+        new LinkClickedTelemetryEvent('helpPanel', 'linkId'),
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -341,13 +341,13 @@ suite('Telemetry Controller Test Suite', () => {
             link_id: 'linkId',
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
     test('track playground exported to language', () => {
       testTelemetryService.track(
-        new PlaygroundExportedToLanguageTelemetryEvent('java', 3, false)
+        new PlaygroundExportedToLanguageTelemetryEvent('java', 3, false),
       );
 
       sandbox.assert.calledWith(
@@ -360,7 +360,7 @@ suite('Telemetry Controller Test Suite', () => {
             with_driver_syntax: false,
             extension_version: version,
           },
-        })
+        }),
       );
     });
 
@@ -379,7 +379,7 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'search',
               extension_version: version,
             },
-          })
+          }),
         );
       });
 
@@ -393,7 +393,7 @@ suite('Telemetry Controller Test Suite', () => {
         });
         await vscode.commands.executeCommand(
           'mdb.addCollection',
-          testDatabaseTreeItem
+          testDatabaseTreeItem,
         );
         sandbox.assert.calledWith(
           fakeSegmentAnalyticsTrack,
@@ -404,7 +404,7 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'createCollection',
               extension_version: version,
             },
-          })
+          }),
         );
       });
 
@@ -421,7 +421,7 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'createDatabase',
               extension_version: version,
             },
-          })
+          }),
         );
       });
 
@@ -439,7 +439,7 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'index',
               extension_version: version,
             },
-          })
+          }),
         );
       });
 
@@ -465,7 +465,7 @@ suite('Telemetry Controller Test Suite', () => {
         });
         await vscode.commands.executeCommand(
           'mdb.cloneDocumentFromTreeView',
-          documentItem
+          documentItem,
         );
         sandbox.assert.calledWith(
           fakeSegmentAnalyticsTrack,
@@ -476,7 +476,7 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'cloneDocument',
               extension_version: version,
             },
-          })
+          }),
         );
       });
 
@@ -491,13 +491,13 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'crud',
               extension_version: version,
             },
-          })
+          }),
         );
       });
 
       test('track on crud from overview page', async () => {
         await vscode.commands.executeCommand(
-          'mdb.createNewPlaygroundFromOverviewPage'
+          'mdb.createNewPlaygroundFromOverviewPage',
         );
         sandbox.assert.calledWith(
           fakeSegmentAnalyticsTrack,
@@ -508,13 +508,13 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'crud',
               extension_version: version,
             },
-          })
+          }),
         );
       });
 
       test('track on crud from tree view', async () => {
         await vscode.commands.executeCommand(
-          'mdb.createNewPlaygroundFromTreeView'
+          'mdb.createNewPlaygroundFromTreeView',
         );
         sandbox.assert.calledWith(
           fakeSegmentAnalyticsTrack,
@@ -525,7 +525,7 @@ suite('Telemetry Controller Test Suite', () => {
               playground_type: 'crud',
               extension_version: version,
             },
-          })
+          }),
         );
       });
     });
@@ -538,7 +538,7 @@ suite('Telemetry Controller Test Suite', () => {
           presetConnections: 3,
           connectionsWithSecretsInKeytar: 0,
           connectionsWithSecretsInSecretStorage: 3,
-        })
+        }),
       );
 
       sandbox.assert.calledWith(
@@ -553,7 +553,7 @@ suite('Telemetry Controller Test Suite', () => {
             connections_with_secrets_in_keytar: 0,
             connections_with_secrets_in_secret_storage: 3,
           },
-        })
+        }),
       );
     });
   });
@@ -584,7 +584,7 @@ suite('Telemetry Controller Test Suite', () => {
         const reportedType = new PlaygroundExecutedTelemetryEvent(
           res,
           false,
-          false
+          false,
         ).properties.type;
         expect(reportedType).to.deep.equal(type?.toLocaleLowerCase());
       });
@@ -646,7 +646,7 @@ suite('Telemetry Controller Test Suite', () => {
 
   function enumKeys<
     TEnum extends object,
-    TKey extends keyof TEnum = keyof TEnum
+    TKey extends keyof TEnum = keyof TEnum,
   >(obj: TEnum): TKey[] {
     return Object.keys(obj).filter((k) => Number.isNaN(k)) as TKey[];
   }
@@ -656,9 +656,9 @@ suite('Telemetry Controller Test Suite', () => {
       expect(
         new ParticipantFeedbackTelemetryEvent(
           vscode.ChatResultFeedbackKind[kind],
-          'generic'
+          'generic',
         ).properties.feedback,
-        `Expect ${kind} to produce a concrete telemetry value`
+        `Expect ${kind} to produce a concrete telemetry value`,
       ).to.not.be.undefined;
     }
   });

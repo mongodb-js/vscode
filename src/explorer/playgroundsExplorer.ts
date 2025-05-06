@@ -16,7 +16,7 @@ export default class PlaygroundsExplorer {
       this._treeView = createTrackedTreeView(
         'mongoDBPlaygroundsExplorer',
         this._treeController,
-        this._telemetryService
+        this._telemetryService,
       );
       this._treeController.activateTreeViewEventHandlers(this._treeView);
     }

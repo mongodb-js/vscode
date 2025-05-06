@@ -22,10 +22,10 @@ export class ChatMetadataStore {
 
   patchChatMetadata(
     context: vscode.ChatContext,
-    patchedMetadata: Partial<ChatMetadata>
+    patchedMetadata: Partial<ChatMetadata>,
   ): void {
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-      context.history
+      context.history,
     );
 
     this.setChatMetadata(chatId, {
@@ -40,7 +40,7 @@ export class ChatMetadataStore {
   }
 
   static getChatIdFromHistoryOrNewChatId(
-    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
   ): string {
     for (const historyItem of history) {
       if (

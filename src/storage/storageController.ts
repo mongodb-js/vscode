@@ -76,7 +76,7 @@ export default class StorageController {
 
   get<T extends StoredVariableName>(
     variableName: T,
-    storageLocation: StorageLocation = StorageLocation.GLOBAL
+    storageLocation: StorageLocation = StorageLocation.GLOBAL,
   ): StoredItem<T> {
     return this._storage[storageLocation].get(variableName);
   }
@@ -85,7 +85,7 @@ export default class StorageController {
   update<T extends StoredVariableName>(
     variableName: T,
     value: StoredItem<T>,
-    storageLocation: StorageLocation = StorageLocation.GLOBAL
+    storageLocation: StorageLocation = StorageLocation.GLOBAL,
   ): Thenable<void> {
     this._storage[storageLocation].update(variableName, value);
     return Promise.resolve();

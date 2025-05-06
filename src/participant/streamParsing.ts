@@ -111,7 +111,7 @@ class FragmentMatcher {
     if (content !== undefined) {
       // Strip the trailing end identifier from the matched content
       this._onContentMatched(
-        content.slice(0, content.length - this._endMatcher.needle.length)
+        content.slice(0, content.length - this._endMatcher.needle.length),
       );
     }
 
@@ -125,10 +125,10 @@ class FragmentMatcher {
   // fragment we've processed, regardless of whether there's a match or not.
   private _partialFragmentProcessed(
     fragment: string,
-    index: number | undefined = undefined
+    index: number | undefined = undefined,
   ): void {
     this._onFragmentProcessed(
-      index === undefined ? fragment : fragment.slice(0, index)
+      index === undefined ? fragment : fragment.slice(0, index),
     );
   }
 

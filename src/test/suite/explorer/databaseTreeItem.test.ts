@@ -19,7 +19,7 @@ import {
 const { contributes } = require('../../../../package.json');
 
 function getTestDatabaseTreeItem(
-  options?: Partial<ConstructorParameters<typeof DatabaseTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof DatabaseTreeItem>[0]>,
 ): DatabaseTreeItem {
   return new DatabaseTreeItem({
     databaseName: mockDatabaseNames[1],
@@ -45,7 +45,7 @@ suite('DatabaseTreeItem Test Suite', () => {
 
     assert(
       databaseRegisteredCommandInPackageJson,
-      'Expected database tree item to be registered with a command in package json'
+      'Expected database tree item to be registered with a command in package json',
     );
   });
 
@@ -56,7 +56,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     assert.strictEqual(
       collections.length,
       0,
-      `Expected no collections to be returned, received ${collections.length}`
+      `Expected no collections to be returned, received ${collections.length}`,
     );
   });
 
@@ -68,12 +68,12 @@ suite('DatabaseTreeItem Test Suite', () => {
     const collections = await testDatabaseTreeItem.getChildren();
     assert(
       collections.length > 0,
-      `Expected more than one collection to be returned, received ${collections.length}`
+      `Expected more than one collection to be returned, received ${collections.length}`,
     );
 
     assert.strictEqual(
       collections[1].label,
-      mockDatabases[mockDatabaseNames[1]].collections[1].name
+      mockDatabases[mockDatabaseNames[1]].collections[1].name,
     );
   });
 
@@ -144,7 +144,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     assert.deepStrictEqual(
       collectionTreeItems.map(({ collectionName }) => collectionName).join(),
       expectedCollectionsOrder.join(),
-      'Expected collections to be in alphanumerical order but they were not'
+      'Expected collections to be in alphanumerical order but they were not',
     );
   });
 
@@ -200,7 +200,7 @@ suite('DatabaseTreeItem Test Suite', () => {
 
       assert(
         !!schemaTreeItem.childrenCache.testerObject,
-        'Expected the subdocument field to be in the schema cache.'
+        'Expected the subdocument field to be in the schema cache.',
       );
 
       // Expand the subdocument.
@@ -226,20 +226,20 @@ suite('DatabaseTreeItem Test Suite', () => {
       assert.strictEqual(amountOfCachedFields, expectedCachedFields);
 
       const testerObjectField = fieldsPostCollapseExpand.find(
-        (field) => field.fieldName === 'testerObject'
+        (field) => field.fieldName === 'testerObject',
       );
 
       assert(
         !!testerObjectField,
-        'Expected the subdocument field to still be in the schema cache.'
+        'Expected the subdocument field to still be in the schema cache.',
       );
       assert(
         testerObjectField.isExpanded,
-        'Expected the subdocument field to still be expanded.'
+        'Expected the subdocument field to still be expanded.',
       );
       assert.strictEqual(
         testerObjectField.collapsibleState,
-        vscode.TreeItemCollapsibleState.Expanded
+        vscode.TreeItemCollapsibleState.Expanded,
       );
     });
   });

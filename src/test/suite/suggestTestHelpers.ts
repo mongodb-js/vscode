@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 const onChangedDocument = (
   documentUri: vscode.Uri,
-  disposables: vscode.Disposable[]
+  disposables: vscode.Disposable[],
 ): Promise<vscode.TextDocument> => {
   return new Promise<vscode.TextDocument>((resolve) =>
     vscode.workspace.onDidChangeTextDocument(
@@ -12,15 +12,15 @@ const onChangedDocument = (
         }
       },
       undefined,
-      disposables
-    )
+      disposables,
+    ),
   );
 };
 
 export async function typeCommitCharacter(
   uri: vscode.Uri,
   character: string,
-  _disposables: vscode.Disposable[]
+  _disposables: vscode.Disposable[],
 ): Promise<vscode.TextDocument> {
   const didChangeDocument = onChangedDocument(uri, _disposables);
   await vscode.commands.executeCommand('editor.action.triggerSuggest');
@@ -33,7 +33,7 @@ const retryUntilDocumentChanges = async (
   documentUri: vscode.Uri,
   options: { retries: number; timeout: number },
   disposables: vscode.Disposable[],
-  exec: () => Thenable<unknown>
+  exec: () => Thenable<unknown>,
 ): Promise<void | vscode.TextDocument> => {
   const didChangeDocument = onChangedDocument(documentUri, disposables);
 
@@ -57,7 +57,7 @@ const retryUntilDocumentChanges = async (
 
 export function acceptFirstSuggestion(
   uri: vscode.Uri,
-  _disposables: vscode.Disposable[]
+  _disposables: vscode.Disposable[],
 ): Promise<void | vscode.TextDocument> {
   return retryUntilDocumentChanges(
     uri,
@@ -67,7 +67,7 @@ export function acceptFirstSuggestion(
       await vscode.commands.executeCommand('editor.action.triggerSuggest');
       await wait(3000);
       await vscode.commands.executeCommand('acceptSelectedSuggestion');
-    }
+    },
   );
 }
 
@@ -84,6 +84,6 @@ export function disposeAll(disposables: vscode.Disposable[]): void {
 export function getFullRange(document: vscode.TextDocument): vscode.Range {
   return new vscode.Range(
     new vscode.Position(0, 0),
-    new vscode.Position(document.lineCount, 0)
+    new vscode.Position(document.lineCount, 0),
   );
 }

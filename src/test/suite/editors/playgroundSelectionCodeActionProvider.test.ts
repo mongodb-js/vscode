@@ -35,21 +35,21 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController,
         '_languageServerController',
-        new LanguageServerController(extensionContextStub)
+        new LanguageServerController(extensionContextStub),
       );
       sandbox.stub(vscode.window, 'showInformationMessage');
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
-        'trackNewConnection'
+        'trackNewConnection',
       );
 
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
-        { connectionString: TEST_DATABASE_URI }
+        { connectionString: TEST_DATABASE_URI },
       );
 
       const testExportToLanguageCodeLensProvider =
         new ExportToLanguageCodeLensProvider(
-          mdbTestExtension.testExtensionController._playgroundResultProvider
+          mdbTestExtension.testExtensionController._playgroundResultProvider,
         );
 
       mdbTestExtension.testExtensionController._playgroundController =
@@ -72,7 +72,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         '_openInResultPane',
-        fakeOpenPlaygroundResult
+        fakeOpenPlaygroundResult,
       );
 
       await vscode.workspace
@@ -87,7 +87,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
     afterEach(async () => {
       await vscode.commands.executeCommand(
-        'workbench.action.closeActiveEditor'
+        'workbench.action.closeActiveEditor',
       );
       await vscode.workspace
         .getConfiguration('mdb')
@@ -102,7 +102,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         sandbox.replace(
           vscode.extensions,
           'getExtension',
-          sandbox.fake.returns(undefined)
+          sandbox.fake.returns(undefined),
         );
       });
 
@@ -129,10 +129,10 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal(
-              'mdb.runSelectedPlaygroundBlocks'
+              'mdb.runSelectedPlaygroundBlocks',
             );
             expect(actionCommand.title).to.be.equal(
-              'Run selected playground blocks'
+              'Run selected playground blocks',
             );
           }
         }
@@ -144,7 +144,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         sandbox.replace(
           vscode.extensions,
           'getExtension',
-          sandbox.fake.returns({ isActive: true })
+          sandbox.fake.returns({ isActive: true }),
         );
       });
 
@@ -184,10 +184,10 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
           if (actionCommand) {
             expect(actionCommand.command).to.be.equal(
-              'mdb.runSelectedPlaygroundBlocks'
+              'mdb.runSelectedPlaygroundBlocks',
             );
             expect(actionCommand.title).to.be.equal(
-              'Run selected playground blocks'
+              'Run selected playground blocks',
             );
           }
         }
@@ -236,7 +236,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
               prompt: 'Berlin',
               language: 'java',
               includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
-            }
+            },
           );
 
           let codeLenses =
@@ -245,7 +245,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           let lensesObj = { lenses: codeLenses };
           expect(lensesObj).to.have.nested.property(
             'lenses[0].command.title',
-            'Exclude Driver Syntax'
+            'Exclude Driver Syntax',
           );
 
           mdbTestExtension.testExtensionController._playgroundResultProvider.setPlaygroundResult(
@@ -254,7 +254,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
               prompt: 'Berlin',
               language: 'java',
               includeDriverSyntax: !DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
-            }
+            },
           );
 
           codeLenses =
@@ -262,7 +262,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           lensesObj = { lenses: codeLenses };
           expect(lensesObj).to.have.nested.property(
             'lenses[0].command.title',
-            'Include Driver Syntax'
+            'Include Driver Syntax',
           );
         });
       });
@@ -333,7 +333,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
                 prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'python',
                 includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
-              }
+              },
             );
 
             await vscode.commands.executeCommand(actionCommand.command);
@@ -343,7 +343,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Exclude Driver Syntax'
+              'Exclude Driver Syntax',
             );
           }
         }
@@ -381,7 +381,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
                 prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'ruby',
                 includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
-              }
+              },
             );
 
             await vscode.commands.executeCommand(actionCommand.command);
@@ -392,7 +392,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Exclude Driver Syntax'
+              'Exclude Driver Syntax',
             );
           }
         }
@@ -430,7 +430,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
                 prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'go',
                 includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
-              }
+              },
             );
 
             await vscode.commands.executeCommand(actionCommand.command);
@@ -441,7 +441,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Exclude Driver Syntax'
+              'Exclude Driver Syntax',
             );
           }
         }
@@ -479,7 +479,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
                 prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'rust',
                 includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
-              }
+              },
             );
 
             await vscode.commands.executeCommand(actionCommand.command);
@@ -490,7 +490,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Exclude Driver Syntax'
+              'Exclude Driver Syntax',
             );
           }
         }
@@ -528,7 +528,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
                 prompt: "use('db'); db.coll.find({ name: '22' })",
                 language: 'php',
                 includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
-              }
+              },
             );
 
             await vscode.commands.executeCommand(actionCommand.command);
@@ -539,7 +539,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
             const lensesObj = { lenses: codeLenses };
             expect(lensesObj).to.have.nested.property(
               'lenses[0].command.title',
-              'Exclude Driver Syntax'
+              'Exclude Driver Syntax',
             );
           }
         }
@@ -555,7 +555,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
     beforeEach(() => {
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
-        'trackNewConnection'
+        'trackNewConnection',
       );
       testActiveTextEditor = sandbox.stub(vscode.window, 'activeTextEditor');
     });

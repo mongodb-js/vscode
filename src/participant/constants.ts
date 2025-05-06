@@ -54,14 +54,14 @@ export function namespaceRequestChatResult({
 }
 
 export function createCancelledRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('cancelledRequest', history);
 }
 
 function createChatResult(
   intent: ParticipantResponseType,
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return {
     metadata: {
@@ -72,25 +72,25 @@ function createChatResult(
 }
 
 export function emptyRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('emptyRequest', history);
 }
 
 export function askToConnectChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('askToConnect', history);
 }
 
 export function genericRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('generic', history);
 }
 
 export function queryRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('query', history);
 }
@@ -112,7 +112,7 @@ export function docsRequestChatResult({
 }
 
 export function schemaRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('schema', history);
 }

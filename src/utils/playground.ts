@@ -91,7 +91,7 @@ export const getSelectedText = (): string | undefined => {
 
   // Sort lines selected as the may be mis-ordered from alt+click.
   const sortedSelections = (editor.selections as Array<vscode.Selection>).sort(
-    (a, b) => (a.start.line > b.start.line ? 1 : -1)
+    (a, b) => (a.start.line > b.start.line ? 1 : -1),
   );
 
   return sortedSelections
@@ -133,7 +133,7 @@ export const getPlaygrounds = async ({
     } catch (error) {
       log.error(
         'Getting playgrounds recursively from the workspace failed',
-        error
+        error,
       );
     }
   }

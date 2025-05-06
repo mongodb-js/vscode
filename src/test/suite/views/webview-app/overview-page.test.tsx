@@ -21,8 +21,8 @@ describe('OverviewPage test suite', function () {
     render(<OverviewPage />);
     expect(
       screen.getByText(
-        'Navigate your databases and collections, use playgrounds for exploring and transforming your data'
-      )
+        'Navigate your databases and collections, use playgrounds for exploring and transforming your data',
+      ),
     ).to.exist;
   });
 
@@ -74,7 +74,7 @@ describe('OverviewPage test suite', function () {
       const argsWithoutConnectId = postMessageSpy.lastCall.args[0] as any;
       expect(argsWithoutConnectId.command).to.equal(MESSAGE_TYPES.CONNECT);
       expect(
-        argsWithoutConnectId.connectionInfo.connectionOptions.connectionString
+        argsWithoutConnectId.connectionInfo.connectionOptions.connectionString,
       ).to.equal('mongodb://localhost:27017');
     });
 
@@ -95,7 +95,7 @@ describe('OverviewPage test suite', function () {
               connectionSuccess: false,
               connectionMessage: 'server not found',
             },
-          })
+          }),
         );
       });
       expect(screen.queryByTestId('connection-error-summary')).to.not.be.null;
@@ -118,7 +118,7 @@ describe('OverviewPage test suite', function () {
               connectionSuccess: true,
               connectionMessage: '',
             },
-          })
+          }),
         );
       });
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
@@ -144,7 +144,7 @@ describe('OverviewPage test suite', function () {
                 },
               },
             },
-          })
+          }),
         );
       });
 
@@ -160,7 +160,8 @@ describe('OverviewPage test suite', function () {
           .getCalls()
           .filter(
             (call) =>
-              call.args[0].command === MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT
+              call.args[0].command ===
+              MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
           );
       };
       expect(getConnectMessages()).to.have.length(0);
@@ -193,7 +194,7 @@ describe('OverviewPage test suite', function () {
               connectionSuccess: true,
               connectionMessage: '',
             },
-          })
+          }),
         );
       });
       // won't be closed because the connect result message is ignored
@@ -208,7 +209,7 @@ describe('OverviewPage test suite', function () {
               connectionSuccess: false,
               connectionMessage: 'something bad happened',
             },
-          })
+          }),
         );
       });
       expect(screen.queryByTestId(connectionFormTestId)).to.exist;

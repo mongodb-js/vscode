@@ -73,7 +73,7 @@ export default class ConnectionTreeItem
   }) {
     super(
       connectionController.getSavedConnectionName(connectionId),
-      collapsibleState
+      collapsibleState,
     );
 
     const isConnected =
@@ -97,14 +97,14 @@ export default class ConnectionTreeItem
     this.id = `${connectionId}-${Date.now()}`;
 
     this.tooltip = connectionController.getSavedConnectionName(
-      this.connectionId
+      this.connectionId,
     );
     this.description =
       connectionController.getConnectionStatusStringForConnection(
-        this.connectionId
+        this.connectionId,
       );
     this.iconPath = getIconPath(
-      connectionController.getActiveConnectionId() === this.connectionId
+      connectionController.getActiveConnectionId() === this.connectionId,
     );
   }
 
@@ -126,7 +126,7 @@ export default class ConnectionTreeItem
       return dbs.map((dbItem) => dbItem.name);
     } catch (error) {
       throw new Error(
-        `Unable to list databases: ${formatError(error).message}`
+        `Unable to list databases: ${formatError(error).message}`,
       );
     }
   }
@@ -143,7 +143,7 @@ export default class ConnectionTreeItem
       return processors;
     } catch (error) {
       throw new Error(
-        `Unable to list stream processors: ${formatError(error).message}`
+        `Unable to list stream processors: ${formatError(error).message}`,
       );
     }
   }
@@ -210,7 +210,7 @@ export default class ConnectionTreeItem
   }
 
   private async _buildChildrenCacheForDatabases(
-    dataService: DataService
+    dataService: DataService,
   ): Promise<Record<string, DatabaseTreeItem>> {
     const databases = await this.listDatabases();
     databases.sort((a: string, b: string) => a.localeCompare(b));
@@ -234,7 +234,7 @@ export default class ConnectionTreeItem
   }
 
   private async _buildChildrenCacheForStreams(
-    dataService: DataService
+    dataService: DataService,
   ): Promise<Record<string, StreamProcessorTreeItem>> {
     const processors = await this.listStreamProcessors();
     processors.sort((a, b) => a.name.localeCompare(b.name));
@@ -277,13 +277,13 @@ export default class ConnectionTreeItem
     try {
       const { successfullyConnected } =
         await this._connectionController.connectWithConnectionId(
-          this.connectionId
+          this.connectionId,
         );
       return successfullyConnected;
     } catch (err) {
       this.isExpanded = false;
       void vscode.window.showErrorMessage(
-        (err as Error).message || (err as string)
+        (err as Error).message || (err as string),
       );
 
       return false;

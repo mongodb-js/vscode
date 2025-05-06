@@ -30,7 +30,7 @@ export class Prompts {
   // This is useful since when there's no user input in any
   // messages, we can skip some additional processing.
   public static doMessagesContainUserInput(
-    messages: vscode.LanguageModelChatMessage[]
+    messages: vscode.LanguageModelChatMessage[],
   ): boolean {
     for (const message of messages) {
       if (

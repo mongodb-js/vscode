@@ -99,7 +99,7 @@ const ResourcesPanelFooter: React.FC = () => {
             onClick={(): void => {
               trackExtensionLinkClicked(
                 TELEMETRY_SCREEN_ID,
-                footerFeature.linkId
+                footerFeature.linkId,
               );
             }}
           >

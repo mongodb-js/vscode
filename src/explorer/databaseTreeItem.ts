@@ -51,7 +51,7 @@ export default class DatabaseTreeItem
       databaseName,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.databaseName = databaseName;
@@ -104,7 +104,7 @@ export default class DatabaseTreeItem
 
     // List collections and build tree items.
     const collections = await this._dataService.listCollections(
-      this.databaseName
+      this.databaseName,
     );
 
     this.cacheIsUpToDate = true;
@@ -128,7 +128,7 @@ export default class DatabaseTreeItem
 
       const sortFunction = (
         collectionA: CollectionDetailsType,
-        collectionB: CollectionDetailsType
+        collectionB: CollectionDetailsType,
       ): number =>
         (collectionA.name || '').localeCompare(collectionB.name || '');
 
@@ -215,7 +215,7 @@ export default class DatabaseTreeItem
       });
     } catch (e) {
       return Promise.reject(
-        new Error(`An error occurred parsing the database name: ${e}`)
+        new Error(`An error occurred parsing the database name: ${e}`),
       );
     }
 
@@ -224,16 +224,15 @@ export default class DatabaseTreeItem
     }
 
     try {
-      const successfullyDroppedDatabase = await this._dataService.dropDatabase(
-        databaseName
-      );
+      const successfullyDroppedDatabase =
+        await this._dataService.dropDatabase(databaseName);
 
       this.isDropped = successfullyDroppedDatabase;
 
       return successfullyDroppedDatabase;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Drop database failed: ${formatError(error).message}`
+        `Drop database failed: ${formatError(error).message}`,
       );
       return false;
     }

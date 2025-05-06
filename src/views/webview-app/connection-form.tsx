@@ -75,7 +75,7 @@ const ConnectionForm: React.FunctionComponent<
         <div
           className={cx(
             connectingContainerStyles,
-            darkMode && connectingContainerDarkModeStyles
+            darkMode && connectingContainerDarkModeStyles,
           )}
         >
           <CancelLoader

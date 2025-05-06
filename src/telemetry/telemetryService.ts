@@ -53,7 +53,7 @@ export class TelemetryService {
   constructor(
     storageController: StorageController,
     context: vscode.ExtensionContext,
-    shouldTrackTelemetry?: boolean
+    shouldTrackTelemetry?: boolean,
   ) {
     const { anonymousId } = storageController.getUserIdentity();
     this._context = context;
@@ -69,7 +69,7 @@ export class TelemetryService {
     try {
       const segmentKeyFileLocation = path.join(
         this._context.extensionPath,
-        './constants.json'
+        './constants.json',
       );
       // eslint-disable-next-line no-sync
       const constantsFile = await fs.readFile(segmentKeyFileLocation, {
@@ -172,7 +172,7 @@ export class TelemetryService {
 
   async trackNewConnection(
     dataService: DataService,
-    connectionType: ConnectionTypes
+    connectionType: ConnectionTypes,
   ): Promise<void> {
     const connectionTelemetryProperties =
       await getConnectionTelemetryProperties(dataService, connectionType);
@@ -223,7 +223,11 @@ export class TelemetryService {
     }
 
     this.track(
-      new ParticipantResponseFailedTelemetryEvent(command, errorName, errorCode)
+      new ParticipantResponseFailedTelemetryEvent(
+        command,
+        errorName,
+        errorCode,
+      ),
     );
   }
 
@@ -232,6 +236,6 @@ export class TelemetryService {
       this.track(new SidePanelOpenedTelemetryEvent());
     },
     5000,
-    { leading: true, trailing: false }
+    { leading: true, trailing: false },
   );
 }

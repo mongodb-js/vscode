@@ -14,7 +14,7 @@ import SchemaTreeItem from './schemaTreeItem';
 
 function getIconPath(
   type: string,
-  isExpanded: boolean
+  isExpanded: boolean,
 ): { light: string; dark: string } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
@@ -47,7 +47,7 @@ export type CollectionDetailsType = Awaited<
 >[number];
 
 function isChildCacheOutOfSync(
-  child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem
+  child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem,
 ): boolean {
   const isExpanded = child.isExpanded;
   const collapsibleState = child.collapsibleState;
@@ -108,7 +108,7 @@ export default class CollectionTreeItem
       collection.name,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.collection = collection;
@@ -334,7 +334,7 @@ export default class CollectionTreeItem
       this.documentCount = await this._dataService.estimatedCount(
         this.namespace,
         {}, // No options.
-        undefined
+        undefined,
       );
 
       return this.documentCount;
@@ -366,7 +366,7 @@ export default class CollectionTreeItem
       });
     } catch (error) {
       return Promise.reject(
-        new Error(`An error occurred parsing the collection name: ${error}`)
+        new Error(`An error occurred parsing the collection name: ${error}`),
       );
     }
 
@@ -377,7 +377,7 @@ export default class CollectionTreeItem
     try {
       const successfullyDroppedCollection =
         await this._dataService.dropCollection(
-          `${this.databaseName}.${collectionName}`
+          `${this.databaseName}.${collectionName}`,
         );
 
       this.isDropped = successfullyDroppedCollection;
@@ -385,7 +385,7 @@ export default class CollectionTreeItem
       return successfullyDroppedCollection;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Drop collection failed: ${formatError(error).message}`
+        `Drop collection failed: ${formatError(error).message}`,
       );
 
       return false;

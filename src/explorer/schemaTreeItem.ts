@@ -84,7 +84,7 @@ export default class SchemaTreeItem
       ITEM_LABEL,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.collectionName = collectionName;
@@ -114,11 +114,11 @@ export default class SchemaTreeItem
       documents = await this._dataService.find(
         namespace,
         {}, // No filter.
-        { limit: MAX_DOCUMENTS_VISIBLE }
+        { limit: MAX_DOCUMENTS_VISIBLE },
       );
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Get schema failed: ${formatError(error).message}`
+        `Get schema failed: ${formatError(error).message}`,
       );
       return;
     }
@@ -132,7 +132,7 @@ export default class SchemaTreeItem
       return await parseSchema(documents);
     } catch (parseError) {
       throw new Error(
-        `Unable to parse schema: ${(parseError as Error)?.message}`
+        `Unable to parse schema: ${(parseError as Error)?.message}`,
       );
     }
   }
@@ -207,7 +207,7 @@ export default class SchemaTreeItem
 
     if (!schema?.fields || schema.fields.length < 1) {
       void vscode.window.showInformationMessage(
-        'No documents were found when attempting to parse schema.'
+        'No documents were found when attempting to parse schema.',
       );
       this.childrenCache = {};
       return [];
@@ -233,7 +233,7 @@ export default class SchemaTreeItem
 
   onShowMoreClicked(): void {
     log.info(
-      `Show more schema fields clicked for the ${this.databaseName}.${this.collectionName} namespace`
+      `Show more schema fields clicked for the ${this.databaseName}.${this.collectionName} namespace`,
     );
     this.cacheIsUpToDate = false;
     this.hasClickedShowMoreFields = true;

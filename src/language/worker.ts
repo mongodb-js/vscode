@@ -68,7 +68,7 @@ export const execute = async ({
 }> => {
   const serviceProvider = await NodeDriverServiceProvider.connect(
     connectionString,
-    connectionOptions
+    connectionOptions,
   );
 
   try {
@@ -88,7 +88,7 @@ export const execute = async ({
     if (filePath) {
       await runtime.evaluate(`(function () {
         globalThis.require = require('module').createRequire(${JSON.stringify(
-          filePath
+          filePath,
         )});
       } ())`);
     }
@@ -137,5 +137,5 @@ parentPort?.once(
   'message',
   (message: { name: string; data: WorkerEvaluate }): void => {
     void handleMessageFromParentPort(message);
-  }
+  },
 );

@@ -13,7 +13,7 @@ const useConnectionStatus = (): {
   connectionName: string;
 } => {
   const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(
-    CONNECTION_STATUS.LOADING
+    CONNECTION_STATUS.LOADING,
   );
   const [connectionName, setConnectionName] = useState('');
   useEffect(() => {
@@ -34,7 +34,7 @@ const useConnectionStatus = (): {
     requestConnectionStatus();
     const pollingInterval = setInterval(
       requestConnectionStatus,
-      CONNECTION_STATUS_POLLING_FREQ_MS
+      CONNECTION_STATUS_POLLING_FREQ_MS,
     );
     return () => {
       window.removeEventListener('message', handleConnectionStatusResponse);

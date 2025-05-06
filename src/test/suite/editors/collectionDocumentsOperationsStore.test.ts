@@ -9,11 +9,11 @@ suite('Collection Documents Operations Store Test Suite', () => {
     const opId = testOpsStore.createNewOperation();
     assert(
       !!testOpsStore.operations[opId],
-      `Expected operation with id ${opId}`
+      `Expected operation with id ${opId}`,
     );
     assert(
       Object.keys(testOpsStore.operations).length === 1,
-      `Expected an operation to be in the operations store, found ${testOpsStore.operations.length}`
+      `Expected an operation to be in the operations store, found ${testOpsStore.operations.length}`,
     );
 
     const operation = testOpsStore.operations[opId];
@@ -22,7 +22,7 @@ suite('Collection Documents Operations Store Test Suite', () => {
       .get('defaultLimit');
     assert(
       operation.currentLimit === expectedLimit,
-      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`
+      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`,
     );
   });
 
@@ -31,17 +31,17 @@ suite('Collection Documents Operations Store Test Suite', () => {
     const opId = testOpsStore.createNewOperation();
     const operation = testOpsStore.operations[opId];
     const expectedLimit = Number(
-      vscode.workspace.getConfiguration('mdb').get('defaultLimit')
+      vscode.workspace.getConfiguration('mdb').get('defaultLimit'),
     );
     assert(
       operation.currentLimit === expectedLimit,
-      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`
+      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`,
     );
 
     testOpsStore.increaseOperationDocumentLimit(opId);
     assert(
       operation.currentLimit === expectedLimit * 2,
-      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`
+      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`,
     );
   });
 });

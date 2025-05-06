@@ -80,7 +80,7 @@ async function getPublicCloudInfo(host: string): Promise<{
 }
 
 async function getHostInformation(
-  host: string | null
+  host: string | null,
 ): Promise<HostInformation> {
   if (!host) {
     return {
@@ -120,7 +120,7 @@ async function getHostInformation(
 
 export async function getConnectionTelemetryProperties(
   dataService: DataService,
-  connectionType: ConnectionTypes
+  connectionType: ConnectionTypes,
 ): Promise<NewConnectionTelemetryEventProperties> {
   let preparedProperties: NewConnectionTelemetryEventProperties = {
     is_used_connect_screen: connectionType === ConnectionTypes.CONNECTION_FORM,
@@ -143,7 +143,7 @@ export async function getConnectionTelemetryProperties(
     preparedProperties = {
       ...preparedProperties,
       ...(await getHostInformation(
-        resolvedHostname || connectionString.toString()
+        resolvedHostname || connectionString.toString(),
       )),
       auth_strategy: authStrategy,
       is_atlas: isAtlas,

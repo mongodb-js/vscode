@@ -7,7 +7,7 @@ import {
 export const useDetectVsCodeDarkMode = (): boolean => {
   const [darkModeDetected, setDarkModeDetected] = useState(
     globalThis.document.body.classList.contains('vscode-dark') ||
-      globalThis.document.body.classList.contains('vscode-high-contrast')
+      globalThis.document.body.classList.contains('vscode-high-contrast'),
   );
   useEffect(() => {
     const onThemeChanged = (event): void => {

@@ -41,7 +41,7 @@ export type ParticipantPromptProperties = {
 };
 
 function getPlaygroundFileTypeFromUri(
-  fileUri?: vscode.Uri
+  fileUri?: vscode.Uri,
 ): PlaygroundFileType {
   let fileType: PlaygroundFileType = 'other';
 
@@ -259,7 +259,7 @@ export class PlaygroundExportedToLanguageTelemetryEvent
   constructor(
     language: string,
     exportedCodeLength: number | undefined,
-    withDriverSyntax: boolean
+    withDriverSyntax: boolean,
   ) {
     this.properties = {
       language,
@@ -299,7 +299,7 @@ export class ExportToPlaygroundFailedTelemetryEvent
 
   constructor(
     inputLength: number | undefined,
-    errorName: ExportToPlaygroundError
+    errorName: ExportToPlaygroundError,
   ) {
     this.properties = { input_length: inputLength, error_name: errorName };
   }
@@ -378,7 +378,7 @@ export class ParticipantFeedbackTelemetryEvent implements TelemetryEventBase {
   constructor(
     feedback: vscode.ChatResultFeedbackKind,
     responseType: ParticipantResponseType,
-    reason?: String
+    reason?: String,
   ) {
     this.properties = {
       feedback: this.chatResultFeedbackKindToTelemetryValue(feedback),
@@ -388,7 +388,7 @@ export class ParticipantFeedbackTelemetryEvent implements TelemetryEventBase {
   }
 
   private chatResultFeedbackKindToTelemetryValue(
-    kind: vscode.ChatResultFeedbackKind
+    kind: vscode.ChatResultFeedbackKind,
   ): TelemetryFeedbackKind {
     switch (kind) {
       case vscode.ChatResultFeedbackKind.Helpful:
@@ -432,7 +432,7 @@ export class ParticipantResponseFailedTelemetryEvent
     command: ParticipantResponseType,
     errorName: ParticipantErrorTypes,
     errorCode?: string,
-    errorDetails?: string
+    errorDetails?: string,
   ) {
     this.properties = {
       command,
@@ -508,7 +508,7 @@ export class ParticipantPromptSubmittedFromActionTelemetryEvent
   constructor(
     sourceMetadata: ParticipantTelemetryMetadata,
     requestType: ParticipantRequestType,
-    inputLength: number
+    inputLength: number,
   ) {
     this.properties = {
       ...sourceMetadata,
@@ -530,7 +530,7 @@ export class ParticipantChatOpenedFromActionTelemetryEvent
 
   constructor(
     sourceMetadata: ParticipantTelemetryMetadata,
-    command?: ParticipantCommandType
+    command?: ParticipantCommandType,
   ) {
     this.properties = { ...sourceMetadata, command };
   }
@@ -555,7 +555,7 @@ export class ParticipantInputBoxSubmittedTelemetryEvent
   constructor(
     sourceMetadata: ParticipantTelemetryMetadata,
     message: string | undefined,
-    command?: ParticipantCommandType
+    command?: ParticipantCommandType,
   ) {
     this.properties = {
       ...sourceMetadata,

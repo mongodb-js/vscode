@@ -26,7 +26,7 @@ export default class CollectionDocumentsOperationsStore {
       .getConfiguration('mdb')
       .get(DEFAULT_LIMIT_CONFIG_NAME);
     this.operations[operationId] = new CollectionDocumentsOperation(
-      Number(initialDocumentsLimit)
+      Number(initialDocumentsLimit),
     );
 
     return operationId;
@@ -39,7 +39,7 @@ export default class CollectionDocumentsOperationsStore {
       .getConfiguration('mdb')
       .get(DEFAULT_LIMIT_CONFIG_NAME);
     this.operations[operationId].currentLimit += Number(
-      additionalDocumentsToFetch
+      additionalDocumentsToFetch,
     );
   }
 }

@@ -17,11 +17,11 @@ suite('Storage Controller Test Suite', () => {
     const testStorageController = new StorageController(extensionContextStub);
     const testVal = testStorageController.get(
       StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL
+      StorageLocation.GLOBAL,
     );
     assert(
       testVal.collOne.name === 'this_gonna_get_saved',
-      `Expected ${testVal} from global state to equal 'this_gonna_get_saved'.`
+      `Expected ${testVal} from global state to equal 'this_gonna_get_saved'.`,
     );
   });
 
@@ -35,11 +35,11 @@ suite('Storage Controller Test Suite', () => {
     const testStorageController = new StorageController(extensionContextStub);
     const testVal = testStorageController.get(
       StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE
+      StorageLocation.WORKSPACE,
     );
     assert(
       testVal.collTwo.name === 'i_cant_believe_its_gonna_save_this',
-      `Expected ${testVal} from workspace state to equal 'i_cant_believe_its_gonna_save_this'.`
+      `Expected ${testVal} from workspace state to equal 'i_cant_believe_its_gonna_save_this'.`,
     );
   });
 
@@ -51,7 +51,7 @@ suite('Storage Controller Test Suite', () => {
     test('getUserIdentity adds anonymousId to the global storage and returns it to telemetry', () => {
       const userIdentity = testStorageController.getUserIdentity();
       const anonymousId = testStorageController.get(
-        StorageVariables.GLOBAL_ANONYMOUS_ID
+        StorageVariables.GLOBAL_ANONYMOUS_ID,
       );
       assert.deepStrictEqual(userIdentity, { anonymousId });
     });

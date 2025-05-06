@@ -2,10 +2,10 @@ const typescriptEslintEslintPlugin = require('@typescript-eslint/eslint-plugin')
 
 // Overrides do not work with extends.
 const ruleOverridesForJs = Object.keys(
-  typescriptEslintEslintPlugin.rules
+  typescriptEslintEslintPlugin.rules,
 ).reduce(
   (overrides, rule) => ({ ...overrides, [`@typescript-eslint/${rule}`]: 0 }),
-  {}
+  {},
 );
 
 const sharedRules = {

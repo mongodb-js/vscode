@@ -23,7 +23,7 @@ import { ExtensionContextStub } from '../stubs';
 const { contributes } = require('../../../../package.json');
 
 function getTestFieldTreeItem(
-  options?: Partial<ConstructorParameters<typeof FieldTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof FieldTreeItem>[0]>,
 ): FieldTreeItem {
   return new FieldTreeItem({
     field: {
@@ -39,7 +39,7 @@ function getTestFieldTreeItem(
 }
 
 function getTestSchemaTreeItem(
-  options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>,
 ): SchemaTreeItem {
   return new SchemaTreeItem({
     databaseName: 'zebraWearwolf',
@@ -67,7 +67,7 @@ suite('FieldTreeItem Test Suite', function () {
 
     assert(
       registeredCommandInPackageJson,
-      'Expected field tree item to be registered with a command in package json'
+      'Expected field tree item to be registered with a command in package json',
     );
   });
 
@@ -113,7 +113,7 @@ suite('FieldTreeItem Test Suite', function () {
     };
     assert.strictEqual(
       getIconFileNameForField(notFullProbability),
-      'mixed-type'
+      'mixed-type',
     );
   });
 
@@ -131,7 +131,7 @@ suite('FieldTreeItem Test Suite', function () {
     };
     assert.strictEqual(
       getIconFileNameForField(notFullProbability),
-      'mixed-type'
+      'mixed-type',
     );
   });
 
@@ -225,11 +225,11 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(schemaFields.length, 2);
       assert(
         !fieldIsExpandable(schemaFields[0].field),
-        'Expected _id field not to have expandable state'
+        'Expected _id field not to have expandable state',
       );
       assert(
         fieldIsExpandable(schemaFields[1].field),
-        'Expected field to have expandable state'
+        'Expected field to have expandable state',
       );
 
       const subdocuments = await schemaFields[1].getChildren();
@@ -237,7 +237,7 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(subdocuments.length, 1);
       assert(
         fieldIsExpandable(subdocuments[0].field),
-        'Expected subdocument to be expandable'
+        'Expected subdocument to be expandable',
       );
 
       const nestedSubDocument = await subdocuments[0].getChildren();
@@ -270,7 +270,7 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(schemaFields.length, 2);
       assert(
         fieldIsExpandable(schemaFields[1].field),
-        'Expected field to have expandable state'
+        'Expected field to have expandable state',
       );
 
       const arrayFieldContainer = await schemaFields[1].getChildren();
@@ -278,7 +278,7 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(arrayFieldContainer.length, 1);
       assert(
         !fieldIsExpandable(arrayFieldContainer[0].field),
-        'Expected array field container to not be expandable'
+        'Expected array field container to not be expandable',
       );
     });
 
@@ -319,7 +319,7 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(nestedSubDocuments.length, 1);
       assert(
         fieldIsExpandable(nestedSubDocuments[0].field),
-        'Expected subdocument in array to be expandable'
+        'Expected subdocument in array to be expandable',
       );
 
       const subdocFields = await nestedSubDocuments[0].getChildren();
@@ -328,7 +328,7 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(subdocFields[1].label, 'sunset');
       assert(
         !fieldIsExpandable(subdocFields[1].field),
-        'Expected subdocument boolean field to not be expandable'
+        'Expected subdocument boolean field to not be expandable',
       );
     });
   });

@@ -9,7 +9,7 @@ import { DataServiceStub, mockStreamProcessors } from '../stubs';
 const { contributes } = require('../../../../package.json');
 
 function getTestTreeItem(
-  options?: Partial<ConstructorParameters<typeof StreamProcessorTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof StreamProcessorTreeItem>[0]>,
 ): StreamProcessorTreeItem {
   const { name, state } = mockStreamProcessors[1];
   return new StreamProcessorTreeItem({
@@ -35,7 +35,7 @@ suite('StreamProcessorTreeItem Test Suite', () => {
 
     assert(
       spRegisteredCommandInPackageJson,
-      'Expected stream processor tree item to be registered with a command in package json'
+      'Expected stream processor tree item to be registered with a command in package json',
     );
   });
 
@@ -46,7 +46,7 @@ suite('StreamProcessorTreeItem Test Suite', () => {
     assert.strictEqual(
       children.length,
       0,
-      `Expected no state, recieved ${children.length}`
+      `Expected no state, recieved ${children.length}`,
     );
   });
 
@@ -58,15 +58,15 @@ suite('StreamProcessorTreeItem Test Suite', () => {
     const children = await testStreamProcessorTreeItem.getChildren();
     assert(
       children.length === 1,
-      `Expected exactly one state item to be returned, recieved ${children.length}`
+      `Expected exactly one state item to be returned, recieved ${children.length}`,
     );
     assert.strictEqual(
       children[0].label,
-      `State: ${mockStreamProcessors[1].state}`
+      `State: ${mockStreamProcessors[1].state}`,
     );
     assert.strictEqual(
       children[0].collapsibleState,
-      vscode.TreeItemCollapsibleState.None
+      vscode.TreeItemCollapsibleState.None,
     );
   });
 });

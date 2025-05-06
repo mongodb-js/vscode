@@ -22,7 +22,7 @@ suite('MongoDB Document Service Test Suite', () => {
   const testStatusView = new StatusView(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    extensionContextStub
+    extensionContextStub,
   );
   const testConnectionController = new ConnectionController({
     statusView: testStatusView,
@@ -58,7 +58,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeActiveConnectionId
+      fakeActiveConnectionId,
     );
 
     const fakeGetActiveDataService = sandbox.fake.returns({
@@ -71,7 +71,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService
+      fakeGetActiveDataService,
     );
     sandbox.stub(testStatusView, 'showMessage');
     sandbox.stub(testStatusView, 'hideMessage');
@@ -109,7 +109,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeActiveConnectionId
+      fakeActiveConnectionId,
     );
 
     const fakeGetActiveDataService = sandbox.fake.returns({
@@ -122,7 +122,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService
+      fakeGetActiveDataService,
     );
     sandbox.stub(testStatusView, 'showMessage');
     sandbox.stub(testStatusView, 'hideMessage');
@@ -154,14 +154,14 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService
+      fakeGetActiveDataService,
     );
 
     const fakeGetActiveConnectionId = sandbox.fake.returns(connectionId);
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeGetActiveConnectionId
+      fakeGetActiveConnectionId,
     );
 
     sandbox.stub(testStatusView, 'showMessage');
@@ -204,14 +204,14 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService
+      fakeGetActiveDataService,
     );
 
     const fakeGetActiveConnectionId = sandbox.fake.returns(connectionId);
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeGetActiveConnectionId
+      fakeGetActiveConnectionId,
     );
 
     sandbox.stub(testStatusView, 'showMessage');
@@ -242,14 +242,14 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeActiveConnectionId
+      fakeActiveConnectionId,
     );
 
     const fakeGetSavedConnectionName = sandbox.fake.returns('tasty_sandwhich');
     sandbox.replace(
       testConnectionController,
       'getSavedConnectionName',
-      fakeGetSavedConnectionName
+      fakeGetSavedConnectionName,
     );
 
     try {
@@ -279,14 +279,14 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeActiveConnectionId
+      fakeActiveConnectionId,
     );
 
     const fakeGetSavedConnectionName = sandbox.fake.returns('tasty_sandwhich');
     sandbox.replace(
       testConnectionController,
       'getSavedConnectionName',
-      fakeGetSavedConnectionName
+      fakeGetSavedConnectionName,
     );
 
     try {
@@ -316,14 +316,14 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionId',
-      fakeGetActiveConnectionId
+      fakeGetActiveConnectionId,
     );
 
     const fakeGetSavedConnectionName = sandbox.fake.returns('tasty_sandwhich');
     sandbox.replace(
       testConnectionController,
       'getSavedConnectionName',
-      fakeGetSavedConnectionName
+      fakeGetSavedConnectionName,
     );
 
     sandbox.stub(testStatusView, 'showMessage');
