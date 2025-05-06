@@ -42,13 +42,12 @@ export class TelemetryService {
   public _segmentKey?: string; // The segment API write key.
   private eventBuffer: TelemetryEvent[] = [];
   private isBufferingEvents = true;
-  public userIdentity: {
-    anonymousId: string;
-    deviceId?: string;
-  };
-  private resolveDeviceId: ((value: string) => void) | undefined;
+  public readonly anonymousId: string;
   private readonly _context: vscode.ExtensionContext;
   private readonly _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
+
+  public deviceId: string | undefined;
+  private resolveDeviceId: ((value: string) => void) | undefined;
 
   constructor(
     storageController: StorageController,
@@ -58,9 +57,11 @@ export class TelemetryService {
     const { anonymousId } = storageController.getUserIdentity();
     this._context = context;
     this._shouldTrackTelemetry = shouldTrackTelemetry || false;
-    this.userIdentity = {
-      anonymousId,
-    };
+    this.anonymousId = anonymousId;
+  }
+
+  public getCommonProperties(): Record<string, string | undefined> {
+    return { extension_version: `${version}`, device_id: this.deviceId };
   }
 
   private async readSegmentKey(): Promise<string | undefined> {
@@ -97,10 +98,18 @@ export class TelemetryService {
       flushInterval: 10000, // 10 seconds is the default libraries' value.
     });
 
-    this.userIdentity = await this.getTelemetryUserIdentity();
-    this._segmentAnalytics.identify(this.userIdentity);
+    this.deviceId = await this.getDeviceId();
+
+    const userIdentity = {
+      anonymousId: this.anonymousId,
+      traits: {
+        device_id: this.deviceId,
+      },
+    };
+
+    this._segmentAnalytics.identify(userIdentity);
     this.isBufferingEvents = false;
-    log.info('Segment analytics activated', this.userIdentity);
+    log.info('Segment analytics activated', userIdentity);
 
     // Process buffered events
     let event: TelemetryEvent | undefined;
@@ -158,11 +167,11 @@ export class TelemetryService {
       }
 
       this._segmentAnalyticsTrack({
-        ...this.userIdentity,
+        anonymousId: this.anonymousId,
         event: event.type,
         properties: {
+          ...this.getCommonProperties(),
           ...event.properties,
-          extension_version: `${version}`,
         },
       });
     } catch (e) {
@@ -180,7 +189,7 @@ export class TelemetryService {
     this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
   }
 
-  private async getTelemetryUserIdentity(): Promise<typeof this.userIdentity> {
+  private async getDeviceId(): Promise<string> {
     const { value: deviceId, resolve: resolveDeviceId } = getDeviceId({
       getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
       isNodeMachineId: true,
@@ -188,10 +197,7 @@ export class TelemetryService {
 
     this.resolveDeviceId = resolveDeviceId;
 
-    return {
-      anonymousId: this.userIdentity.anonymousId,
-      deviceId: await deviceId,
-    };
+    return deviceId;
   }
 
   trackParticipantError(err: any, command: ParticipantResponseType): void {

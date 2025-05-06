@@ -116,11 +116,11 @@ export default class HelpTree
         iconName: 'report',
       });
 
-      const telemetryUserIdentity = this._telemetryService?.userIdentity;
+      const anonymousId = this._telemetryService?.anonymousId;
 
       const atlas = new HelpLinkTreeItem({
         title: 'Create Free Atlas Cluster',
-        url: LINKS.createAtlasCluster(telemetryUserIdentity?.anonymousId ?? ''),
+        url: LINKS.createAtlasCluster(anonymousId ?? ''),
         linkId: 'freeClusterCTA',
         iconName: 'atlas',
         useRedirect: true,
