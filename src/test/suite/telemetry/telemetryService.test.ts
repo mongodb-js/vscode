@@ -40,12 +40,16 @@ suite('Telemetry Controller Test Suite', () => {
     mdbTestExtension.testExtensionController._telemetryService;
 
   let dataServiceStub: DataService;
-  const telemetryIdentity = {
-    ...testTelemetryService.userIdentity,
-    deviceId: 'testDeviceId',
-  };
-
   let fakeSegmentAnalyticsTrack: SinonSpy;
+
+  const testDeviceId = 'test-device-id';
+  const telemetryIdentity = {
+    anonymousId: testTelemetryService.anonymousId,
+  };
+  const commonProperties = {
+    extension_version: version,
+    device_id: testDeviceId,
+  };
 
   const sandbox = sinon.createSandbox();
 
@@ -70,9 +74,9 @@ suite('Telemetry Controller Test Suite', () => {
     sandbox.replace(
       mdbTestExtension.testExtensionController._telemetryService,
       // @ts-expect-error This is a private method
-      'getTelemetryUserIdentity',
+      'getDeviceId',
       () => {
-        return Promise.resolve(telemetryIdentity);
+        return Promise.resolve(testDeviceId);
       },
     );
     sandbox.replace(
@@ -143,7 +147,7 @@ suite('Telemetry Controller Test Suite', () => {
           event: 'Command Run',
           properties: {
             command: 'mdb.addConnection',
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -164,7 +168,7 @@ suite('Telemetry Controller Test Suite', () => {
             is_used_command_palette: true,
             is_used_saved_connection: false,
             vscode_mdb_extension_version: version,
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -185,7 +189,7 @@ suite('Telemetry Controller Test Suite', () => {
             is_used_command_palette: false,
             is_used_saved_connection: false,
             vscode_mdb_extension_version: version,
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -206,7 +210,7 @@ suite('Telemetry Controller Test Suite', () => {
             is_used_command_palette: false,
             is_used_saved_connection: true,
             vscode_mdb_extension_version: version,
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -225,7 +229,7 @@ suite('Telemetry Controller Test Suite', () => {
           properties: {
             source: 'treeview',
             success: true,
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -263,7 +267,7 @@ suite('Telemetry Controller Test Suite', () => {
             type: 'other',
             partial: false,
             error: false,
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -283,7 +287,7 @@ suite('Telemetry Controller Test Suite', () => {
           event: 'Playground Loaded',
           properties: {
             file_type: 'mongodb',
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -302,7 +306,7 @@ suite('Telemetry Controller Test Suite', () => {
           event: 'Playground Loaded',
           properties: {
             file_type: 'mongodbjs',
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -321,7 +325,7 @@ suite('Telemetry Controller Test Suite', () => {
           event: 'Playground Saved',
           properties: {
             file_type: 'mongodbjs',
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -339,7 +343,7 @@ suite('Telemetry Controller Test Suite', () => {
           properties: {
             screen: 'helpPanel',
             link_id: 'linkId',
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -358,7 +362,7 @@ suite('Telemetry Controller Test Suite', () => {
           properties: {
             language: 'java',
             with_driver_syntax: false,
-            extension_version: version,
+            ...commonProperties,
           },
         }),
       );
@@ -377,7 +381,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'search',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -402,7 +406,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'createCollection',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -419,7 +423,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'createDatabase',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -437,7 +441,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'index',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -474,7 +478,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'cloneDocument',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -489,7 +493,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'crud',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -506,7 +510,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'crud',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -523,7 +527,7 @@ suite('Telemetry Controller Test Suite', () => {
             event: 'Playground Created',
             properties: {
               playground_type: 'crud',
-              extension_version: version,
+              ...commonProperties,
             },
           }),
         );
@@ -669,8 +673,10 @@ suite('Telemetry Controller Test Suite', () => {
     const verifyEvent = (call: sinon.SinonSpyCall): void => {
       const event = call.args[0] as SegmentProperties;
       expect(event.event).to.equal('Side Panel Opened');
-      expect(event.properties).to.have.keys(['extension_version']);
-      expect(Object.keys(event.properties)).to.have.length(1);
+      expect(event.properties).to.have.keys(commonProperties);
+      expect(Object.keys(event.properties)).to.have.length(
+        Object.keys(commonProperties).length,
+      );
     };
 
     expect(fakeSegmentAnalyticsTrack.getCalls()).has.length(0);
