@@ -673,8 +673,10 @@ suite('Telemetry Controller Test Suite', () => {
     const verifyEvent = (call: sinon.SinonSpyCall): void => {
       const event = call.args[0] as SegmentProperties;
       expect(event.event).to.equal('Side Panel Opened');
-      expect(event.properties).to.have.keys(['device_id', 'extension_version']);
-      expect(Object.keys(event.properties)).to.have.length(1);
+      expect(event.properties).to.have.keys(commonProperties);
+      expect(Object.keys(event.properties)).to.have.length(
+        Object.keys(commonProperties).length,
+      );
     };
 
     expect(fakeSegmentAnalyticsTrack.getCalls()).has.length(0);
