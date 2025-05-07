@@ -1,5 +1,15 @@
 # Change Log
 
+## [v1.13.2](https://github.com/mongodb-js/vscode/releases/tag/v1.13.2) - 2025-05-07
+
+* chore(deps): bump the compass group with 3 updates by @dependabot in https://github.com/mongodb-js/vscode/pull/1035
+* chore(deps): bump @mongodb-js/connection-info from 0.11.9 to 0.12.0 by @dependabot in https://github.com/mongodb-js/vscode/pull/1039
+* chore: move device_id to common properties by @gagik in https://github.com/mongodb-js/vscode/pull/1038
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.13.1...v1.13.2
+
+
 ## [v1.13.1](https://github.com/mongodb-js/vscode/releases/tag/v1.13.1) - 2025-05-06
 
 ## What's Changed
