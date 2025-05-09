@@ -1400,7 +1400,7 @@
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^6.3.0",
-    "mongodb-rag-core": "^0.6.3",
+    "mongodb-rag-core": "^0.7.0",
     "mongodb-runner": "^5.8.3",
     "node-fetch": "^2.7.0",
     "node-loader": "^0.6.0",
