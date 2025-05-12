@@ -2,7 +2,7 @@ import type { InternalPromptPurpose } from '../../telemetry';
 import type { PromptArgsBase } from './promptBase';
 import { PromptBase } from './promptBase';
 
-export type PromptIntent = 'Query' | 'Schema' | 'Docs' | 'Default';
+export type PromptIntent = 'Query' | 'Schema' | 'Docs' | 'Doctor' | 'Default';
 
 export class IntentPrompt extends PromptBase<PromptArgsBase> {
   protected getAssistantPrompt(): string {
@@ -13,15 +13,17 @@ The intent handlers are:
 - Query
 - Schema
 - Docs
+- Doctor
 - Default
 Rules:
 1. Respond only with the intent handler.
 2. Use the "Query" intent handler when the user is asking for code that relates to a specific collection.
 3. Use the "Docs" intent handler when the user is asking a question that involves MongoDB documentation.
 4. Use the "Schema" intent handler when the user is asking for the schema or shape of documents of a specific collection.
-5. Use the "Default" intent handler when a user is asking for code that does NOT relate to a specific collection.
-6. Use the "Default" intent handler for everything that may not be handled by another handler.
-7. If you are uncertain of the intent, use the "Default" intent handler.
+5. Use the "Doctor" intent handler when the user is asking about the performance of their queries or data models, or wants to improve them.
+6. Use the "Default" intent handler when a user is asking for code that does NOT relate to a specific collection.
+7. Use the "Default" intent handler for everything that may not be handled by another handler.
+8. If you are uncertain of the intent, use the "Default" intent handler.
 
 Example:
 User: How do I create an index in my pineapples collection?
@@ -44,6 +46,8 @@ Docs`;
         return 'Schema';
       case 'Docs':
         return 'Docs';
+      case 'Doctor':
+        return 'Doctor';
       default:
         return 'Default';
     }

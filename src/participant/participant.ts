@@ -1460,7 +1460,6 @@ export default class ParticipantController {
   }
 
   // @MongoDB /doctor what's wrong with my query to find offices with at least 100 employees?
-  // eslint-disable-next-line complexity
   async handleDoctorRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
