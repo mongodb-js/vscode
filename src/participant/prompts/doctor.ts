@@ -3,7 +3,6 @@ import type { Document } from 'bson';
 
 import { getStringifiedSampleDocuments } from '../sampleDocuments';
 import type { PromptArgsBase, UserPromptResponse } from './promptBase';
-import { codeBlockIdentifier } from '../constants';
 import { PromptBase } from './promptBase';
 
 interface DoctorPromptArgs extends PromptArgsBase {
