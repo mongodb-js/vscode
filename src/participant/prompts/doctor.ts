@@ -46,7 +46,7 @@ Your task is to respond that this prompt has not been implemented yet.`;
 
   get emptyRequestResponse(): string {
     return vscode.l10n.t(
-      'Please specify a question when using this command. Usage: @MongoDB /query find documents where "name" contains "database".',
+      'Please specify a question when using this command. Usage: @MongoDB /doctor help me understand why my queries for plant species by leaf shape are slow.',
     );
   }
 }
