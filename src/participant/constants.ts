@@ -89,6 +89,12 @@ export function genericRequestChatResult(
   return createChatResult('generic', history);
 }
 
+export function doctorRequestChatResult(
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
+): ChatResult {
+  return createChatResult('doctor', history);
+}
+
 export function queryRequestChatResult(
   history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {

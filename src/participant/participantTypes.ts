@@ -1,7 +1,7 @@
 import type * as vscode from 'vscode';
 import type { ParticipantTelemetryMetadata } from '../telemetry';
 
-export type ParticipantCommandType = 'query' | 'schema' | 'docs';
+export type ParticipantCommandType = 'query' | 'schema' | 'docs' | 'doctor';
 export type ParticipantCommand = `/${ParticipantCommandType}`;
 
 export type ParticipantRequestType = ParticipantCommandType | 'generic';
@@ -12,6 +12,7 @@ export type ParticipantResponseType =
   | 'docs'
   | 'docs/chatbot'
   | 'docs/copilot'
+  | 'doctor'
   | 'exportToPlayground'
   | 'generic'
   | 'emptyRequest'
