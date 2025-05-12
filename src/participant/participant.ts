@@ -19,6 +19,7 @@ import {
   genericRequestChatResult,
   namespaceRequestChatResult,
   queryRequestChatResult,
+  doctorRequestChatResult,
   docsRequestChatResult,
   schemaRequestChatResult,
   createCancelledRequestChatResult,
@@ -509,6 +510,8 @@ export default class ParticipantController {
         return this.handleSchemaRequest(request, context, stream, token);
       case 'Code':
         return this.handleQueryRequest(request, context, stream, token);
+      case 'Doctor':
+        return this.handleDoctorRequest(request, context, stream, token);
       default:
         return this._handleRoutedGenericRequest(
           request,
@@ -1454,6 +1457,123 @@ export default class ParticipantController {
     );
 
     return schemaRequestChatResult(context.history);
+  }
+
+  // @MongoDB /doctor what's wrong with my query to find offices with at least 100 employees?
+  // eslint-disable-next-line complexity
+  async handleDoctorRequest(
+    request: vscode.ChatRequest,
+    context: vscode.ChatContext,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken,
+  ): Promise<ChatResult> {
+    if (!this._connectionController.getActiveDataService()) {
+      return this._askToConnect({
+        command: '/doctor',
+        context,
+        stream,
+      });
+    }
+
+    if (Prompts.isPromptEmpty(request)) {
+      if (this._doesLastMessageAskForNamespace(context.history)) {
+        return this.handleEmptyNamespaceMessage({
+          command: '/doctor',
+          context,
+          stream,
+        });
+      }
+
+      stream.markdown(Prompts.doctor.emptyRequestResponse);
+      return emptyRequestChatResult(context.history);
+    }
+
+    // Ask the model to parse for the database and collection name.
+    // If they exist, we can then use them in our final completion.
+    // When they don't exist we ask the user for them.
+    const namespace = await this._getNamespaceFromChat({
+      request,
+      context,
+      token,
+    });
+    const { databaseName, collectionName } =
+      await this._getOrAskForMissingNamespace({
+        ...namespace,
+        context,
+        stream,
+        command: '/doctor',
+      });
+
+    // If either the database or collection name could not be automatically picked
+    // then the user has been prompted to select one manually.
+    if (databaseName === undefined || collectionName === undefined) {
+      return namespaceRequestChatResult({
+        databaseName,
+        collectionName,
+        history: context.history,
+      });
+    }
+
+    if (token.isCancellationRequested) {
+      return this._handleCancelledRequest({
+        context,
+        stream,
+      });
+    }
+
+    // TODO try to access the user's Atlas credentials including an identifier for the connected
+    // Atlas project. If not available, ask the user to provide. If they say no, we can try
+    // to help without it.
+
+    let schema: string | undefined;
+    let sampleDocuments: Document[] | undefined;
+    try {
+      ({ schema, sampleDocuments } =
+        await this._fetchCollectionSchemaAndSampleDocuments({
+          databaseName,
+          collectionName,
+          token,
+          stream,
+        }));
+    } catch (e) {
+      // When an error fetching the collection schema or sample docs occurs,
+      // we still want to continue as it isn't critical, however,
+      // we do want to notify the user.
+      stream.markdown(
+        vscode.l10n.t(
+          'An error occurred while fetching the collection schema and sample documents.',
+        ),
+      );
+    }
+
+    const modelInput = await Prompts.doctor.buildMessages({
+      request,
+      context,
+      databaseName,
+      collectionName,
+      schema,
+      connectionNames: this._getConnectionNames(),
+      ...(sampleDocuments ? { sampleDocuments } : {}),
+    });
+
+    await this.streamChatResponseContentWithCodeActions({
+      modelInput,
+      stream,
+      token,
+    });
+
+    // We don't want telemetry for this very unofficial command.
+    // this._telemetryService.track(
+    //   new ParticipantResponseGeneratedTelemetryEvent({
+    //     command: 'doctor',
+    //     hasCta: false,
+    //     foundNamespace: true,
+    //     hasRunnableContent: hasCodeBlock,
+    //     outputLength: outputLength,
+    //   }),
+    // );
+
+    return doctorRequestChatResult(context.history);
   }
 
   // @MongoDB /query find all documents where the "address" has the word Broadway in it.

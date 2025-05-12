@@ -9,6 +9,7 @@ import { ExportToPlaygroundPrompt } from './exportToPlayground';
 import { ExportToLanguagePrompt } from './exportToLanguage';
 import { isContentEmpty } from './promptBase';
 import { DocsPrompt } from './docs';
+import { DoctorPrompt } from './doctor';
 
 export { getContentLength } from './promptBase';
 
@@ -18,6 +19,7 @@ export class Prompts {
   public static intent = new IntentPrompt();
   public static namespace = new NamespacePrompt();
   public static query = new QueryPrompt();
+  public static doctor = new DoctorPrompt();
   public static schema = new SchemaPrompt();
   public static exportToPlayground = new ExportToPlaygroundPrompt();
   public static exportToLanguage = new ExportToLanguagePrompt();
