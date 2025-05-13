@@ -71,6 +71,7 @@ import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLan
 import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
 import { DocumentSource } from '../documentSource';
+import AtlasApiController from '../atlasApiController';
 
 const log = createLogger('participant');
 
@@ -97,6 +98,7 @@ export default class ParticipantController {
   _docsChatbotAIService: DocsChatbotAIService;
   _telemetryService: TelemetryService;
   _playgroundResultProvider: PlaygroundResultProvider;
+  _atlasApiController: AtlasApiController;
 
   constructor({
     connectionController,
@@ -115,6 +117,7 @@ export default class ParticipantController {
     this._telemetryService = telemetryService;
     this._docsChatbotAIService = new DocsChatbotAIService();
     this._playgroundResultProvider = playgroundResultProvider;
+    this._atlasApiController = new AtlasApiController();
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -501,9 +504,16 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<ChatResult> {
-    log.info(
-      `Routing request  ${JSON.stringify({ context, promptIntent, request, stream })}`,
+    log.info('Routing request to handler', {
+      promptIntent,
+    });
+    const schemaAdvice = await this._atlasApiController.fetchSchemaAdvice(
+      '68225792a6c8ed0b4dc2a0d5',
+      'Cluster0',
+      stream,
     );
+    log.info('Schema advice', { schemaAdvice });
+    stream.markdown('```json\n' + JSON.stringify(schemaAdvice) + '\n```\n\n');
     switch (promptIntent) {
       case 'Query':
         return this.handleQueryRequest(request, context, stream, token);
@@ -534,6 +544,10 @@ export default class ParticipantController {
     request: vscode.ChatRequest;
     token: vscode.CancellationToken;
   }): Promise<PromptIntent> {
+    if (request.command === 'doctor') {
+      return 'Doctor';
+    }
+
     const modelInput = await Prompts.intent.buildMessages({
       connectionNames: this._getConnectionNames(),
       request,
