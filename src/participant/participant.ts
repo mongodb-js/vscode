@@ -501,6 +501,9 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<ChatResult> {
+    log.info(
+      `Routing request  ${JSON.stringify({ context, promptIntent, request, stream })}`,
+    );
     switch (promptIntent) {
       case 'Query':
         return this.handleQueryRequest(request, context, stream, token);
@@ -545,6 +548,10 @@ export default class ParticipantController {
     log.info('Received intent response from model', {
       responseContentLength: responseContent.length,
     });
+
+    if (request.command === 'doctor') {
+      return 'Doctor';
+    }
 
     return Prompts.intent.getIntentFromModelResponse(responseContent);
   }
