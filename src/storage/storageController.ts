@@ -13,6 +13,11 @@ export enum StorageVariables {
   // Only exists on workspaceState.
   WORKSPACE_SAVED_CONNECTIONS = 'WORKSPACE_SAVED_CONNECTIONS',
   COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE = 'COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE',
+
+  // Atlas-specific variables on workspaceState
+  ATLAS_CLIENT_ID = 'ATLAS_CLIENT_ID',
+  // TODO: We should have a way to detect Atlas connection strings, and have the
+  // user be able to explicitly opt into using a service account, performance advisor, etc.
 }
 
 // Typically variables default to 'GLOBAL' scope.
@@ -54,6 +59,7 @@ interface StorageVariableContents {
   [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: ConnectionsFromStorage;
   [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: ConnectionsFromStorage;
   [StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE]: boolean;
+  [StorageVariables.ATLAS_CLIENT_ID]: string | undefined;
 }
 type StoredVariableName = keyof StorageVariableContents;
 type StoredItem<T extends StoredVariableName> = StorageVariableContents[T];

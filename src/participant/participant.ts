@@ -117,7 +117,7 @@ export default class ParticipantController {
     this._telemetryService = telemetryService;
     this._docsChatbotAIService = new DocsChatbotAIService();
     this._playgroundResultProvider = playgroundResultProvider;
-    this._atlasApiController = new AtlasApiController();
+    this._atlasApiController = new AtlasApiController({ storageController });
   }
 
   createParticipant(context: vscode.ExtensionContext): vscode.ChatParticipant {
@@ -504,16 +504,6 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
     token: vscode.CancellationToken;
   }): Promise<ChatResult> {
-    log.info('Routing request to handler', {
-      promptIntent,
-    });
-    const schemaAdvice = await this._atlasApiController.fetchSchemaAdvice(
-      '68225792a6c8ed0b4dc2a0d5',
-      'Cluster0',
-      stream,
-    );
-    log.info('Schema advice', { schemaAdvice });
-    stream.markdown('```json\n' + JSON.stringify(schemaAdvice) + '\n```\n\n');
     switch (promptIntent) {
       case 'Query':
         return this.handleQueryRequest(request, context, stream, token);
@@ -1544,6 +1534,13 @@ export default class ParticipantController {
     // TODO try to access the user's Atlas credentials including an identifier for the connected
     // Atlas project. If not available, ask the user to provide. If they say no, we can try
     // to help without it.
+    const schemaAdvice = await this._atlasApiController.fetchSchemaAdvice(
+      '68225792a6c8ed0b4dc2a0d5',
+      'Cluster0',
+      stream,
+    );
+    log.info('Schema advice', { schemaAdvice });
+    stream.markdown('```json\n' + JSON.stringify(schemaAdvice) + '\n```\n\n');
 
     let schema: string | undefined;
     let sampleDocuments: Document[] | undefined;

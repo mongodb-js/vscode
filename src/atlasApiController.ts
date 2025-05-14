@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 
 import { createLogger } from './logging';
+import { AtlasStorage } from './storage/atlasStorage';
+import type { StorageController } from './storage';
 
 const log = createLogger('Atlas API controller');
 
@@ -12,19 +14,40 @@ export default class AtlasApiController {
   private _clientCreds: { clientId: string; clientSecret: string } | null =
     null;
   private _tokenData: { accessToken: string; expiresAt: Date } | null = null;
+  private _atlasStorage: AtlasStorage;
 
-  constructor() {}
+  constructor({ storageController }: { storageController: StorageController }) {
+    this._atlasStorage = new AtlasStorage({ storageController });
+  }
 
-  async _saveClientCredsWithInputBox(
+  async _loadOrSaveClientCredsWithInputBox(
     stream?: vscode.ChatResponseStream,
   ): Promise<void> {
+    if (this._clientCreds) {
+      return;
+    }
+    const storedClientId = this._atlasStorage.getStoredClientId();
+    if (storedClientId) {
+      const storedClientSecret =
+        await this._atlasStorage.getStoredClientSecret();
+      if (storedClientSecret) {
+        this._clientCreds = {
+          clientId: storedClientId,
+          clientSecret: storedClientSecret,
+        };
+        return;
+      }
+    }
+
     stream?.progress(
-      'Please enter your Atlas Client ID and Client Secret in the input prompts.',
+      `Please enter your Atlas ${storedClientId === null ? '' : 'Client ID and '}Client Secret in the input prompts.`,
     );
-    const clientId = await vscode.window.showInputBox({
-      prompt: 'Enter your Atlas Client ID',
-      ignoreFocusOut: true,
-    });
+    const clientId =
+      storedClientId ??
+      (await vscode.window.showInputBox({
+        prompt: 'Enter your Atlas Client ID',
+        ignoreFocusOut: true,
+      }));
     if (!clientId) {
       throw new Error('Client ID is required');
     }
@@ -37,8 +60,9 @@ export default class AtlasApiController {
       throw new Error('Client Secret is required');
     }
 
+    await this._atlasStorage.setClientId(clientId);
+    await this._atlasStorage.setClientSecret(clientSecret);
     this._clientCreds = { clientId, clientSecret };
-    // TODO: Save the client credentials somewhere for future queries so we don't need to ask for them every time
   }
 
   private async _getClientCreds(stream?: vscode.ChatResponseStream): Promise<{
@@ -46,7 +70,7 @@ export default class AtlasApiController {
     clientSecret: string;
   }> {
     if (!this._clientCreds) {
-      await this._saveClientCredsWithInputBox(stream);
+      await this._loadOrSaveClientCredsWithInputBox(stream);
     }
     if (!this._clientCreds) {
       throw new Error('Client credentials are required');
