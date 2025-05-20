@@ -195,6 +195,23 @@ suite('Participant Controller Test Suite', function () {
     expect(arg.properties.output_length).to.be.greaterThan(0);
   };
 
+  const getMockRequest = ({
+    prompt,
+    command,
+  }: {
+    prompt: string;
+    command?: string;
+  }): vscode.ChatRequest => {
+    return {
+      prompt,
+      command,
+      references: [],
+      toolReferences: [],
+      model: {} as vscode.LanguageModelChat,
+      toolInvocationToken: null as vscode.ChatParticipantToolToken,
+    };
+  };
+
   beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
     testStatusView = new StatusView(extensionContextStub);
@@ -309,11 +326,10 @@ suite('Participant Controller Test Suite', function () {
 
     test('asks to connect', async function () {
       getSavedConnectionsStub.returns([loadedConnection]);
-      const chatRequestMock = {
+      const chatRequestMock = getMockRequest({
         prompt: 'find all docs by a name example',
         command: 'query',
-        references: [],
-      };
+      });
       const chatResult = await invokeChatHandler(chatRequestMock);
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
@@ -350,11 +366,10 @@ suite('Participant Controller Test Suite', function () {
         });
       }
       getSavedConnectionsStub.returns(connections);
-      const chatRequestMock = {
+      const chatRequestMock = getMockRequest({
         prompt: 'find all docs by a name example',
         command: 'query',
-        references: [],
-      };
+      });
       const chatResult = await invokeChatHandler(chatRequestMock);
       const connectMessage = chatStreamStub.markdown.getCall(0).args[0];
       expect(connectMessage).to.include(
@@ -384,14 +399,16 @@ suite('Participant Controller Test Suite', function () {
 
     test('handles empty connection name', async function () {
       getSavedConnectionsStub.returns([loadedConnection]);
-      const chatRequestMock = {
+      let chatRequestMock = getMockRequest({
         prompt: 'find all docs by a name example',
         command: 'query',
-        references: [],
-      };
+      });
       const chatResult = await invokeChatHandler(chatRequestMock);
 
-      chatRequestMock.prompt = '';
+      chatRequestMock = getMockRequest({
+        prompt: '',
+        command: 'query',
+      });
       await invokeChatHandler(chatRequestMock);
 
       const emptyMessage = chatStreamStub.markdown.getCall(3).args[0];
@@ -505,11 +522,10 @@ suite('Participant Controller Test Suite', function () {
       });
 
       test('prints a welcome message to chat', async function () {
-        const chatRequestMock = {
+        const chatRequestMock = getMockRequest({
           prompt: 'find all docs by a name example',
           command: 'query',
-          references: [],
-        };
+        });
         await invokeChatHandler(chatRequestMock);
         const welcomeMessage = chatStreamStub.markdown.firstCall.args[0];
         expect(welcomeMessage).to.include('Welcome to MongoDB Participant!');
@@ -576,12 +592,10 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('routes to the appropriate handler', async function () {
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt:
                 'what is the shape of the documents in the pineapple collection?',
-              command: undefined,
-              references: [],
-            };
+            });
             const res = await invokeChatHandler(chatRequestMock);
 
             expect(sendRequestStub).to.have.been.calledTwice;
@@ -609,11 +623,9 @@ suite('Participant Controller Test Suite', function () {
         });
 
         test('default handler asks for intent and shows code run actions', async function () {
-          const chatRequestMock = {
+          const chatRequestMock = getMockRequest({
             prompt: 'how to find documents in my collection?',
-            command: undefined,
-            references: [],
-          };
+          });
           const res = await invokeChatHandler(chatRequestMock);
 
           expect(sendRequestStub).to.have.been.calledTwice;
@@ -684,11 +696,10 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('generates a query', async function () {
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: 'find all docs by a name example',
               command: 'query',
-              references: [],
-            };
+            });
             await invokeChatHandler(chatRequestMock);
             expect(chatStreamStub?.button.getCall(0).args[0]).to.deep.equal({
               command: 'mdb.runParticipantCode',
@@ -728,11 +739,10 @@ suite('Participant Controller Test Suite', function () {
                 },
               },
             ]);
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: 'find all docs by a name example',
               command: 'query',
-              references: [],
-            };
+            });
             await invokeChatHandler(chatRequestMock);
             const messages = sendRequestStub.secondCall
               .args[0] as vscode.LanguageModelChatMessage[];
@@ -793,11 +803,10 @@ suite('Participant Controller Test Suite', function () {
                   },
                 },
               ]);
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'find all docs by a name example',
                 command: 'query',
-                references: [],
-              };
+              });
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
@@ -877,11 +886,10 @@ suite('Participant Controller Test Suite', function () {
 
               sampleStub.resolves(sampleDocs);
 
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'find all docs by a name example',
                 command: 'query',
-                references: [],
-              };
+              });
               await invokeChatHandler(chatRequestMock);
 
               const messages = sendRequestStub.secondCall
@@ -956,11 +964,10 @@ suite('Participant Controller Test Suite', function () {
 
               sampleStub.resolves(sampleDocs);
 
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'find all docs by a name example',
                 command: 'query',
-                references: [],
-              };
+              });
               await invokeChatHandler(chatRequestMock);
 
               const messages = sendRequestStub.secondCall
@@ -1030,11 +1037,10 @@ suite('Participant Controller Test Suite', function () {
 
               sampleStub.resolves(sampleDocs);
 
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'find all docs by a name example',
                 command: 'query',
-                references: [],
-              };
+              });
               await invokeChatHandler(chatRequestMock);
 
               const messages = sendRequestStub.secondCall
@@ -1062,11 +1068,10 @@ suite('Participant Controller Test Suite', function () {
 
           suite('useSampleDocsInCopilot setting is false', function () {
             test('does not include sample documents', async function () {
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'find all docs by a name example',
                 command: 'query',
-                references: [],
-              };
+              });
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
@@ -1094,11 +1099,10 @@ suite('Participant Controller Test Suite', function () {
 
         suite('no namespace provided', function () {
           test('asks for a namespace and generates a query', async function () {
-            const chatRequestMock = {
+            let chatRequestMock = getMockRequest({
               prompt: 'find all docs by a name example',
               command: 'query',
-              references: [],
-            };
+            });
             const chatResult = await invokeChatHandler(chatRequestMock);
             const askForDBMessage = chatStreamStub.markdown.getCall(0).args[0];
             expect(askForDBMessage).to.include(
@@ -1135,7 +1139,10 @@ suite('Participant Controller Test Suite', function () {
               chatId: undefined,
             });
 
-            chatRequestMock.prompt = 'dbOne';
+            chatRequestMock = getMockRequest({
+              prompt: 'dbOne',
+              command: 'query',
+            });
             sendRequestStub.onCall(1).resolves({
               text: ['DATABASE_NAME: dbOne\n'],
             });
@@ -1202,7 +1209,10 @@ suite('Participant Controller Test Suite', function () {
               chatId: undefined,
             });
 
-            chatRequestMock.prompt = 'collOne';
+            chatRequestMock = getMockRequest({
+              prompt: 'collOne',
+              command: 'query',
+            });
             sendRequestStub.onCall(2).resolves({
               text: ['DATABASE_NAME: dbOne\n', 'COLLECTION_NAME: collOne\n`'],
             });
@@ -1266,11 +1276,10 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('asks for the empty database name again if the last prompt was doing so', async function () {
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: '',
               command: 'query',
-              references: [],
-            };
+            });
             chatContextStub = {
               history: [
                 createChatRequestTurn(
@@ -1350,11 +1359,10 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('without a prompt it asks for the database name without pinging ai', async function () {
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: '',
               command: 'schema',
-              references: [],
-            };
+            });
             await invokeChatHandler(chatRequestMock);
 
             expect(sendRequestStub.called).to.be.false;
@@ -1365,11 +1373,10 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('with a prompt it asks the ai for the namespace', async function () {
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: 'pineapple',
               command: 'schema',
-              references: [],
-            };
+            });
             await invokeChatHandler(chatRequestMock);
 
             expect(sendRequestStub.calledOnce).to.be.true;
@@ -1386,11 +1393,10 @@ suite('Participant Controller Test Suite', function () {
           });
 
           test('with history, and a blank prompt, it sets a message so it does not cause model error (VSCODE-626)', async function () {
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: '',
               command: 'schema',
-              references: [],
-            };
+            });
             chatContextStub = {
               history: [
                 createChatRequestTurn(
@@ -1432,11 +1438,10 @@ suite('Participant Controller Test Suite', function () {
             });
 
             test('shows a button to view the json output', async function () {
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'what is my schema',
                 command: 'schema',
-                references: [],
-              };
+              });
               sampleStub.resolves([
                 {
                   _id: new ObjectId('63ed1d522d8573fa5c203660'),
@@ -1513,11 +1518,10 @@ suite('Participant Controller Test Suite', function () {
                   },
                 },
               ]);
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'what is my schema',
                 command: 'schema',
-                references: [],
-              };
+              });
               await invokeChatHandler(chatRequestMock);
               const messages = sendRequestStub.secondCall
                 .args[0] as vscode.LanguageModelChatMessage[];
@@ -1557,11 +1561,10 @@ Schema:
 
             test('prints a message when no documents are found', async function () {
               sampleStub.resolves([]);
-              const chatRequestMock = {
+              const chatRequestMock = getMockRequest({
                 prompt: 'what is my schema',
                 command: 'schema',
-                references: [],
-              };
+              });
               await invokeChatHandler(chatRequestMock);
               expect(chatStreamStub?.markdown.getCall(0).args[0]).to.include(
                 'Unable to generate a schema from the collection, no documents found.',
@@ -1611,11 +1614,10 @@ Schema:
               ],
             };
 
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: 'docs request',
               command: 'docs',
-              references: [],
-            };
+            });
 
             await invokeChatHandler(chatRequestMock);
 
@@ -1643,11 +1645,10 @@ Schema:
               ],
             };
 
-            const chatRequestMock = {
+            const chatRequestMock = getMockRequest({
               prompt: 'docs request',
               command: 'docs',
-              references: [],
-            };
+            });
 
             await invokeChatHandler(chatRequestMock);
 
@@ -1677,11 +1678,10 @@ Schema:
         test('shows a message and docs link on empty prompt', async function () {
           fetchStub = sinon.stub().resolves();
           global.fetch = fetchStub;
-          const chatRequestMock = {
+          const chatRequestMock = getMockRequest({
             prompt: '',
             command: 'docs',
-            references: [],
-          };
+          });
           const res = await invokeChatHandler(chatRequestMock);
           expect(fetchStub).to.not.have.been.called;
           expect(sendRequestStub).to.have.not.been.called;
@@ -1706,11 +1706,10 @@ Schema:
               }),
           });
           global.fetch = fetchStub;
-          const chatRequestMock = {
+          const chatRequestMock = getMockRequest({
             prompt: 'how to connect to mongodb',
             command: 'docs',
-            references: [],
-          };
+          });
           await invokeChatHandler(chatRequestMock);
           expect(fetchStub).to.have.been.called;
           expect(sendRequestStub).to.have.not.been.called;
@@ -1734,11 +1733,10 @@ Schema:
             json: () => Promise.reject(new Error('invalid json')),
           });
           global.fetch = fetchStub;
-          const chatRequestMock = {
+          const chatRequestMock = getMockRequest({
             prompt: 'how to connect to mongodb',
             command: 'docs',
-            references: [],
-          };
+          });
           await invokeChatHandler(chatRequestMock);
           expect(sendRequestStub).to.have.been.called;
 
@@ -2014,11 +2012,12 @@ Schema:
 
               let caughtError: Error | undefined;
               try {
-                await invokeChatHandler({
-                  prompt: 'find all docs by a name example',
-                  command,
-                  references: [],
-                });
+                await invokeChatHandler(
+                  getMockRequest({
+                    prompt: 'find all docs by a name example',
+                    command,
+                  }),
+                );
               } catch (error) {
                 caughtError = error as Error;
               }
@@ -2034,11 +2033,12 @@ Schema:
 
               let caughtError: Error | undefined;
               try {
-                await invokeChatHandler({
-                  prompt: 'find all docs by a name example',
-                  command,
-                  references: [],
-                });
+                await invokeChatHandler(
+                  getMockRequest({
+                    prompt: 'find all docs by a name example',
+                    command,
+                  }),
+                );
               } catch (error) {
                 caughtError = error as Error;
               }
@@ -2058,11 +2058,12 @@ Schema:
                 'renderCollectionsTree',
               );
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'what is this',
-                command,
-                references: [],
-              });
+              const chatResult = await invokeChatHandler(
+                getMockRequest({
+                  prompt: 'what is this',
+                  command,
+                }),
+              );
 
               expect(renderDatabasesTreeSpy.called).to.be.false;
               expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
@@ -2085,11 +2086,12 @@ Schema:
                 'renderDatabasesTree',
               );
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command,
-                references: [],
-              });
+              const chatResult = await invokeChatHandler(
+                getMockRequest({
+                  prompt: 'dbOne',
+                  command,
+                }),
+              );
 
               expect(renderDatabasesTreeSpy.calledOnce).to.be.true;
               expect(renderCollectionsTreeSpy.called).to.be.false;
@@ -2120,11 +2122,12 @@ Schema:
 
               let caughtError: Error | undefined;
               try {
-                await invokeChatHandler({
-                  prompt: 'find all docs by a name example',
-                  command,
-                  references: [],
-                });
+                await invokeChatHandler(
+                  getMockRequest({
+                    prompt: 'find all docs by a name example',
+                    command,
+                  }),
+                );
               } catch (error) {
                 caughtError = error as Error;
               }
@@ -2138,11 +2141,12 @@ Schema:
               listCollectionsStub.resolves([]);
               let caughtError: Error | undefined;
               try {
-                await invokeChatHandler({
-                  prompt: 'find all docs by a name example',
-                  command,
-                  references: [],
-                });
+                await invokeChatHandler(
+                  getMockRequest({
+                    prompt: 'find all docs by a name example',
+                    command,
+                  }),
+                );
               } catch (error) {
                 caughtError = error as Error;
               }
@@ -2163,11 +2167,12 @@ Schema:
                 '_fetchCollectionSchemaAndSampleDocuments',
               );
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command,
-                references: [],
-              });
+              const chatResult = await invokeChatHandler(
+                getMockRequest({
+                  prompt: 'dbOne',
+                  command,
+                }),
+              );
 
               expect(renderCollectionsTreeSpy.called).to.be.false;
 
@@ -2193,11 +2198,12 @@ Schema:
                 '_fetchCollectionSchemaAndSampleDocuments',
               );
 
-              const chatResult = await invokeChatHandler({
-                prompt: 'dbOne',
-                command,
-                references: [],
-              });
+              const chatResult = await invokeChatHandler(
+                getMockRequest({
+                  prompt: 'dbOne',
+                  command,
+                }),
+              );
 
               expect(renderCollectionsTreeSpy.calledOnce).to.be.true;
               expect(fetchCollectionSchemaAndSampleDocumentsSpy.called).to.be
@@ -2650,7 +2656,9 @@ Schema:
         const messageContents = messages.map((message) => {
           // There may be different types for the messages' content
           const content = Array.isArray(message.content)
-            ? message.content.map((sub) => sub.value).join('')
+            ? message.content
+                .map((sub) => (sub as vscode.LanguageModelTextPart).value)
+                .join('')
             : message.content;
 
           return content;

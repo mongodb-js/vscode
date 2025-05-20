@@ -57,6 +57,7 @@ import {
 } from './telemetry';
 
 import * as queryString from 'query-string';
+import MCPController from './mcp/mcpController';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -82,6 +83,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
+  _mcpController: MCPController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -164,6 +166,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       storageController: this._storageController,
       telemetryService: this._telemetryService,
     });
+    this._mcpController = new MCPController(this._connectionController);
     this._editorsController.registerProviders();
   }
 
@@ -211,6 +214,18 @@ export default class MDBExtensionController implements vscode.Disposable {
         );
       }, 3000);
     }
+
+    void this._mcpController.startServer();
+    this._context.subscriptions.push(
+      (vscode.lm as any).registerMcpServerDefinitionProvider('mongodb-mcp', {
+        onDidChangeMcpServerDefinitions:
+          this._mcpController.didChangeEmitter.event,
+        provideMcpServerDefinitions: () => {
+          const definition = this._mcpController.mcpServerDefinition;
+          return definition ? [definition] : [];
+        },
+      }),
+    );
   }
 
   registerUriHandler = (): void => {
@@ -926,6 +941,32 @@ export default class MDBExtensionController implements vscode.Disposable {
         return true;
       },
     );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MCP_SERVER_START,
+      async (): Promise<boolean> => {
+        await this._mcpController.startServer();
+
+        return true;
+      },
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MCP_SERVER_STOP,
+      async (): Promise<boolean> => {
+        await this._mcpController.stopServer();
+        return true;
+      },
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.MCP_SERVER_RESTART,
+      async (): Promise<boolean> => {
+        await this._mcpController.restartServer();
+        return true;
+      },
+    );
+
     this.registerAtlasStreamsTreeViewCommands();
   }
 

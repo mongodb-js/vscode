@@ -189,15 +189,10 @@ export class TelemetryService {
     this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
   }
 
-  private async getDeviceId(): Promise<string> {
-    const { value: deviceId, resolve: resolveDeviceId } = getDeviceId({
+  private getDeviceId(): Promise<string> {
+    return getDeviceId({
       getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
-      isNodeMachineId: true,
     });
-
-    this.resolveDeviceId = resolveDeviceId;
-
-    return deviceId;
   }
 
   trackParticipantError(err: any, command: ParticipantResponseType): void {

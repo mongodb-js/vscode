@@ -67,13 +67,13 @@ export const formatDocCount = (count: number): string => {
   return `${numeral(count).format('0a')}`.toUpperCase();
 };
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'documents.svg'),
-    dark: path.join(DARK, 'documents.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'documents.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'documents.svg')),
   };
 }
 
@@ -113,7 +113,7 @@ export default class DocumentListTreeItem
 
   isExpanded: boolean;
 
-  iconPath: { light: string; dark: string };
+  iconPath: { light: vscode.Uri; dark: vscode.Uri };
 
   constructor({
     collectionName,

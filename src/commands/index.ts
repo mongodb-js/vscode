@@ -84,6 +84,11 @@ enum EXTENSION_COMMANDS {
   SELECT_COLLECTION_WITH_PARTICIPANT = 'mdb.selectCollectionWithParticipant',
   PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT = 'mdb.participantViewRawSchemaOutput',
   SHOW_EXPORT_TO_LANGUAGE_RESULT = 'mdb.showExportToLanguageResult',
+
+  // MCP Server
+  MCP_SERVER_START = 'mdb.startMcpServer',
+  MCP_SERVER_STOP = 'mdb.stopMcpServer',
+  MCP_SERVER_RESTART = 'mdb.restartMcpServer',
 }
 
 export type ExtensionCommand = EXTENSION_COMMANDS;

@@ -471,7 +471,7 @@ export default class ConnectionController {
       ),
     });
 
-    let dataService;
+    let dataService: DataService | void;
     try {
       const notifyDeviceFlow = getNotifyDeviceFlowForConnectionAttempt(
         connectionInfo.connectionOptions,

@@ -219,6 +219,7 @@ const mockVSCodeTextDocument = {
   isClosed: true,
   eol: vscode.EndOfLine.LF,
   lineCount: 20,
+  encoding: 'utf8',
   save: (): Promise<boolean> => Promise.resolve(true),
 
   // lineAt: (line: number): vscode.TextLine => mockTextLine,

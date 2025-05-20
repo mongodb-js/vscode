@@ -564,6 +564,7 @@ async function runTest({
   const chatCompletion = await aiBackend.runAIChatCompletionGeneration({
     messages: messages.map((message) => ({
       ...message,
+      content: message.content.toString(),
       role:
         message.role === vscode.LanguageModelChatMessageRole.User
           ? 'user'

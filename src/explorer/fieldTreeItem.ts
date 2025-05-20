@@ -135,7 +135,7 @@ function getFieldTypeString(field: SchemaFieldType): string {
 
 function getIconPath(
   field: SchemaFieldType,
-): string | { light: string; dark: string } {
+): string | { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
@@ -147,8 +147,8 @@ function getIconPath(
   }
 
   return {
-    light: path.join(LIGHT, 'schema', `${iconFileName}.svg`),
-    dark: path.join(DARK, 'schema', `${iconFileName}.svg`),
+    light: vscode.Uri.file(path.join(LIGHT, 'schema', `${iconFileName}.svg`)),
+    dark: vscode.Uri.file(path.join(DARK, 'schema', `${iconFileName}.svg`)),
   };
 }
 
@@ -173,7 +173,7 @@ export default class FieldTreeItem
 
   isExpanded: boolean;
 
-  iconPath: string | { light: string; dark: string };
+  iconPath: string | { light: vscode.Uri; dark: vscode.Uri };
 
   constructor({
     field,
