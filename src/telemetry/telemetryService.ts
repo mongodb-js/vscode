@@ -46,8 +46,9 @@ export class TelemetryService {
   private readonly _context: vscode.ExtensionContext;
   private readonly _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
 
+  private readonly _deviceIdAbortController = new AbortController();
+
   public deviceId: string | undefined;
-  private resolveDeviceId: ((value: string) => void) | undefined;
 
   constructor(
     storageController: StorageController,
@@ -119,7 +120,7 @@ export class TelemetryService {
   }
 
   deactivate(): void {
-    this.resolveDeviceId?.('unknown');
+    this._deviceIdAbortController.abort();
     // Flush on demand to make sure that nothing is left in the queue.
     void this._segmentAnalytics?.closeAndFlush();
   }
@@ -189,17 +190,6 @@ export class TelemetryService {
     this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
   }
 
-  private async getDeviceId(): Promise<string> {
-    const { value: deviceId, resolve: resolveDeviceId } = getDeviceId({
-      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
-      isNodeMachineId: true,
-    });
-
-    this.resolveDeviceId = resolveDeviceId;
-
-    return deviceId;
-  }
-
   trackParticipantError(err: any, command: ParticipantResponseType): void {
     let errorCode: string | undefined;
     let errorName: ParticipantErrorTypes;
@@ -244,4 +234,11 @@ export class TelemetryService {
     5000,
     { leading: true, trailing: false },
   );
+
+  private getDeviceId(): Promise<string> {
+    return getDeviceId({
+      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
+      abortSignal: this._deviceIdAbortController.signal,
+    });
+  }
 }
