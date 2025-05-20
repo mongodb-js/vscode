@@ -46,8 +46,9 @@ export class TelemetryService {
   private readonly _context: vscode.ExtensionContext;
   private readonly _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
 
+  private readonly _deviceIdAbortController = new AbortController();
+
   public deviceId: string | undefined;
-  private resolveDeviceId: ((value: string) => void) | undefined;
 
   constructor(
     storageController: StorageController,
@@ -98,7 +99,10 @@ export class TelemetryService {
       flushInterval: 10000, // 10 seconds is the default libraries' value.
     });
 
-    this.deviceId = await this.getDeviceId();
+    this.deviceId = await getDeviceId({
+      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
+      abortSignal: this._deviceIdAbortController.signal,
+    });
 
     const userIdentity = {
       anonymousId: this.anonymousId,
@@ -119,7 +123,7 @@ export class TelemetryService {
   }
 
   deactivate(): void {
-    this.resolveDeviceId?.('unknown');
+    this._deviceIdAbortController.abort();
     // Flush on demand to make sure that nothing is left in the queue.
     void this._segmentAnalytics?.closeAndFlush();
   }
@@ -187,17 +191,6 @@ export class TelemetryService {
       await getConnectionTelemetryProperties(dataService, connectionType);
 
     this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
-  }
-
-  private async getDeviceId(): Promise<string> {
-    const { value: deviceId, resolve: resolveDeviceId } = getDeviceId({
-      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
-      isNodeMachineId: true,
-    });
-
-    this.resolveDeviceId = resolveDeviceId;
-
-    return deviceId;
   }
 
   trackParticipantError(err: any, command: ParticipantResponseType): void {
