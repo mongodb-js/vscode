@@ -99,10 +99,7 @@ export class TelemetryService {
       flushInterval: 10000, // 10 seconds is the default libraries' value.
     });
 
-    this.deviceId = await getDeviceId({
-      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
-      abortSignal: this._deviceIdAbortController.signal,
-    });
+    this.deviceId = await this.getDeviceId();
 
     const userIdentity = {
       anonymousId: this.anonymousId,
@@ -237,4 +234,11 @@ export class TelemetryService {
     5000,
     { leading: true, trailing: false },
   );
+
+  private getDeviceId(): Promise<string> {
+    return getDeviceId({
+      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
+      abortSignal: this._deviceIdAbortController.signal,
+    });
+  }
 }
