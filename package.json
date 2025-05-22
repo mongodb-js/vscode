@@ -1277,6 +1277,11 @@
               "connectionString"
             ]
           }
+        },
+        "mdb.showOverviewPageAfterInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "Specify whether to show the overview page immediately after installing the extension."
         }
       }
     },
