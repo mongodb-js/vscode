@@ -1018,24 +1018,35 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   showOverviewPageIfRecentlyInstalled(): void {
+    const showOverviewFromSettings = vscode.workspace
+      .getConfiguration('mdb')
+      .get<boolean>('showOverviewPageAfterInstall');
+
+    if (!showOverviewFromSettings) {
+      // Users may opt out of showing the overview page in the settings.
+      return;
+    }
+
     const hasBeenShownViewAlready = !!this._storageController.get(
       StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
     );
 
-    // Show the overview page when it hasn't been show to the
-    // user yet, and they have no saved connections.
-    if (!hasBeenShownViewAlready) {
-      if (!this._connectionStorage.hasSavedConnections()) {
-        void vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE,
-        );
-      }
+    if (hasBeenShownViewAlready) {
+      // Don't show the overview page if it has already been shown.
+      return;
+    }
 
-      void this._storageController.update(
-        StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
-        true,
+    if (!this._connectionStorage.hasSavedConnections()) {
+      // Only show the overview page if there are no saved connections.
+      void vscode.commands.executeCommand(
+        EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE,
       );
     }
+
+    void this._storageController.update(
+      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+      true,
+    );
   }
 
   async dispose(): Promise<void> {

@@ -1716,6 +1716,32 @@ suite('MDBExtensionController Test Suite', function () {
           assert(!executeCommandStub.called);
         });
       });
+
+      suite('when a user has opted out of the overview page', () => {
+        beforeEach(async () => {
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('showOverviewPageAfterInstall', false);
+
+          sandbox.replace(
+            mdbTestExtension.testExtensionController._storageController,
+            'get',
+            sandbox.fake.returns(false),
+          );
+
+          void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
+        });
+
+        afterEach(async () => {
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('showOverviewPageAfterInstall', undefined);
+        });
+
+        test('they are not shown the overview page', () => {
+          assert(!executeCommandStub.called);
+        });
+      });
     });
   });
 
