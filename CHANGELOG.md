@@ -1,5 +1,13 @@
 # Change Log
 
+## [v1.13.3](https://github.com/mongodb-js/vscode/releases/tag/v1.13.3) - 2025-06-09
+
+## What's Changed
+* chore: allow opting out of the welcome screen. This is mostly useful when including the extension in a preconfigured environment (e.g. Github Codespaces) where displaying the welcome screen is undesirable. VSCODE-697 by @nirinchev in https://github.com/mongodb-js/vscode/pull/1053
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.13.2...v1.13.3
+
+
 ## [v1.13.2](https://github.com/mongodb-js/vscode/releases/tag/v1.13.2) - 2025-05-07
 
 * chore(deps): bump the compass group with 3 updates by @dependabot in https://github.com/mongodb-js/vscode/pull/1035
