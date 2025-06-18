@@ -1322,7 +1322,7 @@
     "@babel/traverse": "^7.25.7",
     "@mongodb-js/compass-components": "^1.38.0",
     "@mongodb-js/connection-form": "1.52.2",
-    "@mongodb-js/connection-info": "^0.15.0",
+    "@mongodb-js/connection-info": "^0.15.2",
     "@mongodb-js/device-id": "^0.3.0",
     "@mongodb-js/mongodb-constants": "^0.11.1",
     "@mongosh/browser-runtime-electron": "^3.13.0",
