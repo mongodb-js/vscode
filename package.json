@@ -1282,6 +1282,46 @@
           "type": "boolean",
           "default": true,
           "description": "Specify whether to show the overview page immediately after installing the extension."
+        },
+        "mdb.mcp.apiBaseUrl": {
+          "type": "string",
+          "default": "https://cloud.mongodb.com/",
+          "description": "Atlas API URL. Required for running Atlas tools."
+        },
+        "mdb.mcp.apiClientId": {
+          "type": "string",
+          "default": "",
+          "description": "Atlas API client ID for authentication. Required for running Atlas tools."
+        },
+        "mdb.mcp.apiClientSecret": {
+          "type": "string",
+          "default": "",
+          "description": "Atlas API client secret for authentication. Required for running Atlas tools."
+        },
+        "mdb.mcp.disabledTools": {
+          "type": "array",
+          "default": [],
+          "description": "An array of tool names, operation types, and/or categories of tools that will be disabled."
+        },
+        "mdb.mcp.readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "When set to true, only allows read, connect, and metadata operation types, disabling create/update/delete operations."
+        },
+        "mdb.mcp.indexCheck": {
+          "type": "boolean",
+          "default": false,
+          "description": "When set to true, enforces that query operations must use an index, rejecting queries that perform a collection scan."
+        },
+        "mdb.mcp.server": {
+          "type": "string",
+          "enum": [
+            "enabled",
+            "disabled",
+            "ask"
+          ],
+          "default": "ask",
+          "description": "Controls whether MCP server starts automatically or only when permitted."
         }
       }
     },
