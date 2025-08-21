@@ -113,11 +113,11 @@ suite('IndexListTreeItem Test Suite', () => {
     });
 
     const indexesIconPath = testIndexListTreeItem.iconPath as {
-      light: string;
-      dark: string;
+      light: vscode.Uri;
+      dark: vscode.Uri;
     };
     assert(
-      indexesIconPath.dark.includes('indexes.svg'),
+      indexesIconPath.dark.toString().includes('indexes.svg'),
       'Expected icon path to point to an svg by the name "indexes" with a dark mode',
     );
   });

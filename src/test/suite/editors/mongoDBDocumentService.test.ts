@@ -71,7 +71,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService,
+      fakeGetActiveDataService as any,
     );
     sandbox.stub(testStatusView, 'showMessage');
     sandbox.stub(testStatusView, 'hideMessage');
@@ -122,7 +122,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService,
+      fakeGetActiveDataService as any,
     );
     sandbox.stub(testStatusView, 'showMessage');
     sandbox.stub(testStatusView, 'hideMessage');
@@ -154,7 +154,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService,
+      fakeGetActiveDataService as any,
     );
 
     const fakeGetActiveConnectionId = sandbox.fake.returns(connectionId);
@@ -204,7 +204,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveDataService',
-      fakeGetActiveDataService,
+      fakeGetActiveDataService as any,
     );
 
     const fakeGetActiveConnectionId = sandbox.fake.returns(connectionId);

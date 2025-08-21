@@ -19,6 +19,7 @@ suite('Collection CodeLens Provider Test Suite', () => {
       ...mockVSCodeTextDocument,
       uri,
       lineCount: 50,
+      encoding: 'utf8',
     };
 
     const codeLens = testCodeLensProvider.provideCodeLenses(mockDocument);

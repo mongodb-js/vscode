@@ -105,7 +105,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getMongoClientConnectionOptions',
           sandbox.fake.returns({
             url: TEST_DATABASE_URI,
-          }),
+          } as any),
         );
         const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
@@ -127,7 +127,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getMongoClientConnectionOptions',
           sandbox.fake.returns({
             url: `${TEST_DATABASE_URI}/fakeDBName`,
-          }),
+          } as any),
         );
         const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
         expect(codeLens).to.be.an('array');

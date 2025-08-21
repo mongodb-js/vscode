@@ -144,7 +144,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         sandbox.replace(
           vscode.extensions,
           'getExtension',
-          sandbox.fake.returns({ isActive: true }),
+          sandbox.fake.returns({ isActive: true } as any),
         );
       });
 

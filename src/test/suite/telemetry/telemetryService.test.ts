@@ -102,7 +102,7 @@ suite('Telemetry Controller Test Suite', () => {
       mdbTestExtension.testExtensionController._playgroundController
         ._connectionController,
       'getMongoClientConnectionOptions',
-      sandbox.fake.returns('mongodb://localhost'),
+      sandbox.fake.returns('mongodb://localhost') as any,
     );
     sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.stub(vscode.window, 'showInformationMessage');

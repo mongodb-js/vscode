@@ -173,8 +173,9 @@ suite('Collection Documents Provider Test Suite', () => {
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
 
-    assert(
-      testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
+    assert.strictEqual(
+      testQueryStore.operations[operationId].hasMoreDocumentsToShow,
+      false,
       'Expected not to have more documents to show.',
     );
 
@@ -230,7 +231,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
-      fakeGetActiveDataService,
+      fakeGetActiveDataService as any,
     );
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
     sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
@@ -405,7 +406,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
-      fakeGetActiveDataService,
+      fakeGetActiveDataService as any,
     );
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
     sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');

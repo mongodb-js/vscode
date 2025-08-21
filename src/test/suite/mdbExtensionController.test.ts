@@ -573,7 +573,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         vscode.workspace,
         'getConfiguration',
-        fakeGetConfiguration,
+        fakeGetConfiguration as any,
       );
       await vscode.commands.executeCommand('mdb.createPlayground');
 
@@ -588,7 +588,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         vscode.workspace,
         'getConfiguration',
-        fakeGetConfiguration,
+        fakeGetConfiguration as any,
       );
       await vscode.commands.executeCommand('mdb.createPlayground');
 
@@ -962,7 +962,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        fakeGetActiveDataService,
+        fakeGetActiveDataService as any,
       );
 
       const documentItem = getTestDocumentTreeItem({
@@ -1611,7 +1611,7 @@ suite('MDBExtensionController Test Suite', function () {
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
-              sandbox.fake.returns(false),
+              sandbox.fake.returns(false as any),
             );
             sandbox.replace(
               mdbTestExtension.testExtensionController._connectionStorage,
@@ -1665,7 +1665,7 @@ suite('MDBExtensionController Test Suite', function () {
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
-              sandbox.fake.returns(undefined),
+              sandbox.fake.returns(undefined as any),
             );
             sandbox.replace(
               mdbTestExtension.testExtensionController._connectionStorage,
@@ -1706,7 +1706,7 @@ suite('MDBExtensionController Test Suite', function () {
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
-            sandbox.fake.returns(true),
+            sandbox.fake.returns(true as any),
           );
 
           void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
@@ -1726,7 +1726,7 @@ suite('MDBExtensionController Test Suite', function () {
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
-            sandbox.fake.returns(false),
+            sandbox.fake.returns(false as any),
           );
 
           void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();

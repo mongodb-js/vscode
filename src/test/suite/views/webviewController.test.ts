@@ -485,7 +485,7 @@ suite('Webview Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'renameConnection',
-      mockRenameConnectionOnConnectionController,
+      mockRenameConnectionOnConnectionController as any,
     );
 
     void testWebviewController.openWebview(

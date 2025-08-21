@@ -51,7 +51,7 @@ suite('Playground', function () {
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveDataService',
-      fakeGetActiveDataService,
+      fakeGetActiveDataService as any,
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
@@ -71,7 +71,7 @@ suite('Playground', function () {
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getMongoClientConnectionOptions',
-      fakeGetMongoClientConnectionOptions,
+      fakeGetMongoClientConnectionOptions as any,
     );
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
 

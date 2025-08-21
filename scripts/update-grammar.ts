@@ -1,5 +1,5 @@
 import path from 'path';
-import mkdirp from 'mkdirp';
+import { mkdirp } from 'mkdirp';
 import ora from 'ora';
 import fs from 'fs';
 import { promisify } from 'util';

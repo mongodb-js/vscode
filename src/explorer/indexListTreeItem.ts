@@ -11,13 +11,13 @@ import type TreeItemParent from './treeItemParentInterface';
 
 const ITEM_LABEL = 'Indexes';
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'indexes.svg'),
-    dark: path.join(DARK, 'indexes.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'indexes.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'indexes.svg')),
   };
 }
 
