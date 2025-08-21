@@ -57,6 +57,7 @@ import {
 } from './telemetry';
 
 import * as queryString from 'query-string';
+import { MCPController } from './mcp/mcpController';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -82,6 +83,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
+  _mcpController: MCPController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -165,6 +167,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
+    this._mcpController = new MCPController(context);
   }
 
   subscribeToConfigurationChanges(): void {
@@ -927,6 +930,22 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerAtlasStreamsTreeViewCommands();
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.START_MCP_SERVER,
+      async (): Promise<boolean> => {
+        await this._mcpController.startServer();
+        return true;
+      },
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.STOP_MCP_SERVER,
+      async (): Promise<boolean> => {
+        await this._mcpController.stopServer();
+        return true;
+      },
+    );
   }
 
   registerAtlasStreamsTreeViewCommands(): void {

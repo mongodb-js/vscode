@@ -186,7 +186,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const viewIconPath = testCollectionViewTreeItem.iconPath;
     assert(
-      viewIconPath.dark.includes('documents.svg'),
+      viewIconPath.dark.toString().includes('documents.svg'),
       'Expected icon path to point to an svg by the name "documents" a dark mode',
     );
 
@@ -197,7 +197,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const collectionIconPath = testDocumentListTreeItem.iconPath;
     assert(
-      collectionIconPath.dark.includes('documents.svg'),
+      collectionIconPath.dark.toString().includes('documents.svg'),
       'Expected icon path to point to an svg by the name "documents" with a light mode',
     );
   });

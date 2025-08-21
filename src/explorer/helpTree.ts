@@ -10,7 +10,7 @@ const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
 function getIconPath(
   iconName?: string,
-): string | { light: string; dark: string } {
+): string | { light: vscode.Uri; dark: vscode.Uri } {
   if (!iconName || iconName === '') {
     return '';
   }
@@ -19,8 +19,8 @@ function getIconPath(
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'help', `${iconName}.svg`),
-    dark: path.join(DARK, 'help', `${iconName}.svg`),
+    light: vscode.Uri.file(path.join(LIGHT, 'help', `${iconName}.svg`)),
+    dark: vscode.Uri.file(path.join(DARK, 'help', `${iconName}.svg`)),
   };
 }
 

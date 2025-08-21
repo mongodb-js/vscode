@@ -86,8 +86,14 @@ suite('CollectionTreeItem Test Suite', () => {
     });
 
     const viewIconPath = testCollectionViewTreeItem.iconPath;
-    assert.strictEqual(viewIconPath.light.includes('view-folder.svg'), true);
-    assert.strictEqual(viewIconPath.dark.includes('view-folder.svg'), true);
+    assert.strictEqual(
+      viewIconPath.light.toString().includes('view-folder.svg'),
+      true,
+    );
+    assert.strictEqual(
+      viewIconPath.dark.toString().includes('view-folder.svg'),
+      true,
+    );
 
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
       collection: {
@@ -97,11 +103,15 @@ suite('CollectionTreeItem Test Suite', () => {
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert.strictEqual(
-      collectionIconPath.light.includes('collection-folder-closed.svg'),
+      collectionIconPath.light
+        .toString()
+        .includes('collection-folder-closed.svg'),
       true,
     );
     assert.strictEqual(
-      collectionIconPath.dark.includes('collection-folder-closed.svg'),
+      collectionIconPath.dark
+        .toString()
+        .includes('collection-folder-closed.svg'),
       true,
     );
   });
@@ -115,11 +125,11 @@ suite('CollectionTreeItem Test Suite', () => {
     });
     const viewIconPath = testCollectionTimeSeriesTreeItem.iconPath;
     assert.strictEqual(
-      viewIconPath.light.includes('collection-timeseries.svg'),
+      viewIconPath.light.toString().includes('collection-timeseries.svg'),
       true,
     );
     assert.strictEqual(
-      viewIconPath.dark.includes('collection-timeseries.svg'),
+      viewIconPath.dark.toString().includes('collection-timeseries.svg'),
       true,
     );
 
@@ -131,11 +141,15 @@ suite('CollectionTreeItem Test Suite', () => {
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert.strictEqual(
-      collectionIconPath.light.includes('collection-folder-closed.svg'),
+      collectionIconPath.light
+        .toString()
+        .includes('collection-folder-closed.svg'),
       true,
     );
     assert.strictEqual(
-      collectionIconPath.dark.includes('collection-folder-closed.svg'),
+      collectionIconPath.dark
+        .toString()
+        .includes('collection-folder-closed.svg'),
       true,
     );
   });

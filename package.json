@@ -521,6 +521,14 @@
       {
         "command": "mdb.dropStreamProcessor",
         "title": "Drop Stream Processor..."
+      },
+      {
+        "command": "mdb.startMCPServer",
+        "title": "Start MongoDB MCP Server"
+      },
+      {
+        "command": "mdb.stopMCPServer",
+        "title": "Stop MongoDB MCP Server"
       }
     ],
     "menus": {
@@ -1314,7 +1322,13 @@
           "fontCharacter": "\\ea04"
         }
       }
-    }
+    },
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "mongodb",
+        "label": "MongoDB MCP Server Definition Provider"
+      }
+    ]
   },
   "dependencies": {
     "@babel/core": "^7.25.8",
@@ -1342,6 +1356,7 @@
     "mongodb-connection-string-url": "^3.0.2",
     "mongodb-data-service": "^22.25.5",
     "mongodb-log-writer": "^2.4.1",
+    "mongodb-mcp-server": "0.2.0",
     "mongodb-query-parser": "^4.4.0",
     "mongodb-schema": "^12.6.2",
     "node-machine-id": "1.1.12",
@@ -1359,7 +1374,7 @@
     "@babel/preset-typescript": "^7.25.7",
     "@babel/types": "^7.25.8",
     "@mongodb-js/oidc-mock-provider": "^0.11.0",
-    "@mongodb-js/oidc-plugin": "^1.1.8",
+    "@mongodb-js/oidc-plugin": "^2.0.3",
     "@mongodb-js/prettier-config-devtools": "^1.0.2",
     "@mongodb-js/sbom-tools": "^0.8.1",
     "@mongodb-js/signing-utils": "^0.4.0",
@@ -1372,7 +1387,6 @@
     "@types/glob": "^7.2.0",
     "@types/lodash": "^4.17.14",
     "@types/micromatch": "^4.0.9",
-    "@types/mkdirp": "^2.0.0",
     "@types/mocha": "^8.2.3",
     "@types/node": "^14.18.63",
     "@types/prettier": "^2.7.3",
@@ -1381,7 +1395,7 @@
     "@types/sinon": "^9.0.11",
     "@types/sinon-chai": "^3.2.12",
     "@types/uuid": "^8.3.4",
-    "@types/vscode": "^1.94.0",
+    "@types/vscode": "^1.103.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^2.4.1",
