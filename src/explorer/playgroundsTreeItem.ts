@@ -4,13 +4,13 @@ import { getImagesPath } from '../extensionConstants';
 
 export const PLAYGROUND_ITEM = 'playgroundsTreeItem';
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'file-light.svg'),
-    dark: path.join(DARK, 'file-light.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'file-light.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'file-light.svg')),
   };
 }
 

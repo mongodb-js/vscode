@@ -230,9 +230,9 @@ suite('Connection Controller Test Suite', function () {
         options: {
           autoEncryption: undefined,
           monitorCommands: true,
-          applyProxyToOIDC: false,
+          applyProxyToOIDC: {},
           authMechanismProperties: {},
-          oidc: { customHttpOptions: {} },
+          oidc: {},
           productDocsLink:
             'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
           productName: 'mongodb-vscode',
@@ -1255,9 +1255,9 @@ suite('Connection Controller Test Suite', function () {
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
-        applyProxyToOIDC: false,
+        applyProxyToOIDC: {},
         authMechanismProperties: {},
-        oidc: { customHttpOptions: {} },
+        oidc: {},
         productDocsLink:
           'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
         productName: 'mongodb-vscode',

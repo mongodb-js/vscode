@@ -1,6 +1,7 @@
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
+import type * as vscode from 'vscode';
 
 import { ext } from '../../../extensionConstants';
 import FieldTreeItem, {
@@ -76,9 +77,12 @@ suite('FieldTreeItem Test Suite', function () {
 
     const stringField = getTestFieldTreeItem();
 
-    const iconPath = stringField.iconPath as { light: string; dark: string };
-    assert(iconPath.dark.includes('string.svg'));
-    assert(iconPath.light.includes('string.svg'));
+    const iconPath = stringField.iconPath as {
+      light: vscode.Uri;
+      dark: vscode.Uri;
+    };
+    assert(iconPath.dark.toString().includes('string.svg'));
+    assert(iconPath.light.toString().includes('string.svg'));
 
     const numberField = getTestFieldTreeItem({
       field: {
@@ -89,9 +93,12 @@ suite('FieldTreeItem Test Suite', function () {
       },
     });
 
-    const numberIcon = numberField.iconPath as { light: string; dark: string };
-    assert(numberIcon.dark.includes('number.svg'));
-    assert(numberIcon.light.includes('number.svg'));
+    const numberIcon = numberField.iconPath as {
+      light: vscode.Uri;
+      dark: vscode.Uri;
+    };
+    assert(numberIcon.dark.toString().includes('number.svg'));
+    assert(numberIcon.light.toString().includes('number.svg'));
   });
 
   test('getIconFileNameForField should return "mixed-type" for a polymorphic type field', () => {
