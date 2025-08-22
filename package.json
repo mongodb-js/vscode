@@ -1286,7 +1286,7 @@
         "mdb.mcp.apiBaseUrl": {
           "type": "string",
           "default": "https://cloud.mongodb.com/",
-          "description": "Atlas API URL. Required for running Atlas tools."
+          "description": "API URL of MongoDB Atlas. Required for running Atlas tools."
         },
         "mdb.mcp.apiClientId": {
           "type": "string",
@@ -1300,6 +1300,9 @@
         },
         "mdb.mcp.disabledTools": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "An array of tool names, operation types, and/or categories of tools that will be disabled."
         },
@@ -1322,6 +1325,48 @@
           ],
           "default": "ask",
           "description": "Controls whether MCP server starts automatically or only when permitted."
+        },
+        "mdb.mcp.telemetry": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow the builtin MongoDB MCP server to collect anonymous diagnostic and usage telemetry data."
+        },
+        "mdb.mcp.exportsPath": {
+          "type": "string",
+          "default": "",
+          "description": "The directory where the export tool will export the data to. Leave it empty to use the default path."
+        },
+        "mdb.mcp.exportTimeoutMs": {
+          "type": "number",
+          "default": 300000,
+          "description": "The time in milliseconds after which an export will expire."
+        },
+        "mdb.mcp.exportCleanupIntervalMs": {
+          "type": "number",
+          "default": 120000,
+          "description": "The time in milliseconds that controls how often export clean up should run."
+        },
+        "mdb.mcp.loggers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "mcp",
+              "disk",
+              "stderr"
+            ]
+          },
+          "uniqueItems": true,
+          "default": [
+            "mcp",
+            "disk"
+          ],
+          "description": "Controls which loggers the MCP server will use for diagnostic logging."
+        },
+        "mdb.mcp.logPath": {
+          "type": "string",
+          "default": "",
+          "description": "The directory where the disk logger, when selected, will write the logs to. Leave it empty to use the default path."
         }
       }
     },
