@@ -1286,17 +1286,17 @@
         "mdb.mcp.apiBaseUrl": {
           "type": "string",
           "default": "https://cloud.mongodb.com/",
-          "description": "API URL of MongoDB Atlas. Required for running Atlas tools."
+          "description": "API URL of MongoDB Atlas to be used by MongoDB MCP server for enabling Atlas tools. When empty, it defaults to 'https://cloud.mongodb.com/'."
         },
         "mdb.mcp.apiClientId": {
           "type": "string",
           "default": "",
-          "description": "Atlas API client ID for authentication. Required for running Atlas tools."
+          "description": "Atlas API client ID, to be used by MongoDB MCP server, preferably for a Service Account (https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization), for authentication. Required for running Atlas tools."
         },
         "mdb.mcp.apiClientSecret": {
           "type": "string",
           "default": "",
-          "description": "Atlas API client secret for authentication. Required for running Atlas tools."
+          "description": "Atlas API client secret, to be used by MongoDB MCP server, preferably through a Service Account (https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization), for authentication. Required for running Atlas tools."
         },
         "mdb.mcp.disabledTools": {
           "type": "array",
@@ -1304,17 +1304,17 @@
             "type": "string"
           },
           "default": [],
-          "description": "Tool names, operation types (create, update, delete, read, metadata, connect), and/or categories (atlas, mongodb) to disable."
+          "description": "Tool names, operation types (create, update, delete, read, metadata), and/or categories (atlas, mongodb) to disable in MongoDB MCP server."
         },
         "mdb.mcp.readOnly": {
           "type": "boolean",
           "default": false,
-          "description": "When set to true, only allows read, connect, and metadata operation types, disabling create/update/delete operations."
+          "description": "When set to true, only allows read, connect, and metadata operation types, disabling create/update/delete operations in MongoDB MCP server."
         },
         "mdb.mcp.indexCheck": {
           "type": "boolean",
           "default": false,
-          "description": "When set to true, enforces that query operations must use an index, rejecting queries that perform a collection scan."
+          "description": "When set to true, enforces that query operations must use an index, rejecting queries that perform a collection scan in MongoDB MCP server."
         },
         "mdb.mcp.server": {
           "type": "string",
@@ -1324,31 +1324,22 @@
             "ask"
           ],
           "default": "ask",
-          "description": "Controls whether MCP server starts automatically or only when permitted."
-        },
-        "mdb.mcp.telemetry": {
-          "type": "string",
-          "enum": [
-            "enabled",
-            "disabled"
-          ],
-          "default": "enabled",
-          "description": "Controls whether telemetry collection by the MCP server is enabled or disabled."
+          "description": "Controls whether MongoDB MCP server starts automatically with the extension or if a permission is requested when connecting to a new connection. If automatic startup is disabled, the server can still be started using the 'MongoDB: Start MCP Server' command."
         },
         "mdb.mcp.exportsPath": {
           "type": "string",
           "default": "",
-          "description": "The directory where the export tool will export data. Leave empty to use the default path."
+          "description": "The directory where the export tool from MongoDB MCP server will export data. Leave empty to use the default path."
         },
         "mdb.mcp.exportTimeoutMs": {
           "type": "number",
           "default": 300000,
-          "description": "The time in milliseconds after which an export will expire."
+          "description": "The time in milliseconds after which the MongoDB MCP server will expire the export."
         },
         "mdb.mcp.exportCleanupIntervalMs": {
           "type": "number",
           "default": 120000,
-          "description": "Controls how often the export cleanup process runs to remove expired files (in milliseconds)."
+          "description": "Controls how often the MongoDB MCP server runs the export cleanup process to remove expired files (in milliseconds)."
         },
         "mdb.mcp.loggers": {
           "type": "array",
@@ -1365,12 +1356,12 @@
             "disk",
             "mcp"
           ],
-          "description": "Controls which loggers the MCP server will use for diagnostic logging."
+          "description": "Controls which loggers the MongoDB MCP server will use for diagnostic logging."
         },
         "mdb.mcp.logPath": {
           "type": "string",
           "default": "",
-          "description": "The directory where log files will be written when disk logging is enabled. Leave empty to use the default path."
+          "description": "The directory where MongoDB MCP server will write the log files when disk logging is enabled. Leave empty to use the default path."
         }
       }
     },
