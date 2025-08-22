@@ -1304,7 +1304,7 @@
             "type": "string"
           },
           "default": [],
-          "description": "An array of tool names, operation types, and/or categories of tools that will be disabled."
+          "description": "Tool names, operation types (create, update, delete, read, metadata, connect), and/or categories (atlas, mongodb) to disable."
         },
         "mdb.mcp.readOnly": {
           "type": "boolean",
@@ -1327,14 +1327,18 @@
           "description": "Controls whether MCP server starts automatically or only when permitted."
         },
         "mdb.mcp.telemetry": {
-          "type": "boolean",
-          "default": true,
-          "description": "Allow the builtin MongoDB MCP server to collect anonymous diagnostic and usage telemetry data."
+          "type": "string",
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "Controls whether telemetry collection by the MCP server is enabled or disabled."
         },
         "mdb.mcp.exportsPath": {
           "type": "string",
           "default": "",
-          "description": "The directory where the export tool will export the data to. Leave it empty to use the default path."
+          "description": "The directory where the export tool will export data. Leave empty to use the default path."
         },
         "mdb.mcp.exportTimeoutMs": {
           "type": "number",
@@ -1344,29 +1348,29 @@
         "mdb.mcp.exportCleanupIntervalMs": {
           "type": "number",
           "default": 120000,
-          "description": "The time in milliseconds that controls how often export clean up should run."
+          "description": "Controls how often the export cleanup process runs to remove expired files (in milliseconds)."
         },
         "mdb.mcp.loggers": {
           "type": "array",
           "items": {
             "type": "string",
             "enum": [
-              "mcp",
               "disk",
+              "mcp",
               "stderr"
             ]
           },
           "uniqueItems": true,
           "default": [
-            "mcp",
-            "disk"
+            "disk",
+            "mcp"
           ],
           "description": "Controls which loggers the MCP server will use for diagnostic logging."
         },
         "mdb.mcp.logPath": {
           "type": "string",
           "default": "",
-          "description": "The directory where the disk logger, when selected, will write the logs to. Leave it empty to use the default path."
+          "description": "The directory where log files will be written when disk logging is enabled. Leave empty to use the default path."
         }
       }
     },
