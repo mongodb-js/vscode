@@ -219,7 +219,7 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
 
   _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   _bufferedEvents: vscode.FileChangeEvent[] = [];
-  _fireSoonHandle?: NodeJS.Timer;
+  _fireSoonHandle?: NodeJS.Timeout;
 
   readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> =
     this._emitter.event;

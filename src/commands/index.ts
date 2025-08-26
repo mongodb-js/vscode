@@ -88,6 +88,7 @@ enum EXTENSION_COMMANDS {
   // MCP Server commands.
   START_MCP_SERVER = 'mdb.startMCPServer',
   STOP_MCP_SERVER = 'mdb.stopMCPServer',
+  GET_MCP_SERVER_CONFIG = 'mdb.getMCPServerConfig',
 }
 
 export type ExtensionCommand = EXTENSION_COMMANDS;

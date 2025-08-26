@@ -167,7 +167,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
-    this._mcpController = new MCPController(context);
+    this._mcpController = new MCPController(
+      context,
+      this._connectionController,
+    );
   }
 
   subscribeToConfigurationChanges(): void {
@@ -188,6 +191,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
+    await this._mcpController.activate();
 
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
@@ -944,6 +948,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (): Promise<boolean> => {
         await this._mcpController.stopServer();
         return true;
+      },
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.GET_MCP_SERVER_CONFIG,
+      (): Promise<boolean> => {
+        return this._mcpController.openServerConfig();
       },
     );
   }
