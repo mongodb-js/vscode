@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
-import type { LoggerType, LogLevel, LogPayload } from 'mongodb-mcp-server';
+import type {
+  LoggerType,
+  LogLevel,
+  LogPayload,
+  CreateConnectionManagerFn,
+  UserConfig,
+} from 'mongodb-mcp-server';
 import {
   defaultUserConfig,
   LoggerBase,
@@ -7,6 +13,10 @@ import {
 } from 'mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
+import {
+  VSCodeMCPConnectionManager,
+  type VSCodeMCPConnectParams,
+} from './vsCodeMCPConnectionManager';
 
 type mcpServerStartupConfig = 'ask' | 'enabled' | 'disabled';
 
@@ -29,6 +39,7 @@ export class MCPController {
     runner: StreamableHttpRunner;
     headers: Record<string, string>;
   };
+  private mcpConnectionManager?: VSCodeMCPConnectionManager;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -62,18 +73,29 @@ export class MCPController {
     const headers: Record<string, string> = {
       authorization: `Bearer ${crypto.randomUUID()}`,
     };
+
+    const mcpConfig: UserConfig = {
+      ...defaultUserConfig,
+      httpPort: 0,
+      httpHeaders: headers,
+      disabledTools: ['connect'],
+      loggers: ['mcp'],
+    };
+
+    const createConnectionManager: CreateConnectionManagerFn<
+      VSCodeMCPConnectParams
+    > = async ({ logger }) => {
+      const connectionManager = (this.mcpConnectionManager =
+        new VSCodeMCPConnectionManager(logger));
+      await this.switchConnectionManagerToCurrentConnection();
+      return connectionManager;
+    };
+
     const runner = new StreamableHttpRunner(
-      {
-        ...defaultUserConfig,
-        httpPort: 0,
-        httpHeaders: headers,
-        disabledTools: ['connect'],
-        loggers: ['mcp'],
-      },
-      {},
+      mcpConfig,
+      createConnectionManager,
       [new VSCodeMCPLogger()],
     );
-
     await runner.start();
 
     this.server = {
@@ -161,8 +183,7 @@ ${jsonConfig}`,
 
   private async onActiveConnectionChanged(): Promise<void> {
     if (this.server) {
-      // Server is created - update the connection information
-      // this.server.runner.updateConnection();
+      await this.switchConnectionManagerToCurrentConnection();
       return;
     }
 
@@ -213,5 +234,16 @@ ${jsonConfig}`,
     if (shouldStartServer) {
       await this.startServer();
     }
+  }
+
+  private async switchConnectionManagerToCurrentConnection(): Promise<void> {
+    const connectionId = this.connectionController.getActiveConnectionId();
+    const mongoClientOptions =
+      this.connectionController.getMongoClientConnectionOptions();
+    await this.mcpConnectionManager?.updateConnection({
+      connectionId,
+      connectionString: mongoClientOptions?.url,
+      connectOptions: mongoClientOptions?.options,
+    });
   }
 }
