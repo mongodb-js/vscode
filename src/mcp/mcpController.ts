@@ -3,8 +3,8 @@ import type {
   LoggerType,
   LogLevel,
   LogPayload,
-  CreateConnectionManagerFn,
   UserConfig,
+  ConnectionManagerFactoryFn,
 } from 'mongodb-mcp-server';
 import {
   defaultUserConfig,
@@ -30,12 +30,13 @@ class VSCodeMCPLogger extends LoggerBase {
   }
 }
 
+export type MCPServerInfo = {
+  runner: StreamableHttpRunner;
+  headers: Record<string, string>;
+};
 export class MCPController {
   private didChangeEmitter = new vscode.EventEmitter<void>();
-  private server?: {
-    runner: StreamableHttpRunner;
-    headers: Record<string, string>;
-  };
+  private server?: MCPServerInfo;
   private mcpConnectionManager?: VSCodeMCPConnectionManager;
 
   constructor(
@@ -79,7 +80,7 @@ export class MCPController {
       loggers: ['mcp'],
     };
 
-    const createConnectionManager: CreateConnectionManagerFn = async ({
+    const createConnectionManager: ConnectionManagerFactoryFn = async ({
       logger,
     }) => {
       const connectionManager = (this.mcpConnectionManager =
@@ -238,7 +239,7 @@ ${jsonConfig}`,
     const mongoClientOptions =
       this.connectionController.getMongoClientConnectionOptions();
     await this.mcpConnectionManager?.updateConnection({
-      connectionId,
+      connectionId: connectionId ?? undefined,
       connectionString: mongoClientOptions?.url,
       connectOptions: mongoClientOptions?.options,
     });

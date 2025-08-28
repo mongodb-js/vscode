@@ -1,8 +1,8 @@
 import {
   ConnectionManager,
   type AnyConnectionState,
-  type CompositeLogger,
   type ConnectionStateDisconnected,
+  type LoggerBase,
 } from 'mongodb-mcp-server';
 import {
   NodeDriverServiceProvider,
@@ -22,7 +22,7 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
   private activeConnectionId: string | null = null;
   private activeConnectionProvider: ServiceProvider | null = null;
 
-  constructor(private readonly logger: CompositeLogger) {
+  constructor(private readonly logger: LoggerBase) {
     super();
   }
 
@@ -41,14 +41,14 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
     connectParams: VSCodeMCPConnectParams,
   ): Promise<AnyConnectionState> {
     try {
-      const serviceProvider = (this.activeConnectionProvider =
-        await NodeDriverServiceProvider.connect(
-          connectParams.connectionString,
-          connectParams.connectOptions,
-        ));
+      const serviceProvider = await NodeDriverServiceProvider.connect(
+        connectParams.connectionString,
+        connectParams.connectOptions,
+      );
       await serviceProvider.runCommand('admin', { hello: 1 });
       this.activeConnectionId = connectParams.connectionId;
-      return this.changeState('connection-succeeded', {
+      this.activeConnectionProvider = serviceProvider;
+      return this.changeState('connection-success', {
         tag: 'connected',
         serviceProvider,
       });
@@ -58,7 +58,7 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
         context: 'VSCodeMCPConnectionManager.connect',
         message: error instanceof Error ? error.message : String(error),
       });
-      return this.changeState('connection-errored', {
+      return this.changeState('connection-error', {
         tag: 'errored',
         errorReason: error instanceof Error ? error.message : String(error),
       });
@@ -78,8 +78,10 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
     } finally {
       this.activeConnectionId = null;
       this.activeConnectionProvider = null;
+      return this.changeState('connection-close', {
+        tag: 'disconnected',
+      });
     }
-    return Promise.resolve({ tag: 'disconnected' });
   }
 
   async updateConnection({
@@ -87,7 +89,7 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
     connectionString,
     connectOptions,
   }: {
-    connectionId: string | null;
+    connectionId: string | undefined;
     connectionString: string | undefined;
     connectOptions: DevtoolsConnectOptions | undefined;
   }): Promise<void> {
@@ -96,21 +98,23 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
         await this.disconnect();
       }
 
-      if (this.activeConnectionId === connectionId) {
-        return;
-      }
+      const connectionWasDisconnected =
+        !connectionId || !connectionString || !connectOptions;
 
-      if (!connectionString || !connectOptions || !connectionId) {
-        this.changeState('connection-errored', {
-          tag: 'errored',
-          errorReason:
-            'MongoDB MCP server cannot establish connection without the required connection string and MongoClientOptions',
-        });
+      if (
+        this.activeConnectionId === connectionId ||
+        connectionWasDisconnected
+      ) {
         return;
       }
 
       if (isAtlasStream(connectionString)) {
-        this.changeState('connection-errored', {
+        this.logger.warning({
+          id: MCPLogIds.UpdateConnectionError,
+          context: 'VSCodeMCPConnectionManager.updateConnection',
+          message: 'updateConnection called for an AtlasStreams connection',
+        });
+        this.changeState('connection-error', {
           tag: 'errored',
           errorReason:
             'MongoDB MCP server do not support connecting to Atlas Streams',
