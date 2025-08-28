@@ -15,8 +15,7 @@ import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 const sandbox = sinon.createSandbox();
-suite('MCPController test suite', function () {
-  this.timeout(300000);
+suite.only('MCPController test suite', function () {
   let extensionContext: ExtensionContext;
   let connectionController: ConnectionController;
   let mcpController: MCPController;
@@ -205,6 +204,58 @@ suite('MCPController test suite', function () {
 
       await connectionController.disconnect();
       expect(connectionChangedSpy).to.be.calledOnce;
+    });
+  });
+
+  suite('#openServerConfig', function () {
+    suite('when the server is not running', function () {
+      test('should notify that server is not running', async function () {
+        const showErrorMessageSpy = sandbox.spy(
+          vscode.window,
+          'showErrorMessage',
+        );
+        expect(await mcpController.openServerConfig()).to.equal(false);
+        expect(showErrorMessageSpy).to.be.calledWith(
+          'MongoDB MCP Server is not running. Start the server by running "MDB: Start MCP Server" in the command palette.',
+        );
+      });
+    });
+
+    suite('when the server is running', function () {
+      test('should open the document with the server config', async function () {
+        const startServer = mcpController.startServer.bind(mcpController);
+        let notifyStartServerCalled: () => void = () => {};
+        const startServerCalled: Promise<void> = new Promise<void>(
+          (resolve) => {
+            notifyStartServerCalled = resolve;
+          },
+        );
+        sandbox.replace(mcpController, 'startServer', async () => {
+          await startServer();
+          notifyStartServerCalled();
+        });
+
+        const showTextDocumentStub = sandbox.spy(
+          vscode.window,
+          'showTextDocument',
+        );
+
+        // We want to connect as soon as connection changes
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('mcp.server', 'enabled');
+
+        // Start the controller and list to events
+        await mcpController.activate();
+
+        // Add a connection
+        await connectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        });
+        await startServerCalled;
+        expect(await mcpController.openServerConfig()).to.equal(true);
+        expect(showTextDocumentStub).to.be.called;
+      });
     });
   });
 });
