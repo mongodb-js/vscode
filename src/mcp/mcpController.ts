@@ -5,12 +5,12 @@ import type {
   LogPayload,
   UserConfig,
   ConnectionManagerFactoryFn,
-} from 'mongodb-mcp-server';
+} from '@himanshusinghs/mongodb-mcp-server';
 import {
   defaultUserConfig,
   LoggerBase,
   StreamableHttpRunner,
-} from 'mongodb-mcp-server';
+} from '@himanshusinghs/mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { VSCodeMCPConnectionManager } from './vsCodeMCPConnectionManager';
