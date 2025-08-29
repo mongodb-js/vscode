@@ -5,7 +5,6 @@ import os from 'os';
 
 import type PlaygroundSelectionCodeActionProvider from './playgroundSelectionCodeActionProvider';
 import type ConnectionController from '../connectionController';
-import { DataServiceEventTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import type { ConnectionTreeItem } from '../explorer';
 import { CollectionTreeItem } from '../explorer';
@@ -103,7 +102,7 @@ export default class PlaygroundController {
       void this._activeConnectionChanged();
     };
     this._connectionController.addEventListener(
-      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      'ACTIVE_CONNECTION_CHANGED',
       this._activeConnectionChangedHandler,
     );
 
@@ -684,7 +683,7 @@ export default class PlaygroundController {
 
   deactivate(): void {
     this._connectionController.removeEventListener(
-      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      'ACTIVE_CONNECTION_CHANGED',
       this._activeConnectionChangedHandler,
     );
   }
