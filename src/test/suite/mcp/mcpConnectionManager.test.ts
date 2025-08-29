@@ -11,7 +11,7 @@ import { MCPConnectionManager } from '../../../mcp/mcpConnectionManager';
 chai.use(chaiAsPromised);
 
 const sandbox = sinon.createSandbox();
-suite.only('MCPConnectionManager Test Suite', function () {
+suite('MCPConnectionManager Test Suite', function () {
   let mcpConnectionManager: MCPConnectionManager;
   let fakeServiceProvider: NodeDriverServiceProvider;
 

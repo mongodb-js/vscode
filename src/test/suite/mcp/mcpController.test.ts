@@ -15,7 +15,7 @@ import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 const sandbox = sinon.createSandbox();
-suite.only('MCPController test suite', function () {
+suite('MCPController test suite', function () {
   let extensionContext: ExtensionContext;
   let connectionController: ConnectionController;
   let mcpController: MCPController;
