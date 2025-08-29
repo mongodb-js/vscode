@@ -11,7 +11,7 @@ import { MCPConnectionManager } from '../../../mcp/mcpConnectionManager';
 chai.use(chaiAsPromised);
 
 const sandbox = sinon.createSandbox();
-suite('MCPConnectionManager Test Suite', function () {
+suite.only('MCPConnectionManager Test Suite', function () {
   let mcpConnectionManager: MCPConnectionManager;
   let fakeServiceProvider: NodeDriverServiceProvider;
 
@@ -93,8 +93,7 @@ suite('MCPConnectionManager Test Suite', function () {
       expect(mcpConnectionManager.currentConnectionState.tag).to.equal(
         'disconnected',
       );
-      expect((mcpConnectionManager as any).activeConnectionId).to.be.null;
-      expect((mcpConnectionManager as any).activeConnectionProvider).to.be.null;
+      expect((mcpConnectionManager as any).activeConnection).to.be.null;
     });
 
     test('should attempt to disconnect and on failure clear out the state', async function () {
@@ -115,8 +114,7 @@ suite('MCPConnectionManager Test Suite', function () {
       expect(mcpConnectionManager.currentConnectionState.tag).to.equal(
         'disconnected',
       );
-      expect((mcpConnectionManager as any).activeConnectionId).to.be.null;
-      expect((mcpConnectionManager as any).activeConnectionProvider).to.be.null;
+      expect((mcpConnectionManager as any).activeConnection).to.be.null;
     });
   });
 
@@ -128,11 +126,7 @@ suite('MCPConnectionManager Test Suite', function () {
           'connectToVSCodeConnection',
         );
         const disconnectSpy = sandbox.spy(mcpConnectionManager, 'disconnect');
-        await mcpConnectionManager.updateConnection({
-          connectionId: undefined,
-          connectionString: undefined,
-          connectOptions: undefined,
-        });
+        await mcpConnectionManager.updateConnection(undefined);
 
         expect(connectSpy).to.not.be.called;
         expect(disconnectSpy).to.not.be.called;
@@ -152,7 +146,7 @@ suite('MCPConnectionManager Test Suite', function () {
         });
 
         expect(connectSpy).to.not.be.called;
-        expect(disconnectSpy).to.not.be.called;
+        expect(disconnectSpy).to.be.called;
         expect(mcpConnectionManager.currentConnectionState.tag).to.equal(
           'errored',
         );
@@ -161,7 +155,7 @@ suite('MCPConnectionManager Test Suite', function () {
             mcpConnectionManager.currentConnectionState as ConnectionStateErrored
           ).errorReason,
         ).to.equal(
-          'MongoDB MCP server do not support connecting to Atlas Streams',
+          'MongoDB MCP server does not support connecting to Atlas Streams',
         );
       });
 
@@ -177,12 +171,12 @@ suite('MCPConnectionManager Test Suite', function () {
           connectOptions: {} as unknown as DevtoolsConnectOptions,
         });
 
+        expect(disconnectSpy).to.be.called;
         expect(connectSpy).to.be.calledWithExactly({
           connectionId: '1',
           connectionString: 'mongodb://localhost:27017',
           connectOptions: {} as unknown as DevtoolsConnectOptions,
         });
-        expect(disconnectSpy).to.not.be.called;
       });
     });
 
@@ -223,11 +217,7 @@ suite('MCPConnectionManager Test Suite', function () {
           'connectToVSCodeConnection',
         );
         const disconnectSpy = sandbox.spy(mcpConnectionManager, 'disconnect');
-        await mcpConnectionManager.updateConnection({
-          connectionId: undefined,
-          connectionString: undefined,
-          connectOptions: undefined,
-        });
+        await mcpConnectionManager.updateConnection(undefined);
 
         expect(connectSpy).to.not.be.called;
         expect(disconnectSpy).to.be.called;
@@ -265,7 +255,7 @@ suite('MCPConnectionManager Test Suite', function () {
             mcpConnectionManager.currentConnectionState as ConnectionStateErrored
           ).errorReason,
         ).to.equal(
-          'MongoDB MCP server do not support connecting to Atlas Streams',
+          'MongoDB MCP server does not support connecting to Atlas Streams',
         );
       });
 

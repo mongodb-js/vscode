@@ -13,6 +13,7 @@ import {
 } from '@himanshusinghs/mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
+import type { MCPConnectParams } from './mcpConnectionManager';
 import { MCPConnectionManager } from './mcpConnectionManager';
 
 type mcpServerStartupConfig = 'ask' | 'enabled' | 'disabled';
@@ -238,10 +239,15 @@ ${jsonConfig}`,
     const connectionId = this.connectionController.getActiveConnectionId();
     const mongoClientOptions =
       this.connectionController.getMongoClientConnectionOptions();
-    await this.mcpConnectionManager?.updateConnection({
-      connectionId: connectionId ?? undefined,
-      connectionString: mongoClientOptions?.url,
-      connectOptions: mongoClientOptions?.options,
-    });
+
+    const connectParams: MCPConnectParams | undefined =
+      connectionId && mongoClientOptions
+        ? {
+            connectionId: connectionId,
+            connectionString: mongoClientOptions.url,
+            connectOptions: mongoClientOptions.options,
+          }
+        : undefined;
+    await this.mcpConnectionManager?.updateConnection(connectParams);
   }
 }
