@@ -12,13 +12,13 @@ import type { ServiceProvider } from '@mongosh/service-provider-core';
 import { isAtlasStream } from 'mongodb-build-info';
 import { MCPLogIds } from './mcpLogIds';
 
-export interface VSCodeMCPConnectParams {
+export interface MCPConnectParams {
   connectionId: string;
   connectionString: string;
   connectOptions: DevtoolsConnectOptions;
 }
 
-export class VSCodeMCPConnectionManager extends ConnectionManager {
+export class MCPConnectionManager extends ConnectionManager {
   private activeConnectionId: string | null = null;
   private activeConnectionProvider: ServiceProvider | null = null;
 
@@ -38,7 +38,7 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
   }
 
   async connectToVSCodeConnection(
-    connectParams: VSCodeMCPConnectParams,
+    connectParams: MCPConnectParams,
   ): Promise<AnyConnectionState> {
     try {
       const serviceProvider = await NodeDriverServiceProvider.connect(

@@ -6,17 +6,17 @@ import type { LoggerBase } from '@himanshusinghs/mongodb-mcp-server';
 import type { ConnectionStateErrored } from '@himanshusinghs/mongodb-mcp-server';
 import type { DevtoolsConnectOptions } from '@mongosh/service-provider-node-driver';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
-import { VSCodeMCPConnectionManager } from '../../../mcp/vsCodeMCPConnectionManager';
+import { MCPConnectionManager } from '../../../mcp/mcpConnectionManager';
 
 chai.use(chaiAsPromised);
 
 const sandbox = sinon.createSandbox();
-suite('VSCodeMCPConnectionManager Test Suite', function () {
-  let mcpConnectionManager: VSCodeMCPConnectionManager;
+suite('MCPConnectionManager Test Suite', function () {
+  let mcpConnectionManager: MCPConnectionManager;
   let fakeServiceProvider: NodeDriverServiceProvider;
 
   beforeEach(() => {
-    mcpConnectionManager = new VSCodeMCPConnectionManager({
+    mcpConnectionManager = new MCPConnectionManager({
       error: () => {},
       warning: () => {},
     } as unknown as LoggerBase);

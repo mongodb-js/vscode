@@ -13,7 +13,7 @@ import {
 } from '@himanshusinghs/mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { VSCodeMCPConnectionManager } from './vsCodeMCPConnectionManager';
+import { MCPConnectionManager } from './mcpConnectionManager';
 
 type mcpServerStartupConfig = 'ask' | 'enabled' | 'disabled';
 
@@ -37,7 +37,7 @@ export type MCPServerInfo = {
 export class MCPController {
   private didChangeEmitter = new vscode.EventEmitter<void>();
   private server?: MCPServerInfo;
-  private mcpConnectionManager?: VSCodeMCPConnectionManager;
+  private mcpConnectionManager?: MCPConnectionManager;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -84,7 +84,7 @@ export class MCPController {
       logger,
     }) => {
       const connectionManager = (this.mcpConnectionManager =
-        new VSCodeMCPConnectionManager(logger));
+        new MCPConnectionManager(logger));
       await this.switchConnectionManagerToCurrentConnection();
       return connectionManager;
     };
