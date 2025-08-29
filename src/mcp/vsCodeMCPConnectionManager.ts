@@ -68,20 +68,19 @@ export class VSCodeMCPConnectionManager extends ConnectionManager {
   async disconnect(): Promise<ConnectionStateDisconnected> {
     try {
       await this.activeConnectionProvider?.close(true);
-      return this.changeState('connection-close', {
-        tag: 'disconnected',
-      });
     } catch (error) {
       this.logger.error({
         id: MCPLogIds.DisconnectError,
         context: 'VSCodeMCPConnectionManager.disconnect',
         message: error instanceof Error ? error.message : String(error),
       });
-      throw error;
-    } finally {
-      this.activeConnectionId = null;
-      this.activeConnectionProvider = null;
     }
+
+    this.activeConnectionId = null;
+    this.activeConnectionProvider = null;
+    return this.changeState('connection-close', {
+      tag: 'disconnected',
+    });
   }
 
   async updateConnection({
