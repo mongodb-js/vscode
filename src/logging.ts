@@ -15,53 +15,33 @@ class Logger implements ILogger {
     this.name = name;
   }
 
+  private formatMessage(message?: any, ...optionalParams: any[]): string {
+    return `[${this.name}] ${message} ${optionalParams.length ? util.inspect(optionalParams) : ''}`;
+  }
+
   public trace(message?: any, ...optionalParams: any[]): void {
-    this.append(
-      'TRACE',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
-    );
+    Logger.channel.trace(this.formatMessage(message, ...optionalParams));
   }
 
   public debug(message?: any, ...optionalParams: any[]): void {
-    this.append(
-      'DEBUG',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
-    );
+    Logger.channel.debug(this.formatMessage(message, ...optionalParams));
   }
 
   public info(message?: any, ...optionalParams: any[]): void {
-    this.append(
-      'INFO ',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
-    );
+    Logger.channel.info(this.formatMessage(message, ...optionalParams));
   }
 
   public warn(message?: any, ...optionalParams: any[]): void {
-    this.append(
-      'WARN ',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
-    );
+    Logger.channel.warn(this.formatMessage(message, ...optionalParams));
   }
 
   public error(message?: any, ...optionalParams: any[]): void {
-    this.append(
-      'ERROR',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
-    );
+    Logger.channel.error(this.formatMessage(message, ...optionalParams));
   }
 
   public fatal(message?: any, ...optionalParams: any[]): void {
-    this.append(
-      'FATAL',
-      `${message} ${optionalParams ? util.inspect(optionalParams) : ''}`,
-    );
-  }
-
-  private append(type: string, message: string): void {
-    // https://code.visualstudio.com/api/references/vscode-api#window.createOutputChannel
-
-    Logger.channel.appendLine(
-      `${new Date().toISOString()} ${this.name} ${type} ${message}\n`,
+    Logger.channel.error(
+      `FATAL: ${this.formatMessage(message, ...optionalParams)}`,
     );
   }
 }

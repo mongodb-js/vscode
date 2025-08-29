@@ -1,10 +1,27 @@
 import * as vscode from 'vscode';
-import { defaultUserConfig, StreamableHttpRunner } from 'mongodb-mcp-server';
+import type { LoggerType, LogLevel, LogPayload } from 'mongodb-mcp-server';
+import {
+  defaultUserConfig,
+  LoggerBase,
+  StreamableHttpRunner,
+} from 'mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
-// import * as os from 'os';
-// import * as path from 'path';
+import { createLogger } from '../logging';
 
 type mcpServerStartupConfig = 'ask' | 'enabled' | 'disabled';
+
+class VSCodeMCPLogger extends LoggerBase {
+  private readonly _logger = createLogger('mcp-server');
+  protected type: LoggerType = 'console';
+  protected logCore(level: LogLevel, payload: LogPayload): void {
+    const logMethod = this.mapToMongoDBLogLevel(level);
+
+    this._logger[logMethod](
+      `${payload.id.__value} - ${payload.context}: ${payload.message}`,
+      ...(payload.attributes ? [payload.attributes] : []),
+    );
+  }
+}
 
 export class MCPController {
   private didChangeEmitter = new vscode.EventEmitter<void>();
@@ -45,12 +62,17 @@ export class MCPController {
     const headers: Record<string, string> = {
       authorization: `Bearer ${crypto.randomUUID()}`,
     };
-    const runner = new StreamableHttpRunner({
-      ...defaultUserConfig,
-      httpPort: 0,
-      httpHeaders: headers,
-      disabledTools: ['connect'],
-    });
+    const runner = new StreamableHttpRunner(
+      {
+        ...defaultUserConfig,
+        httpPort: 0,
+        httpHeaders: headers,
+        disabledTools: ['connect'],
+        loggers: ['mcp'],
+      },
+      {},
+      [new VSCodeMCPLogger()],
+    );
 
     await runner.start();
 
@@ -63,6 +85,7 @@ export class MCPController {
 
   public async stopServer(): Promise<void> {
     await this.server?.runner.close();
+    this.server = undefined;
     this.didChangeEmitter.fire();
   }
 
@@ -131,7 +154,7 @@ ${jsonConfig}`,
 
     return new vscode.McpHttpServerDefinition(
       'MongoDB MCP Server',
-      vscode.Uri.parse(`${this.server.runner.address}/mcp`),
+      vscode.Uri.parse(`${this.server.runner.serverAddress}/mcp`),
       this.server.headers,
     );
   }
