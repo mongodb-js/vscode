@@ -11,6 +11,8 @@ import {
 import type { ServiceProvider } from '@mongosh/service-provider-core';
 import { isAtlasStream } from 'mongodb-build-info';
 import { MCPLogIds } from './mcpLogIds';
+import ConnectionString from 'mongodb-connection-string-url';
+import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
 
 export interface MCPConnectParams {
   connectionId: string;
@@ -42,13 +44,15 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     connectParams: MCPConnectParams,
   ): Promise<AnyConnectionState> {
     try {
+      const { connectionId, connectOptions, connectionString } =
+        this.overrideAppNameIfContainsVSCode(connectParams);
       const serviceProvider = await NodeDriverServiceProvider.connect(
-        connectParams.connectionString,
-        connectParams.connectOptions,
+        connectionString,
+        connectOptions,
       );
       await serviceProvider.runCommand('admin', { hello: 1 });
       this.activeConnection = {
-        id: connectParams.connectionId,
+        id: connectionId,
         provider: serviceProvider,
       };
       return this.changeState('connection-success', {
@@ -113,5 +117,31 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     }
 
     await this.connectToVSCodeConnection(connectParams);
+  }
+
+  overrideAppNameIfContainsVSCode(
+    connectParams: MCPConnectParams,
+  ): MCPConnectParams {
+    const connectionURL = new ConnectionString(connectParams.connectionString);
+    const connectOptions: DevtoolsConnectOptions = {
+      ...connectParams.connectOptions,
+    };
+    const searchParamAppName = connectionURL.searchParams.get('appName');
+    if (
+      !searchParamAppName ||
+      searchParamAppName === DEFAULT_TELEMETRY_APP_NAME
+    ) {
+      connectionURL.searchParams.set(
+        'appName',
+        `${DEFAULT_TELEMETRY_APP_NAME} MongoDB MCP Server`,
+      );
+      connectOptions.appName = `${DEFAULT_TELEMETRY_APP_NAME} MongoDB MCP Server`;
+    }
+
+    return {
+      connectionId: connectParams.connectionId,
+      connectionString: connectionURL.toString(),
+      connectOptions,
+    };
   }
 }

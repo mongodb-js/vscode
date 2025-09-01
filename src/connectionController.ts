@@ -79,6 +79,8 @@ interface NewConnectionParams {
   reuseExisting?: boolean;
 }
 
+export const DEFAULT_TELEMETRY_APP_NAME = `${packageJSON.name} ${packageJSON.version}`;
+
 function isOIDCAuth(connectionString: string): boolean {
   const authMechanismString = (
     new ConnectionString(connectionString).searchParams.get('authMechanism') ||
@@ -481,7 +483,7 @@ export default class ConnectionController {
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
         connectionId,
-        defaultAppName: `${packageJSON.name} ${packageJSON.version}`,
+        defaultAppName: DEFAULT_TELEMETRY_APP_NAME,
         notifyDeviceFlow,
         preferences: {
           forceConnectionOptions: [],
