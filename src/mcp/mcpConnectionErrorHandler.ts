@@ -53,7 +53,7 @@ export const createMCPConnectionErrorHandler = (
             content: [
               {
                 type: 'text',
-                text: `MCP server is having trouble connecting to the ${activeConnectionName ?? 'selected connection in the MongoDB VSCode extension'}.`,
+                text: `MCP server is having trouble connecting to ${activeConnectionName ? activeConnectionName : 'the selected connection in the MongoDB VSCode extension'}.`,
               },
               ...resolutionGuidance.map<{ type: 'text'; text: string }>(
                 (text) => ({ type: 'text', text }),
