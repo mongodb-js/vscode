@@ -15,6 +15,7 @@ import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import type { MCPConnectParams } from './mcpConnectionManager';
 import { MCPConnectionManager } from './mcpConnectionManager';
+import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
 
 type mcpServerStartupConfig = 'ask' | 'enabled' | 'disabled';
 
@@ -90,11 +91,14 @@ export class MCPController {
       return connectionManager;
     };
 
-    const runner = new StreamableHttpRunner(
-      mcpConfig,
+    const runner = new StreamableHttpRunner({
+      userConfig: mcpConfig,
       createConnectionManager,
-      [new VSCodeMCPLogger()],
-    );
+      connectionErrorHandler: createMCPConnectionErrorHandler(
+        this.connectionController,
+      ),
+      additionalLoggers: [new VSCodeMCPLogger()],
+    });
     await runner.start();
 
     this.server = {
