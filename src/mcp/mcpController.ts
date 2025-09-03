@@ -139,8 +139,9 @@ export class MCPController {
 
       const serverStartConfig = this.getMCPAutoStartConfig();
 
-      // If the config value is anything other than user set values then we
-      // should notify. On the first boot the value will be null.
+      // If the config value is one of the following values means they are
+      // intentional (either set by user or by this function itself) and we
+      // should not notify in that case.
       const shouldNotNotify =
         serverStartConfig === 'enabled' || serverStartConfig === 'disabled';
 

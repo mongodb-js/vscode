@@ -1331,10 +1331,11 @@
         "mdb.mcp.server": {
           "type": "string",
           "enum": [
+            "ask",
             "enabled",
             "disabled"
           ],
-          "default": null,
+          "default": "ask",
           "description": "Controls whether MongoDB MCP server starts automatically with the extension and connects to the active connection. If automatic startup is disabled, the server can still be started using the 'MongoDB: Start MCP Server' command."
         },
         "mdb.mcp.exportsPath": {
