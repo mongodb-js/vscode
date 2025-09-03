@@ -1,12 +1,20 @@
 import * as vscode from 'vscode';
-import type { LoggerType, LogLevel, LogPayload } from 'mongodb-mcp-server';
+import type {
+  LoggerType,
+  LogLevel,
+  LogPayload,
+  UserConfig,
+  ConnectionManagerFactoryFn,
+} from '@himanshusinghs/mongodb-mcp-server';
 import {
   defaultUserConfig,
   LoggerBase,
   StreamableHttpRunner,
-} from 'mongodb-mcp-server';
+} from '@himanshusinghs/mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
+import type { MCPConnectParams } from './mcpConnectionManager';
+import { MCPConnectionManager } from './mcpConnectionManager';
 
 type mcpServerStartupConfig = 'ask' | 'enabled' | 'disabled';
 
@@ -23,12 +31,14 @@ class VSCodeMCPLogger extends LoggerBase {
   }
 }
 
+export type MCPServerInfo = {
+  runner: StreamableHttpRunner;
+  headers: Record<string, string>;
+};
 export class MCPController {
   private didChangeEmitter = new vscode.EventEmitter<void>();
-  private server?: {
-    runner: StreamableHttpRunner;
-    headers: Record<string, string>;
-  };
+  private server?: MCPServerInfo;
+  private mcpConnectionManager?: MCPConnectionManager;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -62,18 +72,29 @@ export class MCPController {
     const headers: Record<string, string> = {
       authorization: `Bearer ${crypto.randomUUID()}`,
     };
+
+    const mcpConfig: UserConfig = {
+      ...defaultUserConfig,
+      httpPort: 0,
+      httpHeaders: headers,
+      disabledTools: ['connect'],
+      loggers: ['mcp'],
+    };
+
+    const createConnectionManager: ConnectionManagerFactoryFn = async ({
+      logger,
+    }) => {
+      const connectionManager = (this.mcpConnectionManager =
+        new MCPConnectionManager(logger));
+      await this.switchConnectionManagerToCurrentConnection();
+      return connectionManager;
+    };
+
     const runner = new StreamableHttpRunner(
-      {
-        ...defaultUserConfig,
-        httpPort: 0,
-        httpHeaders: headers,
-        disabledTools: ['connect'],
-        loggers: ['mcp'],
-      },
-      {},
+      mcpConfig,
+      createConnectionManager,
       [new VSCodeMCPLogger()],
     );
-
     await runner.start();
 
     this.server = {
@@ -161,8 +182,7 @@ ${jsonConfig}`,
 
   private async onActiveConnectionChanged(): Promise<void> {
     if (this.server) {
-      // Server is created - update the connection information
-      // this.server.runner.updateConnection();
+      await this.switchConnectionManagerToCurrentConnection();
       return;
     }
 
@@ -213,5 +233,21 @@ ${jsonConfig}`,
     if (shouldStartServer) {
       await this.startServer();
     }
+  }
+
+  private async switchConnectionManagerToCurrentConnection(): Promise<void> {
+    const connectionId = this.connectionController.getActiveConnectionId();
+    const mongoClientOptions =
+      this.connectionController.getMongoClientConnectionOptions();
+
+    const connectParams: MCPConnectParams | undefined =
+      connectionId && mongoClientOptions
+        ? {
+            connectionId: connectionId,
+            connectionString: mongoClientOptions.url,
+            connectOptions: mongoClientOptions.options,
+          }
+        : undefined;
+    await this.mcpConnectionManager?.updateConnection(connectParams);
   }
 }

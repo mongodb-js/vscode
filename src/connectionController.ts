@@ -40,8 +40,8 @@ const log = createLogger('connection controller');
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
 interface DataServiceEventTypes {
-  CONNECTIONS_DID_CHANGE: any;
-  ACTIVE_CONNECTION_CHANGED: any;
+  CONNECTIONS_DID_CHANGE: [];
+  ACTIVE_CONNECTION_CHANGED: [];
 }
 
 export enum ConnectionTypes {
