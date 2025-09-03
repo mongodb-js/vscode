@@ -1,6 +1,5 @@
-import sinon from 'sinon';
 import { expect } from 'chai';
-import { afterEach, beforeEach } from 'mocha';
+import { beforeEach } from 'mocha';
 import { createMCPConnectionErrorHandler } from '../../../mcp/mcpConnectionErrorHandler';
 import ConnectionController from '../../../connectionController';
 import { ExtensionContextStub } from '../stubs';
@@ -24,7 +23,6 @@ class MongoDBError extends Error {
   }
 }
 
-const sandbox = sinon.createSandbox();
 suite('mcpConnectionErrorHandler suite', () => {
   let connectionController: ConnectionController;
   beforeEach(() => {
@@ -39,11 +37,6 @@ suite('mcpConnectionErrorHandler suite', () => {
       storageController: testStorageController,
       telemetryService: testTelemetryService,
     });
-  });
-
-  afterEach(() => {
-    sandbox.reset();
-    sandbox.restore();
   });
 
   test('should handle NotConnectedToMongoDB error', () => {
