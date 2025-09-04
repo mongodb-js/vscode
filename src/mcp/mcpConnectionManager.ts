@@ -126,7 +126,9 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     const connectOptions: DevtoolsConnectOptions = {
       ...connectParams.connectOptions,
     };
-    const searchParamAppName = connectionURL.searchParams.get('appName');
+    const searchParamAppName = connectionURL
+      .typedSearchParams<DevtoolsConnectOptions>()
+      .get('appName');
     if (
       !searchParamAppName ||
       searchParamAppName === DEFAULT_TELEMETRY_APP_NAME
