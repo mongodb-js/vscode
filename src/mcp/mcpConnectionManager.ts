@@ -9,7 +9,7 @@ import {
   type DevtoolsConnectOptions,
 } from '@mongosh/service-provider-node-driver';
 import type { ServiceProvider } from '@mongosh/service-provider-core';
-import { isAtlasStream } from 'mongodb-build-info';
+import { isAtlas, isAtlasStream } from 'mongodb-build-info';
 import { MCPLogIds } from './mcpLogIds';
 import ConnectionString from 'mongodb-connection-string-url';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
@@ -20,13 +20,18 @@ export interface MCPConnectParams {
   connectOptions: DevtoolsConnectOptions;
 }
 
+export const MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX = 'MongoDB MCP Server';
+
 export class MCPConnectionManager extends ConnectionManager {
   private activeConnection: {
     id: string;
     provider: ServiceProvider;
   } | null = null;
 
-  constructor(private readonly logger: LoggerBase) {
+  constructor(
+    private readonly logger: LoggerBase,
+    private readonly getTelemetryAnonymousId: () => string,
+  ) {
     super();
   }
 
@@ -129,14 +134,25 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     const searchParamAppName = connectionURL
       .typedSearchParams<DevtoolsConnectOptions>()
       .get('appName');
+
     if (
       !searchParamAppName ||
-      searchParamAppName === DEFAULT_TELEMETRY_APP_NAME
+      (searchParamAppName.startsWith(DEFAULT_TELEMETRY_APP_NAME) &&
+        !searchParamAppName.includes(MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX))
     ) {
+      const defaultAppName = `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}`;
+      const telemetryAnonymousId = this.getTelemetryAnonymousId();
+      const connectionId = connectParams.connectionId;
+      const appName = isAtlas(connectParams.connectionString)
+        ? `${defaultAppName}${
+            telemetryAnonymousId ? `--${telemetryAnonymousId}` : ''
+          }--${connectionId}`
+        : defaultAppName;
+
       connectionURL
         .typedSearchParams<DevtoolsConnectOptions>()
-        .set('appName', `${DEFAULT_TELEMETRY_APP_NAME} MongoDB MCP Server`);
-      connectOptions.appName = `${DEFAULT_TELEMETRY_APP_NAME} MongoDB MCP Server`;
+        .set('appName', appName);
+      connectOptions.appName = appName;
     }
 
     return {

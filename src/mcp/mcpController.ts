@@ -44,6 +44,7 @@ export class MCPController {
   constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly connectionController: ConnectionController,
+    private readonly getTelemetryAnonymousId: () => string,
   ) {
     this.context.subscriptions.push(
       vscode.lm.registerMcpServerDefinitionProvider('mongodb', {
@@ -86,7 +87,7 @@ export class MCPController {
       logger,
     }) => {
       const connectionManager = (this.mcpConnectionManager =
-        new MCPConnectionManager(logger));
+        new MCPConnectionManager(logger, this.getTelemetryAnonymousId));
       await this.switchConnectionManagerToCurrentConnection();
       return connectionManager;
     };

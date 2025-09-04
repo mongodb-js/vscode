@@ -170,6 +170,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._mcpController = new MCPController(
       context,
       this._connectionController,
+      () => this._connectionStorage.getUserAnonymousId(),
     );
   }
 
