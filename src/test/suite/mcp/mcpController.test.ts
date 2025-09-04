@@ -33,7 +33,11 @@ suite('MCPController test suite', function () {
       telemetryService: testTelemetryService,
     });
 
-    mcpController = new MCPController(extensionContext, connectionController);
+    mcpController = new MCPController({
+      context: extensionContext,
+      connectionController: connectionController,
+      getTelemetryAnonymousId: (): string => '1FOO',
+    });
   });
 
   afterEach(async () => {

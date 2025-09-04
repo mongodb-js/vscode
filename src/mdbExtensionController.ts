@@ -167,10 +167,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
-    this._mcpController = new MCPController(
+    this._mcpController = new MCPController({
       context,
-      this._connectionController,
-    );
+      connectionController: this._connectionController,
+      getTelemetryAnonymousId: (): string =>
+        this._connectionStorage.getUserAnonymousId(),
+    });
   }
 
   subscribeToConfigurationChanges(): void {

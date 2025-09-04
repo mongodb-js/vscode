@@ -2,11 +2,17 @@ import sinon from 'sinon';
 import { afterEach, beforeEach } from 'mocha';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import ConnectionString from 'mongodb-connection-string-url';
 import type { LoggerBase } from '@himanshusinghs/mongodb-mcp-server';
 import type { ConnectionStateErrored } from '@himanshusinghs/mongodb-mcp-server';
 import type { DevtoolsConnectOptions } from '@mongosh/service-provider-node-driver';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
-import { MCPConnectionManager } from '../../../mcp/mcpConnectionManager';
+import type { MCPConnectParams } from '../../../mcp/mcpConnectionManager';
+import {
+  MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX,
+  MCPConnectionManager,
+} from '../../../mcp/mcpConnectionManager';
+import { DEFAULT_TELEMETRY_APP_NAME } from '../../../connectionController';
 
 chai.use(chaiAsPromised);
 
@@ -17,9 +23,9 @@ suite('MCPConnectionManager Test Suite', function () {
 
   beforeEach(() => {
     mcpConnectionManager = new MCPConnectionManager({
-      error: () => {},
-      warning: () => {},
-    } as unknown as LoggerBase);
+      logger: { error: () => {}, warning: () => {} } as unknown as LoggerBase,
+      getTelemetryAnonymousId: (): string => '1FOO',
+    });
     fakeServiceProvider = {
       runCommand: (() =>
         Promise.resolve({})) as NodeDriverServiceProvider['runCommand'],
@@ -286,5 +292,147 @@ suite('MCPConnectionManager Test Suite', function () {
         });
       });
     });
+  });
+
+  suite('#overrideAppNameIfContainsVSCode', function () {
+    let localConnectionURL: ConnectionString;
+    let atlasConnectionURL: ConnectionString;
+    beforeEach(() => {
+      localConnectionURL = new ConnectionString(
+        `mongodb://localhost:27017/?appName=${DEFAULT_TELEMETRY_APP_NAME}`,
+      );
+      atlasConnectionURL = new ConnectionString(
+        'mongodb://cat-data-sets.cats.mongodb.net/admin',
+      );
+    });
+
+    for (const {
+      suiteName,
+      getConnectionURL,
+      getConnectionManager,
+      expectedAppName,
+      expectedString,
+    } of [
+      {
+        suiteName: 'when connection string is not atlas',
+        getConnectionURL: (): ConnectionString => localConnectionURL.clone(),
+        getConnectionManager: (): MCPConnectionManager => mcpConnectionManager,
+        expectedAppName: `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}`,
+        expectedString: (): string => {
+          const url = localConnectionURL.clone();
+          const expectedAppName = `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}`;
+          url.searchParams.set('appName', expectedAppName);
+          return url.toString();
+        },
+      },
+      {
+        suiteName: 'when connection string is atlas',
+        getConnectionURL: (): ConnectionString => atlasConnectionURL.clone(),
+        getConnectionManager: (): MCPConnectionManager => mcpConnectionManager,
+        expectedAppName: `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}--1FOO--1`,
+        expectedString: (): string => {
+          const url = atlasConnectionURL.clone();
+          const expectedAppName = `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}--1FOO--1`;
+          url.searchParams.set('appName', expectedAppName);
+          return url.toString();
+        },
+      },
+    ]) {
+      suite(suiteName, function () {
+        suite('and appName is not set', function () {
+          test('should set appName attribute both in connection string and connection options', function () {
+            const url = getConnectionURL();
+            url.searchParams.delete('appName');
+            const connectParams: MCPConnectParams = {
+              connectionId: '1',
+              connectionString: url.toString(),
+              connectOptions: {
+                productName: 'VSCode',
+                productDocsLink: 'https://mongodb.com',
+                appName: DEFAULT_TELEMETRY_APP_NAME,
+              },
+            };
+
+            expect(
+              getConnectionManager().overridePresetAppName(connectParams),
+            ).to.deep.equal({
+              connectionId: '1',
+              connectionString: expectedString(),
+              connectOptions: {
+                productName: 'VSCode',
+                productDocsLink: 'https://mongodb.com',
+                appName: expectedAppName,
+              },
+            });
+          });
+        });
+
+        suite('if appName is set to default vscode app name', function () {
+          test('should set appName attribute both in connection string and connection options', function () {
+            const url = getConnectionURL();
+            const connectParams: MCPConnectParams = {
+              connectionId: '1',
+              connectionString: url.toString(),
+              connectOptions: {
+                productName: 'VSCode',
+                productDocsLink: 'https://mongodb.com',
+                appName: DEFAULT_TELEMETRY_APP_NAME,
+              },
+            };
+
+            expect(
+              getConnectionManager().overridePresetAppName(connectParams),
+            ).to.deep.equal({
+              connectionId: '1',
+              connectionString: expectedString(),
+              connectOptions: {
+                productName: 'VSCode',
+                productDocsLink: 'https://mongodb.com',
+                appName: expectedAppName,
+              },
+            });
+          });
+        });
+
+        suite('if appName is set to something else', function () {
+          test('should not override appName attribute both in connection string and connection options', function () {
+            const url = getConnectionURL();
+            url.searchParams.set('appName', 'MongoDB MCP Server 0.0.0');
+            const connectParams: MCPConnectParams = {
+              connectionId: '1',
+              connectionString: url.toString(),
+              connectOptions: {
+                productName: 'VSCode',
+                productDocsLink: 'https://mongodb.com',
+                appName: DEFAULT_TELEMETRY_APP_NAME,
+              },
+            };
+
+            expect(
+              getConnectionManager().overridePresetAppName(connectParams),
+            ).to.deep.equal(connectParams);
+
+            // Now for the case when appName is already set to expected MCP server appname
+            url.searchParams.set(
+              'appName',
+              `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}`,
+            );
+            const nextConnectParams: MCPConnectParams = {
+              connectionId: '1',
+              connectionString: url.toString(),
+              connectOptions: {
+                productName: 'VSCode',
+                productDocsLink: 'https://mongodb.com',
+                appName: DEFAULT_TELEMETRY_APP_NAME,
+              },
+            };
+
+            expect(
+              getConnectionManager().overridePresetAppName(nextConnectParams),
+            ).to.deep.equal(nextConnectParams);
+          });
+        });
+      });
+    }
   });
 });
