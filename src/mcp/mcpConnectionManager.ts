@@ -22,17 +22,23 @@ export interface MCPConnectParams {
 
 export const MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX = 'MongoDB MCP Server';
 
+type MCPConnectionManagerConfig = {
+  logger: LoggerBase;
+  getTelemetryAnonymousId: () => string;
+};
+
 export class MCPConnectionManager extends ConnectionManager {
+  private logger: LoggerBase;
+  private getTelemetryAnonymousId: () => string;
   private activeConnection: {
     id: string;
     provider: ServiceProvider;
   } | null = null;
 
-  constructor(
-    private readonly logger: LoggerBase,
-    private readonly getTelemetryAnonymousId: () => string,
-  ) {
+  constructor({ logger, getTelemetryAnonymousId }: MCPConnectionManagerConfig) {
     super();
+    this.logger = logger;
+    this.getTelemetryAnonymousId = getTelemetryAnonymousId;
   }
 
   connect(): Promise<AnyConnectionState> {
@@ -50,7 +56,7 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
   ): Promise<AnyConnectionState> {
     try {
       const { connectionId, connectOptions, connectionString } =
-        this.overrideAppNameIfContainsVSCode(connectParams);
+        this.overridePresetAppName(connectParams);
       const serviceProvider = await NodeDriverServiceProvider.connect(
         connectionString,
         connectOptions,
@@ -124,16 +130,14 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     await this.connectToVSCodeConnection(connectParams);
   }
 
-  overrideAppNameIfContainsVSCode(
-    connectParams: MCPConnectParams,
-  ): MCPConnectParams {
+  overridePresetAppName(connectParams: MCPConnectParams): MCPConnectParams {
     const connectionURL = new ConnectionString(connectParams.connectionString);
     const connectOptions: DevtoolsConnectOptions = {
       ...connectParams.connectOptions,
     };
-    const searchParams = connectionURL
-      .typedSearchParams<DevtoolsConnectOptions>();
-    const appName = searchParams.get('appName')
+    const searchParams =
+      connectionURL.typedSearchParams<DevtoolsConnectOptions>();
+    const appName = searchParams.get('appName');
 
     if (
       !appName ||

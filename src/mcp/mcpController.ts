@@ -36,16 +36,30 @@ export type MCPServerInfo = {
   runner: StreamableHttpRunner;
   headers: Record<string, string>;
 };
+
+type MCPControllerConfig = {
+  context: vscode.ExtensionContext;
+  connectionController: ConnectionController;
+  getTelemetryAnonymousId: () => string;
+};
+
 export class MCPController {
+  private context: vscode.ExtensionContext;
+  private connectionController: ConnectionController;
+  private getTelemetryAnonymousId: () => string;
+
   private didChangeEmitter = new vscode.EventEmitter<void>();
   private server?: MCPServerInfo;
   private mcpConnectionManager?: MCPConnectionManager;
 
-  constructor(
-    private readonly context: vscode.ExtensionContext,
-    private readonly connectionController: ConnectionController,
-    private readonly getTelemetryAnonymousId: () => string,
-  ) {
+  constructor({
+    context,
+    connectionController,
+    getTelemetryAnonymousId,
+  }: MCPControllerConfig) {
+    this.context = context;
+    this.connectionController = connectionController;
+    this.getTelemetryAnonymousId = getTelemetryAnonymousId;
     this.context.subscriptions.push(
       vscode.lm.registerMcpServerDefinitionProvider('mongodb', {
         onDidChangeMcpServerDefinitions: this.didChangeEmitter.event,
@@ -87,7 +101,10 @@ export class MCPController {
       logger,
     }) => {
       const connectionManager = (this.mcpConnectionManager =
-        new MCPConnectionManager(logger, this.getTelemetryAnonymousId));
+        new MCPConnectionManager({
+          logger,
+          getTelemetryAnonymousId: this.getTelemetryAnonymousId,
+        }));
       await this.switchConnectionManagerToCurrentConnection();
       return connectionManager;
     };

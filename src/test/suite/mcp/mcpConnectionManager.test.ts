@@ -22,13 +22,10 @@ suite('MCPConnectionManager Test Suite', function () {
   let fakeServiceProvider: NodeDriverServiceProvider;
 
   beforeEach(() => {
-    mcpConnectionManager = new MCPConnectionManager(
-      {
-        error: () => {},
-        warning: () => {},
-      } as unknown as LoggerBase,
-      () => '1FOO',
-    );
+    mcpConnectionManager = new MCPConnectionManager({
+      logger: { error: () => {}, warning: () => {} } as unknown as LoggerBase,
+      getTelemetryAnonymousId: (): string => '1FOO',
+    });
     fakeServiceProvider = {
       runCommand: (() =>
         Promise.resolve({})) as NodeDriverServiceProvider['runCommand'],
@@ -357,9 +354,7 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overrideAppNameIfContainsVSCode(
-                connectParams,
-              ),
+              getConnectionManager().overridePresetAppName(connectParams),
             ).to.deep.equal({
               connectionId: '1',
               connectionString: expectedString(),
@@ -386,9 +381,7 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overrideAppNameIfContainsVSCode(
-                connectParams,
-              ),
+              getConnectionManager().overridePresetAppName(connectParams),
             ).to.deep.equal({
               connectionId: '1',
               connectionString: expectedString(),
@@ -416,9 +409,7 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overrideAppNameIfContainsVSCode(
-                connectParams,
-              ),
+              getConnectionManager().overridePresetAppName(connectParams),
             ).to.deep.equal(connectParams);
 
             // Now for the case when appName is already set to expected MCP server appname
@@ -437,9 +428,7 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overrideAppNameIfContainsVSCode(
-                nextConnectParams,
-              ),
+              getConnectionManager().overridePresetAppName(nextConnectParams),
             ).to.deep.equal(nextConnectParams);
           });
         });
