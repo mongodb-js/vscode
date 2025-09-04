@@ -131,28 +131,26 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     const connectOptions: DevtoolsConnectOptions = {
       ...connectParams.connectOptions,
     };
-    const searchParamAppName = connectionURL
-      .typedSearchParams<DevtoolsConnectOptions>()
-      .get('appName');
+    const searchParams = connectionURL
+      .typedSearchParams<DevtoolsConnectOptions>();
+    const appName = searchParams.get('appName')
 
     if (
-      !searchParamAppName ||
-      (searchParamAppName.startsWith(DEFAULT_TELEMETRY_APP_NAME) &&
-        !searchParamAppName.includes(MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX))
+      !appName ||
+      (appName.startsWith(DEFAULT_TELEMETRY_APP_NAME) &&
+        !appName.includes(MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX))
     ) {
       const defaultAppName = `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}`;
       const telemetryAnonymousId = this.getTelemetryAnonymousId();
       const connectionId = connectParams.connectionId;
-      const appName = isAtlas(connectParams.connectionString)
+      const newAppName = isAtlas(connectParams.connectionString)
         ? `${defaultAppName}${
             telemetryAnonymousId ? `--${telemetryAnonymousId}` : ''
           }--${connectionId}`
         : defaultAppName;
 
-      connectionURL
-        .typedSearchParams<DevtoolsConnectOptions>()
-        .set('appName', appName);
-      connectOptions.appName = appName;
+      searchParams.set('appName', newAppName);
+      connectOptions.appName = newAppName;
     }
 
     return {
