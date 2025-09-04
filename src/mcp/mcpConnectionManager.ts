@@ -133,10 +133,9 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
       !searchParamAppName ||
       searchParamAppName === DEFAULT_TELEMETRY_APP_NAME
     ) {
-      connectionURL.searchParams.set(
-        'appName',
-        `${DEFAULT_TELEMETRY_APP_NAME} MongoDB MCP Server`,
-      );
+      connectionURL
+        .typedSearchParams<DevtoolsConnectOptions>()
+        .set('appName', `${DEFAULT_TELEMETRY_APP_NAME} MongoDB MCP Server`);
       connectOptions.appName = `${DEFAULT_TELEMETRY_APP_NAME} MongoDB MCP Server`;
     }
 
