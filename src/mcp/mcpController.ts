@@ -10,6 +10,8 @@ import {
   defaultUserConfig,
   LoggerBase,
   StreamableHttpRunner,
+  Keychain,
+  registerGlobalSecretToRedact,
 } from 'mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
@@ -91,9 +93,11 @@ export class MCPController {
 
   public async startServer(): Promise<void> {
     try {
+      const token = crypto.randomUUID();
       const headers: Record<string, string> = {
-        authorization: `Bearer ${crypto.randomUUID()}`,
+        authorization: `Bearer ${token}`,
       };
+      registerGlobalSecretToRedact(token, 'password');
 
       const mcpConfig: UserConfig = {
         ...defaultUserConfig,
@@ -121,7 +125,7 @@ export class MCPController {
         connectionErrorHandler: createMCPConnectionErrorHandler(
           this.connectionController,
         ),
-        additionalLoggers: [new VSCodeMCPLogger()],
+        additionalLoggers: [new VSCodeMCPLogger(Keychain.root)],
       });
       await runner.start();
 
