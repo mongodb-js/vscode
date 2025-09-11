@@ -93,6 +93,9 @@ export class MCPController {
 
   public async startServer(): Promise<void> {
     try {
+      // Stop an already running server if any
+      await this.stopServer();
+
       const token = crypto.randomUUID();
       const headers: Record<string, string> = {
         authorization: `Bearer ${token}`,
