@@ -324,7 +324,7 @@ suite('MCPController test suite', function () {
           .getConfiguration('mdb')
           .update('mcp.server', 'enabled');
 
-        // Start the controller and list to events
+        // Start the controller and listen to events
         await mcpController.activate();
 
         // Add a connection
