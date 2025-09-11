@@ -44,7 +44,7 @@ export const createMCPConnectionErrorHandler = (
         };
       case ErrorCodes.MisconfiguredConnectionString: {
         const resolutionGuidance: string[] = [
-          'Note to LLM: Ask the user to reconnect to the desired connection. If the problem persist even after that then advice them to raise an issue on the VSCode project board - https://github.com/mongodb-js/vscode/issues',
+          'Note to LLM: Ask the user to reconnect to the desired connection. If the problem persists even after that then advice them to raise an issue on the VSCode project board - https://github.com/mongodb-js/vscode/issues',
           ...connectionGuidance,
         ];
         return {
