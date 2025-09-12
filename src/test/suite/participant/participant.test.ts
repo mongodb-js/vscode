@@ -71,23 +71,15 @@ const encodeStringify = (obj: Record<string, any>): string => {
 const getMessageContent = (
   message: vscode.LanguageModelChatMessage,
 ): string => {
-  const content = message.content as any;
-  if (typeof content === 'string') {
-    return content;
-  }
+  const content = message.content;
+  return content.reduce((agg: string, element) => {
+    const value: string =
+      element instanceof vscode.LanguageModelTextPart
+        ? element.value
+        : element.toString();
 
-  if (Array.isArray(content)) {
-    return content.reduce((agg: string, element) => {
-      const value = element?.value ?? element?.content?.value;
-      if (typeof value === 'string') {
-        return agg + value;
-      }
-
-      return agg;
-    }, '');
-  }
-
-  return '';
+    return agg + value;
+  }, '');
 };
 
 suite('Participant Controller Test Suite', function () {
