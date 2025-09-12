@@ -9,7 +9,6 @@ import ConnectionString from 'mongodb-connection-string-url';
 
 import ConnectionController, {
   ConnectionTypes,
-  DataServiceEventTypes,
   getNotifyDeviceFlowForConnectionAttempt,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
@@ -230,9 +229,9 @@ suite('Connection Controller Test Suite', function () {
         options: {
           autoEncryption: undefined,
           monitorCommands: true,
-          applyProxyToOIDC: false,
+          applyProxyToOIDC: {},
           authMechanismProperties: {},
-          oidc: { customHttpOptions: {} },
+          oidc: {},
           productDocsLink:
             'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
           productName: 'mongodb-vscode',
@@ -499,19 +498,16 @@ suite('Connection Controller Test Suite', function () {
     const expectedTimesToFire = 2;
     let connectionsDidChangeEventFiredCount = 0;
 
-    testConnectionController.addEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      () => {
-        connectionsDidChangeEventFiredCount++;
-      },
-    );
+    testConnectionController.addEventListener('CONNECTIONS_DID_CHANGE', () => {
+      connectionsDidChangeEventFiredCount++;
+    });
 
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     testConnectionController.removeEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      'CONNECTIONS_DID_CHANGE',
       () => {},
     );
 
@@ -526,12 +522,9 @@ suite('Connection Controller Test Suite', function () {
     const expectedTimesToFire = 3;
     let connectionsDidChangeEventFiredCount = 0;
 
-    testConnectionController.addEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
-      () => {
-        connectionsDidChangeEventFiredCount++;
-      },
-    );
+    testConnectionController.addEventListener('CONNECTIONS_DID_CHANGE', () => {
+      connectionsDidChangeEventFiredCount++;
+    });
 
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -539,7 +532,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.disconnect();
 
     testConnectionController.removeEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      'CONNECTIONS_DID_CHANGE',
       () => {},
     );
 
@@ -1255,9 +1248,9 @@ suite('Connection Controller Test Suite', function () {
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
-        applyProxyToOIDC: false,
+        applyProxyToOIDC: {},
         authMechanismProperties: {},
-        oidc: { customHttpOptions: {} },
+        oidc: {},
         productDocsLink:
           'https://docs.mongodb.com/mongodb-vscode/?utm_source=vscode&utm_medium=product',
         productName: 'mongodb-vscode',
@@ -1343,7 +1336,7 @@ suite('Connection Controller Test Suite', function () {
 
       let isConnectionChanged = false;
       testConnectionController.addEventListener(
-        DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+        'CONNECTIONS_DID_CHANGE',
         () => {
           isConnectionChanged = true;
         },
@@ -1352,7 +1345,7 @@ suite('Connection Controller Test Suite', function () {
       await testConnectionController.loadSavedConnections();
 
       testConnectionController.removeEventListener(
-        DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+        'CONNECTIONS_DID_CHANGE',
         () => {},
       );
 

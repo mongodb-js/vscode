@@ -4,7 +4,6 @@ import EXTENSION_COMMANDS from '../commands';
 import type ConnectionController from '../connectionController';
 import { isPlayground } from '../utils/playground';
 import { getDBFromConnectionString } from '../utils/connection-string-db';
-import { DataServiceEventTypes } from '../connectionController';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider
@@ -28,7 +27,7 @@ export default class ActiveConnectionCodeLensProvider
       this._onDidChangeCodeLenses.fire();
     };
     this._connectionController.addEventListener(
-      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      'ACTIVE_CONNECTION_CHANGED',
       this._activeConnectionChangedHandler,
     );
   }
@@ -67,7 +66,7 @@ export default class ActiveConnectionCodeLensProvider
 
   deactivate(): void {
     this._connectionController.removeEventListener(
-      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
+      'ACTIVE_CONNECTION_CHANGED',
       this._activeConnectionChangedHandler,
     );
   }

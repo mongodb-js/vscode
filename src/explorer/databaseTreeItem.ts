@@ -8,13 +8,13 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'database.svg'),
-    dark: path.join(DARK, 'database.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'database.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'database.svg')),
   };
 }
 

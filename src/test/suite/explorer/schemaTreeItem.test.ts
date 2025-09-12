@@ -296,11 +296,11 @@ suite('SchemaTreeItem Test Suite', function () {
 
     const schemaIconPath = testSchemaTreeItem.iconPath;
     assert(
-      schemaIconPath.light.includes('schema.svg'),
+      schemaIconPath.light.toString().includes('schema.svg'),
       'Expected icon path to point to an svg by the name "schema" with a light mode',
     );
     assert(
-      schemaIconPath.dark.includes('schema.svg'),
+      schemaIconPath.dark.toString().includes('schema.svg'),
       'Expected icon path to point to an svg by the name "schema" with a light mode',
     );
   });

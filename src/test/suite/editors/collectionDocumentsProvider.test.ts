@@ -173,8 +173,9 @@ suite('Collection Documents Provider Test Suite', () => {
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
 
-    assert(
-      testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
+    assert.strictEqual(
+      testQueryStore.operations[operationId].hasMoreDocumentsToShow,
+      false,
       'Expected not to have more documents to show.',
     );
 

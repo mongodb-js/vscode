@@ -233,6 +233,7 @@ const mockVSCodeTextDocument = {
   validateRange: (/* range: vscode.Range */): vscode.Range => mockRange,
   validatePosition: (/* position: vscode.Position */): vscode.Position =>
     mockPosition,
+  encoding: 'utf8',
 };
 
 const mockSelection = new vscode.Selection(

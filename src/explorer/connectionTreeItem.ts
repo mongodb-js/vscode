@@ -18,20 +18,20 @@ export type ConnectionItemContextValue = `${'disconnected' | 'connected'}${
   | 'Preset'}ConnectionTreeItem`;
 
 function getIconPath(isActiveConnection: boolean): {
-  light: string;
-  dark: string;
+  light: vscode.Uri;
+  dark: vscode.Uri;
 } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return isActiveConnection
     ? {
-        light: path.join(LIGHT, 'connection-active.svg'),
-        dark: path.join(DARK, 'connection-active.svg'),
+        light: vscode.Uri.file(path.join(LIGHT, 'connection-active.svg')),
+        dark: vscode.Uri.file(path.join(DARK, 'connection-active.svg')),
       }
     : {
-        light: path.join(LIGHT, 'connection-inactive.svg'),
-        dark: path.join(DARK, 'connection-inactive.svg'),
+        light: vscode.Uri.file(path.join(LIGHT, 'connection-inactive.svg')),
+        dark: vscode.Uri.file(path.join(DARK, 'connection-inactive.svg')),
       };
 }
 

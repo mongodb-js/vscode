@@ -54,10 +54,6 @@ runs:
         fi
       shell: bash
 
-    - name: Install npm
-      run: npm install -g npm@8.19.4
-      shell: bash
-
     - name: Install Dependencies
       shell: bash
       run: |

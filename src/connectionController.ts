@@ -39,9 +39,9 @@ const log = createLogger('connection controller');
 
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
-export enum DataServiceEventTypes {
-  CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
-  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
+interface DataServiceEventTypes {
+  CONNECTIONS_DID_CHANGE: [];
+  ACTIVE_CONNECTION_CHANGED: [];
 }
 
 export enum ConnectionTypes {
@@ -78,6 +78,8 @@ interface NewConnectionParams {
   name?: string;
   reuseExisting?: boolean;
 }
+
+export const DEFAULT_TELEMETRY_APP_NAME = `${packageJSON.name} ${packageJSON.version}`;
 
 function isOIDCAuth(connectionString: string): boolean {
   const authMechanismString = (
@@ -156,7 +158,8 @@ export default class ConnectionController {
   private _statusView: StatusView;
 
   // Used by other parts of the extension that respond to changes in the connections.
-  private eventEmitter: EventEmitter = new EventEmitter();
+  private eventEmitter: EventEmitter<DataServiceEventTypes> =
+    new EventEmitter();
 
   constructor({
     statusView,
@@ -231,7 +234,7 @@ export default class ConnectionController {
     }
 
     if (loadedConnections.length) {
-      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+      this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
     }
 
     // TODO: re-enable with fewer 'Saved Connections Loaded' events
@@ -439,7 +442,7 @@ export default class ConnectionController {
     });
     this._connectionAttempt = connectionAttempt;
     this._connectingConnectionId = connectionId;
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
 
     if (this._activeDataService) {
       log.info('Disconnecting from the previous connection...', {
@@ -480,7 +483,7 @@ export default class ConnectionController {
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
         connectionId,
-        defaultAppName: `${packageJSON.name} ${packageJSON.version}`,
+        defaultAppName: DEFAULT_TELEMETRY_APP_NAME,
         notifyDeviceFlow,
         preferences: {
           forceConnectionOptions: [],
@@ -531,7 +534,7 @@ export default class ConnectionController {
         this._connectingConnectionId = null;
       }
 
-      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+      this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
     }
 
     log.info('Successfully connected', { connectionId });
@@ -547,7 +550,7 @@ export default class ConnectionController {
     this._connectingConnectionId = null;
 
     this._connections[connectionId].lastUsed = new Date();
-    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    this.eventEmitter.emit('ACTIVE_CONNECTION_CHANGED');
     await this._connectionStorage.saveConnection(
       this._connections[connectionId],
     );
@@ -721,8 +724,8 @@ export default class ConnectionController {
     this._disconnecting = true;
     this._statusView.showMessage('Disconnecting from current connection...');
 
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
+    this.eventEmitter.emit('ACTIVE_CONNECTION_CHANGED');
 
     if (!this._activeDataService) {
       log.error('Unable to disconnect: no active connection');
@@ -766,7 +769,7 @@ export default class ConnectionController {
 
     delete this._connections[connectionId];
     await this._connectionStorage.removeConnection(connectionId);
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
   }
 
   // Prompts the user to remove the connection then removes it on affirmation.
@@ -957,8 +960,8 @@ export default class ConnectionController {
     }
 
     this._connections[connectionId].name = inputtedConnectionName;
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
+    this.eventEmitter.emit('ACTIVE_CONNECTION_CHANGED');
 
     await this._connectionStorage.saveConnection(
       this._connections[connectionId],
@@ -969,14 +972,14 @@ export default class ConnectionController {
   }
 
   addEventListener(
-    eventType: DataServiceEventTypes,
+    eventType: keyof DataServiceEventTypes,
     listener: () => void,
   ): void {
     this.eventEmitter.addListener(eventType, listener);
   }
 
   removeEventListener(
-    eventType: DataServiceEventTypes,
+    eventType: keyof DataServiceEventTypes,
     listener: () => void,
   ): void {
     this.eventEmitter.removeListener(eventType, listener);

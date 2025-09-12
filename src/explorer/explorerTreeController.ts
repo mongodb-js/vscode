@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
-import { DataServiceEventTypes } from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';
@@ -31,7 +30,7 @@ export default class ExplorerTreeController
 
     // Subscribe to changes in the connections.
     this._connectionController.addEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      'CONNECTIONS_DID_CHANGE',
       () => {
         this.refresh();
       },
@@ -42,7 +41,7 @@ export default class ExplorerTreeController
 
   removeListeners(): void {
     this._connectionController.removeEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      'CONNECTIONS_DID_CHANGE',
       () => {
         this.refresh();
       },

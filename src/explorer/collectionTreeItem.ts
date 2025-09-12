@@ -15,30 +15,30 @@ import SchemaTreeItem from './schemaTreeItem';
 function getIconPath(
   type: string,
   isExpanded: boolean,
-): { light: string; dark: string } {
+): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   if (type === CollectionTypes.timeseries) {
     return {
-      light: path.join(LIGHT, 'collection-timeseries.svg'),
-      dark: path.join(DARK, 'collection-timeseries.svg'),
+      light: vscode.Uri.file(path.join(LIGHT, 'collection-timeseries.svg')),
+      dark: vscode.Uri.file(path.join(DARK, 'collection-timeseries.svg')),
     };
   } else if (type === CollectionTypes.collection) {
     if (isExpanded) {
       return {
-        light: path.join(LIGHT, 'collection-folder-open.svg'),
-        dark: path.join(DARK, 'collection-folder-open.svg'),
+        light: vscode.Uri.file(path.join(LIGHT, 'collection-folder-open.svg')),
+        dark: vscode.Uri.file(path.join(DARK, 'collection-folder-open.svg')),
       };
     }
     return {
-      light: path.join(LIGHT, 'collection-folder-closed.svg'),
-      dark: path.join(DARK, 'collection-folder-closed.svg'),
+      light: vscode.Uri.file(path.join(LIGHT, 'collection-folder-closed.svg')),
+      dark: vscode.Uri.file(path.join(DARK, 'collection-folder-closed.svg')),
     };
   }
   return {
-    light: path.join(LIGHT, 'view-folder.svg'),
-    dark: path.join(DARK, 'view-folder.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'view-folder.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'view-folder.svg')),
   };
 }
 
@@ -81,7 +81,7 @@ export default class CollectionTreeItem
 
   isDropped = false;
 
-  iconPath: { light: string; dark: string };
+  iconPath: { light: vscode.Uri; dark: vscode.Uri };
 
   constructor({
     collection,
