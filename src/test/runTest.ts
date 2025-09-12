@@ -39,7 +39,7 @@ async function main(): Promise<any> {
 
   // Download VS Code, unzip it and run the integration test
   await runTests({
-    version: 'insiders', // Download latest insiders.
+    version: '1.103.2', // TODO(VSCODE-700) Once we fix the test setup issues, we should revert this to 'insiders'
     extensionDevelopmentPath,
     extensionTestsPath,
     launchArgs: [testWorkspace, '--disable-extensions'],
