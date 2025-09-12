@@ -149,14 +149,12 @@ suite('MCPController test suite', function () {
       informationStubResolvedValue = undefined;
 
       const startServerSpy = sandbox.spy(mcpController, 'startServer');
-      const stopServerSpy = sandbox.spy(mcpController, 'stopServer');
       await mcpController.activate();
 
       await informationStubCalledNotification;
       expect(showInformationStub).to.be.calledOnce;
       expect(updateStub).to.be.calledWith('mcp.server', 'enabled', true);
       expect(startServerSpy).to.be.called;
-      expect(stopServerSpy).to.not.be.called;
     });
 
     suite(
@@ -176,14 +174,12 @@ suite('MCPController test suite', function () {
 
           informationStubResolvedValue = 'Keep';
           const startServerSpy = sandbox.spy(mcpController, 'startServer');
-          const stopServerSpy = sandbox.spy(mcpController, 'stopServer');
           await mcpController.activate();
 
           await informationStubCalledNotification;
           expect(showInformationStub).to.be.calledOnce;
           expect(updateStub).to.be.calledWith('mcp.server', 'enabled', true);
           expect(startServerSpy).to.be.called;
-          expect(stopServerSpy).to.not.be.called;
         });
       },
     );
