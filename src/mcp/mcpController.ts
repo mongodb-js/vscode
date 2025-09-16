@@ -112,11 +112,15 @@ export class MCPController {
         transport: 'http',
         httpPort: 0,
         httpHeaders: headers,
-        disabledTools: [
-          'connect',
-          ...(vscodeConfiguredMCPConfig.disabledTools ?? []),
-        ],
-        loggers: ['mcp', ...(vscodeConfiguredMCPConfig.loggers ?? [])],
+        disabledTools: Array.from(
+          new Set([
+            'connect',
+            ...(vscodeConfiguredMCPConfig.disabledTools ?? []),
+          ]),
+        ),
+        loggers: Array.from(
+          new Set(['mcp', ...(vscodeConfiguredMCPConfig.loggers ?? [])]),
+        ),
       };
 
       logger.info('Starting MCP server with config', {
