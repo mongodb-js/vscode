@@ -25,7 +25,7 @@ const getDefaultVSCodeConfigForMCP = (): vscode.WorkspaceConfiguration =>
     },
   }) as unknown as vscode.WorkspaceConfiguration;
 
-suite.only('MCPConfig test suite', () => {
+suite('MCPConfig test suite', () => {
   test('normal calls with package.json properties should return expected MCP config from the configured VSCode config', () => {
     const output = getMCPConfigFromVSCodeSettings(
       undefined,
