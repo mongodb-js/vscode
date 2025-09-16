@@ -57,6 +57,7 @@ import {
 } from './telemetry';
 
 import * as queryString from 'query-string';
+import { MCPController } from './mcp/mcpController';
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -82,6 +83,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
+  _mcpController: MCPController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -165,6 +167,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
+    this._mcpController = new MCPController({
+      context,
+      connectionController: this._connectionController,
+      getTelemetryAnonymousId: (): string =>
+        this._connectionStorage.getUserAnonymousId(),
+    });
   }
 
   subscribeToConfigurationChanges(): void {
@@ -185,6 +193,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
+    await this._mcpController.activate();
 
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
@@ -927,6 +936,29 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerAtlasStreamsTreeViewCommands();
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.START_MCP_SERVER,
+      async (): Promise<boolean> => {
+        await this._mcpController.startServer();
+        return true;
+      },
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.STOP_MCP_SERVER,
+      async (): Promise<boolean> => {
+        await this._mcpController.stopServer();
+        return true;
+      },
+    );
+
+    this.registerCommand(
+      EXTENSION_COMMANDS.GET_MCP_SERVER_CONFIG,
+      (): Promise<boolean> => {
+        return this._mcpController.openServerConfig();
+      },
+    );
   }
 
   registerAtlasStreamsTreeViewCommands(): void {

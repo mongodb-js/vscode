@@ -52,8 +52,8 @@ function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
 }
 
 function getIndexFieldIconPath(indexKeyType: IndexKeyType): {
-  light: string;
-  dark: string;
+  light: vscode.Uri;
+  dark: vscode.Uri;
 } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
@@ -61,8 +61,8 @@ function getIndexFieldIconPath(indexKeyType: IndexKeyType): {
   const iconName = getIconNameForIndexKeyType(indexKeyType);
 
   return {
-    light: path.join(LIGHT, 'index', `${iconName}.svg`),
-    dark: path.join(DARK, 'index', `${iconName}.svg`),
+    light: vscode.Uri.file(path.join(LIGHT, 'index', `${iconName}.svg`)),
+    dark: vscode.Uri.file(path.join(DARK, 'index', `${iconName}.svg`)),
   };
 }
 

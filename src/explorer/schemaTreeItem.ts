@@ -30,13 +30,13 @@ class ShowAllFieldsTreeItem extends vscode.TreeItem {
   }
 }
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'schema.svg'),
-    dark: path.join(DARK, 'schema.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'schema.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'schema.svg')),
   };
 }
 
@@ -59,7 +59,7 @@ export default class SchemaTreeItem
   hasClickedShowMoreFields: boolean;
   hasMoreFieldsToShow: boolean;
 
-  iconPath: { light: string; dark: string };
+  iconPath: { light: vscode.Uri; dark: vscode.Uri };
 
   constructor({
     collectionName,

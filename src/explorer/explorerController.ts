@@ -1,7 +1,6 @@
 import type * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
-import { DataServiceEventTypes } from '../connectionController';
 import ExplorerTreeController from './explorerTreeController';
 import { createTrackedTreeView } from '../utils/treeViewHelper';
 import type { TelemetryService } from '../telemetry';
@@ -23,7 +22,7 @@ export default class ExplorerController {
   private createTreeView = (): void => {
     // Remove the listener that called this function.
     this._connectionController.removeEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      'CONNECTIONS_DID_CHANGE',
       this.createTreeView,
     );
 
@@ -41,7 +40,7 @@ export default class ExplorerController {
     // Listen for a change in connections to occur before we create the tree
     // so that we show the `viewsWelcome` before any connections are added.
     this._connectionController.addEventListener(
-      DataServiceEventTypes.CONNECTIONS_DID_CHANGE,
+      'CONNECTIONS_DID_CHANGE',
       this.createTreeView,
     );
   }

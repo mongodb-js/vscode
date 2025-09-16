@@ -34,7 +34,8 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 20.16.0
+          node-version: 22.15.1
+          cache: npm
 
       - name: Run tests and build
         uses: ./.github/workflows/actions/test-and-build

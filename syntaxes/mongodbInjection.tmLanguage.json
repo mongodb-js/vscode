@@ -1919,6 +1919,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$rankFusion\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$rankFusion.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$redact\\b",
           "captures": {
             "0": {
