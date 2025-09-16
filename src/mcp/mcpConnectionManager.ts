@@ -3,7 +3,7 @@ import {
   type AnyConnectionState,
   type ConnectionStateDisconnected,
   type LoggerBase,
-} from '@himanshusinghs/mongodb-mcp-server';
+} from 'mongodb-mcp-server';
 import {
   NodeDriverServiceProvider,
   type DevtoolsConnectOptions,

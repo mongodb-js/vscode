@@ -9,8 +9,8 @@ import { StatusView } from '../../../views';
 import type {
   ConnectionErrorHandled,
   ConnectionErrorHandlerContext,
-} from '@himanshusinghs/mongodb-mcp-server';
-import { ErrorCodes } from '@himanshusinghs/mongodb-mcp-server';
+} from 'mongodb-mcp-server';
+import { ErrorCodes } from 'mongodb-mcp-server';
 
 class MongoDBError extends Error {
   constructor(

@@ -1,7 +1,4 @@
-import {
-  ErrorCodes,
-  type ConnectionErrorHandler,
-} from '@himanshusinghs/mongodb-mcp-server';
+import { ErrorCodes, type ConnectionErrorHandler } from 'mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 
 export const createMCPConnectionErrorHandler = (

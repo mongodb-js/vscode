@@ -2,7 +2,7 @@ import {
   type UserConfig,
   configurableProperties,
   defaultUserConfig,
-} from '@himanshusinghs/mongodb-mcp-server';
+} from 'mongodb-mcp-server';
 import * as vscode from 'vscode';
 import { createLogger } from '../logging';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
