@@ -5,19 +5,20 @@ import type {
   LogPayload,
   UserConfig,
   ConnectionManagerFactoryFn,
-} from 'mongodb-mcp-server';
+} from '@himanshusinghs/mongodb-mcp-server';
 import {
   defaultUserConfig,
   LoggerBase,
   StreamableHttpRunner,
   Keychain,
   registerGlobalSecretToRedact,
-} from 'mongodb-mcp-server';
+} from '@himanshusinghs/mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import type { MCPConnectParams } from './mcpConnectionManager';
 import { MCPConnectionManager } from './mcpConnectionManager';
 import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
+import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
 
 export type McpServerStartupConfig = 'enabled' | 'disabled';
 
@@ -64,6 +65,9 @@ export class MCPController {
     this.context = context;
     this.connectionController = connectionController;
     this.getTelemetryAnonymousId = getTelemetryAnonymousId;
+  }
+
+  public async activate(): Promise<void> {
     this.context.subscriptions.push(
       vscode.lm.registerMcpServerDefinitionProvider('mongodb', {
         onDidChangeMcpServerDefinitions: this.didChangeEmitter.event,
@@ -75,9 +79,7 @@ export class MCPController {
         },
       }),
     );
-  }
 
-  public async activate(): Promise<void> {
     this.connectionController.addEventListener(
       'ACTIVE_CONNECTION_CHANGED',
       () => {
@@ -102,13 +104,24 @@ export class MCPController {
       };
       registerGlobalSecretToRedact(token, 'password');
 
+      const vscodeConfiguredMCPConfig = getMCPConfigFromVSCodeSettings();
+
       const mcpConfig: UserConfig = {
         ...defaultUserConfig,
+        ...vscodeConfiguredMCPConfig,
+        transport: 'http',
         httpPort: 0,
         httpHeaders: headers,
         disabledTools: ['connect'],
         loggers: ['mcp'],
       };
+
+      logger.info('Starting MCP server with config', {
+        ...mcpConfig,
+        httpHeaders: '<redacted>',
+        apiClientId: '<redacted>',
+        apiClientSecret: '<redacted>',
+      });
 
       const createConnectionManager: ConnectionManagerFactoryFn = async ({
         logger,
