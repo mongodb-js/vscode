@@ -10,29 +10,6 @@ const { contributes } = require('../../package.json');
 
 const logger = createLogger('mcp-config');
 
-// eslint-disable-next-line complexity
-function mcpConfigValues(property: string, configuredValue: unknown): unknown {
-  switch (property) {
-    case 'apiBaseUrl':
-    case 'apiClientId':
-    case 'apiClientSecret':
-    case 'exportsPath':
-      return String(configuredValue).trim()
-        ? configuredValue
-        : defaultUserConfig[property];
-    case 'disabledTools':
-      return Array.isArray(configuredValue)
-        ? configuredValue
-        : defaultUserConfig.disabledTools;
-    case 'readOnly':
-    case 'indexCheck':
-    case 'exportTimeoutMs':
-    case 'exportCleanupIntervalMs':
-    default:
-      return configuredValue ?? defaultUserConfig[property];
-  }
-}
-
 export function getMCPConfigFromVSCodeSettings(
   packageJsonConfiguredProperties: Record<string, unknown> = contributes
     ?.configuration?.properties ?? {},
@@ -67,4 +44,29 @@ export function getMCPConfigFromVSCodeSettings(
       ];
     }),
   );
+}
+
+// eslint-disable-next-line complexity
+function mcpConfigValues(property: string, configuredValue: unknown): unknown {
+  switch (property) {
+    case 'apiBaseUrl':
+    case 'apiClientId':
+    case 'apiClientSecret':
+    case 'exportsPath': {
+      const trimmedValue = String(configuredValue).trim();
+      return typeof configuredValue === 'string' && !!trimmedValue
+        ? trimmedValue
+        : defaultUserConfig[property];
+    }
+    case 'disabledTools':
+      return Array.isArray(configuredValue)
+        ? configuredValue
+        : defaultUserConfig.disabledTools;
+    case 'readOnly':
+    case 'indexCheck':
+    case 'exportTimeoutMs':
+    case 'exportCleanupIntervalMs':
+    default:
+      return configuredValue ?? defaultUserConfig[property];
+  }
 }
