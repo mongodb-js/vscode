@@ -1,5 +1,37 @@
 # Change Log
 
+## [v1.14.0](https://github.com/mongodb-js/vscode/releases/tag/v1.14.0) - 2025-09-16
+
+## What's Changed
+* chore: pin tests to run against 1.103.3 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1118
+* feat: integrate MongoDB MCP server with VSCode extension MCP-129 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1115
+* chore: fix for publish workflow asking npm cache by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1122
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1068
+* chore(deps): bump the compass group with 2 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1073
+* chore: add codeowners VSCODE-687 by @nirinchev in https://github.com/mongodb-js/vscode/pull/1074
+* chore(deps): bump the compass group with 4 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1075
+* chore(deps-dev): bump mongodb-download-url from 1.5.7 to 1.6.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1076
+* chore(deps-dev): bump mongodb-runner from 5.8.3 to 5.9.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1077
+* chore(deps-dev): bump @mongodb-js/oidc-mock-provider from 0.10.3 to 0.11.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1078
+* chore(deps): bump @mongodb-js/devtools-connect from 3.7.2 to 3.8.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1079
+* chore(deps): bump @mongodb-js/device-id from 0.2.1 to 0.3.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1081
+* chore(deps-dev): bump @mongodb-js/signing-utils from 0.3.9 to 0.4.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1082
+* chore(deps): bump @mongodb-js/shell-bson-parser from 1.2.2 to 1.3.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1083
+* chore(deps): bump mongodb-cloud-info from 2.1.7 to 2.2.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1084
+* chore(deps-dev): bump @mongodb-js/sbom-tools from 0.7.4 to 0.8.1 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1088
+* chore(deps-dev): bump @mongodb-js/oidc-plugin from 1.1.7 to 1.1.8 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1086
+* chore(deps): bump the compass group with 6 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1085
+* chore(deps): bump mongodb-query-parser from 4.3.2 to 4.4.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1080
+* chore(deps): bump @mongodb-js/devtools-connect from 3.8.0 to 3.9.1 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1100
+* chore(deps): bump the mongosh group across 1 directory with 13 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1103
+* chore(deps-dev): bump mongodb-download-url from 1.6.0 to 1.6.2 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1102
+* chore(deps): bump mongodb from 6.17.0 to 6.18.0 in the driver group by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1104
+* chore(deps-dev): bump @mongodb-js/mongodb-downloader from 0.4.0 to 0.4.2 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1096
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.13.3...v1.14.0
+
+
 ## [v1.13.3](https://github.com/mongodb-js/vscode/releases/tag/v1.13.3) - 2025-06-09
 
 ## What's Changed
