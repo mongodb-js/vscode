@@ -5,14 +5,14 @@ import type {
   LogPayload,
   UserConfig,
   ConnectionManagerFactoryFn,
-} from 'mongodb-mcp-server';
+} from '@himanshusinghs/mongodb-mcp-server';
 import {
   defaultUserConfig,
   LoggerBase,
   StreamableHttpRunner,
   Keychain,
   registerGlobalSecretToRedact,
-} from 'mongodb-mcp-server';
+} from '@himanshusinghs/mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import type { MCPConnectParams } from './mcpConnectionManager';

@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { afterEach, beforeEach } from 'mocha';
 import * as vscode from 'vscode';
 import type { ExtensionContext } from 'vscode';
-import * as MCPServer from 'mongodb-mcp-server';
+import * as MCPServer from '@himanshusinghs/mongodb-mcp-server';
 import { ExtensionContextStub } from '../stubs';
 import type { MCPServerInfo } from '../../../mcp/mcpController';
 import { MCPController } from '../../../mcp/mcpController';
