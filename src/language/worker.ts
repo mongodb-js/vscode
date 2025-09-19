@@ -119,7 +119,7 @@ export const execute = async ({
   } catch (error) {
     return { error, data: null };
   } finally {
-    await serviceProvider.close(true);
+    await serviceProvider.close();
   }
 };
 
