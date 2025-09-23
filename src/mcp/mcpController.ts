@@ -25,12 +25,6 @@ export type MCPServerStartupConfig =
   | 'autoStartEnabled'
   | 'autoStartDisabled';
 
-// Originally introduced in v1.14.0, these config values for key mdb.mcp.server
-// are deprecated and migrated since v1.14.1 to the values typed by
-// McpServerStartupConfig. See MCPController.migrateOldConfigToNewConfig for
-// further reference
-export type DeprecatedMCPServerStartupConfig = 'ask' | 'enabled' | 'disabled';
-
 class VSCodeMCPLogger extends LoggerBase {
   private readonly _logger = createLogger('mcp-server');
   protected type: LoggerType = 'console';
