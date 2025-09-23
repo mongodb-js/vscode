@@ -118,7 +118,7 @@ export class MCPController {
         // The previous logic would set the mdb.mcp.server to 'enabled' on
         // extension activate (with a notification) so we're assuming that this
         // value is not the result of explicit user action and hence mapping it
-        // to 'Ask'
+        // to 'prompt'
         case 'ask':
         case 'enabled': {
           await this.setMCPAutoStartConfig('prompt');
