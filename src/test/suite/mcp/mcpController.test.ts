@@ -11,7 +11,6 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import type { MCPConnectionManager } from '../../../mcp/mcpConnectionManager';
 
 function timeout(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -24,11 +23,7 @@ async function testConnectionManagerSwitch(
   connectionController: ConnectionController,
 ): Promise<void> {
   const mcpUpdateConnectionSpy = sandbox.spy(
-    (
-      mcpController as unknown as {
-        mcpConnectionManager: MCPConnectionManager;
-      }
-    ).mcpConnectionManager,
+    mcpController._test_mcpConnectionManager,
     'updateConnection',
   );
   await mcpController.activate();
@@ -46,7 +41,7 @@ async function testConnectionManagerSwitch(
 }
 
 const sandbox = sinon.createSandbox();
-suite('MCPController test suite', function () {
+suite.only('MCPController test suite', function () {
   let connectionController: ConnectionController;
   let mcpController: MCPController;
 
@@ -168,7 +163,7 @@ suite('MCPController test suite', function () {
           expect(startServerStub).to.be.called;
           // A small timeout to ensure the background tasks did happen
           await timeout(10);
-          expect((mcpController as any).server).to.not.be.undefined;
+          expect(mcpController._test_isServerRunning).to.be.true;
 
           // Assert the selection is persisted
           expect(updateConfigurationStub).to.be.calledWithExactly(
@@ -196,7 +191,7 @@ suite('MCPController test suite', function () {
           await timeout(10);
           // Assert the server did not start
           expect(startServerStub).to.not.be.called;
-          expect((mcpController as any).server).to.be.undefined;
+          expect(mcpController._test_isServerRunning).to.be.false;
 
           // Assert the selection is persisted
           expect(updateConfigurationStub).to.be.calledWithExactly(
@@ -225,7 +220,7 @@ suite('MCPController test suite', function () {
         expect(showInformationMessageStub).to.not.be.called;
 
         expect(startServerStub).to.be.called;
-        expect((mcpController as any).server).to.not.be.undefined;
+        expect(mcpController._test_isServerRunning).to.be.true;
       });
     },
   );
@@ -245,7 +240,7 @@ suite('MCPController test suite', function () {
         expect(showInformationMessageStub).to.not.be.called;
 
         expect(startServerStub).to.not.be.called;
-        expect((mcpController as any).server).to.be.undefined;
+        expect(mcpController._test_isServerRunning).to.be.false;
       });
     },
   );

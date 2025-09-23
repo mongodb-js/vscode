@@ -380,4 +380,15 @@ ${jsonConfig}`,
       .getConfiguration()
       .update('mdb.mcp.server', config, true);
   }
+
+  public get _test_isServerRunning(): boolean {
+    return (
+      this.server !== undefined &&
+      this.server.runner instanceof StreamableHttpRunner
+    );
+  }
+
+  public get _test_mcpConnectionManager(): MCPConnectionManager {
+    return this.mcpConnectionManager;
+  }
 }
