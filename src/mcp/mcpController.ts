@@ -19,6 +19,7 @@ import type { MCPConnectParams } from './mcpConnectionManager';
 import { MCPConnectionManager } from './mcpConnectionManager';
 import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
 import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
+import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
 
 export type MCPServerStartupConfig =
   | 'prompt'
@@ -221,6 +222,9 @@ export class MCPController {
           this.connectionController,
         ),
         additionalLoggers: [new VSCodeMCPLogger(Keychain.root)],
+        telemetryProperties: {
+          hosting_mode: DEFAULT_TELEMETRY_APP_NAME,
+        },
       });
       await runner.start();
 
