@@ -208,7 +208,7 @@ export class MCPController {
         apiClientSecret: '<redacted>',
       });
 
-      const createConnectionManager: ConnectionManagerFactoryFn = async ({
+      const createConnectionManager: ConnectionManagerFactoryFn = ({
         logger,
       }) => {
         this.mcpConnectionManager.setLogger(logger);
