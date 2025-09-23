@@ -225,7 +225,7 @@ suite('MCPController test suite', function () {
         expect(showInformationMessageStub).to.not.be.called;
 
         expect(startServerStub).to.be.called;
-        expect((mcpController as any).server).to.not.undefined;
+        expect((mcpController as any).server).to.not.be.undefined;
       });
     },
   );
