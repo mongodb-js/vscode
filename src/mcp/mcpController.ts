@@ -20,7 +20,16 @@ import { MCPConnectionManager } from './mcpConnectionManager';
 import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
 import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
 
-export type McpServerStartupConfig = 'enabled' | 'disabled';
+export type MCPServerStartupConfig =
+  | 'prompt'
+  | 'autoStartEnabled'
+  | 'autoStartDisabled';
+
+// Originally introduced in v1.14.0, these config values for key mdb.mcp.server
+// are deprecated and migrated since v1.14.1 to the values typed by
+// McpServerStartupConfig. See MCPController.migrateOldConfigToNewConfig for
+// further reference
+export type DeprecatedMCPServerStartupConfig = 'ask' | 'enabled' | 'disabled';
 
 class VSCodeMCPLogger extends LoggerBase {
   private readonly _logger = createLogger('mcp-server');
@@ -51,11 +60,11 @@ type MCPControllerConfig = {
 export class MCPController {
   private context: vscode.ExtensionContext;
   private connectionController: ConnectionController;
-  private getTelemetryAnonymousId: () => string;
 
   private didChangeEmitter = new vscode.EventEmitter<void>();
   private server?: MCPServerInfo;
-  private mcpConnectionManager?: MCPConnectionManager;
+  private mcpConnectionManager: MCPConnectionManager;
+  private vsCodeMCPLogger: LoggerBase;
 
   constructor({
     context,
@@ -64,10 +73,17 @@ export class MCPController {
   }: MCPControllerConfig) {
     this.context = context;
     this.connectionController = connectionController;
-    this.getTelemetryAnonymousId = getTelemetryAnonymousId;
+    this.vsCodeMCPLogger = new VSCodeMCPLogger(Keychain.root);
+    this.mcpConnectionManager = new MCPConnectionManager({
+      logger: this.vsCodeMCPLogger,
+      getTelemetryAnonymousId,
+    });
   }
 
   public async activate(): Promise<void> {
+    await this.migrateOldConfigToNewConfig(this.getMCPAutoStartConfig());
+    await this.switchConnectionManagerToCurrentConnection();
+
     this.context.subscriptions.push(
       vscode.lm.registerMcpServerDefinitionProvider('mongodb', {
         onDidChangeMcpServerDefinitions: this.didChangeEmitter.event,
@@ -87,16 +103,83 @@ export class MCPController {
       },
     );
 
-    if (this.shouldStartMCPServer()) {
+    if (this.shouldPromptForAutoStart()) {
+      void this.promptForMCPAutoStart();
+    }
+
+    if (this.getMCPAutoStartConfig() === 'autoStartEnabled') {
       await this.startServer();
-      void this.notifyOnFirstStart();
+    }
+  }
+
+  private async migrateOldConfigToNewConfig(oldConfig: unknown): Promise<void> {
+    try {
+      switch (oldConfig) {
+        // The previous logic would set the mdb.mcp.server to 'enabled' on
+        // extension activate (with a notification) so we're assuming that this
+        // value is not the result of explicit user action and hence mapping it
+        // to 'Ask'
+        case 'ask':
+        case 'enabled': {
+          await this.setMCPAutoStartConfig('prompt');
+          break;
+        }
+
+        // In the previous logic only 'disabled' value would've represented an
+        // explicit user action which is why we preserve that and map it to new
+        // disabled value.
+        case 'disabled': {
+          await this.setMCPAutoStartConfig('autoStartDisabled');
+          break;
+        }
+
+        // Any other value is possible only if user explicitly mentioned or when
+        // if the values were already migrated it so we don't alter them.
+        default: {
+          break;
+        }
+      }
+    } catch (error) {
+      logger.error('Error when migrating old config to the new config', error);
+    }
+  }
+
+  private async promptForMCPAutoStart(): Promise<void> {
+    try {
+      const promptResponse = await vscode.window.showInformationMessage(
+        'Would you like to automatically start the MongoDB MCP server? When started, the MongoDB MCP Server will automatically connect to your active MongoDB instance.',
+        'Yes',
+        'Not now',
+      );
+
+      switch (promptResponse) {
+        case 'Yes': {
+          await this.setMCPAutoStartConfig('autoStartEnabled');
+          await this.startServer();
+          break;
+        }
+
+        case 'Not now': {
+          await this.setMCPAutoStartConfig('autoStartDisabled');
+          break;
+        }
+
+        default:
+          break;
+      }
+    } catch (error) {
+      logger.error('Error when prompting for MCP auto start', error);
     }
   }
 
   public async startServer(): Promise<void> {
     try {
-      // Stop an already running server if any
-      await this.stopServer();
+      if (this.server) {
+        logger.info(
+          'MCP server start requested. An MCP server is already running, will not start a new server.',
+        );
+        return;
+      }
 
       const token = crypto.randomUUID();
       const headers: Record<string, string> = {
@@ -133,13 +216,8 @@ export class MCPController {
       const createConnectionManager: ConnectionManagerFactoryFn = async ({
         logger,
       }) => {
-        const connectionManager = (this.mcpConnectionManager =
-          new MCPConnectionManager({
-            logger,
-            getTelemetryAnonymousId: this.getTelemetryAnonymousId,
-          }));
-        await this.switchConnectionManagerToCurrentConnection();
-        return connectionManager;
+        this.mcpConnectionManager.setLogger(logger);
+        return Promise.resolve(this.mcpConnectionManager);
       };
 
       const runner = new StreamableHttpRunner({
@@ -166,65 +244,17 @@ export class MCPController {
 
   public async stopServer(): Promise<void> {
     try {
-      await this.server?.runner.close();
+      if (!this.server) {
+        logger.info(
+          'MCP server stop requested. No MCP server running, nothing to stop.',
+        );
+        return;
+      }
+      await this.server.runner.close();
       this.server = undefined;
       this.didChangeEmitter.fire();
     } catch (error) {
       logger.error('Error when attempting to close the MCP server', error);
-    }
-  }
-
-  private async notifyOnFirstStart(): Promise<void> {
-    try {
-      if (!this.server) {
-        // Server was never started so no need to notify
-        return;
-      }
-
-      const serverStartConfig = this.getMCPAutoStartConfig();
-
-      // If the config value is one of the following values means they are
-      // intentional (either set by user or by this function itself) and we
-      // should not notify in that case.
-      const shouldNotNotify =
-        serverStartConfig === 'enabled' || serverStartConfig === 'disabled';
-
-      if (shouldNotNotify) {
-        return;
-      }
-
-      // We set the auto start already to enabled to not prompt user again for
-      // this on the next boot. We do it this way because chances are that the
-      // user might not act on the notification in which case the final update
-      // will never happen.
-      await this.setMCPAutoStartConfig('enabled');
-      let selectedServerStartConfig: McpServerStartupConfig = 'enabled';
-
-      const prompt = await vscode.window.showInformationMessage(
-        'MongoDB MCP server started automatically and will connect to your active connection. Would you like to keep or disable automatic startup?',
-        'Keep',
-        'Disable',
-      );
-
-      switch (prompt) {
-        case 'Keep':
-        default:
-          // The default happens only when users explicity dismiss the
-          // notification.
-          selectedServerStartConfig = 'enabled';
-          break;
-        case 'Disable': {
-          selectedServerStartConfig = 'disabled';
-          await this.stopServer();
-        }
-      }
-
-      await this.setMCPAutoStartConfig(selectedServerStartConfig);
-    } catch (error) {
-      logger.error(
-        'Error while attempting to emit MCP server started notification',
-        error,
-      );
     }
   }
 
@@ -299,43 +329,61 @@ ${jsonConfig}`,
   }
 
   private async onActiveConnectionChanged(): Promise<void> {
-    if (!this.server) {
-      return;
+    logger.info(
+      'Active connection changed, will switch connection manager to new connection',
+      {
+        connectionId: this.connectionController.getActiveConnectionId(),
+        shouldPromptForAutoStart: this.shouldPromptForAutoStart(),
+        serverStarted: !!this.server,
+      },
+    );
+
+    if (
+      this.connectionController.getActiveConnectionId() &&
+      this.shouldPromptForAutoStart()
+    ) {
+      void this.promptForMCPAutoStart();
     }
+
     await this.switchConnectionManagerToCurrentConnection();
   }
 
   private async switchConnectionManagerToCurrentConnection(): Promise<void> {
-    const connectionId = this.connectionController.getActiveConnectionId();
-    const mongoClientOptions =
-      this.connectionController.getMongoClientConnectionOptions();
+    try {
+      const connectionId = this.connectionController.getActiveConnectionId();
+      const mongoClientOptions =
+        this.connectionController.getMongoClientConnectionOptions();
 
-    const connectParams: MCPConnectParams | undefined =
-      connectionId && mongoClientOptions
-        ? {
-            connectionId: connectionId,
-            connectionString: mongoClientOptions.url,
-            connectOptions: mongoClientOptions.options,
-          }
-        : undefined;
-    await this.mcpConnectionManager?.updateConnection(connectParams);
+      const connectParams: MCPConnectParams | undefined =
+        connectionId && mongoClientOptions
+          ? {
+              connectionId: connectionId,
+              connectionString: mongoClientOptions.url,
+              connectOptions: mongoClientOptions.options,
+            }
+          : undefined;
+      await this.mcpConnectionManager.updateConnection(connectParams);
+    } catch (error) {
+      logger.error('Error when attempting to switch connection', error);
+    }
   }
 
-  private shouldStartMCPServer(): boolean {
-    return this.getMCPAutoStartConfig() !== 'disabled';
+  private shouldPromptForAutoStart(): boolean {
+    const storedConfig = this.getMCPAutoStartConfig();
+    return storedConfig === 'prompt';
   }
 
-  private getMCPAutoStartConfig(): McpServerStartupConfig | undefined {
+  private getMCPAutoStartConfig(): unknown {
     return vscode.workspace
-      .getConfiguration('mdb')
-      .get<McpServerStartupConfig>('mcp.server');
+      .getConfiguration()
+      .get<unknown>('mdb.mcp.server', 'prompt');
   }
 
   private async setMCPAutoStartConfig(
-    config: McpServerStartupConfig,
+    config: MCPServerStartupConfig,
   ): Promise<void> {
     await vscode.workspace
-      .getConfiguration('mdb')
-      .update('mcp.server', config, true);
+      .getConfiguration()
+      .update('mdb.mcp.server', config, true);
   }
 }

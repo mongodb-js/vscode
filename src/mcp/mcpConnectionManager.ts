@@ -41,6 +41,10 @@ export class MCPConnectionManager extends ConnectionManager {
     this.getTelemetryAnonymousId = getTelemetryAnonymousId;
   }
 
+  setLogger(logger: LoggerBase): void {
+    this.logger = logger;
+  }
+
   connect(): Promise<AnyConnectionState> {
     return Promise.reject(
       new Error(
