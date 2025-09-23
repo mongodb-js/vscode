@@ -1320,7 +1320,7 @@
         },
         "mdb.mcp.readOnly": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "When set to true, MongoDB MCP server will only allow read, connect, and metadata operation types, disabling create/update/delete operations."
         },
         "mdb.mcp.indexCheck": {
