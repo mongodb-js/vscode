@@ -41,7 +41,7 @@ async function testConnectionManagerSwitch(
 }
 
 const sandbox = sinon.createSandbox();
-suite.only('MCPController test suite', function () {
+suite('MCPController test suite', function () {
   let connectionController: ConnectionController;
   let mcpController: MCPController;
 
