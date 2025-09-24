@@ -1,0 +1,80 @@
+name: Run Tests
+description: Run checks, tests, and install tests on the VSIX package
+inputs:
+  SEGMENT_KEY:
+    description: Segment analytics key
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Deps Ubuntu
+      if: ${{ runner.os == 'Linux' }}
+      run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
+      shell: bash
+
+    # Default Python (3.12) doesn't have support for distutils because of
+    # which the dep install fails constantly on macos
+    # https://github.com/nodejs/node-gyp/issues/2869
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Run node-gyp bug workaround script
+      run: |
+        curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
+      shell: bash
+
+    - name: Set SEGMENT_KEY
+      env:
+        SEGMENT_KEY: ${{ inputs.SEGMENT_KEY }}
+      run: |
+        echo "SEGMENT_KEY=${SEGMENT_KEY}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Validate SEGMENT_KEY
+      run: |
+        if [ -z "${SEGMENT_KEY}" ]; then
+          echo "SEGMENT_KEY is not set or is empty"
+          exit 1
+        fi
+      shell: bash
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        npm ci --omit=optional
+
+    - name: Download VSIX artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: VSIX Package
+
+    - name: Run Tests
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
+      run: |
+        npm run test
+      shell: bash
+
+    - name: Install VSIX and Test
+      shell: bash
+      run: |
+        # Find the VSIX file
+        VSIX_FILE=$(find . -maxdepth 1 -name '*.vsix' -print -quit)
+        if [ -z "$VSIX_FILE" ]; then
+          echo "Error: No .vsix file found" >&2
+          exit 1
+        fi
+
+        echo "Found VSIX file: $VSIX_FILE"
+
+        # For now, just verify the file exists and is readable
+        # Next, this will include actual VS Code installation tests
+        if [ ! -r "$VSIX_FILE" ]; then
+          echo "Error: VSIX file is not readable" >&2
+          exit 1
+        fi
+
+        echo "VSIX file validation passed"
+        ls -la "$VSIX_FILE"
