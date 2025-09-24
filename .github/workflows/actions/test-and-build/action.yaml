@@ -116,9 +116,10 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
       run: |
-        echo "Dir contents: $(ls -a)"
-        echo "node_modules contents: $(ls -a node_modules)"
         npm run snyk-test
+        EXIT_CODE=$?
+        echo "Exit code $EXIT_CODE"
+        exit $EXIT_CODE"
 
     - name: Create Jira Tickets
       if: >
