@@ -116,6 +116,8 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
       run: |
+        echo "Dir contents: $(ls -a)"
+        echo "node_modules contents: $(ls -a node_modules)"
         npm run snyk-test
 
     - name: Create Jira Tickets
