@@ -61,9 +61,12 @@ runs:
       shell: bash
 
     - name: Install Dependencies
+      run: npm ci --omit=optional
       shell: bash
-      run: |
-        npm ci --omit=optional
+
+    - name: Compile
+      run: npm run compile
+      shell: bash
 
     - name: Run Checks
       run: npm run check
