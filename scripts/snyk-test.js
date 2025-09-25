@@ -30,7 +30,7 @@ const PACKAGE_LOCK_PATH = path.join(__dirname, '..', 'package-lock.json');
  * Because we always install with `npm ci --omit=optional`, with this method we
  * try to remove these identified problematic optionalDependencies before
  * running the Snyk tests and once the tests are finished, we restore the
- * original state back.
+ * original state back using npm hooks.
  */
 async function removeProblematicOptionalDepsFromPackageLock() {
   const packageLockContent = JSON.parse(
@@ -96,8 +96,7 @@ async function snykTest(cwd) {
 async function main() {
   const rootPath = path.resolve(__dirname, '..');
   await fs.mkdir(path.join(rootPath, `.sbom`), { recursive: true });
-  revertPackageLockChanges =
-    await removeProblematicOptionalDepsFromPackageLock();
+  await removeProblematicOptionalDepsFromPackageLock();
   const results = await snykTest(rootPath);
 
   await fs.writeFile(
