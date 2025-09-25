@@ -26,7 +26,7 @@ export type MCPServerStartupConfig =
   | 'autoStartEnabled'
   | 'autoStartDisabled';
 
-class VSCodeMCPLogger extends LoggerBase {
+export class VSCodeMCPLogger extends LoggerBase {
   private readonly _logger = createLogger('mcp-server');
   protected type: LoggerType = 'console';
   protected logCore(level: LogLevel, payload: LogPayload): void {
@@ -50,6 +50,7 @@ type MCPControllerConfig = {
   context: vscode.ExtensionContext;
   connectionController: ConnectionController;
   getTelemetryAnonymousId: () => string;
+  mcpConnectionManager?: MCPConnectionManager;
 };
 
 export class MCPController {
@@ -65,14 +66,17 @@ export class MCPController {
     context,
     connectionController,
     getTelemetryAnonymousId,
+    mcpConnectionManager,
   }: MCPControllerConfig) {
     this.context = context;
     this.connectionController = connectionController;
     this.vsCodeMCPLogger = new VSCodeMCPLogger(Keychain.root);
-    this.mcpConnectionManager = new MCPConnectionManager({
-      logger: this.vsCodeMCPLogger,
-      getTelemetryAnonymousId,
-    });
+    this.mcpConnectionManager =
+      mcpConnectionManager ??
+      new MCPConnectionManager({
+        logger: this.vsCodeMCPLogger,
+        getTelemetryAnonymousId,
+      });
   }
 
   public async activate(): Promise<void> {
@@ -383,16 +387,5 @@ ${jsonConfig}`,
     await vscode.workspace
       .getConfiguration()
       .update('mdb.mcp.server', config, true);
-  }
-
-  public get _test_isServerRunning(): boolean {
-    return (
-      this.server !== undefined &&
-      this.server.runner instanceof StreamableHttpRunner
-    );
-  }
-
-  public get _test_mcpConnectionManager(): MCPConnectionManager {
-    return this.mcpConnectionManager;
   }
 }

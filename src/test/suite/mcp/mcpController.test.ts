@@ -5,12 +5,13 @@ import { expect } from 'chai';
 import { afterEach, beforeEach } from 'mocha';
 import * as vscode from 'vscode';
 import { ExtensionContextStub } from '../stubs';
-import { MCPController } from '../../../mcp/mcpController';
+import { MCPController, VSCodeMCPLogger } from '../../../mcp/mcpController';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { MCPConnectionManager } from '../../../mcp/mcpConnectionManager';
 
 function timeout(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -20,10 +21,11 @@ function timeout(ms: number): Promise<void> {
 
 async function testConnectionManagerSwitch(
   mcpController: MCPController,
+  mcpConnectionManager: MCPConnectionManager,
   connectionController: ConnectionController,
 ): Promise<void> {
   const mcpUpdateConnectionSpy = sandbox.spy(
-    mcpController._test_mcpConnectionManager,
+    mcpConnectionManager,
     'updateConnection',
   );
   await mcpController.activate();
@@ -44,6 +46,7 @@ const sandbox = sinon.createSandbox();
 suite('MCPController test suite', function () {
   let connectionController: ConnectionController;
   let mcpController: MCPController;
+  let mcpConnectionManager: MCPConnectionManager;
 
   let mcpAutoStartValue: string | null | undefined;
   let getConfigurationStub: SinonStub;
@@ -69,10 +72,16 @@ suite('MCPController test suite', function () {
       telemetryService: testTelemetryService,
     });
 
+    mcpConnectionManager = new MCPConnectionManager({
+      logger: new VSCodeMCPLogger(undefined),
+      getTelemetryAnonymousId: (): string => '1FOO',
+    });
+
     mcpController = new MCPController({
       context: extensionContext,
       connectionController: connectionController,
       getTelemetryAnonymousId: (): string => '1FOO',
+      mcpConnectionManager,
     });
 
     // GetConfiguration Stubs
@@ -128,7 +137,11 @@ suite('MCPController test suite', function () {
       });
 
       test('should attempt switching the connection manager to active connection regardless of server started or not', () =>
-        testConnectionManagerSwitch(mcpController, connectionController));
+        testConnectionManagerSwitch(
+          mcpController,
+          mcpConnectionManager,
+          connectionController,
+        ));
 
       test('should show MCP server auto start notification without starting the MCP server', async function () {
         await mcpController.activate();
@@ -163,7 +176,8 @@ suite('MCPController test suite', function () {
           expect(startServerStub).to.be.called;
           // A small timeout to ensure the background tasks did happen
           await timeout(10);
-          expect(mcpController._test_isServerRunning).to.be.true;
+          // Opening the config works only if the MCP server is running
+          expect(await mcpController.openServerConfig()).to.be.true;
 
           // Assert the selection is persisted
           expect(updateConfigurationStub).to.be.calledWithExactly(
@@ -191,7 +205,8 @@ suite('MCPController test suite', function () {
           await timeout(10);
           // Assert the server did not start
           expect(startServerStub).to.not.be.called;
-          expect(mcpController._test_isServerRunning).to.be.false;
+          // Opening the config works only if the MCP server is running
+          expect(await mcpController.openServerConfig()).to.be.false;
 
           // Assert the selection is persisted
           expect(updateConfigurationStub).to.be.calledWithExactly(
@@ -209,7 +224,11 @@ suite('MCPController test suite', function () {
     'activation flow for users who earlier opted to auto start MCP server',
     function () {
       test('should attempt switching the connection manager to active connection regardless of server started or not', () =>
-        testConnectionManagerSwitch(mcpController, connectionController));
+        testConnectionManagerSwitch(
+          mcpController,
+          mcpConnectionManager,
+          connectionController,
+        ));
 
       test('should automatically start the MCP server, without any further notification', async function () {
         mcpAutoStartValue = 'autoStartEnabled';
@@ -220,7 +239,8 @@ suite('MCPController test suite', function () {
         expect(showInformationMessageStub).to.not.be.called;
 
         expect(startServerStub).to.be.called;
-        expect(mcpController._test_isServerRunning).to.be.true;
+        // Opening the config works only if the MCP server is running
+        expect(await mcpController.openServerConfig()).to.be.true;
       });
     },
   );
@@ -229,7 +249,11 @@ suite('MCPController test suite', function () {
     'activation flow for users who earlier opted not to auto start MCP server',
     function () {
       test('should attempt switching the connection manager to active connection regardless of server started or not', () =>
-        testConnectionManagerSwitch(mcpController, connectionController));
+        testConnectionManagerSwitch(
+          mcpController,
+          mcpConnectionManager,
+          connectionController,
+        ));
 
       test('should neither start the MCP server nor show any notification', async function () {
         mcpAutoStartValue = 'autoStartDisabled';
@@ -240,7 +264,8 @@ suite('MCPController test suite', function () {
         expect(showInformationMessageStub).to.not.be.called;
 
         expect(startServerStub).to.not.be.called;
-        expect(mcpController._test_isServerRunning).to.be.false;
+        // Opening the config works only if the MCP server is running
+        expect(await mcpController.openServerConfig()).to.be.false;
       });
     },
   );
