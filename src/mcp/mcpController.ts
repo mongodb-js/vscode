@@ -377,10 +377,10 @@ ${jsonConfig}`,
     return storedConfig === 'prompt';
   }
 
-  private getMCPAutoStartConfig(): unknown {
+  private getMCPAutoStartConfig(): MCPServerStartupConfig {
     return vscode.workspace
       .getConfiguration()
-      .get<unknown>('mdb.mcp.server', 'prompt');
+      .get<MCPServerStartupConfig>('mdb.mcp.server', 'prompt');
   }
 
   private async setMCPAutoStartConfig(
