@@ -225,7 +225,7 @@ export class MCPController {
         connectionErrorHandler: createMCPConnectionErrorHandler(
           this.connectionController,
         ),
-        additionalLoggers: [new VSCodeMCPLogger(Keychain.root)],
+        additionalLoggers: [this.vsCodeMCPLogger],
         telemetryProperties: {
           hosting_mode: DEFAULT_TELEMETRY_APP_NAME,
         },
