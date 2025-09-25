@@ -1,4 +1,3 @@
-/* eslint-disable no-loop-func */
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { expect } from 'chai';
@@ -272,6 +271,7 @@ suite('MCPController test suite', function () {
 
   suite('activation flow for users updating from v1.14.0', function () {
     for (const oldValue of ['ask', 'enabled']) {
+      // eslint-disable-next-line no-loop-func
       suite(`when old value of "mdb.mcp.server" is "${oldValue}"`, function () {
         test('should migrate the value to "prompt", save it and show the auto start notification without starting the MCP server', async function () {
           // Setting this to old value
@@ -323,6 +323,7 @@ suite('MCPController test suite', function () {
     for (const oldValue of [null, undefined, 'something-totally-odd']) {
       suite(
         `when old value of "mdb.mcp.server" is anything other than "ask", "enabled" or "disabled" ("${oldValue}")`,
+        // eslint-disable-next-line no-loop-func
         function () {
           test('should preserve the value and should neither show any auto start notification nor start the MCP server', async function () {
             // Setting this to old value
