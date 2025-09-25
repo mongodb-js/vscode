@@ -149,6 +149,9 @@ export class MCPController {
           this.connectionController,
         ),
         additionalLoggers: [new VSCodeMCPLogger(Keychain.root)],
+        telemetryProperties: {
+          hosting_mode: 'vscode-extension',
+        },
       });
       await runner.start();
 
