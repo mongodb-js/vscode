@@ -80,7 +80,7 @@ export class MCPController {
   }
 
   public async activate(): Promise<void> {
-    await this.migrateOldConfigToNewConfig(this.getMCPAutoStartConfig());
+    await this.migrateOldConfigToNewConfig(this.getStoredMCPAutoStartConfig());
     await this.switchConnectionManagerToCurrentConnection();
 
     this.context.subscriptions.push(
@@ -102,11 +102,9 @@ export class MCPController {
       },
     );
 
-    if (this.shouldPromptForAutoStart()) {
-      void this.promptForMCPAutoStart();
-    }
+    void this.promptForMCPAutoStart();
 
-    if (this.getMCPAutoStartConfig() === 'autoStartEnabled') {
+    if (this.getCoercedMCPAutoStartConfig() === 'autoStartEnabled') {
       await this.startServer();
     }
   }
@@ -147,20 +145,38 @@ export class MCPController {
 
   private async promptForMCPAutoStart(): Promise<void> {
     try {
+      const storedConfig = this.getStoredMCPAutoStartConfig();
+      const coercedConfig = this.getCoercedMCPAutoStartConfig();
+      if (coercedConfig !== 'prompt') {
+        logger.info(
+          'Prompt to configure MCP auto start requested. Will not show any prompt.',
+          { storedConfig, coercedConfig, serverRunning: !!this.server },
+        );
+        return;
+      }
+
+      const notificationActions = this.server
+        ? (['Auto-Start', 'Never'] as const)
+        : (['Auto-Start', 'Start Once', 'Never'] as const);
+
       const promptResponse = await vscode.window.showInformationMessage(
-        'Would you like to automatically start the MongoDB MCP server? When started, the MongoDB MCP Server will automatically connect to your active MongoDB instance.',
-        'Yes',
-        'Not now',
+        'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
+        ...notificationActions,
       );
 
       switch (promptResponse) {
-        case 'Yes': {
+        case 'Auto-Start': {
           await this.setMCPAutoStartConfig('autoStartEnabled');
           await this.startServer();
           break;
         }
 
-        case 'Not now': {
+        case 'Start Once': {
+          await this.startServer();
+          break;
+        }
+
+        case 'Never': {
           await this.setMCPAutoStartConfig('autoStartDisabled');
           break;
         }
@@ -337,15 +353,11 @@ ${jsonConfig}`,
       'Active connection changed, will switch connection manager to new connection',
       {
         connectionId: this.connectionController.getActiveConnectionId(),
-        shouldPromptForAutoStart: this.shouldPromptForAutoStart(),
         serverStarted: !!this.server,
       },
     );
 
-    if (
-      this.connectionController.getActiveConnectionId() &&
-      this.shouldPromptForAutoStart()
-    ) {
+    if (this.connectionController.getActiveConnectionId()) {
       void this.promptForMCPAutoStart();
     }
 
@@ -372,15 +384,44 @@ ${jsonConfig}`,
     }
   }
 
-  private shouldPromptForAutoStart(): boolean {
-    const storedConfig = this.getMCPAutoStartConfig();
-    return storedConfig === 'prompt';
+  /**
+   * Retrieves and returns the actual stored value for the key "mdb.mcp.server"
+   * in the user config as it is. Best case, the value could be one of the
+   * identified values typed by `MCPServerStartupConfig`, worse case it could be
+   * anything from number, boolean, unidentified strings to null.
+   */
+  private getStoredMCPAutoStartConfig(): unknown {
+    return this.getMCPAutoStartConfig<unknown>((storedValue) => storedValue);
   }
 
-  private getMCPAutoStartConfig(): MCPServerStartupConfig {
-    return vscode.workspace
+  /**
+   * Retrieves the stored value for the key "mdb.mcp.server" in the user config
+   * and coerces it to one of the valid identified values typed by
+   * `MCPServerStartupConfig`.
+   */
+  private getCoercedMCPAutoStartConfig(): MCPServerStartupConfig {
+    return this.getMCPAutoStartConfig<MCPServerStartupConfig>((storedValue) => {
+      switch (storedValue) {
+        case 'autoStartEnabled':
+          return 'autoStartEnabled';
+        case 'autoStartDisabled':
+          return 'autoStartDisabled';
+        // Consider all the unidentified values as an indication to 'prompt'.
+        // This would at-least ensure that users are prompted to put in the
+        // correct value in the config.
+        default:
+          return 'prompt';
+      }
+    });
+  }
+
+  private getMCPAutoStartConfig<ConfigValue>(
+    coerceValue: (storedValue: unknown) => ConfigValue,
+  ): ConfigValue {
+    const storedValue = vscode.workspace
       .getConfiguration()
-      .get<MCPServerStartupConfig>('mdb.mcp.server', 'prompt');
+      .get<unknown>('mdb.mcp.server');
+    return coerceValue(storedValue);
   }
 
   private async setMCPAutoStartConfig(
