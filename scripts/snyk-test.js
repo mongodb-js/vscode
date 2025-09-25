@@ -33,38 +33,27 @@ const PACKAGE_LOCK_PATH = path.join(__dirname, '..', 'package-lock.json');
  * original state back.
  */
 async function removeProblematicOptionalDepsFromPackageLock() {
-  const TEMP_PACKAGE_LOCK_PATH = path.join(
-    __dirname,
-    '..',
-    'original-package-lock.json',
-  );
-
   const packageLockContent = JSON.parse(
     await fs.readFile(PACKAGE_LOCK_PATH, 'utf-8'),
   );
 
-  if (
-    !packageLockContent.packages?.['node_modules/@vscode/vsce-sign']?.[
-      'optionalDependencies'
-    ]
-  ) {
+  const vsceSignPackage =
+    packageLockContent.packages?.['node_modules/@vscode/vsce-sign'];
+
+  if (!vsceSignPackage || !vsceSignPackage.optionalDependencies) {
     console.info('No problematic optional dependencies to fix');
     return;
   }
 
-  packageLockContent.packages['node_modules/@vscode/vsce-sign'][
-    'optionalDependencies'
-  ] = {};
+  // Temporarily remove the optional dependencies
+  vsceSignPackage['optionalDependencies'] = {};
 
-  await fs.rename(PACKAGE_LOCK_PATH, TEMP_PACKAGE_LOCK_PATH);
+  // We write the actual package-lock path but restoring of the original file is
+  // handled by npm hooks.
   await fs.writeFile(
     PACKAGE_LOCK_PATH,
     JSON.stringify(packageLockContent, null, 2),
   );
-
-  return async function restoreOriginalPackageLock() {
-    return await fs.rename(TEMP_PACKAGE_LOCK_PATH, PACKAGE_LOCK_PATH);
-  };
 }
 
 async function snykTest(cwd) {
@@ -105,35 +94,28 @@ async function snykTest(cwd) {
 }
 
 async function main() {
-  let revertPackageLockChanges;
-  try {
-    const rootPath = path.resolve(__dirname, '..');
-    await fs.mkdir(path.join(rootPath, `.sbom`), { recursive: true });
-    revertPackageLockChanges =
-      await removeProblematicOptionalDepsFromPackageLock();
-    const results = await snykTest(rootPath);
+  const rootPath = path.resolve(__dirname, '..');
+  await fs.mkdir(path.join(rootPath, `.sbom`), { recursive: true });
+  revertPackageLockChanges =
+    await removeProblematicOptionalDepsFromPackageLock();
+  const results = await snykTest(rootPath);
 
-    await fs.writeFile(
-      path.join(rootPath, `.sbom/snyk-test-result.json`),
-      JSON.stringify(results, null, 2),
-    );
+  await fs.writeFile(
+    path.join(rootPath, `.sbom/snyk-test-result.json`),
+    JSON.stringify(results, null, 2),
+  );
 
-    await execFile(
-      'npx',
-      [
-        'snyk-to-html',
-        '-i',
-        path.join(rootPath, '.sbom/snyk-test-result.json'),
-        '-o',
-        path.join(rootPath, `.sbom/snyk-test-result.html`),
-      ],
-      { cwd: rootPath },
-    );
-  } finally {
-    if (revertPackageLockChanges) {
-      await revertPackageLockChanges();
-    }
-  }
+  await execFile(
+    'npx',
+    [
+      'snyk-to-html',
+      '-i',
+      path.join(rootPath, '.sbom/snyk-test-result.json'),
+      '-o',
+      path.join(rootPath, `.sbom/snyk-test-result.html`),
+    ],
+    { cwd: rootPath },
+  );
 }
 
 main();
