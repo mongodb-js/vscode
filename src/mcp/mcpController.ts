@@ -117,7 +117,7 @@ export class MCPController {
         // The previous logic would set the mdb.mcp.server to 'enabled' on
         // extension activate (with a notification) so we're assuming that this
         // value is not the result of explicit user action and hence mapping it
-        // to 'prompt'
+        // to 'prompt'.
         case 'ask':
         case 'enabled': {
           await this.setMCPAutoStartConfig('prompt');
@@ -132,8 +132,10 @@ export class MCPController {
           break;
         }
 
-        // Any other value is possible only if user explicitly mentioned or when
-        // if the values were already migrated it so we don't alter them.
+        // Any other value is possible only if:
+        // 1. user explicitly did the modification or,
+        // 2. the old values were already migrated to the new values.
+        // So we don't migrate in this case.
         default: {
           break;
         }
