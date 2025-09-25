@@ -31,7 +31,7 @@ async function snykTest(cwd) {
     }
 
     const res = JSON.parse(await fs.readFile(tmpPath));
-    console.info(`testing ${cwd} done.`);
+    console.info(`testing ${cwd} done.`, res);
     return res;
   } catch (err) {
     console.error(`testing ${cwd} failed. ${err.message}`);
