@@ -41,11 +41,7 @@ export class MCPConnectionManager extends ConnectionManager {
     this.getTelemetryAnonymousId = getTelemetryAnonymousId;
   }
 
-  setLogger(logger: LoggerBase): void {
-    this.logger = logger;
-  }
-
-  connect(): Promise<AnyConnectionState> {
+  override connect(): Promise<AnyConnectionState> {
     return Promise.reject(
       new Error(
         // eslint-disable-next-line no-multi-str
@@ -87,7 +83,7 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     }
   }
 
-  async disconnect(): Promise<ConnectionStateDisconnected> {
+  override async disconnect(): Promise<ConnectionStateDisconnected> {
     try {
       await this.activeConnection?.provider?.close(true);
     } catch (error) {
@@ -102,6 +98,11 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     return this.changeState('connection-close', {
       tag: 'disconnected',
     });
+  }
+
+  override async close(): Promise<void> {
+    await this.disconnect();
+    this._events.emit('close', this.currentConnectionState);
   }
 
   async updateConnection(

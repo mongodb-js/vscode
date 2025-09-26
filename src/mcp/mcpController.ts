@@ -5,6 +5,7 @@ import type {
   LogPayload,
   UserConfig,
   ConnectionManagerFactoryFn,
+  ConnectionManager,
 } from 'mongodb-mcp-server';
 import {
   defaultUserConfig,
@@ -50,38 +51,29 @@ type MCPControllerConfig = {
   context: vscode.ExtensionContext;
   connectionController: ConnectionController;
   getTelemetryAnonymousId: () => string;
-  mcpConnectionManager?: MCPConnectionManager;
 };
 
 export class MCPController {
   private context: vscode.ExtensionContext;
   private connectionController: ConnectionController;
+  private getTelemetryAnonymousId: () => string;
+  private clientConnectionManagers: MCPConnectionManager[] = [];
 
   private didChangeEmitter = new vscode.EventEmitter<void>();
   private server?: MCPServerInfo;
-  private mcpConnectionManager: MCPConnectionManager;
-  private vsCodeMCPLogger: LoggerBase;
 
   constructor({
     context,
     connectionController,
     getTelemetryAnonymousId,
-    mcpConnectionManager,
   }: MCPControllerConfig) {
     this.context = context;
     this.connectionController = connectionController;
-    this.vsCodeMCPLogger = new VSCodeMCPLogger(Keychain.root);
-    this.mcpConnectionManager =
-      mcpConnectionManager ??
-      new MCPConnectionManager({
-        logger: this.vsCodeMCPLogger,
-        getTelemetryAnonymousId,
-      });
+    this.getTelemetryAnonymousId = getTelemetryAnonymousId;
   }
 
   public async activate(): Promise<void> {
     await this.migrateOldConfigToNewConfig(this.getStoredMCPAutoStartConfig());
-    await this.switchConnectionManagerToCurrentConnection();
 
     this.context.subscriptions.push(
       vscode.lm.registerMcpServerDefinitionProvider('mongodb', {
@@ -204,24 +196,7 @@ export class MCPController {
       };
       registerGlobalSecretToRedact(token, 'password');
 
-      const vscodeConfiguredMCPConfig = getMCPConfigFromVSCodeSettings();
-
-      const mcpConfig: UserConfig = {
-        ...defaultUserConfig,
-        ...vscodeConfiguredMCPConfig,
-        transport: 'http',
-        httpPort: 0,
-        httpHeaders: headers,
-        disabledTools: Array.from(
-          new Set([
-            'connect',
-            ...(vscodeConfiguredMCPConfig.disabledTools ?? []),
-          ]),
-        ),
-        loggers: Array.from(
-          new Set(['mcp', ...(vscodeConfiguredMCPConfig.loggers ?? [])]),
-        ),
-      };
+      const mcpConfig = this.getMCPServerConfig(headers);
 
       logger.info('Starting MCP server with config', {
         ...mcpConfig,
@@ -230,20 +205,13 @@ export class MCPController {
         apiClientSecret: '<redacted>',
       });
 
-      const createConnectionManager: ConnectionManagerFactoryFn = ({
-        logger,
-      }) => {
-        this.mcpConnectionManager.setLogger(logger);
-        return Promise.resolve(this.mcpConnectionManager);
-      };
-
       const runner = new StreamableHttpRunner({
         userConfig: mcpConfig,
-        createConnectionManager,
+        createConnectionManager: this.createConnectionManager.bind(this),
         connectionErrorHandler: createMCPConnectionErrorHandler(
           this.connectionController,
         ),
-        additionalLoggers: [this.vsCodeMCPLogger],
+        additionalLoggers: [new VSCodeMCPLogger(Keychain.root)],
         telemetryProperties: {
           hosting_mode: DEFAULT_TELEMETRY_APP_NAME,
         },
@@ -260,6 +228,58 @@ export class MCPController {
       // silence MCP start errors and instead log them for debugging.
       logger.error('Error when attempting to start MCP server', error);
     }
+  }
+
+  private getMCPServerConfig(headers: Record<string, string>): UserConfig {
+    const vscodeConfiguredMCPConfig = getMCPConfigFromVSCodeSettings();
+
+    return {
+      ...defaultUserConfig,
+      ...vscodeConfiguredMCPConfig,
+      transport: 'http',
+      httpPort: 0,
+      httpHeaders: headers,
+      disabledTools: Array.from(
+        new Set([
+          'connect',
+          ...(vscodeConfiguredMCPConfig.disabledTools ?? []),
+        ]),
+      ),
+      loggers: Array.from(
+        new Set(['mcp', ...(vscodeConfiguredMCPConfig.loggers ?? [])]),
+      ),
+    };
+  }
+
+  private async createConnectionManager(
+    this: MCPController,
+    ...params: Parameters<ConnectionManagerFactoryFn>
+  ): Promise<ConnectionManager> {
+    const [{ logger: mcpLogger }] = params;
+    const connectionManager = new MCPConnectionManager({
+      logger: mcpLogger,
+      getTelemetryAnonymousId: this.getTelemetryAnonymousId,
+    });
+
+    // Track this ConnectionManager instance for future connection updates
+    this.clientConnectionManagers.push(connectionManager);
+
+    // Also set up listener on close event to perform a cleanup when the Client
+    // closes connection to MCP server and eventually ConnectionManager shuts
+    // down.
+    connectionManager.events.on('close', (): void => {
+      logger.info('MCPConnectionManager closed. Performing cleanup', {
+        connectionManagerClientName: connectionManager.clientName,
+      });
+      this.clientConnectionManagers = this.clientConnectionManagers.filter(
+        (manager) => manager !== connectionManager,
+      );
+    });
+
+    // The newly created ConnectionManager need to be brought up to date with
+    // the current connection state.
+    await this.switchConnectionManagerToCurrentConnection(connectionManager);
+    return connectionManager;
   }
 
   public async stopServer(): Promise<void> {
@@ -361,10 +381,20 @@ ${jsonConfig}`,
       void this.promptForMCPAutoStart();
     }
 
-    await this.switchConnectionManagerToCurrentConnection();
+    await this.switchAllConnectionManagerToCurrentConnection();
   }
 
-  private async switchConnectionManagerToCurrentConnection(): Promise<void> {
+  private async switchAllConnectionManagerToCurrentConnection(): Promise<void> {
+    await Promise.all(
+      this.clientConnectionManagers.map((manager) =>
+        this.switchConnectionManagerToCurrentConnection(manager),
+      ),
+    );
+  }
+
+  private async switchConnectionManagerToCurrentConnection(
+    connectionManager: MCPConnectionManager,
+  ): Promise<void> {
     try {
       const connectionId = this.connectionController.getActiveConnectionId();
       const mongoClientOptions =
@@ -378,9 +408,12 @@ ${jsonConfig}`,
               connectOptions: mongoClientOptions.options,
             }
           : undefined;
-      await this.mcpConnectionManager.updateConnection(connectParams);
+      await connectionManager.updateConnection(connectParams);
     } catch (error) {
-      logger.error('Error when attempting to switch connection', error);
+      logger.error(
+        'Error when attempting to switch connection for connection manager',
+        error,
+      );
     }
   }
 

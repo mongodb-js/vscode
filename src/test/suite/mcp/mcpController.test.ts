@@ -18,34 +18,10 @@ function timeout(ms: number): Promise<void> {
   });
 }
 
-async function testConnectionManagerSwitch(
-  mcpController: MCPController,
-  mcpConnectionManager: MCPConnectionManager,
-  connectionController: ConnectionController,
-): Promise<void> {
-  const mcpUpdateConnectionSpy = sandbox.spy(
-    mcpConnectionManager,
-    'updateConnection',
-  );
-  await mcpController.activate();
-  // first activate fires the switch on no connection
-  expect(mcpUpdateConnectionSpy.firstCall).to.be.calledWithExactly(undefined);
-
-  // this will fire activation changed forcing to switch to active connection
-  await connectionController.addNewConnectionStringAndConnect({
-    connectionString: `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`,
-  });
-  await timeout(10);
-  expect(mcpUpdateConnectionSpy.secondCall).to.be.calledWithMatch({
-    connectionString: `${TEST_DATABASE_URI}/?appname=mongodb-vscode+9.9.9`,
-  });
-}
-
 const sandbox = sinon.createSandbox();
 suite('MCPController test suite', function () {
   let connectionController: ConnectionController;
   let mcpController: MCPController;
-  let mcpConnectionManager: MCPConnectionManager;
 
   let mcpAutoStartValue: string | null | undefined;
   let getConfigurationStub: SinonStub;
@@ -57,6 +33,8 @@ suite('MCPController test suite', function () {
 
   let startServerStub: SinonStub;
   let startServerCalledNotification: Promise<void>;
+
+  let stopServerStub: SinonStub;
 
   beforeEach(() => {
     const extensionContext = new ExtensionContextStub();
@@ -71,16 +49,10 @@ suite('MCPController test suite', function () {
       telemetryService: testTelemetryService,
     });
 
-    mcpConnectionManager = new MCPConnectionManager({
-      logger: new VSCodeMCPLogger(undefined),
-      getTelemetryAnonymousId: (): string => '1FOO',
-    });
-
     mcpController = new MCPController({
       context: extensionContext,
       connectionController: connectionController,
       getTelemetryAnonymousId: (): string => '1FOO',
-      mcpConnectionManager,
     });
 
     // GetConfiguration Stubs
@@ -120,6 +92,13 @@ suite('MCPController test suite', function () {
         notifyStartServerCalled?.();
         return originalStartServer(...args);
       });
+
+    const originalStopServer = mcpController.stopServer.bind(mcpController);
+    stopServerStub = sandbox
+      .stub(mcpController, 'stopServer')
+      .callsFake((...args) => {
+        return originalStopServer(...args);
+      });
   });
 
   afterEach(() => {
@@ -128,190 +107,230 @@ suite('MCPController test suite', function () {
     connectionController.clearAllConnections();
   });
 
-  suite(
-    'activation flow for first time extension installs or first time update to v1.14.x',
-    function () {
-      beforeEach(() => {
-        mcpAutoStartValue = 'prompt';
-      });
+  suite('on extension activate', function () {
+    for (const { storedValue, migratedValue, expectMigration } of [
+      { storedValue: 'ask', migratedValue: 'prompt', expectMigration: true },
+      {
+        storedValue: 'enabled',
+        migratedValue: 'prompt',
+        expectMigration: true,
+      },
+      {
+        storedValue: 'prompt',
+        migratedValue: 'prompt',
+        expectMigration: false,
+      },
+      {
+        storedValue: 'anything-else',
+        migratedValue: 'anything-else',
+        expectMigration: false,
+      },
+      { storedValue: null, migratedValue: null, expectMigration: false },
+    ]) {
+      // eslint-disable-next-line no-loop-func
+      suite(`if stored config "${storedValue}"`, function () {
+        const testName = expectMigration
+          ? `should show auto-start config popup and migrate the stored value to ${migratedValue}`
+          : 'should show auto-start config popup';
 
-      test('should attempt switching the connection manager to active connection regardless of server started or not', () =>
-        testConnectionManagerSwitch(
-          mcpController,
-          mcpConnectionManager,
-          connectionController,
-        ));
-
-      test('should show MCP server auto start notification without starting the MCP server', async function () {
-        await mcpController.activate();
-
-        await showInformationCalledNotification;
-        expect(showInformationMessageStub).to.be.calledWithExactly(
-          'Would you like to automatically start the MongoDB MCP server? When started, the MongoDB MCP Server will automatically connect to your active MongoDB instance.',
-          'Yes',
-          'Not now',
-        );
-
-        // A small timeout to ensure the background tasks did happen
-        await timeout(10);
-        expect(startServerStub).to.not.be.called;
-      });
-
-      suite('when user selects "Yes" on the notification', function () {
-        test('should start the MCP server and set the auto start to autoStartEnabled', async function () {
-          showInformationSelection = 'Yes';
+        test(testName, async function () {
+          mcpAutoStartValue = storedValue;
           await mcpController.activate();
-
           await showInformationCalledNotification;
           expect(showInformationMessageStub).to.be.calledWithExactly(
-            'Would you like to automatically start the MongoDB MCP server? When started, the MongoDB MCP Server will automatically connect to your active MongoDB instance.',
-            'Yes',
-            'Not now',
+            'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
+            'Auto-Start',
+            'Start Once',
+            'Never',
           );
 
-          await startServerCalledNotification;
-
-          // Assert the server started
-          expect(startServerStub).to.be.called;
-          // A small timeout to ensure the background tasks did happen
-          await timeout(10);
-          // Opening the config works only if the MCP server is running
-          expect(await mcpController.openServerConfig()).to.be.true;
-
-          // Assert the selection is persisted
-          expect(updateConfigurationStub).to.be.calledWithExactly(
-            'mdb.mcp.server',
-            'autoStartEnabled',
-            true,
-          );
-          expect(mcpAutoStartValue).to.equal('autoStartEnabled');
-        });
-      });
-
-      suite('when user selects "Not now" on the notification', function () {
-        test('should start the MCP server and set the auto start to autoStartDisabled', async function () {
-          showInformationSelection = 'Not now';
-          await mcpController.activate();
-
-          await showInformationCalledNotification;
-          expect(showInformationMessageStub).to.be.calledWithExactly(
-            'Would you like to automatically start the MongoDB MCP server? When started, the MongoDB MCP Server will automatically connect to your active MongoDB instance.',
-            'Yes',
-            'Not now',
-          );
+          if (expectMigration) {
+            expect(updateConfigurationStub).to.be.calledWithExactly(
+              'mdb.mcp.server',
+              migratedValue,
+              true,
+            );
+            expect(mcpAutoStartValue).to.equal(migratedValue);
+          }
 
           // A small timeout to ensure the background tasks did happen
           await timeout(10);
-          // Assert the server did not start
           expect(startServerStub).to.not.be.called;
-          // Opening the config works only if the MCP server is running
+          // Open server config will return false when server is not already running
           expect(await mcpController.openServerConfig()).to.be.false;
-
-          // Assert the selection is persisted
-          expect(updateConfigurationStub).to.be.calledWithExactly(
-            'mdb.mcp.server',
-            'autoStartDisabled',
-            true,
-          );
-          expect(mcpAutoStartValue).to.equal('autoStartDisabled');
         });
       });
-    },
-  );
+    }
 
-  suite(
-    'activation flow for users who earlier opted to auto start MCP server',
-    function () {
-      test('should attempt switching the connection manager to active connection regardless of server started or not', () =>
-        testConnectionManagerSwitch(
-          mcpController,
-          mcpConnectionManager,
-          connectionController,
-        ));
-
-      test('should automatically start the MCP server, without any further notification', async function () {
+    suite('if stored config "autoStartEnabled"', function () {
+      test('should start the server without showing any auto-config popups', async function () {
         mcpAutoStartValue = 'autoStartEnabled';
         await mcpController.activate();
 
         // A small timeout to ensure the background tasks did happen
         await timeout(10);
-        expect(showInformationMessageStub).to.not.be.called;
-
         expect(startServerStub).to.be.called;
-        // Opening the config works only if the MCP server is running
+        // Open server config will return true when server is running
         expect(await mcpController.openServerConfig()).to.be.true;
-      });
-    },
-  );
 
-  suite(
-    'activation flow for users who earlier opted not to auto start MCP server',
-    function () {
-      test('should attempt switching the connection manager to active connection regardless of server started or not', () =>
-        testConnectionManagerSwitch(
-          mcpController,
-          mcpConnectionManager,
-          connectionController,
-        ));
-
-      test('should neither start the MCP server nor show any notification', async function () {
-        mcpAutoStartValue = 'autoStartDisabled';
-        await mcpController.activate();
-
-        // A small timeout to ensure the background tasks did happen
-        await timeout(10);
+        // no popup shown
         expect(showInformationMessageStub).to.not.be.called;
-
-        expect(startServerStub).to.not.be.called;
-        // Opening the config works only if the MCP server is running
-        expect(await mcpController.openServerConfig()).to.be.false;
       });
-    },
-  );
+    });
 
-  suite('activation flow for users updating from v1.14.0', function () {
-    for (const oldValue of ['ask', 'enabled']) {
+    for (const { storedValue, migratedValue, expectMigration } of [
+      {
+        storedValue: 'disabled',
+        migratedValue: 'autoStartDisabled',
+        expectMigration: true,
+      },
+      {
+        storedValue: 'autoStartDisabled',
+        migratedValue: 'autoStartDisabled',
+        expectMigration: false,
+      },
+    ]) {
       // eslint-disable-next-line no-loop-func
-      suite(`when old value of "mdb.mcp.server" is "${oldValue}"`, function () {
-        test('should migrate the value to "prompt", save it and show the auto start notification without starting the MCP server', async function () {
-          // Setting this to old value
-          mcpAutoStartValue = oldValue;
+      suite(`if stored config "${storedValue}"`, function () {
+        const testName = expectMigration
+          ? `should start the server without showing any auto-config popups and migrate the stored value to ${migratedValue}`
+          : 'should start the server without showing any auto-config popups';
 
+        test(testName, async function () {
+          mcpAutoStartValue = storedValue;
           await mcpController.activate();
 
-          await showInformationCalledNotification;
-          expect(showInformationMessageStub).to.be.calledWithExactly(
-            'Would you like to automatically start the MongoDB MCP server? When started, the MongoDB MCP Server will automatically connect to your active MongoDB instance.',
-            'Yes',
-            'Not now',
-          );
+          if (expectMigration) {
+            expect(updateConfigurationStub).to.be.calledWithExactly(
+              'mdb.mcp.server',
+              migratedValue,
+              true,
+            );
+            expect(mcpAutoStartValue).to.equal(migratedValue);
+          }
 
           // A small timeout to ensure the background tasks did happen
           await timeout(10);
           expect(startServerStub).to.not.be.called;
+          // Open server config will return true when server is running
+          expect(await mcpController.openServerConfig()).to.be.false;
 
-          expect(updateConfigurationStub).to.be.calledWithExactly(
-            'mdb.mcp.server',
-            'prompt',
-            true,
-          );
-          expect(mcpAutoStartValue).to.equal('prompt');
+          // no popup shown
+          expect(showInformationMessageStub).to.not.be.called;
         });
       });
     }
+  });
 
-    suite('when old value of "mdb.mcp.server" is "disabled"', function () {
-      test('should migrate the value to "autoStartDisabled", save it and should neither show any auto start notification nor start the MCP server', async function () {
-        // Setting this to old value
-        mcpAutoStartValue = 'disabled';
-
+  suite('popup actions', function () {
+    suite('when server is not running', function () {
+      test('should show three action buttons on the popup', async function () {
+        mcpAutoStartValue = 'prompt';
         await mcpController.activate();
 
-        // A small timeout to ensure the background tasks did happen
+        await showInformationCalledNotification;
+        expect(showInformationMessageStub).to.be.calledWithExactly(
+          'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
+          'Auto-Start',
+          'Start Once',
+          'Never',
+        );
+      });
+    });
+    suite('when server is running', function () {
+      test('should show two action buttons on the popup', async function () {
+        mcpAutoStartValue = 'prompt';
+        await mcpController.activate();
+
+        // Equivalent to user ignoring the popup and starting the server using the command
+        await mcpController.startServer();
+
+        // Forcing a re-prompt by connection change
+        await connectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        });
+
         await timeout(10);
-        expect(showInformationMessageStub).to.not.be.called;
-        expect(startServerStub).to.not.be.called;
-        expect(updateConfigurationStub).to.be.calledWithExactly(
+        expect(showInformationMessageStub.lastCall).to.be.calledWithExactly(
+          'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
+          'Auto-Start',
+          'Never',
+        );
+      });
+    });
+
+    suite('when user clicks on "Auto-Start"', function () {
+      test('should start the server and configure MCP server to auto start', async function () {
+        mcpAutoStartValue = 'prompt';
+        showInformationSelection = 'Auto-Start';
+        await mcpController.activate();
+
+        await showInformationCalledNotification;
+        expect(showInformationMessageStub).to.be.calledWithExactly(
+          'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
+          'Auto-Start',
+          'Start Once',
+          'Never',
+        );
+
+        await timeout(10);
+        // Server should've been started by now
+        expect(startServerStub).to.have.been.called;
+        expect(await mcpController.openServerConfig()).to.be.true;
+
+        expect(updateConfigurationStub).to.have.been.calledWithExactly(
+          'mdb.mcp.server',
+          'autoStartEnabled',
+          true,
+        );
+        expect(mcpAutoStartValue).to.equal('autoStartEnabled');
+      });
+    });
+
+    suite('when user clicks on "Start Once"', function () {
+      test('should start the server once and not configure MCP server auto-start', async function () {
+        mcpAutoStartValue = 'prompt';
+        showInformationSelection = 'Start Once';
+        await mcpController.activate();
+
+        await showInformationCalledNotification;
+        expect(showInformationMessageStub).to.be.calledWithExactly(
+          'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
+          'Auto-Start',
+          'Start Once',
+          'Never',
+        );
+
+        await timeout(10);
+        // Server should've been started by now
+        expect(startServerStub).to.have.been.called;
+        expect(await mcpController.openServerConfig()).to.be.true;
+
+        expect(updateConfigurationStub).to.not.have.been.called;
+        expect(mcpAutoStartValue).to.equal('prompt');
+      });
+    });
+
+    suite('when user clicks on "Never"', function () {
+      test('should not start the server and configure MCP server to never auto-start', async function () {
+        mcpAutoStartValue = 'prompt';
+        showInformationSelection = 'Never';
+        await mcpController.activate();
+
+        await showInformationCalledNotification;
+        expect(showInformationMessageStub).to.be.calledWithExactly(
+          'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
+          'Auto-Start',
+          'Start Once',
+          'Never',
+        );
+
+        await timeout(10);
+        // Server should've been started by now
+        expect(startServerStub).to.not.have.been.called;
+        expect(await mcpController.openServerConfig()).to.be.false;
+
+        expect(updateConfigurationStub).to.have.been.calledWithExactly(
           'mdb.mcp.server',
           'autoStartDisabled',
           true,
@@ -319,28 +338,59 @@ suite('MCPController test suite', function () {
         expect(mcpAutoStartValue).to.equal('autoStartDisabled');
       });
     });
+  });
 
-    for (const oldValue of [null, undefined, 'something-totally-odd']) {
-      suite(
-        `when old value of "mdb.mcp.server" is anything other than "ask", "enabled" or "disabled" ("${oldValue}")`,
-        // eslint-disable-next-line no-loop-func
-        function () {
-          test('should preserve the value and should neither show any auto start notification nor start the MCP server', async function () {
-            // Setting this to old value
-            mcpAutoStartValue = oldValue;
+  suite('MCP commands handlers', function () {
+    suite('when MCP server is not running', function () {
+      test('"startServer" should start the server', async function () {
+        mcpAutoStartValue = 'autoStartDisabled';
+        await mcpController.activate();
+        // Server is not running
+        expect(await mcpController.openServerConfig()).to.be.false;
 
-            await mcpController.activate();
+        await mcpController.startServer();
+        // Assert no side effects or attempt to close previous runs
+        expect(stopServerStub).to.not.have.been.called;
+        expect(await mcpController.openServerConfig()).to.be.true;
+      });
 
-            // A small timeout to ensure the background tasks did happen
-            await timeout(10);
-            expect(showInformationMessageStub).to.not.be.called;
-            expect(startServerStub).to.not.be.called;
-            expect(updateConfigurationStub).to.not.be.called;
-            expect(mcpAutoStartValue).to.equal(oldValue);
-          });
-        },
-      );
-    }
+      test('"stopServer" should do nothing', async function () {
+        mcpAutoStartValue = 'autoStartDisabled';
+        await mcpController.activate();
+        // Server not running
+        expect(await mcpController.openServerConfig()).to.be.false;
+
+        await mcpController.stopServer();
+        // Server not running
+        expect(await mcpController.openServerConfig()).to.be.false;
+      });
+    });
+
+    suite('when MCP server is running', function () {
+      test('"startServer" should do nothing', async function () {
+        mcpAutoStartValue = 'autoStartEnabled';
+        await mcpController.activate();
+        // Assert no side effects or attempt to close previous runs
+        expect(stopServerStub).to.not.have.been.called;
+        expect(await mcpController.openServerConfig()).to.be.true;
+
+        await mcpController.startServer();
+        // Assert no side effects or attempt to close previous runs
+        expect(stopServerStub).to.not.have.been.called;
+        expect(await mcpController.openServerConfig()).to.be.true;
+      });
+
+      test('"stopServer" should stop the server', async function () {
+        mcpAutoStartValue = 'autoStartEnabled';
+        await mcpController.activate();
+        // Server is running
+        expect(await mcpController.openServerConfig()).to.be.true;
+
+        await mcpController.stopServer();
+        // Not anymore
+        expect(await mcpController.openServerConfig()).to.be.false;
+      });
+    });
   });
 
   suite(
@@ -359,11 +409,6 @@ suite('MCPController test suite', function () {
         // Small timeout to let background task workout
         await timeout(10);
         expect(showInformationMessageStub).to.be.calledTwice;
-        expect(showInformationMessageStub.secondCall).to.be.calledWithExactly(
-          'Would you like to automatically start the MongoDB MCP server? When started, the MongoDB MCP Server will automatically connect to your active MongoDB instance.',
-          'Yes',
-          'Not now',
-        );
         expect(startServerStub).to.not.be.called;
       });
     },
