@@ -588,6 +588,7 @@ suite('MCPController test suite', function () {
   for (const storedValue of ['prompt', null, 'anything-else']) {
     suite(
       `when a connection is established in VSCode and MCP server auto start is set to "${storedValue}"`,
+      // eslint-disable-next-line no-loop-func
       function () {
         test('should show MCP server auto start notification without starting the MCP server', async function () {
           mcpAutoStartValue = storedValue;
@@ -609,6 +610,7 @@ suite('MCPController test suite', function () {
 
     suite(
       'when a connection is disconnected in VSCode and MCP server auto start is set to "prompt"',
+      // eslint-disable-next-line no-loop-func
       function () {
         test('should not show MCP server auto start notification', async function () {
           mcpAutoStartValue = storedValue;
