@@ -124,6 +124,20 @@ suite('MCPConnectionManager Test Suite', function () {
     });
   });
 
+  suite('#close', function () {
+    test('should call disconnect and emit close event', async function () {
+      const disconnectSpy = sandbox.spy(mcpConnectionManager, 'disconnect');
+      let resolveWhenEmitted: (() => void) | undefined;
+      const closeEventEmitted = new Promise<void>((resolve) => {
+        resolveWhenEmitted = resolve;
+      });
+      mcpConnectionManager.events.on('close', () => resolveWhenEmitted?.());
+      await mcpConnectionManager.close();
+      expect(disconnectSpy).to.have.been.calledOnce;
+      await closeEventEmitted;
+    });
+  });
+
   suite('#updateConnection', function () {
     suite('when not connected to any connection', function () {
       test('should do nothing when invoked for a disconnected connection', async function () {

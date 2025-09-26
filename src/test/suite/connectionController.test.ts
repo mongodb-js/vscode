@@ -518,8 +518,10 @@ suite('Connection Controller Test Suite', function () {
     // The number of times we expect to re-render connections on the sidebar:
     // - connection attempt started
     // - connection attempt finished
-    // - disconnect
-    const expectedTimesToFire = 3;
+    // - disconnect from our call in the tests
+    // - disconnect from on('close') listener on DataService that gets called as
+    //   a result of our disconnect call
+    const expectedTimesToFire = 4;
     let connectionsDidChangeEventFiredCount = 0;
 
     testConnectionController.addEventListener('CONNECTIONS_DID_CHANGE', () => {
