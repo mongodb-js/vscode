@@ -3,6 +3,8 @@ import sinon from 'sinon';
 import { expect } from 'chai';
 import { afterEach, beforeEach } from 'mocha';
 import * as vscode from 'vscode';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { ExtensionContextStub } from '../stubs';
 import { MCPController } from '../../../mcp/mcpController';
 import ConnectionController from '../../../connectionController';
@@ -15,6 +17,25 @@ function timeout(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+async function createConnectedMCPClient(
+  clientName: string,
+  mcpController: MCPController,
+): Promise<Client> {
+  const httpServerDefinition: vscode.McpHttpServerDefinition = (
+    mcpController as any
+  ).getServerConfig();
+  expect(httpServerDefinition).to.not.be.undefined;
+  const { uri, headers } = httpServerDefinition;
+  const transport = new StreamableHTTPClientTransport(new URL(uri.toString()), {
+    requestInit: {
+      headers: headers,
+    },
+  });
+  const client = new Client({ name: clientName, version: '1.0.0' });
+  await client.connect(transport);
+  return client;
 }
 
 const sandbox = sinon.createSandbox();
@@ -56,7 +77,11 @@ suite('MCPController test suite', function () {
 
     // GetConfiguration Stubs
     mcpAutoStartValue = undefined;
-    getConfigurationStub = sandbox.stub().callsFake(() => mcpAutoStartValue);
+    getConfigurationStub = sandbox.stub().callsFake((key) => {
+      if (key === 'mdb.mcp.server') {
+        return mcpAutoStartValue;
+      }
+    });
     updateConfigurationStub = sandbox.stub().callsFake((key, value) => {
       mcpAutoStartValue = value;
     });
@@ -392,49 +417,226 @@ suite('MCPController test suite', function () {
     });
   });
 
-  suite(
-    'when a connection is established in VSCode and MCP server auto start is set to "prompt"',
-    function () {
-      test('should show MCP server auto start notification without starting the MCP server', async function () {
-        mcpAutoStartValue = 'prompt';
-        await mcpController.activate();
-        await showInformationCalledNotification;
-
-        // Now connecting to a connection
+  suite('clients connection handling', function () {
+    suite('when there is an active connection in VSCode', function () {
+      test('connected clients should be able to query mongodb', async function () {
+        mcpAutoStartValue = 'autoStartEnabled';
+        // Connect already
         await connectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI,
         });
-
-        // Small timeout to let background task workout
-        await timeout(10);
-        expect(showInformationMessageStub).to.be.calledTwice;
-        expect(startServerStub).to.not.be.called;
-      });
-    },
-  );
-
-  suite(
-    'when a connection is disconnected in VSCode and MCP server auto start is set to "prompt"',
-    function () {
-      test('should not show MCP server auto start notification', async function () {
-        mcpAutoStartValue = 'prompt';
         await mcpController.activate();
-        await showInformationCalledNotification;
 
-        // Now connecting to a connection
-        await connectionController.addNewConnectionStringAndConnect({
-          connectionString: TEST_DATABASE_URI,
-        });
+        const firstClient = await createConnectedMCPClient(
+          'firstClient',
+          mcpController,
+        );
+        const secondClient = await createConnectedMCPClient(
+          'secondClient',
+          mcpController,
+        );
 
-        await connectionController.disconnect();
+        const [firstResponse, secondResponse] = await Promise.all([
+          firstClient.callTool({
+            name: 'list-databases',
+            arguments: {},
+          }),
+          secondClient.callTool({
+            name: 'list-databases',
+            arguments: {},
+          }),
+        ]);
 
-        // Small timeout to let background task workout
-        await timeout(10);
-        expect(showInformationMessageStub).to.be.calledTwice;
-        expect(startServerStub).to.not.be.called;
+        expect(JSON.stringify(firstResponse.content)).to.contain(
+          'Found 3 databases',
+        );
+        expect(JSON.stringify(secondResponse.content)).to.contain(
+          'Found 3 databases',
+        );
       });
-    },
-  );
+    });
+
+    suite(
+      'when connection state changes from connected to disconnected',
+      function () {
+        test('connected clients should get responded with no connection response', async function () {
+          mcpAutoStartValue = 'autoStartEnabled';
+          // Connect already
+          await connectionController.addNewConnectionStringAndConnect({
+            connectionString: TEST_DATABASE_URI,
+          });
+          await mcpController.activate();
+
+          const firstClient = await createConnectedMCPClient(
+            'firstClient',
+            mcpController,
+          );
+          const secondClient = await createConnectedMCPClient(
+            'secondClient',
+            mcpController,
+          );
+
+          let [firstResponse, secondResponse] = await Promise.all([
+            firstClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+            secondClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+          ]);
+
+          expect(JSON.stringify(firstResponse.content)).to.contain(
+            'Found 3 databases',
+          );
+          expect(JSON.stringify(secondResponse.content)).to.contain(
+            'Found 3 databases',
+          );
+
+          // Now disconnect
+          await connectionController.disconnect();
+
+          // Next call should respond back with disconnected content
+          [firstResponse, secondResponse] = await Promise.all([
+            firstClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+            secondClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+          ]);
+
+          expect(JSON.stringify(firstResponse.content)).to.contain(
+            'You need to connect to a MongoDB instance before you can access its data.',
+          );
+          expect(JSON.stringify(secondResponse.content)).to.contain(
+            'You need to connect to a MongoDB instance before you can access its data.',
+          );
+        });
+      },
+    );
+
+    suite(
+      'when connection state changes from disconnected to connected',
+      function () {
+        test('connected clients should be able to query mongodb', async function () {
+          mcpAutoStartValue = 'autoStartEnabled';
+
+          await mcpController.activate();
+
+          const firstClient = await createConnectedMCPClient(
+            'firstClient',
+            mcpController,
+          );
+          const secondClient = await createConnectedMCPClient(
+            'secondClient',
+            mcpController,
+          );
+
+          let [firstResponse, secondResponse] = await Promise.all([
+            firstClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+            secondClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+          ]);
+
+          expect(JSON.stringify(firstResponse.content)).to.contain(
+            'You need to connect to a MongoDB instance before you can access its data.',
+          );
+          expect(JSON.stringify(secondResponse.content)).to.contain(
+            'You need to connect to a MongoDB instance before you can access its data.',
+          );
+
+          // Now connect
+          await connectionController.addNewConnectionStringAndConnect({
+            connectionString: TEST_DATABASE_URI,
+          });
+
+          // A little timeout
+          await timeout(100);
+
+          // Next call should respond back with disconnected content
+          [firstResponse, secondResponse] = await Promise.all([
+            firstClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+            secondClient.callTool({
+              name: 'list-databases',
+              arguments: {},
+            }),
+          ]);
+
+          expect(JSON.stringify(firstResponse.content)).to.contain(
+            'Found 3 databases',
+          );
+          expect(JSON.stringify(secondResponse.content)).to.contain(
+            'Found 3 databases',
+          );
+        });
+      },
+    );
+  });
+
+  for (const storedValue of ['prompt', null, 'anything-else']) {
+    suite(
+      `when a connection is established in VSCode and MCP server auto start is set to "${storedValue}"`,
+      function () {
+        test('should show MCP server auto start notification without starting the MCP server', async function () {
+          mcpAutoStartValue = storedValue;
+          await mcpController.activate();
+          await showInformationCalledNotification;
+
+          // Now connecting to a connection
+          await connectionController.addNewConnectionStringAndConnect({
+            connectionString: TEST_DATABASE_URI,
+          });
+
+          // Small timeout to let background task workout
+          await timeout(10);
+          expect(showInformationMessageStub).to.be.calledTwice;
+          expect(startServerStub).to.not.be.called;
+        });
+      },
+    );
+
+    suite(
+      'when a connection is disconnected in VSCode and MCP server auto start is set to "prompt"',
+      function () {
+        test('should not show MCP server auto start notification', async function () {
+          mcpAutoStartValue = storedValue;
+          await mcpController.activate();
+          await showInformationCalledNotification;
+
+          // Now connecting to a connection
+          await connectionController.addNewConnectionStringAndConnect({
+            connectionString: TEST_DATABASE_URI,
+          });
+
+          // Small timeout to let background task workout
+          await timeout(10);
+          expect(showInformationMessageStub).to.be.calledTwice;
+          expect(startServerStub).to.not.be.called;
+
+          // Disconnecting but check below that showInformation message is not
+          // shown again
+          await connectionController.disconnect();
+
+          // Small timeout to let background task workout
+          await timeout(10);
+          expect(showInformationMessageStub).to.be.calledTwice;
+          expect(startServerStub).to.not.be.called;
+        });
+      },
+    );
+  }
 
   suite('#openServerConfig', function () {
     suite('when the server is not running', function () {
