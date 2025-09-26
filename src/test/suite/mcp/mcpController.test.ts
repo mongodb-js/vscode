@@ -4,13 +4,12 @@ import { expect } from 'chai';
 import { afterEach, beforeEach } from 'mocha';
 import * as vscode from 'vscode';
 import { ExtensionContextStub } from '../stubs';
-import { MCPController, VSCodeMCPLogger } from '../../../mcp/mcpController';
+import { MCPController } from '../../../mcp/mcpController';
 import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import { MCPConnectionManager } from '../../../mcp/mcpConnectionManager';
 
 function timeout(ms: number): Promise<void> {
   return new Promise((resolve) => {
