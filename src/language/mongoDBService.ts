@@ -1235,7 +1235,7 @@ export default class MongoDBService {
       );
       const serviceProvider = this._serviceProvider;
       this._serviceProvider = undefined;
-      await serviceProvider.close(true);
+      await serviceProvider.close();
     }
   }
 
