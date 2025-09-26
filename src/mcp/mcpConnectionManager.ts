@@ -85,7 +85,7 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
 
   override async disconnect(): Promise<ConnectionStateDisconnected> {
     try {
-      await this.activeConnection?.provider?.close(true);
+      await this.activeConnection?.provider?.close();
     } catch (error) {
       this.logger.error({
         id: MCPLogIds.DisconnectError,
