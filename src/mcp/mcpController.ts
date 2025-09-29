@@ -57,7 +57,7 @@ export class MCPController {
   private context: vscode.ExtensionContext;
   private connectionController: ConnectionController;
   private getTelemetryAnonymousId: () => string;
-  private clientConnectionManagers: MCPConnectionManager[] = [];
+  private mcpConnectionManagers: MCPConnectionManager[] = [];
 
   private didChangeEmitter = new vscode.EventEmitter<void>();
   private server?: MCPServerInfo;
@@ -262,7 +262,7 @@ export class MCPController {
     });
 
     // Track this ConnectionManager instance for future connection updates
-    this.clientConnectionManagers.push(connectionManager);
+    this.mcpConnectionManagers.push(connectionManager);
 
     // Also set up listener on close event to perform a cleanup when the Client
     // closes connection to MCP server and eventually ConnectionManager shuts
@@ -271,7 +271,7 @@ export class MCPController {
       logger.info('MCPConnectionManager closed. Performing cleanup', {
         connectionManagerClientName: connectionManager.clientName,
       });
-      this.clientConnectionManagers = this.clientConnectionManagers.filter(
+      this.mcpConnectionManagers = this.mcpConnectionManagers.filter(
         (manager) => manager !== connectionManager,
       );
     });
@@ -386,7 +386,7 @@ ${jsonConfig}`,
 
   private async switchAllConnectionManagerToCurrentConnection(): Promise<void> {
     await Promise.all(
-      this.clientConnectionManagers.map((manager) =>
+      this.mcpConnectionManagers.map((manager) =>
         this.switchConnectionManagerToCurrentConnection(manager),
       ),
     );
