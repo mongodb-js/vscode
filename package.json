@@ -1439,7 +1439,7 @@
     "@mongodb-js/oidc-plugin": "^2.0.3",
     "@mongodb-js/prettier-config-devtools": "^1.0.2",
     "@mongodb-js/sbom-tools": "^0.8.1",
-    "@mongodb-js/signing-utils": "^0.4.0",
+    "@mongodb-js/signing-utils": "^0.4.3",
     "@mongosh/service-provider-core": "^3.6.0",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.5.2",
