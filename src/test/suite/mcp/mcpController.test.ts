@@ -596,6 +596,72 @@ suite('MCPController test suite', function () {
       },
     );
 
+    suite('when MCP server shuts down', function () {
+      test('should terminate individual client connections and clear up the internal connection manager state', async function () {
+        this.timeout(60_000);
+        mcpAutoStartValue = 'autoStartEnabled';
+        // Connect already in VSCode
+        await connectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
+        });
+        await mcpController.activate();
+        await timeout(100);
+
+        // Construct our MCP clients connected to the VSCode MCP
+        const { client: firstClient } = await createConnectedMCPClient(
+          'firstClient',
+          mcpController,
+        );
+        const { client: secondClient } = await createConnectedMCPClient(
+          'secondClient',
+          mcpController,
+        );
+
+        // Both clients are connected so both should be able to query MCP server
+        let [firstClientResponse, secondClientResponse] = await Promise.all([
+          firstClient.callTool({
+            name: 'list-databases',
+            arguments: {},
+          }),
+          secondClient.callTool({
+            name: 'list-databases',
+            arguments: {},
+          }),
+        ]);
+
+        expect(JSON.stringify(firstClientResponse.content)).to.contain(
+          'Found 3 databases',
+        );
+        expect(JSON.stringify(secondClientResponse.content)).to.contain(
+          'Found 3 databases',
+        );
+        // There should be 2 connection managers for the two clients we created
+        await waitFor(
+          () => (mcpController as any).mcpConnectionManagers.length === 2,
+        );
+
+        // MCP server shuts down
+        await mcpController.stopServer();
+
+        [firstClientResponse, secondClientResponse] = await Promise.all([
+          firstClient
+            .callTool({ name: 'list-databases', arguments: {} })
+            .catch((error) => error.message),
+          secondClient
+            .callTool({ name: 'list-databases', arguments: {} })
+            .catch((error) => error.message),
+        ]);
+        // fetch would fail because server is not running
+        expect(firstClientResponse).to.contain('fetch failed');
+        expect(secondClientResponse).to.contain('fetch failed');
+
+        // Cleanup that we are expecting
+        await waitFor(
+          () => (mcpController as any).mcpConnectionManagers.length === 0,
+        );
+      });
+    });
+
     test('different clients should have their own connection state and not overstep each other', async function () {
       mcpAutoStartValue = 'autoStartEnabled';
       // Connect already in VSCode
