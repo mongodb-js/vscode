@@ -12,6 +12,7 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
+import { waitFor } from '../waitFor';
 
 function timeout(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -22,7 +23,11 @@ function timeout(ms: number): Promise<void> {
 async function createConnectedMCPClient(
   clientName: string,
   mcpController: MCPController,
-): Promise<Client> {
+): Promise<{
+  client: Client;
+  transport: StreamableHTTPClientTransport;
+  closeClient: () => Promise<void>;
+}> {
   const httpServerDefinition: vscode.McpHttpServerDefinition = (
     mcpController as any
   ).getServerConfig();
@@ -35,7 +40,14 @@ async function createConnectedMCPClient(
   });
   const client = new Client({ name: clientName, version: '1.0.0' });
   await client.connect(transport);
-  return client;
+  return {
+    client,
+    transport,
+    async closeClient(): Promise<void> {
+      await transport.terminateSession();
+      await client.close();
+    },
+  };
 }
 
 const sandbox = sinon.createSandbox();
@@ -427,11 +439,11 @@ suite('MCPController test suite', function () {
         });
         await mcpController.activate();
 
-        const firstClient = await createConnectedMCPClient(
+        const { client: firstClient } = await createConnectedMCPClient(
           'firstClient',
           mcpController,
         );
-        const secondClient = await createConnectedMCPClient(
+        const { client: secondClient } = await createConnectedMCPClient(
           'secondClient',
           mcpController,
         );
@@ -467,11 +479,11 @@ suite('MCPController test suite', function () {
           });
           await mcpController.activate();
 
-          const firstClient = await createConnectedMCPClient(
+          const { client: firstClient } = await createConnectedMCPClient(
             'firstClient',
             mcpController,
           );
-          const secondClient = await createConnectedMCPClient(
+          const { client: secondClient } = await createConnectedMCPClient(
             'secondClient',
             mcpController,
           );
@@ -527,11 +539,11 @@ suite('MCPController test suite', function () {
 
           await mcpController.activate();
 
-          const firstClient = await createConnectedMCPClient(
+          const { client: firstClient } = await createConnectedMCPClient(
             'firstClient',
             mcpController,
           );
-          const secondClient = await createConnectedMCPClient(
+          const { client: secondClient } = await createConnectedMCPClient(
             'secondClient',
             mcpController,
           );
@@ -583,6 +595,94 @@ suite('MCPController test suite', function () {
         });
       },
     );
+
+    test('different clients should have their own connection state and not overstep each other', async function () {
+      mcpAutoStartValue = 'autoStartEnabled';
+      // Connect already in VSCode
+      await connectionController.addNewConnectionStringAndConnect({
+        connectionString: TEST_DATABASE_URI,
+      });
+      await mcpController.activate();
+
+      // Construct our MCP clients connected to the VSCode MCP
+      const { client: firstClient } = await createConnectedMCPClient(
+        'firstClient',
+        mcpController,
+      );
+      const { client: secondClient, closeClient: closeSecondClient } =
+        await createConnectedMCPClient('secondClient', mcpController);
+
+      // Both clients are connected so both should be able to query MCP server
+      let [firstResponse, secondResponse] = await Promise.all([
+        firstClient.callTool({
+          name: 'list-databases',
+          arguments: {},
+        }),
+        secondClient.callTool({
+          name: 'list-databases',
+          arguments: {},
+        }),
+      ]);
+
+      expect(JSON.stringify(firstResponse.content)).to.contain(
+        'Found 3 databases',
+      );
+      expect(JSON.stringify(secondResponse.content)).to.contain(
+        'Found 3 databases',
+      );
+
+      // Closing second client to test that it clears up and not affect the
+      // first client
+      await closeSecondClient();
+      await waitFor(() => {
+        return (mcpController as any).mcpConnectionManagers.length === 1;
+      });
+
+      // Second client is closed but the first should still get a response
+      [firstResponse, secondResponse] = await Promise.all([
+        firstClient.callTool({
+          name: 'list-databases',
+          arguments: {},
+        }),
+        secondClient
+          .callTool({
+            name: 'list-databases',
+            arguments: {},
+          })
+          .catch((error) => error.message),
+      ]);
+      // Only first client responds with actual tool response
+      expect(JSON.stringify(firstResponse.content)).to.contain(
+        'Found 3 databases',
+      );
+      expect(secondResponse).to.contain('Not connected');
+
+      // Another state change from VSCode
+      await connectionController.disconnect();
+
+      // A small timeout
+      await timeout(10);
+
+      // Second client is closed so that should respond with the error message
+      // but the first client should get the disconnected response.
+      [firstResponse, secondResponse] = await Promise.all([
+        firstClient.callTool({
+          name: 'list-databases',
+          arguments: {},
+        }),
+        secondClient
+          .callTool({
+            name: 'list-databases',
+            arguments: {},
+          })
+          .catch((error) => error.message),
+      ]);
+      // Only first client responds with actual tool response
+      expect(JSON.stringify(firstResponse.content)).to.contain(
+        'You need to connect to a MongoDB instance before you can access its data.',
+      );
+      expect(secondResponse).to.contain('Not connected');
+    });
   });
 
   for (const storedValue of ['prompt', null, 'anything-else']) {
