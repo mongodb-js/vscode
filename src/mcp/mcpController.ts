@@ -137,12 +137,11 @@ export class MCPController {
 
   private async promptForMCPAutoStart(): Promise<void> {
     try {
-      const storedConfig = this.getStoredMCPAutoStartConfig();
       const coercedConfig = this.getCoercedMCPAutoStartConfig();
       if (coercedConfig !== 'prompt') {
         logger.info(
           'Prompt to configure MCP auto start requested. Will not show any prompt.',
-          { storedConfig, coercedConfig, serverRunning: !!this.server },
+          { coercedConfig, serverRunning: !!this.server },
         );
         return;
       }
@@ -154,6 +153,10 @@ export class MCPController {
       const promptResponse = await vscode.window.showInformationMessage(
         'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
         ...notificationActions,
+      );
+      logger.info(
+        'Prompt to configure MCP auto start requested. Will prompt.',
+        { coercedConfig, serverRunning: !!this.server, promptResponse },
       );
 
       switch (promptResponse) {
@@ -381,10 +384,6 @@ ${jsonConfig}`,
       void this.promptForMCPAutoStart();
     }
 
-    await this.switchAllConnectionManagerToCurrentConnection();
-  }
-
-  private async switchAllConnectionManagerToCurrentConnection(): Promise<void> {
     await Promise.all(
       this.mcpConnectionManagers.map((manager) =>
         this.switchConnectionManagerToCurrentConnection(manager),
