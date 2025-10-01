@@ -149,6 +149,14 @@ export class MCPController {
         return;
       }
 
+      logger.info(
+        'Prompt to configure MCP auto start requested. Will prompt.',
+        {
+          autoStartConfig,
+          serverRunning: !!this.server,
+        },
+      );
+
       const notificationActions = this.server
         ? (['Auto-Start', 'Never'] as const)
         : (['Auto-Start', 'Start Once', 'Never'] as const);
@@ -156,14 +164,6 @@ export class MCPController {
       const promptResponse = await vscode.window.showInformationMessage(
         'Would you like to automatically start the MongoDB MCP server for a streamlined experience? When started, the server will automatically connect to your active MongoDB instance.',
         ...notificationActions,
-      );
-      logger.info(
-        'Prompt to configure MCP auto start requested. Will prompt.',
-        {
-          autoStartConfig,
-          serverRunning: !!this.server,
-          promptResponse,
-        },
       );
 
       switch (promptResponse) {
