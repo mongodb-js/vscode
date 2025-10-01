@@ -27,7 +27,7 @@ export type MCPServerStartupConfig =
   | 'autoStartEnabled'
   | 'autoStartDisabled';
 
-export class VSCodeMCPLogger extends LoggerBase {
+class VSCodeMCPLogger extends LoggerBase {
   private readonly _logger = createLogger('mcp-server');
   protected type: LoggerType = 'console';
   protected logCore(level: LogLevel, payload: LogPayload): void {
@@ -141,21 +141,17 @@ export class MCPController {
   private async promptForMCPAutoStart(): Promise<void> {
     try {
       const autoStartConfig = this.getMCPAutoStartConfig();
-      if (autoStartConfig !== 'prompt') {
-        logger.info(
-          'Prompt to configure MCP auto start requested. Will not show any prompt.',
-          { autoStartConfig, serverRunning: !!this.server },
-        );
+      const shouldPrompt = autoStartConfig === 'prompt';
+
+      logger.info('Prompt to configure MCP auto start requested.', {
+        autoStartConfig,
+        shouldPrompt,
+        serverRunning: !!this.server,
+      });
+
+      if (!shouldPrompt) {
         return;
       }
-
-      logger.info(
-        'Prompt to configure MCP auto start requested. Will prompt.',
-        {
-          autoStartConfig,
-          serverRunning: !!this.server,
-        },
-      );
 
       const notificationActions = this.server
         ? (['Auto-Start', 'Never'] as const)
