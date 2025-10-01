@@ -99,8 +99,6 @@ export class MCPController {
       },
     );
 
-    void this.promptForMCPAutoStart();
-
     if (this.getMCPAutoStartConfig() === 'autoStartEnabled') {
       await this.startServer();
     }
