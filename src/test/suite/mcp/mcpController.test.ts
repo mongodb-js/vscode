@@ -156,12 +156,6 @@ suite('MCPController test suite', function () {
         migratedValue: 'prompt',
         expectMigration: false,
       },
-      {
-        storedValue: 'anything-else',
-        migratedValue: 'anything-else',
-        expectMigration: false,
-      },
-      { storedValue: null, migratedValue: null, expectMigration: false },
     ]) {
       // eslint-disable-next-line no-loop-func
       suite(`if stored config "${storedValue}"`, function () {
@@ -213,6 +207,27 @@ suite('MCPController test suite', function () {
         expect(showInformationMessageStub).to.not.be.called;
       });
     });
+
+    for (const storedValue of ['anything-else', null]) {
+      // eslint-disable-next-line no-loop-func
+      suite(`if stored config "${storedValue}"`, function () {
+        test('should not start the server, not show any auto-config popups and not perform any migration', async function () {
+          mcpAutoStartValue = storedValue;
+          await mcpController.activate();
+
+          expect(updateConfigurationStub).to.not.be.called;
+
+          // A small timeout to ensure the background tasks did happen
+          await timeout(10);
+          expect(startServerStub).to.not.be.called;
+          // Open server config will return true when server is running
+          expect(await mcpController.openServerConfig()).to.be.false;
+
+          // no popup shown
+          expect(showInformationMessageStub).to.not.be.called;
+        });
+      });
+    }
 
     for (const { storedValue, migratedValue, expectMigration } of [
       {
@@ -751,60 +766,58 @@ suite('MCPController test suite', function () {
     });
   });
 
-  for (const storedValue of ['prompt', null, 'anything-else']) {
-    suite(
-      `when a connection is established in VSCode and MCP server auto start is set to "${storedValue}"`,
-      // eslint-disable-next-line no-loop-func
-      function () {
-        test('should show MCP server auto start notification without starting the MCP server', async function () {
-          mcpAutoStartValue = storedValue;
-          await mcpController.activate();
-          await showInformationCalledNotification;
+  suite(
+    'when a connection is established in VSCode and MCP server auto start is set to "prompt"',
+    // eslint-disable-next-line no-loop-func
+    function () {
+      test('should show MCP server auto start notification without starting the MCP server', async function () {
+        mcpAutoStartValue = 'prompt';
+        await mcpController.activate();
+        await showInformationCalledNotification;
 
-          // Now connecting to a connection
-          await connectionController.addNewConnectionStringAndConnect({
-            connectionString: TEST_DATABASE_URI,
-          });
-
-          // Small timeout to let background task workout
-          await timeout(10);
-          expect(showInformationMessageStub).to.be.calledTwice;
-          expect(startServerStub).to.not.be.called;
+        // Now connecting to a connection
+        await connectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
         });
-      },
-    );
 
-    suite(
-      'when a connection is disconnected in VSCode and MCP server auto start is set to "prompt"',
-      // eslint-disable-next-line no-loop-func
-      function () {
-        test('should not show MCP server auto start notification', async function () {
-          mcpAutoStartValue = storedValue;
-          await mcpController.activate();
-          await showInformationCalledNotification;
+        // Small timeout to let background task workout
+        await timeout(10);
+        expect(showInformationMessageStub).to.be.calledTwice;
+        expect(startServerStub).to.not.be.called;
+      });
+    },
+  );
 
-          // Now connecting to a connection
-          await connectionController.addNewConnectionStringAndConnect({
-            connectionString: TEST_DATABASE_URI,
-          });
+  suite(
+    'when a connection is disconnected in VSCode and MCP server auto start is set to "prompt"',
+    // eslint-disable-next-line no-loop-func
+    function () {
+      test('should not show MCP server auto start notification', async function () {
+        mcpAutoStartValue = 'prompt';
+        await mcpController.activate();
+        await showInformationCalledNotification;
 
-          // Small timeout to let background task workout
-          await timeout(10);
-          expect(showInformationMessageStub).to.be.calledTwice;
-          expect(startServerStub).to.not.be.called;
-
-          // Disconnecting but check below that showInformation message is not
-          // shown again
-          await connectionController.disconnect();
-
-          // Small timeout to let background task workout
-          await timeout(10);
-          expect(showInformationMessageStub).to.be.calledTwice;
-          expect(startServerStub).to.not.be.called;
+        // Now connecting to a connection
+        await connectionController.addNewConnectionStringAndConnect({
+          connectionString: TEST_DATABASE_URI,
         });
-      },
-    );
-  }
+
+        // Small timeout to let background task workout
+        await timeout(10);
+        expect(showInformationMessageStub).to.be.calledTwice;
+        expect(startServerStub).to.not.be.called;
+
+        // Disconnecting but check below that showInformation message is not
+        // shown again
+        await connectionController.disconnect();
+
+        // Small timeout to let background task workout
+        await timeout(10);
+        expect(showInformationMessageStub).to.be.calledTwice;
+        expect(startServerStub).to.not.be.called;
+      });
+    },
+  );
 
   suite('#openServerConfig', function () {
     suite('when the server is not running', function () {
