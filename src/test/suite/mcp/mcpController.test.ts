@@ -686,7 +686,6 @@ suite('MCPController test suite', function () {
 
     suite('when MCP server shuts down', function () {
       test('should terminate individual client connections and clear up the internal connection manager state', async function () {
-        this.timeout(60_000);
         mcpAutoStartValue = 'autoStartEnabled';
         // Connect already in VSCode
         await connectionController.addNewConnectionStringAndConnect({
