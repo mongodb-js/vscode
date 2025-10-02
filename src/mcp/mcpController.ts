@@ -143,7 +143,7 @@ export class MCPController {
       const autoStartConfig = this.getMCPAutoStartConfig();
       const shouldPrompt = autoStartConfig === 'prompt';
 
-      logger.info('Prompt to configure MCP auto start requested.', {
+      logger.debug('Prompt to configure MCP auto start requested.', {
         autoStartConfig,
         shouldPrompt,
         serverRunning: !!this.server,
@@ -153,6 +153,8 @@ export class MCPController {
         return;
       }
 
+      // 'Start Once' action might confuse users if the server is already
+      // running so we skip exposing this action in this particular case.
       const notificationActions = this.server
         ? (['Auto-Start', 'Never'] as const)
         : (['Auto-Start', 'Start Once', 'Never'] as const);
@@ -213,7 +215,8 @@ export class MCPController {
 
       const runner = new StreamableHttpRunner({
         userConfig: mcpConfig,
-        createConnectionManager: this.createConnectionManager.bind(this),
+        createConnectionManager: (...params) =>
+          this.createConnectionManager(...params),
         connectionErrorHandler: createMCPConnectionErrorHandler(
           this.connectionController,
         ),
@@ -274,7 +277,7 @@ export class MCPController {
     // closes connection to MCP server and eventually ConnectionManager shuts
     // down.
     connectionManager.events.on('close', (): void => {
-      logger.info('MCPConnectionManager closed. Performing cleanup', {
+      logger.debug('MCPConnectionManager closed. Performing cleanup', {
         connectionManagerClientName: connectionManager.clientName,
       });
       this.mcpConnectionManagers = this.mcpConnectionManagers.filter(
@@ -375,7 +378,7 @@ ${jsonConfig}`,
   }
 
   private async onActiveConnectionChanged(): Promise<void> {
-    logger.info(
+    logger.debug(
       'Active connection changed, will switch connection manager to new connection',
       {
         connectionId: this.connectionController.getActiveConnectionId(),
