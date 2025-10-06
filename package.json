@@ -1320,7 +1320,7 @@
         },
         "mdb.mcp.readOnly": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "When set to true, MongoDB MCP server will only allow read, connect, and metadata operation types, disabling create/update/delete operations."
         },
         "mdb.mcp.indexCheck": {
@@ -1331,11 +1331,16 @@
         "mdb.mcp.server": {
           "type": "string",
           "enum": [
-            "ask",
-            "enabled",
-            "disabled"
+            "prompt",
+            "autoStartEnabled",
+            "autoStartDisabled"
           ],
-          "default": "ask",
+          "enumItemLabels": [
+            "Ask",
+            "Auto Start Enabled",
+            "Auto Start Disabled"
+          ],
+          "default": "prompt",
           "description": "Controls whether MongoDB MCP server starts automatically with the extension and connects to the active connection. If automatic startup is disabled, the server can still be started using the 'MongoDB: Start MCP Server' command."
         },
         "mdb.mcp.exportsPath": {
@@ -1418,7 +1423,7 @@
     "mongodb-connection-string-url": "^3.0.2",
     "mongodb-data-service": "^22.30.1",
     "mongodb-log-writer": "^2.4.1",
-    "mongodb-mcp-server": "^1.0.2-prerelease.1",
+    "mongodb-mcp-server": "^1.0.2-prerelease.2",
     "mongodb-query-parser": "^4.4.2",
     "mongodb-schema": "^12.6.2",
     "node-machine-id": "1.1.12",
@@ -1435,6 +1440,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.25.7",
     "@babel/types": "^7.25.8",
+    "@modelcontextprotocol/sdk": "^1.18.2",
     "@mongodb-js/oidc-mock-provider": "^0.11.4",
     "@mongodb-js/oidc-plugin": "^2.0.3",
     "@mongodb-js/prettier-config-devtools": "^1.0.2",

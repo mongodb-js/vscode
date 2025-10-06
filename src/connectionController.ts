@@ -732,7 +732,9 @@ export default class ConnectionController {
       return false;
     }
 
-    const originalDisconnect = this._activeDataService.disconnect.bind(this);
+    const originalDisconnect = this._activeDataService.disconnect.bind(
+      this._activeDataService,
+    );
     this._activeDataService = null;
 
     try {
