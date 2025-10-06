@@ -1,5 +1,24 @@
 # Change Log
 
+## [v1.14.1](https://github.com/mongodb-js/vscode/releases/tag/v1.14.1) - 2025-10-06
+
+## What's Changed
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1121
+* fix: add hosting_mode to mcp telemetry by @nirinchev in https://github.com/mongodb-js/vscode/pull/1134
+* chore: update mongosh by @gagik in https://github.com/mongodb-js/vscode/pull/1130
+* chore(deps-dev): bump mongodb-runner from 5.9.2 to 5.10.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1139
+* chore(deps-dev): bump @mongodb-js/signing-utils from 0.4.0 to 0.4.3 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1141
+* chore(deps-dev): bump @mongodb-js/oidc-mock-provider from 0.11.3 to 0.11.4 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1140
+* fix: disable MCP auto start and instead request on first load and new connection attempts VSCODE-704 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1132
+* chore(deps): bump mongodb from 6.19.0 to 6.20.0 in the driver group by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1142
+* chore(deps): bump @mongodb-js/mongodb-ts-autocomplete from 0.4.7 to 0.4.8 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1143
+* chore(deps): bump @mongodb-js/connection-info from 0.17.1 to 0.21.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1138
+* chore: bump mongodb-mcp-server to 1.0.2 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1146
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.0...v1.14.1
+
+
 ## [v1.14.0](https://github.com/mongodb-js/vscode/releases/tag/v1.14.0) - 2025-09-16
 
 ## What's Changed
