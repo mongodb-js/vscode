@@ -216,7 +216,7 @@ export class MCPController {
       const runner = new StreamableHttpRunner({
         userConfig: mcpConfig,
         createConnectionManager: (...params) =>
-          this.createConnectionManager(...params),
+          MCPController.createConnectionManager(this, ...params),
         connectionErrorHandler: createMCPConnectionErrorHandler(
           this.connectionController,
         ),
@@ -260,18 +260,18 @@ export class MCPController {
     };
   }
 
-  private async createConnectionManager(
-    this: MCPController,
+  private static async createConnectionManager(
+    mcpController: MCPController,
     ...params: Parameters<ConnectionManagerFactoryFn>
   ): Promise<ConnectionManager> {
     const [{ logger: mcpLogger }] = params;
     const connectionManager = new MCPConnectionManager({
       logger: mcpLogger,
-      getTelemetryAnonymousId: this.getTelemetryAnonymousId,
+      getTelemetryAnonymousId: mcpController.getTelemetryAnonymousId,
     });
 
     // Track this ConnectionManager instance for future connection updates
-    this.mcpConnectionManagers.push(connectionManager);
+    mcpController.mcpConnectionManagers.push(connectionManager);
 
     // Also set up listener on close event to perform a cleanup when the Client
     // closes connection to MCP server and eventually ConnectionManager shuts
@@ -280,14 +280,17 @@ export class MCPController {
       logger.debug('MCPConnectionManager closed. Performing cleanup', {
         connectionManagerClientName: connectionManager.clientName,
       });
-      this.mcpConnectionManagers = this.mcpConnectionManagers.filter(
-        (manager) => manager !== connectionManager,
-      );
+      mcpController.mcpConnectionManagers =
+        mcpController.mcpConnectionManagers.filter(
+          (manager) => manager !== connectionManager,
+        );
     });
 
     // The newly created ConnectionManager need to be brought up to date with
     // the current connection state.
-    await this.switchConnectionManagerToCurrentConnection(connectionManager);
+    await mcpController.switchConnectionManagerToCurrentConnection(
+      connectionManager,
+    );
     return connectionManager;
   }
 
