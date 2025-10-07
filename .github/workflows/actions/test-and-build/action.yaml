@@ -32,7 +32,7 @@ runs:
     # https://github.com/nodejs/node-gyp/issues/2869
     - uses: actions/setup-python@v5
       with:
-        python-version: "3.11"
+        python-version: '3.11'
 
     - name: Run node-gyp bug workaround script
       run: |
