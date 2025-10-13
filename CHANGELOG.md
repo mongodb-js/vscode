@@ -1,5 +1,17 @@
 # Change Log
 
+## [v1.14.2](https://github.com/mongodb-js/vscode/releases/tag/v1.14.2) - 2025-10-07
+
+## What's Changed
+* fix: snyk will now scan vscode project by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1136
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1148
+* chore: update mongodb-mcp-server to fix yargs-parser problem by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1153
+* chore: disable snyk vuln ticket generation by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1154
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.1...v1.14.2
+
+
 ## [v1.14.1](https://github.com/mongodb-js/vscode/releases/tag/v1.14.1) - 2025-10-06
 
 ## What's Changed
