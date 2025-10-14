@@ -1427,7 +1427,7 @@
     "mongodb-log-writer": "^2.4.1",
     "mongodb-mcp-server": "^1.0.3-prerelease.1",
     "mongodb-query-parser": "^4.4.2",
-    "mongodb-schema": "^12.6.2",
+    "mongodb-schema": "^12.6.3",
     "node-machine-id": "1.1.12",
     "numeral": "^2.0.6",
     "query-string": "^7.1.3",
