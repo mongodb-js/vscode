@@ -118,30 +118,31 @@ runs:
       run: |
         npm run snyk-test > /dev/null 2>&1
 
-    - name: Create Jira Tickets
-      if: >
-        runner.os == 'Linux' &&
-        (
-          github.event_name == 'push' && github.ref == 'refs/heads/main' ||
-          github.event_name == 'workflow_dispatch' ||
-          github.event_name == 'schedule'
-        )
-      shell: bash
-      env:
-        JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
-        JIRA_BASE_URL: "https://jira.mongodb.org"
-        JIRA_PROJECT: "VSCODE"
-        JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
-      run: |
-        npm run create-vulnerability-tickets > /dev/null
+    # TODO(VSCODE-706): Fix Snyk vuln ticket generation
+    # - name: Create Jira Tickets
+    #   if: >
+    #     runner.os == 'Linux' &&
+    #     (
+    #       github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+    #       github.event_name == 'workflow_dispatch' ||
+    #       github.event_name == 'schedule'
+    #     )
+    #   shell: bash
+    #   env:
+    #     JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
+    #     JIRA_BASE_URL: "https://jira.mongodb.org"
+    #     JIRA_PROJECT: "VSCODE"
+    #     JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
+    #   run: |
+    #     npm run create-vulnerability-tickets > /dev/null
 
-    - name: Generate Vulnerability Report (Fail on >= High)
-      if: runner.os == 'Linux'
-      continue-on-error: ${{ github.event_name == 'pull_request' }}
-      shell: bash
-      run: |
-        # The standard output is suppressed since Github Actions logs are
-        # available for everyone with read access to the repo, which is everyone that is
-        # logged in for public repos.
-        # This command is only here to fail on failures for `main` and tags.
-        npm run generate-vulnerability-report > /dev/null
+    # - name: Generate Vulnerability Report (Fail on >= High)
+    #   if: runner.os == 'Linux'
+    #   continue-on-error: ${{ github.event_name == 'pull_request' }}
+    #   shell: bash
+    #   run: |
+    #     # The standard output is suppressed since Github Actions logs are
+    #     # available for everyone with read access to the repo, which is everyone that is
+    #     # logged in for public repos.
+    #     # This command is only here to fail on failures for `main` and tags.
+    #     npm run generate-vulnerability-report > /dev/null
