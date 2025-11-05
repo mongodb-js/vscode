@@ -1,18 +1,15 @@
 name: Test and Build (from fork)
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   test-and-build:
     name: Test and Build
-    # Code health disabled on forks for now
-    # if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
     strategy:
       matrix:
@@ -24,10 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{github.event.pull_request.head.ref}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
 
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
@@ -46,18 +39,5 @@ jobs:
       - name: Run Tests
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
-          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
+          SEGMENT_KEY: "test-segment-key"
         run: npm run test
-
-  merge-dependabot-pr:
-    name: Merge Dependabot PR
-    runs-on: ubuntu-latest
-    needs:
-      - test-and-build
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
-    steps:
-      - name: Enable auto-merge for Dependabot PRs
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
