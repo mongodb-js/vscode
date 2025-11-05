@@ -77,26 +77,6 @@ Connect to Atlas Stream Processing instances and develop stream processors using
 
 ![Atlas Stream Processing Playground](resources/screenshots/atlas-stream-processing.png)
 
-### MongoDB Copilot Participant
-
-Use natural language to interact with your clusters and generate MongoDB-related code with GitHub Copilot Chat in VS Code.
-
-_Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) extension. By using Copilot Chat you agree to [GitHub Copilot chat preview terms](https://docs.github.com/en/copilot/responsible-use-of-github-copilot-features/responsible-use-of-github-copilot-chat-in-your-ide). Find more details about the MongoDB GenAI Features in the [FAQ](https://www.mongodb.com/docs/generative-ai-faq/?utm_source=vscode&utm_medium=product)._
-
-#### How to use the MongoDB Participant
-
-1. Enter `@MongoDB` in the chat input field to start a conversation with the MongoDB Participant.
-
-![MongoDB Participant](resources/screenshots/mongodb-participant.png)
-
-2. Start typing `/` in the chat window to get the list of available chat participant commands.
-
-![MongoDB Participant Commands](resources/screenshots/mongodb-participant-commands.png)
-
-- `/docs` is a participant command that finds answers to coding-related questions in the [MongoDB documentation](https://www.mongodb.com/docs/?utm_source=vscode&utm_medium=product).
-- `/query` is a participant command that generates MongoDB queries from natural language to be used with a connected MongoDB cluster. It generates both queries and aggregations depending on the complexity of the request. It utilizes schema to reduce model hallucinations. It provides a code action to open generated code in a playground and an action to directly run the code from the Copilot chat interface.
-- `/schema` is a participant command that analyzes and returns information about a collection's schema.
-
 ## Extension Settings
 
 | Setting | Description | Default |
