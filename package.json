@@ -50,7 +50,7 @@
     "watch": "npm run compile && npm-run-all -p watch:*",
     "watch:extension": "npm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --watch",
-    "pretest": "npm run compile",
+    "pretest": "cross-env SEGMENT_KEY=test-segment-key npm run compile",
     "test": "npm run test-webview && npm run test-extension",
     "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "test-webview": "mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
