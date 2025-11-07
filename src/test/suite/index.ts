@@ -7,6 +7,10 @@ import MDBExtensionController from '../../mdbExtensionController';
 import { ExtensionContextStub } from './stubs';
 import { mdbTestExtension } from './stubbableMdbExtension';
 
+if (!process.env.SEGMENT_KEY) {
+  process.env.SEGMENT_KEY = 'test-segment-key';
+}
+
 export async function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
