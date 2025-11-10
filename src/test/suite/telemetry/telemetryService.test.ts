@@ -43,14 +43,13 @@ suite('Telemetry Controller Test Suite', () => {
   let fakeSegmentAnalyticsTrack: SinonSpy;
 
   const testDeviceId = 'test-device-id';
-  const testDeviceName = 'test-device-name';
   const telemetryIdentity = {
     anonymousId: testTelemetryService.anonymousId,
   };
   const commonProperties = {
     extension_version: version,
     device_id: testDeviceId,
-    app_name: testDeviceName,
+    app_name: vscode.env.appName,
   };
 
   const sandbox = sinon.createSandbox();
