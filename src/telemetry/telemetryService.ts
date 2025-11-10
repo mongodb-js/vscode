@@ -65,7 +65,7 @@ export class TelemetryService {
     return {
       extension_version: `${version}`,
       device_id: this.deviceId,
-      app_name: vscode.env.appName, // e.g., "Visual Studio Code" or "Azure Data Studio"
+      app_name: vscode.env.appName || 'Visual Studio Code - Unknown', // e.g., "VS Code" or "Azure Data Studio"
     };
   }
 
@@ -109,7 +109,7 @@ export class TelemetryService {
       anonymousId: this.anonymousId,
       traits: {
         device_id: this.deviceId,
-        app_name: vscode.env.appName, // e.g., "Visual Studio Code" or "Azure Data Studio"
+        app_name: vscode.env.appName || 'Visual Studio Code - Unknown', // e.g., "VS Code" or "Azure Data Studio"
       },
     };
 
