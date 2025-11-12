@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
 const version = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '..', 'package.json')).toString(),
 ).version;

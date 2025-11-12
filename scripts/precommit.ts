@@ -1,4 +1,4 @@
-#! /usr/bin/env ts-node
+#! /usr/bin/env node
 /* eslint-disable no-console */
 
 import path from 'path';
