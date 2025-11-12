@@ -31,10 +31,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get Node.js version from VS Code
+        id: get-node-version
+        shell: bash
+        run: |
+          NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/refs/heads/main/.nvmrc | tr -d '[:space:]')
+          echo "node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
+          echo "Using Node.js version: $NODE_VERSION"
+
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 22.15.1
+          node-version: ${{ steps.get-node-version.outputs.node-version }}
           cache: npm
 
       - name: Run tests and build

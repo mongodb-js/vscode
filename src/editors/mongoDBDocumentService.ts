@@ -3,7 +3,7 @@ import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { DocumentSource } from '../documentSource';
+import { DOCUMENT_SOURCE, type DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
@@ -53,7 +53,7 @@ export default class MongoDBDocumentService {
 
     this._telemetryService.track(
       new DocumentUpdatedTelemetryEvent(
-        DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+        DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
         false,
       ),
     );

@@ -1,4 +1,4 @@
-#! /usr/bin/env ts-node
+#! /usr/bin/env node
 
 import ora from 'ora';
 import fs from 'fs';
@@ -8,6 +8,7 @@ import { config } from 'dotenv';
 import { promisify } from 'util';
 
 const writeFile = promisify(fs.writeFile);
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const ROOT_DIR = path.join(__dirname, '..');
 const ui = ora('Generate constants file').start();
 

@@ -1,13 +1,16 @@
 import type { ConnectionOptions } from 'mongodb-data-service';
 import type { FileChooserOptions } from './use-connection-form';
 
-export enum CONNECTION_STATUS {
-  LOADING = 'LOADING', // When the connection status has not yet been shared from the extension.
-  CONNECTED = 'CONNECTED',
-  CONNECTING = 'CONNECTING',
-  DISCONNECTING = 'DISCONNECTING',
-  DISCONNECTED = 'DISCONNECTED',
-}
+export const CONNECTION_STATUS = {
+  LOADING: 'LOADING', // When the connection status has not yet been shared from the extension.
+  CONNECTED: 'CONNECTED',
+  CONNECTING: 'CONNECTING',
+  DISCONNECTING: 'DISCONNECTING',
+  DISCONNECTED: 'DISCONNECTED',
+} as const;
+
+export type ConnectionStatus =
+  (typeof CONNECTION_STATUS)[keyof typeof CONNECTION_STATUS];
 
 export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
   'VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID';
@@ -15,45 +18,45 @@ export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
 export const VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID =
   'VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID';
 
-export enum MESSAGE_TYPES {
-  CONNECT = 'CONNECT',
-  CANCEL_CONNECT = 'CANCEL_CONNECT',
-  CONNECT_RESULT = 'CONNECT_RESULT',
-  CONNECTION_FORM_OPENED = 'CONNECTION_FORM_OPENED',
-  OPEN_FILE_CHOOSER = 'OPEN_FILE_CHOOSER',
-  OPEN_FILE_CHOOSER_RESULT = 'OPEN_FILE_CHOOSER_RESULT',
-  CONNECTION_STATUS_MESSAGE = 'CONNECTION_STATUS_MESSAGE',
-  OPEN_EDIT_CONNECTION = 'OPEN_EDIT_CONNECTION',
-  EDIT_CONNECTION_AND_CONNECT = 'EDIT_CONNECTION_AND_CONNECT',
-  EXTENSION_LINK_CLICKED = 'EXTENSION_LINK_CLICKED',
-  CREATE_NEW_PLAYGROUND = 'CREATE_NEW_PLAYGROUND',
-  GET_CONNECTION_STATUS = 'GET_CONNECTION_STATUS',
-  OPEN_CONNECTION_STRING_INPUT = 'OPEN_CONNECTION_STRING_INPUT',
-  OPEN_TRUSTED_LINK = 'OPEN_TRUSTED_LINK',
-  RENAME_ACTIVE_CONNECTION = 'RENAME_ACTIVE_CONNECTION',
-  THEME_CHANGED = 'THEME_CHANGED',
-}
+export const MESSAGE_TYPES = {
+  CONNECT: 'CONNECT',
+  CANCEL_CONNECT: 'CANCEL_CONNECT',
+  CONNECT_RESULT: 'CONNECT_RESULT',
+  CONNECTION_FORM_OPENED: 'CONNECTION_FORM_OPENED',
+  OPEN_FILE_CHOOSER: 'OPEN_FILE_CHOOSER',
+  OPEN_FILE_CHOOSER_RESULT: 'OPEN_FILE_CHOOSER_RESULT',
+  CONNECTION_STATUS_MESSAGE: 'CONNECTION_STATUS_MESSAGE',
+  OPEN_EDIT_CONNECTION: 'OPEN_EDIT_CONNECTION',
+  EDIT_CONNECTION_AND_CONNECT: 'EDIT_CONNECTION_AND_CONNECT',
+  EXTENSION_LINK_CLICKED: 'EXTENSION_LINK_CLICKED',
+  CREATE_NEW_PLAYGROUND: 'CREATE_NEW_PLAYGROUND',
+  GET_CONNECTION_STATUS: 'GET_CONNECTION_STATUS',
+  OPEN_CONNECTION_STRING_INPUT: 'OPEN_CONNECTION_STRING_INPUT',
+  OPEN_TRUSTED_LINK: 'OPEN_TRUSTED_LINK',
+  RENAME_ACTIVE_CONNECTION: 'RENAME_ACTIVE_CONNECTION',
+  THEME_CHANGED: 'THEME_CHANGED',
+} as const;
 
 interface BasicWebviewMessage {
   command: string;
 }
 
 export interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.CREATE_NEW_PLAYGROUND;
+  command: typeof MESSAGE_TYPES.CREATE_NEW_PLAYGROUND;
 }
 
 export interface ConnectionFormOpenedMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.CONNECTION_FORM_OPENED;
+  command: typeof MESSAGE_TYPES.CONNECTION_FORM_OPENED;
 }
 
 export interface ConnectionStatusMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE;
-  connectionStatus: CONNECTION_STATUS;
+  command: typeof MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE;
+  connectionStatus: ConnectionStatus;
   activeConnectionName: string;
 }
 
 export interface OpenEditConnectionMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION;
+  command: typeof MESSAGE_TYPES.OPEN_EDIT_CONNECTION;
   connection: {
     id: string;
     name: string;
@@ -62,7 +65,7 @@ export interface OpenEditConnectionMessage extends BasicWebviewMessage {
 }
 
 export interface EditConnectionAndConnectMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT;
+  command: typeof MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT;
   connectionInfo: {
     id: string;
     connectionOptions: ConnectionOptions;
@@ -70,13 +73,13 @@ export interface EditConnectionAndConnectMessage extends BasicWebviewMessage {
 }
 
 export interface OpenFileChooserMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.OPEN_FILE_CHOOSER;
+  command: typeof MESSAGE_TYPES.OPEN_FILE_CHOOSER;
   fileChooserOptions: FileChooserOptions;
   requestId: string;
 }
 
 export interface ConnectMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.CONNECT;
+  command: typeof MESSAGE_TYPES.CONNECT;
   connectionInfo: {
     id: string;
     connectionOptions: ConnectionOptions;
@@ -84,11 +87,11 @@ export interface ConnectMessage extends BasicWebviewMessage {
 }
 
 export interface CancelConnectMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.CANCEL_CONNECT;
+  command: typeof MESSAGE_TYPES.CANCEL_CONNECT;
 }
 
 export interface ConnectResultsMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.CONNECT_RESULT;
+  command: typeof MESSAGE_TYPES.CONNECT_RESULT;
   connectionSuccess: boolean;
   connectionMessage: string;
   connectionId: string;
@@ -99,36 +102,36 @@ export type FileChooserResult =
   | { canceled: false; filePath?: string };
 
 export interface OpenFileChooserResultMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
+  command: typeof MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
   fileChooserResult: FileChooserResult;
   requestId: string;
 }
 
 export interface GetConnectionStatusMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.GET_CONNECTION_STATUS;
+  command: typeof MESSAGE_TYPES.GET_CONNECTION_STATUS;
 }
 
 export interface OpenConnectionStringInputMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT;
+  command: typeof MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT;
 }
 
 export interface LinkClickedMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED;
+  command: typeof MESSAGE_TYPES.EXTENSION_LINK_CLICKED;
   screen: string;
   linkId: string;
 }
 
 export interface OpenTrustedLinkMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.OPEN_TRUSTED_LINK;
+  command: typeof MESSAGE_TYPES.OPEN_TRUSTED_LINK;
   linkTo: string;
 }
 
 export interface RenameConnectionMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION;
+  command: typeof MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION;
 }
 
 export interface ThemeChangedMessage extends BasicWebviewMessage {
-  command: MESSAGE_TYPES.THEME_CHANGED;
+  command: typeof MESSAGE_TYPES.THEME_CHANGED;
   darkMode: boolean;
 }
 

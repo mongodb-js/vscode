@@ -9,7 +9,7 @@ import type ConnectionController from '../connectionController';
 import type { LoadedConnection } from '../storage/connectionStorage';
 import EXTENSION_COMMANDS from '../commands';
 import type { StorageController } from '../storage';
-import { StorageVariables } from '../storage';
+import { STORAGE_VARIABLES } from '../storage';
 import { getContentLength, Prompts } from './prompts';
 import type { ChatResult } from './constants';
 import {
@@ -54,7 +54,7 @@ import type { PromptIntent } from './prompts/intent';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
 import {
-  ParticipantErrorTypes,
+  PARTICIPANT_ERROR_TYPES,
   type ExportToPlaygroundError,
 } from './participantErrorTypes';
 import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
@@ -69,7 +69,7 @@ import type {
 import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
 import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
-import { DocumentSource } from '../documentSource';
+import { DOCUMENT_SOURCE } from '../documentSource';
 
 const log = createLogger('participant');
 
@@ -241,7 +241,7 @@ export default class ParticipantController {
         message: `I want to ask questions about the \`${databaseName}\` database.`,
         isNewChat: true,
         telemetry: {
-          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+          source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
           source_details: 'database',
         },
       });
@@ -252,7 +252,7 @@ export default class ParticipantController {
         message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
         isNewChat: true,
         telemetry: {
-          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+          source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
           source_details: 'collection',
         },
       });
@@ -1779,7 +1779,7 @@ export default class ParticipantController {
       this._telemetryService.track(
         new ParticipantResponseFailedTelemetryEvent(
           'docs',
-          ParticipantErrorTypes.DOCS_CHATBOT_API,
+          PARTICIPANT_ERROR_TYPES.DOCS_CHATBOT_API,
         ),
       );
 
@@ -1973,7 +1973,7 @@ export default class ParticipantController {
     const [request, , stream] = args;
     try {
       const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
-        StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
+        STORAGE_VARIABLES.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
       );
       if (!hasBeenShownWelcomeMessageAlready) {
         stream.markdown(
@@ -1988,7 +1988,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
         );
 
         await this._storageController.update(
-          StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
+          STORAGE_VARIABLES.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
           true,
         );
       }

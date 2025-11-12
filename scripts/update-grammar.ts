@@ -12,6 +12,8 @@ import {
   STAGE_OPERATORS,
 } from '@mongodb-js/mongodb-constants';
 
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
 const writeFile = promisify(fs.writeFile);
 const SYNTAXES_DIR = path.join(__dirname, '..', 'syntaxes');
 
