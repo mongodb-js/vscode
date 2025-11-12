@@ -67,11 +67,11 @@
     "presnyk-test": "echo \"Creating backup for package-lock.json.\"; cp package-lock.json original-package-lock.json",
     "snyk-test": "node scripts/snyk-test.js",
     "postsnyk-test": "echo \"Restoring original package-lock.json.\"; mv original-package-lock.json package-lock.json",
-    "generate-icon-font": "ts-node ./scripts/generate-icon-font.ts",
+    "generate-icon-font": "node ./scripts/generate-icon-font.ts",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
-    "precommit": "ts-node ./scripts/precommit.ts"
+    "precommit": "node ./scripts/precommit.ts"
   },
   "engines": {
     "vscode": "^1.101.1",
