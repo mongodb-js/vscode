@@ -6,7 +6,7 @@ import sinon from 'sinon';
 import util from 'util';
 
 import ConnectionController from '../../../connectionController';
-import { DocumentSource } from '../../../documentSource';
+import { DOCUMENT_SOURCE } from '../../../documentSource';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
 import { mockTextEditor } from '../stubs';
 import { StatusView } from '../../../views';
@@ -56,7 +56,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         },
       ],
       namespace: 'db.coll',
-      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
+      source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
@@ -90,7 +90,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         name: 'test name',
       },
       namespace: 'db.coll',
-      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
+      source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
@@ -99,8 +99,9 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       'getActiveConnectionId',
       fakeActiveConnectionId,
     );
-    const result =
-      testCodeLensProvider._updateCodeLensesForDocument(playgroundResult);
+    const result = testCodeLensProvider._updateCodeLensesForDocument(
+      playgroundResult as any,
+    );
     assert(!!result);
 
     const codeLensesInfo = result[0];

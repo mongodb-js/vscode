@@ -4,7 +4,7 @@ import type ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';
-import { DOCUMENT_LIST_ITEM, CollectionTypes } from './documentListTreeItem';
+import { DOCUMENT_LIST_ITEM, COLLECTION_TYPES } from './documentListTreeItem';
 import EXTENSION_COMMANDS from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import type { LoadedConnection } from '../storage/connectionStorage';
@@ -20,11 +20,16 @@ export default class ExplorerTreeController
   implements vscode.TreeDataProvider<vscode.TreeItem>
 {
   private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
+  private _connectionController: ConnectionController;
+  private _telemetryService: TelemetryService;
 
   constructor(
-    private _connectionController: ConnectionController,
-    private _telemetryService: TelemetryService,
+    connectionController: ConnectionController,
+    telemetryService: TelemetryService,
   ) {
+    this._connectionController = connectionController;
+    this._telemetryService = telemetryService;
+
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
 
@@ -122,7 +127,7 @@ export default class ExplorerTreeController
 
         if (
           selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
-          selectedItem.type === CollectionTypes.view
+          selectedItem.type === COLLECTION_TYPES.view
         ) {
           await vscode.commands.executeCommand(
             EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,

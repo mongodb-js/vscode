@@ -3,8 +3,7 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
-
-import { DocumentSource } from '../../../documentSource';
+import { DOCUMENT_SOURCE } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, {
   VIEW_COLLECTION_SCHEME,
@@ -14,8 +13,8 @@ import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensP
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import {
-  SecretStorageLocation,
-  StorageLocation,
+  SECRET_STORAGE_LOCATIONS,
+  STORAGE_LOCATIONS,
 } from '../../../storage/storageController';
 import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -288,7 +287,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DOCUMENT_SOURCE.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -358,7 +357,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DOCUMENT_SOURCE.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
@@ -419,15 +418,15 @@ suite('Collection Documents Provider Test Suite', () => {
         id: firstConnectionId,
         name: 'localhost',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
-        secretStorageLocation: SecretStorageLocation.SecretStorage,
+        storageLocation: STORAGE_LOCATIONS.NONE,
+        secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
       },
       [secondConnectionId]: {
         id: secondConnectionId,
         name: 'compass',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
-        secretStorageLocation: SecretStorageLocation.SecretStorage,
+        storageLocation: STORAGE_LOCATIONS.NONE,
+        secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
       },
     };
 
@@ -477,7 +476,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DOCUMENT_SOURCE.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -552,7 +551,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DOCUMENT_SOURCE.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===

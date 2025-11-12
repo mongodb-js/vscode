@@ -23,8 +23,8 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 import type { ChatResult } from '../../../participant/constants';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
 import {
-  SecretStorageLocation,
-  StorageLocation,
+  SECRET_STORAGE_LOCATIONS,
+  STORAGE_LOCATIONS,
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
@@ -34,7 +34,7 @@ import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
 import EXTENSION_COMMANDS from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
-import { ParticipantErrorTypes } from '../../../participant/participantErrorTypes';
+import { PARTICIPANT_ERROR_TYPES } from '../../../participant/participantErrorTypes';
 import * as model from '../../../participant/model';
 import {
   createChatRequestTurn,
@@ -47,8 +47,8 @@ import type {
   ParticipantRequestType,
   SendMessageToParticipantOptions,
 } from '../../../participant/participantTypes';
-import { DocumentSource } from '../../../documentSource';
 import { TelemetryService } from '../../../telemetry';
+import { DOCUMENT_SOURCE } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -57,8 +57,8 @@ const MAX_TOTAL_PROMPT_LENGTH_MOCK = 16000;
 const loadedConnection = {
   id: 'id',
   name: 'localhost',
-  storageLocation: StorageLocation.NONE,
-  secretStorageLocation: SecretStorageLocation.SecretStorage,
+  storageLocation: STORAGE_LOCATIONS.NONE,
+  secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
   connectionOptions: { connectionString: 'mongodb://localhost' },
 };
 
@@ -1942,7 +1942,7 @@ Schema:
               message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
                 source_details: 'database',
               },
             },
@@ -1973,7 +1973,7 @@ Schema:
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
                 source_details: 'collection',
               },
             },
@@ -2638,7 +2638,7 @@ Schema:
             createChatResponseTurn('/query', undefined, {
               result: {
                 errorDetails: {
-                  message: ParticipantErrorTypes.FILTERED,
+                  message: PARTICIPANT_ERROR_TYPES.FILTERED,
                 },
                 metadata: {},
               },

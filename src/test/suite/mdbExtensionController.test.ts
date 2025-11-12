@@ -9,7 +9,6 @@ import type { Document, Filter } from 'mongodb';
 
 import {
   CollectionTreeItem,
-  CollectionTypes,
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,
@@ -22,14 +21,15 @@ import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
-  SecretStorageLocation,
-  StorageLocation,
-  StorageVariables,
+  STORAGE_LOCATIONS,
+  SECRET_STORAGE_LOCATIONS,
+  STORAGE_VARIABLES,
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 import { expect } from 'chai';
 import { DeepLinkTelemetryEvent } from '../../telemetry';
+import { COLLECTION_TYPES } from '../../explorer/documentListTreeItem';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -55,7 +55,7 @@ function getTestCollectionTreeItem(
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
-      type: CollectionTypes.collection,
+      type: COLLECTION_TYPES.collection,
     } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
@@ -719,7 +719,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'doesntExistColName',
-          type: CollectionTypes.collection,
+          type: COLLECTION_TYPES.collection,
         } as unknown as CollectionDetailsType,
         dataService:
           testConnectionController.getActiveDataService() ?? undefined,
@@ -750,7 +750,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'orange',
-          type: CollectionTypes.collection,
+          type: COLLECTION_TYPES.collection,
         } as unknown as CollectionDetailsType,
       });
       const inputBoxResolvesStub = sandbox.stub();
@@ -859,8 +859,8 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           connectionOptions: { connectionString: 'mongodb://localhost' },
           name: 'NAAAME',
-          storageLocation: StorageLocation.NONE,
-          secretStorageLocation: SecretStorageLocation.SecretStorage,
+          storageLocation: STORAGE_LOCATIONS.NONE,
+          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({
@@ -890,8 +890,8 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           name: 'NAAAME',
           connectionOptions: { connectionString: 'mongodb://localhost' },
-          storageLocation: StorageLocation.NONE,
-          secretStorageLocation: SecretStorageLocation.SecretStorage,
+          storageLocation: STORAGE_LOCATIONS.NONE,
+          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({
@@ -1312,7 +1312,7 @@ suite('MDBExtensionController Test Suite', function () {
       const collectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'pineapple',
-          type: CollectionTypes.collection,
+          type: COLLECTION_TYPES.collection,
         } as unknown as CollectionDetailsType,
         databaseName: 'plants',
       });
@@ -1645,7 +1645,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
@@ -1690,7 +1690,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],

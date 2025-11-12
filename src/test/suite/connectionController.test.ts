@@ -8,15 +8,18 @@ import { expect } from 'chai';
 import ConnectionString from 'mongodb-connection-string-url';
 
 import ConnectionController, {
-  ConnectionTypes,
+  CONNECTION_TYPES,
   getNotifyDeviceFlowForConnectionAttempt,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
-import { StorageController, StorageVariables } from '../../storage';
 import {
-  StorageLocation,
-  DefaultSavingLocations,
-  SecretStorageLocation,
+  StorageController,
+  STORAGE_VARIABLES,
+  STORAGE_LOCATIONS,
+} from '../../storage';
+import {
+  DEFAULT_SAVING_LOCATIONS,
+  SECRET_STORAGE_LOCATIONS,
 } from '../../storage/storageController';
 import { StatusView } from '../../views';
 import { TelemetryService } from '../../telemetry';
@@ -279,8 +282,8 @@ suite('Connection Controller Test Suite', function () {
     ): void => {
       testConnectionController._connections[id] = {
         connectionOptions: { connectionString },
-        storageLocation: StorageLocation.NONE,
-        secretStorageLocation: SecretStorageLocation.SecretStorage,
+        storageLocation: STORAGE_LOCATIONS.NONE,
+        secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
         name,
         id,
         ...otherOptions,
@@ -557,8 +560,8 @@ suite('Connection Controller Test Suite', function () {
       connectionOptions: {
         connectionString: 'localhost:3000',
       },
-      storageLocation: StorageLocation.NONE,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
+      storageLocation: STORAGE_LOCATIONS.NONE,
+      secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
     };
 
     // Should persist as this is a saved connection.
@@ -575,7 +578,10 @@ suite('Connection Controller Test Suite', function () {
   test('the connection model loads both global and workspace stored connection models', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+      .update(
+        'defaultConnectionSavingLocation',
+        DEFAULT_SAVING_LOCATIONS.Global,
+      );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
@@ -586,7 +592,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DEFAULT_SAVING_LOCATIONS.Workspace,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -614,14 +620,17 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+      .update(
+        'defaultConnectionSavingLocation',
+        DEFAULT_SAVING_LOCATIONS.Global,
+      );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL,
+      STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.GLOBAL,
     );
 
     expect(Object.keys(globalStoreConnections)).to.have.lengthOf(1);
@@ -633,7 +642,7 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
     );
 
     expect(workspaceStoreConnections).to.be.undefined;
@@ -645,15 +654,15 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DEFAULT_SAVING_LOCATIONS.Workspace,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.WORKSPACE,
     );
 
     expect(Object.keys(workspaceStoreConnections)).to.have.lengthOf(1);
@@ -665,8 +674,8 @@ suite('Connection Controller Test Suite', function () {
     );
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL,
+      STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.GLOBAL,
     );
 
     expect(globalStoreConnections).to.be.undefined;
@@ -678,8 +687,8 @@ suite('Connection Controller Test Suite', function () {
         id: '25',
         name: 'tester',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
-        secretStorageLocation: SecretStorageLocation.SecretStorage,
+        storageLocation: STORAGE_LOCATIONS.NONE,
+        secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
       },
     };
 
@@ -696,15 +705,15 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DEFAULT_SAVING_LOCATIONS.Workspace,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.WORKSPACE,
     );
 
     expect(Object.keys(workspaceStoreConnections)).to.have.lengthOf(1);
@@ -758,7 +767,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations['Session Only'],
+        DEFAULT_SAVING_LOCATIONS['Session Only'],
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -766,15 +775,15 @@ suite('Connection Controller Test Suite', function () {
 
     const objectString = JSON.stringify(undefined);
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL,
+      STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.GLOBAL,
     );
 
     expect(JSON.stringify(globalStoreConnections)).to.equal(objectString);
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.WORKSPACE,
     );
 
     expect(JSON.stringify(workspaceStoreConnections)).to.equal(objectString);
@@ -819,15 +828,15 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DEFAULT_SAVING_LOCATIONS.Workspace,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.WORKSPACE,
     );
 
     expect(Object.keys(workspaceStoreConnections)).to.have.lengthOf(1);
@@ -839,8 +848,8 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.removeSavedConnection(connectionId);
 
     const postWorkspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.WORKSPACE,
     );
 
     expect(Object.keys(postWorkspaceStoreConnections)).to.have.lengthOf(0);
@@ -850,14 +859,17 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+      .update(
+        'defaultConnectionSavingLocation',
+        DEFAULT_SAVING_LOCATIONS.Global,
+      );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL,
+      STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.GLOBAL,
     );
 
     expect(Object.keys(globalStoreConnections)).to.have.lengthOf(1);
@@ -867,8 +879,8 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.removeSavedConnection(connectionId);
 
     const postGlobalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL,
+      STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.GLOBAL,
     );
 
     expect(Object.keys(postGlobalStoreConnections)).to.have.lengthOf(0);
@@ -895,15 +907,15 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DEFAULT_SAVING_LOCATIONS.Workspace,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.WORKSPACE,
     );
 
     expect(Object.keys(workspaceStoreConnections)).to.have.lengthOf(1);
@@ -943,15 +955,15 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DEFAULT_SAVING_LOCATIONS.Workspace,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+      STORAGE_LOCATIONS.WORKSPACE,
     );
 
     expect(Object.keys(workspaceStoreConnections)).to.have.lengthOf(1);
@@ -1019,7 +1031,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DEFAULT_SAVING_LOCATIONS.Workspace,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -1089,8 +1101,8 @@ suite('Connection Controller Test Suite', function () {
           id,
           name: `test${i}`,
           connectionOptions: { connectionString: TEST_DATABASE_URI },
-          storageLocation: StorageLocation.NONE,
-          secretStorageLocation: SecretStorageLocation.SecretStorage,
+          storageLocation: STORAGE_LOCATIONS.NONE,
+          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
         };
       }
 
@@ -1151,8 +1163,8 @@ suite('Connection Controller Test Suite', function () {
       id: connectionId,
       name: 'asdfasdg',
       connectionOptions: { connectionString: testDatabaseURI2WithTimeout },
-      storageLocation: StorageLocation.NONE,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
+      storageLocation: STORAGE_LOCATIONS.NONE,
+      secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
     };
 
     void testConnectionController.connectWithConnectionId(connectionId);
@@ -1175,8 +1187,8 @@ suite('Connection Controller Test Suite', function () {
       id: connectionId,
       name: 'asdfasdg',
       connectionOptions: { connectionString: TEST_DATABASE_URI },
-      storageLocation: StorageLocation.NONE,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
+      storageLocation: STORAGE_LOCATIONS.NONE,
+      secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
     };
 
     sandbox.replace(
@@ -1206,8 +1218,8 @@ suite('Connection Controller Test Suite', function () {
     const connectionInfo = {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
-      storageLocation: StorageLocation.GLOBAL,
-      secretStorageLocation: SecretStorageLocation.SecretStorage,
+      storageLocation: STORAGE_LOCATIONS.GLOBAL,
+      secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
       connectionOptions: {
         connectionString:
           'mongodb://lena:secrer@localhost:27017/?readPreference=primary&ssl=false',
@@ -1307,7 +1319,7 @@ suite('Connection Controller Test Suite', function () {
         expect(
           savedConnections.every(
             ({ secretStorageLocation }) =>
-              secretStorageLocation === SecretStorageLocation.SecretStorage,
+              secretStorageLocation === SECRET_STORAGE_LOCATIONS.SecretStorage,
           ),
         ).to.be.true;
 
@@ -1359,7 +1371,7 @@ suite('Connection Controller Test Suite', function () {
         id: 'random-connection-4',
         name: 'localhost:27089',
         storageLocation: 'GLOBAL',
-        secretStorageLocation: SecretStorageLocation.SecretStorage,
+        secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
         connectionOptions: {
           connectionString:
             'mongodb://localhost:27080/?readPreference=primary&ssl=false',
@@ -1367,8 +1379,8 @@ suite('Connection Controller Test Suite', function () {
       };
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (
-          storage === StorageLocation.WORKSPACE ||
-          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+          storage === STORAGE_LOCATIONS.WORKSPACE ||
+          key === STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS
         ) {
           return {};
         }
@@ -1378,7 +1390,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-1',
             name: 'localhost:27017',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.Keytar,
+            secretStorageLocation: SECRET_STORAGE_LOCATIONS.Keytar,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27017/?readPreference=primary&ssl=false',
@@ -1388,7 +1400,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-2',
             name: 'localhost:27017',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
+            secretStorageLocation: SECRET_STORAGE_LOCATIONS.KeytarSecondAttempt,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27017/?readPreference=primary&ssl=false',
@@ -1422,8 +1434,8 @@ suite('Connection Controller Test Suite', function () {
     test.skip('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async () => {
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (
-          storage === StorageLocation.WORKSPACE ||
-          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+          storage === STORAGE_LOCATIONS.WORKSPACE ||
+          key === STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS
         ) {
           return {};
         }
@@ -1433,7 +1445,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-1',
             name: 'localhost:27017',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.SecretStorage,
+            secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27017/?readPreference=primary&ssl=false',
@@ -1443,7 +1455,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-2',
             name: 'localhost:27088',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.SecretStorage,
+            secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
@@ -1453,7 +1465,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-3',
             name: 'localhost:27088',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.Keytar,
+            secretStorageLocation: SECRET_STORAGE_LOCATIONS.Keytar,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
@@ -1463,7 +1475,7 @@ suite('Connection Controller Test Suite', function () {
             id: 'random-connection-4',
             name: 'localhost:27088',
             storageLocation: 'GLOBAL',
-            secretStorageLocation: SecretStorageLocation.KeytarSecondAttempt,
+            secretStorageLocation: SECRET_STORAGE_LOCATIONS.KeytarSecondAttempt,
             connectionOptions: {
               connectionString:
                 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
@@ -1567,14 +1579,14 @@ suite('Connection Controller Test Suite', function () {
         .getConfiguration('mdb.connectionSaving')
         .update(
           'defaultConnectionSavingLocation',
-          DefaultSavingLocations.Global,
+          DEFAULT_SAVING_LOCATIONS.Global,
         );
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI_USER,
       });
 
       const workspaceStoreConnections = testStorageController.get(
-        StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+        STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
       );
 
       expect(workspaceStoreConnections).to.not.be.empty;
@@ -1697,7 +1709,7 @@ suite('Connection Controller Test Suite', function () {
         });
         expect(fakeConnect).to.have.been.calledWith(
           connections[0].id,
-          ConnectionTypes.CONNECTION_ID,
+          CONNECTION_TYPES.CONNECTION_ID,
         );
         connections = testConnectionController.getSavedConnections();
         expect(connections).to.have.lengthOf(1);
