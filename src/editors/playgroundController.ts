@@ -375,10 +375,12 @@ export default class PlaygroundController {
     },
     token: vscode.CancellationToken,
   ): Promise<ShellEvaluateResult> {
-    const connectionId = this._connectionController.getActiveConnectionId();
+    let connectionId = this._connectionController.getActiveConnectionId();
 
     if (!connectionId) {
-      throw new Error(connectBeforeRunningMessage);
+      await this._ensureConnection();
+      connectionId = this._connectionController.getActiveConnectionId();
+      if (!connectionId) throw new Error(connectBeforeRunningMessage);
     }
 
     this._statusView.showMessage('Getting results...');
@@ -420,10 +422,9 @@ export default class PlaygroundController {
     codeToEvaluate: string;
     filePath?: string;
   }): Promise<ShellEvaluateResult> {
-    if (!this._connectionController.isCurrentlyConnected()) {
+    if (!(await this._ensureConnection())) {
       throw new Error(connectBeforeRunningMessage);
     }
-
     return await vscode.window.withProgress(
       {
         location: ProgressLocation.Notification,
@@ -493,14 +494,8 @@ export default class PlaygroundController {
       .getConfiguration('mdb')
       .get('confirmRunCopilotCode');
 
-    if (!this._connectionController.isCurrentlyConnected()) {
-      const successfullyConnected =
-        await this._connectionController.changeActiveConnection();
-
-      if (!successfullyConnected) {
-        void vscode.window.showErrorMessage(connectBeforeRunningMessage);
-        return false;
-      }
+    if (!(await this._ensureConnection())) {
+      return false;
     }
 
     if (shouldConfirmRunCopilotCode === true) {
@@ -537,6 +532,26 @@ export default class PlaygroundController {
     return true;
   }
 
+  async _ensureConnection(): Promise<boolean> {
+    if (this._connectionController.isCurrentlyConnected()) {
+      return true;
+    }
+    const action = await vscode.window.showInformationMessage(
+      'Please connect to a database before running a playground.',
+      { modal: true },
+      'Connect now',
+    );
+    if (action === 'Connect now') {
+      const successfullyConnected =
+        await this._connectionController.changeActiveConnection();
+      if (!successfullyConnected) {
+        void vscode.window.showErrorMessage(connectBeforeRunningMessage);
+      }
+      return successfullyConnected;
+    }
+    return false;
+  }
+
   async _evaluatePlayground({
     codeToEvaluate,
     filePath,
@@ -548,9 +563,7 @@ export default class PlaygroundController {
       .getConfiguration('mdb')
       .get('confirmRunAll');
 
-    if (!this._connectionController.isCurrentlyConnected()) {
-      void vscode.window.showErrorMessage(connectBeforeRunningMessage);
-
+    if (!(await this._ensureConnection())) {
       return false;
     }
 
