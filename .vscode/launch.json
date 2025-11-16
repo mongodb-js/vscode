@@ -53,10 +53,11 @@
         "--extensionTestsPath=${workspaceFolder}/out/test/suite"
       ],
       "env": {
-        "MOCHA_GREP": "${input:mochaGrep}"
+        "MOCHA_GREP": "${input:mochaGrep}",
+        "MDB_UNDER_TEST": "true"
       },
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
-      "preLaunchTask": "npm: compile:extension",
+      "preLaunchTask": "npm: compile:extension"
     }
   ],
   "inputs": [
