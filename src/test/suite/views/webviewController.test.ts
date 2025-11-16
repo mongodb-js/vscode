@@ -157,9 +157,9 @@ suite('Webview Test Suite', () => {
   suite('when oidc device auth flow setting is enabled', function () {
     let originalDeviceAuthFlow;
     before(async function () {
-      originalDeviceAuthFlow = vscode.workspace.getConfiguration(
-        'mdb.showOIDCDeviceAuthFlow',
-      );
+      originalDeviceAuthFlow = vscode.workspace
+        .getConfiguration('mdb')
+        .get('showOIDCDeviceAuthFlow');
 
       await vscode.workspace
         .getConfiguration('mdb')
