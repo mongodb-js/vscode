@@ -73,6 +73,9 @@ suite('Connection Controller Test Suite', function () {
     extensionContextStub._workspaceState = {};
     extensionContextStub._globalState = {};
 
+    // Cancel any pending connection attempts first
+    testConnectionController.cancelConnectionAttempt();
+
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
 
