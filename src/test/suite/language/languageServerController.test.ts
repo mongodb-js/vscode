@@ -58,9 +58,9 @@ suite('Language Server Controller Test Suite', () => {
   const sandbox = sinon.createSandbox();
 
   before(async () => {
-    languageServerControllerStub = new LanguageServerController(
-      extensionContextStub,
-    );
+    // Use the global language server controller that's already started
+    languageServerControllerStub = mdbTestExtension.testExtensionController._languageServerController;
+
     const testExportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
 
@@ -73,7 +73,7 @@ suite('Language Server Controller Test Suite', () => {
       playgroundSelectionCodeActionProvider: testCodeActionProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
-    await languageServerControllerStub.startLanguageServer();
+    // Language server is already started in the test suite index
     await testPlaygroundController._activeConnectionChanged();
   });
 
