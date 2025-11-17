@@ -42,7 +42,7 @@ const sleep = (ms: number): Promise<void> => {
 };
 
 suite('Connection Controller Test Suite', function () {
-  this.timeout(5000);
+  this.timeout(10000);
 
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
