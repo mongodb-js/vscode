@@ -53,6 +53,8 @@ export async function activate(
     },
   });
 
+  // Solution to VSCODE-700. If we are running tests, don't activate the extension.
+  // This avoids registering multiple providers when running the tests, which causes errors in recent versions of vscode.
   if (isUnderTest) {
     log.info(
       'Skipping MDBExtensionController activation because MDB_UNDER_TEST is set.',
