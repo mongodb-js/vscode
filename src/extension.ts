@@ -24,7 +24,7 @@ import MDBExtensionController from './mdbExtensionController';
 let mdbExtension: MDBExtensionController | undefined;
 
 const isUnderTest =
-  process.env.NODE_ENV === 'test' || process.env.MDB_UNDER_TEST === 'true';
+  process.env.NODE_ENV === 'test' || process.env.MDB_IS_TEST === 'true';
 
 // Called when our extension is activated.
 // See "activationEvents" in `package.json` for the events that cause activation.
@@ -58,7 +58,7 @@ export async function activate(
   // This avoids registering multiple providers when running the tests, which causes errors in recent versions of vscode.
   if (isUnderTest) {
     log.info(
-      'Skipping MDBExtensionController activation because MDB_UNDER_TEST is set.',
+      'Skipping MDBExtensionController activation because MDB_IS_TEST is set.',
     );
     return;
   }
