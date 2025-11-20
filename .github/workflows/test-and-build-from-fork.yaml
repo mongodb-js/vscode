@@ -79,7 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
   status-check:
-    name: Test and Build Status Check
+    name: Test and Build
     runs-on: ubuntu-latest
     needs: [build-and-package, test]
     if: always()
