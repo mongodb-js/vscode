@@ -729,6 +729,7 @@ export default class ConnectionController {
 
     if (!this._activeDataService) {
       log.error('Unable to disconnect: no active connection');
+      this._disconnecting = false;
       return false;
     }
 

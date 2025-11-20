@@ -96,6 +96,7 @@ jobs:
           GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          MDB_IS_TEST: "true"
 
       - name: Create Draft Release
         run: |
