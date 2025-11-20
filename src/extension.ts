@@ -21,7 +21,9 @@ debug.log = log.debug.bind(log);
 
 import MDBExtensionController from './mdbExtensionController';
 
-let mdbExtension: MDBExtensionController;
+let mdbExtension: MDBExtensionController | undefined;
+
+const isUnderTest = process.env.MDB_IS_TEST === 'true';
 
 // Called when our extension is activated.
 // See "activationEvents" in `package.json` for the events that cause activation.
@@ -51,13 +53,24 @@ export async function activate(
     },
   });
 
-  mdbExtension = new MDBExtensionController(context, {
-    shouldTrackTelemetry: true,
-  });
-  await mdbExtension.activate();
+  // Solution to VSCODE-700. If we are running tests, don't activate the extension.
+  // This avoids registering multiple providers when running the tests, which causes errors in recent versions of vscode.
+  if (isUnderTest) {
+    log.info(
+      'Skipping MDBExtensionController activation because MDB_IS_TEST is set.',
+    );
+    return;
+  }
 
-  // Add our extension to a list of disposables for when we are deactivated.
-  context.subscriptions.push(mdbExtension);
+  if (!mdbExtension) {
+    mdbExtension = new MDBExtensionController(context, {
+      shouldTrackTelemetry: true,
+    });
+    await mdbExtension.activate();
+
+    // Add our extension to a list of disposables for when we are deactivated.
+    context.subscriptions.push(mdbExtension);
+  }
 }
 
 // Called when our extension is deactivated.

@@ -62,7 +62,11 @@ export class TelemetryService {
   }
 
   public getCommonProperties(): Record<string, string | undefined> {
-    return { extension_version: `${version}`, device_id: this.deviceId };
+    return {
+      extension_version: `${version}`,
+      device_id: this.deviceId,
+      app_name: vscode.env.appName || 'Visual Studio Code - Unknown', // e.g., "VS Code" or "Azure Data Studio"
+    };
   }
 
   private async readSegmentKey(): Promise<string | undefined> {
@@ -105,6 +109,7 @@ export class TelemetryService {
       anonymousId: this.anonymousId,
       traits: {
         device_id: this.deviceId,
+        app_name: vscode.env.appName || 'Visual Studio Code - Unknown', // e.g., "VS Code" or "Azure Data Studio"
       },
     };
 

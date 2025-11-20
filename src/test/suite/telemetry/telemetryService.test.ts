@@ -49,6 +49,7 @@ suite('Telemetry Controller Test Suite', () => {
   const commonProperties = {
     extension_version: version,
     device_id: testDeviceId,
+    app_name: vscode.env.appName || 'Visual Studio Code - Unknown',
   };
 
   const sandbox = sinon.createSandbox();

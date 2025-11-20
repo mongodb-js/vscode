@@ -13,10 +13,12 @@ const ui = ora('Generate constants file').start();
 
 config({ path: resolve(__dirname, '../.env') });
 
+const segmentKey = process.env.SEGMENT_KEY || 'test-segment-key';
+
 (async () => {
   await writeFile(
     `${ROOT_DIR}/constants.json`,
-    JSON.stringify({ segmentKey: process.env.SEGMENT_KEY }, null, 2),
+    JSON.stringify({ segmentKey }, null, 2),
   );
   ui.succeed('The constants file has been generated');
 })().catch((error) => {
