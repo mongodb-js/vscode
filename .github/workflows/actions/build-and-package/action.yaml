@@ -1,0 +1,143 @@
+name: Check Build and Package
+description: Run checks, build and package VSIX, sign it, and run security scans (Ubuntu only)
+inputs:
+  SEGMENT_KEY:
+    description: Segment analytics key
+    required: true
+  ARTIFACTORY_HOST:
+    description: Artifactory host for signing
+    required: true
+  ARTIFACTORY_PASSWORD:
+    description: Artifactory password for signing
+    required: true
+  ARTIFACTORY_USERNAME:
+    description: Artifactory username for signing
+    required: true
+  GARASIGN_PASSWORD:
+    description: Garasign password for signing
+    required: true
+  GARASIGN_USERNAME:
+    description: Garasign username for signing
+    required: true
+  SNYK_TOKEN:
+    description: Snyk token for security scanning
+    required: true
+  JIRA_API_TOKEN:
+    description: Jira API token for vulnerability tickets
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Deps Ubuntu
+      run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
+      shell: bash
+
+    # Default Python (3.12) doesn't have support for distutils because of
+    # which the dep install fails constantly on macos
+    # https://github.com/nodejs/node-gyp/issues/2869
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Run node-gyp bug workaround script
+      run: |
+        curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
+      shell: bash
+
+    - name: Set SEGMENT_KEY
+      env:
+        SEGMENT_KEY: ${{ inputs.SEGMENT_KEY }}
+      run: |
+        echo "SEGMENT_KEY=${SEGMENT_KEY}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Validate SEGMENT_KEY
+      run: |
+        if [ -z "${SEGMENT_KEY}" ]; then
+          echo "SEGMENT_KEY is not set or is empty"
+          exit 1
+        fi
+      shell: bash
+
+    - name: Install Dependencies
+      run: npm ci --omit=optional
+      shell: bash
+
+    - name: Compile
+      run: npm run compile
+      shell: bash
+
+    - name: Run Checks
+      run: npm run check
+      shell: bash
+
+    - name: Build .vsix
+      env:
+        NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
+      # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
+      run: |
+        npx vsce package --githubBranch main
+      shell: bash
+
+    - name: Check .vsix filesize
+      run: npm run check-vsix-size
+      shell: bash
+
+    - name: Sign .vsix
+      env:
+        ARTIFACTORY_PASSWORD: ${{ inputs.ARTIFACTORY_PASSWORD }}
+        ARTIFACTORY_USERNAME: ${{ inputs.ARTIFACTORY_USERNAME }}
+        GARASIGN_PASSWORD: ${{ inputs.GARASIGN_PASSWORD }}
+        GARASIGN_USERNAME: ${{ inputs.GARASIGN_USERNAME }}
+      run: |
+        set -e
+        FILE_TO_SIGN=$(find . -maxdepth 1 -name '*.vsix' -print -quit)
+        if [ -z "$FILE_TO_SIGN" ]; then
+          echo "Error: No .vsix file found in the current directory." >&2
+          exit 1
+        fi
+        node scripts/sign-vsix.js "${FILE_TO_SIGN}"
+        ls *.vsix.sig
+      shell: bash
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: VSIX Package
+        path: |
+          *.vsix
+          *.vsix.sig
+
+    - name: Run Snyk Test
+      shell: bash
+      env:
+        SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
+      run: |
+        npm run snyk-test
+
+    - name: Create Jira Tickets
+      if: >
+        (
+          github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+          github.event_name == 'workflow_dispatch' ||
+          github.event_name == 'schedule'
+        )
+      shell: bash
+      env:
+        JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
+        JIRA_BASE_URL: "https://jira.mongodb.org"
+        JIRA_PROJECT: "VSCODE"
+        JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
+      run: |
+        npm run create-vulnerability-tickets > /dev/null
+
+    - name: Generate Vulnerability Report (Fail on >= High)
+      continue-on-error: ${{ github.event_name == 'pull_request' }}
+      shell: bash
+      run: |
+        # The standard output is suppressed since Github Actions logs are
+        # available for everyone with read access to the repo, which is everyone that is
+        # logged in for public repos.
+        # This command is only here to fail on failures for `main` and tags.
+        npm run generate-vulnerability-report > /dev/null
