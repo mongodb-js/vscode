@@ -71,3 +71,11 @@ jobs:
         uses: ./.github/workflows/actions/run-tests
         with:
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
+          ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          GARASIGN_PASSWORD: ${{ secrets.GARASIGN_PASSWORD }}
+          GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          MDB_IS_TEST: "true"
