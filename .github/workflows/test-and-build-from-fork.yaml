@@ -77,3 +77,22 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+  status-check:
+    name: Test and Build Status Check
+    runs-on: ubuntu-latest
+    needs: [build-and-package, test]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          if [ "${{ needs.build-and-package.result }}" == "failure" ] || [ "${{ needs.test.result }}" == "failure" ]; then
+            echo "One or more jobs failed"
+            exit 1
+          elif [ "${{ needs.build-and-package.result }}" == "cancelled" ] || [ "${{ needs.test.result }}" == "cancelled" ]; then
+            echo "One or more jobs were cancelled"
+            exit 1
+          else
+            echo "All jobs completed successfully or were skipped"
+            exit 0
+          fi
