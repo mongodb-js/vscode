@@ -43,7 +43,17 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: |
-        npm ci --omit=optional
+        # Retry npm ci up to 3 times to handle transient network errors
+        for i in 1 2 3; do
+          npm ci --omit=optional && break || {
+            if [ $i -eq 3 ]; then
+              echo "npm ci failed after 3 attempts"
+              exit 1
+            fi
+            echo "npm ci failed, retrying in 10 seconds... (attempt $i/3)"
+            sleep 10
+          }
+        done
 
     - name: Download VSIX artifact
       uses: actions/download-artifact@v4
