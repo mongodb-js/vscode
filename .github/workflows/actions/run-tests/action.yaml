@@ -50,36 +50,23 @@ runs:
       with:
         name: VSIX Package
 
-    - name: Verify VSIX artifact was downloaded
+    - name: Verify VSIX artifact
       shell: bash
       run: |
-        echo "========================================="
-        echo "VERIFYING ARTIFACT DOWNLOAD"
-        echo "========================================="
-        echo "Current OS: ${{ runner.os }}"
-        echo "Current directory: $(pwd)"
-        echo ""
-        echo "Looking for .vsix files..."
         VSIX_FILE=$(find . -maxdepth 1 -name '*.vsix' -print -quit)
         if [ -z "$VSIX_FILE" ]; then
-          echo "❌ ERROR: No .vsix file found after artifact download!" >&2
+          echo "Error: No .vsix file found after artifact download" >&2
           exit 1
         fi
-        echo "✓ Found VSIX file: $VSIX_FILE"
-        echo ""
-        echo "File details:"
+        echo "Testing on ${{ runner.os }}: $VSIX_FILE"
         ls -lh "$VSIX_FILE"
         echo ""
-        echo "File checksum (SHA256):"
+        echo "VSIX checksum (SHA256):"
         if [ "${{ runner.os }}" == "macOS" ]; then
           shasum -a 256 "$VSIX_FILE"
         else
           sha256sum "$VSIX_FILE"
         fi
-        echo ""
-        echo "✓ This package was built on ubuntu-latest and downloaded as an artifact"
-        echo "✓ We are now testing it on: ${{ runner.os }}"
-        echo "========================================="
 
     - name: Run Tests
       env:
@@ -94,70 +81,47 @@ runs:
       run: |
         set -e
 
-        echo "========================================="
-        echo "VSIX Installation Test"
-        echo "OS: ${{ runner.os }}"
-        echo "========================================="
+        echo "VSIX Installation Test - ${{ runner.os }}"
+        echo ""
 
-        # Find the VSIX file
+        # Find the VSIX file (downloaded from build-and-package artifact)
         VSIX_FILE=$(find . -maxdepth 1 -name '*.vsix' -print -quit)
         if [ -z "$VSIX_FILE" ]; then
           echo "Error: No .vsix file found" >&2
           exit 1
         fi
 
-        echo "Found VSIX file: $VSIX_FILE"
-
-        # Verify the file exists and is readable
-        if [ ! -r "$VSIX_FILE" ]; then
-          echo "Error: VSIX file is not readable" >&2
-          exit 1
-        fi
-
-        echo "VSIX file validation passed"
+        echo "Installing: $VSIX_FILE"
         ls -lh "$VSIX_FILE"
 
-        # Determine the VS Code CLI command based on OS
+        # Determine VS Code CLI command based on OS
         if [ "${{ runner.os }}" == "macOS" ]; then
-          echo "Setting up VS Code CLI for macOS..."
-          # On macOS, VS Code CLI is inside the app bundle
           VSCODE_CLI="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-
-          # Install VS Code if not present
           if [ ! -f "$VSCODE_CLI" ]; then
             echo "Installing VS Code on macOS..."
-            # Ensure Homebrew is available
             if ! command -v brew &> /dev/null; then
               echo "Error: Homebrew is not installed" >&2
               exit 1
             fi
             brew install --cask visual-studio-code
-            # Wait for installation to complete
             sleep 5
-            # Verify installation
             if [ ! -f "$VSCODE_CLI" ]; then
               echo "Error: VS Code installation failed" >&2
               exit 1
             fi
           fi
-          echo "VS Code CLI found at: $VSCODE_CLI"
 
         elif [ "${{ runner.os }}" == "Windows" ]; then
-          echo "Setting up VS Code CLI for Windows..."
-          # On Windows, try to find code in PATH first
           if command -v code &> /dev/null; then
             VSCODE_CLI="code"
-            echo "VS Code CLI already available in PATH"
           else
             echo "Installing VS Code on Windows..."
-            # Ensure Chocolatey is available
             if ! command -v choco &> /dev/null; then
               echo "Error: Chocolatey is not installed" >&2
               exit 1
             fi
             choco install vscode -y --no-progress
 
-            # Try multiple possible locations for VS Code
             POSSIBLE_PATHS=(
               "/c/Program Files/Microsoft VS Code/bin/code"
               "/c/Program Files (x86)/Microsoft VS Code/bin/code"
@@ -173,9 +137,7 @@ runs:
               fi
             done
 
-            # Final check: try using 'code' command
             if [ -z "$VSCODE_CLI" ]; then
-              # Refresh environment and try again
               export PATH="$PATH:/c/Program Files/Microsoft VS Code/bin"
               if command -v code &> /dev/null; then
                 VSCODE_CLI="code"
@@ -184,18 +146,12 @@ runs:
                 exit 1
               fi
             fi
-
-            # Wait for installation to settle
             sleep 5
           fi
-          echo "Using VS Code CLI: $VSCODE_CLI"
 
         else
-          echo "Setting up VS Code CLI for Linux..."
-          # On Linux (Ubuntu)
           if command -v code &> /dev/null; then
             VSCODE_CLI="code"
-            echo "VS Code CLI already available in PATH"
           else
             echo "Installing VS Code on Linux..."
             wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
@@ -204,67 +160,47 @@ runs:
             rm -f packages.microsoft.gpg
             sudo apt-get update
             sudo apt-get install -y code
-
-            # Verify installation
             if ! command -v code &> /dev/null; then
               echo "Error: VS Code installation failed" >&2
               exit 1
             fi
             VSCODE_CLI="code"
-            # Wait for installation to settle
             sleep 5
           fi
-          echo "Using VS Code CLI: $VSCODE_CLI"
         fi
 
-        # Verify VS Code CLI is working
-        echo "Verifying VS Code CLI is functional..."
         "$VSCODE_CLI" --version
 
-        # Get extension ID from package.json
         EXTENSION_ID=$(node -p "const pkg = require('./package.json'); pkg.publisher + '.' + pkg.name")
         echo "Extension ID: $EXTENSION_ID"
 
-        # Install the extension
-        echo "Installing extension from $VSIX_FILE..."
+        echo "Installing extension..."
         "$VSCODE_CLI" --install-extension "$VSIX_FILE" --force
-
-        # Give VS Code a moment to register the extension
         sleep 2
 
-        # Verify the extension is installed
-        echo "Verifying extension installation..."
+        echo "Verifying installation..."
         INSTALLED_EXTENSIONS=$("$VSCODE_CLI" --list-extensions)
 
         if echo "$INSTALLED_EXTENSIONS" | grep -q "$EXTENSION_ID"; then
-          echo "✓ Extension successfully installed and verified!"
-
-          # Get extension version
           INSTALLED_VERSION=$("$VSCODE_CLI" --list-extensions --show-versions | grep "$EXTENSION_ID")
-          echo "Installed: $INSTALLED_VERSION"
+          echo "✓ Installed: $INSTALLED_VERSION"
         else
-          echo "✗ Error: Extension not found in installed extensions list" >&2
-          echo "Expected extension ID: $EXTENSION_ID"
+          echo "Error: Extension not found in installed extensions list" >&2
+          echo "Expected: $EXTENSION_ID"
           echo "Installed extensions:"
           echo "$INSTALLED_EXTENSIONS"
           exit 1
         fi
 
-        # Cleanup: Uninstall the extension
-        echo "Cleaning up: Uninstalling extension..."
+        echo "Uninstalling extension..."
         "$VSCODE_CLI" --uninstall-extension "$EXTENSION_ID"
-
-        # Give VS Code a moment to unregister the extension
         sleep 2
 
-        # Verify uninstallation
         INSTALLED_EXTENSIONS_AFTER=$("$VSCODE_CLI" --list-extensions)
         if echo "$INSTALLED_EXTENSIONS_AFTER" | grep -q "$EXTENSION_ID"; then
-          echo "Warning: Extension still appears in list after uninstall"
+          echo "Warning: Extension still appears after uninstall"
         else
-          echo "✓ Extension successfully uninstalled"
+          echo "✓ Uninstalled successfully"
         fi
 
-        echo "========================================="
-        echo "✓ VSIX installation test completed successfully!"
-        echo "========================================="
+        echo "✓ VSIX installation test completed"
