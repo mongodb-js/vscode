@@ -91,6 +91,14 @@ runs:
           exit 1
         fi
 
+        echo "Found VSIX file: $VSIX_FILE"
+
+        # Verify the file exists and is readable
+        if [ ! -r "$VSIX_FILE" ]; then
+          echo "Error: VSIX file is not readable" >&2
+          exit 1
+        fi
+
         echo "Installing: $VSIX_FILE"
         ls -lh "$VSIX_FILE"
 
