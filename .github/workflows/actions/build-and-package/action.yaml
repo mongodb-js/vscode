@@ -101,6 +101,24 @@ runs:
         ls *.vsix.sig
       shell: bash
 
+    - name: Prepare artifact upload
+      shell: bash
+      run: |
+        echo "========================================="
+        echo "PREPARING ARTIFACT FOR UPLOAD"
+        echo "========================================="
+        echo "Build OS: ubuntu-latest"
+        echo "Current directory: $(pwd)"
+        echo ""
+        echo "Files to be uploaded as artifacts:"
+        ls -lh *.vsix *.vsix.sig
+        echo ""
+        echo "VSIX checksum (SHA256):"
+        sha256sum *.vsix
+        echo ""
+        echo "✓ This package will be uploaded and tested on: ubuntu-latest, windows-latest, macos-latest"
+        echo "========================================="
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:

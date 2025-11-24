@@ -50,6 +50,37 @@ runs:
       with:
         name: VSIX Package
 
+    - name: Verify VSIX artifact was downloaded
+      shell: bash
+      run: |
+        echo "========================================="
+        echo "VERIFYING ARTIFACT DOWNLOAD"
+        echo "========================================="
+        echo "Current OS: ${{ runner.os }}"
+        echo "Current directory: $(pwd)"
+        echo ""
+        echo "Looking for .vsix files..."
+        VSIX_FILE=$(find . -maxdepth 1 -name '*.vsix' -print -quit)
+        if [ -z "$VSIX_FILE" ]; then
+          echo "❌ ERROR: No .vsix file found after artifact download!" >&2
+          exit 1
+        fi
+        echo "✓ Found VSIX file: $VSIX_FILE"
+        echo ""
+        echo "File details:"
+        ls -lh "$VSIX_FILE"
+        echo ""
+        echo "File checksum (SHA256):"
+        if [ "${{ runner.os }}" == "macOS" ]; then
+          shasum -a 256 "$VSIX_FILE"
+        else
+          sha256sum "$VSIX_FILE"
+        fi
+        echo ""
+        echo "✓ This package was built on ubuntu-latest and downloaded as an artifact"
+        echo "✓ We are now testing it on: ${{ runner.os }}"
+        echo "========================================="
+
     - name: Run Tests
       env:
         NODE_OPTIONS: "--max_old_space_size=4096"
