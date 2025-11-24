@@ -53,6 +53,7 @@ runs:
     - name: Run Tests
       env:
         NODE_OPTIONS: "--max_old_space_size=4096"
+        MDB_IS_TEST: "true"
       run: |
         npm run test
       shell: bash

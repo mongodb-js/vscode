@@ -60,17 +60,39 @@ jobs:
           node-version: 22.15.1
           cache: npm
 
-      - name: Install Dependencies
-        run: npm ci --omit=optional
+      - name: Run tests
+        uses: ./.github/workflows/actions/run-tests
+        with:
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
 
-      - name: Run Checks
-        run: npm run check
-        # the glob here just fails
-        if: ${{ runner.os != 'Windows' }}
-
-      - name: Run Tests
+  merge-dependabot-pr:
+    name: Merge Dependabot PR
+    runs-on: ubuntu-latest
+    needs:
+      - test
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Enable auto-merge for Dependabot PRs
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
-          SEGMENT_KEY: "test-segment-key"
-          MDB_IS_TEST: "true"
-        run: npm run test
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+  status-check:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    needs: [build-and-package, test]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          if [ "${{ needs.build-and-package.result }}" == "failure" ] || [ "${{ needs.test.result }}" == "failure" ]; then
+            echo "One or more jobs failed"
+            exit 1
+          elif [ "${{ needs.build-and-package.result }}" == "cancelled" ] || [ "${{ needs.test.result }}" == "cancelled" ]; then
+            echo "One or more jobs were cancelled"
+            exit 1
+          else
+            echo "All jobs completed successfully or were skipped"
+            exit 0
+          fi
