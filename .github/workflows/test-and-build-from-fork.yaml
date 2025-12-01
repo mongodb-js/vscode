@@ -1,4 +1,4 @@
-name: Check, Build and Package (from fork)
+name: Test and Build (from fork)
 on:
   pull_request:
     branches:
@@ -7,8 +7,8 @@ permissions:
   contents: read
 
 jobs:
-  build-and-package:
-    name: Check, Build and Package
+  test-and-build:
+    name: Test and Build
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
@@ -40,7 +40,7 @@ jobs:
 
   test:
     name: Test
-    needs: build-and-package
+    needs: test-and-build
     if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
     strategy:
