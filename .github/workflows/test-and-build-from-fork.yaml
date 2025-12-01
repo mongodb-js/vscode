@@ -1,4 +1,4 @@
-name: Test and Build (from fork)
+name: Check, Build and Package (from fork)
 on:
   pull_request:
     branches:
@@ -77,3 +77,4 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
