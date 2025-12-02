@@ -37,7 +37,7 @@ importers:
         specifier: ^0.3.2
         version: 0.3.3
       '@mongodb-js/mongodb-constants':
-        specifier: ^0.16.0
+        specifier: ^0.16.1
         version: 0.16.1(bson@6.10.4)
       '@mongodb-js/shell-bson-parser':
         specifier: ^1.4.0
@@ -140,7 +140,7 @@ importers:
         specifier: ^1.18.2
         version: 1.22.0(@cfworker/json-schema@4.1.1)
       '@mongodb-js/oidc-mock-provider':
-        specifier: ^0.11.4
+        specifier: ^0.11.5
         version: 0.11.5
       '@mongodb-js/oidc-plugin':
         specifier: ^2.0.5
@@ -149,10 +149,10 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2(prettier@3.6.2)
       '@mongodb-js/sbom-tools':
-        specifier: ^0.8.1
+        specifier: ^0.8.5
         version: 0.8.5
       '@mongodb-js/signing-utils':
-        specifier: ^0.4.3
+        specifier: ^0.4.4
         version: 0.4.4
       '@mongosh/service-provider-core':
         specifier: ^3.6.0
