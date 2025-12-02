@@ -57,10 +57,10 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: |
-        npm ci --omit=optional
+        pnpm install --frozen-lockfile --no-optional
 
     - name: Run Checks
-      run: npm run check
+      run: pnpm run check
       # the glob here just fails
       if: ${{ runner.os != 'Windows' }}
       shell: bash
@@ -69,7 +69,7 @@ runs:
       env:
         NODE_OPTIONS: "--max_old_space_size=4096"
       run: |
-        npm run test
+        pnpm run test
       shell: bash
 
     - name: Build .vsix
@@ -77,11 +77,11 @@ runs:
         NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
       # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
       run: |
-        npx vsce package --githubBranch main
+        pnpm exec vsce package --githubBranch main
       shell: bash
 
     - name: Check .vsix filesize
-      run: npm run check-vsix-size
+      run: pnpm run check-vsix-size
       shell: bash
 
     - name: Sign .vsix
@@ -116,7 +116,7 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
       run: |
-        npm run snyk-test > /dev/null 2>&1
+        pnpm run snyk-test > /dev/null 2>&1
 
     # TODO(VSCODE-706): Fix Snyk vuln ticket generation
     # - name: Create Jira Tickets

@@ -27,17 +27,20 @@ jobs:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: 22.15.1
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci --omit=optional
+        run: pnpm install --frozen-lockfile --no-optional
 
       - name: Run Checks
-        run: npm run check
+        run: pnpm run check
         # the glob here just fails
         if: ${{ runner.os != 'Windows' }}
 
@@ -45,7 +48,7 @@ jobs:
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
-        run: npm run test
+        run: pnpm run test
 
   merge-dependabot-pr:
     name: Merge Dependabot PR

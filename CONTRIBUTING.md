@@ -9,7 +9,7 @@ MongoDB welcomes community contributions! If you’re interested in making a con
 1. Create a branch with a name that briefly describes your feature
 1. Implement your feature or bug fix
 1. Add new cases to `./src/test` that verify your bug fix or make sure no one
-   unintentionally breaks your feature in the future and run them with `npm test`
+   unintentionally breaks your feature in the future and run them with `pnpm test`
 1. Add comments around your new code that explain what's happening
 1. Commit and push your changes to your branch then submit a pull request
 
@@ -24,13 +24,13 @@ Please include as much information as possible about your environment.
 We recommend familiarizing yourself with the VSCode extension documentation:
 [code.visualstudio.com/api](https://code.visualstudio.com/api).
 
-Running the MongoDB VSCode plugin requires [Node.js](https://nodejs.org) and npm.
+Running the MongoDB VSCode plugin requires [Node.js](https://nodejs.org) and pnpm.
 
 1. Clone this project, navigate to the folder, then run:
 
 ```shell
-npm install
-npm run watch
+pnpm install
+pnpm run watch
 ```
 
 2. Inside of [VS Code Insiders](https://code.visualstudio.com/insiders/) open this directory and press `F5` to begin debugging the extension. This should launch a new VSCode window which is running the extension.
@@ -46,14 +46,14 @@ You can launch a debugging task for tests inside VSCode with the **"Run Tests"**
 You can run tests using command line along with an optional `MOCHA_GREP` environment variable to apply a grep filter on tests to run.
 
 ```shell
-MOCHA_GREP="Participant .* prompt builders" npm test
+MOCHA_GREP="Participant .* prompt builders" pnpm test
 ```
 
-It may be quicker to be more specific and use `npm run test-extension` or `npm run test-webview` after compiling.
+It may be quicker to be more specific and use `pnpm run test-extension` or `pnpm run test-webview` after compiling.
 
 ### Using Proposed API
 
-The vscode extension will occasionally need to use [proposed API](https://code.visualstudio.com/api/advanced-topics/using-proposed-api) that haven't been promoted to stable yet. To enable an API proposal, add it to the `enabledApiProposals` section in `package.json`, then run `cd src/vscode-dts && npx @vscode/dts dev` to install the type definitions for the API you want to enable.
+The vscode extension will occasionally need to use [proposed API](https://code.visualstudio.com/api/advanced-topics/using-proposed-api) that haven't been promoted to stable yet. To enable an API proposal, add it to the `enabledApiProposals` section in `package.json`, then run `cd src/vscode-dts && pnpm exec @vscode/dts dev` to install the type definitions for the API you want to enable.
 
 **Note**: Using proposed API is only possible during local development and will prevent publishing the extension.
 

@@ -31,11 +31,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
           node-version: 22.15.1
-          cache: npm
+          cache: pnpm
 
       - name: Run tests and build
         uses: ./.github/workflows/actions/test-and-build
