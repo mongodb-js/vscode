@@ -39,7 +39,7 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./dist/extension.js",
   "scripts": {
-    "clean": "rimraf ./out/* ./dist/* ",
+    "clean": "rimraf -g ./out/* ./dist/*",
     "lint": "eslint . && prettier --check .",
     "update-grammar": "ts-node ./scripts/update-grammar.ts",
     "precompile": "pnpm run clean",
