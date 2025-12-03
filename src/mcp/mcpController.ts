@@ -214,7 +214,7 @@ export class MCPController {
       });
 
       const runner = new StreamableHttpRunner({
-        userConfig: UserConfigSchema.parse(mcpConfig),
+        userConfig: mcpConfig,
         createConnectionManager: (...params) =>
           MCPController.createConnectionManager(this, ...params),
         connectionErrorHandler: createMCPConnectionErrorHandler(
@@ -239,25 +239,22 @@ export class MCPController {
     }
   }
 
-  private getMCPServerConfig(
-    headers: Record<string, string>,
-  ): Partial<UserConfig> {
-    const vscodeConfiguredMCPConfig = getMCPConfigFromVSCodeSettings();
-    return {
-      ...vscodeConfiguredMCPConfig,
+  private getMCPServerConfig(headers: Record<string, string>): UserConfig {
+    const configFromSettings = getMCPConfigFromVSCodeSettings();
+    const vsCodeConfig: Partial<UserConfig> = {
+      ...configFromSettings,
       transport: 'http',
       httpPort: 0,
       httpHeaders: headers,
       disabledTools: Array.from(
-        new Set([
-          'connect',
-          ...(vscodeConfiguredMCPConfig.disabledTools ?? []),
-        ]),
+        new Set(['connect', ...(configFromSettings.disabledTools ?? [])]),
       ),
       loggers: Array.from(
-        new Set(['mcp', ...(vscodeConfiguredMCPConfig.loggers ?? [])]),
+        new Set(['mcp', ...(configFromSettings.loggers ?? [])]),
       ),
     };
+
+    return UserConfigSchema.parse(vsCodeConfig);
   }
 
   private static async createConnectionManager(
