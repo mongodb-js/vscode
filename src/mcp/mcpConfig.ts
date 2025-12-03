@@ -6,6 +6,7 @@ const { contributes } = require('../../package.json');
 
 const logger = createLogger('mcp-config');
 const defaultUserConfig = UserConfigSchema.parse({});
+const configurableProperties = new Set(Object.keys(UserConfigSchema.shape));
 
 export function getMCPConfigFromVSCodeSettings(
   packageJsonConfiguredProperties: Record<string, unknown> = contributes
@@ -13,8 +14,6 @@ export function getMCPConfigFromVSCodeSettings(
   retrieveMCPConfiguration: () => vscode.WorkspaceConfiguration = (): vscode.WorkspaceConfiguration =>
     vscode.workspace.getConfiguration('mdb.mcp'),
 ): Partial<UserConfig> {
-  const configurableProperties = new Set(Object.keys(UserConfigSchema.shape));
-
   // We're attempting to:
   // 1. Use only the config values for MCP server exposed by VSCode config
   // 2. Use only the config values that are relevant for MCP server (all mcp
