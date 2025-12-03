@@ -39,9 +39,6 @@ importers:
       '@mongodb-js/mongodb-constants':
         specifier: ^0.16.1
         version: 0.16.1(bson@6.10.4)
-      '@mongodb-js/shell-bson-parser':
-        specifier: ^1.4.0
-        version: 1.4.0(bson@6.10.4)
       '@mongosh/browser-runtime-electron':
         specifier: ^3.24.0
         version: 3.26.2(@mongodb-js/oidc-plugin@2.0.5)(bson@6.10.4)(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(mongodb-log-writer@2.4.4(bson@6.10.4))(mongodb@6.21.0(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7))(socks@2.8.7)

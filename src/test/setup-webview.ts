@@ -8,16 +8,16 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 import { createRequire } from 'module';
 
 // Create a require function that works in both ESM and CommonJS contexts
-const requireModule = (() => {
+const requireModule = ((): NodeJS.Require => {
   if (typeof require !== 'undefined' && typeof require.cache === 'object') {
     // We're in CommonJS context
     return require;
   }
 
   // We're in ESM context, create require from import.meta.url
-  // @ts-ignore
+  // @ts-ignore - import.meta is not available in CommonJS context
   if (typeof import.meta !== 'undefined' && import.meta.url) {
-    // @ts-ignore
+    // @ts-ignore - import.meta is not available in CommonJS context
     return createRequire(import.meta.url);
   }
 
