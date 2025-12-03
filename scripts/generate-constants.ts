@@ -6,9 +6,10 @@ import path from 'path';
 import { resolve } from 'path';
 import { config } from 'dotenv';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 
 const writeFile = promisify(fs.writeFile);
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.join(__dirname, '..');
 const ui = ora('Generate constants file').start();
 
