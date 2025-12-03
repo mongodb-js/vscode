@@ -112,12 +112,6 @@ jobs:
         with:
           name: updated-package-json
 
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.15.1
-          cache: npm
-
       - name: Check, build and package
         uses: ./.github/workflows/actions/build-and-package
         with:
@@ -151,12 +145,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: updated-package-json
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.15.1
-          cache: npm
 
       - name: Run tests
         uses: ./.github/workflows/actions/run-tests

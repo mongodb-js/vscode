@@ -29,6 +29,12 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Setup Node.js Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.15.1
+        cache: npm
+
     - name: Install Deps Ubuntu
       run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
       shell: bash
