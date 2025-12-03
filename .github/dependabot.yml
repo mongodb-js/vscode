@@ -6,6 +6,10 @@ updates:
     directory: /
     schedule:
       interval: daily
+    cooldown:
+      default-days: 7
+      include:
+        - "*"
     allow:
       - dependency-name: mongodb
       - dependency-name: bson

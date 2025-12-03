@@ -11,7 +11,6 @@ import chaiAsPromised from 'chai-as-promised';
 import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
@@ -21,6 +20,7 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import type { LanguageServerController } from '../../../language';
 
 const expect = chai.expect;
 
@@ -58,9 +58,9 @@ suite('Language Server Controller Test Suite', () => {
   const sandbox = sinon.createSandbox();
 
   before(async () => {
-    languageServerControllerStub = new LanguageServerController(
-      extensionContextStub,
-    );
+    languageServerControllerStub =
+      mdbTestExtension.testExtensionController._languageServerController;
+
     const testExportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
 
@@ -73,7 +73,6 @@ suite('Language Server Controller Test Suite', () => {
       playgroundSelectionCodeActionProvider: testCodeActionProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
-    await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._activeConnectionChanged();
   });
 

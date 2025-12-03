@@ -42,6 +42,7 @@ suite('Playground Controller Test Suite', function () {
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
   let showErrorMessageStub: SinonStub;
+  let showInformationMessageStub: SinonStub;
   let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
@@ -82,6 +83,10 @@ suite('Playground Controller Test Suite', function () {
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    showInformationMessageStub = sandbox.stub(
+      vscode.window,
+      'showInformationMessage',
+    );
     sandbox.stub(testTelemetryService, 'trackNewConnection');
   });
 
@@ -117,7 +122,6 @@ suite('Playground Controller Test Suite', function () {
         'activeConnectionChanged',
         fakeConnectToServiceProvider,
       );
-      sandbox.stub(vscode.window, 'showInformationMessage');
 
       testPlaygroundController._connectionController.setActiveDataService(
         mockActiveDataService,
@@ -154,13 +158,7 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is not open', () => {
-    let showInformationMessageStub: SinonStub;
-
     beforeEach(() => {
-      showInformationMessageStub = sandbox.stub(
-        vscode.window,
-        'showInformationMessage',
-      );
       sandbox.stub(vscode.window, 'activeTextEditor').get(function getterFn() {
         return undefined;
       });
@@ -195,13 +193,7 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is open', () => {
-    let showInformationMessageStub: SinonStub;
-
     beforeEach(() => {
-      showInformationMessageStub = sandbox.stub(
-        vscode.window,
-        'showInformationMessage',
-      );
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
       activeTextEditor.document.getText = (): string => '123';
@@ -211,39 +203,101 @@ suite('Playground Controller Test Suite', function () {
     });
 
     suite('user is not connected', () => {
+      let changeActiveConnectionStub: SinonStub;
+      let isCurrentlyConnectedStub: SinonStub;
+
       beforeEach(() => {
-        sandbox.replace(
+        isCurrentlyConnectedStub = sandbox
+          .stub(
+            testPlaygroundController._connectionController,
+            'isCurrentlyConnected',
+          )
+          .returns(false);
+        changeActiveConnectionStub = sandbox.stub(
           testPlaygroundController._connectionController,
-          'isCurrentlyConnected',
-          () => false,
+          'changeActiveConnection',
         );
       });
 
-      test('run all playground blocks shows please connect to a database error', async () => {
+      test('run all playground blocks shows please connect to a database modal', async () => {
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllPlaygroundBlocks();
-        expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
+        expect(showInformationMessageStub.firstCall.args[0]).to.be.equal(
           expectedMessage,
         );
       });
 
-      test('run selected playground blocks shows please connect to a database error', async () => {
+      test('run selected playground blocks shows please connect to a database modal', async () => {
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runSelectedPlaygroundBlocks();
-        expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
+        expect(showInformationMessageStub.firstCall.args[0]).to.be.equal(
           expectedMessage,
         );
       });
 
-      test('run all or selected playground blocks shows please connect to a database error', async () => {
+      test('run all or selected playground blocks shows please connect to a database modal', async () => {
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
-        expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
+        expect(showInformationMessageStub.firstCall.args[0]).to.be.equal(
           expectedMessage,
         );
+      });
+
+      test('run all playground blocks shows please connect to a database modal, user dismisses', async () => {
+        const expectedMessage =
+          'Please connect to a database before running a playground.';
+        await testPlaygroundController.runAllPlaygroundBlocks();
+        expect(showInformationMessageStub.firstCall.args[0]).to.be.equal(
+          expectedMessage,
+        );
+        // User cancels the connection modal
+        showInformationMessageStub.resolves(undefined);
+
+        expect(changeActiveConnectionStub.notCalled).to.be.true;
+        const result = await testPlaygroundController.runAllPlaygroundBlocks();
+        expect(result).to.be.false;
+      });
+
+      test('run all playground blocks shows please connect to a database modal, user connects', async () => {
+        const getConfigurationStub = sandbox.stub(
+          vscode.workspace,
+          'getConfiguration',
+        );
+        getConfigurationStub.returns({
+          get: (key: string) => {
+            if (key === 'confirmRunAll') {
+              return false;
+            }
+            return undefined;
+          },
+        } as any);
+
+        sandbox
+          .stub(testPlaygroundController, '_evaluateWithCancelModal')
+          .resolves({ result: '123' } as any);
+        sandbox.stub(testPlaygroundController, '_openInResultPane').resolves();
+
+        const expectedMessage =
+          'Please connect to a database before running a playground.';
+        const beforeConnectResult =
+          await testPlaygroundController.runAllPlaygroundBlocks();
+        expect(showInformationMessageStub.firstCall.args[0]).to.be.equal(
+          expectedMessage,
+        );
+        expect(showInformationMessageStub.firstCall.args[2]).to.be.equal(
+          'Connect now',
+        );
+        expect(beforeConnectResult).to.be.false;
+
+        changeActiveConnectionStub.resolves(true);
+        isCurrentlyConnectedStub.returns(true);
+
+        const afterConnectResult =
+          await testPlaygroundController.runAllPlaygroundBlocks();
+        expect(afterConnectResult).to.be.true;
       });
 
       suite('running code from the participant', function () {
@@ -252,18 +306,13 @@ suite('Playground Controller Test Suite', function () {
             .stub(testPlaygroundController, '_evaluateWithCancelModal')
             .resolves({ result: '123' } as any);
           sinon.stub(testPlaygroundController, '_openInResultPane').resolves();
-
-          showInformationMessageStub.resolves('Yes');
         });
 
         afterEach(() => sinon.restore());
 
         test('prompts to connect to a database and succeeds with selection', async () => {
-          const changeActiveConnectionStub = sinon.stub(
-            testPlaygroundController._connectionController,
-            'changeActiveConnection',
-          );
-          // Mocks the user selecting a connection.
+          showInformationMessageStub.onFirstCall().resolves('Connect now');
+          showInformationMessageStub.onSecondCall().resolves('Yes');
           changeActiveConnectionStub.resolves(true);
 
           const result = await testPlaygroundController.evaluateParticipantCode(
@@ -278,11 +327,8 @@ suite('Playground Controller Test Suite', function () {
         });
 
         test('prompts to connect to a database and errors if not selected', async () => {
-          const changeActiveConnectionStub = sinon.stub(
-            testPlaygroundController._connectionController,
-            'changeActiveConnection',
-          );
-          // Mocks the user selecting a connection.
+          showInformationMessageStub.onFirstCall().resolves('Connect now');
+          showInformationMessageStub.onSecondCall().resolves('Yes');
           changeActiveConnectionStub.resolves(false);
 
           const result = await testPlaygroundController.evaluateParticipantCode(

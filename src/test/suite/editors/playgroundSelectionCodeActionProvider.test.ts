@@ -3,7 +3,6 @@ import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
 import sinon from 'sinon';
 import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';
-import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -32,11 +31,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
     let testActiveTextEditor;
 
     beforeEach(async () => {
-      sandbox.replace(
-        mdbTestExtension.testExtensionController,
-        '_languageServerController',
-        new LanguageServerController(extensionContextStub),
-      );
       sandbox.stub(vscode.window, 'showInformationMessage');
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
@@ -79,7 +73,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         .getConfiguration('mdb')
         .update('confirmRunAll', false);
 
-      await mdbTestExtension.testExtensionController._languageServerController.startLanguageServer();
       await mdbTestExtension.testExtensionController._playgroundController._activeConnectionChanged();
 
       testActiveTextEditor = sandbox.stub(vscode.window, 'activeTextEditor');
