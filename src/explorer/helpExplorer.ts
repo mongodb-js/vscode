@@ -6,8 +6,9 @@ import { createTrackedTreeView } from '../utils/treeViewHelper';
 export default class HelpExplorer {
   _treeController: HelpTree;
   _treeView?: vscode.TreeView<vscode.TreeItem>;
-
-  constructor(private _telemetryService: TelemetryService) {
+  private _telemetryService: TelemetryService;
+  constructor(telemetryService: TelemetryService) {
+    this._telemetryService = telemetryService;
     this._treeController = new HelpTree();
   }
 

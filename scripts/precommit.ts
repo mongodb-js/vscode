@@ -1,10 +1,14 @@
-#! /usr/bin/env ts-node
+#! /usr/bin/env node
 /* eslint-disable no-console */
 
 import path from 'path';
 import { promisify } from 'util';
 import { execFile } from 'child_process';
+import prettier from '@mongodb-js/prettier-config-devtools/.prettierrc.json' with { type: 'json' };
 const execFileAsync = promisify(execFile);
+
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 async function main(fileList: string[]) {
   if (fileList.length === 0) {
@@ -20,7 +24,7 @@ async function main(fileList: string[]) {
   await execFileAsync('npx', [
     'prettier',
     '--config',
-    require.resolve('@mongodb-js/prettier-config-devtools/.prettierrc.json'),
+    require.resolve(prettier),
     // Silently ignore files that are of format that is not supported by prettier.
     '--ignore-unknown',
     '--write',

@@ -22,7 +22,7 @@ import MongoDBService, {
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { StreamStub } from '../stubs';
 import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
-import { ServerCommands } from '../../../language/serverCommands';
+import { SERVER_COMMANDS } from '../../../language/serverCommands';
 import LINKS from '../../../utils/links';
 import Sinon from 'sinon';
 
@@ -2965,7 +2965,7 @@ suite('MongoDBService Test Suite', () => {
         consoleOutputs = [];
 
         Sinon.stub(connection, 'sendNotification')
-          .withArgs(ServerCommands.SHOW_CONSOLE_OUTPUT)
+          .withArgs(SERVER_COMMANDS.SHOW_CONSOLE_OUTPUT)
           .callsFake((_, params) =>
             Promise.resolve(void consoleOutputs.push(...params)),
           );

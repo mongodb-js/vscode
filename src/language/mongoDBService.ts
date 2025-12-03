@@ -25,7 +25,7 @@ import { isAtlasStream } from 'mongodb-build-info';
 import { Worker as WorkerThreads } from 'worker_threads';
 
 import formatError from '../utils/formatError';
-import { ServerCommands } from './serverCommands';
+import { SERVER_COMMANDS } from './serverCommands';
 import type {
   ShellEvaluateResult,
   PlaygroundEvaluateParams,
@@ -227,7 +227,7 @@ export default class MongoDBService {
     return new Promise((resolve) => {
       if (this._currentConnectionId !== params.connectionId) {
         void this._connection.sendNotification(
-          ServerCommands.SHOW_ERROR_MESSAGE,
+          SERVER_COMMANDS.SHOW_ERROR_MESSAGE,
           "The playground's active connection does not match the extension's active connection. Please reconnect and try again.",
         );
         return resolve(null);
@@ -267,11 +267,11 @@ export default class MongoDBService {
         );
 
         worker?.on('message', ({ name, payload }) => {
-          if (name === ServerCommands.SHOW_CONSOLE_OUTPUT) {
+          if (name === SERVER_COMMANDS.SHOW_CONSOLE_OUTPUT) {
             void this._connection.sendNotification(name, payload);
           }
 
-          if (name === ServerCommands.CODE_EXECUTION_RESULT) {
+          if (name === SERVER_COMMANDS.CODE_EXECUTION_RESULT) {
             const { error, data } = payload as {
               data: ShellEvaluateResult | null;
               error?: any;
@@ -281,7 +281,7 @@ export default class MongoDBService {
                 `WORKER error: ${util.inspect(error)}`,
               );
               void this._connection.sendNotification(
-                ServerCommands.SHOW_ERROR_MESSAGE,
+                SERVER_COMMANDS.SHOW_ERROR_MESSAGE,
                 formatError(error).message,
               );
             }
@@ -292,7 +292,7 @@ export default class MongoDBService {
         });
 
         worker.postMessage({
-          name: ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
+          name: SERVER_COMMANDS.EXECUTE_CODE_FROM_PLAYGROUND,
           data: {
             codeToEvaluate: params.codeToEvaluate,
             filePath: params.filePath,

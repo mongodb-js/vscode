@@ -13,14 +13,17 @@ import { MESSAGE_TYPES } from './extension-app-message-constants';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import type { ElectronFileDialogOptions } from '@mongodb-js/compass-components';
 
-export enum FILE_CHOOSER_MODE {
-  OPEN = 'open',
-  SAVE = 'save',
-}
+export const FILE_CHOOSER_MODE = {
+  OPEN: 'open',
+  SAVE: 'save',
+} as const;
+
+type FileChooserMode =
+  (typeof FILE_CHOOSER_MODE)[keyof typeof FILE_CHOOSER_MODE];
 
 export type FileChooserOptions = {
   electronFileDialogOptions?: Partial<ElectronFileDialogOptions>;
-  mode: FILE_CHOOSER_MODE;
+  mode: FileChooserMode;
 };
 
 type ConnectionInfo = {
