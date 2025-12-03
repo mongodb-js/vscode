@@ -12,7 +12,7 @@ export function getMCPConfigFromVSCodeSettings(
   retrieveMCPConfiguration: () => vscode.WorkspaceConfiguration = (): vscode.WorkspaceConfiguration =>
     vscode.workspace.getConfiguration('mdb.mcp'),
 ): Partial<UserConfig> {
-  const configurableProperties = new Set(Object.keys(UserConfigSchema.shape));
+  const configurableProperties = Object.keys(UserConfigSchema.shape);
 
   // We're attempting to:
   // 1. Use only the config values for MCP server exposed by VSCode config
@@ -22,7 +22,7 @@ export function getMCPConfigFromVSCodeSettings(
   const vscConfiguredProperties = Object.keys(packageJsonConfiguredProperties)
     .filter((key) => key.startsWith('mdb.mcp'))
     .map((key) => key.replace(/^mdb\.mcp\./, ''))
-    .filter((property) => configurableProperties.has(property));
+    .filter((property) => configurableProperties.includes(property));
 
   logger.debug('Will retrieve MCP config for the following properties', {
     vscConfiguredProperties,

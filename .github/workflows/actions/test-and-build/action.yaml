@@ -119,6 +119,14 @@ runs:
       run: |
         pnpm run snyk-test > /dev/null 2>&1
 
+    - name: Upload Snyk Report
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: Snyk Report - ${{ github.run_id }}
+        path: |
+          .sbom/
+
     # TODO(VSCODE-706): Fix Snyk vuln ticket generation
     # - name: Create Jira Tickets
     #   if: >
