@@ -16,6 +16,7 @@
     "email": "vscode@mongodb.com"
   },
   "publisher": "mongodb",
+  "module": "commonjs",
   "categories": [
     "AI",
     "Chat",
@@ -1458,7 +1459,7 @@
     "@types/glob": "^7.2.0",
     "@types/lodash": "^4.17.14",
     "@types/micromatch": "^4.0.9",
-    "@types/mocha": "^8.2.3",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.19.0",
     "@types/prettier": "^2.7.3",
     "@types/react": "^17.0.83",
@@ -1486,7 +1487,7 @@
     "husky": "^9.1.6",
     "jsdom": "^23.2.0",
     "mkdirp": "^1.0.4",
-    "mocha": "^10.7.3",
+    "mocha": "^11.7.4",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^6.5.0",
