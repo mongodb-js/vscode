@@ -57,7 +57,7 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: |
-        pnpm install --frozen-lockfile --no-optional
+        pnpm install --frozen-lockfile
 
     - name: Run Checks
       run: pnpm run check
