@@ -26,6 +26,7 @@ import {
   TEST_DATABASE_URI_USER,
   TEST_USER_USERNAME,
   TEST_USER_PASSWORD,
+  TEST_DATABASE_PORT,
 } from './dbTestHelper';
 import type { LoadedConnection } from '../../storage/connectionStorage';
 import getBuildInfo from 'mongodb-build-info';
@@ -129,7 +130,7 @@ suite('Connection Controller Test Suite', function () {
       );
       // But the active connection should
       expect(testConnectionController.getActiveConnectionString()).equals(
-        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}--${anonymousId}--${connectionId}`,
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}`,
       );
     });
 
@@ -167,7 +168,7 @@ suite('Connection Controller Test Suite', function () {
       );
       // But the active connection should
       expect(testConnectionController.getActiveConnectionString()).equals(
-        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}--${anonymousId}--${connectionId}`,
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}`,
       );
     });
 
@@ -205,7 +206,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('getMongoClientConnectionOptions appends anonymous and connection ID and options properties', async function () {
+    test('getMongoClientConnectionOptions does not append anonymous and connection ID to non-atlas connections', async function () {
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI,
       });
@@ -227,7 +228,7 @@ suite('Connection Controller Test Suite', function () {
         testConnectionController._connectionStorage.getUserAnonymousId();
 
       expect(mongoClientConnectionOptions).to.deep.equal({
-        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}--${anonymousId}--${latestConnectionId}`,
+        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}`,
         options: {
           autoEncryption: undefined,
           monitorCommands: true,
