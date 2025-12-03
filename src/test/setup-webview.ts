@@ -15,9 +15,9 @@ const requireModule = (() => {
   }
 
   // We're in ESM context, create require from import.meta.url
-  // @ts-ignore
+  // @ts-expect-error import.meta is not available in CommonJS context
   if (typeof import.meta !== 'undefined' && import.meta.url) {
-    // @ts-ignore
+    // @ts-expect-error import.meta is not available in CommonJS context
     return createRequire(import.meta.url);
   }
 
