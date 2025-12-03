@@ -26,7 +26,6 @@ import {
   TEST_DATABASE_URI_USER,
   TEST_USER_USERNAME,
   TEST_USER_PASSWORD,
-  TEST_DATABASE_PORT,
 } from './dbTestHelper';
 import type { LoadedConnection } from '../../storage/connectionStorage';
 import getBuildInfo from 'mongodb-build-info';
@@ -121,9 +120,6 @@ suite('Connection Controller Test Suite', function () {
       expect(connection.name).to.equal('localhost:27088');
       expect(testConnectionController.isCurrentlyConnected()).to.be.true;
 
-      const anonymousId =
-        testConnectionController._connectionStorage.getUserAnonymousId();
-
       // The stored connection string should not have the appName appended
       expect(connection.connectionOptions.connectionString).equals(
         `${TEST_DATABASE_URI}/`,
@@ -158,9 +154,6 @@ suite('Connection Controller Test Suite', function () {
       expect(connection.connectionOptions.connectionString).equals(
         `${TEST_DATABASE_URI}/`,
       );
-
-      const anonymousId =
-        testConnectionController._connectionStorage.getUserAnonymousId();
 
       // The stored connection string should not have the appName appended
       expect(connection.connectionOptions.connectionString).equals(
@@ -220,12 +213,6 @@ suite('Connection Controller Test Suite', function () {
       delete mongoClientConnectionOptions!.options.parentHandle;
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
-
-      const connectionIds = Object.keys(testConnectionController._connections);
-      const latestConnectionId = connectionIds[connectionIds.length - 1];
-
-      const anonymousId =
-        testConnectionController._connectionStorage.getUserAnonymousId();
 
       expect(mongoClientConnectionOptions).to.deep.equal({
         url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}`,
