@@ -153,7 +153,7 @@ export async function getConnectionTelemetryProperties(
       dl_version: dataLake.version,
       is_enterprise: build.isEnterprise,
       is_genuine: genuineMongoDB.isGenuine,
-      non_genuine_server_name: genuineMongoDB.dbType,
+      non_genuine_server_name: genuineMongoDB.serverName,
       server_version: build.version,
       server_arch: host.arch,
       server_os_family: host.os_family,

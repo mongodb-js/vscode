@@ -8,7 +8,7 @@ import type {
   ConnectionManager,
 } from 'mongodb-mcp-server';
 import {
-  defaultUserConfig,
+  UserConfigSchema,
   LoggerBase,
   StreamableHttpRunner,
   Keychain,
@@ -214,7 +214,7 @@ export class MCPController {
       });
 
       const runner = new StreamableHttpRunner({
-        userConfig: mcpConfig,
+        userConfig: UserConfigSchema.parse(mcpConfig),
         createConnectionManager: (...params) =>
           MCPController.createConnectionManager(this, ...params),
         connectionErrorHandler: createMCPConnectionErrorHandler(
@@ -239,11 +239,12 @@ export class MCPController {
     }
   }
 
-  private getMCPServerConfig(headers: Record<string, string>): UserConfig {
+  private getMCPServerConfig(
+    headers: Record<string, string>,
+  ): Partial<UserConfig> {
     const vscodeConfiguredMCPConfig = getMCPConfigFromVSCodeSettings();
 
     return {
-      ...defaultUserConfig,
       ...vscodeConfiguredMCPConfig,
       transport: 'http',
       httpPort: 0,

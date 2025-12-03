@@ -1,5 +1,6 @@
 import {
   ConnectionManager,
+  ConnectionStateConnected,
   type AnyConnectionState,
   type ConnectionStateDisconnected,
   type LoggerBase,
@@ -66,10 +67,10 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
         id: connectionId,
         provider: serviceProvider,
       };
-      return this.changeState('connection-success', {
-        tag: 'connected',
-        serviceProvider,
-      });
+      return this.changeState(
+        'connection-success',
+        new ConnectionStateConnected(serviceProvider),
+      );
     } catch (error) {
       this.logger.error({
         id: MCPLogIds.ConnectError,
