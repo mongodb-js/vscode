@@ -258,6 +258,30 @@ export default class MDBExtensionController implements vscode.Disposable {
         );
       }
 
+      const disallowedDeepLinkCommands = [
+        EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
+        EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+        EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+        EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+        EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+        EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
+        EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT,
+        EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
+        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+        EXTENSION_COMMANDS.MDB_DROP_DATABASE,
+        EXTENSION_COMMANDS.MDB_DROP_COLLECTION,
+        EXTENSION_COMMANDS.MDB_DELETE_DOCUMENT_FROM_TREE_VIEW,
+        EXTENSION_COMMANDS.MDB_DROP_STREAM_PROCESSOR,
+        EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION,
+        EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
+      ];
+
+      if (disallowedDeepLinkCommands.includes(command as EXTENSION_COMMANDS)) {
+        throw new Error(
+          `Command '${command}' cannot be invoked via deep links.`,
+        );
+      }
+
       await vscode.commands.executeCommand(command, parameters);
     } catch (error) {
       await vscode.window.showErrorMessage(
