@@ -1966,8 +1966,8 @@ suite('MDBExtensionController Test Suite', function () {
       expect(fakeShowErrorMessage).to.not.have.been.called;
     });
 
-    suite('blocks internal participant commands from deep links', () => {
-      const participantCommands = [
+    suite('blocks participant and destructive commands from deep links', () => {
+      const disabledCommands = [
         'mdb.runParticipantCode',
         'mdb.openParticipantCodeInPlayground',
         'mdb.connectWithParticipant',
@@ -1977,24 +1977,6 @@ suite('MDBExtensionController Test Suite', function () {
         'mdb.sendMessageToParticipant',
         'mdb.sendMessageToParticipantFromInput',
         'mdb.showExportToLanguageResult',
-      ];
-
-      participantCommands.forEach((command) => {
-        test(`blocks ${command}`, async () => {
-          await mdbTestExtension.testExtensionController._handleDeepLink(
-            vscode.Uri.parse(`vscode://mongodb.mongodb-vscode/${command}`),
-          );
-
-          expect(fakeExecuteCommand).to.not.have.been.called;
-          expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-            `Failed to handle 'vscode://mongodb.mongodb-vscode/${command}': Error: Command '${command}' cannot be invoked via deep links.`,
-          );
-        });
-      });
-    });
-
-    suite('blocks destructive commands from deep links', () => {
-      const destructiveCommands = [
         'mdb.dropDatabase',
         'mdb.dropCollection',
         'mdb.deleteDocumentFromTreeView',
@@ -2003,7 +1985,7 @@ suite('MDBExtensionController Test Suite', function () {
         'mdb.treeItemRemoveConnection',
       ];
 
-      destructiveCommands.forEach((command) => {
+      disabledCommands.forEach((command) => {
         test(`blocks ${command}`, async () => {
           await mdbTestExtension.testExtensionController._handleDeepLink(
             vscode.Uri.parse(`vscode://mongodb.mongodb-vscode/${command}`),
