@@ -106,9 +106,14 @@ suite('Editors Controller Test Suite', () => {
   test('saveMongoDBDocument returns false if there is no active editor', async () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => undefined);
 
-    const result = await vscode.commands.executeCommand(
-      'mdb.saveMongoDBDocument',
-    );
+    // Stub the built-in save command to prevent it from blocking in tests
+    const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
+    executeCommandStub
+      .withArgs('workbench.action.files.save')
+      .resolves(undefined);
+    executeCommandStub.callThrough();
+
+    const result = await executeCommandStub('mdb.saveMongoDBDocument');
 
     expect(result).to.be.equal(false);
     expect(showErrorMessageStub.notCalled).to.be.equal(true);

@@ -1595,11 +1595,26 @@ Schema:
 
         suite('includes the history of previous requests', function () {
           let addMessageStub: sinon.SinonStub;
+          let createConversationStub: sinon.SinonStub;
           beforeEach(function () {
+            createConversationStub = sinon.stub(
+              testParticipantController._docsChatbotAIService,
+              'createConversation',
+            );
+            createConversationStub.resolves({
+              _id: 'test-conversation-id',
+              messages: [],
+            });
             addMessageStub = sinon.stub(
               testParticipantController._docsChatbotAIService,
               'addMessage',
             );
+            addMessageStub.resolves({
+              id: 'test-message-id',
+              role: 'assistant',
+              content: 'test response',
+              references: [],
+            });
           });
 
           test('since the beginning', async function () {
