@@ -313,6 +313,9 @@ importers:
       rimraf:
         specifier: ^6.1.2
         version: 6.1.2
+      semver:
+        specifier: ^7.7.3
+        version: 7.7.3
       sinon:
         specifier: ^9.2.4
         version: 9.2.4
