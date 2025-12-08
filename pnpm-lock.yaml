@@ -232,9 +232,6 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
-      crypto-browserify:
-        specifier: ^3.12.1
-        version: 3.12.1
       depcheck:
         specifier: ^1.4.7
         version: 1.4.7
