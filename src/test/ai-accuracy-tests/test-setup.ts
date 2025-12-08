@@ -1,4 +1,4 @@
-import rewiremock from 'rewiremock';
+import Module from 'module';
 
 const AssistantRole = 2;
 const UserRole = 1;
@@ -36,5 +36,11 @@ const vscodeMock = {
 
 // Mock the 'vscode' module since we don't run the full vscode
 // integration test setup for the ai-accuracy-tests as it's a bit slow.
-rewiremock('vscode').with(vscodeMock);
-rewiremock.enable();
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const originalRequire = Module.prototype.require;
+Module.prototype.require = function (id: string): any {
+  if (id === 'vscode') {
+    return vscodeMock;
+  }
+  return originalRequire.call(this, id);
+};
