@@ -117,7 +117,7 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
       run: |
-        pnpm run snyk-test > /dev/null 2>&1
+        pnpm run snyk-test
 
     - name: Upload Snyk Report
       if: runner.os == 'Linux'
