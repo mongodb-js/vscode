@@ -30,6 +30,10 @@ import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvide
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 import { expect } from 'chai';
 import { DeepLinkTelemetryEvent } from '../../telemetry';
+import {
+  DEEP_LINK_ALLOWED_COMMANDS,
+  DEEP_LINK_DISALLOWED_COMMANDS,
+} from '../../mdbExtensionController';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -136,6 +140,47 @@ suite('MDBExtensionController Test Suite', function () {
 
   afterEach(() => {
     sandbox.restore();
+  });
+
+  suite('Deep link command lists validation', () => {
+    test('allowed and disallowed lists are disjoint', () => {
+      const allowedSet = new Set(
+        DEEP_LINK_ALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+      );
+      const disallowedSet = new Set(
+        DEEP_LINK_DISALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+      );
+
+      const overlap = [...allowedSet].filter((cmd) => disallowedSet.has(cmd));
+
+      expect(overlap).to.deep.equal(
+        [],
+        `Commands appear in both allowed and disallowed lists: ${overlap.join(', ')}`,
+      );
+    });
+
+    test('allowed and disallowed lists are complete', () => {
+      const allCommands = new Set(Object.values(EXTENSION_COMMANDS));
+      const allowedSet = new Set(
+        DEEP_LINK_ALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+      );
+      const disallowedSet = new Set(
+        DEEP_LINK_DISALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+      );
+      const combinedSet = new Set([...allowedSet, ...disallowedSet]);
+
+      const missing = [...allCommands].filter((cmd) => !combinedSet.has(cmd));
+      const extra = [...combinedSet].filter((cmd) => !allCommands.has(cmd));
+
+      expect(missing).to.deep.equal(
+        [],
+        `Commands missing from allowed/disallowed lists: ${missing.join(', ')}`,
+      );
+      expect(extra).to.deep.equal(
+        [],
+        `Commands in allowed/disallowed lists but not in EXTENSION_COMMANDS: ${extra.join(', ')}`,
+      );
+    });
   });
 
   suite('when not connected', () => {
@@ -1967,23 +2012,7 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     suite('blocks participant and destructive commands from deep links', () => {
-      const disabledCommands = [
-        'mdb.runParticipantCode',
-        'mdb.openParticipantCodeInPlayground',
-        'mdb.connectWithParticipant',
-        'mdb.selectDatabaseWithParticipant',
-        'mdb.selectCollectionWithParticipant',
-        'mdb.participantViewRawSchemaOutput',
-        'mdb.sendMessageToParticipant',
-        'mdb.sendMessageToParticipantFromInput',
-        'mdb.showExportToLanguageResult',
-        'mdb.dropDatabase',
-        'mdb.dropCollection',
-        'mdb.deleteDocumentFromTreeView',
-        'mdb.dropStreamProcessor',
-        'mdb.removeConnection',
-        'mdb.treeItemRemoveConnection',
-      ];
+      const disabledCommands = DEEP_LINK_DISALLOWED_COMMANDS;
 
       disabledCommands.forEach((command) => {
         test(`blocks ${command}`, async () => {
