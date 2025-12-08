@@ -1,8 +1,4 @@
-import {
-  type UserConfig,
-  configurableProperties,
-  defaultUserConfig,
-} from 'mongodb-mcp-server';
+import { type UserConfig, UserConfigSchema } from 'mongodb-mcp-server';
 import * as vscode from 'vscode';
 import { createLogger } from '../logging';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -16,6 +12,8 @@ export function getMCPConfigFromVSCodeSettings(
   retrieveMCPConfiguration: () => vscode.WorkspaceConfiguration = (): vscode.WorkspaceConfiguration =>
     vscode.workspace.getConfiguration('mdb.mcp'),
 ): Partial<UserConfig> {
+  const configurableProperties = Object.keys(UserConfigSchema.shape);
+
   // We're attempting to:
   // 1. Use only the config values for MCP server exposed by VSCode config
   // 2. Use only the config values that are relevant for MCP server (all mcp
@@ -24,7 +22,7 @@ export function getMCPConfigFromVSCodeSettings(
   const vscConfiguredProperties = Object.keys(packageJsonConfiguredProperties)
     .filter((key) => key.startsWith('mdb.mcp'))
     .map((key) => key.replace(/^mdb\.mcp\./, ''))
-    .filter((property) => configurableProperties.has(property));
+    .filter((property) => configurableProperties.includes(property));
 
   logger.debug('Will retrieve MCP config for the following properties', {
     vscConfiguredProperties,
@@ -40,14 +38,19 @@ export function getMCPConfigFromVSCodeSettings(
         // possible for a VSCode config to have a null value edited directly in the
         // settings file which is why to safeguard against incorrect values we map
         // them at-least to the expected defaults.
-        mcpConfigValues(property, configuredValue),
+        mcpConfigValues(property as keyof UserConfig, configuredValue),
       ];
     }),
   );
 }
 
+const defaultUserConfig = UserConfigSchema.parse({});
+
 // eslint-disable-next-line complexity
-function mcpConfigValues(property: string, configuredValue: unknown): unknown {
+function mcpConfigValues(
+  property: keyof UserConfig,
+  configuredValue: unknown,
+): unknown {
   switch (property) {
     case 'apiBaseUrl':
     case 'apiClientId':
@@ -61,7 +64,7 @@ function mcpConfigValues(property: string, configuredValue: unknown): unknown {
     case 'disabledTools':
       return Array.isArray(configuredValue)
         ? configuredValue
-        : defaultUserConfig.disabledTools;
+        : defaultUserConfig[property];
     case 'readOnly':
     case 'indexCheck':
     case 'exportTimeoutMs':

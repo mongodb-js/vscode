@@ -8,11 +8,11 @@ import type {
   ConnectionManager,
 } from 'mongodb-mcp-server';
 import {
-  defaultUserConfig,
   LoggerBase,
   StreamableHttpRunner,
   Keychain,
   registerGlobalSecretToRedact,
+  UserConfigSchema,
 } from 'mongodb-mcp-server';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
@@ -240,24 +240,21 @@ export class MCPController {
   }
 
   private getMCPServerConfig(headers: Record<string, string>): UserConfig {
-    const vscodeConfiguredMCPConfig = getMCPConfigFromVSCodeSettings();
-
-    return {
-      ...defaultUserConfig,
-      ...vscodeConfiguredMCPConfig,
+    const configFromSettings = getMCPConfigFromVSCodeSettings();
+    const vsCodeConfig: Partial<UserConfig> = {
+      ...configFromSettings,
       transport: 'http',
       httpPort: 0,
       httpHeaders: headers,
       disabledTools: Array.from(
-        new Set([
-          'connect',
-          ...(vscodeConfiguredMCPConfig.disabledTools ?? []),
-        ]),
+        new Set(['connect', ...(configFromSettings.disabledTools ?? [])]),
       ),
       loggers: Array.from(
-        new Set(['mcp', ...(vscodeConfiguredMCPConfig.loggers ?? [])]),
+        new Set(['mcp', ...(configFromSettings.loggers ?? [])]),
       ),
     };
+
+    return UserConfigSchema.parse(vsCodeConfig);
   }
 
   private static async createConnectionManager(

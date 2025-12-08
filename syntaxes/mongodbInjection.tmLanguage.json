@@ -1163,6 +1163,33 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$similarityCosine\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$similarityCosine.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$similarityDotProduct\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$similarityDotProduct.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$similarityEuclidean\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$similarityEuclidean.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$size\\b",
           "captures": {
             "0": {
@@ -1959,6 +1986,15 @@
           "captures": {
             "0": {
               "name": "keyword.other.$sample.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$scoreFusion\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$scoreFusion.mongodb"
             }
           }
         },

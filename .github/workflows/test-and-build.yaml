@@ -55,6 +55,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Run tests
         uses: ./.github/workflows/actions/run-tests
         with:

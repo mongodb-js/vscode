@@ -1,5 +1,6 @@
 import {
   ConnectionManager,
+  ConnectionStateConnected,
   type AnyConnectionState,
   type ConnectionStateDisconnected,
   type LoggerBase,
@@ -13,7 +14,6 @@ import { isAtlas, isAtlasStream } from 'mongodb-build-info';
 import { MCPLogIds } from './mcpLogIds';
 import ConnectionString from 'mongodb-connection-string-url';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
-
 export interface MCPConnectParams {
   connectionId: string;
   connectionString: string;
@@ -66,10 +66,10 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
         id: connectionId,
         provider: serviceProvider,
       };
-      return this.changeState('connection-success', {
-        tag: 'connected',
-        serviceProvider,
-      });
+      return this.changeState(
+        'connection-success',
+        new ConnectionStateConnected(serviceProvider),
+      );
     } catch (error) {
       this.logger.error({
         id: MCPLogIds.ConnectError,
