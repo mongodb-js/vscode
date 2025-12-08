@@ -16,6 +16,33 @@ permissions:
 jobs:
   test-and-build:
     name: Test and Build
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Check, build and package
+        uses: ./.github/workflows/actions/build-and-package
+        with:
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
+          ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          GARASIGN_PASSWORD: ${{ secrets.GARASIGN_PASSWORD }}
+          GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+  test:
+    name: Test
+    needs: test-and-build
     if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
 
     strategy:
@@ -34,14 +61,8 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.15.1
-          cache: pnpm
-
-      - name: Run tests and build
-        uses: ./.github/workflows/actions/test-and-build
+      - name: Run tests
+        uses: ./.github/workflows/actions/run-tests
         with:
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
           ARTIFACTORY_HOST: ${{ secrets.ARTIFACTORY_HOST }}
@@ -51,4 +72,5 @@ jobs:
           GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          MDB_IS_TEST: "true"
+
+
