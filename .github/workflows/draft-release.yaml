@@ -46,6 +46,9 @@ jobs:
           node-version: 22.15.1
           cache: pnpm
 
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Determine Next Version
         shell: bash
         env:
