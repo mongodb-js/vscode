@@ -31,7 +31,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
     let testActiveTextEditor;
 
     beforeEach(async () => {
-      // Don't replace the language server controller - use the global one that's already started
       sandbox.stub(vscode.window, 'showInformationMessage');
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
@@ -74,7 +73,6 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         .getConfiguration('mdb')
         .update('confirmRunAll', false);
 
-      // The language server is already started in the test suite index, no need to start it again
       await mdbTestExtension.testExtensionController._playgroundController._activeConnectionChanged();
 
       testActiveTextEditor = sandbox.stub(vscode.window, 'activeTextEditor');

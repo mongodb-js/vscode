@@ -69,6 +69,12 @@ module.exports = {
             allowHigherOrderFunctions: true,
           },
         ],
+        '@typescript-eslint/ban-ts-comment': [
+          'error',
+          {
+            'ts-ignore': 'allow-with-description',
+          },
+        ],
       },
       parserOptions: {
         project: ['./tsconfig.json'], // Specify it only for TypeScript files.

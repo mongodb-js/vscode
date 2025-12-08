@@ -14,3 +14,4 @@ CHANGELOG.md
 README.md
 constants.json
 .sbom
+pnpm-lock.yaml

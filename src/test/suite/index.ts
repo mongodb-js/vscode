@@ -55,17 +55,20 @@ export async function run(): Promise<void> {
           // Run the mocha test.
           mocha.run((failures) => {
             // Deactivate the extension to properly clean up the language server
-            void mdbTestExtension.testExtensionController.deactivate().then(() => {
-              if (failures > 0) {
-                e(new Error(`${failures} tests failed.`));
-              } else {
-                c();
-              }
-            }).catch((deactivateErr) => {
-              console.error('Error deactivating extension:');
-              console.error(deactivateErr);
-              e(deactivateErr);
-            });
+            void mdbTestExtension.testExtensionController
+              .deactivate()
+              .then(() => {
+                if (failures > 0) {
+                  e(new Error(`${failures} tests failed.`));
+                } else {
+                  c();
+                }
+              })
+              .catch((deactivateErr) => {
+                console.error('Error deactivating extension:');
+                console.error(deactivateErr);
+                e(deactivateErr);
+              });
           });
         } catch (mochaRunErr) {
           console.error('Error running mocha tests:');
