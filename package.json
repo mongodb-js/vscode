@@ -1481,7 +1481,7 @@
     "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.5.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
-    "glob": "^7.2.3",
+    "glob": "^13.0.0",
     "husky": "^9.1.6",
     "jsdom": "^23.2.0",
     "mkdirp": "^1.0.4",
