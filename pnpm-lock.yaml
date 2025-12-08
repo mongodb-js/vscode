@@ -134,7 +134,7 @@ importers:
         specifier: ^7.25.8
         version: 7.28.5
       '@modelcontextprotocol/sdk':
-        specifier: ^1.18.2
+        specifier: ^1.22.0
         version: 1.22.0(@cfworker/json-schema@4.1.1)
       '@mongodb-js/oidc-mock-provider':
         specifier: ^0.11.5
@@ -218,7 +218,7 @@ importers:
         specifier: ^2.4.1
         version: 2.5.2
       '@vscode/vsce':
-        specifier: ^3.2.0
+        specifier: ^3.7.1
         version: 3.7.1
       buffer:
         specifier: ^6.0.3
@@ -232,9 +232,6 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
-      crypto-browserify:
-        specifier: ^3.12.0
-        version: 3.12.1
       depcheck:
         specifier: ^1.4.7
         version: 1.4.7

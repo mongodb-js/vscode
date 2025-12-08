@@ -172,7 +172,8 @@ module.exports = (env, argv) => {
       fallback: {
         stream: require.resolve('stream-browserify'),
         buffer: require.resolve('buffer'),
-        crypto: require.resolve('crypto-browserify'),
+        // TODO(VSCODE-715): Remove this once we bump compass-components.
+        crypto: path.resolve(__dirname, 'src/utils/crypto-shim.js'),
         path: require.resolve('path-browserify'),
         mongodb: false,
       },
