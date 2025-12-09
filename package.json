@@ -55,7 +55,7 @@
     "pretest": "pnpm run compile",
     "test": "pnpm run test-webview && pnpm run test-extension",
     "test-extension": "cross-env MDB_IS_TEST=true NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
-    "test-webview": "mocha -r ts-node/register --exit --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
+    "test-webview": "mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
     "ai-accuracy-tests": "env TS_NODE_FILES=true mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/ai-accuracy-tests/test-setup.ts ./src/test/ai-accuracy-tests/ai-accuracy-tests.ts",
     "analyze-bundle": "webpack --mode production --analyze",
     "vscode:prepublish": "pnpm run clean && pnpm run compile:constants && pnpm run compile:resources && webpack --mode production",
@@ -1519,8 +1519,6 @@
   "pnpm": {
     "overrides": {
       "react": "^18.3.1",
-      "@mongodb-js/compass-logging": "^1.7.18",
-      "@mongodb-js/compass-utils": "^0.9.16",
       "parse-asn1": "5.1.6",
       "jsonwebtoken>jws": "3.2.3"
     }

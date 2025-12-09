@@ -6,8 +6,6 @@ settings:
 
 overrides:
   react: ^18.3.1
-  '@mongodb-js/compass-logging': ^1.7.18
-  '@mongodb-js/compass-utils': ^0.9.16
   parse-asn1: 5.1.6
   jsonwebtoken>jws: 3.2.3
 
@@ -1923,8 +1921,8 @@ packages:
     resolution: {integrity: sha512-ZGvBy8PdqNgcfZPaElSrmc3ItafSbodowipgQkJN65jKuAM8owETpMc8/ASxHTlI91y4sOll1V5WQR0FkqDHjA==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
 
-  '@mongodb-js/compass-app-registry@9.4.25':
-    resolution: {integrity: sha512-U16uwAHghWu1WY9L1Bqo1Ez44JTCKbeugy5AKm1nN1mQO19NmbHRCQWaQjaANVgyTe7chvtl7ybDIhvQKsrRvg==}
+  '@mongodb-js/compass-app-registry@9.4.29':
+    resolution: {integrity: sha512-rggaIWj1e0XHr/QKyXU2ZudaTgx9fTRT7t9tB2oUhsWopjOH14WOro9EbI6g6z8SiMSwA50mnhhtMQ/+VDm/WA==}
 
   '@mongodb-js/compass-components@1.59.2':
     resolution: {integrity: sha512-D6Mk5+wCYX7CHyOOcwHWuWYBBb9JzlobU00+oYDhHJZQUOgCWPFE4sglDqYNspDi/fCbglgC9KGnE1ylGqS7ig==}
@@ -1935,11 +1933,11 @@ packages:
   '@mongodb-js/compass-editor@0.61.1':
     resolution: {integrity: sha512-oZAXP8Ydrl3OFx0WNLrkFTF2SEP1fR/2cRudIrXLvsSm74qa18qxPD/LyUQxsUvTSG5OSVjTtNHxquN8Ck2Brw==}
 
-  '@mongodb-js/compass-logging@1.7.18':
-    resolution: {integrity: sha512-8QTMTcX2Gkx8IX/wvkNHqjstd3LM1tsW1CskyTpbuVreQNC6XyTcL+NeaVh4l507CPCy/jFuAEaEvm3B7NuMCA==}
+  '@mongodb-js/compass-logging@1.7.25':
+    resolution: {integrity: sha512-smhSacWanm9NPtJxhsmas+7xFDLNEd7ZxfPPAtlC8dW5HBcO4dxD859KjtcaaDwidfeuhwcKor0DFmePH3iSxA==}
 
-  '@mongodb-js/compass-utils@0.9.16':
-    resolution: {integrity: sha512-onWfEq2t7cxVOxfsuA9QkzvXCwxtZWWahyXwpeT5U8xpYFDU6D2UbRMWKL5LgGbREJIwHOTJ8IQkawFUbk93Mg==}
+  '@mongodb-js/compass-utils@0.9.23':
+    resolution: {integrity: sha512-WTQXGeGH10xWFPJT+etVrjkSwJNq4c/BTrcoJxazL7AT3Ke6XJwxRV0hHoFpI3TqSpaR2re8OEb7xPgyNvpfGQ==}
 
   '@mongodb-js/connection-form@1.74.1':
     resolution: {integrity: sha512-NOSNamktKEIvkPc8VrmEYsgs62UWFeQanO8n3fSOYaYgJTBkqwzR38JutEIBucdv0N9FvoI6uWg8aakV3MYVUg==}
@@ -10205,7 +10203,7 @@ snapshots:
     dependencies:
       '@lezer/common': 1.3.0
 
-  '@lg-chat/avatar@8.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+  '@lg-chat/avatar@8.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/avatar': 3.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
@@ -10218,7 +10216,7 @@ snapshots:
       - react
       - supports-color
 
-  '@lg-chat/chat-window@4.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+  '@lg-chat/chat-window@4.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -10226,13 +10224,13 @@ snapshots:
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
       '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
-      '@lg-chat/title-bar': 4.2.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@lg-chat/title-bar': 4.2.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       react-keyed-flatten-children: 2.2.1(react@18.3.1)
     transitivePeerDependencies:
       - react
       - supports-color
 
-  '@lg-chat/input-bar@10.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
+  '@lg-chat/input-bar@10.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/avatar': 3.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/badge': 10.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -10284,7 +10282,7 @@ snapshots:
       - react-dom
       - supports-color
 
-  '@lg-chat/message-feedback@7.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
+  '@lg-chat/message-feedback@7.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/button': 25.1.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
@@ -10305,7 +10303,7 @@ snapshots:
       - react-dom
       - supports-color
 
-  '@lg-chat/message-rating@5.0.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+  '@lg-chat/message-rating@5.0.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
@@ -10321,7 +10319,7 @@ snapshots:
       - react
       - supports-color
 
-  '@lg-chat/message@8.2.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
+  '@lg-chat/message@8.2.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/avatar': 3.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/badge': 10.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -10338,8 +10336,8 @@ snapshots:
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@lg-chat/lg-markdown': 4.2.2(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
-      '@lg-chat/message-feedback': 7.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
-      '@lg-chat/message-rating': 5.0.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@lg-chat/message-feedback': 7.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
+      '@lg-chat/message-rating': 5.0.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@lg-chat/rich-links': 4.0.7(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - '@types/react'
@@ -10362,7 +10360,7 @@ snapshots:
       - react
       - supports-color
 
-  '@lg-chat/title-bar@4.2.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+  '@lg-chat/title-bar@4.2.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/badge': 10.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
@@ -10372,7 +10370,7 @@ snapshots:
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/avatar': 8.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@lg-chat/avatar': 8.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - react
@@ -10453,7 +10451,7 @@ snapshots:
       '@mongodb-js/atlas-local-win32-x64-msvc': 1.1.0
     optional: true
 
-  '@mongodb-js/compass-app-registry@9.4.25(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(react-dom@18.3.1(react@18.3.1))':
+  '@mongodb-js/compass-app-registry@9.4.29(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(react-dom@18.3.1(react@18.3.1))':
     dependencies:
       eventemitter3: 4.0.7
       react: 18.3.1
@@ -10516,10 +10514,10 @@ snapshots:
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
       '@leafygreen-ui/tooltip': 14.3.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/chat-window': 4.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/input-bar': 10.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
+      '@lg-chat/chat-window': 4.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@lg-chat/input-bar': 10.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
-      '@lg-chat/message': 8.2.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
+      '@lg-chat/message': 8.2.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@mongodb-js/compass-context-menu': 0.3.1
       '@mongodb-js/diagramming': 2.2.2(@types/react@17.0.90)
       '@react-aria/interactions': 3.25.6(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -10587,9 +10585,9 @@ snapshots:
       - socks
       - supports-color
 
-  '@mongodb-js/compass-logging@1.7.18(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(bson@6.10.4)(react-dom@18.3.1(react@18.3.1))':
+  '@mongodb-js/compass-logging@1.7.25(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(bson@6.10.4)(react-dom@18.3.1(react@18.3.1))':
     dependencies:
-      '@mongodb-js/compass-app-registry': 9.4.25(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(react-dom@18.3.1(react@18.3.1))
+      '@mongodb-js/compass-app-registry': 9.4.29(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(react-dom@18.3.1(react@18.3.1))
       debug: 4.4.3(supports-color@8.1.1)
       hadron-ipc: 3.5.22
       is-electron-renderer: 2.0.1
@@ -10603,7 +10601,7 @@ snapshots:
       - react-native
       - supports-color
 
-  '@mongodb-js/compass-utils@0.9.16':
+  '@mongodb-js/compass-utils@0.9.23':
     dependencies:
       '@electron/remote': 2.1.3(electron@37.10.2)
       electron: 37.10.2
@@ -15552,8 +15550,8 @@ snapshots:
 
   mongodb-data-service@22.35.0(@mongodb-js/oidc-plugin@2.0.5)(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(kerberos@2.1.0)(mongodb-log-writer@2.4.4(bson@6.10.4))(react-dom@18.3.1(react@18.3.1))(socks@2.8.7):
     dependencies:
-      '@mongodb-js/compass-logging': 1.7.18(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(bson@6.10.4)(react-dom@18.3.1(react@18.3.1))
-      '@mongodb-js/compass-utils': 0.9.16
+      '@mongodb-js/compass-logging': 1.7.25(@types/react-dom@17.0.26(@types/react@17.0.90))(@types/react@17.0.90)(bson@6.10.4)(react-dom@18.3.1(react@18.3.1))
+      '@mongodb-js/compass-utils': 0.9.23
       '@mongodb-js/devtools-connect': 3.10.0(@mongodb-js/oidc-plugin@2.0.5)(mongodb-log-writer@2.4.4(bson@6.10.4))(mongodb@6.21.0(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7))
       '@mongodb-js/devtools-proxy-support': 0.5.5
       bson: 6.10.4
