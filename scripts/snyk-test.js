@@ -34,6 +34,7 @@ async function snykTest(cwd) {
     return res;
   } catch (err) {
     console.error(`testing ${cwd} failed. ${err.message}`);
+    throw err;
   } finally {
     try {
       await fs.rm(tmpPath);
@@ -47,6 +48,11 @@ async function main() {
   const rootPath = path.resolve(__dirname, '..');
   await fs.mkdir(path.join(rootPath, `.sbom`), { recursive: true });
   const results = await snykTest(rootPath);
+
+  if (!results) {
+    console.error('Snyk test failed to produce results');
+    process.exit(1);
+  }
 
   await fs.writeFile(
     path.join(rootPath, `.sbom/snyk-test-result.json`),
@@ -66,4 +72,7 @@ async function main() {
   );
 }
 
-main();
+main().catch((err) => {
+  console.error('Snyk test failed:', err);
+  process.exit(1);
+});
