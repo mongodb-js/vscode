@@ -8,6 +8,12 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Setup Node.js Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.15.1
+        cache: pnpm
+
     - name: Install Deps Ubuntu
       if: ${{ runner.os == 'Linux' }}
       run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
@@ -43,14 +49,14 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: |
-        # Retry npm ci up to 3 times to handle transient network errors
+        # Retry pnpm install up to 3 times to handle transient network errors
         for i in 1 2 3; do
-          npm ci --omit=optional && break || {
+          pnpm install --frozen-lockfile && break || {
             if [ $i -eq 3 ]; then
-              echo "npm ci failed after 3 attempts"
+              echo "pnpm install failed after 3 attempts"
               exit 1
             fi
-            echo "npm ci failed, retrying in 10 seconds... (attempt $i/3)"
+            echo "pnpm install failed, retrying in 10 seconds... (attempt $i/3)"
             sleep 10
           }
         done
@@ -83,7 +89,7 @@ runs:
         NODE_OPTIONS: "--max_old_space_size=4096"
         MDB_IS_TEST: "true"
       run: |
-        npm run test
+        pnpm run test
       shell: bash
 
     - name: Install VSIX and Test

@@ -160,8 +160,8 @@ Is there anything else you’d like to see in MongoDB for VS Code? Let us know b
 You can clone this [repository](https://github.com/mongodb-js/vscode) and install the extension in your VS Code with:
 
 ```shell
-npm install
-npm run local-install
+pnpm install
+pnpm run local-install
 ```
 
 This will compile and package MongoDB for VS Code into a `.vsix` file and add the extension to your VS Code.
@@ -169,7 +169,7 @@ This will compile and package MongoDB for VS Code into a `.vsix` file and add th
 To install this locally on Windows:
 
 ```shell
-npm install
+pnpm install
 .\node_modules\.bin\vsce.cmd package
 code --install-extension ./mongodb-vscode-*.vsix
 ```

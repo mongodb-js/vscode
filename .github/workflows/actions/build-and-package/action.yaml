@@ -29,6 +29,15 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+
+    - name: Setup Node.js Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.15.1
+        cache: pnpm
+
     - name: Install Deps Ubuntu
       run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
       shell: bash
@@ -65,22 +74,22 @@ runs:
       run: |
         # Retry npm ci up to 3 times to handle transient network errors
         for i in 1 2 3; do
-          npm ci --omit=optional && break || {
+          pnpm install --frozen-lockfile && break || {
             if [ $i -eq 3 ]; then
-              echo "npm ci failed after 3 attempts"
+              echo "pnpm install failed after 3 attempts"
               exit 1
             fi
-            echo "npm ci failed, retrying in 10 seconds... (attempt $i/3)"
+            echo "pnpm install failed, retrying in 10 seconds... (attempt $i/3)"
             sleep 10
           }
         done
 
     - name: Compile
-      run: npm run compile
+      run: pnpm run compile
       shell: bash
 
     - name: Run Checks
-      run: npm run check
+      run: pnpm run check
       shell: bash
 
     - name: Build .vsix
@@ -88,11 +97,11 @@ runs:
         NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
       # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
       run: |
-        npx vsce package --githubBranch main
+        pnpm exec vsce package --githubBranch main
       shell: bash
 
     - name: Check .vsix filesize
-      run: npm run check-vsix-size
+      run: pnpm run check-vsix-size
       shell: bash
 
     - name: Sign .vsix
@@ -134,7 +143,7 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
       run: |
-        npm run snyk-test
+        pnpm run snyk-test
 
     - name: Create Jira Tickets
       if: >
@@ -150,7 +159,7 @@ runs:
         JIRA_PROJECT: "VSCODE"
         JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
       run: |
-        npm run create-vulnerability-tickets > /dev/null
+        pnpm run create-vulnerability-tickets > /dev/null
 
     - name: Generate Vulnerability Report (Fail on >= High)
       continue-on-error: ${{ github.event_name == 'pull_request' }}
@@ -160,4 +169,4 @@ runs:
         # available for everyone with read access to the repo, which is everyone that is
         # logged in for public repos.
         # This command is only here to fail on failures for `main` and tags.
-        npm run generate-vulnerability-report > /dev/null
+        pnpm run generate-vulnerability-report > /dev/null

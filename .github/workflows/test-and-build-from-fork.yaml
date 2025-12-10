@@ -7,8 +7,8 @@ permissions:
   contents: read
 
 jobs:
-  build-and-package:
-    name: Check, Build and Package
+  test-and-build:
+    name: Test and Build
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
@@ -20,11 +20,8 @@ jobs:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
 
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.15.1
-          cache: npm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Check, build and package
         uses: ./.github/workflows/actions/build-and-package
@@ -40,7 +37,7 @@ jobs:
 
   test:
     name: Test
-    needs: build-and-package
+    needs: test-and-build
     if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
     strategy:
@@ -54,11 +51,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.15.1
-          cache: npm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Run tests
         uses: ./.github/workflows/actions/run-tests
@@ -77,22 +74,3 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-  status-check:
-    name: Test and Build
-    runs-on: ubuntu-latest
-    needs: [build-and-package, test]
-    if: always()
-    steps:
-      - name: Check job results
-        run: |
-          if [ "${{ needs.build-and-package.result }}" == "failure" ] || [ "${{ needs.test.result }}" == "failure" ]; then
-            echo "One or more jobs failed"
-            exit 1
-          elif [ "${{ needs.build-and-package.result }}" == "cancelled" ] || [ "${{ needs.test.result }}" == "cancelled" ]; then
-            echo "One or more jobs were cancelled"
-            exit 1
-          else
-            echo "All jobs completed successfully or were skipped"
-            exit 0
-          fi

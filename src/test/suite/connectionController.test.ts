@@ -120,16 +120,13 @@ suite('Connection Controller Test Suite', function () {
       expect(connection.name).to.equal('localhost:27088');
       expect(testConnectionController.isCurrentlyConnected()).to.be.true;
 
-      const anonymousId =
-        testConnectionController._connectionStorage.getUserAnonymousId();
-
       // The stored connection string should not have the appName appended
       expect(connection.connectionOptions.connectionString).equals(
         `${TEST_DATABASE_URI}/`,
       );
       // But the active connection should
       expect(testConnectionController.getActiveConnectionString()).equals(
-        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}--${anonymousId}--${connectionId}`,
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}`,
       );
     });
 
@@ -158,16 +155,13 @@ suite('Connection Controller Test Suite', function () {
         `${TEST_DATABASE_URI}/`,
       );
 
-      const anonymousId =
-        testConnectionController._connectionStorage.getUserAnonymousId();
-
       // The stored connection string should not have the appName appended
       expect(connection.connectionOptions.connectionString).equals(
         `${TEST_DATABASE_URI}/`,
       );
       // But the active connection should
       expect(testConnectionController.getActiveConnectionString()).equals(
-        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}--${anonymousId}--${connectionId}`,
+        `${TEST_DATABASE_URI}/?appName=mongodb-vscode+${version}`,
       );
     });
 
@@ -205,7 +199,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('getMongoClientConnectionOptions appends anonymous and connection ID and options properties', async function () {
+    test('getMongoClientConnectionOptions does not append anonymous and connection ID to non-atlas connections', async function () {
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI,
       });
@@ -220,14 +214,8 @@ suite('Connection Controller Test Suite', function () {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
-      const connectionIds = Object.keys(testConnectionController._connections);
-      const latestConnectionId = connectionIds[connectionIds.length - 1];
-
-      const anonymousId =
-        testConnectionController._connectionStorage.getUserAnonymousId();
-
       expect(mongoClientConnectionOptions).to.deep.equal({
-        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}--${anonymousId}--${latestConnectionId}`,
+        url: `mongodb://localhost:27088/?appName=mongodb-vscode+${version}`,
         options: {
           autoEncryption: undefined,
           monitorCommands: true,
