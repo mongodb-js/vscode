@@ -23,18 +23,20 @@ async function snykTest(cwd) {
           '--dev',
           `--json-file-output=${tmpPath}`,
         ],
-        { cwd, stdio: 'inherit' },
+        // Do not print anything to the console.
+        { cwd, stdio: 'ignore' },
       );
     } catch (err) {
-      console.warn(err);
+      throw new Error(
+        console.log(
+          'temporarily re-add',
+        )`Snyk test failed to produce results for ${cwd}. Check the report for details.`,
+      );
     }
 
     const res = JSON.parse(await fs.readFile(tmpPath));
-    console.info(`testing ${cwd} done.`);
+    console.info(`Testing ${cwd} completed.`);
     return res;
-  } catch (err) {
-    console.error(`testing ${cwd} failed. ${err.message}`);
-    throw err;
   } finally {
     try {
       await fs.rm(tmpPath);
@@ -73,6 +75,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Snyk test failed:', err);
+  console.error('Snyk Test Failed:', err.message);
   process.exit(1);
 });
