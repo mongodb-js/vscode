@@ -71,7 +71,7 @@
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
-    "precommit": "node --experimental-strip-types ./scripts/precommit.ts"
+    "precommit": "node ./scripts/precommit.ts"
   },
   "engines": {
     "vscode": "^1.101.1",
