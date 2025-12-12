@@ -9,7 +9,7 @@ import { createLogger } from '../logging';
 import ExtensionCommand from '../commands';
 import type { MessageFromWebviewToExtension } from './webview-app/extension-app-message-constants';
 import {
-  MESSAGE_TYPES,
+  MessageType,
   VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID,
   VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
 } from './webview-app/extension-app-message-constants';
@@ -164,7 +164,7 @@ export default class WebviewController {
     }
 
     void panel.webview.postMessage({
-      command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT,
+      command: MessageType.OPEN_FILE_CHOOSER_RESULT,
       fileChooserResult: {
         canceled: false,
         ...(Array.isArray(files)
@@ -207,7 +207,7 @@ export default class WebviewController {
       try {
         // The webview may have been closed in which case this will throw.
         void panel.webview.postMessage({
-          command: MESSAGE_TYPES.CONNECT_RESULT,
+          command: MessageType.CONNECT_RESULT,
           connectionId: connection.id,
           connectionSuccess: successfullyConnected,
           connectionMessage: successfullyConnected
@@ -223,7 +223,7 @@ export default class WebviewController {
       );
 
       void panel.webview.postMessage({
-        command: MESSAGE_TYPES.CONNECT_RESULT,
+        command: MessageType.CONNECT_RESULT,
         connectionId: connection.id,
         connectionSuccess: false,
         connectionMessage: `Unable to load connection: ${error}`,
@@ -237,16 +237,16 @@ export default class WebviewController {
     panel: vscode.WebviewPanel,
   ): Promise<void> => {
     switch (message.command) {
-      case MESSAGE_TYPES.CONNECT:
+      case MessageType.CONNECT:
         await this.handleWebviewConnectAttempt({
           panel,
           connection: message.connectionInfo,
         });
         return;
-      case MESSAGE_TYPES.CANCEL_CONNECT:
+      case MessageType.CANCEL_CONNECT:
         this._connectionController.cancelConnectionAttempt();
         return;
-      case MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT:
+      case MessageType.EDIT_CONNECTION_AND_CONNECT:
         await this.handleWebviewConnectAttempt({
           panel,
           connection: message.connectionInfo,
@@ -254,37 +254,37 @@ export default class WebviewController {
         });
         this._telemetryService.track(new ConnectionEditedTelemetryEvent());
         return;
-      case MESSAGE_TYPES.OPEN_FILE_CHOOSER:
+      case MessageType.OPEN_FILE_CHOOSER:
         await this.handleWebviewOpenFileChooserAttempt({
           panel,
           fileChooserOptions: message.fileChooserOptions,
           requestId: message.requestId,
         });
         return;
-      case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
+      case MessageType.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
           ExtensionCommand.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
         );
         return;
-      case MESSAGE_TYPES.CONNECTION_FORM_OPENED:
+      case MessageType.CONNECTION_FORM_OPENED:
         // If the connection string input is open we want to close it
         // when the user opens the form.
         this._connectionController.closeConnectionStringInput();
         return;
-      case MESSAGE_TYPES.GET_CONNECTION_STATUS:
+      case MessageType.GET_CONNECTION_STATUS:
         void panel.webview.postMessage({
-          command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
+          command: MessageType.CONNECTION_STATUS_MESSAGE,
           connectionStatus: this._connectionController.getConnectionStatus(),
           activeConnectionName:
             this._connectionController.getActiveConnectionName(),
         });
         return;
-      case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
+      case MessageType.OPEN_CONNECTION_STRING_INPUT:
         void vscode.commands.executeCommand(
           ExtensionCommand.MDB_CONNECT_WITH_URI,
         );
         return;
-      case MESSAGE_TYPES.OPEN_TRUSTED_LINK:
+      case MessageType.OPEN_TRUSTED_LINK:
         try {
           await openLink(message.linkTo);
         } catch (err) {
@@ -295,12 +295,12 @@ export default class WebviewController {
           );
         }
         return;
-      case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
+      case MessageType.EXTENSION_LINK_CLICKED:
         this._telemetryService.track(
           new LinkClickedTelemetryEvent(message.screen, message.linkId),
         );
         return;
-      case MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION:
+      case MessageType.RENAME_ACTIVE_CONNECTION:
         if (this._connectionController.isCurrentlyConnected()) {
           void this._connectionController.renameConnection(
             this._connectionController.getActiveConnectionId() as string,
@@ -339,7 +339,7 @@ export default class WebviewController {
     for (const panel of this._activeWebviewPanels) {
       void panel.webview
         .postMessage({
-          command: MESSAGE_TYPES.THEME_CHANGED,
+          command: MessageType.THEME_CHANGED,
           darkMode: darkModeDetected,
         })
         .then(undefined, (error) => {
@@ -369,7 +369,7 @@ export default class WebviewController {
     this._telemetryService.track(new OpenEditConnectionTelemetryEvent());
 
     void webviewPanel.webview.postMessage({
-      command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
+      command: MessageType.OPEN_EDIT_CONNECTION,
       connection,
     });
   };

@@ -18,7 +18,7 @@ export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
 export const VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID =
   'VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID';
 
-export const MESSAGE_TYPES = {
+export const MessageType = {
   CONNECT: 'CONNECT',
   CANCEL_CONNECT: 'CANCEL_CONNECT',
   CONNECT_RESULT: 'CONNECT_RESULT',
@@ -42,21 +42,21 @@ interface BasicWebviewMessage {
 }
 
 export interface CreateNewPlaygroundMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.CREATE_NEW_PLAYGROUND;
+  command: MessageType.CREATE_NEW_PLAYGROUND;
 }
 
 export interface ConnectionFormOpenedMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.CONNECTION_FORM_OPENED;
+  command: MessageType.CONNECTION_FORM_OPENED;
 }
 
 export interface ConnectionStatusMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE;
+  command: MessageType.CONNECTION_STATUS_MESSAGE;
   connectionStatus: ConnectionStatus;
   activeConnectionName: string;
 }
 
 export interface OpenEditConnectionMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.OPEN_EDIT_CONNECTION;
+  command: MessageType.OPEN_EDIT_CONNECTION;
   connection: {
     id: string;
     name: string;
@@ -65,7 +65,7 @@ export interface OpenEditConnectionMessage extends BasicWebviewMessage {
 }
 
 export interface EditConnectionAndConnectMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT;
+  command: MessageType.EDIT_CONNECTION_AND_CONNECT;
   connectionInfo: {
     id: string;
     connectionOptions: ConnectionOptions;
@@ -73,13 +73,13 @@ export interface EditConnectionAndConnectMessage extends BasicWebviewMessage {
 }
 
 export interface OpenFileChooserMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.OPEN_FILE_CHOOSER;
+  command: MessageType.OPEN_FILE_CHOOSER;
   fileChooserOptions: FileChooserOptions;
   requestId: string;
 }
 
 export interface ConnectMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.CONNECT;
+  command: MessageType.CONNECT;
   connectionInfo: {
     id: string;
     connectionOptions: ConnectionOptions;
@@ -87,11 +87,11 @@ export interface ConnectMessage extends BasicWebviewMessage {
 }
 
 export interface CancelConnectMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.CANCEL_CONNECT;
+  command: MessageType.CANCEL_CONNECT;
 }
 
 export interface ConnectResultsMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.CONNECT_RESULT;
+  command: MessageType.CONNECT_RESULT;
   connectionSuccess: boolean;
   connectionMessage: string;
   connectionId: string;
@@ -102,36 +102,36 @@ export type FileChooserResult =
   | { canceled: false; filePath?: string };
 
 export interface OpenFileChooserResultMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT;
+  command: MessageType.OPEN_FILE_CHOOSER_RESULT;
   fileChooserResult: FileChooserResult;
   requestId: string;
 }
 
 export interface GetConnectionStatusMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.GET_CONNECTION_STATUS;
+  command: MessageType.GET_CONNECTION_STATUS;
 }
 
 export interface OpenConnectionStringInputMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT;
+  command: MessageType.OPEN_CONNECTION_STRING_INPUT;
 }
 
 export interface LinkClickedMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.EXTENSION_LINK_CLICKED;
+  command: MessageType.EXTENSION_LINK_CLICKED;
   screen: string;
   linkId: string;
 }
 
 export interface OpenTrustedLinkMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.OPEN_TRUSTED_LINK;
+  command: MessageType.OPEN_TRUSTED_LINK;
   linkTo: string;
 }
 
 export interface RenameConnectionMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION;
+  command: MessageType.RENAME_ACTIVE_CONNECTION;
 }
 
 export interface ThemeChangedMessage extends BasicWebviewMessage {
-  command: typeof MESSAGE_TYPES.THEME_CHANGED;
+  command: MessageType.THEME_CHANGED;
   darkMode: boolean;
 }
 

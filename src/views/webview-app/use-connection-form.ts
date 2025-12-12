@@ -9,7 +9,7 @@ import {
   sendEditConnectionToExtension,
   sendOpenFileChooserToExtension,
 } from './vscode-api';
-import { MESSAGE_TYPES } from './extension-app-message-constants';
+import { MessageType } from './extension-app-message-constants';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import type { ElectronFileDialogOptions } from '@mongodb-js/compass-components';
 
@@ -163,7 +163,7 @@ export default function useConnectionForm(): {
     const handleConnectResultResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (
-        message.command === MESSAGE_TYPES.CONNECT_RESULT &&
+        message.command === MessageType.CONNECT_RESULT &&
         message.connectionId === initialConnectionInfo.id
       ) {
         dispatch({
@@ -182,7 +182,7 @@ export default function useConnectionForm(): {
   useEffect(() => {
     const handleConnectResultResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
-      if (message.command === MESSAGE_TYPES.OPEN_EDIT_CONNECTION) {
+      if (message.command === MessageType.OPEN_EDIT_CONNECTION) {
         dispatch({
           type: 'open-edit-connection',
           connectionInfo: {

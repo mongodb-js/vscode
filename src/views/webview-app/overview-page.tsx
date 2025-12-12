@@ -22,7 +22,7 @@ import useConnectionForm, {
   type FileChooserOptions,
 } from './use-connection-form';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
-import { MESSAGE_TYPES } from './extension-app-message-constants';
+import { MessageType } from './extension-app-message-constants';
 
 const pageStyles = css({
   width: '90%',
@@ -76,7 +76,7 @@ const OverviewPage: React.FC = () => {
       ): void => {
         const message = event.data;
         if (
-          message.command === MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT &&
+          message.command === MessageType.OPEN_FILE_CHOOSER_RESULT &&
           message.requestId === requestId
         ) {
           window.removeEventListener('message', messageHandler);
