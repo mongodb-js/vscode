@@ -28,7 +28,9 @@ async function snykTest(cwd) {
       );
     } catch (err) {
       throw new Error(
-        `Snyk test failed to produce results for ${cwd}. Check the report for details.`,
+        console.log(
+          'temporarily re-add',
+        )`Snyk test failed to produce results for ${cwd}. Check the report for details.`,
       );
     }
 
