@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 
 import type { Diagnostic } from 'vscode-languageserver/node';
 
-import EXTENSION_COMMANDS from '../commands';
-import DIAGNOSTIC_CODES from './../language/diagnosticCodes';
+import ExtensionCommand from '../commands';
+import DiagnosticCode from './../language/diagnosticCodes';
 
 export default class PlaygroundDiagnosticsCodeActionProvider
   implements vscode.CodeActionProvider
@@ -32,15 +32,14 @@ export default class PlaygroundDiagnosticsCodeActionProvider
 
     for (const diagnostic of diagnostics) {
       switch (diagnostic.code) {
-        case DIAGNOSTIC_CODES.invalidInteractiveSyntaxes:
+        case DiagnosticCode.invalidInteractiveSyntaxes:
           {
             const fix = new vscode.CodeAction(
               'Fix this interactive syntax problem',
               vscode.CodeActionKind.QuickFix,
             );
             fix.command = {
-              command:
-                EXTENSION_COMMANDS.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
+              command: ExtensionCommand.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
               title: 'Fix invalid interactive syntax',
               arguments: [
                 {
@@ -60,7 +59,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
 
     const allDiagnostics = vscode.languages
       .getDiagnostics(document.uri)
-      .filter((d) => d.code === DIAGNOSTIC_CODES.invalidInteractiveSyntaxes);
+      .filter((d) => d.code === DiagnosticCode.invalidInteractiveSyntaxes);
 
     if (allDiagnostics.length > 1) {
       const fix = new vscode.CodeAction(
@@ -69,7 +68,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
       );
 
       fix.command = {
-        command: EXTENSION_COMMANDS.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
+        command: ExtensionCommand.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
         title: 'Fix invalid interactive syntax',
         arguments: [
           {

@@ -3,7 +3,7 @@ import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import type { CollectionDetailsType } from '../../../explorer/collectionTreeItem';
-import { CollectionTypes } from '../../../explorer/documentListTreeItem';
+import { CollectionType } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
 
@@ -16,7 +16,7 @@ function getTestCollectionTreeItem(
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
-      type: CollectionTypes.collection,
+      type: CollectionType.collection,
     } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
@@ -81,7 +81,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionViewTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.view,
+        type: CollectionType.view,
       } as unknown as CollectionDetailsType,
     });
 
@@ -98,7 +98,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection,
+        type: CollectionType.collection,
       } as unknown as CollectionDetailsType,
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
@@ -120,7 +120,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionTimeSeriesTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.timeseries,
+        type: CollectionType.timeseries,
       } as unknown as CollectionDetailsType,
     });
     const viewIconPath = testCollectionTimeSeriesTreeItem.iconPath;
@@ -136,7 +136,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection,
+        type: CollectionType.collection,
       } as unknown as CollectionDetailsType,
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;

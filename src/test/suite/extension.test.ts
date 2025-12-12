@@ -1,6 +1,6 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
-import EXTENSION_COMMANDS from '../../commands';
+import ExtensionCommand from '../../commands';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../package.json');
@@ -63,7 +63,7 @@ suite('Extension Test Suite', () => {
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',
 
-      ...Object.values(EXTENSION_COMMANDS),
+      ...Object.values(ExtensionCommand),
     ];
 
     for (const expectedCommand of expectedCommands) {

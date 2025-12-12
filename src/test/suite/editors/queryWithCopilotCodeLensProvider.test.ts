@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import path from 'path';
 import { QueryWithCopilotCodeLensProvider } from '../../../editors/queryWithCopilotCodeLensProvider';
-import EXTENSION_COMMANDS from '../../../commands';
+import ExtensionCommand from '../../../commands';
 
 suite('Query with Copilot CodeLens Provider Test Suite', () => {
   let testCodeLensProvider: QueryWithCopilotCodeLensProvider;
@@ -77,7 +77,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', () => {
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
         expect(codeLens[0].command?.command).to.be.equal(
-          EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
+          ExtensionCommand.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
         );
       });
     });

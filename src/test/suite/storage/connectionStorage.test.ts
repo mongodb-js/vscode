@@ -3,10 +3,13 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import { expect } from 'chai';
 
-import { StorageController, StorageVariables } from '../../../storage';
 import {
+  StorageController,
+  StorageVariable,
   StorageLocation,
-  DefaultSavingLocations,
+} from '../../../storage';
+import {
+  DefaultSavingLocation,
   SecretStorageLocation,
 } from '../../../storage/storageController';
 import { ExtensionContextStub } from '../stubs';
@@ -66,7 +69,7 @@ suite('Connection Storage Test Suite', function () {
   test('it loads both global and workspace stored connections', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
 
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
@@ -78,7 +81,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DefaultSavingLocation.Workspace,
       );
 
     await testConnectionStorage.saveConnection(
@@ -104,14 +107,14 @@ suite('Connection Storage Test Suite', function () {
   test('when a connection is added it is saved to the global storage', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
 
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
     );
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageVariable.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL,
     );
 
@@ -124,7 +127,7 @@ suite('Connection Storage Test Suite', function () {
     );
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
     );
 
     expect(workspaceStoreConnections).to.equal(undefined);
@@ -135,14 +138,14 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DefaultSavingLocation.Workspace,
       );
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
     );
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE,
     );
 
@@ -155,7 +158,7 @@ suite('Connection Storage Test Suite', function () {
     );
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageVariable.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL,
     );
 
@@ -168,7 +171,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations['Session Only'],
+        DefaultSavingLocation['Session Only'],
       );
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
@@ -176,14 +179,14 @@ suite('Connection Storage Test Suite', function () {
 
     const objectString = JSON.stringify(undefined);
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageVariable.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL,
     );
 
     expect(JSON.stringify(globalStoreConnections)).to.equal(objectString);
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE,
     );
 
@@ -195,7 +198,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DefaultSavingLocation.Workspace,
       );
     const connectionId = 'pie';
     await testConnectionStorage.saveConnection(
@@ -203,7 +206,7 @@ suite('Connection Storage Test Suite', function () {
     );
 
     const workspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE,
     );
 
@@ -212,7 +215,7 @@ suite('Connection Storage Test Suite', function () {
     await testConnectionStorage.removeConnection(connectionId);
 
     const postWorkspaceStoreConnections = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
+      StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
       StorageLocation.WORKSPACE,
     );
     expect(Object.keys(postWorkspaceStoreConnections).length).to.equal(0);
@@ -221,14 +224,14 @@ suite('Connection Storage Test Suite', function () {
   test('when a connection is removed it is also removed from global storage', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocations.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
     const connectionId = 'pineapple';
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, connectionId),
     );
 
     const globalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageVariable.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL,
     );
 
@@ -237,7 +240,7 @@ suite('Connection Storage Test Suite', function () {
     await testConnectionStorage.removeConnection(connectionId);
 
     const postGlobalStoreConnections = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
+      StorageVariable.GLOBAL_SAVED_CONNECTIONS,
       StorageLocation.GLOBAL,
     );
 
@@ -500,7 +503,7 @@ suite('Connection Storage Test Suite', function () {
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (
           storage === StorageLocation.WORKSPACE ||
-          key === StorageVariables.WORKSPACE_SAVED_CONNECTIONS
+          key === StorageVariable.WORKSPACE_SAVED_CONNECTIONS
         ) {
           return {};
         }
@@ -552,7 +555,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DefaultSavingLocation.Workspace,
       );
 
     await testConnectionStorage.saveConnection(

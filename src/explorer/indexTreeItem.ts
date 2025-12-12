@@ -4,15 +4,17 @@ import path from 'path';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
-export enum IndexKeyType {
-  ASCENDING = 1,
-  DESCENDING = -1,
-  TEXT = 'text',
-  HASHED = 'hashed',
-  GEO = '2d', // flat, cartesian geometry
-  GEOSPHERE = '2dsphere', // index assuming a spherical geometry
-  GEOHAYSTACK = 'geoHaystack',
-}
+export const IndexKeyType = {
+  ASCENDING: 1,
+  DESCENDING: -1,
+  TEXT: 'text',
+  HASHED: 'hashed',
+  GEO: '2d', // flat, cartesian geometry
+  GEOSPHERE: '2dsphere', // index assuming a spherical geometry
+  GEOHAYSTACK: 'geoHaystack',
+} as const;
+
+export type IndexKeyType = (typeof IndexKeyType)[keyof typeof IndexKeyType];
 
 export type IndexModel = {
   v: number;

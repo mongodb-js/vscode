@@ -14,7 +14,10 @@ import { mongoLogId } from 'mongodb-log-writer';
 import { extractSecrets } from '@mongodb-js/connection-info';
 import { adjustConnectionOptionsBeforeConnect } from '@mongodb-js/connection-form';
 
-import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import {
+  CONNECTION_STATUS,
+  type ConnectionStatus,
+} from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import formatError from './utils/formatError';
 import type { StorageController } from './storage';
@@ -44,16 +47,22 @@ interface DataServiceEventTypes {
   ACTIVE_CONNECTION_CHANGED: [];
 }
 
-export enum ConnectionTypes {
-  CONNECTION_FORM = 'CONNECTION_FORM',
-  CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID',
-}
+export const CONNECTION_TYPES = {
+  CONNECTION_FORM: 'CONNECTION_FORM',
+  CONNECTION_STRING: 'CONNECTION_STRING',
+  CONNECTION_ID: 'CONNECTION_ID',
+} as const;
 
-export enum NewConnectionType {
-  NEW_CONNECTION = 'NEW_CONNECTION',
-  SAVED_CONNECTION = 'SAVED_CONNECTION',
-}
+export type ConnectionTypes =
+  (typeof CONNECTION_TYPES)[keyof typeof CONNECTION_TYPES];
+
+export const NEW_CONNECTION_TYPE = {
+  NEW_CONNECTION: 'NEW_CONNECTION',
+  SAVED_CONNECTION: 'SAVED_CONNECTION',
+} as const;
+
+export type NewConnectionType =
+  (typeof NEW_CONNECTION_TYPE)[keyof typeof NEW_CONNECTION_TYPE];
 
 interface ConnectionAttemptResult {
   successfullyConnected: boolean;
@@ -341,7 +350,7 @@ export default class ConnectionController {
             connectionOptions: {
               connectionString: connectionStringData.toString(),
             },
-            connectionType: ConnectionTypes.CONNECTION_STRING,
+            connectionType: CONNECTION_TYPES.CONNECTION_STRING,
             name,
           }));
 
@@ -689,7 +698,7 @@ export default class ConnectionController {
 
       const result = await this._connect(
         connectionId,
-        ConnectionTypes.CONNECTION_ID,
+        CONNECTION_TYPES.CONNECTION_ID,
       );
 
       /** After successfully connecting with an overridden connection
@@ -1148,7 +1157,7 @@ export default class ConnectionController {
     return url.toString();
   }
 
-  getConnectionStatus(): CONNECTION_STATUS {
+  getConnectionStatus(): ConnectionStatus {
     if (this.isCurrentlyConnected()) {
       if (this.isDisconnecting()) {
         return CONNECTION_STATUS.DISCONNECTING;
@@ -1209,7 +1218,7 @@ export default class ConnectionController {
         {
           label: 'Add new connection',
           data: {
-            type: NewConnectionType.NEW_CONNECTION,
+            type: NEW_CONNECTION_TYPE.NEW_CONNECTION,
           },
         },
       ];
@@ -1219,7 +1228,7 @@ export default class ConnectionController {
       {
         label: 'Add new connection',
         data: {
-          type: NewConnectionType.NEW_CONNECTION,
+          type: NEW_CONNECTION_TYPE.NEW_CONNECTION,
         },
       },
       ...Object.values(this._connections)
@@ -1229,7 +1238,7 @@ export default class ConnectionController {
         .map((item: LoadedConnection) => ({
           label: item.name,
           data: {
-            type: NewConnectionType.SAVED_CONNECTION,
+            type: NEW_CONNECTION_TYPE.SAVED_CONNECTION,
             connectionId: item.id,
           },
         })),
@@ -1248,7 +1257,9 @@ export default class ConnectionController {
       return false;
     }
 
-    if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
+    if (
+      selectedQuickPickItem.data.type === NEW_CONNECTION_TYPE.NEW_CONNECTION
+    ) {
       return this.connectWithURI();
     }
 

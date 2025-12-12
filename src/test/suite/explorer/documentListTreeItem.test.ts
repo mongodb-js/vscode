@@ -6,7 +6,7 @@ import type { DataService } from 'mongodb-data-service';
 const { contributes } = require('../../../../package.json');
 
 import DocumentListTreeItem, {
-  CollectionTypes,
+  CollectionType,
   formatDocCount,
   MAX_DOCUMENTS_VISIBLE,
 } from '../../../explorer/documentListTreeItem';
@@ -21,7 +21,7 @@ function getTestDocumentListTreeItem(
   return new DocumentListTreeItem({
     collectionName: 'collectionName',
     databaseName: 'mock_db_name',
-    type: CollectionTypes.collection,
+    type: CollectionType.collection,
     dataService: dataServiceStub as unknown as DataService,
     isExpanded: false,
     maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
@@ -82,7 +82,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
   test('a "view" type of document list does not show a dropdown', () => {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
-      type: CollectionTypes.view,
+      type: CollectionType.view,
     });
 
     assert.strictEqual(
@@ -181,7 +181,7 @@ suite('DocumentListTreeItem Test Suite', () => {
   test('it shows a documents icon', () => {
     const testCollectionViewTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_4',
-      type: CollectionTypes.view,
+      type: CollectionType.view,
     });
 
     const viewIconPath = testCollectionViewTreeItem.iconPath;
@@ -192,7 +192,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_4',
-      type: CollectionTypes.collection,
+      type: CollectionType.collection,
     });
 
     const collectionIconPath = testDocumentListTreeItem.iconPath;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   type MessageFromExtensionToWebview,
-  MESSAGE_TYPES,
+  MessageType,
 } from './extension-app-message-constants';
 
 export const useDetectVsCodeDarkMode = (): boolean => {
@@ -12,7 +12,7 @@ export const useDetectVsCodeDarkMode = (): boolean => {
   useEffect(() => {
     const onThemeChanged = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
-      if (message.command === MESSAGE_TYPES.THEME_CHANGED) {
+      if (message.command === MessageType.THEME_CHANGED) {
         setDarkModeDetected(message.darkMode);
       }
     };

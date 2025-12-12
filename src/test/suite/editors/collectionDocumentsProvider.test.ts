@@ -3,7 +3,6 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
-
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, {
@@ -288,7 +287,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.DocumentSource_COLLECTIONVIEW,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -358,7 +357,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.DocumentSource_COLLECTIONVIEW,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
@@ -477,7 +476,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.DocumentSource_COLLECTIONVIEW,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -552,7 +551,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.DocumentSource_COLLECTIONVIEW,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===

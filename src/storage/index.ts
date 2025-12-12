@@ -1,3 +1,6 @@
-import StorageController, { StorageVariables } from './storageController';
+import StorageController, {
+  StorageVariable,
+  StorageLocation,
+} from './storageController';
 
-export { StorageController, StorageVariables };
+export { StorageController, StorageVariable, StorageLocation };

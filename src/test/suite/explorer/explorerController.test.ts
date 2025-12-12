@@ -6,7 +6,7 @@ import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import { mongoLogId } from 'mongodb-log-writer';
 
 import {
-  DefaultSavingLocations,
+  DefaultSavingLocation,
   SecretStorageLocation,
   StorageLocation,
 } from '../../../storage/storageController';
@@ -31,7 +31,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations['Session Only'],
+        DefaultSavingLocation['Session Only'],
       );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.stub(vscode.window, 'showErrorMessage');
@@ -47,7 +47,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DefaultSavingLocation.Workspace,
       );
     // Reset our connections.
     await mdbTestExtension.testExtensionController._connectionController.disconnect();

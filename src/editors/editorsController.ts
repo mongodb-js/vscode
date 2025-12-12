@@ -24,7 +24,7 @@ import formatError from '../utils/formatError';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import MongoDBDocumentService, {
   DOCUMENT_ID_URI_IDENTIFIER,
-  DOCUMENT_SOURCE_URI_IDENTIFIER,
+  DocumentSource_URI_IDENTIFIER,
   VIEW_DOCUMENT_SCHEME,
 } from './mongoDBDocumentService';
 import type PlaygroundController from './playgroundController';
@@ -196,7 +196,7 @@ export default class EditorsController {
       const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${activeConnectionId}`;
       const documentIdReference = this._documentIdStore.add(data.documentId);
       const documentIdUriQuery = `${DOCUMENT_ID_URI_IDENTIFIER}=${documentIdReference}`;
-      const documentSourceUriQuery = `${DOCUMENT_SOURCE_URI_IDENTIFIER}=${data.source}`;
+      const documentSourceUriQuery = `${DocumentSource_URI_IDENTIFIER}=${data.source}`;
 
       const fileTitle = encodeURIComponent(
         getFileDisplayNameForDocument(data.documentId, data.namespace),
@@ -235,7 +235,7 @@ export default class EditorsController {
     const documentIdReference = uriParams.get(DOCUMENT_ID_URI_IDENTIFIER) || '';
     const documentId = this._documentIdStore.get(documentIdReference);
     const source = uriParams.get(
-      DOCUMENT_SOURCE_URI_IDENTIFIER,
+      DocumentSource_URI_IDENTIFIER,
     ) as DocumentSource;
 
     if (
