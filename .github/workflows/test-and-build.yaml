@@ -33,9 +33,13 @@ jobs:
 
       - name: Get VS Code Node.js version
         id: get-vscode-node-version
+        shell: bash
         run: |
           # Fetch Node.js version from VS Code's .nvmrc, default to 22.20.0 if unavailable
-          export NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/refs/heads/main/.nvmrc | tr -d '[:space:]' || echo "22.20.0")
+          NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/main/.nvmrc | tr -d '[:space:]')
+          if [ -z "$NODE_VERSION" ]; then
+            NODE_VERSION="22.20.0"
+          fi
           echo "Using Node.js version for VS Code extension tests: $NODE_VERSION"
           echo "vscode-node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
 
