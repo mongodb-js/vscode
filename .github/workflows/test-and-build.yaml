@@ -39,6 +39,9 @@ jobs:
           echo "Using Node.js version for VS Code extension tests: $NODE_VERSION"
           echo "vscode-node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
