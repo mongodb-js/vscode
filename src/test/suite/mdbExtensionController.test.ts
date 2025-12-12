@@ -15,7 +15,7 @@ import {
   SchemaTreeItem,
   StreamProcessorTreeItem,
 } from '../../explorer';
-import EXTENSION_COMMANDS, { ExtensionCommand } from '../../commands';
+import EXTENSION_COMMANDS, { type ExtensionCommand } from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
