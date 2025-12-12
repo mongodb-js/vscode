@@ -5,6 +5,31 @@ chai.use(sinonChai);
 
 // JSDom
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { createRequire } from 'module';
+
+// Create a require function that works in both ESM and CommonJS contexts
+const requireModule = (() => {
+  if (typeof require !== 'undefined' && typeof require.cache === 'object') {
+    // We're in CommonJS context
+    return require;
+  }
+
+  // We're in ESM context, create require from import.meta.url
+  // @ts-expect-error import.meta is not available in CommonJS context
+  if (typeof import.meta !== 'undefined' && import.meta.url) {
+    // @ts-expect-error import.meta is not available in CommonJS context
+    return createRequire(import.meta.url);
+  }
+
+  // Fallback: try to create require from current file location
+  if (typeof __filename !== 'undefined') {
+    return createRequire(__filename);
+  }
+
+  throw new Error(
+    'Unable to create require function - neither ESM nor CommonJS context detected',
+  );
+})();
 
 /**
  * NB: focus-trap and tabbable require special overrides to work in jsdom environments as per
@@ -12,8 +37,7 @@ import { JSDOM, VirtualConsole } from 'jsdom';
  *
  * @see {@link https://github.com/focus-trap/tabbable?tab=readme-ov-file#testing-in-jsdom}
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const tabbable = require('tabbable');
+const tabbable = requireModule('tabbable');
 
 const origTabbable = { ...tabbable };
 
@@ -28,8 +52,7 @@ Object.assign(tabbable, {
     origTabbable.isTabbable(node, { ...options, displayCheck: 'none' }),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const focusTrap = require('focus-trap');
+const focusTrap = requireModule('focus-trap');
 
 Object.assign(focusTrap, {
   ...focusTrap,

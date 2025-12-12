@@ -3,7 +3,7 @@ import path from 'path';
 import type { DataService } from 'mongodb-data-service';
 
 import DocumentListTreeItem, {
-  CollectionTypes,
+  COLLECTION_TYPES,
   MAX_DOCUMENTS_VISIBLE,
 } from './documentListTreeItem';
 import formatError from '../utils/formatError';
@@ -19,12 +19,12 @@ function getIconPath(
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
-  if (type === CollectionTypes.timeseries) {
+  if (type === COLLECTION_TYPES.timeseries) {
     return {
       light: vscode.Uri.file(path.join(LIGHT, 'collection-timeseries.svg')),
       dark: vscode.Uri.file(path.join(DARK, 'collection-timeseries.svg')),
     };
-  } else if (type === CollectionTypes.collection) {
+  } else if (type === COLLECTION_TYPES.collection) {
     if (isExpanded) {
       return {
         light: vscode.Uri.file(path.join(LIGHT, 'collection-folder-open.svg')),
@@ -158,7 +158,7 @@ export default class CollectionTreeItem
         });
 
     this.tooltip =
-      collection.type === CollectionTypes.view
+      collection.type === COLLECTION_TYPES.view
         ? 'Read only view'
         : collection.name;
     this.iconPath = getIconPath(collection.type, isExpanded);
@@ -321,8 +321,8 @@ export default class CollectionTreeItem
   refreshDocumentCount = async (): Promise<number> => {
     // Skip the count on views and time-series collections since it will error.
     if (
-      this._type === CollectionTypes.view ||
-      this._type === CollectionTypes.timeseries
+      this._type === COLLECTION_TYPES.view ||
+      this._type === COLLECTION_TYPES.timeseries
     ) {
       this.documentCount = null;
       return 0;

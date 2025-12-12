@@ -9,27 +9,27 @@ import type { Document, Filter } from 'mongodb';
 
 import {
   CollectionTreeItem,
-  CollectionTypes,
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,
   SchemaTreeItem,
   StreamProcessorTreeItem,
 } from '../../explorer';
-import EXTENSION_COMMANDS from '../../commands';
+import EXTENSION_COMMANDS, { ExtensionCommand } from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
-  SecretStorageLocation,
-  StorageLocation,
-  StorageVariables,
+  STORAGE_LOCATIONS,
+  SECRET_STORAGE_LOCATIONS,
+  STORAGE_VARIABLES,
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 import { expect } from 'chai';
 import { DeepLinkTelemetryEvent } from '../../telemetry';
+import { COLLECTION_TYPES } from '../../explorer/documentListTreeItem';
 import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
@@ -59,7 +59,7 @@ function getTestCollectionTreeItem(
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
-      type: CollectionTypes.collection,
+      type: COLLECTION_TYPES.collection,
     } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
@@ -145,10 +145,10 @@ suite('MDBExtensionController Test Suite', function () {
   suite('Deep link command lists validation', () => {
     test('allowed and disallowed lists are disjoint', () => {
       const allowedSet = new Set(
-        DEEP_LINK_ALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+        DEEP_LINK_ALLOWED_COMMANDS as readonly ExtensionCommand[],
       );
       const disallowedSet = new Set(
-        DEEP_LINK_DISALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+        DEEP_LINK_DISALLOWED_COMMANDS as readonly ExtensionCommand[],
       );
 
       const overlap = [...allowedSet].filter((cmd) => disallowedSet.has(cmd));
@@ -162,10 +162,10 @@ suite('MDBExtensionController Test Suite', function () {
     test('allowed and disallowed lists are complete', () => {
       const allCommands = new Set(Object.values(EXTENSION_COMMANDS));
       const allowedSet = new Set(
-        DEEP_LINK_ALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+        DEEP_LINK_ALLOWED_COMMANDS as readonly ExtensionCommand[],
       );
       const disallowedSet = new Set(
-        DEEP_LINK_DISALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[],
+        DEEP_LINK_DISALLOWED_COMMANDS as readonly ExtensionCommand[],
       );
       const combinedSet = new Set([...allowedSet, ...disallowedSet]);
 
@@ -764,7 +764,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'doesntExistColName',
-          type: CollectionTypes.collection,
+          type: COLLECTION_TYPES.collection,
         } as unknown as CollectionDetailsType,
         dataService:
           testConnectionController.getActiveDataService() ?? undefined,
@@ -795,7 +795,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'orange',
-          type: CollectionTypes.collection,
+          type: COLLECTION_TYPES.collection,
         } as unknown as CollectionDetailsType,
       });
       const inputBoxResolvesStub = sandbox.stub();
@@ -904,8 +904,8 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           connectionOptions: { connectionString: 'mongodb://localhost' },
           name: 'NAAAME',
-          storageLocation: StorageLocation.NONE,
-          secretStorageLocation: SecretStorageLocation.SecretStorage,
+          storageLocation: STORAGE_LOCATIONS.NONE,
+          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({
@@ -935,8 +935,8 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           name: 'NAAAME',
           connectionOptions: { connectionString: 'mongodb://localhost' },
-          storageLocation: StorageLocation.NONE,
-          secretStorageLocation: SecretStorageLocation.SecretStorage,
+          storageLocation: STORAGE_LOCATIONS.NONE,
+          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({
@@ -1357,7 +1357,7 @@ suite('MDBExtensionController Test Suite', function () {
       const collectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'pineapple',
-          type: CollectionTypes.collection,
+          type: COLLECTION_TYPES.collection,
         } as unknown as CollectionDetailsType,
         databaseName: 'plants',
       });
@@ -1690,7 +1690,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
@@ -1735,7 +1735,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],

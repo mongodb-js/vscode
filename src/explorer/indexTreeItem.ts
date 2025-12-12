@@ -4,15 +4,18 @@ import path from 'path';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
-export enum IndexKeyType {
-  ASCENDING = 1,
-  DESCENDING = -1,
-  TEXT = 'text',
-  HASHED = 'hashed',
-  GEO = '2d', // flat, cartesian geometry
-  GEOSPHERE = '2dsphere', // index assuming a spherical geometry
-  GEOHAYSTACK = 'geoHaystack',
-}
+export const INDEX_KEY_TYPES = {
+  ASCENDING: 1,
+  DESCENDING: -1,
+  TEXT: 'text',
+  HASHED: 'hashed',
+  GEO: '2d', // flat, cartesian geometry
+  GEOSPHERE: '2dsphere', // index assuming a spherical geometry
+  GEOHAYSTACK: 'geoHaystack',
+} as const;
+
+export type IndexKeyType =
+  (typeof INDEX_KEY_TYPES)[keyof typeof INDEX_KEY_TYPES];
 
 export type IndexModel = {
   v: number;
@@ -24,26 +27,26 @@ export type IndexModel = {
 };
 
 function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
-  if (indexKeyType === IndexKeyType.ASCENDING) {
+  if (indexKeyType === INDEX_KEY_TYPES.ASCENDING) {
     return 'ascending';
   }
 
-  if (indexKeyType === IndexKeyType.DESCENDING) {
+  if (indexKeyType === INDEX_KEY_TYPES.DESCENDING) {
     return 'descending';
   }
 
-  if (indexKeyType === IndexKeyType.TEXT) {
+  if (indexKeyType === INDEX_KEY_TYPES.TEXT) {
     return 'text';
   }
 
-  if (indexKeyType === IndexKeyType.HASHED) {
+  if (indexKeyType === INDEX_KEY_TYPES.HASHED) {
     return 'hashed';
   }
 
   if (
-    indexKeyType === IndexKeyType.GEO ||
-    indexKeyType === IndexKeyType.GEOHAYSTACK ||
-    indexKeyType === IndexKeyType.GEOSPHERE
+    indexKeyType === INDEX_KEY_TYPES.GEO ||
+    indexKeyType === INDEX_KEY_TYPES.GEOHAYSTACK ||
+    indexKeyType === INDEX_KEY_TYPES.GEOSPHERE
   ) {
     return 'geospatial';
   }

@@ -3,16 +3,17 @@ import {
   CONNECTION_STATUS,
   type MessageFromExtensionToWebview,
   MESSAGE_TYPES,
+  type ConnectionStatus,
 } from './extension-app-message-constants';
 import vscode from './vscode-api';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 
 const useConnectionStatus = (): {
-  connectionStatus: CONNECTION_STATUS;
+  connectionStatus: ConnectionStatus;
   connectionName: string;
 } => {
-  const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
     CONNECTION_STATUS.LOADING,
   );
   const [connectionName, setConnectionName] = useState('');

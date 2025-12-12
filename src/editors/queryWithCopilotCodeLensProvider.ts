@@ -3,7 +3,7 @@ import EXTENSION_COMMANDS from '../commands';
 import type { SendMessageToParticipantFromInputOptions } from '../participant/participantTypes';
 import { isPlayground } from '../utils/playground';
 import { COPILOT_EXTENSION_ID } from '../participant/constants';
-import { DocumentSource } from '../documentSource';
+import { DOCUMENT_SOURCE } from '../documentSource';
 
 export class QueryWithCopilotCodeLensProvider
   implements vscode.CodeLensProvider
@@ -34,7 +34,7 @@ export class QueryWithCopilotCodeLensProvider
       command: 'query',
       isNewChat: true,
       telemetry: {
-        source: DocumentSource.DOCUMENT_SOURCE_CODELENS,
+        source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_CODELENS,
         source_details: undefined,
       },
     };

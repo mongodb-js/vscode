@@ -8,25 +8,27 @@ import type TreeItemParent from './treeItemParentInterface';
 // types returned by `parseSchema` with `mongodb-schema`.
 // We have types for elements we have special handing for (icons).
 // https://docs.mongodb.com/manual/reference/bson-types/
-export enum FieldType {
-  array = 'Array',
-  binary = 'Binary',
-  bool = 'Boolean',
-  date = 'Date',
-  decimal = 'Decimal128',
-  document = 'Document',
-  int = '32-bit integer',
-  javascript = 'Javascript',
-  long = '64-bit integer',
-  null = 'Null',
-  number = 'Number',
-  object = 'Object',
-  objectId = 'ObjectID',
-  regex = 'Regular Expression',
-  string = 'String',
-  timestamp = 'Timestamp',
-  undefined = 'Undefined',
-}
+export const FIELD_TYPES = {
+  array: 'Array',
+  binary: 'Binary',
+  bool: 'Boolean',
+  date: 'Date',
+  decimal: 'Decimal128',
+  document: 'Document',
+  int: '32-bit integer',
+  javascript: 'Javascript',
+  long: '64-bit integer',
+  null: 'Null',
+  number: 'Number',
+  object: 'Object',
+  objectId: 'ObjectID',
+  regex: 'Regular Expression',
+  string: 'String',
+  timestamp: 'Timestamp',
+  undefined: 'Undefined',
+} as const;
+
+export type FieldType = (typeof FIELD_TYPES)[keyof typeof FIELD_TYPES];
 
 export type SchemaFieldType = {
   name: string;
@@ -42,10 +44,10 @@ export type SchemaFieldType = {
 export const fieldIsExpandable = (field: SchemaFieldType): boolean => {
   return (
     field.probability === 1 &&
-    (field.type === FieldType.document ||
-      field.type === FieldType.array ||
-      field.bsonType === FieldType.document ||
-      field.bsonType === FieldType.array)
+    (field.type === FIELD_TYPES.document ||
+      field.type === FIELD_TYPES.array ||
+      field.bsonType === FIELD_TYPES.document ||
+      field.bsonType === FIELD_TYPES.array)
   );
 };
 
@@ -75,44 +77,44 @@ export const getIconFileNameForField = (
     // The field has polymorphic data types.
     return 'mixed-type';
   }
-  if (fieldType === FieldType.array) {
+  if (fieldType === FIELD_TYPES.array) {
     return 'array';
   }
-  if (fieldType === FieldType.binary) {
+  if (fieldType === FIELD_TYPES.binary) {
     return 'binary';
   }
-  if (fieldType === FieldType.bool) {
+  if (fieldType === FIELD_TYPES.bool) {
     return 'boolean';
   }
-  if (fieldType === FieldType.date) {
+  if (fieldType === FIELD_TYPES.date) {
     return 'date';
   }
-  if (fieldType === FieldType.decimal) {
+  if (fieldType === FIELD_TYPES.decimal) {
     return 'double';
   }
-  if (fieldType === FieldType.null) {
+  if (fieldType === FIELD_TYPES.null) {
     return 'null';
   }
   if (
-    fieldType === FieldType.int ||
-    fieldType === FieldType.long ||
-    fieldType === FieldType.number
+    fieldType === FIELD_TYPES.int ||
+    fieldType === FIELD_TYPES.long ||
+    fieldType === FIELD_TYPES.number
   ) {
     return 'number';
   }
-  if (fieldType === FieldType.object || fieldType === FieldType.document) {
+  if (fieldType === FIELD_TYPES.object || fieldType === FIELD_TYPES.document) {
     return 'object';
   }
-  if (fieldType === FieldType.objectId) {
+  if (fieldType === FIELD_TYPES.objectId) {
     return 'object-id';
   }
-  if (fieldType === FieldType.regex) {
+  if (fieldType === FIELD_TYPES.regex) {
     return 'regex';
   }
-  if (fieldType === FieldType.string) {
+  if (fieldType === FIELD_TYPES.string) {
     return 'string';
   }
-  if (fieldType === FieldType.timestamp) {
+  if (fieldType === FIELD_TYPES.timestamp) {
     return 'timestamp';
   }
 
@@ -210,13 +212,13 @@ export default class FieldTreeItem
     this._childrenCache = {};
 
     if (
-      this.field.bsonType === FieldType.document ||
-      this.field.type === FieldType.document
+      this.field.bsonType === FIELD_TYPES.document ||
+      this.field.type === FIELD_TYPES.document
     ) {
       let subDocumentFields;
-      if (this.field.type === FieldType.document && this.field.types) {
+      if (this.field.type === FIELD_TYPES.document && this.field.types) {
         subDocumentFields = this.field.types[0].fields;
-      } else if (this.field.bsonType === FieldType.document) {
+      } else if (this.field.bsonType === FIELD_TYPES.document) {
         subDocumentFields = this.field.fields;
       }
 
@@ -239,8 +241,8 @@ export default class FieldTreeItem
         });
       }
     } else if (
-      (this.field.type === FieldType.array ||
-        this.field.bsonType === FieldType.array) &&
+      (this.field.type === FIELD_TYPES.array ||
+        this.field.bsonType === FIELD_TYPES.array) &&
       this.field.types
     ) {
       const arrayElement = this.field.types[0];

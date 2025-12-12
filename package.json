@@ -42,10 +42,10 @@
   "scripts": {
     "clean": "rimraf -g ./out/* ./dist/*",
     "lint": "eslint . && prettier --check .",
-    "update-grammar": "ts-node ./scripts/update-grammar.ts",
+    "update-grammar": "node ./scripts/update-grammar.ts",
     "precompile": "pnpm run clean",
     "compile": "npm-run-all compile:*",
-    "compile:constants": "ts-node ./scripts/generate-constants.ts",
+    "compile:constants": "node ./scripts/generate-constants.ts",
     "compile:resources": "pnpm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
@@ -63,15 +63,15 @@
     "depcheck": "depcheck",
     "package": "cross-env NODE_OPTIONS='--require ./scripts/no-npm-list-fail.js' vsce package --githubBranch main",
     "local-install": "pnpm run package && code --install-extension ./mongodb-vscode-*.vsix",
-    "check-vsix-size": "ts-node ./scripts/check-vsix-size.ts",
+    "check-vsix-size": "node ./scripts/check-vsix-size.ts",
     "release-draft": "node ./scripts/release-draft.js",
     "reformat": "prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
-    "generate-icon-font": "ts-node ./scripts/generate-icon-font.ts",
+    "generate-icon-font": "node ./scripts/generate-icon-font.ts",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
-    "precommit": "ts-node ./scripts/precommit.ts"
+    "precommit": "node --experimental-strip-types ./scripts/precommit.ts"
   },
   "engines": {
     "vscode": "^1.101.1",

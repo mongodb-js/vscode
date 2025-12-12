@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ParticipantErrorTypes } from '../participantErrorTypes';
+import { PARTICIPANT_ERROR_TYPES } from '../participantErrorTypes';
 import type { ChatResult } from '../constants';
 import type { ParticipantResponseType } from '../participantTypes';
 
@@ -13,7 +13,7 @@ export class PromptHistory {
   }): vscode.LanguageModelChatMessage | undefined {
     if (
       currentTurn.result.errorDetails?.message ===
-      ParticipantErrorTypes.FILTERED
+      PARTICIPANT_ERROR_TYPES.FILTERED
     ) {
       return undefined;
     }
@@ -83,7 +83,7 @@ export class PromptHistory {
 
     if (
       nextTurn instanceof vscode.ChatResponseTurn &&
-      nextTurn.result.errorDetails?.message === ParticipantErrorTypes.FILTERED
+      nextTurn.result.errorDetails?.message === PARTICIPANT_ERROR_TYPES.FILTERED
     ) {
       // If the response to this request led to a filtered error,
       // we do not want to include it in the history

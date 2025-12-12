@@ -12,7 +12,7 @@ import ConnectionController from './connectionController';
 import type ConnectionTreeItem from './explorer/connectionTreeItem';
 import type DatabaseTreeItem from './explorer/databaseTreeItem';
 import type DocumentListTreeItem from './explorer/documentListTreeItem';
-import { DocumentSource } from './documentSource';
+import { DOCUMENT_SOURCE } from './documentSource';
 import type DocumentTreeItem from './explorer/documentTreeItem';
 import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
 import { EditorsController, PlaygroundController } from './editors';
@@ -32,7 +32,7 @@ import { LanguageServerController } from './language';
 import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
-import { StorageController, StorageVariables } from './storage';
+import { StorageController, STORAGE_VARIABLES } from './storage';
 import { DeepLinkTelemetryEvent, TelemetryService } from './telemetry';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
@@ -340,9 +340,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     try {
       if (
-        !Object.values(EXTENSION_COMMANDS).includes(
-          command as EXTENSION_COMMANDS,
-        )
+        !Object.values(EXTENSION_COMMANDS).includes(command as ExtensionCommand)
       ) {
         throw new Error(
           `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`,
@@ -350,9 +348,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
 
       if (
-        (
-          DEEP_LINK_DISALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[]
-        ).includes(command as EXTENSION_COMMANDS)
+        (DEEP_LINK_DISALLOWED_COMMANDS as readonly ExtensionCommand[]).includes(
+          command as ExtensionCommand,
+        )
       ) {
         throw new Error(
           `Command '${command}' cannot be invoked via deep links.`,
@@ -873,7 +871,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
       (element: DocumentTreeItem): Promise<boolean> => {
         return this._editorsController.openMongoDBDocument({
-          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+          source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
           documentId: element.documentId,
           namespace: element.namespace,
           connectionId: this._connectionController.getActiveConnectionId(),
@@ -1161,7 +1159,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
 
     const hasBeenShownViewAlready = !!this._storageController.get(
-      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+      STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
     );
 
     if (hasBeenShownViewAlready) {
@@ -1177,7 +1175,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
 
     void this._storageController.update(
-      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+      STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
       true,
     );
   }

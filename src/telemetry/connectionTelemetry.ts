@@ -1,9 +1,12 @@
 import type { DataService } from 'mongodb-data-service';
 import mongoDBBuildInfo from 'mongodb-build-info';
 
-import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import type { TopologyType } from 'mongodb';
+import {
+  CONNECTION_TYPES,
+  type ConnectionTypes,
+} from '../connectionController';
 
 const log = createLogger('connection telemetry helper');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -123,10 +126,10 @@ export async function getConnectionTelemetryProperties(
   connectionType: ConnectionTypes,
 ): Promise<NewConnectionTelemetryEventProperties> {
   let preparedProperties: NewConnectionTelemetryEventProperties = {
-    is_used_connect_screen: connectionType === ConnectionTypes.CONNECTION_FORM,
+    is_used_connect_screen: connectionType === CONNECTION_TYPES.CONNECTION_FORM,
     is_used_command_palette:
-      connectionType === ConnectionTypes.CONNECTION_STRING,
-    is_used_saved_connection: connectionType === ConnectionTypes.CONNECTION_ID,
+      connectionType === CONNECTION_TYPES.CONNECTION_STRING,
+    is_used_saved_connection: connectionType === CONNECTION_TYPES.CONNECTION_ID,
     vscode_mdb_extension_version: version,
   };
 

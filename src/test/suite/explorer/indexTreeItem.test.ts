@@ -2,7 +2,7 @@ import assert from 'assert';
 
 import IndexTreeItem, {
   IndexFieldTreeItem,
-  IndexKeyType,
+  INDEX_KEY_TYPES,
 } from '../../../explorer/indexTreeItem';
 import type * as vscode from 'vscode';
 
@@ -33,7 +33,7 @@ suite('IndexTreeItem Test Suite', () => {
     test('it has an icon for the index type', () => {
       const testIndexFieldTreeItem = new IndexFieldTreeItem({
         indexKey: 'locations',
-        indexKeyType: IndexKeyType.GEOSPHERE,
+        indexKeyType: INDEX_KEY_TYPES.GEOSPHERE,
       });
 
       const iconPath = testIndexFieldTreeItem.iconPath as {

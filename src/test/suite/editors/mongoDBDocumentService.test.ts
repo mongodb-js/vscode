@@ -5,7 +5,7 @@ import { EJSON } from 'bson';
 import sinon from 'sinon';
 
 import ConnectionController from '../../../connectionController';
-import { DocumentSource } from '../../../documentSource';
+import { DOCUMENT_SOURCE } from '../../../documentSource';
 import formatError from '../../../utils/formatError';
 import MongoDBDocumentService from '../../../editors/mongoDBDocumentService';
 
@@ -52,7 +52,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const document: { _id: string; price?: number } = { _id: '123' };
     const newDocument = { _id: '123', price: 5000 };
-    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW;
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
     sandbox.replace(
@@ -103,7 +103,7 @@ suite('MongoDB Document Service Test Suite', () => {
         },
       },
     };
-    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW;
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
     sandbox.replace(
@@ -144,7 +144,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const line = 1;
     const documents = [{ _id: '123' }];
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND;
 
     const fakeGetActiveDataService = sandbox.fake.returns({
       find: () => {
@@ -194,7 +194,7 @@ suite('MongoDB Document Service Test Suite', () => {
         },
       },
     ];
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND;
 
     const fakeGetActiveDataService = sandbox.fake.returns({
       find: () => {
@@ -236,7 +236,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const newDocument = { _id: '123', price: 5000 };
-    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW;
 
     const fakeActiveConnectionId = sandbox.fake.returns(null);
     sandbox.replace(
@@ -273,7 +273,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const newDocument = { _id: '123', price: 5000 };
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND;
 
     const fakeActiveConnectionId = sandbox.fake.returns('berlin.coctails');
     sandbox.replace(
@@ -310,7 +310,7 @@ suite('MongoDB Document Service Test Suite', () => {
     const connectionId = '123';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
     const line = 1;
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND;
 
     const fakeGetActiveConnectionId = sandbox.fake.returns('345');
     sandbox.replace(
