@@ -8,15 +8,11 @@ import type { ConnectionOptions } from 'mongodb-data-service';
 
 import { createLogger } from '../logging';
 import type StorageController from './storageController';
-import type {
-  SecretStorageLocationType,
-  StorageLocation,
-} from './storageController';
+import { StorageLocation } from './storageController';
 import {
-  DEFAULT_SAVING_LOCATIONS,
-  SECRET_STORAGE_LOCATIONS,
-  STORAGE_LOCATIONS,
-  STORAGE_VARIABLES,
+  DefaultSavingLocation,
+  SecretStorageLocation,
+  StorageVariable,
 } from './storageController';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -27,7 +23,7 @@ export interface StoreConnectionInfo {
   id: string; // Connection model id or a new uuid.
   name: string; // Possibly user given name, not unique.
   storageLocation: StorageLocation;
-  secretStorageLocation?: SecretStorageLocationType;
+  secretStorageLocation?: SecretStorageLocation;
   connectionOptions?: ConnectionOptions;
   source?: ConnectionSource;
   lastUsed?: Date; // Date and time when the connection was last used, i.e. connected with.
@@ -45,11 +41,11 @@ export type PresetSavedConnectionWithSource = PresetSavedConnection & {
 type StoreConnectionInfoWithConnectionOptions = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'connectionOptions'>>;
 
-type StoreConnectionInfoWithSECRET_STORAGE_LOCATIONS = StoreConnectionInfo &
+type StoreConnectionInfoWithSecretStorageLocation = StoreConnectionInfo &
   Required<Pick<StoreConnectionInfo, 'secretStorageLocation'>>;
 
 export type LoadedConnection = StoreConnectionInfoWithConnectionOptions &
-  StoreConnectionInfoWithSECRET_STORAGE_LOCATIONS;
+  StoreConnectionInfoWithSecretStorageLocation;
 
 export class ConnectionStorage {
   _storageController: StorageController;
@@ -137,10 +133,7 @@ export class ConnectionStorage {
   async saveConnection(connection: LoadedConnection): Promise<void> {
     if (
       !(
-        [
-          STORAGE_LOCATIONS.GLOBAL,
-          STORAGE_LOCATIONS.WORKSPACE,
-        ] as StorageLocation[]
+        [StorageLocation.GLOBAL, StorageLocation.WORKSPACE] as StorageLocation[]
       ).includes(connection.storageLocation)
     ) {
       return;
@@ -163,9 +156,9 @@ export class ConnectionStorage {
     connectionWithoutSecrets: StoreConnectionInfo,
   ): Promise<void> {
     const variableName =
-      connectionWithoutSecrets.storageLocation === STORAGE_LOCATIONS.GLOBAL
-        ? STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS
-        : STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS;
+      connectionWithoutSecrets.storageLocation === StorageLocation.GLOBAL
+        ? StorageVariable.GLOBAL_SAVED_CONNECTIONS
+        : StorageVariable.WORKSPACE_SAVED_CONNECTIONS;
 
     // Get the current saved connections.
     let savedConnections = this._storageController.get(
@@ -217,8 +210,8 @@ export class ConnectionStorage {
             connectionString: presetConnection.connectionString,
           },
           source: presetConnection.source,
-          storageLocation: STORAGE_LOCATIONS.NONE,
-          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
+          storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
         }) satisfies LoadedConnection,
     );
   }
@@ -226,12 +219,12 @@ export class ConnectionStorage {
   async loadConnections(): Promise<LoadedConnection[]> {
     const globalAndWorkspaceConnections = Object.values({
       ...this._storageController.get(
-        STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
-        STORAGE_LOCATIONS.GLOBAL,
+        StorageVariable.GLOBAL_SAVED_CONNECTIONS,
+        StorageLocation.GLOBAL,
       ),
       ...this._storageController.get(
-        STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
-        STORAGE_LOCATIONS.WORKSPACE,
+        StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
+        StorageLocation.WORKSPACE,
       ),
     });
 
@@ -271,21 +264,21 @@ export class ConnectionStorage {
     // See if the connection exists in the saved global or workspace connections
     // and remove it if it is.
     const globalStoredConnections = this._storageController.get(
-      STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
-      STORAGE_LOCATIONS.GLOBAL,
+      StorageVariable.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL,
     );
     if (globalStoredConnections && globalStoredConnections[connectionId]) {
       delete globalStoredConnections[connectionId];
       void this._storageController.update(
-        STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
+        StorageVariable.GLOBAL_SAVED_CONNECTIONS,
         globalStoredConnections,
-        STORAGE_LOCATIONS.GLOBAL,
+        StorageLocation.GLOBAL,
       );
     }
 
     const workspaceStoredConnections = this._storageController.get(
-      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
-      STORAGE_LOCATIONS.WORKSPACE,
+      StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
+      StorageLocation.WORKSPACE,
     );
     if (
       workspaceStoredConnections &&
@@ -293,21 +286,21 @@ export class ConnectionStorage {
     ) {
       delete workspaceStoredConnections[connectionId];
       void this._storageController.update(
-        STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
+        StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
         workspaceStoredConnections,
-        STORAGE_LOCATIONS.WORKSPACE,
+        StorageLocation.WORKSPACE,
       );
     }
   }
 
   hasSavedConnections(): boolean {
     const savedWorkspaceConnections = this._storageController.get(
-      STORAGE_VARIABLES.WORKSPACE_SAVED_CONNECTIONS,
-      STORAGE_LOCATIONS.WORKSPACE,
+      StorageVariable.WORKSPACE_SAVED_CONNECTIONS,
+      StorageLocation.WORKSPACE,
     );
     const savedGlobalConnections = this._storageController.get(
-      STORAGE_VARIABLES.GLOBAL_SAVED_CONNECTIONS,
-      STORAGE_LOCATIONS.GLOBAL,
+      StorageVariable.GLOBAL_SAVED_CONNECTIONS,
+      StorageLocation.GLOBAL,
     );
 
     return !!(
@@ -322,17 +315,15 @@ export class ConnectionStorage {
       .getConfiguration('mdb.connectionSaving')
       .get('defaultConnectionSavingLocation');
 
-    if (
-      defaultConnectionSavingLocation === DEFAULT_SAVING_LOCATIONS.Workspace
-    ) {
-      return STORAGE_LOCATIONS.WORKSPACE;
+    if (defaultConnectionSavingLocation === DefaultSavingLocation.Workspace) {
+      return StorageLocation.WORKSPACE;
     }
 
-    if (defaultConnectionSavingLocation === DEFAULT_SAVING_LOCATIONS.Global) {
-      return STORAGE_LOCATIONS.GLOBAL;
+    if (defaultConnectionSavingLocation === DefaultSavingLocation.Global) {
+      return StorageLocation.GLOBAL;
     }
 
-    return STORAGE_LOCATIONS.NONE;
+    return StorageLocation.NONE;
   }
 
   getUserAnonymousId(): string {

@@ -6,7 +6,7 @@ import type { ConnectionOptions } from 'mongodb-data-service';
 import type ConnectionController from '../connectionController';
 import { CONNECTION_TYPES } from '../connectionController';
 import { createLogger } from '../logging';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import type { MessageFromWebviewToExtension } from './webview-app/extension-app-message-constants';
 import {
   MESSAGE_TYPES,
@@ -263,7 +263,7 @@ export default class WebviewController {
         return;
       case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
         void vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
+          ExtensionCommand.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
         );
         return;
       case MESSAGE_TYPES.CONNECTION_FORM_OPENED:
@@ -281,7 +281,7 @@ export default class WebviewController {
         return;
       case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
         void vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI,
+          ExtensionCommand.MDB_CONNECT_WITH_URI,
         );
         return;
       case MESSAGE_TYPES.OPEN_TRUSTED_LINK:

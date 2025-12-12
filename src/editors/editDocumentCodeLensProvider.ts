@@ -3,9 +3,9 @@ import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
-import { DOCUMENT_SOURCE, type DocumentSource } from '../documentSource';
+import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
-import EXTENSION_COMMANDS, { type ExtensionCommand } from '../commands';
+import { ExtensionCommand } from '../commands';
 import { PLAYGROUND_RESULT_URI } from './playgroundResultProvider';
 import type { PlaygroundRunResult } from '../types/playgroundType';
 
@@ -38,14 +38,14 @@ export default class EditDocumentCodeLensProvider
 
     resultCodeLensesInfo = this._updateCodeLensesForCursor({
       ...data,
-      source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_COLLECTIONVIEW,
+      source: DocumentSource.DocumentSource_COLLECTIONVIEW,
     });
 
     this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
   }
 
   updateCodeLensesForPlayground(playgroundResult: PlaygroundRunResult): void {
-    const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DocumentSource.DocumentSource_PLAYGROUND;
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     if (!playgroundResult || !playgroundResult.content) {
@@ -148,7 +148,7 @@ export default class EditDocumentCodeLensProvider
           arguments: EditDocumentInfo[];
         } = {
           title: 'Edit Document',
-          command: EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
+          command: ExtensionCommand.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
           arguments: [item],
         };
 

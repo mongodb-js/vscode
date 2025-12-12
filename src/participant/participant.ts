@@ -7,9 +7,9 @@ import util from 'util';
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
 import type { LoadedConnection } from '../storage/connectionStorage';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import type { StorageController } from '../storage';
-import { STORAGE_VARIABLES } from '../storage';
+import { StorageVariable } from '../storage';
 import { getContentLength, Prompts } from './prompts';
 import type { ChatResult } from './constants';
 import {
@@ -54,7 +54,7 @@ import type { PromptIntent } from './prompts/intent';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
 import {
-  PARTICIPANT_ERROR_TYPES,
+  ParticipantErrorType,
   type ExportToPlaygroundError,
 } from './participantErrorTypes';
 import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
@@ -69,7 +69,7 @@ import type {
 import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
 import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
-import { DOCUMENT_SOURCE } from '../documentSource';
+import { DocumentSource } from '../documentSource';
 
 const log = createLogger('participant');
 
@@ -241,7 +241,7 @@ export default class ParticipantController {
         message: `I want to ask questions about the \`${databaseName}\` database.`,
         isNewChat: true,
         telemetry: {
-          source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
+          source: DocumentSource.DocumentSource_TREEVIEW,
           source_details: 'database',
         },
       });
@@ -252,7 +252,7 @@ export default class ParticipantController {
         message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
         isNewChat: true,
         telemetry: {
-          source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
+          source: DocumentSource.DocumentSource_TREEVIEW,
           source_details: 'collection',
         },
       });
@@ -340,12 +340,12 @@ export default class ParticipantController {
       runnableContent,
     };
     stream.button({
-      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
+      command: ExtensionCommand.RUN_PARTICIPANT_CODE,
       title: vscode.l10n.t('▶️ Run'),
       arguments: [commandArgs],
     });
     stream.button({
-      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+      command: ExtensionCommand.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
       title: vscode.l10n.t('Open in playground'),
       arguments: [commandArgs],
     });
@@ -615,7 +615,7 @@ export default class ParticipantController {
         .slice(0, MAX_MARKDOWN_LIST_LENGTH)
         .map((conn: LoadedConnection) =>
           createMarkdownLink({
-            commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+            commandId: ExtensionCommand.CONNECT_WITH_PARTICIPANT,
             data: {
               id: conn.id,
               command,
@@ -624,7 +624,7 @@ export default class ParticipantController {
           }),
         ),
       createMarkdownLink({
-        commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+        commandId: ExtensionCommand.CONNECT_WITH_PARTICIPANT,
         name: 'Show more',
         data: {
           command,
@@ -785,7 +785,7 @@ export default class ParticipantController {
     databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((db) =>
       stream.markdown(
         createMarkdownLink({
-          commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.SELECT_DATABASE_WITH_PARTICIPANT,
           data: {
             command,
             chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
@@ -807,7 +807,7 @@ export default class ParticipantController {
               context.history,
             ),
           },
-          commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.SELECT_DATABASE_WITH_PARTICIPANT,
           name: 'Show more',
         }),
       );
@@ -830,7 +830,7 @@ export default class ParticipantController {
     collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((coll) =>
       stream.markdown(
         createMarkdownLink({
-          commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.SELECT_COLLECTION_WITH_PARTICIPANT,
           data: {
             command,
             chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
@@ -846,7 +846,7 @@ export default class ParticipantController {
     if (collections.length > MAX_MARKDOWN_LIST_LENGTH) {
       stream.markdown(
         createMarkdownLink({
-          commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.SELECT_COLLECTION_WITH_PARTICIPANT,
           data: {
             command,
             chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
@@ -1434,7 +1434,7 @@ export default class ParticipantController {
     });
 
     stream.button({
-      command: EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
+      command: ExtensionCommand.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
       title: vscode.l10n.t('Open JSON Output'),
       arguments: [
         {
@@ -1779,7 +1779,7 @@ export default class ParticipantController {
       this._telemetryService.track(
         new ParticipantResponseFailedTelemetryEvent(
           'docs',
-          PARTICIPANT_ERROR_TYPES.DOCS_CHATBOT_API,
+          ParticipantErrorType.DOCS_CHATBOT_API,
         ),
       );
 
@@ -1814,7 +1814,7 @@ export default class ParticipantController {
       return false;
     }
     await vscode.commands.executeCommand(
-      EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
+      ExtensionCommand.MDB_EXPORT_TO_LANGUAGE,
       language.id,
     );
     return true;
@@ -1893,7 +1893,7 @@ export default class ParticipantController {
 
       const content = contentOrError.value;
       await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+        ExtensionCommand.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
         {
           runnableContent: content,
         },
@@ -1973,7 +1973,7 @@ export default class ParticipantController {
     const [request, , stream] = args;
     try {
       const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
-        STORAGE_VARIABLES.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
+        StorageVariable.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
       );
       if (!hasBeenShownWelcomeMessageAlready) {
         stream.markdown(
@@ -1988,7 +1988,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
         );
 
         await this._storageController.update(
-          STORAGE_VARIABLES.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
+          StorageVariable.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
           true,
         );
       }
@@ -2158,7 +2158,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       );
 
       await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+        ExtensionCommand.SHOW_EXPORT_TO_LANGUAGE_RESULT,
         {
           prompt,
           content: transpiledContent,

@@ -6,9 +6,9 @@ import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import { mongoLogId } from 'mongodb-log-writer';
 
 import {
-  DEFAULT_SAVING_LOCATIONS,
-  SECRET_STORAGE_LOCATIONS,
-  STORAGE_LOCATIONS,
+  DefaultSavingLocation,
+  SecretStorageLocation,
+  StorageLocation,
 } from '../../../storage/storageController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
@@ -31,7 +31,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DEFAULT_SAVING_LOCATIONS['Session Only'],
+        DefaultSavingLocation['Session Only'],
       );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.stub(vscode.window, 'showErrorMessage');
@@ -47,7 +47,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DEFAULT_SAVING_LOCATIONS.Workspace,
+        DefaultSavingLocation.Workspace,
       );
     // Reset our connections.
     await mdbTestExtension.testExtensionController._connectionController.disconnect();
@@ -68,8 +68,8 @@ suite('Explorer Controller Test Suite', function () {
         id: 'testConnectionId',
         connectionOptions: { connectionString: 'mongodb://localhost' },
         name: 'testConnectionName',
-        storageLocation: STORAGE_LOCATIONS.NONE,
-        secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
+        storageLocation: StorageLocation.NONE,
+        secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
     testConnectionController._connectionAttempt = createConnectionAttempt({
@@ -213,8 +213,8 @@ suite('Explorer Controller Test Suite', function () {
         testConnectionController._connections[connectionId].connectionOptions,
       name: 'aaa',
       id: 'aaa',
-      storageLocation: STORAGE_LOCATIONS.WORKSPACE,
-      secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
+      storageLocation: StorageLocation.WORKSPACE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
     };
 
     testConnectionController._connections.zzz = {
@@ -222,8 +222,8 @@ suite('Explorer Controller Test Suite', function () {
         testConnectionController._connections[connectionId].connectionOptions,
       name: 'zzz',
       id: 'zzz',
-      storageLocation: STORAGE_LOCATIONS.WORKSPACE,
-      secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
+      storageLocation: StorageLocation.WORKSPACE,
+      secretStorageLocation: SecretStorageLocation.SecretStorage,
     };
 
     const connectionsItems = await treeController.getChildren();

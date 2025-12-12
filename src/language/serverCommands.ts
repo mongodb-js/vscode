@@ -1,4 +1,4 @@
-export const SERVER_COMMANDS = {
+export const ServerCommand = {
   ACTIVE_CONNECTION_CHANGED: 'ACTIVE_CONNECTION_CHANGED',
   EXECUTE_CODE_FROM_PLAYGROUND: 'EXECUTE_CODE_FROM_PLAYGROUND',
   EXECUTE_RANGE_FROM_PLAYGROUND: 'EXECUTE_RANGE_FROM_PLAYGROUND',
@@ -13,8 +13,7 @@ export const SERVER_COMMANDS = {
   SHOW_CONSOLE_OUTPUT: 'SHOW_CONSOLE_OUTPUT',
 } as const;
 
-export type ServerCommands =
-  (typeof SERVER_COMMANDS)[keyof typeof SERVER_COMMANDS];
+export type ServerCommands = (typeof ServerCommand)[keyof typeof ServerCommand];
 
 export type PlaygroundRunParameters = {
   codeToEvaluate: string;

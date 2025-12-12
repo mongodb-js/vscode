@@ -23,8 +23,8 @@ import { TEST_DATABASE_URI } from '../dbTestHelper';
 import type { ChatResult } from '../../../participant/constants';
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
 import {
-  SECRET_STORAGE_LOCATIONS,
-  STORAGE_LOCATIONS,
+  SecretStorageLocation,
+  StorageLocation,
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
@@ -32,9 +32,9 @@ import { getFullRange } from '../suggestTestHelpers';
 import { isPlayground } from '../../../utils/playground';
 import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
-import EXTENSION_COMMANDS from '../../../commands';
+import ExtensionCommand from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
-import { PARTICIPANT_ERROR_TYPES } from '../../../participant/participantErrorTypes';
+import { ParticipantErrorType } from '../../../participant/participantErrorTypes';
 import * as model from '../../../participant/model';
 import {
   createChatRequestTurn,
@@ -48,7 +48,7 @@ import type {
   SendMessageToParticipantOptions,
 } from '../../../participant/participantTypes';
 import { TelemetryService } from '../../../telemetry';
-import { DOCUMENT_SOURCE } from '../../../documentSource';
+import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -57,8 +57,8 @@ const MAX_TOTAL_PROMPT_LENGTH_MOCK = 16000;
 const loadedConnection = {
   id: 'id',
   name: 'localhost',
-  storageLocation: STORAGE_LOCATIONS.NONE,
-  secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
+  storageLocation: StorageLocation.NONE,
+  secretStorageLocation: SecretStorageLocation.SecretStorage,
   connectionOptions: { connectionString: 'mongodb://localhost' },
 };
 
@@ -1942,7 +1942,7 @@ Schema:
               message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
               isNewChat: true,
               telemetry: {
-                source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
+                source: DocumentSource.DocumentSource_TREEVIEW,
                 source_details: 'database',
               },
             },
@@ -1973,7 +1973,7 @@ Schema:
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
               telemetry: {
-                source: DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
+                source: DocumentSource.DocumentSource_TREEVIEW,
                 source_details: 'collection',
               },
             },
@@ -2566,12 +2566,12 @@ Schema:
             `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
 
                     ${createMarkdownLink({
-                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+                      commandId: ExtensionCommand.CONNECT_WITH_PARTICIPANT,
                       name: 'localhost',
                       data: {},
                     })}
                     ${createMarkdownLink({
-                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+                      commandId: ExtensionCommand.CONNECT_WITH_PARTICIPANT,
                       name: 'atlas',
                       data: {},
                     })}`,
@@ -2638,7 +2638,7 @@ Schema:
             createChatResponseTurn('/query', undefined, {
               result: {
                 errorDetails: {
-                  message: PARTICIPANT_ERROR_TYPES.FILTERED,
+                  message: ParticipantErrorType.FILTERED,
                 },
                 metadata: {},
               },

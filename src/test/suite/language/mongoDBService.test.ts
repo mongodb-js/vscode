@@ -21,8 +21,8 @@ import MongoDBService, {
 } from '../../../language/mongoDBService';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { StreamStub } from '../stubs';
-import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
-import { SERVER_COMMANDS } from '../../../language/serverCommands';
+import DiagnosticCode from '../../../language/diagnosticCodes';
+import { ServerCommand } from '../../../language/serverCommands';
 import LINKS from '../../../utils/links';
 import Sinon from 'sinon';
 
@@ -2965,7 +2965,7 @@ suite('MongoDBService Test Suite', () => {
         consoleOutputs = [];
 
         Sinon.stub(connection, 'sendNotification')
-          .withArgs(SERVER_COMMANDS.SHOW_CONSOLE_OUTPUT)
+          .withArgs(ServerCommand.SHOW_CONSOLE_OUTPUT)
           .callsFake((_, params) =>
             Promise.resolve(void consoleOutputs.push(...params)),
           );
@@ -3105,7 +3105,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 3 },
@@ -3124,7 +3124,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3143,7 +3143,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3162,7 +3162,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3181,7 +3181,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3200,7 +3200,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 14 },
@@ -3219,7 +3219,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3238,7 +3238,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 16 },
@@ -3257,7 +3257,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 11 },
@@ -3276,7 +3276,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 12 },
@@ -3295,7 +3295,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3314,7 +3314,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3333,7 +3333,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 9 },
@@ -3352,7 +3352,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3371,7 +3371,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3390,7 +3390,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 17 },
@@ -3409,7 +3409,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 26 },

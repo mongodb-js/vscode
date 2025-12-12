@@ -25,7 +25,7 @@ import { isAtlasStream } from 'mongodb-build-info';
 import { Worker as WorkerThreads } from 'worker_threads';
 
 import formatError from '../utils/formatError';
-import { SERVER_COMMANDS } from './serverCommands';
+import { ServerCommand } from './serverCommands';
 import type {
   ShellEvaluateResult,
   PlaygroundEvaluateParams,
@@ -36,7 +36,7 @@ import { Visitor } from './visitor';
 import type { CompletionState, NamespaceState } from './visitor';
 import LINKS from '../utils/links';
 
-import DIAGNOSTIC_CODES from './diagnosticCodes';
+import DiagnosticCode from './diagnosticCodes';
 import { getDBFromConnectionString } from '../utils/connection-string-db';
 
 const PROJECT = '$project';
@@ -227,7 +227,7 @@ export default class MongoDBService {
     return new Promise((resolve) => {
       if (this._currentConnectionId !== params.connectionId) {
         void this._connection.sendNotification(
-          SERVER_COMMANDS.SHOW_ERROR_MESSAGE,
+          ServerCommand.SHOW_ERROR_MESSAGE,
           "The playground's active connection does not match the extension's active connection. Please reconnect and try again.",
         );
         return resolve(null);
@@ -267,11 +267,11 @@ export default class MongoDBService {
         );
 
         worker?.on('message', ({ name, payload }) => {
-          if (name === SERVER_COMMANDS.SHOW_CONSOLE_OUTPUT) {
+          if (name === ServerCommand.SHOW_CONSOLE_OUTPUT) {
             void this._connection.sendNotification(name, payload);
           }
 
-          if (name === SERVER_COMMANDS.CODE_EXECUTION_RESULT) {
+          if (name === ServerCommand.CODE_EXECUTION_RESULT) {
             const { error, data } = payload as {
               data: ShellEvaluateResult | null;
               error?: any;
@@ -281,7 +281,7 @@ export default class MongoDBService {
                 `WORKER error: ${util.inspect(error)}`,
               );
               void this._connection.sendNotification(
-                SERVER_COMMANDS.SHOW_ERROR_MESSAGE,
+                ServerCommand.SHOW_ERROR_MESSAGE,
                 formatError(error).message,
               );
             }
@@ -292,7 +292,7 @@ export default class MongoDBService {
         });
 
         worker.postMessage({
-          name: SERVER_COMMANDS.EXECUTE_CODE_FROM_PLAYGROUND,
+          name: ServerCommand.EXECUTE_CODE_FROM_PLAYGROUND,
           data: {
             codeToEvaluate: params.codeToEvaluate,
             filePath: params.filePath,
@@ -1163,7 +1163,7 @@ export default class MongoDBService {
         diagnostics.push({
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: i, character: startCharacter },
             end: { line: i, character: endCharacter },

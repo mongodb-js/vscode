@@ -16,7 +16,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import MongoDBService from './mongoDBService';
-import { SERVER_COMMANDS } from './serverCommands';
+import { ServerCommand } from './serverCommands';
 import type { PlaygroundEvaluateParams } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 
@@ -78,7 +78,7 @@ connection.onInitialize((params: InitializeParams) => {
 
 connection.onInitialized(() => {
   void connection.sendNotification(
-    SERVER_COMMANDS.MONGODB_SERVICE_CREATED,
+    ServerCommand.MONGODB_SERVICE_CREATED,
     'An instance of MongoDBService is created',
   );
 
@@ -158,25 +158,25 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
 
 // Execute a playground.
 connection.onRequest(
-  SERVER_COMMANDS.EXECUTE_CODE_FROM_PLAYGROUND,
+  ServerCommand.EXECUTE_CODE_FROM_PLAYGROUND,
   (evaluateParams: PlaygroundEvaluateParams, token: CancellationToken) => {
     return mongoDBService.evaluate(evaluateParams, token);
   },
 );
 
 // Send default configurations to mongoDBService.
-connection.onRequest(SERVER_COMMANDS.INITIALIZE_MONGODB_SERVICE, (settings) => {
+connection.onRequest(ServerCommand.INITIALIZE_MONGODB_SERVICE, (settings) => {
   mongoDBService.initialize(settings);
 });
 
 // Change NodeDriverServiceProvider active connection.
-connection.onRequest(SERVER_COMMANDS.ACTIVE_CONNECTION_CHANGED, (params) => {
+connection.onRequest(ServerCommand.ACTIVE_CONNECTION_CHANGED, (params) => {
   return mongoDBService.activeConnectionChanged(params);
 });
 
 // Set fields for tests.
 connection.onRequest(
-  SERVER_COMMANDS.UPDATE_CURRENT_SESSION_FIELDS,
+  ServerCommand.UPDATE_CURRENT_SESSION_FIELDS,
   ({ namespace, schemaFields }) => {
     return mongoDBService.cacheFields(namespace, schemaFields);
   },
@@ -184,7 +184,7 @@ connection.onRequest(
 
 // Clear cached completions by provided cache names.
 connection.onRequest(
-  SERVER_COMMANDS.CLEAR_CACHED_COMPLETIONS,
+  ServerCommand.CLEAR_CACHED_COMPLETIONS,
   (clear: ClearCompletionsCache) => {
     return mongoDBService.clearCachedCompletions(clear);
   },

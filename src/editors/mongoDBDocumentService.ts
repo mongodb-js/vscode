@@ -3,7 +3,7 @@ import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { DOCUMENT_SOURCE, type DocumentSource } from '../documentSource';
+import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
@@ -15,7 +15,7 @@ const log = createLogger('document controller');
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
-export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
+export const DocumentSource_URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
@@ -53,7 +53,7 @@ export default class MongoDBDocumentService {
 
     this._telemetryService.track(
       new DocumentUpdatedTelemetryEvent(
-        DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW,
+        DocumentSource.DocumentSource_TREEVIEW,
         false,
       ),
     );

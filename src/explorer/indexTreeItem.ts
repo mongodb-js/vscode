@@ -4,7 +4,7 @@ import path from 'path';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
-export const INDEX_KEY_TYPES = {
+export const IndexKeyType = {
   ASCENDING: 1,
   DESCENDING: -1,
   TEXT: 'text',
@@ -14,8 +14,7 @@ export const INDEX_KEY_TYPES = {
   GEOHAYSTACK: 'geoHaystack',
 } as const;
 
-export type IndexKeyType =
-  (typeof INDEX_KEY_TYPES)[keyof typeof INDEX_KEY_TYPES];
+export type IndexKeyType = (typeof IndexKeyType)[keyof typeof IndexKeyType];
 
 export type IndexModel = {
   v: number;
@@ -27,26 +26,26 @@ export type IndexModel = {
 };
 
 function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
-  if (indexKeyType === INDEX_KEY_TYPES.ASCENDING) {
+  if (indexKeyType === IndexKeyType.ASCENDING) {
     return 'ascending';
   }
 
-  if (indexKeyType === INDEX_KEY_TYPES.DESCENDING) {
+  if (indexKeyType === IndexKeyType.DESCENDING) {
     return 'descending';
   }
 
-  if (indexKeyType === INDEX_KEY_TYPES.TEXT) {
+  if (indexKeyType === IndexKeyType.TEXT) {
     return 'text';
   }
 
-  if (indexKeyType === INDEX_KEY_TYPES.HASHED) {
+  if (indexKeyType === IndexKeyType.HASHED) {
     return 'hashed';
   }
 
   if (
-    indexKeyType === INDEX_KEY_TYPES.GEO ||
-    indexKeyType === INDEX_KEY_TYPES.GEOHAYSTACK ||
-    indexKeyType === INDEX_KEY_TYPES.GEOSPHERE
+    indexKeyType === IndexKeyType.GEO ||
+    indexKeyType === IndexKeyType.GEOHAYSTACK ||
+    indexKeyType === IndexKeyType.GEOSPHERE
   ) {
     return 'geospatial';
   }

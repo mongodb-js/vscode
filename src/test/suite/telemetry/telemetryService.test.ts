@@ -9,7 +9,7 @@ import sinon from 'sinon';
 import type { SinonSpy } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { DOCUMENT_SOURCE } from '../../../documentSource';
+import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { DatabaseTreeItem, DocumentTreeItem } from '../../../explorer';
 import { DataServiceStub } from '../stubs';
@@ -218,7 +218,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document saved form a tree-view event', () => {
-      const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_TREEVIEW;
+      const source = DocumentSource.DocumentSource_TREEVIEW;
       testTelemetryService.track(
         new DocumentUpdatedTelemetryEvent(source, true),
       );
@@ -237,7 +237,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document opened form playground results', () => {
-      const source = DOCUMENT_SOURCE.DOCUMENT_SOURCE_PLAYGROUND;
+      const source = DocumentSource.DocumentSource_PLAYGROUND;
       testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -556,7 +556,7 @@ suite('Telemetry Controller Test Suite', () => {
             loaded_connections: 3,
             preset_connections: 3,
             connections_with_secrets_in_keytar: 0,
-            connections_with_secrets_in_secret_storage: 3,
+            connections_with_secrets_in_SecretStorage: 3,
           },
         }),
       );

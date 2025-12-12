@@ -15,21 +15,21 @@ import {
   SchemaTreeItem,
   StreamProcessorTreeItem,
 } from '../../explorer';
-import EXTENSION_COMMANDS, { type ExtensionCommand } from '../../commands';
+import { ExtensionCommand } from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
-  STORAGE_LOCATIONS,
-  SECRET_STORAGE_LOCATIONS,
-  STORAGE_VARIABLES,
+  StorageLocation,
+  SecretStorageLocation,
+  StorageVariable,
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 import { expect } from 'chai';
 import { DeepLinkTelemetryEvent } from '../../telemetry';
-import { COLLECTION_TYPES } from '../../explorer/documentListTreeItem';
+import { CollectionType } from '../../explorer/documentListTreeItem';
 import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
@@ -59,7 +59,7 @@ function getTestCollectionTreeItem(
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
-      type: COLLECTION_TYPES.collection,
+      type: CollectionType.collection,
     } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
@@ -160,7 +160,7 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('allowed and disallowed lists are complete', () => {
-      const allCommands = new Set(Object.values(EXTENSION_COMMANDS));
+      const allCommands = new Set(Object.values(ExtensionCommand));
       const allowedSet = new Set(
         DEEP_LINK_ALLOWED_COMMANDS as readonly ExtensionCommand[],
       );
@@ -178,7 +178,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
       expect(extra).to.deep.equal(
         [],
-        `Commands in allowed/disallowed lists but not in EXTENSION_COMMANDS: ${extra.join(', ')}`,
+        `Commands in allowed/disallowed lists but not in ExtensionCommand: ${extra.join(', ')}`,
       );
     });
   });
@@ -764,7 +764,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'doesntExistColName',
-          type: COLLECTION_TYPES.collection,
+          type: CollectionType.collection,
         } as unknown as CollectionDetailsType,
         dataService:
           testConnectionController.getActiveDataService() ?? undefined,
@@ -795,7 +795,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'orange',
-          type: COLLECTION_TYPES.collection,
+          type: CollectionType.collection,
         } as unknown as CollectionDetailsType,
       });
       const inputBoxResolvesStub = sandbox.stub();
@@ -904,8 +904,8 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           connectionOptions: { connectionString: 'mongodb://localhost' },
           name: 'NAAAME',
-          storageLocation: STORAGE_LOCATIONS.NONE,
-          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
+          storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({
@@ -935,8 +935,8 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           name: 'NAAAME',
           connectionOptions: { connectionString: 'mongodb://localhost' },
-          storageLocation: STORAGE_LOCATIONS.NONE,
-          secretStorageLocation: SECRET_STORAGE_LOCATIONS.SecretStorage,
+          storageLocation: StorageLocation.NONE,
+          secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
       const testTreeItem = getTestConnectionTreeItem({
@@ -1357,7 +1357,7 @@ suite('MDBExtensionController Test Suite', function () {
       const collectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'pineapple',
-          type: COLLECTION_TYPES.collection,
+          type: CollectionType.collection,
         } as unknown as CollectionDetailsType,
         databaseName: 'plants',
       });
@@ -1682,7 +1682,7 @@ suite('MDBExtensionController Test Suite', function () {
             );
             assert.strictEqual(
               executeCommandStub.firstCall.args[0],
-              EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE,
+              ExtensionCommand.MDB_OPEN_OVERVIEW_PAGE,
             );
           });
 
@@ -1690,7 +1690,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              StorageVariable.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
@@ -1735,7 +1735,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              STORAGE_VARIABLES.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              StorageVariable.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],

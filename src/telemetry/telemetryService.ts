@@ -10,10 +10,7 @@ import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { StorageController } from '../storage';
-import {
-  PARTICIPANT_ERROR_TYPES,
-  type ParticipantErrorType,
-} from '../participant/participantErrorTypes';
+import { ParticipantErrorType } from '../participant/participantErrorTypes';
 import type { ParticipantResponseType } from '../participant/participantTypes';
 import type { TelemetryEvent } from './telemetryEvents';
 import {
@@ -217,13 +214,13 @@ export class TelemetryService {
     const message: string = err.message || err.toString();
 
     if (message.includes('off_topic')) {
-      errorName = PARTICIPANT_ERROR_TYPES.CHAT_MODEL_OFF_TOPIC;
+      errorName = ParticipantErrorType.CHAT_MODEL_OFF_TOPIC;
     } else if (message.includes('Filtered by Responsible AI Service')) {
-      errorName = PARTICIPANT_ERROR_TYPES.FILTERED;
+      errorName = ParticipantErrorType.FILTERED;
     } else if (message.includes('Prompt failed validation')) {
-      errorName = PARTICIPANT_ERROR_TYPES.INVALID_PROMPT;
+      errorName = ParticipantErrorType.INVALID_PROMPT;
     } else {
-      errorName = PARTICIPANT_ERROR_TYPES.OTHER;
+      errorName = ParticipantErrorType.OTHER;
     }
 
     this.track(

@@ -4,8 +4,8 @@ import type ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';
-import { DOCUMENT_LIST_ITEM, COLLECTION_TYPES } from './documentListTreeItem';
-import EXTENSION_COMMANDS from '../commands';
+import { DOCUMENT_LIST_ITEM, CollectionType } from './documentListTreeItem';
+import ExtensionCommand from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import type { LoadedConnection } from '../storage/connectionStorage';
 import {
@@ -120,17 +120,17 @@ export default class ExplorerTreeController
 
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
           await vscode.commands.executeCommand(
-            EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
+            ExtensionCommand.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
             event.selection[0],
           );
         }
 
         if (
           selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
-          selectedItem.type === COLLECTION_TYPES.view
+          selectedItem.type === CollectionType.view
         ) {
           await vscode.commands.executeCommand(
-            EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,
+            ExtensionCommand.MDB_VIEW_COLLECTION_DOCUMENTS,
             event.selection[0],
           );
         }

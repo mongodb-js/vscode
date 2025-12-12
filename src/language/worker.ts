@@ -1,7 +1,7 @@
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
-import { SERVER_COMMANDS } from './serverCommands';
+import { ServerCommand } from './serverCommands';
 
 import type {
   ShellEvaluateResult,
@@ -44,7 +44,7 @@ type ExecuteCodeOptions = {
 
 function handleEvalPrint(values: EvaluationResult[]): void {
   parentPort?.postMessage({
-    name: SERVER_COMMANDS.SHOW_CONSOLE_OUTPUT,
+    name: ServerCommand.SHOW_CONSOLE_OUTPUT,
     payload: values.map((v) => {
       return typeof v.printable === 'string'
         ? v.printable
@@ -124,9 +124,9 @@ export const execute = async ({
 };
 
 const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
-  if (name === SERVER_COMMANDS.EXECUTE_CODE_FROM_PLAYGROUND) {
+  if (name === ServerCommand.EXECUTE_CODE_FROM_PLAYGROUND) {
     parentPort?.postMessage({
-      name: SERVER_COMMANDS.CODE_EXECUTION_RESULT,
+      name: ServerCommand.CODE_EXECUTION_RESULT,
       payload: await execute(data),
     });
   }

@@ -1,4 +1,4 @@
-const EXTENSION_COMMANDS = {
+export const ExtensionCommand = {
   MDB_CONNECT: 'mdb.connect',
   MDB_CONNECT_WITH_URI: 'mdb.connectWithURI',
   MDB_OPEN_OVERVIEW_PAGE: 'mdb.openOverviewPage',
@@ -100,6 +100,6 @@ const EXTENSION_COMMANDS = {
 } as const;
 
 export type ExtensionCommand =
-  (typeof EXTENSION_COMMANDS)[keyof typeof EXTENSION_COMMANDS];
+  (typeof ExtensionCommand)[keyof typeof ExtensionCommand];
 
-export default EXTENSION_COMMANDS;
+export default ExtensionCommand;
