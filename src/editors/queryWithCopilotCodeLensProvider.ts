@@ -34,7 +34,7 @@ export class QueryWithCopilotCodeLensProvider
       command: 'query',
       isNewChat: true,
       telemetry: {
-        source: DocumentSource.DOCUMENT_SOURCE_CODELENS,
+        source: DocumentSource.CODELENS,
         source_details: undefined,
       },
     };

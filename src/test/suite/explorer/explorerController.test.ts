@@ -31,7 +31,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation['Session Only'],
+        DefaultSavingLocation.SESSION_ONLY,
       );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.stub(vscode.window, 'showErrorMessage');
@@ -47,7 +47,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     // Reset our connections.
     await mdbTestExtension.testExtensionController._connectionController.disconnect();

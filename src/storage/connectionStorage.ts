@@ -315,11 +315,11 @@ export class ConnectionStorage {
       .getConfiguration('mdb.connectionSaving')
       .get('defaultConnectionSavingLocation');
 
-    if (defaultConnectionSavingLocation === DefaultSavingLocation.Workspace) {
+    if (defaultConnectionSavingLocation === DefaultSavingLocation.WORKSPACE) {
       return StorageLocation.WORKSPACE;
     }
 
-    if (defaultConnectionSavingLocation === DefaultSavingLocation.Global) {
+    if (defaultConnectionSavingLocation === DefaultSavingLocation.GLOBAL) {
       return StorageLocation.GLOBAL;
     }
 

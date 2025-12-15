@@ -31,9 +31,9 @@ export type StorageLocation =
 
 // Coupled with the `defaultConnectionSavingLocation` configuration in `package.json`.
 export const DefaultSavingLocation = {
-  Workspace: 'Workspace',
-  Global: 'Global',
-  'Session Only': 'Session Only',
+  WORKSPACE: 'Workspace',
+  GLOBAL: 'Global',
+  SESSION_ONLY: 'Session Only',
 } as const;
 
 export type DefaultSavingLocation =

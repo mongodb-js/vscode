@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import ConnectionString from 'mongodb-connection-string-url';
 
 import ConnectionController, {
-  CONNECTION_TYPES,
+  ConnectionType,
   getNotifyDeviceFlowForConnectionAttempt,
 } from '../../connectionController';
 import formatError from '../../utils/formatError';
@@ -568,7 +568,7 @@ suite('Connection Controller Test Suite', function () {
   test('the connection model loads both global and workspace stored connection models', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.GLOBAL);
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
@@ -579,7 +579,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -607,7 +607,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.GLOBAL);
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
@@ -638,7 +638,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -689,7 +689,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -751,7 +751,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation['Session Only'],
+        DefaultSavingLocation.SESSION_ONLY,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -812,7 +812,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -843,7 +843,7 @@ suite('Connection Controller Test Suite', function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.GLOBAL);
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
@@ -888,7 +888,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -936,7 +936,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -1012,7 +1012,7 @@ suite('Connection Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
@@ -1560,7 +1560,7 @@ suite('Connection Controller Test Suite', function () {
         .getConfiguration('mdb.connectionSaving')
         .update(
           'defaultConnectionSavingLocation',
-          DefaultSavingLocation.Global,
+          DefaultSavingLocation.GLOBAL,
         );
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI_USER,
@@ -1690,7 +1690,7 @@ suite('Connection Controller Test Suite', function () {
         });
         expect(fakeConnect).to.have.been.calledWith(
           connections[0].id,
-          CONNECTION_TYPES.CONNECTION_ID,
+          ConnectionType.CONNECTION_ID,
         );
         connections = testConnectionController.getSavedConnections();
         expect(connections).to.have.lengthOf(1);

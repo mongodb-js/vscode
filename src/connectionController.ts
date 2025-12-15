@@ -47,14 +47,14 @@ interface DataServiceEventTypes {
   ACTIVE_CONNECTION_CHANGED: [];
 }
 
-export const CONNECTION_TYPES = {
+export const ConnectionType = {
   CONNECTION_FORM: 'CONNECTION_FORM',
   CONNECTION_STRING: 'CONNECTION_STRING',
   CONNECTION_ID: 'CONNECTION_ID',
 } as const;
 
 export type ConnectionTypes =
-  (typeof CONNECTION_TYPES)[keyof typeof CONNECTION_TYPES];
+  (typeof ConnectionType)[keyof typeof ConnectionType];
 
 export const NEW_CONNECTION_TYPE = {
   NEW_CONNECTION: 'NEW_CONNECTION',
@@ -350,7 +350,7 @@ export default class ConnectionController {
             connectionOptions: {
               connectionString: connectionStringData.toString(),
             },
-            connectionType: CONNECTION_TYPES.CONNECTION_STRING,
+            connectionType: ConnectionType.CONNECTION_STRING,
             name,
           }));
 
@@ -698,7 +698,7 @@ export default class ConnectionController {
 
       const result = await this._connect(
         connectionId,
-        CONNECTION_TYPES.CONNECTION_ID,
+        ConnectionType.CONNECTION_ID,
       );
 
       /** After successfully connecting with an overridden connection

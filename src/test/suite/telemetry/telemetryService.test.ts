@@ -24,7 +24,7 @@ import {
   SavedConnectionsLoadedTelemetryEvent,
 } from '../../../telemetry';
 import type { SegmentProperties } from '../../../telemetry/telemetryService';
-import { CONNECTION_TYPES } from '../../../connectionController';
+import { ConnectionType } from '../../../connectionController';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -157,7 +157,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via connection string', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        CONNECTION_TYPES.CONNECTION_STRING,
+        ConnectionType.CONNECTION_STRING,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -178,7 +178,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via connection form', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        CONNECTION_TYPES.CONNECTION_FORM,
+        ConnectionType.CONNECTION_FORM,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -199,7 +199,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via saved connection', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        CONNECTION_TYPES.CONNECTION_ID,
+        ConnectionType.CONNECTION_ID,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -218,7 +218,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document saved form a tree-view event', () => {
-      const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+      const source = DocumentSource.TREEVIEW;
       testTelemetryService.track(
         new DocumentUpdatedTelemetryEvent(source, true),
       );
@@ -237,7 +237,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document opened form playground results', () => {
-      const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+      const source = DocumentSource.PLAYGROUND;
       testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,

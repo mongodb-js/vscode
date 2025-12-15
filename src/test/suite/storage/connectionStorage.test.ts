@@ -69,7 +69,7 @@ suite('Connection Storage Test Suite', function () {
   test('it loads both global and workspace stored connections', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.GLOBAL);
 
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
@@ -81,7 +81,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
 
     await testConnectionStorage.saveConnection(
@@ -107,7 +107,7 @@ suite('Connection Storage Test Suite', function () {
   test('when a connection is added it is saved to the global storage', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.GLOBAL);
 
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
@@ -138,7 +138,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
@@ -171,7 +171,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation['Session Only'],
+        DefaultSavingLocation.SESSION_ONLY,
       );
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, '1'),
@@ -198,7 +198,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
     const connectionId = 'pie';
     await testConnectionStorage.saveConnection(
@@ -224,7 +224,7 @@ suite('Connection Storage Test Suite', function () {
   test('when a connection is removed it is also removed from global storage', async () => {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
-      .update('defaultConnectionSavingLocation', DefaultSavingLocation.Global);
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.GLOBAL);
     const connectionId = 'pineapple';
     await testConnectionStorage.saveConnection(
       newTestConnection(testConnectionStorage, connectionId),
@@ -555,7 +555,7 @@ suite('Connection Storage Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocation.Workspace,
+        DefaultSavingLocation.WORKSPACE,
       );
 
     await testConnectionStorage.saveConnection(

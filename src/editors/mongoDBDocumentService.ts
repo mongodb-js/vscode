@@ -15,7 +15,7 @@ const log = createLogger('document controller');
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
-export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
+export const URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
@@ -52,10 +52,7 @@ export default class MongoDBDocumentService {
     const errorMessage = `Unable to save document: ${message}`;
 
     this._telemetryService.track(
-      new DocumentUpdatedTelemetryEvent(
-        DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-        false,
-      ),
+      new DocumentUpdatedTelemetryEvent(DocumentSource.TREEVIEW, false),
     );
 
     throw new Error(errorMessage);

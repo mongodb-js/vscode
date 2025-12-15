@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import type { ConnectionOptions } from 'mongodb-data-service';
 
 import type ConnectionController from '../connectionController';
-import { CONNECTION_TYPES } from '../connectionController';
+import { ConnectionType } from '../connectionController';
 import { createLogger } from '../logging';
 import ExtensionCommand from '../commands';
 import type { MessageFromWebviewToExtension } from './webview-app/extension-app-message-constants';
@@ -201,7 +201,7 @@ export default class WebviewController {
           : await this._connectionController.saveNewConnectionAndConnect({
               connectionId: connection.id,
               connectionOptions: connection.connectionOptions,
-              connectionType: CONNECTION_TYPES.CONNECTION_FORM,
+              connectionType: ConnectionType.CONNECTION_FORM,
             });
 
       try {
