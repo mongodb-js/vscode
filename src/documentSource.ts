@@ -1,5 +1,11 @@
-export enum DocumentSource {
-  DOCUMENT_SOURCE_TREEVIEW = 'treeview',
-  DOCUMENT_SOURCE_PLAYGROUND = 'playground',
-  DOCUMENT_SOURCE_COLLECTIONVIEW = 'collectionview',
-}
+export const DocumentSource = {
+  treeview: 'treeview',
+  playground: 'playground',
+  collectionview: 'collectionview',
+  codelens: 'codelens',
+} as const;
+
+export type DocumentSource =
+  (typeof DocumentSource)[keyof typeof DocumentSource];
+
+export type DocumentSourceDetails = 'database' | 'collection' | undefined;

@@ -7,9 +7,9 @@ import util from 'util';
 import { createLogger } from '../logging';
 import type ConnectionController from '../connectionController';
 import type { LoadedConnection } from '../storage/connectionStorage';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import type { StorageController } from '../storage';
-import { StorageVariables } from '../storage';
+import { StorageVariable } from '../storage';
 import { getContentLength, Prompts } from './prompts';
 import type { ChatResult } from './constants';
 import {
@@ -34,24 +34,42 @@ import {
   type OpenSchemaCommandArgs,
 } from './prompts/schema';
 import {
-  chatResultFeedbackKindToTelemetryValue,
-  TelemetryEventTypes,
-} from '../telemetry/telemetryService';
+  ExportToPlaygroundFailedTelemetryEvent,
+  ParticipantChatOpenedFromActionTelemetryEvent,
+  ParticipantFeedbackTelemetryEvent,
+  ParticipantInputBoxSubmittedTelemetryEvent,
+  ParticipantPromptSubmittedFromActionTelemetryEvent,
+  ParticipantPromptSubmittedTelemetryEvent,
+  ParticipantResponseFailedTelemetryEvent,
+  ParticipantResponseGeneratedTelemetryEvent,
+  ParticipantWelcomeShownTelemetryEvent,
+  PlaygroundExportedToLanguageTelemetryEvent,
+} from '../telemetry';
 import { DocsChatbotAIService } from './docsChatbotAIService';
-import type TelemetryService from '../telemetry/telemetryService';
+import type { TelemetryService } from '../telemetry';
 import formatError from '../utils/formatError';
 import { getContent, type ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
-import { ParticipantErrorTypes } from './participantErrorTypes';
-import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
 import {
-  type ExportToLanguageResult,
-  isExportToLanguageResult,
-} from '../types/playgroundType';
+  ParticipantErrorType,
+  type ExportToPlaygroundError,
+} from './participantErrorTypes';
+import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
+import { isExportToLanguageResult } from '../types/playgroundType';
 import { PromptHistory } from './prompts/promptHistory';
+import type {
+  SendMessageToParticipantOptions,
+  SendMessageToParticipantFromInputOptions,
+  ParticipantCommand,
+  ParticipantCommandType,
+} from './participantTypes';
+import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
+import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
+import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
+import { DocumentSource } from '../documentSource';
 
 const log = createLogger('participant');
 
@@ -59,7 +77,7 @@ const NUM_DOCUMENTS_TO_SAMPLE = 3;
 
 const MONGODB_DOCS_LINK = 'https://www.mongodb.com/docs/';
 
-interface NamespaceQuickPicks {
+interface ParticipantQuickPicks {
   label: string;
   data: string;
 }
@@ -67,8 +85,6 @@ interface NamespaceQuickPicks {
 export type RunParticipantCodeCommandArgs = {
   runnableContent: string;
 };
-
-export type ParticipantCommand = '/query' | '/schema' | '/docs';
 
 const MAX_MARKDOWN_LIST_LENGTH = 10;
 
@@ -106,17 +122,18 @@ export default class ParticipantController {
     // that appear when you type `/`.
     this._participant = vscode.chat.createChatParticipant(
       CHAT_PARTICIPANT_ID,
-      this.chatHandler.bind(this)
+      this.chatHandler.bind(this),
     );
     this._participant.iconPath = vscode.Uri.joinPath(
       vscode.Uri.parse(context.extensionPath),
       'images',
-      'mongodb.png'
+      'mongodb.png',
     );
     log.info('Chat participant created', {
       participantId: this._participant?.id,
     });
     this._participant.onDidReceiveFeedback(this.handleUserFeedback.bind(this));
+
     return this._participant;
   }
 
@@ -131,10 +148,117 @@ export default class ParticipantController {
    * in the chat. To work around this, we can write a message as the user, which will
    * trigger the chat handler and give us access to the model.
    */
-  writeChatMessageAsUser(message: string): Thenable<unknown> {
-    return vscode.commands.executeCommand('workbench.action.chat.open', {
-      query: `@MongoDB ${message}`,
+  async sendMessageToParticipant(
+    options: SendMessageToParticipantOptions,
+  ): Promise<unknown> {
+    const {
+      message,
+      isNewChat = false,
+      isPartialQuery = false,
+      telemetry,
+      command,
+      ...otherOptions
+    } = options;
+
+    if (isNewChat) {
+      await vscode.commands.executeCommand('workbench.action.chat.newChat');
+      await vscode.commands.executeCommand(
+        'workbench.action.chat.clearHistory',
+      );
+    }
+    const commandPrefix = command ? `/${command} ` : '';
+    const query = `@MongoDB ${commandPrefix}${message}`;
+
+    if (telemetry) {
+      if (isNewChat) {
+        this._telemetryService.track(
+          new ParticipantChatOpenedFromActionTelemetryEvent(telemetry, command),
+        );
+      }
+      if (!isPartialQuery) {
+        this._telemetryService.track(
+          new ParticipantPromptSubmittedFromActionTelemetryEvent(
+            telemetry,
+            command ?? 'generic',
+            query.length,
+          ),
+        );
+      }
+    }
+
+    return await vscode.commands.executeCommand('workbench.action.chat.open', {
+      ...otherOptions,
+      query,
+      isPartialQuery,
     });
+  }
+
+  async sendMessageToParticipantFromInput(
+    options: SendMessageToParticipantFromInputOptions,
+  ): Promise<unknown> {
+    const {
+      isNewChat,
+      isPartialQuery,
+      telemetry,
+      command,
+      ...inputBoxOptions
+    } = options;
+
+    const message = await vscode.window.showInputBox({
+      ...inputBoxOptions,
+    });
+
+    if (telemetry) {
+      this._telemetryService.track(
+        new ParticipantInputBoxSubmittedTelemetryEvent(
+          telemetry,
+          message,
+          command,
+        ),
+      );
+    }
+
+    if (message === undefined || message.trim() === '') {
+      return Promise.resolve();
+    }
+
+    return this.sendMessageToParticipant({
+      message,
+      telemetry,
+      command,
+      isNewChat,
+      isPartialQuery,
+    });
+  }
+
+  async askCopilotFromTreeItem(
+    treeItem: DatabaseTreeItem | CollectionTreeItem,
+  ): Promise<void> {
+    if (treeItem instanceof DatabaseTreeItem) {
+      const { databaseName } = treeItem;
+
+      await this.sendMessageToParticipant({
+        message: `I want to ask questions about the \`${databaseName}\` database.`,
+        isNewChat: true,
+        telemetry: {
+          source: DocumentSource.treeview,
+          source_details: 'database',
+        },
+      });
+    } else if (treeItem instanceof CollectionTreeItem) {
+      const { databaseName, collectionName } = treeItem;
+
+      await this.sendMessageToParticipant({
+        message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
+        isNewChat: true,
+        telemetry: {
+          source: DocumentSource.treeview,
+          source_details: 'collection',
+        },
+      });
+    } else {
+      throw new Error('Unsupported tree item type');
+    }
   }
 
   async _getChatResponse({
@@ -156,15 +280,17 @@ export default class ParticipantController {
           util.inspect({
             role: message.role,
             contentLength: getContentLength(message),
-          })
+          }),
       ),
     });
-    this._telemetryService.trackCopilotParticipantPrompt(modelInput.stats);
+    this._telemetryService.track(
+      new ParticipantPromptSubmittedTelemetryEvent(modelInput.stats),
+    );
 
     const modelResponse = await model.sendRequest(
       modelInput.messages,
       {},
-      token
+      token,
     );
 
     log.info('Model response received');
@@ -214,12 +340,12 @@ export default class ParticipantController {
       runnableContent,
     };
     stream.button({
-      command: EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
+      command: ExtensionCommand.runParticipantCode,
       title: vscode.l10n.t('▶️ Run'),
       arguments: [commandArgs],
     });
     stream.button({
-      command: EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+      command: ExtensionCommand.openParticipantCodeInPlayground,
       title: vscode.l10n.t('Open in playground'),
       arguments: [commandArgs],
     });
@@ -234,26 +360,35 @@ export default class ParticipantController {
     token: vscode.CancellationToken;
     language?: string;
   }): Promise<string | null> {
-    const chatResponse = await this._getChatResponse({
-      modelInput,
-      token,
-    });
+    try {
+      const chatResponse = await this._getChatResponse({
+        modelInput,
+        token,
+      });
 
-    const languageCodeBlockIdentifier = {
-      start: `\`\`\`${language ? language : 'javascript'}`,
-      end: '```',
-    };
+      const languageCodeBlockIdentifier = {
+        start: `\`\`\`${language ? language : 'javascript'}`,
+        end: '```',
+      };
 
-    const runnableContent: string[] = [];
-    await processStreamWithIdentifiers({
-      processStreamFragment: () => {},
-      onStreamIdentifier: (content: string) => {
-        runnableContent.push(content.trim());
-      },
-      inputIterable: chatResponse.text,
-      identifier: languageCodeBlockIdentifier,
-    });
-    return runnableContent.length ? runnableContent.join('') : null;
+      const runnableContent: string[] = [];
+      await processStreamWithIdentifiers({
+        processStreamFragment: () => {},
+        onStreamIdentifier: (content: string) => {
+          runnableContent.push(content.trim());
+        },
+        inputIterable: chatResponse.text,
+        identifier: languageCodeBlockIdentifier,
+      });
+      return runnableContent.length ? runnableContent.join('') : null;
+    } catch (error) {
+      /** If anything goes wrong with the response or the stream, return null instead of throwing. */
+      log.error(
+        'Error while streaming chat response with export to language',
+        error,
+      );
+      return null;
+    }
   }
 
   async streamChatResponseContentWithCodeActions({
@@ -324,7 +459,7 @@ export default class ParticipantController {
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<ChatResult> {
     const modelInput = await Prompts.generic.buildMessages({
       request,
@@ -339,13 +474,15 @@ export default class ParticipantController {
         stream,
       });
 
-    this._telemetryService.trackCopilotParticipantResponse({
-      command: 'generic',
-      has_cta: false,
-      found_namespace: false,
-      has_runnable_content: hasCodeBlock,
-      output_length: outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'generic',
+        hasCta: false,
+        foundNamespace: false,
+        hasRunnableContent: hasCodeBlock,
+        outputLength: outputLength,
+      }),
+    );
 
     return genericRequestChatResult(context.history);
   }
@@ -377,7 +514,7 @@ export default class ParticipantController {
           request,
           context,
           stream,
-          token
+          token,
         );
     }
   }
@@ -413,7 +550,7 @@ export default class ParticipantController {
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<ChatResult> {
     // We "prompt chain" to handle the generic requests.
     // First we ask the model to parse for intent.
@@ -461,9 +598,9 @@ export default class ParticipantController {
 
     const connectionName = this._connectionController.getActiveConnectionName();
 
-    return this.writeChatMessageAsUser(
-      `${command ? `${command} ` : ''}${connectionName}`
-    ) as Promise<boolean>;
+    return this.sendMessageToParticipant({
+      message: `${command ? `${command} ` : ''}${connectionName}`,
+    }) as Promise<boolean>;
   }
 
   getConnectionsTree(command: ParticipantCommand): vscode.MarkdownString[] {
@@ -478,16 +615,16 @@ export default class ParticipantController {
         .slice(0, MAX_MARKDOWN_LIST_LENGTH)
         .map((conn: LoadedConnection) =>
           createMarkdownLink({
-            commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+            commandId: ExtensionCommand.connectWithParticipant,
             data: {
               id: conn.id,
               command,
             },
             name: conn.name,
-          })
+          }),
         ),
       createMarkdownLink({
-        commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+        commandId: ExtensionCommand.connectWithParticipant,
         name: 'Show more',
         data: {
           command,
@@ -497,12 +634,12 @@ export default class ParticipantController {
   }
 
   async getDatabaseQuickPicks(
-    command: ParticipantCommand
-  ): Promise<NamespaceQuickPicks[]> {
+    command: ParticipantCommand,
+  ): Promise<ParticipantQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
-      void this.writeChatMessageAsUser(command);
+      void this.sendMessageToParticipant({ message: command });
       return [];
     }
 
@@ -520,7 +657,7 @@ export default class ParticipantController {
   }
 
   async _selectDatabaseWithQuickPick(
-    command: ParticipantCommand
+    command: ParticipantCommand,
   ): Promise<string | undefined> {
     const databases = await this.getDatabaseQuickPicks(command);
     const selectedQuickPickItem = await vscode.window.showQuickPick(databases, {
@@ -550,9 +687,9 @@ export default class ParticipantController {
       databaseName: databaseName,
     });
 
-    return this.writeChatMessageAsUser(
-      `${command} ${databaseName}`
-    ) as Promise<boolean>;
+    return this.sendMessageToParticipant({
+      message: `${command} ${databaseName}`,
+    }) as Promise<boolean>;
   }
 
   async getCollectionQuickPicks({
@@ -561,11 +698,11 @@ export default class ParticipantController {
   }: {
     command: ParticipantCommand;
     databaseName: string;
-  }): Promise<NamespaceQuickPicks[]> {
+  }): Promise<ParticipantQuickPicks[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       // Run a blank command to get the user to connect first.
-      void this.writeChatMessageAsUser(command);
+      void this.sendMessageToParticipant({ message: command });
       return [];
     }
 
@@ -595,7 +732,7 @@ export default class ParticipantController {
       collections,
       {
         placeHolder: 'Select a collection...',
-      }
+      },
     );
     return selectedQuickPickItem?.data;
   }
@@ -626,9 +763,9 @@ export default class ParticipantController {
       databaseName: databaseName,
       collectionName: collectionName,
     });
-    return this.writeChatMessageAsUser(
-      `${command} ${collectionName}`
-    ) as Promise<boolean>;
+    return this.sendMessageToParticipant({
+      message: `${command} ${collectionName}`,
+    }) as Promise<boolean>;
   }
 
   renderDatabasesTree({
@@ -648,17 +785,17 @@ export default class ParticipantController {
     databases.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((db) =>
       stream.markdown(
         createMarkdownLink({
-          commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.selectDatabaseWithParticipant,
           data: {
             command,
             chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-              context.history
+              context.history,
             ),
             databaseName: db.name,
           },
           name: db.name,
-        })
-      )
+        }),
+      ),
     );
 
     if (databases.length > MAX_MARKDOWN_LIST_LENGTH) {
@@ -667,12 +804,12 @@ export default class ParticipantController {
           data: {
             command,
             chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-              context.history
+              context.history,
             ),
           },
-          commandId: EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.selectDatabaseWithParticipant,
           name: 'Show more',
-        })
+        }),
       );
     }
   }
@@ -693,32 +830,32 @@ export default class ParticipantController {
     collections.slice(0, MAX_MARKDOWN_LIST_LENGTH).forEach((coll) =>
       stream.markdown(
         createMarkdownLink({
-          commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.selectCollectionWithParticipant,
           data: {
             command,
             chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-              context.history
+              context.history,
             ),
             databaseName,
             collectionName: coll.name,
           },
           name: coll.name,
-        })
-      )
+        }),
+      ),
     );
     if (collections.length > MAX_MARKDOWN_LIST_LENGTH) {
       stream.markdown(
         createMarkdownLink({
-          commandId: EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+          commandId: ExtensionCommand.selectCollectionWithParticipant,
           data: {
             command,
             chatId: ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-              context.history
+              context.history,
             ),
             databaseName,
           },
           name: 'Show more',
-        })
+        }),
       );
     }
   }
@@ -777,14 +914,14 @@ export default class ParticipantController {
       });
       ({ databaseName, collectionName } =
         Prompts.namespace.extractDatabaseAndCollectionNameFromResponse(
-          responseContentWithNamespace
+          responseContentWithNamespace,
         ));
     }
 
     // See if there's a namespace set in the
     // chat metadata we can fallback to if the model didn't find it.
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-      context.history
+      context.history,
     );
     const {
       databaseName: databaseNameFromMetadata,
@@ -807,10 +944,10 @@ export default class ParticipantController {
   }: {
     stream: vscode.ChatResponseStream;
   }): Promise<
-    | {
-        _id: string;
-        name: string;
-      }[]
+    {
+      _id: string;
+      name: string;
+    }[]
   > {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
@@ -818,7 +955,7 @@ export default class ParticipantController {
     }
 
     stream.push(
-      new vscode.ChatResponseProgressPart('Fetching database names...')
+      new vscode.ChatResponseProgressPart('Fetching database names...'),
     );
 
     try {
@@ -830,8 +967,8 @@ export default class ParticipantController {
 
       throw new Error(
         vscode.l10n.t(
-          `Unable to fetch database names: ${formatError(error).message}.`
-        )
+          `Unable to fetch database names: ${formatError(error).message}.`,
+        ),
       );
     }
   }
@@ -850,7 +987,7 @@ export default class ParticipantController {
     }
 
     stream.push(
-      new vscode.ChatResponseProgressPart('Fetching collection names...')
+      new vscode.ChatResponseProgressPart('Fetching collection names...'),
     );
 
     try {
@@ -862,8 +999,8 @@ export default class ParticipantController {
         vscode.l10n.t(
           `Unable to fetch collection names from ${databaseName}: ${
             formatError(error).message
-          }.`
-        )
+          }.`,
+        ),
       );
     }
   }
@@ -886,8 +1023,8 @@ export default class ParticipantController {
     if (collections.length === 0) {
       throw new Error(
         vscode.l10n.t(
-          `No collections were found in the database ${databaseName}.`
-        )
+          `No collections were found in the database ${databaseName}.`,
+        ),
       );
     }
     if (collections.length === 1) {
@@ -896,8 +1033,8 @@ export default class ParticipantController {
 
     stream.markdown(
       vscode.l10n.t(
-        `Which collection would you like to use within ${databaseName}? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
-      )
+        `Which collection would you like to use within ${databaseName}? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`,
+      ),
     );
 
     this.renderCollectionsTree({
@@ -940,8 +1077,8 @@ export default class ParticipantController {
       vscode.l10n.t(
         `Which database would you like ${
           command === '/query' ? 'this query to run against' : 'to use'
-        }? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`
-      )
+        }? Select one by either clicking on an item in the list or typing the name manually in the chat.\n\n`,
+      ),
     );
 
     this.renderDatabasesTree({
@@ -1018,7 +1155,7 @@ export default class ParticipantController {
   }
 
   _doesLastMessageAskForNamespace(
-    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+    history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
   ): boolean {
     const lastMessageMetaData = history[
       history.length - 1
@@ -1042,7 +1179,7 @@ export default class ParticipantController {
     log.info('Participant asked user to connect');
 
     stream.markdown(
-      "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n"
+      "Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.\n\n",
     );
 
     const tree = this.getConnectionsTree(command);
@@ -1094,8 +1231,8 @@ export default class ParticipantController {
 
     stream.push(
       new vscode.ChatResponseProgressPart(
-        'Fetching documents and analyzing schema...'
-      )
+        'Fetching documents and analyzing schema...',
+      ),
     );
 
     const abortController = new AbortController();
@@ -1113,7 +1250,7 @@ export default class ParticipantController {
         { promoteValues: false, maxTimeMS: 10_000 },
         {
           abortSignal: abortController.signal,
-        }
+        },
       );
 
       if (!sampleDocuments) {
@@ -1195,7 +1332,7 @@ export default class ParticipantController {
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<ChatResult> {
     if (!this._connectionController.getActiveDataService()) {
       return this._askToConnect({
@@ -1266,16 +1403,16 @@ export default class ParticipantController {
       if (!schema || amountOfDocumentsSampled === 0) {
         stream.markdown(
           vscode.l10n.t(
-            'Unable to generate a schema from the collection, no documents found.'
-          )
+            'Unable to generate a schema from the collection, no documents found.',
+          ),
         );
         return schemaRequestChatResult(context.history);
       }
     } catch (e) {
       stream.markdown(
         vscode.l10n.t(
-          `Unable to generate a schema from the collection, an error occurred: ${e}`
-        )
+          `Unable to generate a schema from the collection, an error occurred: ${e}`,
+        ),
       );
       return schemaRequestChatResult(context.history);
     }
@@ -1297,7 +1434,7 @@ export default class ParticipantController {
     });
 
     stream.button({
-      command: EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
+      command: ExtensionCommand.participantOpenRawSchemaOutput,
       title: vscode.l10n.t('Open JSON Output'),
       arguments: [
         {
@@ -1306,13 +1443,15 @@ export default class ParticipantController {
       ],
     });
 
-    this._telemetryService.trackCopilotParticipantResponse({
-      command: 'schema',
-      has_cta: true,
-      found_namespace: true,
-      has_runnable_content: false,
-      output_length: response.outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'schema',
+        hasCta: true,
+        foundNamespace: true,
+        hasRunnableContent: false,
+        outputLength: response.outputLength,
+      }),
+    );
 
     return schemaRequestChatResult(context.history);
   }
@@ -1322,7 +1461,7 @@ export default class ParticipantController {
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<ChatResult> {
     if (!this._connectionController.getActiveDataService()) {
       return this._askToConnect({
@@ -1395,8 +1534,8 @@ export default class ParticipantController {
       // we do want to notify the user.
       stream.markdown(
         vscode.l10n.t(
-          'An error occurred while fetching the collection schema and sample documents.\nThe generated query will not be able to reference the shape of your data.'
-        )
+          'An error occurred while fetching the collection schema and sample documents.\nThe generated query will not be able to reference the shape of your data.',
+        ),
       );
     }
 
@@ -1417,36 +1556,41 @@ export default class ParticipantController {
         token,
       });
 
-    this._telemetryService.trackCopilotParticipantResponse({
-      command: 'query',
-      has_cta: false,
-      found_namespace: true,
-      has_runnable_content: hasCodeBlock,
-      output_length: outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'query',
+        hasCta: false,
+        foundNamespace: true,
+        hasRunnableContent: hasCodeBlock,
+        outputLength: outputLength,
+      }),
+    );
 
     return queryRequestChatResult(context.history);
   }
 
   async _handleDocsRequestWithChatbot({
-    prompt,
+    request,
     chatId,
     token,
     stream,
     context,
   }: {
-    prompt: string;
     chatId: string;
     token: vscode.CancellationToken;
     context: vscode.ChatContext;
+    request: vscode.ChatRequest;
     stream: vscode.ChatResponseStream;
   }): Promise<{
     responseContent: string;
     responseReferences?: Reference[];
     docsChatbotMessageId: string;
   }> {
+    const prompt = request.prompt;
     stream.push(
-      new vscode.ChatResponseProgressPart('Consulting MongoDB documentation...')
+      new vscode.ChatResponseProgressPart(
+        'Consulting MongoDB documentation...',
+      ),
     );
 
     let { docsChatbotConversationId } =
@@ -1466,7 +1610,7 @@ export default class ParticipantController {
       log.info('Docs chatbot created for chatId', chatId);
     }
 
-    const history = PromptHistory.getFilteredHistoryForDocs({
+    const history = await PromptHistory.getFilteredHistoryForDocs({
       connectionNames: this._getConnectionNames(),
       context: context,
     });
@@ -1475,7 +1619,7 @@ export default class ParticipantController {
       history.length > 0
         ? `${history
             .map((message: vscode.LanguageModelChatMessage) =>
-              getContent(message)
+              getContent(message),
             )
             .join('\n\n')}\n\n`
         : '';
@@ -1485,6 +1629,12 @@ export default class ParticipantController {
       conversationId: docsChatbotConversationId,
       signal: abortController.signal,
     });
+
+    const stats = Prompts.docs.getStats(history, { request, context });
+
+    this._telemetryService.track(
+      new ParticipantPromptSubmittedTelemetryEvent(stats),
+    );
 
     log.info('Docs chatbot message sent', {
       chatId,
@@ -1504,7 +1654,7 @@ export default class ParticipantController {
       vscode.ChatRequest,
       vscode.ChatContext,
       vscode.ChatResponseStream,
-      vscode.CancellationToken
+      vscode.CancellationToken,
     ]
   ): Promise<void> {
     const [request, context, stream, token] = args;
@@ -1523,13 +1673,15 @@ export default class ParticipantController {
 
     this._streamGenericDocsLink(stream);
 
-    this._telemetryService.trackCopilotParticipantResponse({
-      command: 'docs/copilot',
-      has_cta: true,
-      found_namespace: false,
-      has_runnable_content: hasCodeBlock,
-      output_length: outputLength,
-    });
+    this._telemetryService.track(
+      new ParticipantResponseGeneratedTelemetryEvent({
+        command: 'docs/copilot',
+        hasCta: true,
+        foundNamespace: false,
+        hasRunnableContent: hasCodeBlock,
+        outputLength: outputLength,
+      }),
+    );
   }
 
   _streamResponseReference({
@@ -1540,7 +1692,7 @@ export default class ParticipantController {
     stream: vscode.ChatResponseStream;
   }): void {
     const link = new vscode.MarkdownString(
-      `- [${reference.title}](${reference.url})\n`
+      `- [${reference.title}](${reference.url})\n`,
     );
     link.supportHtml = true;
     stream.markdown(link);
@@ -1561,7 +1713,7 @@ export default class ParticipantController {
       vscode.ChatRequest,
       vscode.ChatContext,
       vscode.ChatResponseStream,
-      vscode.CancellationToken
+      vscode.CancellationToken,
     ]
   ): Promise<ChatResult> {
     const [request, context, stream, token] = args;
@@ -1573,7 +1725,7 @@ export default class ParticipantController {
     }
 
     const chatId = ChatMetadataStore.getChatIdFromHistoryOrNewChatId(
-      context.history
+      context.history,
     );
     let docsResult: {
       responseContent?: string;
@@ -1583,7 +1735,7 @@ export default class ParticipantController {
 
     try {
       docsResult = await this._handleDocsRequestWithChatbot({
-        prompt: request.prompt,
+        request,
         chatId,
         token,
         stream,
@@ -1603,13 +1755,15 @@ export default class ParticipantController {
         }
       }
 
-      this._telemetryService.trackCopilotParticipantResponse({
-        command: 'docs/chatbot',
-        has_cta: !!docsResult.responseReferences,
-        found_namespace: false,
-        has_runnable_content: false,
-        output_length: docsResult.responseContent?.length ?? 0,
-      });
+      this._telemetryService.track(
+        new ParticipantResponseGeneratedTelemetryEvent({
+          command: 'docs/chatbot',
+          hasCta: !!docsResult.responseReferences,
+          foundNamespace: false,
+          hasRunnableContent: false,
+          outputLength: docsResult.responseContent?.length ?? 0,
+        }),
+      );
     } catch (error) {
       // If the docs chatbot API is not available, fall back to Copilot’s LLM and include
       // the MongoDB documentation link for users to go to our documentation site directly.
@@ -1623,11 +1777,10 @@ export default class ParticipantController {
       }
 
       this._telemetryService.track(
-        TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED,
-        {
-          command: 'docs',
-          error_name: ParticipantErrorTypes.DOCS_CHATBOT_API,
-        }
+        new ParticipantResponseFailedTelemetryEvent(
+          'docs',
+          ParticipantErrorType.docsChatbotApi,
+        ),
       );
 
       await this._handleDocsRequestWithCopilot(...args);
@@ -1639,85 +1792,145 @@ export default class ParticipantController {
     });
   }
 
+  async selectLanguageWithQuickPick(): Promise<string | undefined> {
+    const targetLanguages = EXPORT_TO_LANGUAGE_ALIASES.map(
+      ({ alias }) => alias,
+    );
+    const selectedQuickPickItem = await vscode.window.showQuickPick(
+      targetLanguages,
+      {
+        placeHolder: 'Export to...',
+      },
+    );
+    return selectedQuickPickItem;
+  }
+
+  async selectTargetForExportToLanguage(): Promise<boolean> {
+    const languageAlias = await this.selectLanguageWithQuickPick();
+    const language = EXPORT_TO_LANGUAGE_ALIASES.find(
+      (item) => item.alias === languageAlias,
+    );
+    if (!language) {
+      return false;
+    }
+    await vscode.commands.executeCommand(
+      ExtensionCommand.mdbExportToLanguage,
+      language.id,
+    );
+    return true;
+  }
+
   async exportCodeToPlayground(): Promise<boolean> {
-    const selectedText = getSelectedText();
-    const codeToExport = selectedText || getAllText();
+    const codeToExport = getSelectedText() || getAllText();
 
     try {
-      const content = await vscode.window.withProgress(
+      const contentOrError = await vscode.window.withProgress<
+        { value: string } | { error: ExportToPlaygroundError }
+      >(
         {
           location: vscode.ProgressLocation.Notification,
           title: 'Exporting code to a playground...',
           cancellable: true,
         },
-        async (progress, token): Promise<string | null> => {
-          const modelInput = await Prompts.exportToPlayground.buildMessages({
-            request: { prompt: codeToExport },
-          });
+        async (
+          progress,
+          token,
+        ): Promise<{ value: string } | { error: ExportToPlaygroundError }> => {
+          let modelInput: ModelInput | undefined;
+          try {
+            modelInput = await Prompts.exportToPlayground.buildMessages({
+              request: { prompt: codeToExport },
+            });
+          } catch (error) {
+            return { error: 'modelInput' };
+          }
 
           const result = await Promise.race([
             this.streamChatResponseWithExportToLanguage({
               modelInput,
               token,
             }),
-            new Promise<null>((resolve) =>
+            new Promise<ExportToPlaygroundError>((resolve) =>
               token.onCancellationRequested(() => {
                 log.info('The export to a playground operation was canceled.');
-                resolve(null);
-              })
+                resolve('cancelled');
+              }),
             ),
           ]);
 
-          if (result?.includes("Sorry, I can't assist with that.")) {
-            void vscode.window.showErrorMessage(
-              'Sorry, we were unable to generate the playground, please try again. If the error persists, try changing your selected code.'
-            );
-            return null;
+          if (result === 'cancelled') {
+            return { error: 'cancelled' };
           }
 
-          return result;
-        }
+          if (!result || result?.includes("Sorry, I can't assist with that.")) {
+            return { error: 'streamChatResponseWithExportToLanguage' };
+          }
+
+          return { value: result };
+        },
       );
 
-      if (!content) {
-        return true;
+      if ('error' in contentOrError) {
+        const { error } = contentOrError;
+        if (error === 'cancelled') {
+          return true;
+        }
+
+        void vscode.window.showErrorMessage(
+          'Failed to generate a MongoDB Playground. Please ensure your code block contains a MongoDB query.',
+        );
+
+        // Content in this case is already equal to the failureType; this is just to make it explicit
+        // and avoid accidentally sending actual contents of the message.
+        this._telemetryService.track(
+          new ExportToPlaygroundFailedTelemetryEvent(
+            codeToExport?.length,
+            error,
+          ),
+        );
+        return false;
       }
 
+      const content = contentOrError.value;
       await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+        ExtensionCommand.openParticipantCodeInPlayground,
         {
           runnableContent: content,
-        }
+        },
       );
 
       return true;
     } catch (error) {
       const message = formatError(error).message;
-      this._telemetryService.trackCopilotParticipantError(
-        error,
-        'exportToPlayground'
-      );
+      this._telemetryService.trackParticipantError(error, 'exportToPlayground');
       void vscode.window.showErrorMessage(
-        `An error occurred exporting to a playground: ${message}`
+        `An error occurred exporting to a playground: ${message}`,
       );
       return false;
     }
   }
 
   async _exportPlaygroundToLanguageWithCancelModal({
-    codeToTranspile,
+    prompt,
     language,
     includeDriverSyntax,
-  }: Omit<ExportToLanguageResult, 'content'>): Promise<string | null> {
+  }: {
+    prompt: string;
+    language: string;
+    includeDriverSyntax: boolean;
+  }): Promise<string | null> {
+    const languageById = EXPORT_TO_LANGUAGE_ALIASES.find(
+      (item) => item.id === language,
+    );
     const progressResult = await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: `Exporting playground to ${language}...`,
+        title: `Exporting playground to ${languageById?.alias || language}...`,
         cancellable: true,
       },
       async (progress, token): Promise<string | null> => {
         const modelInput = await Prompts.exportToLanguage.buildMessages({
-          request: { prompt: codeToTranspile },
+          request: { prompt },
           language,
           includeDriverSyntax,
         });
@@ -1731,19 +1944,19 @@ export default class ParticipantController {
             token.onCancellationRequested(() => {
               log.info(`The export to ${language} operation was canceled.`);
               resolve(null);
-            })
+            }),
           ),
         ]);
 
         if (result?.includes("Sorry, I can't assist with that.")) {
           void vscode.window.showErrorMessage(
-            `Sorry, we were unable to export code to the "${language}" language, please try again. If the error persists, try changing your selected code.`
+            `Sorry, we were unable to export code to the "${language}" language, please try again. If the error persists, try changing your selected code.`,
           );
           return null;
         }
 
         return result || null;
-      }
+      },
     );
 
     return progressResult;
@@ -1754,29 +1967,29 @@ export default class ParticipantController {
       vscode.ChatRequest,
       vscode.ChatContext,
       vscode.ChatResponseStream,
-      vscode.CancellationToken
+      vscode.CancellationToken,
     ]
   ): Promise<ChatResult> {
     const [request, , stream] = args;
     try {
       const hasBeenShownWelcomeMessageAlready = !!this._storageController.get(
-        StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE
+        StorageVariable.copilotHasBeenShownWelcomeMessage,
       );
       if (!hasBeenShownWelcomeMessageAlready) {
         stream.markdown(
           vscode.l10n.t(`
 Welcome to MongoDB Participant!\n\n
 Interact with your MongoDB clusters and generate MongoDB-related code more efficiently with intelligent AI-powered feature, available today in the MongoDB extension.\n\n
-Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.\n\n`)
+Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more information.\n\n`),
         );
 
         this._telemetryService.track(
-          TelemetryEventTypes.PARTICIPANT_WELCOME_SHOWN
+          new ParticipantWelcomeShownTelemetryEvent(),
         );
 
         await this._storageController.update(
-          StorageVariables.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE,
-          true
+          StorageVariable.copilotHasBeenShownWelcomeMessage,
+          true,
         );
       }
 
@@ -1796,9 +2009,9 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
           return await this.handleGenericRequest(...args);
       }
     } catch (error) {
-      this._telemetryService.trackCopilotParticipantError(
+      this._telemetryService.trackParticipantError(
         error,
-        request.command || 'generic'
+        (request.command as ParticipantCommandType) || 'generic',
       );
       // Re-throw other errors so they show up in the UI.
       throw error;
@@ -1806,7 +2019,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
   }
 
   async _rateDocsChatbotMessage(
-    feedback: vscode.ChatResultFeedback
+    feedback: vscode.ChatResultFeedback,
   ): Promise<void> {
     const chatId = feedback.result.metadata?.chatId;
     if (!chatId) {
@@ -1847,11 +2060,13 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       'unhelpfulReason' in feedback
         ? (feedback.unhelpfulReason as string)
         : undefined;
-    this._telemetryService.trackCopilotParticipantFeedback({
-      feedback: chatResultFeedbackKindToTelemetryValue(feedback.kind),
-      reason: unhelpfulReason,
-      response_type: (feedback.result as ChatResult)?.metadata.intent,
-    });
+    this._telemetryService.track(
+      new ParticipantFeedbackTelemetryEvent(
+        feedback.kind,
+        (feedback.result as ChatResult)?.metadata.intent,
+        unhelpfulReason,
+      ),
+    );
   }
 
   _getConnectionNames(): string[] {
@@ -1860,23 +2075,24 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
       .map((connection) => connection.name);
   }
 
-  async changeDriverSyntax(includeDriverSyntax: boolean): Promise<boolean> {
+  async changeDriverSyntaxForExportToLanguage(
+    includeDriverSyntax: boolean,
+  ): Promise<boolean> {
     if (
       !this._playgroundResultProvider._playgroundResult ||
       !isExportToLanguageResult(
-        this._playgroundResultProvider._playgroundResult
+        this._playgroundResultProvider._playgroundResult,
       )
     ) {
       void vscode.window.showErrorMessage(
-        'Unable to change the driver syntax, no playground content found.'
+        'Unable to change the driver syntax, no playground content found.',
       );
       return false;
     }
 
-    return this._transpile({
-      ...this._playgroundResultProvider._playgroundResult,
-      includeDriverSyntax,
-    });
+    const { prompt, language } =
+      this._playgroundResultProvider._playgroundResult;
+    return this._transpile({ prompt, language, includeDriverSyntax });
   }
 
   async exportPlaygroundToLanguage(language: string): Promise<boolean> {
@@ -1884,14 +2100,14 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
 
     if (!isPlayground(editor?.document.uri)) {
       void vscode.window.showErrorMessage(
-        'Please select one or more lines in the playground.'
+        'Please select one or more lines in the playground.',
       );
       return false;
     }
 
     const selectedText = getSelectedText();
-    const codeToTranspile = selectedText || getAllText();
-    let includeDriverSyntax = false;
+    const prompt = selectedText || getAllText();
+    let includeDriverSyntax = DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX;
 
     if (
       this._playgroundResultProvider._playgroundResult &&
@@ -1901,58 +2117,65 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
         this._playgroundResultProvider._playgroundResult.includeDriverSyntax;
     }
 
-    return this._transpile({
-      codeToTranspile,
-      language,
-      includeDriverSyntax,
-    });
+    return this._transpile({ prompt, language, includeDriverSyntax });
   }
 
   async _transpile({
-    codeToTranspile,
+    prompt,
     language,
     includeDriverSyntax,
-  }: Omit<ExportToLanguageResult, 'content'>): Promise<boolean> {
-    log.info(`Exporting to the '${language}' language...`);
+  }: {
+    prompt: string;
+    language: string;
+    includeDriverSyntax: boolean;
+  }): Promise<boolean> {
+    log.info(`Exporting to the '${language}' language.`);
 
     try {
       const transpiledContent =
         await this._exportPlaygroundToLanguageWithCancelModal({
-          codeToTranspile,
+          prompt,
           language,
           includeDriverSyntax,
         });
 
       if (!transpiledContent) {
-        return true;
+        return false;
       }
 
       log.info(`The playground was exported to ${language}`, {
-        codeToTranspile,
+        prompt,
         language,
         includeDriverSyntax,
       });
 
-      await vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
-        {
-          content: transpiledContent,
-          codeToTranspile,
+      this._telemetryService.track(
+        new PlaygroundExportedToLanguageTelemetryEvent(
           language,
+          transpiledContent?.length,
           includeDriverSyntax,
-        }
+        ),
       );
 
-      this._telemetryService.trackPlaygroundExportedToLanguageExported({
-        language,
-        exported_code_length: transpiledContent?.length || 0,
-        with_driver_syntax: includeDriverSyntax,
-      });
+      await vscode.commands.executeCommand(
+        ExtensionCommand.showExportToLanguageResult,
+        {
+          prompt,
+          content: transpiledContent,
+          language,
+          includeDriverSyntax,
+        },
+      );
     } catch (error) {
       log.error(`Export to ${language} failed`, error);
       const printableError = formatError(error);
+      const languageById = EXPORT_TO_LANGUAGE_ALIASES.find(
+        (item) => item.id === language,
+      );
       void vscode.window.showErrorMessage(
-        `Unable to export to ${language}: ${printableError.message}`
+        `Unable to export to ${languageById?.alias || language}: ${
+          printableError.message
+        }`,
       );
     }
 

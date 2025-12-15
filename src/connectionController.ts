@@ -14,17 +14,26 @@ import { mongoLogId } from 'mongodb-log-writer';
 import { extractSecrets } from '@mongodb-js/connection-info';
 import { adjustConnectionOptionsBeforeConnect } from '@mongodb-js/connection-form';
 
-import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import {
+  CONNECTION_STATUS,
+  type ConnectionStatus,
+} from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import formatError from './utils/formatError';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
-import type TelemetryService from './telemetry/telemetryService';
+import type { TelemetryService } from './telemetry';
 import { openLink } from './utils/linkHelper';
-import type { LoadedConnection } from './storage/connectionStorage';
+import type {
+  ConnectionSource,
+  LoadedConnection,
+} from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
 import { isAtlasStream } from 'mongodb-build-info';
+import type { ConnectionTreeItem } from './explorer';
+import { PresetConnectionEditedTelemetryEvent } from './telemetry';
+import type { RequiredBy } from './utils/types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJSON = require('../package.json');
@@ -33,21 +42,27 @@ const log = createLogger('connection controller');
 
 const MAX_CONNECTION_NAME_LENGTH = 512;
 
-export enum DataServiceEventTypes {
-  CONNECTIONS_DID_CHANGE = 'CONNECTIONS_DID_CHANGE',
-  ACTIVE_CONNECTION_CHANGED = 'ACTIVE_CONNECTION_CHANGED',
+interface DataServiceEventTypes {
+  CONNECTIONS_DID_CHANGE: [];
+  ACTIVE_CONNECTION_CHANGED: [];
 }
 
-export enum ConnectionTypes {
-  CONNECTION_FORM = 'CONNECTION_FORM',
-  CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID',
-}
+export const ConnectionType = {
+  connectionForm: 'CONNECTION_FORM',
+  connectionString: 'CONNECTION_STRING',
+  connectionId: 'CONNECTION_ID',
+} as const;
 
-export enum NewConnectionType {
-  NEW_CONNECTION = 'NEW_CONNECTION',
-  SAVED_CONNECTION = 'SAVED_CONNECTION',
-}
+export type ConnectionTypes =
+  (typeof ConnectionType)[keyof typeof ConnectionType];
+
+export const NewConnectionType = {
+  newConnection: 'NEW_CONNECTION',
+  savedConnection: 'SAVED_CONNECTION',
+} as const;
+
+export type NewConnectionType =
+  (typeof NewConnectionType)[keyof typeof NewConnectionType];
 
 interface ConnectionAttemptResult {
   successfullyConnected: boolean;
@@ -63,9 +78,17 @@ type RecursivePartial<T> = {
   [P in keyof T]?: T[P] extends (infer U)[]
     ? RecursivePartial<U>[]
     : T[P] extends object | undefined
-    ? RecursivePartial<T[P]>
-    : T[P];
+      ? RecursivePartial<T[P]>
+      : T[P];
 };
+
+interface NewConnectionParams {
+  connectionString?: string;
+  name?: string;
+  reuseExisting?: boolean;
+}
+
+export const DEFAULT_TELEMETRY_APP_NAME = `${packageJSON.name} ${packageJSON.version}`;
 
 function isOIDCAuth(connectionString: string): boolean {
   const authMechanismString = (
@@ -78,7 +101,7 @@ function isOIDCAuth(connectionString: string): boolean {
 
 // Exported for testing.
 export function getNotifyDeviceFlowForConnectionAttempt(
-  connectionOptions: ConnectionOptions
+  connectionOptions: ConnectionOptions,
 ):
   | ((deviceFlowInformation: {
       verificationUrl: string;
@@ -86,7 +109,7 @@ export function getNotifyDeviceFlowForConnectionAttempt(
     }) => void)
   | undefined {
   const isOIDCConnectionAttempt = isOIDCAuth(
-    connectionOptions.connectionString
+    connectionOptions.connectionString,
   );
   let notifyDeviceFlow:
     | ((deviceFlowInformation: {
@@ -104,7 +127,7 @@ export function getNotifyDeviceFlowForConnectionAttempt(
       userCode: string;
     }): void => {
       void vscode.window.showInformationMessage(
-        `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`
+        `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`,
       );
     };
   }
@@ -124,18 +147,19 @@ export default class ConnectionController {
   // have a setting on the system for storing credentials.
   // When the setting is on this `connectionMergeInfos` would have the session
   // credential information and merge it before connecting.
-  connectionMergeInfos: Record<string, RecursivePartial<LoadedConnection>> =
-    Object.create(null);
+  private _connectionMergeInfos: Record<
+    string,
+    RecursivePartial<LoadedConnection>
+  > = Object.create(null);
 
-  _activeDataService: DataService | null = null;
+  private _activeDataService: DataService | null = null;
   _connectionStorage: ConnectionStorage;
   _telemetryService: TelemetryService;
 
-  private readonly _serviceName = 'mdb.vscode.savedConnections';
   private _currentConnectionId: null | string = null;
 
   _connectionAttempt: null | ConnectionAttempt = null;
-  _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
+  private _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
     null;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
@@ -143,7 +167,8 @@ export default class ConnectionController {
   private _statusView: StatusView;
 
   // Used by other parts of the extension that respond to changes in the connections.
-  private eventEmitter: EventEmitter = new EventEmitter();
+  private eventEmitter: EventEmitter<DataServiceEventTypes> =
+    new EventEmitter();
 
   constructor({
     statusView,
@@ -161,7 +186,56 @@ export default class ConnectionController {
     });
   }
 
+  async openPresetConnectionsSettings(
+    originTreeItem: ConnectionTreeItem | undefined,
+  ): Promise<void> {
+    this._telemetryService.track(
+      new PresetConnectionEditedTelemetryEvent(
+        originTreeItem ? 'tree_item' : 'header',
+      ),
+    );
+    let source: ConnectionSource | undefined = originTreeItem?.source;
+    if (!source) {
+      const mdbConfiguration = vscode.workspace.getConfiguration('mdb');
+
+      const presetConnections = mdbConfiguration?.inspect('presetConnections');
+
+      if (presetConnections?.workspaceValue) {
+        source = 'workspaceSettings';
+      } else if (presetConnections?.globalValue) {
+        source = 'globalSettings';
+      } else {
+        // If no preset settings exist in workspace and global scope,
+        // set a default one inside the workspace and open it.
+        source = 'workspaceSettings';
+        await mdbConfiguration.update('presetConnections', [
+          {
+            name: 'Preset Connection',
+            connectionString: 'mongodb://localhost:27017',
+          },
+        ]);
+      }
+    }
+    switch (source) {
+      case 'globalSettings':
+        await vscode.commands.executeCommand(
+          'workbench.action.openSettingsJson',
+        );
+        break;
+      case 'workspaceSettings':
+      case 'user':
+        await vscode.commands.executeCommand(
+          'workbench.action.openWorkspaceSettingsFile',
+        );
+        break;
+      default:
+        throw new Error('Unknown preset connection source');
+    }
+  }
+
   async loadSavedConnections(): Promise<void> {
+    this._connections = Object.create(null);
+
     const loadedConnections = await this._connectionStorage.loadConnections();
 
     for (const connection of loadedConnections) {
@@ -169,12 +243,12 @@ export default class ConnectionController {
     }
 
     if (loadedConnections.length) {
-      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+      this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
     }
 
     // TODO: re-enable with fewer 'Saved Connections Loaded' events
     // https://jira.mongodb.org/browse/VSCODE-462
-    /* this._telemetryService.trackSavedConnectionsLoaded({
+    /* this._telemetryService.track(new SavedConnectionsLoadedTelemetryEvent({
       saved_connections: globalAndWorkspaceConnections.length,
       loaded_connections: loadedConnections.length,
       ).length,
@@ -183,25 +257,27 @@ export default class ConnectionController {
           connection.secretStorageLocation ===
           SecretStorageLocation.SecretStorage
       ).length,
-    }); */
+    })); */
   }
 
-  async connectWithURI(): Promise<boolean> {
-    let connectionString: string | undefined;
-
+  async connectWithURI({
+    connectionString,
+    reuseExisting,
+    name,
+  }: NewConnectionParams = {}): Promise<boolean> {
     log.info('connectWithURI command called');
 
     const cancellationToken = new vscode.CancellationTokenSource();
     this._connectionStringInputCancellationToken = cancellationToken;
 
     try {
-      connectionString = await vscode.window.showInputBox(
+      connectionString ??= await vscode.window.showInputBox(
         {
           value: '',
           ignoreFocusOut: true,
           placeHolder:
             'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
-          prompt: 'Enter your connection string (SRV or standard)',
+          prompt: 'Enter your SRV or standard connection string',
           validateInput: (uri: string) => {
             if (
               !uri.startsWith('mongodb://') &&
@@ -220,7 +296,7 @@ export default class ConnectionController {
             return null;
           },
         },
-        cancellationToken.token
+        cancellationToken.token,
       );
     } catch (e) {
       return false;
@@ -235,53 +311,67 @@ export default class ConnectionController {
       return false;
     }
 
-    return this.addNewConnectionStringAndConnect(connectionString);
+    return this.addNewConnectionStringAndConnect({
+      connectionString,
+      reuseExisting: reuseExisting ?? false,
+      name,
+    });
   }
 
   // Resolves the new connection id when the connection is successfully added.
   // Resolves false when it is added and not connected.
   // The connection can fail to connect but be successfully added.
-  async addNewConnectionStringAndConnect(
-    connectionString: string
-  ): Promise<boolean> {
+  async addNewConnectionStringAndConnect({
+    connectionString,
+    reuseExisting,
+    name,
+  }: RequiredBy<NewConnectionParams, 'connectionString'>): Promise<boolean> {
     log.info('Trying to connect to a new connection configuration...');
 
     const connectionStringData = new ConnectionString(connectionString);
 
-    // TODO: Allow overriding appname + use driverInfo instead
-    // (https://jira.mongodb.org/browse/MONGOSH-1015)
-    connectionStringData.searchParams.set(
-      'appname',
-      `${packageJSON.name} ${packageJSON.version}`
-    );
-
     try {
-      const connectResult = await this.saveNewConnectionAndConnect({
-        connectionId: uuidv4(),
-        connectionOptions: {
-          connectionString: connectionStringData.toString(),
-        },
-        connectionType: ConnectionTypes.CONNECTION_STRING,
-      });
+      let existingConnection: LoadedConnection | undefined;
+      if (reuseExisting) {
+        existingConnection =
+          this._findConnectionByConnectionString(connectionString);
+
+        if (existingConnection && existingConnection.name !== name) {
+          void vscode.window.showInformationMessage(
+            `Connection with the same connection string already exists, under a different name: '${existingConnection.name}'. Connecting to the existing one...`,
+          );
+        }
+      }
+
+      const connectResult = await (existingConnection
+        ? this.connectWithConnectionId(existingConnection.id)
+        : this.saveNewConnectionAndConnect({
+            connectionId: uuidv4(),
+            connectionOptions: {
+              connectionString: connectionStringData.toString(),
+            },
+            connectionType: ConnectionType.connectionString,
+            name,
+          }));
 
       return connectResult.successfullyConnected;
     } catch (error) {
       const printableError = formatError(error);
       log.error('Failed to connect with a connection string', error);
       void vscode.window.showErrorMessage(
-        `Unable to connect: ${printableError.message}`
+        `Unable to connect: ${printableError.message}`,
       );
       return false;
     }
   }
 
-  public sendTelemetry(
+  private sendTelemetry(
     newDataService: DataService,
-    connectionType: ConnectionTypes
+    connectionType: ConnectionTypes,
   ): void {
     void this._telemetryService.trackNewConnection(
       newDataService,
-      connectionType
+      connectionType,
     );
   }
 
@@ -289,14 +379,17 @@ export default class ConnectionController {
     connectionOptions,
     connectionId,
     connectionType,
+    name,
   }: {
     connectionOptions: ConnectionOptions;
     connectionId: string;
     connectionType: ConnectionTypes;
+    name?: string;
   }): Promise<ConnectionAttemptResult> {
     const connection = this._connectionStorage.createNewConnection({
       connectionId,
       connectionOptions,
+      name,
     });
 
     await this._connectionStorage.saveConnection(connection);
@@ -306,14 +399,41 @@ export default class ConnectionController {
     return this._connect(connection.id, connectionType);
   }
 
+  /**
+   * In older versions, we'd manually store a connectionString with an appended
+   * appName with the VSCode extension name and version. This overrides the
+   * connection string if needed and returns true if it does so, false otherwise.
+   */
+  private _overrideLegacyConnectionStringAppName(
+    connectionId: string,
+  ): boolean {
+    const connectionString = new ConnectionString(
+      this._connections[connectionId].connectionOptions.connectionString,
+    );
+
+    if (
+      connectionString.searchParams
+        .get('appname')
+        ?.match(/mongodb-vscode \d\.\d\.\d.*/)
+    ) {
+      connectionString.searchParams.delete('appname');
+
+      this._connections[connectionId].connectionOptions.connectionString =
+        connectionString.toString();
+
+      return true;
+    }
+    return false;
+  }
+
   // eslint-disable-next-line complexity
   async _connect(
     connectionId: string,
-    connectionType: ConnectionTypes
+    connectionType: ConnectionTypes,
   ): Promise<ConnectionAttemptResult> {
     log.info(
       'Connect called to connect to instance',
-      this._connections[connectionId]?.name || 'empty connection name'
+      this._connections[connectionId]?.name || 'empty connection name',
     );
 
     // Cancel the current connection attempt if we're connecting.
@@ -331,7 +451,7 @@ export default class ConnectionController {
     });
     this._connectionAttempt = connectionAttempt;
     this._connectingConnectionId = connectionId;
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
 
     if (this._activeDataService) {
       log.info('Disconnecting from the previous connection...', {
@@ -349,7 +469,7 @@ export default class ConnectionController {
 
     const connectionInfo: LoadedConnection = merge(
       cloneDeep(this._connections[connectionId]),
-      this.connectionMergeInfos[connectionId] ?? {}
+      this._connectionMergeInfos[connectionId] ?? {},
     );
 
     if (!connectionInfo.connectionOptions) {
@@ -359,28 +479,30 @@ export default class ConnectionController {
     this._statusView.showMessage('Connecting to MongoDB...');
     log.info('Connecting to MongoDB...', {
       connectionInfo: JSON.stringify(
-        extractSecrets(this._connections[connectionId]).connectionInfo
+        extractSecrets(this._connections[connectionId]).connectionInfo,
       ),
     });
 
     let dataService;
     try {
       const notifyDeviceFlow = getNotifyDeviceFlowForConnectionAttempt(
-        connectionInfo.connectionOptions
+        connectionInfo.connectionOptions,
       );
 
       const connectionOptions = adjustConnectionOptionsBeforeConnect({
         connectionOptions: connectionInfo.connectionOptions,
-        defaultAppName: packageJSON.name,
+        connectionId,
+        defaultAppName: DEFAULT_TELEMETRY_APP_NAME,
         notifyDeviceFlow,
         preferences: {
           forceConnectionOptions: [],
+          telemetryAnonymousId: this._connectionStorage.getUserAnonymousId(),
           browserCommandForOIDCAuth: undefined, // We overwrite this below.
         },
       });
       const browserAuthCommand = vscode.workspace
         .getConfiguration('mdb')
-        .get('browserCommandForOIDCAuth');
+        .get<string>('browserCommandForOIDCAuth');
       dataService = await connectionAttempt.connect({
         ...connectionOptions,
         oidc: {
@@ -395,7 +517,7 @@ export default class ConnectionController {
                   // If opening the link fails we default to regular link opening.
                   await vscode.commands.executeCommand(
                     'vscode.open',
-                    vscode.Uri.parse(url)
+                    vscode.Uri.parse(url),
                   );
                 }
               },
@@ -421,21 +543,15 @@ export default class ConnectionController {
         this._connectingConnectionId = null;
       }
 
-      this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+      this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
     }
 
     log.info('Successfully connected', { connectionId });
 
-    const message = 'MongoDB connection successful.';
-    this._statusView.showMessage(message);
-    setTimeout(() => {
-      if (this._statusView._statusBarItem.text === message) {
-        this._statusView.hideMessage();
-      }
-    }, 5000);
+    this._statusView.showTemporaryMessage('MongoDB connection successful.');
 
     dataService.addReauthenticationHandler(
-      this._reauthenticationHandler.bind(this)
+      this._reauthenticationHandler.bind(this),
     );
     this.setActiveDataService(dataService);
     this._currentConnectionId = connectionId;
@@ -443,9 +559,9 @@ export default class ConnectionController {
     this._connectingConnectionId = null;
 
     this._connections[connectionId].lastUsed = new Date();
-    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    this.eventEmitter.emit('ACTIVE_CONNECTION_CHANGED');
     await this._connectionStorage.saveConnection(
-      this._connections[connectionId]
+      this._connections[connectionId],
     );
 
     // Send metrics to Segment
@@ -454,13 +570,13 @@ export default class ConnectionController {
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.connectedToMongoDB',
-      true
+      true,
     );
 
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.isAtlasStreams',
-      this.isConnectedToAtlasStreams()
+      this.isConnectedToAtlasStreams(),
     );
 
     void this.onConnectSuccess({
@@ -480,12 +596,25 @@ export default class ConnectionController {
       await vscode.window.showInformationMessage(
         'You need to re-authenticate to the database in order to continue.',
         { modal: true },
-        'Confirm'
+        'Confirm',
       );
 
     if (removeConfirmationResponse !== 'Confirm') {
       throw new Error('Reauthentication declined by user');
     }
+  }
+
+  _findConnectionByConnectionString(
+    connectionString: string,
+  ): LoadedConnection | undefined {
+    const searchStrings = [connectionString];
+    if (!connectionString.endsWith('/')) {
+      searchStrings.push(`${connectionString}/`);
+    }
+
+    return this.getConnectionsFromHistory().find((connection) =>
+      searchStrings.includes(connection.connectionOptions?.connectionString),
+    );
   }
 
   private async onConnectSuccess({
@@ -504,16 +633,16 @@ export default class ConnectionController {
       mergeConnectionInfo = {
         connectionOptions: await dataService.getUpdatedSecrets(),
       };
-      this.connectionMergeInfos[connectionInfo.id] = merge(
-        cloneDeep(this.connectionMergeInfos[connectionInfo.id]),
-        mergeConnectionInfo
+      this._connectionMergeInfos[connectionInfo.id] = merge(
+        cloneDeep(this._connectionMergeInfos[connectionInfo.id]),
+        mergeConnectionInfo,
       );
     }
 
     await this._connectionStorage.saveConnection({
       ...merge(
         this._connections[connectionInfo.id] ?? connectionInfo,
-        mergeConnectionInfo
+        mergeConnectionInfo,
       ),
     });
 
@@ -532,9 +661,9 @@ export default class ConnectionController {
             connectionOptions: await dataService.getUpdatedSecrets(),
           };
           if (!mergeConnectionInfo) return;
-          this.connectionMergeInfos[connectionInfo.id] = merge(
-            cloneDeep(this.connectionMergeInfos[connectionInfo.id]),
-            mergeConnectionInfo
+          this._connectionMergeInfos[connectionInfo.id] = merge(
+            cloneDeep(this._connectionMergeInfos[connectionInfo.id]),
+            mergeConnectionInfo,
           );
 
           if (!this._connections[connectionInfo.id]) return;
@@ -545,7 +674,7 @@ export default class ConnectionController {
           log.warn(
             'Connection Controller',
             'Failed to update connection store with updated secrets',
-            { err: err?.stack }
+            { err: err?.stack },
           );
         }
       })();
@@ -557,24 +686,35 @@ export default class ConnectionController {
   }
 
   async connectWithConnectionId(
-    connectionId: string
+    connectionId: string,
   ): Promise<ConnectionAttemptResult> {
     if (!this._connections[connectionId]) {
       throw new Error('Connection not found.');
     }
 
     try {
-      await this._connect(connectionId, ConnectionTypes.CONNECTION_ID);
+      const wasOverridden =
+        this._overrideLegacyConnectionStringAppName(connectionId);
 
-      return {
-        successfullyConnected: true,
-        connectionErrorMessage: '',
-      };
+      const result = await this._connect(
+        connectionId,
+        ConnectionType.connectionId,
+      );
+
+      /** After successfully connecting with an overridden connection
+       *  string, save it to storage for the future. */
+      if (result.successfullyConnected && wasOverridden) {
+        await this._connectionStorage.saveConnection(
+          this._connections[connectionId],
+        );
+      }
+
+      return result;
     } catch (error) {
       log.error('Failed to connect by a connection id', error);
       const printableError = formatError(error);
       void vscode.window.showErrorMessage(
-        `Unable to connect: ${printableError.message}`
+        `Unable to connect: ${printableError.message}`,
       );
       return {
         successfullyConnected: false,
@@ -586,22 +726,25 @@ export default class ConnectionController {
   async disconnect(): Promise<boolean> {
     log.info(
       'Disconnect called, currently connected to',
-      this._currentConnectionId
+      this._currentConnectionId,
     );
 
     this._currentConnectionId = null;
     this._disconnecting = true;
     this._statusView.showMessage('Disconnecting from current connection...');
 
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
+    this.eventEmitter.emit('ACTIVE_CONNECTION_CHANGED');
 
     if (!this._activeDataService) {
       log.error('Unable to disconnect: no active connection');
+      this._disconnecting = false;
       return false;
     }
 
-    const originalDisconnect = this._activeDataService.disconnect.bind(this);
+    const originalDisconnect = this._activeDataService.disconnect.bind(
+      this._activeDataService,
+    );
     this._activeDataService = null;
 
     try {
@@ -614,24 +757,17 @@ export default class ConnectionController {
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.connectedToMongoDB',
-      false
+      false,
     );
     void vscode.commands.executeCommand(
       'setContext',
       'mdb.isAtlasStreams',
-      false
+      false,
     );
 
     this._disconnecting = false;
 
-    const message = 'MongoDB disconnected.';
-    this._statusView.showMessage(message);
-    setTimeout(() => {
-      if (this._statusView._statusBarItem.text === message) {
-        this._statusView.hideMessage();
-      }
-    }, 5000);
-
+    this._statusView.showTemporaryMessage('MongoDB disconnected.');
     return true;
   }
 
@@ -645,27 +781,36 @@ export default class ConnectionController {
 
     delete this._connections[connectionId];
     await this._connectionStorage.removeConnection(connectionId);
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
   }
 
   // Prompts the user to remove the connection then removes it on affirmation.
-  async removeMongoDBConnection(connectionId: string): Promise<boolean> {
-    if (!this._connections[connectionId]) {
+  async _removeMongoDBConnection({
+    connectionId,
+    force = false,
+  }: {
+    connectionId: string;
+    force?: boolean;
+  }): Promise<boolean> {
+    const connection = this._connections[connectionId];
+    if (!connection) {
       // No active connection(s) to remove.
       void vscode.window.showErrorMessage('Connection does not exist.');
 
       return false;
     }
 
-    const removeConfirmationResponse =
-      await vscode.window.showInformationMessage(
-        `Are you sure to want to remove connection ${this._connections[connectionId].name}?`,
-        { modal: true },
-        'Yes'
-      );
+    if (!force) {
+      const removeConfirmationResponse =
+        await vscode.window.showInformationMessage(
+          `Are you sure to want to remove connection ${connection.name}?`,
+          { modal: true },
+          'Yes',
+        );
 
-    if (removeConfirmationResponse !== 'Yes') {
-      return false;
+      if (removeConfirmationResponse !== 'Yes') {
+        return false;
+      }
     }
 
     if (this._activeDataService && connectionId === this._currentConnectionId) {
@@ -679,49 +824,89 @@ export default class ConnectionController {
 
     await this.removeSavedConnection(connectionId);
 
-    void vscode.window.showInformationMessage('MongoDB connection removed.');
+    void vscode.window.showInformationMessage(
+      `MongoDB connection '${connection.name}' removed.`,
+    );
 
     return true;
   }
 
-  async onRemoveMongoDBConnection(): Promise<boolean> {
+  async onRemoveMongoDBConnection(
+    options: (
+      | { connectionString: string }
+      | { name: string }
+      | { id: string }
+      | {}
+    ) & {
+      force?: boolean;
+    } = {},
+  ): Promise<boolean> {
     log.info('mdb.removeConnection command called');
 
-    const connectionIds = Object.keys(this._connections);
+    let connectionIdToRemove: string;
+    if ('id' in options) {
+      connectionIdToRemove = options.id;
+    } else if ('connectionString' in options) {
+      const connectionId = this._findConnectionByConnectionString(
+        options.connectionString,
+      )?.id;
 
-    if (connectionIds.length === 0) {
-      // No active connection(s) to remove.
-      void vscode.window.showErrorMessage('No connections to remove.');
+      if (!connectionId) {
+        // No connection to remove, so just return silently.
+        return false;
+      }
 
-      return false;
-    }
+      connectionIdToRemove = connectionId;
+    } else if ('name' in options) {
+      const connectionId = this.getConnectionsFromHistory().find(
+        (connection) => connection.name === options.name,
+      )?.id;
+      if (!connectionId) {
+        // No connection to remove, so just return silently.
+        return false;
+      }
 
-    if (connectionIds.length === 1) {
-      return this.removeMongoDBConnection(connectionIds[0]);
-    }
+      connectionIdToRemove = connectionId;
+    } else {
+      const connectionIds = this.getConnectionsFromHistory();
 
-    // There is more than 1 possible connection to remove.
-    // We attach the index of the connection so that we can infer their pick.
-    const connectionNameToRemove: string | undefined =
-      await vscode.window.showQuickPick(
-        connectionIds.map(
-          (id, index) => `${index + 1}: ${this._connections[id].name}`
-        ),
-        {
-          placeHolder: 'Choose a connection to remove...',
+      if (connectionIds.length === 0) {
+        // No active connection(s) to remove.
+        void vscode.window.showErrorMessage('No connections to remove.');
+
+        return false;
+      }
+
+      if (connectionIds.length === 1) {
+        connectionIdToRemove = connectionIds[0].id;
+      } else {
+        // There is more than 1 possible connection to remove.
+        // We attach the index of the connection so that we can infer their pick.
+        const connectionNameToRemove: string | undefined =
+          await vscode.window.showQuickPick(
+            connectionIds.map(
+              (connection, index) => `${index + 1}: ${connection.name}`,
+            ),
+            {
+              placeHolder: 'Choose a connection to remove...',
+            },
+          );
+
+        if (!connectionNameToRemove) {
+          return false;
         }
-      );
 
-    if (!connectionNameToRemove) {
-      return false;
+        // We attach the index of the connection so that we can infer their pick.
+        const connectionIndexToRemove =
+          Number(connectionNameToRemove.split(':', 1)[0]) - 1;
+        connectionIdToRemove = connectionIds[connectionIndexToRemove].id;
+      }
     }
 
-    // We attach the index of the connection so that we can infer their pick.
-    const connectionIndexToRemove =
-      Number(connectionNameToRemove.split(':', 1)[0]) - 1;
-    const connectionIdToRemove = connectionIds[connectionIndexToRemove];
-
-    return this.removeMongoDBConnection(connectionIdToRemove);
+    return this._removeMongoDBConnection({
+      connectionId: connectionIdToRemove,
+      force: options.force,
+    });
   }
 
   async updateConnection({
@@ -740,7 +925,7 @@ export default class ConnectionController {
       connectionOptions,
     };
     await this._connectionStorage.saveConnection(
-      this._connections[connectionId]
+      this._connections[connectionId],
     );
   }
 
@@ -787,11 +972,11 @@ export default class ConnectionController {
     }
 
     this._connections[connectionId].name = inputtedConnectionName;
-    this.eventEmitter.emit(DataServiceEventTypes.CONNECTIONS_DID_CHANGE);
-    this.eventEmitter.emit(DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED);
+    this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
+    this.eventEmitter.emit('ACTIVE_CONNECTION_CHANGED');
 
     await this._connectionStorage.saveConnection(
-      this._connections[connectionId]
+      this._connections[connectionId],
     );
 
     // No storing needed.
@@ -799,15 +984,15 @@ export default class ConnectionController {
   }
 
   addEventListener(
-    eventType: DataServiceEventTypes,
-    listener: () => void
+    eventType: keyof DataServiceEventTypes,
+    listener: () => void,
   ): void {
     this.eventEmitter.addListener(eventType, listener);
   }
 
   removeEventListener(
-    eventType: DataServiceEventTypes,
-    listener: () => void
+    eventType: keyof DataServiceEventTypes,
+    listener: () => void,
   ): void {
     this.eventEmitter.removeListener(eventType, listener);
   }
@@ -836,6 +1021,15 @@ export default class ConnectionController {
     return Object.values(this._connections);
   }
 
+  private getConnectionsFromHistory(): LoadedConnection[] {
+    return this.getSavedConnections().filter((connection) => {
+      return (
+        connection.source !== 'globalSettings' &&
+        connection.source !== 'workspaceSettings'
+      );
+    });
+  }
+
   getSavedConnectionName(connectionId: string): string {
     return this._connections[connectionId]
       ? this._connections[connectionId].name
@@ -861,10 +1055,10 @@ export default class ConnectionController {
   }
 
   getConnectionConnectionOptions(
-    connectionId: string
+    connectionId: string,
   ): ConnectionOptions | undefined {
     const connectionStringWithoutAppName = new ConnectionString(
-      this._connections[connectionId]?.connectionOptions.connectionString
+      this._connections[connectionId]?.connectionOptions.connectionString,
     );
     connectionStringWithoutAppName.searchParams.delete('appname');
 
@@ -890,21 +1084,21 @@ export default class ConnectionController {
     if (options.proxyPassword) {
       connectionStringData.searchParams.set(
         'proxyPassword',
-        options.proxyPassword
+        options.proxyPassword,
       );
     }
 
     if (options.proxyPort) {
       connectionStringData.searchParams.set(
         'proxyPort',
-        `${options.proxyPort}`
+        `${options.proxyPort}`,
       );
     }
 
     if (options.proxyUsername) {
       connectionStringData.searchParams.set(
         'proxyUsername',
-        options.proxyUsername
+        options.proxyUsername,
       );
     }
 
@@ -954,7 +1148,7 @@ export default class ConnectionController {
 
     if (!connectionOptions) {
       throw new Error(
-        'Copy connection string failed: connectionOptions are missing.'
+        'Copy connection string failed: connectionOptions are missing.',
       );
     }
 
@@ -963,20 +1157,20 @@ export default class ConnectionController {
     return url.toString();
   }
 
-  getConnectionStatus(): CONNECTION_STATUS {
+  getConnectionStatus(): ConnectionStatus {
     if (this.isCurrentlyConnected()) {
       if (this.isDisconnecting()) {
-        return CONNECTION_STATUS.DISCONNECTING;
+        return CONNECTION_STATUS.disconnecting;
       }
 
-      return CONNECTION_STATUS.CONNECTED;
+      return CONNECTION_STATUS.connected;
     }
 
     if (this.isConnecting()) {
-      return CONNECTION_STATUS.CONNECTING;
+      return CONNECTION_STATUS.connecting;
     }
 
-    return CONNECTION_STATUS.DISCONNECTED;
+    return CONNECTION_STATUS.disconnected;
   }
 
   getConnectionStatusStringForConnection(connectionId: string): string {
@@ -1024,7 +1218,7 @@ export default class ConnectionController {
         {
           label: 'Add new connection',
           data: {
-            type: NewConnectionType.NEW_CONNECTION,
+            type: NewConnectionType.newConnection,
           },
         },
       ];
@@ -1034,17 +1228,17 @@ export default class ConnectionController {
       {
         label: 'Add new connection',
         data: {
-          type: NewConnectionType.NEW_CONNECTION,
+          type: NewConnectionType.newConnection,
         },
       },
       ...Object.values(this._connections)
         .sort((connectionA: LoadedConnection, connectionB: LoadedConnection) =>
-          (connectionA.name || '').localeCompare(connectionB.name || '')
+          (connectionA.name || '').localeCompare(connectionB.name || ''),
         )
         .map((item: LoadedConnection) => ({
           label: item.name,
           data: {
-            type: NewConnectionType.SAVED_CONNECTION,
+            type: NewConnectionType.savedConnection,
             connectionId: item.id,
           },
         })),
@@ -1056,14 +1250,14 @@ export default class ConnectionController {
       this.getConnectionQuickPicks(),
       {
         placeHolder: 'Select new connection...',
-      }
+      },
     );
 
     if (!selectedQuickPickItem) {
       return false;
     }
 
-    if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
+    if (selectedQuickPickItem.data.type === NewConnectionType.newConnection) {
       return this.connectWithURI();
     }
 
@@ -1072,7 +1266,7 @@ export default class ConnectionController {
     }
 
     const { successfullyConnected } = await this.connectWithConnectionId(
-      selectedQuickPickItem.data.connectionId
+      selectedQuickPickItem.data.connectionId,
     );
     return successfullyConnected;
   }

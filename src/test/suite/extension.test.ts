@@ -1,6 +1,6 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
-import EXTENSION_COMMANDS from '../../commands';
+import ExtensionCommand from '../../commands';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../package.json');
@@ -63,14 +63,14 @@ suite('Extension Test Suite', () => {
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',
 
-      ...Object.values(EXTENSION_COMMANDS),
+      ...Object.values(ExtensionCommand),
     ];
 
     for (const expectedCommand of expectedCommands) {
       assert.notStrictEqual(
         registeredCommands.indexOf(expectedCommand),
         -1,
-        `command ${expectedCommand} not registered and was expected`
+        `command ${expectedCommand} not registered and was expected`,
       );
     }
   });

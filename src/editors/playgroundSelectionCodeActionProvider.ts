@@ -1,53 +1,18 @@
 import * as vscode from 'vscode';
 
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import { isPlayground, getSelectedText } from '../utils/playground';
+import { COPILOT_CHAT_EXTENSION_ID } from '../participant/constants';
 
-const selectionCommands = [
-  {
-    name: 'Run selected playground blocks',
-    command: EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
-  },
-  {
-    name: 'Export To Python 3',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_PYTHON,
-    isCopilotRequired: true,
-  },
-  {
-    name: 'Export To Java',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_JAVA,
-    isCopilotRequired: true,
-  },
-  {
-    name: 'Export To C#',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_CSHARP,
-    isCopilotRequired: true,
-  },
-  {
-    name: 'Export To Node.js',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_NODE,
-    isCopilotRequired: true,
-  },
-  {
-    name: 'Export To Ruby',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUBY,
-    isCopilotRequired: true,
-  },
-  {
-    name: 'Export To Go',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_GO,
-    isCopilotRequired: true,
-  },
-  {
-    name: 'Export To Rust',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_RUST,
-    isCopilotRequired: true,
-  },
-  {
-    name: 'Export To PHP',
-    command: EXTENSION_COMMANDS.MDB_EXPORT_TO_PHP,
-    isCopilotRequired: true,
-  },
+export const EXPORT_TO_LANGUAGE_ALIASES = [
+  { id: 'csharp', alias: 'C#' },
+  { id: 'go', alias: 'Go' },
+  { id: 'java', alias: 'Java' },
+  { id: 'javascript', alias: 'Node.js' },
+  { id: 'php', alias: 'PHP' },
+  { id: 'python', alias: 'Python 3' },
+  { id: 'ruby', alias: 'Ruby' },
+  { id: 'rust', alias: 'Rust' },
 ];
 
 export default class PlaygroundSelectionCodeActionProvider
@@ -67,43 +32,40 @@ export default class PlaygroundSelectionCodeActionProvider
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     this._onDidChangeCodeCodeAction.event;
 
-  createCodeAction({
-    codeActionName,
-    codeActionCommand,
-  }: {
-    codeActionName: string;
-    codeActionCommand: string;
-  }): vscode.CodeAction {
+  createCodeAction(command: vscode.Command): vscode.CodeAction {
     const codeAction = new vscode.CodeAction(
-      codeActionName,
-      vscode.CodeActionKind.Empty
+      command.title,
+      vscode.CodeActionKind.Empty,
     );
-    codeAction.command = {
-      command: codeActionCommand,
-      title: codeActionName,
-      tooltip: codeActionName,
-    };
+    codeAction.command = command;
     return codeAction;
   }
 
   provideCodeActions(): vscode.CodeAction[] | undefined {
     const editor = vscode.window.activeTextEditor;
-    const codeActions: vscode.CodeAction[] = [];
-    const copilot = vscode.extensions.getExtension('github.copilot-chat');
+    const copilot = vscode.extensions.getExtension(COPILOT_CHAT_EXTENSION_ID);
+    let codeActions: vscode.CodeAction[] = [
+      this.createCodeAction({
+        title: 'Run selected playground blocks',
+        command: ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
+      }),
+    ];
 
     if (!isPlayground(editor?.document.uri) || !getSelectedText()) {
       return;
     }
 
-    for (const { name, command, isCopilotRequired } of selectionCommands) {
-      if (!isCopilotRequired || copilot?.isActive) {
-        codeActions.push(
+    if (copilot?.isActive) {
+      codeActions = [
+        ...codeActions,
+        ...EXPORT_TO_LANGUAGE_ALIASES.map(({ id, alias }) =>
           this.createCodeAction({
-            codeActionName: name,
-            codeActionCommand: command,
-          })
-        );
-      }
+            title: `Export To ${alias}`,
+            command: ExtensionCommand.mdbExportToLanguage,
+            arguments: [id],
+          }),
+        ),
+      ];
     }
 
     return codeActions;

@@ -5,7 +5,7 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import ConnectionStatus from '../../../../views/webview-app/connection-status';
 import {
   CONNECTION_STATUS,
-  MESSAGE_TYPES,
+  MessageType,
 } from '../../../../views/webview-app/extension-app-message-constants';
 import vscode from '../../../../views/webview-app/vscode-api';
 
@@ -24,7 +24,7 @@ describe('ConnectionStatus test suite', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(<ConnectionStatus />);
     expect(postMessageStub).to.have.been.calledWithExactly({
-      command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
+      command: MessageType.getConnectionStatus,
     });
   });
 
@@ -35,11 +35,11 @@ describe('ConnectionStatus test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
-              connectionStatus: CONNECTION_STATUS.DISCONNECTING,
+              command: MessageType.connectionStatusMessage,
+              connectionStatus: CONNECTION_STATUS.disconnecting,
               activeConnectionName: '',
             },
-          })
+          }),
         );
       });
       expect(screen.getByText('Disconnecting...')).to.not.be.null;
@@ -53,11 +53,11 @@ describe('ConnectionStatus test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
-              connectionStatus: CONNECTION_STATUS.DISCONNECTED,
+              command: MessageType.connectionStatusMessage,
+              connectionStatus: CONNECTION_STATUS.disconnected,
               activeConnectionName: '',
             },
-          })
+          }),
         );
       });
       expect(screen.getByText('Not connected.')).to.not.be.null;
@@ -71,11 +71,11 @@ describe('ConnectionStatus test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
-              connectionStatus: CONNECTION_STATUS.CONNECTING,
+              command: MessageType.connectionStatusMessage,
+              connectionStatus: CONNECTION_STATUS.connecting,
               activeConnectionName: '',
             },
-          })
+          }),
         );
       });
       expect(screen.getByText('Connecting...')).to.not.be.null;
@@ -89,11 +89,11 @@ describe('ConnectionStatus test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
-              connectionStatus: CONNECTION_STATUS.CONNECTED,
+              command: MessageType.connectionStatusMessage,
+              connectionStatus: CONNECTION_STATUS.connected,
               activeConnectionName: 'vscode-connection',
             },
-          })
+          }),
         );
       });
     });
@@ -108,7 +108,7 @@ describe('ConnectionStatus test suite', function () {
       screen.getByLabelText('Rename connection').click();
 
       expect(postMessageStub).to.be.calledWithExactly({
-        command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION,
+        command: MessageType.renameActiveConnection,
       });
     });
 
@@ -117,7 +117,7 @@ describe('ConnectionStatus test suite', function () {
       screen.getByLabelText('Create playground').click();
 
       expect(postMessageStub).to.be.calledWithExactly({
-        command: MESSAGE_TYPES.CREATE_NEW_PLAYGROUND,
+        command: MessageType.createNewPlayground,
       });
     });
   });

@@ -12,7 +12,7 @@ import { toJSString } from 'mongodb-query-parser';
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
 export const PLAYGROUND_RESULT_URI = vscode.Uri.parse(
-  `${PLAYGROUND_RESULT_SCHEME}:/Playground Result`
+  `${PLAYGROUND_RESULT_SCHEME}:/Playground Result`,
 );
 
 export default class PlaygroundResultProvider
@@ -24,7 +24,7 @@ export default class PlaygroundResultProvider
 
   constructor(
     connectionController: ConnectionController,
-    editDocumentCodeLensProvider: EditDocumentCodeLensProvider
+    editDocumentCodeLensProvider: EditDocumentCodeLensProvider,
   ) {
     this._connectionController = connectionController;
     this._editDocumentCodeLensProvider = editDocumentCodeLensProvider;
@@ -34,7 +34,7 @@ export default class PlaygroundResultProvider
   onDidChange = this.onDidChangeEmitter.event;
 
   setPlaygroundResult(
-    playgroundResult?: PlaygroundRunResult | ExportToLanguageResult
+    playgroundResult?: PlaygroundRunResult | ExportToLanguageResult,
   ): void {
     if (playgroundResult) {
       this._playgroundResult = playgroundResult;
@@ -63,7 +63,7 @@ export default class PlaygroundResultProvider
 
     // TODO: Possible bug that this update code lenses happens after the content is returned sometimes?
     this._editDocumentCodeLensProvider?.updateCodeLensesForPlayground(
-      this._playgroundResult
+      this._playgroundResult,
     );
 
     if (this._playgroundResult.type === 'javascript') {

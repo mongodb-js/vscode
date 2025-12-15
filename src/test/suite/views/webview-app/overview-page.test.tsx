@@ -6,7 +6,8 @@ import userEvent from '@testing-library/user-event';
 
 import OverviewPage from '../../../../views/webview-app/overview-page';
 import vscode from '../../../../views/webview-app/vscode-api';
-import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
+import type { MessageFromWebviewToExtension } from '../../../../views/webview-app/extension-app-message-constants';
+import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 const connectionFormTestId = 'connection-form-modal';
 
@@ -20,8 +21,8 @@ describe('OverviewPage test suite', function () {
     render(<OverviewPage />);
     expect(
       screen.getByText(
-        'Navigate your databases and collections, use playgrounds for exploring and transforming your data'
-      )
+        'Navigate your databases and collections, use playgrounds for exploring and transforming your data',
+      ),
     ).to.exist;
   });
 
@@ -54,7 +55,7 @@ describe('OverviewPage test suite', function () {
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
       const message = postMessageSpy.firstCall.args[0];
       expect(message).to.deep.equal({
-        command: MESSAGE_TYPES.CONNECTION_FORM_OPENED,
+        command: MessageType.connectionFormOpened,
       });
 
       await userEvent.click(screen.getByLabelText('Close modal'));
@@ -71,9 +72,9 @@ describe('OverviewPage test suite', function () {
         .null;
       await userEvent.click(screen.getByTestId('connect-button'));
       const argsWithoutConnectId = postMessageSpy.lastCall.args[0] as any;
-      expect(argsWithoutConnectId.command).to.equal(MESSAGE_TYPES.CONNECT);
+      expect(argsWithoutConnectId.command).to.equal(MessageType.connect);
       expect(
-        argsWithoutConnectId.connectionInfo.connectionOptions.connectionString
+        argsWithoutConnectId.connectionInfo.connectionOptions.connectionString,
       ).to.equal('mongodb://localhost:27017');
     });
 
@@ -89,12 +90,12 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId,
               connectionSuccess: false,
               connectionMessage: 'server not found',
             },
-          })
+          }),
         );
       });
       expect(screen.queryByTestId('connection-error-summary')).to.not.be.null;
@@ -112,12 +113,12 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId,
               connectionSuccess: true,
               connectionMessage: '',
             },
-          })
+          }),
         );
       });
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
@@ -134,7 +135,7 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
+              command: MessageType.openEditConnection,
               connection: {
                 id: 'pear',
                 name: 'pineapple',
@@ -143,7 +144,7 @@ describe('OverviewPage test suite', function () {
                 },
               },
             },
-          })
+          }),
         );
       });
 
@@ -151,12 +152,15 @@ describe('OverviewPage test suite', function () {
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
       expect(screen.getByText('pineapple')).to.exist;
 
-      const getConnectMessages = () => {
+      const getConnectMessages = (): sinon.SinonSpyCall<
+        [message: MessageFromWebviewToExtension],
+        void
+      >[] => {
         return postMessageSpy
           .getCalls()
           .filter(
             (call) =>
-              call.args[0].command === MESSAGE_TYPES.EDIT_AND_CONNECT_CONNECTION
+              call.args[0].command === MessageType.editConnectionAndConnect,
           );
       };
       expect(getConnectMessages()).to.have.length(0);
@@ -165,7 +169,7 @@ describe('OverviewPage test suite', function () {
       expect(connectMessages).to.have.length(1);
 
       expect(connectMessages[0].args[0]).to.deep.equal({
-        command: 'EDIT_AND_CONNECT_CONNECTION',
+        command: 'EDIT_CONNECTION_AND_CONNECT',
         connectionInfo: {
           id: 'pear',
           connectionOptions: {
@@ -184,12 +188,12 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId: 1, // different from the attempt id generated by our click
               connectionSuccess: true,
               connectionMessage: '',
             },
-          })
+          }),
         );
       });
       // won't be closed because the connect result message is ignored
@@ -199,12 +203,12 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId: 2, // different from the attempt id generated by our click
               connectionSuccess: false,
               connectionMessage: 'something bad happened',
             },
-          })
+          }),
         );
       });
       expect(screen.queryByTestId(connectionFormTestId)).to.exist;

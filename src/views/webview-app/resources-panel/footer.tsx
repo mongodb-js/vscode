@@ -96,10 +96,10 @@ const ResourcesPanelFooter: React.FC = () => {
             href={footerFeature.url}
             key={`footer-feature-${footerFeature.linkId}`}
             data-testid={`footer-feature-${footerFeature.linkId}`}
-            onClick={() => {
+            onClick={(): void => {
               trackExtensionLinkClicked(
                 TELEMETRY_SCREEN_ID,
-                footerFeature.linkId
+                footerFeature.linkId,
               );
             }}
           >
@@ -115,7 +115,7 @@ const ResourcesPanelFooter: React.FC = () => {
             href={footerLink.url}
             key={`footer-link-${footerLink.linkId}`}
             data-testid={`footer-link-${footerLink.linkId}`}
-            onClick={() => {
+            onClick={(): void => {
               trackExtensionLinkClicked(TELEMETRY_SCREEN_ID, footerLink.linkId);
             }}
           >

@@ -24,11 +24,11 @@ suite('Commands Test Suite', () => {
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     getMongoClientConnectionOptionsStub = sandbox.stub(
       testConnectionController,
-      'getMongoClientConnectionOptions'
+      'getMongoClientConnectionOptions',
     );
     isCurrentlyConnectedStub = sandbox.stub(
       testConnectionController,
-      'isCurrentlyConnected'
+      'isCurrentlyConnected',
     );
     createTerminalStub = sandbox.stub(vscode.window, 'createTerminal');
     sendTextStub = sandbox.stub();
@@ -55,7 +55,7 @@ suite('Commands Test Suite', () => {
       await launchMongoShell(testConnectionController);
       assert(
         showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`
+        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`,
       );
     });
 
@@ -77,7 +77,7 @@ suite('Commands Test Suite', () => {
         createTerminalStub.firstCall.args[0];
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
-        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`,
       );
 
       const shellCommandText = sendTextStub.firstCall.args[0];
@@ -110,17 +110,17 @@ suite('Commands Test Suite', () => {
         createTerminalStub.firstCall.args[0];
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
-        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`,
       );
       assert.strictEqual(
         terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE,
-        'pineapple'
+        'pineapple',
       );
 
       const shellCommandText = sendTextStub.firstCall.args[0];
       assert(
         shellCommandText.includes('$Env:MDB_CONNECTION_STRING'),
-        `Expected sendText to terminal (${shellCommandText}) to use powershell env variable syntax`
+        `Expected sendText to terminal (${shellCommandText}) to use powershell env variable syntax`,
       );
     });
   });
@@ -148,11 +148,11 @@ suite('Commands Test Suite', () => {
         createTerminalStub.firstCall.args[0];
       assert(
         terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
-        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`
+        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`,
       );
       assert.strictEqual(
         terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE,
-        undefined
+        undefined,
       );
     });
   });

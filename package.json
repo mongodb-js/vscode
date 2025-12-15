@@ -1,6 +1,7 @@
 {
   "preview": false,
   "name": "mongodb-vscode",
+  "packageManager": "pnpm@10.23.0",
   "displayName": "MongoDB for VS Code",
   "description": "Connect to MongoDB and Atlas directly from your VS Code environment, navigate your databases and collections, inspect your schema and use playgrounds to prototype queries and aggregations.",
   "version": "0.0.0-dev.0",
@@ -15,6 +16,7 @@
     "email": "vscode@mongodb.com"
   },
   "publisher": "mongodb",
+  "module": "commonjs",
   "categories": [
     "AI",
     "Chat",
@@ -38,49 +40,51 @@
   "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./dist/extension.js",
   "scripts": {
-    "clean": "rimraf ./out/* ./dist/* ",
+    "clean": "rimraf -g ./out/* ./dist/*",
     "lint": "eslint . && prettier --check .",
-    "update-grammar": "ts-node ./scripts/update-grammar.ts",
-    "precompile": "npm run clean",
+    "update-grammar": "node ./scripts/update-grammar.ts",
+    "precompile": "pnpm run clean",
     "compile": "npm-run-all compile:*",
-    "compile:constants": "ts-node ./scripts/generate-constants.ts",
-    "compile:resources": "npm run update-grammar",
+    "compile:constants": "node ./scripts/generate-constants.ts",
+    "compile:resources": "pnpm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
-    "watch": "npm run compile && npm-run-all -p watch:*",
-    "watch:extension": "npm run compile:extension -- -watch",
+    "watch": "pnpm run compile && npm-run-all -p watch:*",
+    "watch:extension": "pnpm run compile:extension -- -watch",
     "watch:extension-bundles": "webpack --mode development --watch",
-    "pretest": "npm run compile",
-    "test": "npm run test-webview && npm run test-extension",
-    "test-extension": "cross-env NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
-    "test-webview": "mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
+    "pretest": "pnpm run compile",
+    "test": "pnpm run test-webview && pnpm run test-extension",
+    "test-extension": "cross-env MDB_IS_TEST=true NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
+    "test-webview": "mocha -r ts-node/register --exit --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
     "ai-accuracy-tests": "env TS_NODE_FILES=true mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/ai-accuracy-tests/test-setup.ts ./src/test/ai-accuracy-tests/ai-accuracy-tests.ts",
     "analyze-bundle": "webpack --mode production --analyze",
-    "vscode:prepublish": "npm run clean && npm run compile:constants && npm run compile:resources && webpack --mode production",
-    "check": "npm run lint && npm run depcheck",
+    "vscode:prepublish": "pnpm run clean && pnpm run compile:constants && pnpm run compile:resources && webpack --mode production",
+    "check": "pnpm run lint && pnpm run depcheck",
     "depcheck": "depcheck",
     "package": "cross-env NODE_OPTIONS='--require ./scripts/no-npm-list-fail.js' vsce package --githubBranch main",
-    "local-install": "npm run package && code --install-extension ./mongodb-vscode-*.vsix",
-    "check-vsix-size": "ts-node ./scripts/check-vsix-size.ts",
+    "local-install": "pnpm run package && code --install-extension ./mongodb-vscode-*.vsix",
+    "check-vsix-size": "node ./scripts/check-vsix-size.ts",
     "release-draft": "node ./scripts/release-draft.js",
     "reformat": "prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
+    "generate-icon-font": "node ./scripts/generate-icon-font.ts",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
-    "precommit": "ts-node ./scripts/precommit.ts"
+    "precommit": "node ./scripts/precommit.ts"
   },
   "engines": {
-    "vscode": "^1.94.2",
-    "node": ">=20.9.0",
-    "npm": ">=10.1.0"
+    "vscode": "^1.101.1",
+    "node": "^20.19.0 || ^22.12.0 || >= 23.0.0",
+    "pnpm": ">=10.0.0"
   },
   "activationEvents": [
     "onView:mongoDB",
     "onChatParticipant:mongodb.participant",
     "onLanguage:json",
     "onLanguage:javascript",
-    "onLanguage:plaintext"
+    "onLanguage:plaintext",
+    "onUri"
   ],
   "contributes": {
     "chatParticipants": [
@@ -104,6 +108,54 @@
             "name": "schema",
             "isSticky": true,
             "description": "Analyze a collection's schema."
+          }
+        ],
+        "disambiguation": [
+          {
+            "category": "mongodb",
+            "description": "The user is asking for assistance or information related to MongoDB.",
+            "examples": [
+              "Explain this MongoDB query.",
+              "How do I write this MongoDB query in Python?",
+              "How do I use $lookup in MongoDB?",
+              "Can you help me debug a MongoDB query?",
+              "Rewrite this MongoDB query",
+              "find all documents in my collection",
+              "How to convert this MongoDB query to Python?",
+              "How to convert this MongoDB query to Java?",
+              "How to convert this MongoDB query to Node.js?",
+              "How to convert this MongoDB query to Go?",
+              "How to convert this MongoDB query to php?",
+              "How to convert this MongoDB query to C#?",
+              "How to convert this MongoDB query to Rust?",
+              "How to convert this MongoDB query to Ruby?",
+              "How do I update documents in MongoDB?",
+              "How do I insert documents in MongoDB?",
+              "How do I create documents in MongoDB?",
+              "How do I delete documents in MongoDB?",
+              "Explain how to use MongoDB transactions.",
+              "How to model one-to-one relationships in MongoDB?",
+              "How to model one-to-many relationships in MongoDB?",
+              "Help me write this MongoDB query:",
+              "Explain MongoDB query syntax.",
+              "Help me write a MongoDB aggregation pipeline.",
+              "Help me debug this aggregation pipeline.",
+              "How do I use $lookup in a MongoDB aggregation pipeline?",
+              "How do I optimize this MongoDB query?",
+              "How do I optimize indexes in MongoDB?",
+              "How do I optimize this data model in MongoDB?",
+              "How do I create a compound index for this query?",
+              "How do I model relationships in MongoDB?",
+              "Review my MongoDB schema",
+              "MongoDB best practices for indexing",
+              "How do I use MongoDB Atlas search?",
+              "How do I perform semantic search in MongoDB?",
+              "How do I stream data using MongoDB?",
+              "How do I monitor change streams in MongoDB?",
+              "How do I set up a MongoDB replica set for local development?",
+              "How do I add schema validation in MongoDB?",
+              "How to version schema in MongoDB?"
+            ]
           }
         ]
       }
@@ -255,11 +307,16 @@
         }
       },
       {
+        "command": "mdb.createNewPlaygroundFromTreeItem",
+        "title": "Create MongoDB Playground",
+        "icon": "$(mdb-playground)"
+      },
+      {
         "command": "mdb.changeActiveConnection",
         "title": "MongoDB: Change Active Connection"
       },
       {
-        "command": "mdb.changeDriverSyntax",
+        "command": "mdb.changeDriverSyntaxForExportToLanguage",
         "title": "MongoDB: Change Export To Language Driver Syntax"
       },
       {
@@ -283,40 +340,16 @@
         }
       },
       {
+        "command": "mdb.selectTargetForExportToLanguage",
+        "title": "MongoDB: Select Target For Export to Language",
+        "icon": {
+          "light": "images/light/export-to-language.svg",
+          "dark": "images/dark/export-to-language.svg"
+        }
+      },
+      {
         "command": "mdb.exportCodeToPlayground",
         "title": "Export Code to Playground"
-      },
-      {
-        "command": "mdb.exportToPython",
-        "title": "MongoDB: Export To Python 3"
-      },
-      {
-        "command": "mdb.exportToJava",
-        "title": "MongoDB: Export To Java"
-      },
-      {
-        "command": "mdb.exportToCsharp",
-        "title": "MongoDB: Export To C#"
-      },
-      {
-        "command": "mdb.exportToNode",
-        "title": "MongoDB: Export To Node.js"
-      },
-      {
-        "command": "mdb.exportToRuby",
-        "title": "MongoDB: Export To Ruby"
-      },
-      {
-        "command": "mdb.exportToGo",
-        "title": "MongoDB: Export To Go"
-      },
-      {
-        "command": "mdb.exportToRust",
-        "title": "MongoDB: Export To Rust"
-      },
-      {
-        "command": "mdb.exportToPHP",
-        "title": "MongoDB: Export To PHP"
       },
       {
         "command": "mdb.addConnection",
@@ -339,6 +372,10 @@
         "title": "Copy Connection String"
       },
       {
+        "command": "mdb.editPresetConnections",
+        "title": "Edit Preset Connections..."
+      },
+      {
         "command": "mdb.renameConnection",
         "title": "Rename Connection..."
       },
@@ -353,10 +390,7 @@
       {
         "command": "mdb.addDatabase",
         "title": "Add Database...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.searchForDocuments",
@@ -395,12 +429,14 @@
         "title": "Refresh"
       },
       {
+        "command": "mdb.askCopilotFromTreeItem",
+        "title": "Ask MongoDB Copilot",
+        "icon": "$(copilot)"
+      },
+      {
         "command": "mdb.addCollection",
         "title": "Add Collection...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.viewCollectionDocuments",
@@ -445,10 +481,7 @@
       {
         "command": "mdb.createIndexFromTreeView",
         "title": "Create New Index...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.insertObjectIdToEditor",
@@ -477,10 +510,7 @@
       {
         "command": "mdb.addStreamProcessor",
         "title": "Add StreamProcessor...",
-        "icon": {
-          "light": "images/light/plus-circle.svg",
-          "dark": "images/dark/plus-circle.svg"
-        }
+        "icon": "$(mdb-plus-circle)"
       },
       {
         "command": "mdb.startStreamProcessor",
@@ -493,6 +523,18 @@
       {
         "command": "mdb.dropStreamProcessor",
         "title": "Drop Stream Processor..."
+      },
+      {
+        "command": "mdb.startMCPServer",
+        "title": "MongoDB: Start MCP Server"
+      },
+      {
+        "command": "mdb.stopMCPServer",
+        "title": "MongoDB: Stop MCP Server"
+      },
+      {
+        "command": "mdb.getMCPServerConfig",
+        "title": "MongoDB: Get MCP Server Config"
       }
     ],
     "menus": {
@@ -514,42 +556,49 @@
         },
         {
           "command": "mdb.addConnection",
-          "when": "view == mongoDBConnectionExplorer"
+          "when": "view == mongoDBConnectionExplorer",
+          "group": "1@1"
         },
         {
           "command": "mdb.addConnectionWithURI",
-          "when": "view == mongoDBConnectionExplorer"
+          "when": "view == mongoDBConnectionExplorer",
+          "group": "1@2"
+        },
+        {
+          "command": "mdb.editPresetConnections",
+          "when": "view == mongoDBConnectionExplorer",
+          "group": "2@1"
         }
       ],
       "view/item/context": [
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == false",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem) && mdb.isAtlasStreams == false",
           "group": "inline"
         },
         {
           "command": "mdb.addDatabase",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == false",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem) && mdb.isAtlasStreams == false",
           "group": "1@1"
         },
         {
           "command": "mdb.addStreamProcessor",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == true",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem) && mdb.isAtlasStreams == true",
           "group": "inline"
         },
         {
           "command": "mdb.addStreamProcessor",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem && mdb.isAtlasStreams == true",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem) && mdb.isAtlasStreams == true",
           "group": "1@1"
         },
         {
           "command": "mdb.refreshConnection",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem)",
           "group": "1@2"
         },
         {
           "command": "mdb.treeViewOpenMongoDBShell",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem)",
           "group": "2@1"
         },
         {
@@ -563,13 +612,18 @@
           "group": "3@2"
         },
         {
+          "command": "mdb.editPresetConnections",
+          "when": "view == mongoDBConnectionExplorer && viewItem == connectedPresetConnectionTreeItem",
+          "group": "3@2"
+        },
+        {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem)",
           "group": "4@1"
         },
         {
           "command": "mdb.disconnectFromConnectionTreeItem",
-          "when": "view == mongoDBConnectionExplorer && viewItem == connectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == connectedConnectionTreeItem || viewItem == connectedPresetConnectionTreeItem)",
           "group": "5@1"
         },
         {
@@ -584,7 +638,7 @@
         },
         {
           "command": "mdb.connectToConnectionTreeItem",
-          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == disconnectedConnectionTreeItem || viewItem == disconnectedPresetConnectionTreeItem)",
           "group": "1@1"
         },
         {
@@ -598,8 +652,13 @@
           "group": "2@2"
         },
         {
+          "command": "mdb.editPresetConnections",
+          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedPresetConnectionTreeItem",
+          "group": "2@2"
+        },
+        {
           "command": "mdb.copyConnectionString",
-          "when": "view == mongoDBConnectionExplorer && viewItem == disconnectedConnectionTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == disconnectedConnectionTreeItem || viewItem == disconnectedPresetConnectionTreeItem)",
           "group": "3@1"
         },
         {
@@ -610,7 +669,7 @@
         {
           "command": "mdb.addCollection",
           "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
-          "group": "inline"
+          "group": "inline@3"
         },
         {
           "command": "mdb.addCollection",
@@ -628,9 +687,29 @@
           "group": "2@1"
         },
         {
+          "command": "mdb.askCopilotFromTreeItem",
+          "when": "mdb.isCopilotActive == true && view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "inline@1"
+        },
+        {
+          "command": "mdb.askCopilotFromTreeItem",
+          "when": "mdb.isCopilotActive == true && view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "3@1"
+        },
+        {
+          "command": "mdb.createNewPlaygroundFromTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "inline@2"
+        },
+        {
+          "command": "mdb.createNewPlaygroundFromTreeItem",
+          "when": "view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
+          "group": "3@2"
+        },
+        {
           "command": "mdb.dropDatabase",
           "when": "view == mongoDBConnectionExplorer && viewItem == databaseTreeItem",
-          "group": "3@1"
+          "group": "4@1"
         },
         {
           "command": "mdb.viewCollectionDocuments",
@@ -746,15 +825,20 @@
       ],
       "editor/title": [
         {
+          "command": "mdb.selectTargetForExportToLanguage",
+          "group": "navigation@1",
+          "when": "mdb.isPlayground == true && mdb.isCopilotActive == true"
+        },
+        {
           "command": "mdb.runPlayground",
-          "group": "navigation",
+          "group": "navigation@2",
           "when": "mdb.isPlayground == true"
         }
       ],
       "mdb.copilot": [
         {
           "command": "mdb.exportCodeToPlayground",
-          "when": "mdb.isPlayground == false"
+          "when": "mdb.isPlayground == false && mdb.isCopilotActive == true"
         }
       ],
       "editor/context": [
@@ -809,38 +893,6 @@
           "when": "mdb.isPlayground == true"
         },
         {
-          "command": "mdb.exportToRuby",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToPython",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToJava",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToCsharp",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToNode",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToGo",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToRust",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
-          "command": "mdb.exportToPHP",
-          "when": "mdb.isPlayground == true && mdb.connectedToMongoDB == true && mdb.isAtlasStreams == false"
-        },
-        {
           "command": "mdb.refreshPlaygroundsFromTreeView",
           "when": "false"
         },
@@ -873,7 +925,7 @@
           "when": "mdb.isPlayground"
         },
         {
-          "command": "mdb.changeDriverSyntax",
+          "command": "mdb.changeDriverSyntaxForExportToLanguage",
           "when": "false"
         },
         {
@@ -965,6 +1017,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.selectTargetForExportToLanguage",
+          "when": "false"
+        },
+        {
           "command": "mdb.exportCodeToPlayground",
           "when": "false"
         },
@@ -1017,7 +1073,7 @@
     "submenus": [
       {
         "id": "mdb.copilot",
-        "label": "MongoDB Copilot Participant"
+        "label": "MongoDB Copilot Extension"
       }
     ],
     "keybindings": [
@@ -1208,39 +1264,182 @@
           "type": "string",
           "default": "",
           "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
+        },
+        "mdb.presetConnections": {
+          "scope": "window",
+          "type": "array",
+          "description": "Defines preset connections. Can be used to share connection configurations in a workspace or global scope. Do not store sensitive credentials here.",
+          "examples": [
+            [
+              {
+                "name": "Preset Connection",
+                "connectionString": "mongodb://localhost:27017"
+              }
+            ]
+          ],
+          "items": {
+            "type": "object",
+            "examples": [
+              {
+                "name": "Preset Connection",
+                "connectionString": "mongodb://localhost:27017"
+              }
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the connection."
+              },
+              "connectionString": {
+                "type": "string",
+                "description": "Connection string. Do not store sensitive credentials here."
+              }
+            },
+            "required": [
+              "name",
+              "connectionString"
+            ]
+          }
+        },
+        "mdb.showOverviewPageAfterInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "Specify whether to show the overview page immediately after installing the extension."
+        },
+        "mdb.mcp.apiBaseUrl": {
+          "type": "string",
+          "default": "https://cloud.mongodb.com/",
+          "description": "API URL of MongoDB Atlas to be used by MongoDB MCP server for enabling Atlas tools. When empty, it defaults to 'https://cloud.mongodb.com/'. Only change this if you're using a custom Atlas deployment."
+        },
+        "mdb.mcp.apiClientId": {
+          "type": "string",
+          "default": "",
+          "description": "Atlas API client ID for authenticating against Atlas API. Use a Service Account (https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) for programmatic access to Atlas APIs. Required for enabling Atlas tools in MongoDB MCP server. Store this securely and do not commit to version control."
+        },
+        "mdb.mcp.apiClientSecret": {
+          "type": "string",
+          "default": "",
+          "description": "Atlas API client secret for authenticating against Atlas API. Use a Service Account (https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) for programmatic access to Atlas APIs. Required for enabling Atlas tools in MongoDB MCP server. Store this securely and do not commit to version control."
+        },
+        "mdb.mcp.disabledTools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Tool names, operation types (create, update, delete, read, metadata), and/or categories (atlas, mongodb) to disable in MongoDB MCP server."
+        },
+        "mdb.mcp.readOnly": {
+          "type": "boolean",
+          "default": true,
+          "description": "When set to true, MongoDB MCP server will only allow read, connect, and metadata operation types, disabling create/update/delete operations."
+        },
+        "mdb.mcp.indexCheck": {
+          "type": "boolean",
+          "default": false,
+          "description": "When set to true, MongoDB MCP server enforces that query operations must use an index, rejecting queries that perform a collection scan. This helps prevent performance issues in production environments."
+        },
+        "mdb.mcp.server": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "autoStartEnabled",
+            "autoStartDisabled"
+          ],
+          "enumItemLabels": [
+            "Ask",
+            "Auto Start Enabled",
+            "Auto Start Disabled"
+          ],
+          "default": "prompt",
+          "description": "Controls whether MongoDB MCP server starts automatically with the extension and connects to the active connection. If automatic startup is disabled, the server can still be started using the 'MongoDB: Start MCP Server' command."
+        },
+        "mdb.mcp.exportsPath": {
+          "type": "string",
+          "default": "",
+          "description": "The directory where the MongoDB MCP server will export the data to when using the export tool. Ensure the path is writable or leave empty to use the default path."
+        },
+        "mdb.mcp.exportTimeoutMs": {
+          "type": "number",
+          "default": 300000,
+          "description": "The time in milliseconds after which the MongoDB MCP server will expire the export. Default is 5 minutes (300000ms)."
+        },
+        "mdb.mcp.exportCleanupIntervalMs": {
+          "type": "number",
+          "default": 120000,
+          "description": "Controls how often the MongoDB MCP server runs the export cleanup process to remove expired files (in milliseconds). Default is 2 minutes (120000ms)."
         }
       }
-    }
+    },
+    "icons": {
+      "mdb-playground": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea01"
+        }
+      },
+      "mdb-plus-circle": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea02"
+        }
+      },
+      "mdb-connection-active": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea03"
+        }
+      },
+      "mdb-connection-inactive": {
+        "description": "MongoDB Icon",
+        "default": {
+          "fontPath": "./fonts/mongodb-icons.woff",
+          "fontCharacter": "\\ea04"
+        }
+      }
+    },
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "mongodb",
+        "label": "MongoDB MCP Server Definition Provider"
+      }
+    ]
   },
   "dependencies": {
     "@babel/core": "^7.25.8",
     "@babel/parser": "^7.25.8",
     "@babel/traverse": "^7.25.7",
-    "@mongodb-js/compass-components": "^1.30.1",
-    "@mongodb-js/connection-form": "^1.42.0",
-    "@mongodb-js/connection-info": "^0.9.1",
-    "@mongodb-js/mongodb-constants": "^0.10.3",
+    "@mongodb-js/compass-components": "^1.59.2",
+    "@mongodb-js/connection-form": "^1.52.3",
+    "@mongodb-js/connection-info": "^0.21.0",
+    "@mongodb-js/device-id": "^0.3.2",
+    "@mongodb-js/mongodb-constants": "^0.16.1",
     "@mongodb-js/shell-bson-parser": "^1.1.4",
-    "@mongosh/browser-runtime-electron": "^2.3.3",
-    "@mongosh/i18n": "^2.3.3",
-    "@mongosh/service-provider-node-driver": "^2.3.3",
-    "@mongosh/shell-api": "^2.3.3",
+    "@mongosh/browser-runtime-electron": "^3.24.0",
+    "@mongosh/i18n": "^2.16.0",
+    "@mongosh/service-provider-node-driver": "^3.17.1",
+    "@mongosh/shell-api": "^3.23.0",
     "@segment/analytics-node": "^1.3.0",
-    "bson": "^6.8.0",
+    "bson": "^6.10.4",
     "debug": "^4.3.7",
     "dotenv": "^16.4.5",
-    "ejson-shell-parser": "^2.0.1",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.8",
-    "mongodb": "^6.9.0",
+    "mongodb": "^6.20.0",
     "mongodb-build-info": "^1.7.2",
-    "mongodb-cloud-info": "^2.1.5",
-    "mongodb-connection-string-url": "^3.0.1",
-    "mongodb-data-service": "^22.23.5",
-    "mongodb-log-writer": "^1.4.2",
-    "mongodb-query-parser": "^4.2.6",
-    "mongodb-schema": "^12.2.0",
+    "mongodb-cloud-info": "^2.2.2",
+    "mongodb-connection-string-url": "^3.0.2",
+    "mongodb-data-service": "^22.30.1",
+    "mongodb-log-writer": "^2.4.1",
+    "mongodb-mcp-server": "^1.3.0",
+    "mongodb-query-parser": "^4.4.2",
+    "mongodb-schema": "^12.6.3",
+    "node-machine-id": "1.1.12",
     "numeral": "^2.0.6",
+    "query-string": "^7.1.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "ts-log": "^2.2.7",
@@ -1252,38 +1451,39 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.25.7",
     "@babel/types": "^7.25.8",
-    "@mongodb-js/oidc-mock-provider": "^0.10.1",
-    "@mongodb-js/oidc-plugin": "^0.4.0",
-    "@mongodb-js/prettier-config-devtools": "^1.0.1",
-    "mongodb-rag-core": "^0.4.1",
-    "@mongodb-js/sbom-tools": "^0.7.2",
-    "@mongodb-js/signing-utils": "^0.3.6",
-    "@mongosh/service-provider-core": "^2.3.3",
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@mongodb-js/oidc-mock-provider": "^0.11.5",
+    "@mongodb-js/oidc-plugin": "^2.0.5",
+    "@mongodb-js/prettier-config-devtools": "^1.0.2",
+    "@mongodb-js/sbom-tools": "^0.8.5",
+    "@mongodb-js/signing-utils": "^0.4.4",
+    "@mongosh/service-provider-core": "^3.6.0",
     "@testing-library/react": "^14.3.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/babel__traverse": "^7.20.6",
     "@types/chai": "^4.3.20",
+    "@types/chai-as-promised": "^8.0.2",
     "@types/debug": "^4.1.12",
     "@types/glob": "^7.2.0",
+    "@types/lodash": "^4.17.14",
     "@types/micromatch": "^4.0.9",
-    "@types/mkdirp": "^2.0.0",
-    "@types/mocha": "^8.2.3",
-    "@types/node": "^14.18.63",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.0",
+    "@types/prettier": "^2.7.3",
     "@types/react": "^17.0.83",
     "@types/react-dom": "^17.0.25",
     "@types/sinon": "^9.0.11",
     "@types/sinon-chai": "^3.2.12",
     "@types/uuid": "^8.3.4",
-    "@types/vscode": "^1.94.0",
+    "@types/vscode": "^1.101.1",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^3.2.0",
+    "@vscode/vsce": "^3.7.1",
     "buffer": "^6.0.3",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
     "cross-env": "^7.0.3",
-    "crypto-browserify": "^3.12.0",
     "depcheck": "^1.4.7",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
     "eslint": "^8.57.1",
@@ -1294,36 +1494,42 @@
     "husky": "^9.1.6",
     "jsdom": "^23.2.0",
     "mkdirp": "^1.0.4",
-    "mocha": "^10.7.3",
+    "mocha": "^11.7.4",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi": "^1.1.7",
-    "mongodb-client-encryption": "^6.1.0",
-    "mongodb-runner": "^5.7.0",
+    "mongodb-client-encryption": "^6.5.0",
+    "mongodb-rag-core": "^0.7.1",
+    "mongodb-runner": "^5.10.0",
     "node-fetch": "^2.7.0",
     "node-loader": "^0.6.0",
     "npm-run-all": "^4.1.5",
     "openai": "^4.68.1",
     "ora": "^5.4.1",
     "path-browserify": "^1.0.1",
-    "pre-commit": "^1.2.2",
-    "prettier": "^2.8.8",
+    "prettier": "^3.5.3",
     "process": "^0.11.10",
-    "rewiremock": "^3.14.5",
+    "rimraf": "^6.1.2",
+    "semver": "^7.7.3",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.7.0",
+    "snyk": "^1.1301.0",
     "source-map-support": "^0.5.21",
     "stream-browserify": "^3.0.0",
     "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "^4.9.5",
+    "typescript": "^5.9.2",
+    "webfont": "^11.2.26",
     "webpack": "^5.95.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4",
     "webpack-merge": "^5.10.0",
     "xvfb-maybe": "^0.2.1"
   },
-  "overrides": {
-    "react": "^18.3.1"
+  "pnpm": {
+    "overrides": {
+      "react": "^18.3.1",
+      "jsonwebtoken>jws": "3.2.3"
+    }
   }
 }

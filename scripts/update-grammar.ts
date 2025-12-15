@@ -3,6 +3,7 @@ import mkdirp from 'mkdirp';
 import ora from 'ora';
 import fs from 'fs';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 
 import {
   ACCUMULATORS,
@@ -11,6 +12,8 @@ import {
   QUERY_OPERATORS,
   STAGE_OPERATORS,
 } from '@mongodb-js/mongodb-constants';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const writeFile = promisify(fs.writeFile);
 const SYNTAXES_DIR = path.join(__dirname, '..', 'syntaxes');
@@ -49,7 +52,7 @@ const injectionGrammar = {
   ui.succeed(`The '${SYNTAXES_DIR}' folder has been created`);
   await writeFile(
     `${SYNTAXES_DIR}/mongodbInjection.tmLanguage.json`,
-    JSON.stringify(injectionGrammar, null, 2)
+    JSON.stringify(injectionGrammar, null, 2),
   );
   ui.succeed('MongoDB injection grammar has been saved');
 })();

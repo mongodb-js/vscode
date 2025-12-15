@@ -4,9 +4,7 @@ import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 
-import ConnectionTreeItem, {
-  ConnectionItemContextValues,
-} from '../../../explorer/connectionTreeItem';
+import ConnectionTreeItem from '../../../explorer/connectionTreeItem';
 import { DataServiceStub } from '../stubs';
 import formatError from '../../../utils/formatError';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -14,7 +12,7 @@ import { mdbTestExtension } from '../stubbableMdbExtension';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
 
-function getTestConnectionTreeItem() {
+function getTestConnectionTreeItem(): ConnectionTreeItem {
   return new ConnectionTreeItem({
     connectionId: 'test',
     collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
@@ -23,6 +21,7 @@ function getTestConnectionTreeItem() {
       mdbTestExtension.testExtensionController._connectionController,
     cacheIsUpToDate: false,
     childrenCache: {},
+    source: 'user',
   });
 }
 
@@ -32,21 +31,21 @@ suite('ConnectionTreeItem Test Suite', () => {
     let disconnectedRegisteredCommandInPackageJson = false;
 
     contributes.menus['view/item/context'].forEach((contextItem) => {
-      if (contextItem.when.includes(ConnectionItemContextValues.connected)) {
+      if (contextItem.when.includes('connected')) {
         connectedRegisteredCommandInPackageJson = true;
       }
-      if (contextItem.when.includes(ConnectionItemContextValues.disconnected)) {
+      if (contextItem.when.includes('disconnected')) {
         disconnectedRegisteredCommandInPackageJson = true;
       }
     });
 
     assert(
       connectedRegisteredCommandInPackageJson,
-      'Expected connected connection tree item to be registered with a command in package json'
+      'Expected connected connection tree item to be registered with a command in package json',
     );
     assert(
       disconnectedRegisteredCommandInPackageJson,
-      'Expected disconnected connection tree item to be registered with a command in package json'
+      'Expected disconnected connection tree item to be registered with a command in package json',
     );
   });
 
@@ -66,7 +65,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        () => new DataServiceStub() as unknown as DataService
+        () => new DataServiceStub() as unknown as DataService,
       );
 
       const databaseItems = await testConnectionTreeItem.getChildren();
@@ -86,7 +85,7 @@ suite('ConnectionTreeItem Test Suite', () => {
               new Promise(() => {
                 throw Error('peaches');
               }),
-          } as unknown as DataService)
+          }) as unknown as DataService,
       );
 
       try {
@@ -95,7 +94,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       } catch (error) {
         assert.strictEqual(
           formatError(error).message,
-          'Unable to list databases: peaches'
+          'Unable to list databases: peaches',
         );
       }
     });
@@ -105,7 +104,7 @@ suite('ConnectionTreeItem Test Suite', () => {
         sandbox.replace(
           mdbTestExtension.testExtensionController._connectionController,
           'isConnectedToAtlasStreams',
-          () => true
+          () => true,
         );
       });
 
@@ -113,7 +112,7 @@ suite('ConnectionTreeItem Test Suite', () => {
         sandbox.replace(
           mdbTestExtension.testExtensionController._connectionController,
           'getActiveDataService',
-          () => new DataServiceStub() as unknown as DataService
+          () => new DataServiceStub() as unknown as DataService,
         );
 
         const spItems = await testConnectionTreeItem.getChildren();
@@ -133,7 +132,7 @@ suite('ConnectionTreeItem Test Suite', () => {
                 new Promise(() => {
                   throw Error('peaches');
                 }),
-            } as unknown as DataService)
+            }) as unknown as DataService,
         );
 
         try {
@@ -142,7 +141,7 @@ suite('ConnectionTreeItem Test Suite', () => {
         } catch (error) {
           assert.strictEqual(
             formatError(error).message,
-            'Unable to list stream processors: peaches'
+            'Unable to list stream processors: peaches',
           );
         }
       });
@@ -165,7 +164,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        () => new DataServiceStub() as unknown as DataService
+        () => new DataServiceStub() as unknown as DataService,
       );
 
       const dbNames = await testConnectionTreeItem.listDatabases();

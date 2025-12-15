@@ -106,7 +106,7 @@ export class Visitor {
 
   _handleTriggerCharacter(
     textFromEditor: string,
-    position: { line: number; character: number }
+    position: { line: number; character: number },
   ): string {
     const textLines = textFromEditor.split('\n');
     // Text before the current character
@@ -130,7 +130,7 @@ export class Visitor {
 
   parseASTForCompletion(
     textFromEditor = '',
-    position: { line: number; character: number }
+    position: { line: number; character: number },
   ): CompletionState {
     const selection: VisitorSelection = {
       start: position,
@@ -351,7 +351,7 @@ export class Visitor {
   }
 
   _isParentAroundSelection(
-    node: t.ArrayExpression | t.CallExpression
+    node: t.ArrayExpression | t.CallExpression,
   ): boolean {
     if (
       node.loc?.start?.line &&
@@ -583,7 +583,7 @@ export class Visitor {
   }
 
   _checkIsStreamProcessorNameAsMemberExpression(
-    node: t.MemberExpression
+    node: t.MemberExpression,
   ): void {
     if (
       node.object.type === 'Identifier' &&

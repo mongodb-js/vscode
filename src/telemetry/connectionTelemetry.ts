@@ -1,9 +1,9 @@
 import type { DataService } from 'mongodb-data-service';
 import mongoDBBuildInfo from 'mongodb-build-info';
 
-import { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import type { TopologyType } from 'mongodb';
+import { ConnectionType, type ConnectionTypes } from '../connectionController';
 
 const log = createLogger('connection telemetry helper');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -39,13 +39,13 @@ export type HostInformation = {
 
 function getHostnameForConnection(dataService: DataService): string | null {
   const lastSeenTopology = dataService.getLastSeenTopology();
-  const resolvedHost = lastSeenTopology?.servers.values().next().value.address;
+  const resolvedHost = lastSeenTopology?.servers.values().next().value?.address;
 
-  if (resolvedHost.startsWith('[')) {
+  if (resolvedHost?.startsWith('[')) {
     return resolvedHost.slice(1).split(']')[0]; // IPv6
   }
 
-  return resolvedHost.split(':')[0];
+  return resolvedHost?.split(':')[0] || null;
 }
 
 async function getPublicCloudInfo(host: string): Promise<{
@@ -80,7 +80,7 @@ async function getPublicCloudInfo(host: string): Promise<{
 }
 
 async function getHostInformation(
-  host: string | null
+  host: string | null,
 ): Promise<HostInformation> {
   if (!host) {
     return {
@@ -120,13 +120,12 @@ async function getHostInformation(
 
 export async function getConnectionTelemetryProperties(
   dataService: DataService,
-  connectionType: ConnectionTypes
+  connectionType: ConnectionTypes,
 ): Promise<NewConnectionTelemetryEventProperties> {
   let preparedProperties: NewConnectionTelemetryEventProperties = {
-    is_used_connect_screen: connectionType === ConnectionTypes.CONNECTION_FORM,
-    is_used_command_palette:
-      connectionType === ConnectionTypes.CONNECTION_STRING,
-    is_used_saved_connection: connectionType === ConnectionTypes.CONNECTION_ID,
+    is_used_connect_screen: connectionType === ConnectionType.connectionForm,
+    is_used_command_palette: connectionType === ConnectionType.connectionString,
+    is_used_saved_connection: connectionType === ConnectionType.connectionId,
     vscode_mdb_extension_version: version,
   };
 
@@ -143,7 +142,7 @@ export async function getConnectionTelemetryProperties(
     preparedProperties = {
       ...preparedProperties,
       ...(await getHostInformation(
-        resolvedHostname || connectionString.toString()
+        resolvedHostname || connectionString.toString(),
       )),
       auth_strategy: authStrategy,
       is_atlas: isAtlas,
@@ -153,7 +152,7 @@ export async function getConnectionTelemetryProperties(
       dl_version: dataLake.version,
       is_enterprise: build.isEnterprise,
       is_genuine: genuineMongoDB.isGenuine,
-      non_genuine_server_name: genuineMongoDB.dbType,
+      non_genuine_server_name: genuineMongoDB.serverName,
       server_version: build.version,
       server_arch: host.arch,
       server_os_family: host.os_family,

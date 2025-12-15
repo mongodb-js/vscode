@@ -12,7 +12,7 @@ export default class DocumentIdStore {
 
   add(documentId: any): string {
     const existingDocument = this._documents.find(
-      (item) => item.documentId === documentId
+      (item) => item.documentId === documentId,
     );
 
     if (existingDocument) {
@@ -32,9 +32,9 @@ export default class DocumentIdStore {
     return newDocument.documentIdReference;
   }
 
-  get(documentIdReference: string) {
+  get(documentIdReference: string): any {
     const existingDocument = this._documents.find(
-      (item) => item.documentIdReference === documentIdReference
+      (item) => item.documentIdReference === documentIdReference,
     );
 
     return existingDocument?.documentId;
@@ -42,7 +42,7 @@ export default class DocumentIdStore {
 
   removeByDocumentIdReference(documentIdReference: string): void {
     this._documents = this._documents.filter(
-      (item) => item.documentIdReference !== documentIdReference
+      (item) => item.documentIdReference !== documentIdReference,
     );
   }
 }

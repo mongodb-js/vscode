@@ -3,7 +3,7 @@ import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import type { CollectionDetailsType } from '../../../explorer/collectionTreeItem';
-import { CollectionTypes } from '../../../explorer/documentListTreeItem';
+import { CollectionType } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
 
@@ -11,12 +11,12 @@ import { ExtensionContextStub, DataServiceStub } from '../stubs';
 const { contributes } = require('../../../../package.json');
 
 function getTestCollectionTreeItem(
-  options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>
-) {
+  options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>,
+): CollectionTreeItem {
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
-      type: CollectionTypes.collection,
+      type: CollectionType.collection,
     } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
@@ -73,7 +73,7 @@ suite('CollectionTreeItem Test Suite', () => {
     assert.strictEqual(collectionChildren[0].description, '5K');
     assert.strictEqual(
       collectionChildren[0].tooltip,
-      'Collection Documents - 5000'
+      'Collection Documents - 5000',
     );
   });
 
@@ -81,28 +81,38 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionViewTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.view,
+        type: CollectionType.view,
       } as unknown as CollectionDetailsType,
     });
 
     const viewIconPath = testCollectionViewTreeItem.iconPath;
-    assert.strictEqual(viewIconPath.light.includes('view-folder.svg'), true);
-    assert.strictEqual(viewIconPath.dark.includes('view-folder.svg'), true);
+    assert.strictEqual(
+      viewIconPath.light.toString().includes('view-folder.svg'),
+      true,
+    );
+    assert.strictEqual(
+      viewIconPath.dark.toString().includes('view-folder.svg'),
+      true,
+    );
 
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection,
+        type: CollectionType.collection,
       } as unknown as CollectionDetailsType,
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert.strictEqual(
-      collectionIconPath.light.includes('collection-folder-closed.svg'),
-      true
+      collectionIconPath.light
+        .toString()
+        .includes('collection-folder-closed.svg'),
+      true,
     );
     assert.strictEqual(
-      collectionIconPath.dark.includes('collection-folder-closed.svg'),
-      true
+      collectionIconPath.dark
+        .toString()
+        .includes('collection-folder-closed.svg'),
+      true,
     );
   });
 
@@ -110,33 +120,37 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionTimeSeriesTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.timeseries,
+        type: CollectionType.timeseries,
       } as unknown as CollectionDetailsType,
     });
     const viewIconPath = testCollectionTimeSeriesTreeItem.iconPath;
     assert.strictEqual(
-      viewIconPath.light.includes('collection-timeseries.svg'),
-      true
+      viewIconPath.light.toString().includes('collection-timeseries.svg'),
+      true,
     );
     assert.strictEqual(
-      viewIconPath.dark.includes('collection-timeseries.svg'),
-      true
+      viewIconPath.dark.toString().includes('collection-timeseries.svg'),
+      true,
     );
 
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection,
+        type: CollectionType.collection,
       } as unknown as CollectionDetailsType,
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
     assert.strictEqual(
-      collectionIconPath.light.includes('collection-folder-closed.svg'),
-      true
+      collectionIconPath.light
+        .toString()
+        .includes('collection-folder-closed.svg'),
+      true,
     );
     assert.strictEqual(
-      collectionIconPath.dark.includes('collection-folder-closed.svg'),
-      true
+      collectionIconPath.dark
+        .toString()
+        .includes('collection-folder-closed.svg'),
+      true,
     );
   });
 });

@@ -6,7 +6,7 @@ import type { DataService } from 'mongodb-data-service';
 const { contributes } = require('../../../../package.json');
 
 import DocumentListTreeItem, {
-  CollectionTypes,
+  CollectionType,
   formatDocCount,
   MAX_DOCUMENTS_VISIBLE,
 } from '../../../explorer/documentListTreeItem';
@@ -16,12 +16,12 @@ import { DataServiceStub, mockDocuments } from '../stubs';
 const dataServiceStub = new DataServiceStub() as unknown as DataService;
 
 function getTestDocumentListTreeItem(
-  options?: Partial<ConstructorParameters<typeof DocumentListTreeItem>[0]>
-) {
+  options?: Partial<ConstructorParameters<typeof DocumentListTreeItem>[0]>,
+): DocumentListTreeItem {
   return new DocumentListTreeItem({
     collectionName: 'collectionName',
     databaseName: 'mock_db_name',
-    type: CollectionTypes.collection,
+    type: CollectionType.collection,
     dataService: dataServiceStub as unknown as DataService,
     isExpanded: false,
     maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
@@ -46,7 +46,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     assert(
       documentListRegisteredCommandInPackageJson,
-      'Expected document list tree item to be registered with a command in package json'
+      'Expected document list tree item to be registered with a command in package json',
     );
   });
 
@@ -82,12 +82,12 @@ suite('DocumentListTreeItem Test Suite', () => {
 
   test('a "view" type of document list does not show a dropdown', () => {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
-      type: CollectionTypes.view,
+      type: CollectionType.view,
     });
 
     assert.strictEqual(
       testDocumentListTreeItem.collapsibleState,
-      vscode.TreeItemCollapsibleState.None
+      vscode.TreeItemCollapsibleState.None,
     );
   });
 
@@ -149,7 +149,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(documents.length, 25);
     assert.notStrictEqual(
       documents[documents.length - 1].label,
-      'Show more...'
+      'Show more...',
     );
   });
 
@@ -181,24 +181,24 @@ suite('DocumentListTreeItem Test Suite', () => {
   test('it shows a documents icon', () => {
     const testCollectionViewTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_4',
-      type: CollectionTypes.view,
+      type: CollectionType.view,
     });
 
     const viewIconPath = testCollectionViewTreeItem.iconPath;
     assert(
-      viewIconPath.dark.includes('documents.svg'),
-      'Expected icon path to point to an svg by the name "documents" a dark mode'
+      viewIconPath.dark.toString().includes('documents.svg'),
+      'Expected icon path to point to an svg by the name "documents" a dark mode',
     );
 
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_4',
-      type: CollectionTypes.collection,
+      type: CollectionType.collection,
     });
 
     const collectionIconPath = testDocumentListTreeItem.iconPath;
     assert(
-      collectionIconPath.dark.includes('documents.svg'),
-      'Expected icon path to point to an svg by the name "documents" with a light mode'
+      collectionIconPath.dark.toString().includes('documents.svg'),
+      'Expected icon path to point to an svg by the name "documents" with a light mode',
     );
   });
 
@@ -219,7 +219,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(testDocumentListTreeItem.description, '2M');
     assert.strictEqual(
       testDocumentListTreeItem.tooltip,
-      'Collection Documents - 2200000'
+      'Collection Documents - 2200000',
     );
   });
 

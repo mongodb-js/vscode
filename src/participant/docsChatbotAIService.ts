@@ -108,7 +108,7 @@ export class DocsChatbotAIService {
       throw new Error(
         `[Docs chatbot] Internal server error: ${
           data.error ? data.error : `${res.status} - ${res.statusText}}`
-        }`
+        }`,
       );
     }
 
@@ -159,7 +159,7 @@ export class DocsChatbotAIService {
       throw new Error(
         `[Docs chatbot] Internal server error: ${
           data.error ? data.error : `${res.status} - ${res.statusText}}`
-        }`
+        }`,
       );
     }
 
@@ -176,7 +176,7 @@ export class DocsChatbotAIService {
     rating: boolean;
   }): Promise<boolean> {
     const uri = this.getUri(
-      `/conversations/${conversationId}/messages/${messageId}/rating`
+      `/conversations/${conversationId}/messages/${messageId}/rating`,
     );
     const res = await this._fetch({
       uri,
@@ -201,7 +201,7 @@ export class DocsChatbotAIService {
     throw new Error(
       `[Docs chatbot] Internal server error: ${
         data.error ? data.error : `${res.status} - ${res.statusText}}`
-      }`
+      }`,
     );
   }
 }

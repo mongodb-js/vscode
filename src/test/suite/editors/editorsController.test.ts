@@ -71,14 +71,14 @@ suite('Editors Controller Test Suite', () => {
     const testUri = getViewCollectionDocumentsUri(
       testOpId,
       testNamespace,
-      testConnectionId
+      testConnectionId,
     );
 
     assert.strictEqual(testUri.path, 'Results: myFavoriteNamespace.json');
     assert.strictEqual(testUri.scheme, 'VIEW_COLLECTION_SCHEME');
     assert.strictEqual(
       testUri.query,
-      'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011'
+      'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
     );
   });
 
@@ -89,17 +89,17 @@ suite('Editors Controller Test Suite', () => {
     const testUri = getViewCollectionDocumentsUri(
       testOpId,
       testNamespace,
-      testConnectionId
+      testConnectionId,
     );
 
     assert.strictEqual(
       testUri.path,
-      'Results: myFa%25%25%5c%5c%2f%2f%2f%5c%25vorite%25Namespace.json'
+      'Results: myFa%25%25%5c%5c%2f%2f%2f%5c%25vorite%25Namespace.json',
     );
     assert.strictEqual(testUri.scheme, 'VIEW_COLLECTION_SCHEME');
     assert.strictEqual(
       testUri.query,
-      'namespace=myFa%%\\\\///\\%vorite%Namespace&connectionId=alienSateliteConnection&operationId=100011011101110011'
+      'namespace=myFa%%\\\\///\\%vorite%Namespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
     );
   });
 
@@ -107,7 +107,7 @@ suite('Editors Controller Test Suite', () => {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => undefined);
 
     const result = await vscode.commands.executeCommand(
-      'mdb.saveMongoDBDocument'
+      'mdb.saveMongoDBDocument',
     );
 
     expect(result).to.be.equal(false);
@@ -124,16 +124,16 @@ suite('Editors Controller Test Suite', () => {
         'connectionId=tasty_sandwhich&',
         'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
         'source=treeview',
-      ].join('')
+      ].join(''),
     );
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
-      () => activeTextEditor
+      () => activeTextEditor,
     );
 
     const result = await vscode.commands.executeCommand(
-      'mdb.saveMongoDBDocument'
+      'mdb.saveMongoDBDocument',
     );
 
     expect(result).to.be.equal(false);
@@ -148,16 +148,16 @@ suite('Editors Controller Test Suite', () => {
         'connectionId=tasty_sandwhich&',
         'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
         'source=treeview',
-      ].join('')
+      ].join(''),
     );
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
-      () => activeTextEditor
+      () => activeTextEditor,
     );
 
     const result = await vscode.commands.executeCommand(
-      'mdb.saveMongoDBDocument'
+      'mdb.saveMongoDBDocument',
     );
 
     expect(result).to.be.equal(false);
@@ -172,16 +172,16 @@ suite('Editors Controller Test Suite', () => {
         'namespace=waffle.house&',
         'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
         'source=treeview',
-      ].join('')
+      ].join(''),
     );
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
-      () => activeTextEditor
+      () => activeTextEditor,
     );
 
     const result = await vscode.commands.executeCommand(
-      'mdb.saveMongoDBDocument'
+      'mdb.saveMongoDBDocument',
     );
 
     expect(result).to.be.equal(false);
@@ -196,16 +196,16 @@ suite('Editors Controller Test Suite', () => {
         'namespace=waffle.house&',
         'connectionId=tasty_sandwhich&',
         'source=treeview',
-      ].join('')
+      ].join(''),
     );
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
-      () => activeTextEditor
+      () => activeTextEditor,
     );
 
     const result = await vscode.commands.executeCommand(
-      'mdb.saveMongoDBDocument'
+      'mdb.saveMongoDBDocument',
     );
 
     expect(result).to.be.equal(false);
@@ -221,17 +221,17 @@ suite('Editors Controller Test Suite', () => {
         'connectionId=tasty_sandwhich&',
         'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
         'source=treeview',
-      ].join('')
+      ].join(''),
     );
-    activeTextEditor.document.getText = () => '{';
+    activeTextEditor.document.getText = (): string => '{';
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
-      () => activeTextEditor
+      () => activeTextEditor,
     );
 
     const result = await vscode.commands.executeCommand(
-      'mdb.saveMongoDBDocument'
+      'mdb.saveMongoDBDocument',
     );
 
     expect(result).to.be.equal(false);

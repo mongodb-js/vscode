@@ -4,23 +4,23 @@ import type { NodeDriverServiceProvider } from '@mongosh/service-provider-node-d
 import type { DocumentViewAndEditFormat } from '../editors/types';
 
 export type PlaygroundRunResult = {
-  namespace?: string;
-  type?: string;
   content: any;
   language?: string;
+  namespace?: string;
+  type?: string;
 };
 
 export type ExportToLanguageResult = {
+  prompt: string;
   content: string;
-  codeToTranspile: string;
   language: string;
   includeDriverSyntax: boolean;
 };
 
 export function isExportToLanguageResult(
-  result: PlaygroundRunResult | ExportToLanguageResult
+  result: PlaygroundRunResult | ExportToLanguageResult,
 ): result is ExportToLanguageResult {
-  return (result as ExportToLanguageResult).codeToTranspile !== undefined;
+  return (result as ExportToLanguageResult).prompt !== undefined;
 }
 
 export type ShellEvaluateResult = {
@@ -37,17 +37,6 @@ export type PlaygroundEvaluateParams = {
 export interface PlaygroundTextAndSelection {
   textFromEditor: string;
   selection: vscode.Selection;
-}
-
-export enum ExportToLanguage {
-  PYTHON = 'python',
-  JAVA = 'java',
-  CSHARP = 'csharp',
-  JAVASCRIPT = 'javascript',
-  RUBY = 'ruby',
-  GO = 'go',
-  RUST = 'rust',
-  PHP = 'php',
 }
 
 // MongoClientOptions is the second argument of NodeDriverServiceProvider.connect(connectionStr, options).

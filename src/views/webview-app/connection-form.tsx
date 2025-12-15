@@ -67,7 +67,8 @@ const ConnectionForm: React.FunctionComponent<
       // Warning: This property may be removed in future
       // modal releases.
       contentClassName={modalContentStyles}
-      setOpen={() => onClose()}
+      setOpen={(): void => onClose()}
+      darkMode={darkMode}
       open={open}
       size="large"
     >
@@ -75,7 +76,7 @@ const ConnectionForm: React.FunctionComponent<
         <div
           className={cx(
             connectingContainerStyles,
-            darkMode && connectingContainerDarkModeStyles
+            darkMode && connectingContainerDarkModeStyles,
           )}
         >
           <CancelLoader

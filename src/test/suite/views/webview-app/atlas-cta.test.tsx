@@ -4,7 +4,7 @@ import AtlasCta from '../../../../views/webview-app/atlas-cta';
 import { expect } from 'chai';
 import Sinon from 'sinon';
 import vscode from '../../../../views/webview-app/vscode-api';
-import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
+import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 describe('AtlasCta test suite', function () {
   afterEach(function () {
@@ -23,7 +23,7 @@ describe('AtlasCta test suite', function () {
     render(<AtlasCta />);
     screen.getByTestId('link-atlas').click();
     expect(postMessageStub).to.be.calledWithExactly({
-      command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
+      command: MessageType.extensionLinkClicked,
       screen: 'overviewPage',
       linkId: 'atlasLanding',
     });
@@ -35,10 +35,10 @@ describe('AtlasCta test suite', function () {
     screen.getByText('Create free cluster').click();
     expect(postMessageStub).calledTwice;
     expect(postMessageStub.firstCall.args[0].command).to.equal(
-      MESSAGE_TYPES.OPEN_TRUSTED_LINK
+      MessageType.openTrustedLink,
     );
     expect(postMessageStub.secondCall.args[0].command).to.equal(
-      MESSAGE_TYPES.EXTENSION_LINK_CLICKED
+      MessageType.extensionLinkClicked,
     );
   });
 });

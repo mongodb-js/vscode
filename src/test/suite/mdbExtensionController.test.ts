@@ -9,30 +9,36 @@ import type { Document, Filter } from 'mongodb';
 
 import {
   CollectionTreeItem,
-  CollectionTypes,
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,
   SchemaTreeItem,
   StreamProcessorTreeItem,
 } from '../../explorer';
-import EXTENSION_COMMANDS from '../../commands';
+import { ExtensionCommand } from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
-  SecretStorageLocation,
   StorageLocation,
-  StorageVariables,
+  SecretStorageLocation,
+  StorageVariable,
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
+import { expect } from 'chai';
+import { DeepLinkTelemetryEvent } from '../../telemetry';
+import { CollectionType } from '../../explorer/documentListTreeItem';
+import {
+  DEEP_LINK_ALLOWED_COMMANDS,
+  DEEP_LINK_DISALLOWED_COMMANDS,
+} from '../../mdbExtensionController';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
 function getTestConnectionTreeItem(
-  options?: Partial<ConstructorParameters<typeof ConnectionTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof ConnectionTreeItem>[0]>,
 ): ConnectionTreeItem {
   return new ConnectionTreeItem({
     connectionId: 'tasty_sandwich',
@@ -42,17 +48,18 @@ function getTestConnectionTreeItem(
       mdbTestExtension.testExtensionController._connectionController,
     cacheIsUpToDate: false,
     childrenCache: {},
+    source: 'user',
     ...options,
   });
 }
 
 function getTestCollectionTreeItem(
-  options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof CollectionTreeItem>[0]>,
 ): CollectionTreeItem {
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
-      type: CollectionTypes.collection,
+      type: CollectionType.collection,
     } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
@@ -64,7 +71,7 @@ function getTestCollectionTreeItem(
 }
 
 function getTestDatabaseTreeItem(
-  options?: Partial<ConstructorParameters<typeof DatabaseTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof DatabaseTreeItem>[0]>,
 ): DatabaseTreeItem {
   return new DatabaseTreeItem({
     databaseName: 'zebra',
@@ -77,7 +84,7 @@ function getTestDatabaseTreeItem(
 }
 
 function getTestStreamProcessorTreeItem(
-  options?: Partial<ConstructorParameters<typeof StreamProcessorTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof StreamProcessorTreeItem>[0]>,
 ): StreamProcessorTreeItem {
   return new StreamProcessorTreeItem({
     streamProcessorName: 'zebra',
@@ -115,7 +122,7 @@ function getTestSchemaTreeItem(): SchemaTreeItem {
 }
 
 function getTestDocumentTreeItem(
-  options?: Partial<ConstructorParameters<typeof DocumentTreeItem>[0]>
+  options?: Partial<ConstructorParameters<typeof DocumentTreeItem>[0]>,
 ): DocumentTreeItem {
   return new DocumentTreeItem({
     document: {},
@@ -135,6 +142,51 @@ suite('MDBExtensionController Test Suite', function () {
     sandbox.restore();
   });
 
+  suite('Deep link command lists validation', () => {
+    test('allowed and disallowed lists are disjoint', () => {
+      const allowedSet = new Set(
+        DEEP_LINK_ALLOWED_COMMANDS as readonly ExtensionCommand[],
+      );
+      const disallowedSet = new Set(
+        DEEP_LINK_DISALLOWED_COMMANDS as readonly ExtensionCommand[],
+      );
+
+      const overlap = [...allowedSet].filter((cmd) => disallowedSet.has(cmd));
+
+      expect(overlap).to.deep.equal(
+        [],
+        `Commands appear in both allowed and disallowed lists: ${overlap.join(
+          ', ',
+        )}`,
+      );
+    });
+
+    test('allowed and disallowed lists are complete', () => {
+      const allCommands = new Set(Object.values(ExtensionCommand));
+      const allowedSet = new Set(
+        DEEP_LINK_ALLOWED_COMMANDS as readonly ExtensionCommand[],
+      );
+      const disallowedSet = new Set(
+        DEEP_LINK_DISALLOWED_COMMANDS as readonly ExtensionCommand[],
+      );
+      const combinedSet = new Set([...allowedSet, ...disallowedSet]);
+
+      const missing = [...allCommands].filter((cmd) => !combinedSet.has(cmd));
+      const extra = [...combinedSet].filter((cmd) => !allCommands.has(cmd));
+
+      expect(missing).to.deep.equal(
+        [],
+        `Commands missing from allowed/disallowed lists: ${missing.join(', ')}`,
+      );
+      expect(extra).to.deep.equal(
+        [],
+        `Commands in allowed/disallowed lists but not in ExtensionCommand: ${extra.join(
+          ', ',
+        )}`,
+      );
+    });
+  });
+
   suite('when not connected', () => {
     let showErrorMessageStub: SinonSpy;
 
@@ -145,7 +197,7 @@ suite('MDBExtensionController Test Suite', function () {
       showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
-        'trackNewConnection'
+        'trackNewConnection',
       );
     });
 
@@ -153,18 +205,18 @@ suite('MDBExtensionController Test Suite', function () {
       const testTreeItem = getTestConnectionTreeItem();
       const addDatabaseSucceeded = await vscode.commands.executeCommand(
         'mdb.addDatabase',
-        testTreeItem
+        testTreeItem,
       );
       assert(
         addDatabaseSucceeded === false,
-        'Expected the command handler to return a false succeeded response'
+        'Expected the command handler to return a false succeeded response',
       );
 
       const expectedMessage =
         'Please connect to this connection before adding a database.';
       assert(
         showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${showErrorMessageStub.firstCall.args[0]}"`
+        `Expected an error message "${expectedMessage}" to be shown when attempting to add a database to a not connected connection found "${showErrorMessageStub.firstCall.args[0]}"`,
       );
     });
   });
@@ -175,32 +227,30 @@ suite('MDBExtensionController Test Suite', function () {
     let fakeActiveConnectionId: SinonSpy;
     let showErrorMessageStub: SinonStub;
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
-    let openExternalStub: SinonStub;
 
     beforeEach(() => {
       showInformationMessageStub = sandbox.stub(
         vscode.window,
-        'showInformationMessage'
+        'showInformationMessage',
       );
-      openExternalStub = sandbox.stub(vscode.env, 'openExternal');
       openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
       fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwich');
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveConnectionId',
-        fakeActiveConnectionId
+        fakeActiveConnectionId,
       );
       fakeCreatePlaygroundFileWithContent = sandbox.fake();
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         '_createPlaygroundFileWithContent',
-        fakeCreatePlaygroundFileWithContent
+        fakeCreatePlaygroundFileWithContent,
       );
       showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
       sandbox.stub(vscode.window, 'showTextDocument');
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
-        'trackNewConnection'
+        'trackNewConnection',
       );
     });
 
@@ -208,23 +258,23 @@ suite('MDBExtensionController Test Suite', function () {
       const textCollectionTree = getTestCollectionTreeItem();
       await vscode.commands.executeCommand(
         'mdb.viewCollectionDocuments',
-        textCollectionTree
+        textCollectionTree,
       );
       assert.strictEqual(
         openTextDocumentStub.firstCall.args[0].path.indexOf(
-          'Results: testDbName.testColName'
+          'Results: testDbName.testColName',
         ),
-        0
+        0,
       );
       assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
       assert.strictEqual(
         openTextDocumentStub.firstCall.args[0].scheme,
-        VIEW_COLLECTION_SCHEME
+        VIEW_COLLECTION_SCHEME,
       );
       assert(
         openTextDocumentStub.firstCall.args[0].query.includes(
-          'namespace=testDbName.testColName'
-        )
+          'namespace=testDbName.testColName',
+        ),
       );
     });
 
@@ -232,30 +282,30 @@ suite('MDBExtensionController Test Suite', function () {
       const textCollectionTree = getTestCollectionTreeItem();
       await vscode.commands.executeCommand(
         'mdb.viewCollectionDocuments',
-        textCollectionTree
+        textCollectionTree,
       );
       assert.strictEqual(
         openTextDocumentStub.firstCall.args[0].path.indexOf(
-          'Results: testDbName.testColName'
+          'Results: testDbName.testColName',
         ),
-        0
+        0,
       );
       assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
       assert.strictEqual(
         openTextDocumentStub.firstCall.args[0].scheme,
-        VIEW_COLLECTION_SCHEME
+        VIEW_COLLECTION_SCHEME,
       );
       assert(
         openTextDocumentStub.firstCall.args[0].query.includes(
-          'namespace=testDbName.testColName'
-        )
+          'namespace=testDbName.testColName',
+        ),
       );
     });
 
     test('mdb.addConnection command should call openWebview on the webview controller', async () => {
       const openWebviewStub = sandbox.stub(
         mdbTestExtension.testExtensionController._webviewController,
-        'openWebview'
+        'openWebview',
       );
       await vscode.commands.executeCommand('mdb.addConnection');
       assert.strictEqual(openWebviewStub.calledOnce, true);
@@ -266,7 +316,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'connectWithURI',
-        fakeConnectWithURI
+        fakeConnectWithURI,
       );
       await vscode.commands.executeCommand('mdb.addConnectionWithURI');
       assert.strictEqual(fakeConnectWithURI.calledOnce, true);
@@ -280,21 +330,21 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
-        fakeRefresh
+        fakeRefresh,
       );
       await vscode.commands.executeCommand(
         'mdb.refreshConnection',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(
         testTreeItem.cacheIsUpToDate,
         false,
-        'Expected cache on tree item to be set to not up to date.'
+        'Expected cache on tree item to be set to not up to date.',
       );
       assert.strictEqual(
         fakeRefresh.called,
         true,
-        'Expected explorer controller refresh to be called.'
+        'Expected explorer controller refresh to be called.',
       );
     });
 
@@ -305,18 +355,18 @@ suite('MDBExtensionController Test Suite', function () {
       const fakeRemoveMongoDBConnection = sandbox.fake();
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
-        'removeMongoDBConnection',
-        fakeRemoveMongoDBConnection
+        '_removeMongoDBConnection',
+        fakeRemoveMongoDBConnection,
       );
       await vscode.commands.executeCommand(
         'mdb.treeItemRemoveConnection',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(fakeRemoveMongoDBConnection.calledOnce, true);
-      assert.strictEqual(
-        fakeRemoveMongoDBConnection.firstCall.args[0],
-        'craving_for_pancakes_with_maple_syrup'
-      );
+      assert.deepStrictEqual(fakeRemoveMongoDBConnection.firstCall.args[0], {
+        connectionId: 'craving_for_pancakes_with_maple_syrup',
+        force: undefined,
+      });
     });
 
     test('mdb.copyConnectionString command should try to copy the driver url to the vscode env clipboard', async () => {
@@ -331,11 +381,11 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'copyConnectionStringByConnectionId',
-        fakeCopyConnectionStringByConnectionId
+        fakeCopyConnectionStringByConnectionId,
       );
       await vscode.commands.executeCommand(
         'mdb.copyConnectionString',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(fakeWriteText.calledOnce, true);
       assert.strictEqual(fakeWriteText.firstCall.args[0], 'weStubThisUri');
@@ -350,7 +400,7 @@ suite('MDBExtensionController Test Suite', function () {
       }));
       await vscode.commands.executeCommand(
         'mdb.copyDatabaseName',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(fakeWriteText.calledOnce, true);
       assert.strictEqual(fakeWriteText.firstCall.args[0], 'zebra');
@@ -365,7 +415,7 @@ suite('MDBExtensionController Test Suite', function () {
       }));
       await vscode.commands.executeCommand(
         'mdb.copyCollectionName',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(fakeWriteText.called, true);
       assert.strictEqual(fakeWriteText.firstCall.args[0], 'testColName');
@@ -380,13 +430,13 @@ suite('MDBExtensionController Test Suite', function () {
       }));
       const commandResult = await vscode.commands.executeCommand(
         'mdb.copySchemaFieldName',
-        testTreeItem
+        testTreeItem,
       );
       assert(commandResult);
       assert.strictEqual(fakeWriteText.called, true);
       assert.strictEqual(
         fakeWriteText.firstCall.args[0],
-        'dolphins are sentient'
+        'dolphins are sentient',
       );
     });
 
@@ -398,17 +448,17 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
-        fakeRefresh
+        fakeRefresh,
       );
       await vscode.commands.executeCommand('mdb.refreshDatabase', testTreeItem);
       assert.strictEqual(
         testTreeItem.cacheIsUpToDate,
         false,
-        'Expected cache on tree item to be set to not up to date.'
+        'Expected cache on tree item to be set to not up to date.',
       );
       assert(
         fakeRefresh.called === true,
-        'Expected explorer controller refresh to be called.'
+        'Expected explorer controller refresh to be called.',
       );
     });
 
@@ -424,19 +474,19 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
-        fakeRefresh
+        fakeRefresh,
       );
       await vscode.commands.executeCommand(
         'mdb.refreshCollection',
-        testTreeItem
+        testTreeItem,
       );
       assert(
         testTreeItem.getSchemaChild().isExpanded === false,
-        'Expected collection tree item child to be reset to not expanded.'
+        'Expected collection tree item child to be reset to not expanded.',
       );
       assert(
         fakeRefresh.called === true,
-        'Expected explorer controller refresh to be called.'
+        'Expected explorer controller refresh to be called.',
       );
     });
 
@@ -459,12 +509,12 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
-        fakeRefresh
+        fakeRefresh,
       );
 
       await vscode.commands.executeCommand(
         'mdb.refreshDocumentList',
-        docListTreeItem
+        docListTreeItem,
       );
       assert.strictEqual(docListTreeItem.cacheIsUpToDate, false);
       assert.strictEqual(testTreeItem.documentCount, 10000);
@@ -481,7 +531,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
-        fakeRefresh
+        fakeRefresh,
       );
       await vscode.commands.executeCommand('mdb.refreshSchema', testTreeItem);
       assert.strictEqual(testTreeItem.cacheIsUpToDate, false);
@@ -505,16 +555,16 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._explorerController,
         'refresh',
-        fakeRefresh
+        fakeRefresh,
       );
       await vscode.commands.executeCommand('mdb.refreshIndexes', testTreeItem);
       assert(
         !testTreeItem.cacheIsUpToDate,
-        'Expected schema field cache to be not up to date.'
+        'Expected schema field cache to be not up to date.',
       );
       assert(
         fakeRefresh.called === true,
-        'Expected explorer controller refresh to be called.'
+        'Expected explorer controller refresh to be called.',
       );
     });
 
@@ -547,7 +597,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
       assert(
-        content.includes('Search for documents in the current collection.')
+        content.includes('Search for documents in the current collection.'),
       );
       assert(content.includes('dbbbbbName'));
       assert(content.includes('colllllllllName'));
@@ -572,7 +622,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         vscode.workspace,
         'getConfiguration',
-        fakeGetConfiguration
+        fakeGetConfiguration,
       );
       await vscode.commands.executeCommand('mdb.createPlayground');
 
@@ -587,7 +637,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         vscode.workspace,
         'getConfiguration',
-        fakeGetConfiguration
+        fakeGetConfiguration,
       );
       await vscode.commands.executeCommand('mdb.createPlayground');
 
@@ -606,23 +656,23 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'isDisconnecting',
-        fakeIsDisconnecting
+        fakeIsDisconnecting,
       );
 
       const addDatabaseSucceeded = await vscode.commands.executeCommand(
         'mdb.addDatabase',
-        testTreeItem
+        testTreeItem,
       );
       assert(
         addDatabaseSucceeded === false,
-        'Expected the add database command handler to return a false succeeded response'
+        'Expected the add database command handler to return a false succeeded response',
       );
 
       const expectedMessage =
         'Unable to add database: currently disconnecting.';
       assert(
         showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`
+        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`,
       );
     });
 
@@ -637,22 +687,22 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'isConnecting',
-        fakeIsConnecting
+        fakeIsConnecting,
       );
 
       const addDatabaseSucceeded = await vscode.commands.executeCommand(
         'mdb.addDatabase',
-        testTreeItem
+        testTreeItem,
       );
       assert(
         addDatabaseSucceeded === false,
-        'Expected the add database command handler to return a false succeeded response'
+        'Expected the add database command handler to return a false succeeded response',
       );
 
       const expectedMessage = 'Unable to add database: currently connecting.';
       assert(
         showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`
+        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`,
       );
     });
 
@@ -666,19 +716,19 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'isDisconnecting',
-        fakeIsDisconnecting
+        fakeIsDisconnecting,
       );
 
       const addCollectionSucceeded = await vscode.commands.executeCommand(
         'mdb.addCollection',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(addCollectionSucceeded, false);
       const expectedMessage =
         'Unable to add collection: currently disconnecting.';
       assert.strictEqual(
         showErrorMessageStub.firstCall.args[0],
-        expectedMessage
+        expectedMessage,
       );
     });
 
@@ -700,7 +750,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
-        testCollectionTreeItem
+        testCollectionTreeItem,
       );
       assert.strictEqual(successfullyDropped, true);
       assert.strictEqual(calledNamespace, 'testDbName.testColName');
@@ -711,14 +761,14 @@ suite('MDBExtensionController Test Suite', function () {
     test.skip('mdb.dropCollection fails when a collection does not exist', async () => {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
-      await testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: testDatabaseURI,
+      });
 
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'doesntExistColName',
-          type: CollectionTypes.collection,
+          type: CollectionType.collection,
         } as unknown as CollectionDetailsType,
         dataService:
           testConnectionController.getActiveDataService() ?? undefined,
@@ -729,17 +779,17 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
-        testCollectionTreeItem
+        testCollectionTreeItem,
       );
       assert(
         successfullyDropped === false,
-        'Expected the drop collection command handler to return a false succeeded response'
+        'Expected the drop collection command handler to return a false succeeded response',
       );
 
       const expectedMessage = 'Drop collection failed: ns not found';
       assert(
         showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected "${expectedMessage}" when dropping a collection that doesn't exist, received "${showErrorMessageStub.firstCall.args[0]}"`
+        `Expected "${expectedMessage}" when dropping a collection that doesn't exist, received "${showErrorMessageStub.firstCall.args[0]}"`,
       );
       await testConnectionController.disconnect();
       testConnectionController.clearAllConnections();
@@ -749,7 +799,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testCollectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'orange',
-          type: CollectionTypes.collection,
+          type: CollectionType.collection,
         } as unknown as CollectionDetailsType,
       });
       const inputBoxResolvesStub = sandbox.stub();
@@ -758,7 +808,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
-        testCollectionTreeItem
+        testCollectionTreeItem,
       );
       assert.strictEqual(successfullyDropped, false);
     });
@@ -771,7 +821,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropCollection',
-        testCollectionTreeItem
+        testCollectionTreeItem,
       );
       assert.strictEqual(successfullyDropped, false);
     });
@@ -794,7 +844,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
-        testDatabaseTreeItem
+        testDatabaseTreeItem,
       );
       assert.strictEqual(successfullyDropped, true);
       assert.strictEqual(calledDatabaseName, 'iMissTangerineAltoids');
@@ -803,9 +853,9 @@ suite('MDBExtensionController Test Suite', function () {
     test('mdb.dropDatabase succeeds even when a database doesnt exist (mdb behavior)', async () => {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
-      await testConnectionController.addNewConnectionStringAndConnect(
-        testDatabaseURI
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString: testDatabaseURI,
+      });
 
       const testDatabaseTreeItem = getTestDatabaseTreeItem({
         databaseName: 'narnia____a',
@@ -818,7 +868,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
-        testDatabaseTreeItem
+        testDatabaseTreeItem,
       );
       assert.strictEqual(successfullyDropped, true);
       assert.strictEqual(showErrorMessageStub.called, false);
@@ -834,7 +884,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
-        testDatabaseTreeItem
+        testDatabaseTreeItem,
       );
       assert.strictEqual(successfullyDropped, false);
     });
@@ -847,7 +897,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyDropped = await vscode.commands.executeCommand(
         'mdb.dropDatabase',
-        testDatabaseTreeItem
+        testDatabaseTreeItem,
       );
       assert.strictEqual(successfullyDropped, false);
     });
@@ -858,7 +908,7 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           connectionOptions: { connectionString: 'mongodb://localhost' },
           name: 'NAAAME',
-          storageLocation: StorageLocation.NONE,
+          storageLocation: StorageLocation.none,
           secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
@@ -872,13 +922,13 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyRenamed = await vscode.commands.executeCommand(
         'mdb.renameConnection',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(successfullyRenamed, false);
       assert.strictEqual(
         mdbTestExtension.testExtensionController._connectionController
           ._connections.blueBerryPancakesAndTheSmellOfBacon.name,
-        'NAAAME'
+        'NAAAME',
       );
       mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
     });
@@ -889,7 +939,7 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           name: 'NAAAME',
           connectionOptions: { connectionString: 'mongodb://localhost' },
-          storageLocation: StorageLocation.NONE,
+          storageLocation: StorageLocation.none,
           secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
@@ -902,13 +952,13 @@ suite('MDBExtensionController Test Suite', function () {
 
       const successfullyRenamed = await vscode.commands.executeCommand(
         'mdb.renameConnection',
-        testTreeItem
+        testTreeItem,
       );
       assert.strictEqual(successfullyRenamed, true);
       assert.strictEqual(
         mdbTestExtension.testExtensionController._connectionController
           ._connections.blueBerryPancakesAndTheSmellOfBacon.name,
-        'orange juice'
+        'orange juice',
       );
       mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
     });
@@ -926,7 +976,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._editorsController
           ._documentIdStore,
         'get',
-        fakeGet
+        fakeGet,
       );
 
       const activeTextEditor = mockTextEditor;
@@ -938,14 +988,14 @@ suite('MDBExtensionController Test Suite', function () {
           'connectionId=tasty_sandwich&',
           'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
           'source=treeview',
-        ].join('')
+        ].join(''),
       );
       activeTextEditor.document.getText = (): string =>
         JSON.stringify(mockDocument);
       sandbox.replaceGetter(
         vscode.window,
         'activeTextEditor',
-        () => activeTextEditor
+        () => activeTextEditor,
       );
 
       const fakeGetActiveDataService = sandbox.fake.returns({
@@ -961,7 +1011,7 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
-        fakeGetActiveDataService
+        fakeGetActiveDataService,
       );
 
       const documentItem = getTestDocumentTreeItem({
@@ -969,26 +1019,28 @@ suite('MDBExtensionController Test Suite', function () {
       });
       await vscode.commands.executeCommand(
         'mdb.openMongoDBDocumentFromTree',
-        documentItem
+        documentItem,
       );
       assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
       assert.strictEqual(
         openTextDocumentStub.firstCall.args[0].scheme,
-        'VIEW_DOCUMENT_SCHEME'
+        'VIEW_DOCUMENT_SCHEME',
       );
       assert(
-        openTextDocumentStub.firstCall.args[0].query.includes('documentId=')
+        openTextDocumentStub.firstCall.args[0].query.includes('documentId='),
       );
       assert(
-        openTextDocumentStub.firstCall.args[0].query.includes('connectionId=')
-      );
-      assert(
-        openTextDocumentStub.firstCall.args[0].query.includes('source=treeview')
+        openTextDocumentStub.firstCall.args[0].query.includes('connectionId='),
       );
       assert(
         openTextDocumentStub.firstCall.args[0].query.includes(
-          'namespace=waffle.house'
-        )
+          'source=treeview',
+        ),
+      );
+      assert(
+        openTextDocumentStub.firstCall.args[0].query.includes(
+          'namespace=waffle.house',
+        ),
       );
       await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
       assert.strictEqual(mockDocument.name, 'something sweet');
@@ -999,7 +1051,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       assert.strictEqual(
         showInformationMessageStub.firstCall.args[0],
-        expectedMessage
+        expectedMessage,
       );
     });
 
@@ -1019,15 +1071,15 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'fetchDocument',
-        fakeFetchDocument
+        fakeFetchDocument,
       );
       await vscode.commands.executeCommand(
         'mdb.openMongoDBDocumentFromTree',
-        documentItem
+        documentItem,
       );
       assert.strictEqual(
         fakeFetchDocument.firstCall.args[0].source,
-        'treeview'
+        'treeview',
       );
     });
 
@@ -1044,15 +1096,15 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'fetchDocument',
-        fakeFetchDocument
+        fakeFetchDocument,
       );
       await vscode.commands.executeCommand(
         'mdb.openMongoDBDocumentFromCodeLens',
-        documentItem
+        documentItem,
       );
       assert.strictEqual(
         fakeFetchDocument.firstCall.args[0].source,
-        'playground'
+        'playground',
       );
     });
 
@@ -1069,7 +1121,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._editorsController
           ._documentIdStore,
         'get',
-        fakeGet
+        fakeGet,
       );
       sandbox.replaceGetter(
         vscode.window,
@@ -1089,7 +1141,7 @@ suite('MDBExtensionController Test Suite', function () {
               getText: () => JSON.stringify(mockDocument),
               save: () => {},
             },
-          } as unknown as typeof vscode.window.activeTextEditor)
+          }) as unknown as typeof vscode.window.activeTextEditor,
       );
 
       const fakeReplaceDocument = sandbox.fake.resolves(null);
@@ -1097,12 +1149,12 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'replaceDocument',
-        fakeReplaceDocument
+        fakeReplaceDocument,
       );
       await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
       assert.strictEqual(
         fakeReplaceDocument.firstCall.args[0].source,
-        'treeview'
+        'treeview',
       );
     });
 
@@ -1119,7 +1171,7 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._editorsController
           ._documentIdStore,
         'get',
-        fakeGet
+        fakeGet,
       );
       sandbox.replaceGetter(
         vscode.window,
@@ -1139,7 +1191,7 @@ suite('MDBExtensionController Test Suite', function () {
               getText: () => JSON.stringify(mockDocument),
               save: () => {},
             },
-          } as unknown as typeof vscode.window.activeTextEditor)
+          }) as unknown as typeof vscode.window.activeTextEditor,
       );
 
       const fakeReplaceDocument = sandbox.fake.resolves(null);
@@ -1147,12 +1199,12 @@ suite('MDBExtensionController Test Suite', function () {
         mdbTestExtension.testExtensionController._editorsController
           ._mongoDBDocumentService,
         'replaceDocument',
-        fakeReplaceDocument
+        fakeReplaceDocument,
       );
       await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
       assert.strictEqual(
         fakeReplaceDocument.firstCall.args[0].source,
-        'playground'
+        'playground',
       );
     });
 
@@ -1161,12 +1213,12 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'runSelectedPlaygroundBlocks',
-        fakeRunSelectedPlaygroundBlocks
+        fakeRunSelectedPlaygroundBlocks,
       );
       await vscode.commands.executeCommand('mdb.runSelectedPlaygroundBlocks');
       assert(
         fakeRunSelectedPlaygroundBlocks.calledOnce,
-        'Expected "runSelectedPlaygroundBlocks" to be called on the playground controller.'
+        'Expected "runSelectedPlaygroundBlocks" to be called on the playground controller.',
       );
     });
 
@@ -1175,12 +1227,12 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'runAllPlaygroundBlocks',
-        fakeRunAllPlaygroundBlocks
+        fakeRunAllPlaygroundBlocks,
       );
       await vscode.commands.executeCommand('mdb.runAllPlaygroundBlocks');
       assert(
         fakeRunAllPlaygroundBlocks.calledOnce,
-        'Expected "runAllPlaygroundBlocks" to be called on the playground controller.'
+        'Expected "runAllPlaygroundBlocks" to be called on the playground controller.',
       );
     });
 
@@ -1189,12 +1241,12 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'changeActiveConnection',
-        fakeChangeActiveConnection
+        fakeChangeActiveConnection,
       );
       await vscode.commands.executeCommand('mdb.changeActiveConnection');
       assert(
         fakeChangeActiveConnection.calledOnce,
-        'Expected "changeActiveConnection" to be called on the playground controller.'
+        'Expected "changeActiveConnection" to be called on the playground controller.',
       );
     });
 
@@ -1203,14 +1255,14 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundsExplorer,
         'refresh',
-        fakeRefresh
+        fakeRefresh,
       );
       await vscode.commands.executeCommand(
-        'mdb.refreshPlaygroundsFromTreeView'
+        'mdb.refreshPlaygroundsFromTreeView',
       );
       assert(
         fakeRefresh.calledOnce,
-        'Expected "refreshPlaygrounds" to be called on the playground controller.'
+        'Expected "refreshPlaygrounds" to be called on the playground controller.',
       );
     });
 
@@ -1243,7 +1295,7 @@ suite('MDBExtensionController Test Suite', function () {
       }));
       await vscode.commands.executeCommand(
         'mdb.copyDocumentContentsFromTreeView',
-        documentTreeItem
+        documentTreeItem,
       );
       assert.strictEqual(fakeWriteText.called, true);
       assert.strictEqual(
@@ -1253,7 +1305,7 @@ suite('MDBExtensionController Test Suite', function () {
   "time": {
     "$time": "12345"
   }
-}`
+}`,
       );
       assert.strictEqual(namespaceUsed, 'waffle.house');
     });
@@ -1279,11 +1331,11 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'createPlaygroundForCloneDocument',
-        fakeCreatePlaygroundForCloneDocument
+        fakeCreatePlaygroundForCloneDocument,
       );
       await vscode.commands.executeCommand(
         'mdb.cloneDocumentFromTreeView',
-        documentTreeItem
+        documentTreeItem,
       );
       assert.strictEqual(fakeCreatePlaygroundForCloneDocument.calledOnce, true);
       assert.strictEqual(
@@ -1292,15 +1344,15 @@ suite('MDBExtensionController Test Suite', function () {
   _id: 'pancakes',
   time: ISODate('3001-01-01T05:00:00.000Z'),
   objectIdField: ObjectId('57e193d7a9cc81b4027498b2')
-}`
+}`,
       );
       assert.strictEqual(
         fakeCreatePlaygroundForCloneDocument.firstCall.args[1],
-        'waffle'
+        'waffle',
       );
       assert.strictEqual(
         fakeCreatePlaygroundForCloneDocument.firstCall.args[2],
-        'house'
+        'house',
       );
       assert.strictEqual(namespaceUsed, 'waffle.house');
     });
@@ -1309,7 +1361,7 @@ suite('MDBExtensionController Test Suite', function () {
       const collectionTreeItem = getTestCollectionTreeItem({
         collection: {
           name: 'pineapple',
-          type: CollectionTypes.collection,
+          type: CollectionType.collection,
         } as unknown as CollectionDetailsType,
         databaseName: 'plants',
       });
@@ -1317,23 +1369,23 @@ suite('MDBExtensionController Test Suite', function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._playgroundController,
         'createPlaygroundForInsertDocument',
-        fakeCreatePlaygroundForInsertDocument
+        fakeCreatePlaygroundForInsertDocument,
       );
       await vscode.commands.executeCommand(
         'mdb.insertDocumentFromTreeView',
-        collectionTreeItem
+        collectionTreeItem,
       );
       assert.strictEqual(
         fakeCreatePlaygroundForInsertDocument.calledOnce,
-        true
+        true,
       );
       assert.strictEqual(
         fakeCreatePlaygroundForInsertDocument.firstCall.args[0],
-        'plants'
+        'plants',
       );
       assert.strictEqual(
         fakeCreatePlaygroundForInsertDocument.firstCall.args[1],
-        'pineapple'
+        'pineapple',
       );
     });
 
@@ -1360,7 +1412,7 @@ suite('MDBExtensionController Test Suite', function () {
       });
       const result = await vscode.commands.executeCommand(
         'mdb.deleteDocumentFromTreeView',
-        documentTreeItem
+        documentTreeItem,
       );
       assert.strictEqual(result, false);
       assert.strictEqual(calledDelete, false);
@@ -1380,7 +1432,7 @@ suite('MDBExtensionController Test Suite', function () {
       const dataServiceStub = {
         deleteOne: (
           namespace: string,
-          filter: Filter<Document>
+          filter: Filter<Document>,
         ): ReturnType<DataService['deleteOne']> => {
           _idUsed = filter;
           namespaceUsed = namespace;
@@ -1396,7 +1448,7 @@ suite('MDBExtensionController Test Suite', function () {
       });
       const result = await vscode.commands.executeCommand(
         'mdb.deleteDocumentFromTreeView',
-        documentTreeItem
+        documentTreeItem,
       );
       assert.deepStrictEqual(_idUsed, {
         _id: 'pancakes',
@@ -1409,7 +1461,7 @@ suite('MDBExtensionController Test Suite', function () {
       const testConnectionTreeItem = getTestConnectionTreeItem();
       await vscode.commands.executeCommand(
         'mdb.addStreamProcessor',
-        testConnectionTreeItem
+        testConnectionTreeItem,
       );
 
       const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
@@ -1430,18 +1482,18 @@ suite('MDBExtensionController Test Suite', function () {
 
       const started = await vscode.commands.executeCommand(
         'mdb.startStreamProcessor',
-        testProcessorTreeItem
+        testProcessorTreeItem,
       );
 
       assert.strictEqual(started, true);
       assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'STARTED');
       assert.strictEqual(
         calledProcessorName,
-        testProcessorTreeItem.streamProcessorName
+        testProcessorTreeItem.streamProcessorName,
       );
       assert.strictEqual(
         showInformationMessageStub.firstCall.args[0],
-        'Stream processor successfully started.'
+        'Stream processor successfully started.',
       );
     });
 
@@ -1458,18 +1510,18 @@ suite('MDBExtensionController Test Suite', function () {
 
       const started = await vscode.commands.executeCommand(
         'mdb.startStreamProcessor',
-        testProcessorTreeItem
+        testProcessorTreeItem,
       );
 
       assert.strictEqual(started, false);
       assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'CREATED');
       assert.strictEqual(
         calledProcessorName,
-        testProcessorTreeItem.streamProcessorName
+        testProcessorTreeItem.streamProcessorName,
       );
       assert.strictEqual(
         showErrorMessageStub.firstCall.args[0],
-        'Start stream processor failed: Fake test error'
+        'Start stream processor failed: Fake test error',
       );
     });
 
@@ -1486,18 +1538,18 @@ suite('MDBExtensionController Test Suite', function () {
 
       const stopped = await vscode.commands.executeCommand(
         'mdb.stopStreamProcessor',
-        testProcessorTreeItem
+        testProcessorTreeItem,
       );
 
       assert.strictEqual(stopped, true);
       assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'STOPPED');
       assert.strictEqual(
         calledProcessorName,
-        testProcessorTreeItem.streamProcessorName
+        testProcessorTreeItem.streamProcessorName,
       );
       assert.strictEqual(
         showInformationMessageStub.firstCall.args[0],
-        'Stream processor successfully stopped.'
+        'Stream processor successfully stopped.',
       );
     });
 
@@ -1514,18 +1566,18 @@ suite('MDBExtensionController Test Suite', function () {
 
       const stopped = await vscode.commands.executeCommand(
         'mdb.stopStreamProcessor',
-        testProcessorTreeItem
+        testProcessorTreeItem,
       );
 
       assert.strictEqual(stopped, false);
       assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'CREATED');
       assert.strictEqual(
         calledProcessorName,
-        testProcessorTreeItem.streamProcessorName
+        testProcessorTreeItem.streamProcessorName,
       );
       assert.strictEqual(
         showErrorMessageStub.firstCall.args[0],
-        'Stop stream processor failed: Fake test error'
+        'Stop stream processor failed: Fake test error',
       );
     });
 
@@ -1547,14 +1599,14 @@ suite('MDBExtensionController Test Suite', function () {
 
       const dropped = await vscode.commands.executeCommand(
         'mdb.dropStreamProcessor',
-        testProcessorTreeItem
+        testProcessorTreeItem,
       );
       assert.strictEqual(dropped, true);
       assert.strictEqual(calledProcessorName, 'iMissTangerineAltoids');
       assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'DROPPED');
       assert.strictEqual(
         showInformationMessageStub.firstCall.args[0],
-        'Stream processor successfully dropped.'
+        'Stream processor successfully dropped.',
       );
     });
 
@@ -1577,18 +1629,18 @@ suite('MDBExtensionController Test Suite', function () {
 
       const started = await vscode.commands.executeCommand(
         'mdb.dropStreamProcessor',
-        testProcessorTreeItem
+        testProcessorTreeItem,
       );
 
       assert.strictEqual(started, false);
       assert.strictEqual(testProcessorTreeItem.streamProcessorState, 'CREATED');
       assert.strictEqual(
         calledProcessorName,
-        testProcessorTreeItem.streamProcessorName
+        testProcessorTreeItem.streamProcessorName,
       );
       assert.strictEqual(
         showErrorMessageStub.firstCall.args[0],
-        'Drop stream processor failed: Fake test error'
+        'Drop stream processor failed: Fake test error',
       );
     });
 
@@ -1608,19 +1660,19 @@ suite('MDBExtensionController Test Suite', function () {
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
-              sandbox.fake.returns(false)
+              sandbox.fake.returns(false),
             );
             sandbox.replace(
               mdbTestExtension.testExtensionController._connectionStorage,
               'hasSavedConnections',
-              sandbox.fake.returns(false)
+              sandbox.fake.returns(false),
             );
 
             fakeUpdate = sandbox.fake.resolves(undefined);
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'update',
-              fakeUpdate
+              fakeUpdate,
             );
 
             void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
@@ -1630,11 +1682,11 @@ suite('MDBExtensionController Test Suite', function () {
             assert(executeCommandStub.called);
             assert.strictEqual(
               executeCommandStub.firstCall.args[0],
-              'mdb.openOverviewPage'
+              'mdb.openOverviewPage',
             );
             assert.strictEqual(
               executeCommandStub.firstCall.args[0],
-              EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE
+              ExtensionCommand.mdbOpenOverviewPage,
             );
           });
 
@@ -1642,15 +1694,15 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
+              StorageVariable.globalHasBeenShownInitialView,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW'
+              'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
             );
             assert.strictEqual(fakeUpdate.firstCall.args[1], true);
           });
-        }
+        },
       );
 
       suite(
@@ -1662,18 +1714,18 @@ suite('MDBExtensionController Test Suite', function () {
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
-              sandbox.fake.returns(undefined)
+              sandbox.fake.returns(undefined),
             );
             sandbox.replace(
               mdbTestExtension.testExtensionController._connectionStorage,
               'hasSavedConnections',
-              sandbox.fake.returns(true)
+              sandbox.fake.returns(true),
             );
             fakeUpdate = sandbox.fake.resolves(undefined);
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'update',
-              fakeUpdate
+              fakeUpdate,
             );
 
             void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
@@ -1687,15 +1739,15 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW
+              StorageVariable.globalHasBeenShownInitialView,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW'
+              'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
             );
             assert.strictEqual(fakeUpdate.firstCall.args[1], true);
           });
-        }
+        },
       );
 
       suite('when a user has been shown the initial overview page', () => {
@@ -1703,7 +1755,7 @@ suite('MDBExtensionController Test Suite', function () {
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
-            sandbox.fake.returns(true)
+            sandbox.fake.returns(true),
           );
 
           void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
@@ -1713,137 +1765,30 @@ suite('MDBExtensionController Test Suite', function () {
           assert(!executeCommandStub.called);
         });
       });
-    });
 
-    suite('survey prompt', function () {
-      suite(
-        "when a user hasn't been shown the survey prompt yet, and they have connections saved",
-        () => {
-          [
-            {
-              description: 'clicked the button',
-              value: { title: 'Share your thoughts' },
-            },
-            { description: 'dismissed', value: undefined },
-          ].forEach((reaction) => {
-            suite(`user ${reaction.description}`, () => {
-              let connectionsUpdateStub: SinonStub;
-              let uriParseStub: SinonStub;
-              beforeEach(async () => {
-                showInformationMessageStub.resolves(reaction.value);
-                openExternalStub.resolves(undefined);
-                sandbox.replace(
-                  mdbTestExtension.testExtensionController._storageController,
-                  'get',
-                  sandbox.fake.returns(undefined)
-                );
-                sandbox.replace(
-                  mdbTestExtension.testExtensionController._connectionStorage,
-                  'hasSavedConnections',
-                  sandbox.fake.returns(true)
-                );
-                connectionsUpdateStub = sandbox.stub(
-                  mdbTestExtension.testExtensionController._storageController,
-                  'update'
-                );
-                uriParseStub = sandbox.stub(vscode.Uri, 'parse');
-                connectionsUpdateStub.resolves(undefined);
-                await mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
-              });
+      suite('when a user has opted out of the overview page', () => {
+        beforeEach(async () => {
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('showOverviewPageAfterInstall', false);
 
-              afterEach(() => {
-                sandbox.restore();
-              });
-
-              test('they are shown the survey prompt', () => {
-                assert(showInformationMessageStub.called);
-                assert.strictEqual(
-                  showInformationMessageStub.firstCall.args[0],
-                  'How can we make the MongoDB extension better for you?'
-                );
-              });
-
-              test('the link was open if and only if they click the button', () => {
-                if (reaction.value === undefined) {
-                  assert(openExternalStub.notCalled);
-                }
-                if (reaction.value) {
-                  assert(openExternalStub.called);
-                  assert(uriParseStub.called);
-                  assert.strictEqual(
-                    uriParseStub.firstCall.args[0],
-                    'https://forms.gle/9viN9wcbsC3zvHyg7'
-                  );
-                }
-              });
-
-              test("it sets that they've been shown the survey", () => {
-                assert(connectionsUpdateStub.called);
-                assert.strictEqual(
-                  connectionsUpdateStub.firstCall.args[0],
-                  StorageVariables.GLOBAL_SURVEY_SHOWN
-                );
-                assert.strictEqual(
-                  connectionsUpdateStub.firstCall.args[1],
-                  '9viN9wcbsC3zvHyg7'
-                );
-              });
-            });
-          });
-        }
-      );
-
-      suite('when a user has been shown the survey prompt already', () => {
-        let connectionsUpdateStub: SinonStub;
-        beforeEach(() => {
           sandbox.replace(
             mdbTestExtension.testExtensionController._storageController,
             'get',
-            sandbox.fake.returns('9viN9wcbsC3zvHyg7') // survey has been shown
+            sandbox.fake.returns(false),
           );
-          sandbox.replace(
-            mdbTestExtension.testExtensionController._connectionStorage,
-            'hasSavedConnections',
-            sandbox.fake.returns(true)
-          );
-          connectionsUpdateStub = sandbox.stub(
-            mdbTestExtension.testExtensionController._storageController,
-            'update'
-          );
-          connectionsUpdateStub.resolves(undefined);
 
-          void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
+          void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
         });
 
-        test('they are not shown the survey prompt', () => {
-          assert(showInformationMessageStub.notCalled);
-        });
-      });
-
-      suite('when a has no connections saved', () => {
-        let connectionsUpdateStub: SinonStub;
-        beforeEach(() => {
-          sandbox.replace(
-            mdbTestExtension.testExtensionController._storageController,
-            'get',
-            sandbox.fake.returns(undefined)
-          );
-          sandbox.replace(
-            mdbTestExtension.testExtensionController._connectionStorage,
-            'hasSavedConnections',
-            sandbox.fake.returns(false) // no connections yet - this might be the first install
-          );
-          connectionsUpdateStub = sandbox.stub(
-            mdbTestExtension.testExtensionController._storageController,
-            'update'
-          );
-          connectionsUpdateStub.resolves(undefined);
-
-          void mdbTestExtension.testExtensionController.showSurveyForEstablishedUsers();
+        afterEach(async () => {
+          await vscode.workspace
+            .getConfiguration('mdb')
+            .update('showOverviewPageAfterInstall', undefined);
         });
 
-        test('they are not shown the survey prompt', () => {
-          assert(showInformationMessageStub.notCalled);
+        test('they are not shown the overview page', () => {
+          assert(!executeCommandStub.called);
         });
       });
     });
@@ -1852,11 +1797,11 @@ suite('MDBExtensionController Test Suite', function () {
   test('mdb.participantViewRawSchemaOutput command opens a json document with the output', async () => {
     const openTextDocumentStub = sandbox.stub(
       vscode.workspace,
-      'openTextDocument'
+      'openTextDocument',
     );
     const showTextDocumentStub = sandbox.stub(
       vscode.window,
-      'showTextDocument'
+      'showTextDocument',
     );
 
     const schemaContent = `{
@@ -1898,6 +1843,193 @@ suite('MDBExtensionController Test Suite', function () {
     assert(showTextDocumentStub.calledOnce);
     assert.deepStrictEqual(showTextDocumentStub.firstCall.args[1], {
       preview: true,
+    });
+  });
+
+  suite('handleDeepLink', () => {
+    let fakeExecuteCommand: sinon.SinonStub;
+    let fakeTrack: sinon.SinonStub;
+
+    let fakeShowErrorMessage: sinon.SinonSpy;
+
+    beforeEach(() => {
+      fakeExecuteCommand = sandbox.stub(vscode.commands, 'executeCommand');
+      fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
+      fakeTrack = sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'track',
+      );
+    });
+
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    test('errors when command is not registered', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse('vscode://mongodb.mongodb-vscode/invalid-command'),
+      );
+
+      expect(fakeExecuteCommand).to.not.have.been.called;
+      expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+        "Failed to handle 'vscode://mongodb.mongodb-vscode/invalid-command': Error: Unable to execute command 'mdb.invalid-command' since it is not registered by the MongoDB extension.",
+      );
+    });
+
+    test('handles valid command', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse('vscode://mongodb.mongodb-vscode/mdb.connectWithURI'),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI');
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('handles valid command without mdb. prefix', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse('vscode://mongodb.mongodb-vscode/connectWithURI'),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI');
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('handles valid command with query parameters', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=bar&baz=qux',
+        ),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
+        foo: 'bar',
+        baz: 'qux',
+      });
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('converts query parameters to booleans and numbers', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=true&bar=987&baz=str',
+        ),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledOnceWith(
+        'mdb.connectWithURI',
+        {
+          foo: true,
+          bar: 987,
+          baz: 'str',
+        },
+      );
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('decodes query parameters', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.from({
+          scheme: 'vscode',
+          authority: 'mongodb.mongodb-vscode',
+          path: '/connectWithURI',
+          query:
+            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017%2F%3FappName%3Dblah%26test%3Dtrue&reuseExisting=true',
+        }),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledOnceWith(
+        'mdb.connectWithURI',
+        {
+          connectionString: 'mongodb://localhost:27017/?appName=blah&test=true',
+          reuseExisting: true,
+        },
+      );
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('shows an error message when executeCommand fails', async () => {
+      fakeExecuteCommand.rejects(new Error('fake error'));
+
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse('vscode://mongodb.mongodb-vscode/mdb.connectWithURI'),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI');
+      expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+        "Failed to handle 'vscode://mongodb.mongodb-vscode/mdb.connectWithURI': Error: fake error",
+      );
+    });
+
+    test('reports telemetry event', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=true&bar=987&baz=str',
+        ),
+      );
+
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.connectWithURI'),
+      );
+    });
+
+    test('reports utm_source if present', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=true&bar=987&baz=str&utm_source=AtlasCLI',
+        ),
+      );
+
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.connectWithURI', 'AtlasCLI'),
+      );
+    });
+
+    test('reports even non-existent commands', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/invalid_command?foo=true&bar=987&baz=str&utm_source=RogueActor',
+        ),
+      );
+
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.invalid_command', 'RogueActor'),
+      );
+    });
+
+    test('removes utm_source from parameters passed to command', async () => {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/mdb.connectWithURI?foo=bar&utm_source=abc',
+        ),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
+        foo: 'bar',
+      });
+      expect(fakeExecuteCommand.firstCall.args[1]).to.not.have.property(
+        'utm_source',
+      );
+      expect(fakeTrack).to.have.been.calledOnceWith(
+        new DeepLinkTelemetryEvent('mdb.connectWithURI', 'abc'),
+      );
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    suite('blocks participant and destructive commands from deep links', () => {
+      const disabledCommands = DEEP_LINK_DISALLOWED_COMMANDS;
+
+      disabledCommands.forEach((command) => {
+        test(`blocks ${command}`, async () => {
+          await mdbTestExtension.testExtensionController._handleDeepLink(
+            vscode.Uri.parse(`vscode://mongodb.mongodb-vscode/${command}`),
+          );
+
+          expect(fakeExecuteCommand).to.not.have.been.called;
+          expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+            `Failed to handle 'vscode://mongodb.mongodb-vscode/${command}': Error: Command '${command}' cannot be invoked via deep links.`,
+          );
+        });
+      });
     });
   });
 });

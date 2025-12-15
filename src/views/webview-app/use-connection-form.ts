@@ -7,9 +7,23 @@ import {
   sendCancelConnectToExtension,
   sendFormOpenedToExtension,
   sendEditConnectionToExtension,
+  sendOpenFileChooserToExtension,
 } from './vscode-api';
-import { MESSAGE_TYPES } from './extension-app-message-constants';
-import type { MESSAGE_FROM_EXTENSION_TO_WEBVIEW } from './extension-app-message-constants';
+import { MessageType } from './extension-app-message-constants';
+import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
+import type { ElectronFileDialogOptions } from '@mongodb-js/compass-components';
+
+export const FileChooserMode = {
+  open: 'open',
+  save: 'save',
+} as const;
+
+type FileChooserMode = (typeof FileChooserMode)[keyof typeof FileChooserMode];
+
+export type FileChooserOptions = {
+  electronFileDialogOptions?: Partial<ElectronFileDialogOptions>;
+  mode: FileChooserMode;
+};
 
 type ConnectionInfo = {
   id: string;
@@ -116,7 +130,21 @@ function connectionFormReducer(state: State, action: Action): State {
   }
 }
 
-export default function useConnectionForm() {
+export default function useConnectionForm(): {
+  isConnectionFormOpen: boolean;
+  isConnecting: boolean;
+  initialConnectionInfo: ConnectionInfo;
+  connectionErrorMessage: string;
+  openConnectionForm: () => void;
+  closeConnectionForm: () => void;
+  handleOpenFileChooser: (options: FileChooserOptions) => string;
+  handleCancelConnectClicked: () => void;
+  handleSaveConnectionClicked: () => Promise<void>;
+  handleConnectClicked: (connectionAttempt: {
+    id: string;
+    connectionOptions: ConnectionOptions;
+  }) => void;
+} {
   const [
     {
       initialConnectionInfo,
@@ -131,10 +159,10 @@ export default function useConnectionForm() {
   });
 
   useEffect(() => {
-    const handleConnectResultResponse = (event) => {
-      const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
+    const handleConnectResultResponse = (event): void => {
+      const message: MessageFromExtensionToWebview = event.data;
       if (
-        message.command === MESSAGE_TYPES.CONNECT_RESULT &&
+        message.command === MessageType.connectResult &&
         message.connectionId === initialConnectionInfo.id
       ) {
         dispatch({
@@ -151,9 +179,9 @@ export default function useConnectionForm() {
   }, [initialConnectionInfo]);
 
   useEffect(() => {
-    const handleConnectResultResponse = (event) => {
-      const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
-      if (message.command === MESSAGE_TYPES.OPEN_EDIT_CONNECTION) {
+    const handleConnectResultResponse = (event): void => {
+      const message: MessageFromExtensionToWebview = event.data;
+      if (message.command === MessageType.openEditConnection) {
         dispatch({
           type: 'open-edit-connection',
           connectionInfo: {
@@ -167,7 +195,7 @@ export default function useConnectionForm() {
       }
     };
     window.addEventListener('message', handleConnectResultResponse);
-    return () => {
+    return (): void => {
       window.removeEventListener('message', handleConnectResultResponse);
     };
   }, []);
@@ -177,33 +205,34 @@ export default function useConnectionForm() {
     isConnecting,
     initialConnectionInfo,
     connectionErrorMessage,
-    openConnectionForm: () => {
+    openConnectionForm: (): void => {
       dispatch({
         type: 'open-connection-form',
       });
       sendFormOpenedToExtension();
     },
-    closeConnectionForm: () => {
+    closeConnectionForm: (): void => {
       dispatch({
         type: 'close-connection-form',
       });
     },
-    handleCancelConnectClicked: () => {
+    handleOpenFileChooser: (options: FileChooserOptions): string => {
+      const requestId = uuidv4();
+      sendOpenFileChooserToExtension(options, requestId);
+      return requestId;
+    },
+    handleCancelConnectClicked: (): void => {
       sendCancelConnectToExtension();
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    handleSaveConnectionClicked: (connectionAttempt: {
-      id: string;
-      connectionOptions: ConnectionOptions;
-    }) => {
+    handleSaveConnectionClicked: (): Promise<void> => {
       // no-op, this cannot be called as don't set the `showFavoriteActions` setting.
-
       return Promise.resolve();
     },
     handleConnectClicked: (connectionAttempt: {
       id: string;
       connectionOptions: ConnectionOptions;
-    }) => {
+    }): void => {
       dispatch({
         type: 'attempt-connect',
       });

@@ -4,15 +4,17 @@ import path from 'path';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
-export enum IndexKeyType {
-  ASCENDING = 1,
-  DESCENDING = -1,
-  TEXT = 'text',
-  HASHED = 'hashed',
-  GEO = '2d', // flat, cartesian geometry
-  GEOSPHERE = '2dsphere', // index assuming a spherical geometry
-  GEOHAYSTACK = 'geoHaystack',
-}
+export const IndexKeyType = {
+  ascending: 1,
+  descending: -1,
+  text: 'text',
+  hashed: 'hashed',
+  geo: '2d', // flat, cartesian geometry
+  geosphere: '2dsphere', // index assuming a spherical geometry
+  geohaystack: 'geoHaystack',
+} as const;
+
+export type IndexKeyType = (typeof IndexKeyType)[keyof typeof IndexKeyType];
 
 export type IndexModel = {
   v: number;
@@ -24,26 +26,26 @@ export type IndexModel = {
 };
 
 function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
-  if (indexKeyType === IndexKeyType.ASCENDING) {
+  if (indexKeyType === IndexKeyType.ascending) {
     return 'ascending';
   }
 
-  if (indexKeyType === IndexKeyType.DESCENDING) {
+  if (indexKeyType === IndexKeyType.descending) {
     return 'descending';
   }
 
-  if (indexKeyType === IndexKeyType.TEXT) {
+  if (indexKeyType === IndexKeyType.text) {
     return 'text';
   }
 
-  if (indexKeyType === IndexKeyType.HASHED) {
+  if (indexKeyType === IndexKeyType.hashed) {
     return 'hashed';
   }
 
   if (
-    indexKeyType === IndexKeyType.GEO ||
-    indexKeyType === IndexKeyType.GEOHAYSTACK ||
-    indexKeyType === IndexKeyType.GEOSPHERE
+    indexKeyType === IndexKeyType.geo ||
+    indexKeyType === IndexKeyType.geohaystack ||
+    indexKeyType === IndexKeyType.geosphere
   ) {
     return 'geospatial';
   }
@@ -52,8 +54,8 @@ function getIconNameForIndexKeyType(indexKeyType: IndexKeyType): string {
 }
 
 function getIndexFieldIconPath(indexKeyType: IndexKeyType): {
-  light: string;
-  dark: string;
+  light: vscode.Uri;
+  dark: vscode.Uri;
 } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
@@ -61,8 +63,8 @@ function getIndexFieldIconPath(indexKeyType: IndexKeyType): {
   const iconName = getIconNameForIndexKeyType(indexKeyType);
 
   return {
-    light: path.join(LIGHT, 'index', `${iconName}.svg`),
-    dark: path.join(DARK, 'index', `${iconName}.svg`),
+    light: vscode.Uri.file(path.join(LIGHT, 'index', `${iconName}.svg`)),
+    dark: vscode.Uri.file(path.join(DARK, 'index', `${iconName}.svg`)),
   };
 }
 
@@ -129,7 +131,7 @@ export default class IndexTreeItem
       index.name,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.index = index;
@@ -158,8 +160,8 @@ export default class IndexTreeItem
           new IndexFieldTreeItem({
             indexKey,
             indexKeyType: this.index.key[indexKey],
-          })
-      )
+          }),
+      ),
     );
   }
 

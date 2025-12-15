@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 
 const onChangedDocument = (
   documentUri: vscode.Uri,
-  disposables: vscode.Disposable[]
-) => {
+  disposables: vscode.Disposable[],
+): Promise<vscode.TextDocument> => {
   return new Promise<vscode.TextDocument>((resolve) =>
     vscode.workspace.onDidChangeTextDocument(
       (e) => {
@@ -12,16 +12,16 @@ const onChangedDocument = (
         }
       },
       undefined,
-      disposables
-    )
+      disposables,
+    ),
   );
 };
 
 export async function typeCommitCharacter(
   uri: vscode.Uri,
   character: string,
-  _disposables: vscode.Disposable[]
-) {
+  _disposables: vscode.Disposable[],
+): Promise<vscode.TextDocument> {
   const didChangeDocument = onChangedDocument(uri, _disposables);
   await vscode.commands.executeCommand('editor.action.triggerSuggest');
   await wait(2000); // Give time for suggestions to show.
@@ -33,15 +33,15 @@ const retryUntilDocumentChanges = async (
   documentUri: vscode.Uri,
   options: { retries: number; timeout: number },
   disposables: vscode.Disposable[],
-  exec: () => Thenable<unknown>
-) => {
+  exec: () => Thenable<unknown>,
+): Promise<void | vscode.TextDocument> => {
   const didChangeDocument = onChangedDocument(documentUri, disposables);
 
   let done = false;
 
   const result = await Promise.race([
     didChangeDocument,
-    (async () => {
+    (async (): Promise<void> => {
       for (let i = 0; i < options.retries; ++i) {
         await wait(options.timeout);
         if (done) {
@@ -57,8 +57,8 @@ const retryUntilDocumentChanges = async (
 
 export function acceptFirstSuggestion(
   uri: vscode.Uri,
-  _disposables: vscode.Disposable[]
-) {
+  _disposables: vscode.Disposable[],
+): Promise<void | vscode.TextDocument> {
   return retryUntilDocumentChanges(
     uri,
     { retries: 10, timeout: 0 },
@@ -67,14 +67,14 @@ export function acceptFirstSuggestion(
       await vscode.commands.executeCommand('editor.action.triggerSuggest');
       await wait(3000);
       await vscode.commands.executeCommand('acceptSelectedSuggestion');
-    }
+    },
   );
 }
 
-export const wait = (ms: number) =>
+export const wait = (ms: number): Promise<void> =>
   new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
 
-export function disposeAll(disposables: vscode.Disposable[]) {
+export function disposeAll(disposables: vscode.Disposable[]): void {
   while (disposables.length) {
     const item = disposables.pop();
     item?.dispose();
@@ -84,6 +84,6 @@ export function disposeAll(disposables: vscode.Disposable[]) {
 export function getFullRange(document: vscode.TextDocument): vscode.Range {
   return new vscode.Range(
     new vscode.Position(0, 0),
-    new vscode.Position(document.lineCount, 0)
+    new vscode.Position(document.lineCount, 0),
   );
 }

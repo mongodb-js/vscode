@@ -2,231 +2,97 @@ import path from 'path';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
 import type { DataService } from 'mongodb-data-service';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { Analytics as SegmentAnalytics } from '@segment/analytics-node';
+import { throttle } from 'lodash';
 
 import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
-import type { DocumentSource } from '../documentSource';
 import { getConnectionTelemetryProperties } from './connectionTelemetry';
-import type { NewConnectionTelemetryEventProperties } from './connectionTelemetry';
-import type { ShellEvaluateResult } from '../types/playgroundType';
 import type { StorageController } from '../storage';
-import type { ParticipantResponseType } from '../participant/constants';
-import { ParticipantErrorTypes } from '../participant/participantErrorTypes';
+import { ParticipantErrorType } from '../participant/participantErrorTypes';
+import type { ParticipantResponseType } from '../participant/participantTypes';
+import type { TelemetryEvent } from './telemetryEvents';
+import {
+  NewConnectionTelemetryEvent,
+  SidePanelOpenedTelemetryEvent,
+  ParticipantResponseFailedTelemetryEvent,
+} from './telemetryEvents';
+import { getDeviceId } from '@mongodb-js/device-id';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const nodeMachineId = require('node-machine-id');
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../package.json');
 
-type PlaygroundTelemetryEventProperties = {
-  type: string | null;
-  partial: boolean;
-  error: boolean;
-};
-
 export type SegmentProperties = {
   event: string;
   anonymousId: string;
+  deviceId?: string;
   properties: Record<string, any>;
 };
-
-type LinkClickedTelemetryEventProperties = {
-  screen: string;
-  link_id: string;
-};
-
-type ExtensionCommandRunTelemetryEventProperties = {
-  command: string;
-};
-
-type DocumentUpdatedTelemetryEventProperties = {
-  source: DocumentSource;
-  success: boolean;
-};
-
-type DocumentEditedTelemetryEventProperties = {
-  source: DocumentSource;
-};
-
-type PlaygroundExportedToLanguageTelemetryEventProperties = {
-  language?: string;
-  exported_code_length: number;
-  with_driver_syntax?: boolean;
-};
-
-type PlaygroundCreatedTelemetryEventProperties = {
-  playground_type: string;
-};
-
-type PlaygroundSavedTelemetryEventProperties = {
-  file_type?: string;
-};
-
-type PlaygroundLoadedTelemetryEventProperties = {
-  file_type?: string;
-};
-
-type KeytarSecretsMigrationFailedProperties = {
-  saved_connections: number;
-  loaded_connections: number;
-  connections_with_failed_keytar_migration: number;
-};
-
-type ConnectionEditedTelemetryEventProperties = {
-  success: boolean;
-};
-
-type SurveyActionProperties = {
-  survey_id: string;
-};
-
-type SavedConnectionsLoadedProperties = {
-  // Total number of connections saved on disk
-  saved_connections: number;
-  // Total number of connections that extension was able to load, it might
-  // differ from saved_connections since there might be failures in loading
-  // secrets for a connection in which case we don't list the connections in the
-  // list of loaded connections.
-  loaded_connections: number;
-  connections_with_secrets_in_keytar: number;
-  connections_with_secrets_in_secret_storage: number;
-};
-
-type TelemetryFeedbackKind = 'positive' | 'negative' | undefined;
-
-type ParticipantFeedbackProperties = {
-  feedback: TelemetryFeedbackKind;
-  response_type: ParticipantResponseType;
-  reason?: String;
-};
-
-type ParticipantResponseFailedProperties = {
-  command: string;
-  error_code?: string;
-  error_name: ParticipantErrorTypes;
-};
-
-export type InternalPromptPurpose = 'intent' | 'namespace' | undefined;
-
-export type ParticipantPromptProperties = {
-  command: string;
-  user_input_length: number;
-  total_message_length: number;
-  has_sample_documents: boolean;
-  history_size: number;
-  internal_purpose: InternalPromptPurpose;
-};
-
-export type ParticipantResponseProperties = {
-  command: string;
-  has_cta: boolean;
-  has_runnable_content: boolean;
-  found_namespace: boolean;
-  output_length: number;
-};
-
-export function chatResultFeedbackKindToTelemetryValue(
-  kind: vscode.ChatResultFeedbackKind
-): TelemetryFeedbackKind {
-  switch (kind) {
-    case vscode.ChatResultFeedbackKind.Helpful:
-      return 'positive';
-    case vscode.ChatResultFeedbackKind.Unhelpful:
-      return 'negative';
-    default:
-      return undefined;
-  }
-}
-
-type TelemetryEventProperties =
-  | PlaygroundTelemetryEventProperties
-  | LinkClickedTelemetryEventProperties
-  | ExtensionCommandRunTelemetryEventProperties
-  | NewConnectionTelemetryEventProperties
-  | DocumentUpdatedTelemetryEventProperties
-  | ConnectionEditedTelemetryEventProperties
-  | DocumentEditedTelemetryEventProperties
-  | PlaygroundExportedToLanguageTelemetryEventProperties
-  | PlaygroundCreatedTelemetryEventProperties
-  | PlaygroundSavedTelemetryEventProperties
-  | PlaygroundLoadedTelemetryEventProperties
-  | KeytarSecretsMigrationFailedProperties
-  | SavedConnectionsLoadedProperties
-  | SurveyActionProperties
-  | ParticipantFeedbackProperties
-  | ParticipantResponseFailedProperties
-  | ParticipantPromptProperties
-  | ParticipantResponseProperties;
-
-export enum TelemetryEventTypes {
-  PLAYGROUND_CODE_EXECUTED = 'Playground Code Executed',
-  EXTENSION_LINK_CLICKED = 'Link Clicked',
-  EXTENSION_COMMAND_RUN = 'Command Run',
-  NEW_CONNECTION = 'New Connection',
-  CONNECTION_EDITED = 'Connection Edited',
-  OPEN_EDIT_CONNECTION = 'Open Edit Connection',
-  PLAYGROUND_SAVED = 'Playground Saved',
-  PLAYGROUND_LOADED = 'Playground Loaded',
-  DOCUMENT_UPDATED = 'Document Updated',
-  DOCUMENT_EDITED = 'Document Edited',
-  PLAYGROUND_EXPORTED_TO_LANGUAGE = 'Playground Exported To Language',
-  PLAYGROUND_CREATED = 'Playground Created',
-  KEYTAR_SECRETS_MIGRATION_FAILED = 'Keytar Secrets Migration Failed',
-  SAVED_CONNECTIONS_LOADED = 'Saved Connections Loaded',
-  SURVEY_CLICKED = 'Survey link clicked',
-  SURVEY_DISMISSED = 'Survey prompt dismissed',
-  PARTICIPANT_FEEDBACK = 'Participant Feedback',
-  PARTICIPANT_WELCOME_SHOWN = 'Participant Welcome Shown',
-  PARTICIPANT_RESPONSE_FAILED = 'Participant Response Failed',
-  PARTICIPANT_PROMPT_SUBMITTED = 'Participant Prompt Submitted',
-  PARTICIPANT_RESPONSE_GENERATED = 'Participant Response Generated',
-}
 
 /**
  * This controller manages telemetry.
  */
-export default class TelemetryService {
-  _segmentAnalytics?: SegmentAnalytics;
-  _segmentAnonymousId: string;
-  _segmentKey?: string; // The segment API write key.
+export class TelemetryService {
+  private _segmentAnalytics?: SegmentAnalytics;
+  public _segmentKey?: string; // The segment API write key.
+  private eventBuffer: TelemetryEvent[] = [];
+  private isBufferingEvents = true;
+  public readonly anonymousId: string;
+  private readonly _context: vscode.ExtensionContext;
+  private readonly _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
 
-  private _context: vscode.ExtensionContext;
-  private _shouldTrackTelemetry: boolean; // When tests run the extension, we don't want to track telemetry.
+  private readonly _deviceIdAbortController = new AbortController();
+
+  public deviceId: string | undefined;
 
   constructor(
     storageController: StorageController,
     context: vscode.ExtensionContext,
-    shouldTrackTelemetry?: boolean
+    shouldTrackTelemetry?: boolean,
   ) {
     const { anonymousId } = storageController.getUserIdentity();
     this._context = context;
     this._shouldTrackTelemetry = shouldTrackTelemetry || false;
-    this._segmentAnonymousId = anonymousId;
-    this._segmentKey = this._readSegmentKey();
+    this.anonymousId = anonymousId;
   }
 
-  private _readSegmentKey(): string | undefined {
+  public getCommonProperties(): Record<string, string | undefined> {
+    return {
+      extension_version: `${version}`,
+      device_id: this.deviceId,
+      app_name: vscode.env.appName || 'Visual Studio Code - Unknown', // e.g., "VS Code" or "Azure Data Studio"
+    };
+  }
+
+  private async readSegmentKey(): Promise<string | undefined> {
     config({ path: path.join(this._context.extensionPath, '.env') });
 
     try {
       const segmentKeyFileLocation = path.join(
         this._context.extensionPath,
-        './constants.json'
+        './constants.json',
       );
       // eslint-disable-next-line no-sync
-      const constantsFile = fs.readFileSync(segmentKeyFileLocation, 'utf8');
+      const constantsFile = await fs.readFile(segmentKeyFileLocation, {
+        encoding: 'utf8',
+      });
       const { segmentKey } = JSON.parse(constantsFile) as {
         segmentKey?: string;
       };
       return segmentKey;
     } catch (error) {
       log.error('Failed to read segmentKey from the constants file', error);
-      return;
+      return undefined;
     }
   }
 
-  activateSegmentAnalytics(): void {
+  async activateSegmentAnalytics(): Promise<void> {
+    this._segmentKey = await this.readSegmentKey();
     if (!this._segmentKey) {
       return;
     }
@@ -237,12 +103,29 @@ export default class TelemetryService {
       flushInterval: 10000, // 10 seconds is the default libraries' value.
     });
 
-    const segmentProperties = this.getTelemetryUserIdentity();
-    this._segmentAnalytics.identify(segmentProperties);
-    log.info('Segment analytics activated', segmentProperties);
+    this.deviceId = await this.getDeviceId();
+
+    const userIdentity = {
+      anonymousId: this.anonymousId,
+      traits: {
+        device_id: this.deviceId,
+        app_name: vscode.env.appName || 'Visual Studio Code - Unknown', // e.g., "VS Code" or "Azure Data Studio"
+      },
+    };
+
+    this._segmentAnalytics.identify(userIdentity);
+    this.isBufferingEvents = false;
+    log.info('Segment analytics activated', userIdentity);
+
+    // Process buffered events
+    let event: TelemetryEvent | undefined;
+    while ((event = this.eventBuffer.shift())) {
+      this.track(event);
+    }
   }
 
   deactivate(): void {
+    this._deviceIdAbortController.abort();
     // Flush on demand to make sure that nothing is left in the queue.
     void this._segmentAnalytics?.closeAndFlush();
   }
@@ -282,17 +165,19 @@ export default class TelemetryService {
     });
   }
 
-  track(
-    eventType: TelemetryEventTypes,
-    properties?: TelemetryEventProperties
-  ): void {
+  track(event: TelemetryEvent): void {
     try {
+      if (this.isBufferingEvents) {
+        this.eventBuffer.push(event);
+        return;
+      }
+
       this._segmentAnalyticsTrack({
-        ...this.getTelemetryUserIdentity(),
-        event: eventType,
+        anonymousId: this.anonymousId,
+        event: event.type,
         properties: {
-          ...properties,
-          extension_version: `${version}`,
+          ...this.getCommonProperties(),
+          ...event.properties,
         },
       });
     } catch (e) {
@@ -300,142 +185,19 @@ export default class TelemetryService {
     }
   }
 
-  async _getConnectionTelemetryProperties(
-    dataService: DataService,
-    connectionType: ConnectionTypes
-  ): Promise<NewConnectionTelemetryEventProperties> {
-    return await getConnectionTelemetryProperties(dataService, connectionType);
-  }
-
   async trackNewConnection(
     dataService: DataService,
-    connectionType: ConnectionTypes
+    connectionType: ConnectionTypes,
   ): Promise<void> {
     const connectionTelemetryProperties =
-      await this._getConnectionTelemetryProperties(dataService, connectionType);
+      await getConnectionTelemetryProperties(dataService, connectionType);
 
-    this.track(
-      TelemetryEventTypes.NEW_CONNECTION,
-      connectionTelemetryProperties
-    );
+    this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
   }
 
-  trackCommandRun(command: string): void {
-    this.track(TelemetryEventTypes.EXTENSION_COMMAND_RUN, { command });
-  }
-
-  getPlaygroundResultType(res: ShellEvaluateResult): string {
-    if (!res || !res.result || !res.result.type) {
-      return 'other';
-    }
-
-    const shellApiType = res.result.type.toLocaleLowerCase();
-
-    // See: https://github.com/mongodb-js/mongosh/blob/main/packages/shell-api/src/shell-api.js
-    if (shellApiType.includes('insert')) {
-      return 'insert';
-    }
-    if (shellApiType.includes('update')) {
-      return 'update';
-    }
-    if (shellApiType.includes('delete')) {
-      return 'delete';
-    }
-    if (shellApiType.includes('aggregation')) {
-      return 'aggregation';
-    }
-    if (shellApiType.includes('cursor')) {
-      return 'query';
-    }
-
-    return 'other';
-  }
-
-  getTelemetryUserIdentity(): { anonymousId: string } {
-    return {
-      anonymousId: this._segmentAnonymousId,
-    };
-  }
-
-  trackPlaygroundCodeExecuted(
-    result: ShellEvaluateResult,
-    partial: boolean,
-    error: boolean
-  ): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_CODE_EXECUTED, {
-      type: result ? this.getPlaygroundResultType(result) : null,
-      partial,
-      error,
-    });
-  }
-
-  trackLinkClicked(screen: string, linkId: string): void {
-    this.track(TelemetryEventTypes.EXTENSION_LINK_CLICKED, {
-      screen,
-      link_id: linkId,
-    });
-  }
-
-  trackPlaygroundLoaded(fileType?: string): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_LOADED, {
-      file_type: fileType,
-    });
-  }
-
-  trackPlaygroundSaved(fileType?: string): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_SAVED, {
-      file_type: fileType,
-    });
-  }
-
-  trackDocumentUpdated(source: DocumentSource, success: boolean): void {
-    this.track(TelemetryEventTypes.DOCUMENT_UPDATED, { source, success });
-  }
-
-  trackDocumentOpenedInEditor(source: DocumentSource): void {
-    this.track(TelemetryEventTypes.DOCUMENT_EDITED, { source });
-  }
-
-  trackPlaygroundExportedToLanguageExported(
-    playgroundExportedProps: PlaygroundExportedToLanguageTelemetryEventProperties
-  ): void {
-    this.track(
-      TelemetryEventTypes.PLAYGROUND_EXPORTED_TO_LANGUAGE,
-      playgroundExportedProps
-    );
-  }
-
-  trackPlaygroundCreated(playgroundType: string): void {
-    this.track(TelemetryEventTypes.PLAYGROUND_CREATED, {
-      playground_type: playgroundType,
-    });
-  }
-
-  trackSavedConnectionsLoaded(
-    savedConnectionsLoadedProps: SavedConnectionsLoadedProperties
-  ): void {
-    this.track(
-      TelemetryEventTypes.SAVED_CONNECTIONS_LOADED,
-      savedConnectionsLoadedProps
-    );
-  }
-
-  trackKeytarSecretsMigrationFailed(
-    keytarSecretsMigrationFailedProps: KeytarSecretsMigrationFailedProperties
-  ): void {
-    this.track(
-      TelemetryEventTypes.KEYTAR_SECRETS_MIGRATION_FAILED,
-      keytarSecretsMigrationFailedProps
-    );
-  }
-
-  trackCopilotParticipantFeedback(props: ParticipantFeedbackProperties): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_FEEDBACK, props);
-  }
-
-  trackCopilotParticipantError(err: any, command: string): void {
+  trackParticipantError(err: any, command: ParticipantResponseType): void {
     let errorCode: string | undefined;
-    let errorName: ParticipantErrorTypes;
+    let errorName: ParticipantErrorType;
     // Making the chat request might fail because
     // - model does not exist
     // - user consent not given
@@ -452,27 +214,36 @@ export default class TelemetryService {
     const message: string = err.message || err.toString();
 
     if (message.includes('off_topic')) {
-      errorName = ParticipantErrorTypes.CHAT_MODEL_OFF_TOPIC;
+      errorName = ParticipantErrorType.chatModelOffTopic;
     } else if (message.includes('Filtered by Responsible AI Service')) {
-      errorName = ParticipantErrorTypes.FILTERED;
+      errorName = ParticipantErrorType.filtered;
     } else if (message.includes('Prompt failed validation')) {
-      errorName = ParticipantErrorTypes.INVALID_PROMPT;
+      errorName = ParticipantErrorType.invalidPrompt;
     } else {
-      errorName = ParticipantErrorTypes.OTHER;
+      errorName = ParticipantErrorType.other;
     }
 
-    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_FAILED, {
-      command,
-      error_code: errorCode,
-      error_name: errorName,
+    this.track(
+      new ParticipantResponseFailedTelemetryEvent(
+        command,
+        errorName,
+        errorCode,
+      ),
+    );
+  }
+
+  trackTreeViewActivated: () => void = throttle(
+    () => {
+      this.track(new SidePanelOpenedTelemetryEvent());
+    },
+    5000,
+    { leading: true, trailing: false },
+  );
+
+  private getDeviceId(): Promise<string> {
+    return getDeviceId({
+      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
+      abortSignal: this._deviceIdAbortController.signal,
     });
-  }
-
-  trackCopilotParticipantPrompt(stats: ParticipantPromptProperties): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_PROMPT_SUBMITTED, stats);
-  }
-
-  trackCopilotParticipantResponse(props: ParticipantResponseProperties): void {
-    this.track(TelemetryEventTypes.PARTICIPANT_RESPONSE_GENERATED, props);
   }
 }

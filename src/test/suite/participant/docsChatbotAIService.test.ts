@@ -158,7 +158,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     });
     expect(fetchStub.calledOnce).to.be.true;
     expect(fetchStub.firstCall.args[0]).to.equal(
-      'https://knowledge.mongodb.com/api/v1/conversations/650b4b260f975ef031016c8a/messages'
+      'https://knowledge.mongodb.com/api/v1/conversations/650b4b260f975ef031016c8a/messages',
     );
     expect(fetchStub.firstCall.args[1]).to.deep.equal({
       method: 'POST',

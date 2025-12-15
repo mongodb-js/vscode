@@ -4,19 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       versionBump:
-        description: 'Version bump'
+        description: Version bump
         type: choice
         required: true
-        default: 'patch'
+        default: patch
         options:
-        - patch
-        - minor
-        - major
-        - exact-version
+          - patch
+          - minor
+          - major
+          - exact-version
 
       exactVersion:
         description: 'Exact version: (Only effective selecting "exact-version" as version bump)'
         required: false
+
+description: |
+  Run manually to prepare a draft release for the next version of the extension. The workflow will create a draft
+  github release where the .vsix can be downloaded and manually tested before publishing. To release the version,
+  publish the draft release, which will trigger the publish-release workflow.
+
+permissions:
+  contents: write
 
 jobs:
   prepare-release:
@@ -29,10 +37,17 @@ jobs:
           # and check if tags are already present
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 20.16.0
+          node-version: 22.15.1
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Determine Next Version
         shell: bash
@@ -45,9 +60,9 @@ jobs:
 
           if [[ "$VERSION_BUMP" == "major" || "$VERSION_BUMP" == "minor" || "$VERSION_BUMP" == "patch" ]]; then
             PREV_VERSION_TAG=$(gh api repos/:owner/:repo/releases --jq '. | map(select(.draft == false)) | .[0] | .tag_name')
-            PREV_VERSION=$(npx semver --coerce ${PREV_VERSION_TAG})
+            PREV_VERSION=$(pnpm exec semver --coerce ${PREV_VERSION_TAG})
 
-            NEXT_VERSION=$(npx semver -i $VERSION_BUMP $PREV_VERSION)
+            NEXT_VERSION=$(pnpm exec semver -i $VERSION_BUMP $PREV_VERSION)
           else
             NEXT_VERSION=${{ github.event.inputs.exactVersion }}
           fi
@@ -56,9 +71,9 @@ jobs:
           NEXT_VERSION="${NEXT_VERSION#v}"
 
           # Validates the version before using it
-          npx semver v"${NEXT_VERSION}"
+          pnpm exec semver v"${NEXT_VERSION}"
 
-          npm version "${NEXT_VERSION}" --no-git-tag-version
+          pnpm version "${NEXT_VERSION}" --no-git-tag-version
           echo "RELEASE_TAG=v${NEXT_VERSION}" >> "$GITHUB_ENV"
 
       - name: Validate release tag
@@ -87,6 +102,7 @@ jobs:
           GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          MDB_IS_TEST: "true"
 
       - name: Create Draft Release
         run: |
@@ -105,4 +121,3 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

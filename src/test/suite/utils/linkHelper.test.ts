@@ -32,7 +32,7 @@ suite('Open Link Test Suite', () => {
     };
     const stubCreateStubInstance: any = sandbox.createStubInstance(
       http.Server,
-      stubServer
+      stubServer,
     );
     const stubCreateServer: any = sinon
       .stub(http, 'createServer')
@@ -43,7 +43,7 @@ suite('Open Link Test Suite', () => {
     void openLink('https://mongodb.com', 4321);
     expect(stubExecuteCommand.firstCall.args[0]).to.equal('vscode.open');
     expect(stubExecuteCommand.firstCall.args[1].authority).to.equal(
-      vscode.Uri.parse('http://localhost:4321').authority
+      vscode.Uri.parse('http://localhost:4321').authority,
     );
     stubExecuteCommand.restore();
     stubCreateServer.restore();
@@ -56,7 +56,7 @@ suite('Open Link Test Suite', () => {
     };
     const stubCreateStubInstance: any = sandbox.createStubInstance(
       http.Server,
-      stubServer
+      stubServer,
     );
     const stubCreateServer: any = sinon
       .stub(http, 'createServer')
@@ -67,7 +67,7 @@ suite('Open Link Test Suite', () => {
     void openLink('https://monkey.mongodb.com', 4321);
     expect(stubExecuteCommand.firstCall.args[0]).to.equal('vscode.open');
     expect(stubExecuteCommand.firstCall.args[1].authority).to.equal(
-      vscode.Uri.parse('http://localhost:4321').authority
+      vscode.Uri.parse('http://localhost:4321').authority,
     );
     stubExecuteCommand.restore();
     stubCreateServer.restore();
@@ -75,7 +75,7 @@ suite('Open Link Test Suite', () => {
 
   test('handles errors', (done) => {
     class EventEmitterStub extends EventEmitter {
-      listen() {}
+      listen(): void {}
     }
     const eventEmitterStub: any = new EventEmitterStub();
     const createServerStub: any = sinon

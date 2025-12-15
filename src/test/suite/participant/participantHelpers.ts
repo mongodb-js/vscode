@@ -1,6 +1,6 @@
 import { CHAT_PARTICIPANT_ID } from '../../../participant/constants';
 import * as vscode from 'vscode';
-import type { ParticipantCommand } from '../../../participant/participant';
+import type { ParticipantCommand } from '../../../participant/participantTypes';
 
 export function createChatRequestTurn(
   command: ParticipantCommand | undefined,
@@ -8,7 +8,7 @@ export function createChatRequestTurn(
   options: {
     participant?: vscode.ChatRequestTurn['participant'];
     references?: vscode.ChatRequestTurn['references'];
-  } = {}
+  } = {},
 ): vscode.ChatRequestTurn {
   const { participant = CHAT_PARTICIPANT_ID, references = [] } = options;
 
@@ -28,7 +28,7 @@ export function createChatResponseTurn(
     response?: vscode.ChatResponseTurn['response'] | undefined;
     result?: vscode.ChatResponseTurn['result'];
     participant?: string;
-  } = {}
+  } = {},
 ): vscode.ChatRequestTurn {
   const {
     response = responseText
@@ -39,7 +39,7 @@ export function createChatResponseTurn(
               value: {
                 value: responseText,
               },
-            }
+            },
           ),
         ]
       : [],

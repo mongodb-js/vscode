@@ -1,0 +1,50 @@
+import * as vscode from 'vscode';
+import ExtensionCommand from '../commands';
+import type { SendMessageToParticipantFromInputOptions } from '../participant/participantTypes';
+import { isPlayground } from '../utils/playground';
+import { COPILOT_EXTENSION_ID } from '../participant/constants';
+import { DocumentSource } from '../documentSource';
+
+export class QueryWithCopilotCodeLensProvider
+  implements vscode.CodeLensProvider
+{
+  constructor() {}
+
+  readonly onDidChangeCodeLenses: vscode.Event<void> =
+    vscode.extensions.onDidChange;
+
+  provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
+    if (!isPlayground(document.uri)) {
+      return [];
+    }
+
+    // We can only detect whether a user has the Copilot extension active
+    // but not whether it has an active subscription.
+    const hasCopilotChatActive =
+      vscode.extensions.getExtension(COPILOT_EXTENSION_ID)?.isActive === true;
+
+    if (!hasCopilotChatActive) {
+      return [];
+    }
+
+    const options: SendMessageToParticipantFromInputOptions = {
+      prompt: 'Describe the query you would like to generate',
+      placeHolder:
+        'e.g. Find the document in sample_mflix.users with the name of Kayden Washington',
+      command: 'query',
+      isNewChat: true,
+      telemetry: {
+        source: DocumentSource.codelens,
+        source_details: undefined,
+      },
+    };
+
+    return [
+      new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+        title: '✨ Generate query with MongoDB Copilot',
+        command: ExtensionCommand.sendMessageToParticipantFromInput,
+        arguments: [options],
+      }),
+    ];
+  }
+}

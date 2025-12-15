@@ -21,8 +21,8 @@ import MongoDBService, {
 } from '../../../language/mongoDBService';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { StreamStub } from '../stubs';
-import DIAGNOSTIC_CODES from '../../../language/diagnosticCodes';
-import { ServerCommands } from '../../../language/serverCommands';
+import DiagnosticCode from '../../../language/diagnosticCodes';
+import { ServerCommand } from '../../../language/serverCommands';
 import LINKS from '../../../utils/links';
 import Sinon from 'sinon';
 
@@ -43,7 +43,7 @@ suite('MongoDBService Test Suite', () => {
     const languageServerModuleBundlePath = path.join(
       mdbTestExtension.extensionContextStub.extensionPath,
       'dist',
-      languageServerWorkerFileName
+      languageServerWorkerFileName,
     );
     await fs.stat(languageServerModuleBundlePath);
   });
@@ -70,7 +70,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           connectionId: 'pineapple',
         },
-        source.token
+        source.token,
       );
 
       expect(result).to.be.equal(null);
@@ -85,7 +85,7 @@ suite('MongoDBService Test Suite', () => {
     test('catches error when _getSchemaFields is called and extension path is empty string', async () => {
       const result = await testMongoDBService._getSchemaFields(
         'testDB',
-        'testCol'
+        'testCol',
       );
 
       expect(result).to.be.deep.equal([]);
@@ -105,7 +105,7 @@ suite('MongoDBService Test Suite', () => {
       await testMongoDBService.activeConnectionChanged(params);
 
       expect(testMongoDBService.connectionString).to.be.equal(
-        'mongodb://localhost:27088'
+        'mongodb://localhost:27088',
       );
 
       await testMongoDBService.activeConnectionChanged({ connectionId: null });
@@ -146,7 +146,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'find'
+        (item: CompletionItem) => item.label === 'find',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -165,7 +165,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'find'
+        (item: CompletionItem) => item.label === 'find',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -184,7 +184,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'find'
+        (item: CompletionItem) => item.label === 'find',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -203,7 +203,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'find'
+        (item: CompletionItem) => item.label === 'find',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -222,7 +222,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'find'
+        (item: CompletionItem) => item.label === 'find',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -241,7 +241,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'getCollectionNames'
+        (item: CompletionItem) => item.label === 'getCollectionNames',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -260,7 +260,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'getCollectionNames'
+        (item: CompletionItem) => item.label === 'getCollectionNames',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -279,7 +279,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'getCollectionNames'
+        (item: CompletionItem) => item.label === 'getCollectionNames',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -298,10 +298,10 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const aggCompletion = result.find(
-        (item: CompletionItem) => item.label === 'toArray'
+        (item: CompletionItem) => item.label === 'toArray',
       );
       const otherCompletion = result.find(
-        (item: CompletionItem) => item.label === 'allowPartialResults'
+        (item: CompletionItem) => item.label === 'allowPartialResults',
       );
 
       expect(aggCompletion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -317,7 +317,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'allowPartialResults'
+        (item: CompletionItem) => item.label === 'allowPartialResults',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -340,7 +340,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'allowPartialResults'
+        (item: CompletionItem) => item.label === 'allowPartialResults',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -365,7 +365,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'allowPartialResults'
+        (item: CompletionItem) => item.label === 'allowPartialResults',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Method);
@@ -387,7 +387,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -405,7 +405,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -423,7 +423,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -446,7 +446,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -470,7 +470,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -488,7 +488,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -507,10 +507,10 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const jsCompletion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
       const tsCompletion = result.find(
-        (item: CompletionItem) => item.label === 'TypeScript'
+        (item: CompletionItem) => item.label === 'TypeScript',
       );
 
       expect(jsCompletion).to.be.undefined;
@@ -530,7 +530,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -553,7 +553,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript First'
+        (item: CompletionItem) => item.label === 'JavaScript First',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -571,7 +571,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.be.undefined;
@@ -589,7 +589,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.be.undefined;
@@ -608,7 +608,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
@@ -623,14 +623,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$match'
+        (item: CompletionItem) => item.label === '$match',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
       expect(completion).to.have.property('insertText');
       expect(completion).to.have.property(
         'insertTextFormat',
-        InsertTextFormat.Snippet
+        InsertTextFormat.Snippet,
       );
 
       const documentation = completion?.documentation;
@@ -647,7 +647,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$match'
+        (item: CompletionItem) => item.label === '$match',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
@@ -672,7 +672,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$count'
+        (item: CompletionItem) => item.label === '$count',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
@@ -691,7 +691,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$expr'
+        (item: CompletionItem) => item.label === '$expr',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Keyword);
@@ -707,7 +707,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$expr'
+        (item: CompletionItem) => item.label === '$expr',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
@@ -715,7 +715,7 @@ suite('MongoDBService Test Suite', () => {
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -728,7 +728,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$expr'
+        (item: CompletionItem) => item.label === '$expr',
       );
 
       expect(completion).to.be.undefined;
@@ -743,17 +743,17 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'ObjectId'
+        (item: CompletionItem) => item.label === 'ObjectId',
       );
 
       expect(completion).to.have.property(
         'kind',
-        CompletionItemKind.Constructor
+        CompletionItemKind.Constructor,
       );
       expect(completion).to.have.property('insertText');
       expect(completion).to.have.property(
         'insertTextFormat',
-        InsertTextFormat.Snippet
+        InsertTextFormat.Snippet,
       );
 
       const documentation = completion?.documentation;
@@ -770,17 +770,17 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === 'ObjectId'
+        (item: CompletionItem) => item.label === 'ObjectId',
       );
 
       expect(completion).to.have.property(
         'kind',
-        CompletionItemKind.Constructor
+        CompletionItemKind.Constructor,
       );
       expect(completion).to.have.property('insertText');
       expect(completion).to.have.property(
         'insertTextFormat',
-        InsertTextFormat.Snippet
+        InsertTextFormat.Snippet,
       );
 
       const documentation = completion?.documentation;
@@ -797,7 +797,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$$NOW'
+        (item: CompletionItem) => item.label === '$$NOW',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Variable);
@@ -816,7 +816,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$$ROOT'
+        (item: CompletionItem) => item.label === '$$ROOT',
       );
 
       expect(completion?.kind).to.be.eql(CompletionItemKind.Variable);
@@ -839,7 +839,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$price'
+        (item: CompletionItem) => item.label === '$price',
       );
 
       expect(completion).to.have.property('kind', CompletionItemKind.Reference);
@@ -855,7 +855,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$price'
+        (item: CompletionItem) => item.label === '$price',
       );
       expect(completion).to.be.undefined;
     });
@@ -873,7 +873,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$price'
+        (item: CompletionItem) => item.label === '$price',
       );
       expect(completion).to.have.property('kind', CompletionItemKind.Reference);
     });
@@ -891,7 +891,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$price'
+        (item: CompletionItem) => item.label === '$price',
       );
       expect(completion).to.have.property('kind', CompletionItemKind.Reference);
     });
@@ -958,7 +958,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       let completion = result.find(
-        (item: CompletionItem) => item.label === 'coll'
+        (item: CompletionItem) => item.label === 'coll',
       );
       expect(completion).to.have.property('kind', CompletionItemKind.Folder);
 
@@ -983,7 +983,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       let completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
 
@@ -993,7 +993,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       completion = result.find(
-        (item: CompletionItem) => item.label === 'JavaScript'
+        (item: CompletionItem) => item.label === 'JavaScript',
       );
       expect(completion).to.be.undefined;
     });
@@ -1008,14 +1008,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$dateToString'
+        (item: CompletionItem) => item.label === '$dateToString',
       );
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
 
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -1028,7 +1028,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$dateToString'
+        (item: CompletionItem) => item.label === '$dateToString',
       );
       expect(completion).to.be.undefined;
     });
@@ -1043,14 +1043,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$convert'
+        (item: CompletionItem) => item.label === '$convert',
       );
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
 
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -1063,7 +1063,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$convert'
+        (item: CompletionItem) => item.label === '$convert',
       );
       expect(completion).to.be.undefined;
     });
@@ -1078,14 +1078,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$addToSet'
+        (item: CompletionItem) => item.label === '$addToSet',
       );
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
 
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -1099,14 +1099,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$addToSet'
+        (item: CompletionItem) => item.label === '$addToSet',
       );
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
 
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -1119,7 +1119,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$addToSet'
+        (item: CompletionItem) => item.label === '$addToSet',
       );
       expect(completion).to.be.undefined;
     });
@@ -1133,7 +1133,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$addToSet'
+        (item: CompletionItem) => item.label === '$addToSet',
       );
       expect(completion).to.be.undefined;
     });
@@ -1148,14 +1148,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$bottom'
+        (item: CompletionItem) => item.label === '$bottom',
       );
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
 
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -1169,14 +1169,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$bottom'
+        (item: CompletionItem) => item.label === '$bottom',
       );
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
 
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -1189,7 +1189,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$bottom'
+        (item: CompletionItem) => item.label === '$bottom',
       );
       expect(completion).to.be.undefined;
     });
@@ -1203,7 +1203,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$bottom'
+        (item: CompletionItem) => item.label === '$bottom',
       );
       expect(completion).to.be.undefined;
     });
@@ -1218,14 +1218,14 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$documentNumber'
+        (item: CompletionItem) => item.label === '$documentNumber',
       );
       expect(completion?.kind).to.be.eql(CompletionItemKind.Keyword);
 
       const documentation = completion?.documentation;
       expect(MarkupContent.is(documentation)).to.be.eql(true);
       expect((documentation as MarkupContent).value).to.include(
-        '[Documentation]'
+        '[Documentation]',
       );
     });
 
@@ -1238,7 +1238,7 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const completion = result.find(
-        (item: CompletionItem) => item.label === '$documentNumber'
+        (item: CompletionItem) => item.label === '$documentNumber',
       );
       expect(completion).to.be.undefined;
     });
@@ -1255,22 +1255,22 @@ suite('MongoDBService Test Suite', () => {
         position,
       });
       const dbCompletion = result.find(
-        (item: CompletionItem) => item.label === 'db'
+        (item: CompletionItem) => item.label === 'db',
       );
       expect(dbCompletion).to.have.property('label', 'db');
       expect(dbCompletion).to.have.property('kind', CompletionItemKind.Method);
 
       const useCompletion = result.find(
-        (item: CompletionItem) => item.label === 'use'
+        (item: CompletionItem) => item.label === 'use',
       );
       expect(useCompletion).to.have.property('label', 'use');
       expect(useCompletion).to.have.property(
         'kind',
-        CompletionItemKind.Function
+        CompletionItemKind.Function,
       );
       expect(useCompletion).to.have.property(
         'documentation',
-        'Switch current database.'
+        'Switch current database.',
       );
       expect(useCompletion).to.have.property('detail', 'use(<databaseName>)');
     });
@@ -1347,7 +1347,7 @@ suite('MongoDBService Test Suite', () => {
         defaultContent: '',
         beforeAssertions: (): void => {
           Sinon.stub(testMongoDBService, 'connectionString').get(
-            () => `${params.connectionString}/defaultDB`
+            () => `${params.connectionString}/defaultDB`,
           );
         },
       },
@@ -1358,7 +1358,7 @@ suite('MongoDBService Test Suite', () => {
         defaultContent: "use('anotherTestDB');",
         beforeAssertions: (): void => {
           Sinon.stub(testMongoDBService, 'connectionString').get(
-            () => `${params.connectionString}/defaultDB`
+            () => `${params.connectionString}/defaultDB`,
           );
         },
       },
@@ -1392,7 +1392,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [{ name: 'empty' }]);
@@ -1402,11 +1402,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'empty'
+              (item: CompletionItem) => item.label === 'empty',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1417,7 +1417,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1429,11 +1429,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'coll-name'
+              (item: CompletionItem) => item.label === 'coll-name',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
             expect(findCollectionCompletion)
               .to.have.property('textEdit')
@@ -1441,7 +1441,7 @@ suite('MongoDBService Test Suite', () => {
                 'newText',
                 defaultContent
                   ? defaultContent + " db['coll-name']"
-                  : "db['coll-name']"
+                  : "db['coll-name']",
               );
           });
 
@@ -1457,7 +1457,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1469,11 +1469,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'animals.humans'
+              (item: CompletionItem) => item.label === 'animals.humans',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
             expect(findCollectionCompletion)
               .to.have.property('textEdit')
@@ -1492,7 +1492,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1504,15 +1504,15 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'cocktailbars'
+              (item: CompletionItem) => item.label === 'cocktailbars',
             );
             expect(findCollectionCompletion).to.have.property(
               'label',
-              'cocktailbars'
+              'cocktailbars',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1526,7 +1526,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1538,11 +1538,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'coll-name'
+              (item: CompletionItem) => item.label === 'coll-name',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1556,7 +1556,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1568,11 +1568,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'coll-name'
+              (item: CompletionItem) => item.label === 'coll-name',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1586,7 +1586,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1598,11 +1598,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'coll-name'
+              (item: CompletionItem) => item.label === 'coll-name',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1613,7 +1613,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1625,18 +1625,18 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'coll-name'
+              (item: CompletionItem) => item.label === 'coll-name',
             );
             const findShellCompletion = result.find(
-              (item: CompletionItem) => item.label === 'getCollectionNames'
+              (item: CompletionItem) => item.label === 'getCollectionNames',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
             expect(findShellCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Method
+              CompletionItemKind.Method,
             );
             expect(findShellCompletion).to.have.property('documentation');
             expect(findShellCompletion).to.have.property('detail');
@@ -1658,7 +1658,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1670,21 +1670,21 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'cocktailbars'
+              (item: CompletionItem) => item.label === 'cocktailbars',
             );
             const findShellCompletion = result.find(
-              (item: CompletionItem) => item.label === 'getCollectionNames'
+              (item: CompletionItem) => item.label === 'getCollectionNames',
             );
             const findCursorCompletion = result.find(
-              (item: CompletionItem) => item.label === 'toArray'
+              (item: CompletionItem) => item.label === 'toArray',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
             expect(findShellCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Method
+              CompletionItemKind.Method,
             );
             expect(findShellCompletion).to.have.property('documentation');
             expect(findShellCompletion).to.have.property('detail');
@@ -1707,7 +1707,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1719,21 +1719,21 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'cocktailbars'
+              (item: CompletionItem) => item.label === 'cocktailbars',
             );
             const findShellCompletion = result.find(
-              (item: CompletionItem) => item.label === 'getCollectionNames'
+              (item: CompletionItem) => item.label === 'getCollectionNames',
             );
             const findCursorCompletion = result.find(
-              (item: CompletionItem) => item.label === 'toArray'
+              (item: CompletionItem) => item.label === 'toArray',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
             expect(findShellCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Method
+              CompletionItemKind.Method,
             );
             expect(findShellCompletion).to.have.property('documentation');
             expect(findShellCompletion).to.have.property('detail');
@@ -1750,7 +1750,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1762,17 +1762,17 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'cocktails'
+              (item: CompletionItem) => item.label === 'cocktails',
             );
             const findShellCompletion = result.find(
-              (item: CompletionItem) => item.label === 'getCollectionNames'
+              (item: CompletionItem) => item.label === 'getCollectionNames',
             );
             const findCursorCompletion = result.find(
-              (item: CompletionItem) => item.label === 'close'
+              (item: CompletionItem) => item.label === 'close',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
             expect(findShellCompletion).to.be.undefined;
             expect(findCursorCompletion).to.be.undefined;
@@ -1788,7 +1788,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content
+              content,
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1800,7 +1800,7 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'coll-name'
+              (item: CompletionItem) => item.label === 'coll-name',
             );
             expect(findCollectionCompletion)
               .to.have.property('textEdit')
@@ -1808,7 +1808,7 @@ suite('MongoDBService Test Suite', () => {
                 'newText',
                 defaultContent
                   ? defaultContent + " db['coll-name'].find()"
-                  : "db['coll-name'].find()"
+                  : "db['coll-name'].find()",
               );
           });
 
@@ -1822,7 +1822,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1834,11 +1834,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1852,7 +1852,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1864,11 +1864,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1882,7 +1882,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1894,11 +1894,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1913,7 +1913,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1925,11 +1925,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1943,7 +1943,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1955,11 +1955,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -1973,7 +1973,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -1985,11 +1985,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -2003,7 +2003,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -2015,11 +2015,11 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
 
@@ -2033,7 +2033,7 @@ suite('MongoDBService Test Suite', () => {
               'init',
               'javascript',
               1,
-              content.join('\n')
+              content.join('\n'),
             );
 
             testMongoDBService._cacheCollections(dbInUse, [
@@ -2045,15 +2045,15 @@ suite('MongoDBService Test Suite', () => {
               position,
             });
             const findCollectionCompletion = result.find(
-              (item: CompletionItem) => item.label === 'collection'
+              (item: CompletionItem) => item.label === 'collection',
             );
             expect(findCollectionCompletion).to.have.property(
               'kind',
-              CompletionItemKind.Folder
+              CompletionItemKind.Folder,
             );
           });
         });
-      }
+      },
     );
 
     suite('streams operations', function () {
@@ -2193,7 +2193,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item) => item.label === 'testProcessor'
+          (item) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2212,7 +2212,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item) => item.label === 'test-processor'
+          (item) => item.label === 'test-processor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2231,7 +2231,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item) => item.label === 'test.processor'
+          (item) => item.label === 'test.processor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2250,7 +2250,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item) => item.label === 'testProcessor'
+          (item) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2269,7 +2269,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'test-processor'
+          (item: CompletionItem) => item.label === 'test-processor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2288,11 +2288,11 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const findCollectionCompletion = result.find(
-          (item: CompletionItem) => item.label === 'test-processor'
+          (item: CompletionItem) => item.label === 'test-processor',
         );
         expect(findCollectionCompletion).to.have.property(
           'kind',
-          CompletionItemKind.Folder
+          CompletionItemKind.Folder,
         );
       });
 
@@ -2310,11 +2310,11 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const findCollectionCompletion = result.find(
-          (item: CompletionItem) => item.label === 'test_processor'
+          (item: CompletionItem) => item.label === 'test_processor',
         );
         expect(findCollectionCompletion).to.have.property(
           'kind',
-          CompletionItemKind.Folder
+          CompletionItemKind.Folder,
         );
       });
 
@@ -2332,18 +2332,18 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const nameCompletion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(nameCompletion).to.have.property(
           'kind',
-          CompletionItemKind.Folder
+          CompletionItemKind.Folder,
         );
         const spShellCompletion = result.find(
-          (item: CompletionItem) => item.label === 'process'
+          (item: CompletionItem) => item.label === 'process',
         );
         expect(spShellCompletion).to.have.property(
           'kind',
-          CompletionItemKind.Method
+          CompletionItemKind.Method,
         );
       });
 
@@ -2361,7 +2361,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'test-processor'
+          (item: CompletionItem) => item.label === 'test-processor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2373,7 +2373,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2385,7 +2385,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2397,7 +2397,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2409,7 +2409,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2421,7 +2421,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2433,7 +2433,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2445,7 +2445,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2457,7 +2457,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2469,7 +2469,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2481,7 +2481,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2493,7 +2493,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2505,7 +2505,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2517,7 +2517,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2529,7 +2529,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2541,7 +2541,7 @@ suite('MongoDBService Test Suite', () => {
           'init',
           'javascript',
           1,
-          content.join('\n')
+          content.join('\n'),
         );
 
         testMongoDBService._cacheStreamProcessorCompletionItems([
@@ -2553,7 +2553,7 @@ suite('MongoDBService Test Suite', () => {
           position,
         });
         const completion = result.find(
-          (item: CompletionItem) => item.label === 'testProcessor'
+          (item: CompletionItem) => item.label === 'testProcessor',
         );
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
@@ -2593,7 +2593,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           codeToEvaluate: '1 + 1',
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2645,7 +2645,7 @@ suite('MongoDBService Test Suite', () => {
                 expectedFormat: 'ejson',
                 codeToEvaluate: `db.getCollection("${collectionName1}").findOne({}, { _id: 0, name: 1, number: 1 })`,
               },
-              source.token
+              source.token,
             );
             const expectedResult = {
               result: {
@@ -2658,7 +2658,7 @@ suite('MongoDBService Test Suite', () => {
 
             expect(result).to.deep.equal(expectedResult);
           });
-        }
+        },
       );
 
       suite(
@@ -2677,7 +2677,7 @@ suite('MongoDBService Test Suite', () => {
                 expectedFormat: 'ejson',
                 codeToEvaluate: `use('${dbName2}'); db.getCollection("${collectionName2}").findOne({}, { _id: 0, name: 1, number: 1 })`,
               },
-              source.token
+              source.token,
             );
             const expectedResult = {
               result: {
@@ -2690,7 +2690,7 @@ suite('MongoDBService Test Suite', () => {
 
             expect(result).to.deep.equal(expectedResult);
           });
-        }
+        },
       );
 
       suite(
@@ -2706,7 +2706,7 @@ suite('MongoDBService Test Suite', () => {
                 expectedFormat: 'ejson',
                 codeToEvaluate: `use('${dbName2}'); db.getCollection("${collectionName2}").findOne({}, { _id: 0, name: 1, number: 1 })`,
               },
-              source.token
+              source.token,
             );
             const expectedResult = {
               result: {
@@ -2719,7 +2719,7 @@ suite('MongoDBService Test Suite', () => {
 
             expect(result).to.deep.equal(expectedResult);
           });
-        }
+        },
       );
     });
 
@@ -2731,7 +2731,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           codeToEvaluate: '1 + 1',
         },
-        source.token
+        source.token,
       );
 
       expect(result).to.equal(null);
@@ -2745,7 +2745,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           codeToEvaluate: 'const x = 1; x + 2',
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2767,7 +2767,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           codeToEvaluate: 'const x = 1 + 1; x',
         },
-        source.token
+        source.token,
       );
       const firstRes = {
         result: {
@@ -2786,7 +2786,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           codeToEvaluate: 'const x = 2 + 1; x',
         },
-        source.token
+        source.token,
       );
       const secondRes = {
         result: {
@@ -2810,7 +2810,7 @@ suite('MongoDBService Test Suite', () => {
           const x = { _id: new ObjectId('5fb292760ece2dc9c0362075') };
           x`,
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2837,7 +2837,7 @@ suite('MongoDBService Test Suite', () => {
           codeToEvaluate: `const obj = { name: "a short string" };
           obj`,
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2862,7 +2862,7 @@ suite('MongoDBService Test Suite', () => {
           codeToEvaluate: `const arr = [{ name: "a short string" }];
           arr`,
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2888,7 +2888,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           codeToEvaluate: 'undefined',
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2910,7 +2910,7 @@ suite('MongoDBService Test Suite', () => {
           expectedFormat: 'ejson',
           codeToEvaluate: 'null',
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2933,7 +2933,7 @@ suite('MongoDBService Test Suite', () => {
           codeToEvaluate: `const x = 'A single line string';
           x`,
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2958,7 +2958,7 @@ suite('MongoDBService Test Suite', () => {
           awesome\`;
           x`,
         },
-        source.token
+        source.token,
       );
       const expectedResult = {
         result: {
@@ -2981,9 +2981,9 @@ suite('MongoDBService Test Suite', () => {
         consoleOutputs = [];
 
         Sinon.stub(connection, 'sendNotification')
-          .withArgs(ServerCommands.SHOW_CONSOLE_OUTPUT)
+          .withArgs(ServerCommand.showConsoleOutput)
           .callsFake((_, params) =>
-            Promise.resolve(void consoleOutputs.push(...params))
+            Promise.resolve(void consoleOutputs.push(...params)),
           );
       });
 
@@ -3001,7 +3001,7 @@ suite('MongoDBService Test Suite', () => {
             expectedFormat: 'ejson',
             codeToEvaluate: `print("Hello"); console.log(1,2,3); console.log(true); console.log(ObjectId(\'${hexString}\')); 42`,
           },
-          source.token
+          source.token,
         );
 
         const expectedConsoleOutputs = [
@@ -3035,7 +3035,7 @@ suite('MongoDBService Test Suite', () => {
           `module.exports.add = function (a, b) {
             return a + b;
           };
-        `
+        `,
         );
       });
       afterEach(async () => {
@@ -3050,7 +3050,7 @@ suite('MongoDBService Test Suite', () => {
             codeToEvaluate: 'const { add } = require("./utils.js"); add(1, 2);',
             filePath: path.join(tmpDir, 'utils.js'),
           },
-          source.token
+          source.token,
         );
         const expectedResult = {
           result: {
@@ -3123,7 +3123,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 3 },
@@ -3142,7 +3142,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3161,7 +3161,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3180,7 +3180,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3199,7 +3199,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3218,7 +3218,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 14 },
@@ -3237,7 +3237,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3256,7 +3256,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 16 },
@@ -3275,7 +3275,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 11 },
@@ -3294,7 +3294,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 12 },
@@ -3313,7 +3313,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3332,7 +3332,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 10 },
@@ -3351,7 +3351,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 9 },
@@ -3370,7 +3370,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3389,7 +3389,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 8 },
@@ -3408,7 +3408,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 17 },
@@ -3427,7 +3427,7 @@ suite('MongoDBService Test Suite', () => {
         {
           severity: DiagnosticSeverity.Error,
           source: 'mongodb',
-          code: DIAGNOSTIC_CODES.invalidInteractiveSyntaxes,
+          code: DiagnosticCode.invalidInteractiveSyntaxes,
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 26 },

@@ -1,37 +1,41 @@
 import { useState, useEffect } from 'react';
 import {
   CONNECTION_STATUS,
-  type MESSAGE_FROM_EXTENSION_TO_WEBVIEW,
-  MESSAGE_TYPES,
+  type MessageFromExtensionToWebview,
+  MessageType,
+  type ConnectionStatus,
 } from './extension-app-message-constants';
 import vscode from './vscode-api';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 
-const useConnectionStatus = () => {
-  const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(
-    CONNECTION_STATUS.LOADING
+const useConnectionStatus = (): {
+  connectionStatus: ConnectionStatus;
+  connectionName: string;
+} => {
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
+    CONNECTION_STATUS.loading,
   );
   const [connectionName, setConnectionName] = useState('');
   useEffect(() => {
-    const handleConnectionStatusResponse = (event) => {
-      const message: MESSAGE_FROM_EXTENSION_TO_WEBVIEW = event.data;
-      if (message.command === MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE) {
+    const handleConnectionStatusResponse = (event): void => {
+      const message: MessageFromExtensionToWebview = event.data;
+      if (message.command === MessageType.connectionStatusMessage) {
         setConnectionStatus(message.connectionStatus);
         setConnectionName(message.activeConnectionName);
       }
     };
     window.addEventListener('message', handleConnectionStatusResponse);
 
-    const requestConnectionStatus = () =>
+    const requestConnectionStatus = (): void =>
       vscode.postMessage({
-        command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
+        command: MessageType.getConnectionStatus,
       });
 
     requestConnectionStatus();
     const pollingInterval = setInterval(
       requestConnectionStatus,
-      CONNECTION_STATUS_POLLING_FREQ_MS
+      CONNECTION_STATUS_POLLING_FREQ_MS,
     );
     return () => {
       window.removeEventListener('message', handleConnectionStatusResponse);

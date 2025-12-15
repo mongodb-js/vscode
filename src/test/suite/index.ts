@@ -7,6 +7,10 @@ import MDBExtensionController from '../../mdbExtensionController';
 import { ExtensionContextStub } from './stubs';
 import { mdbTestExtension } from './stubbableMdbExtension';
 
+if (!process.env.SEGMENT_KEY) {
+  process.env.SEGMENT_KEY = 'test-segment-key';
+}
+
 export async function run(): Promise<void> {
   const reporterOptions = {
     spec: '-',
@@ -28,7 +32,7 @@ export async function run(): Promise<void> {
   mdbTestExtension.extensionContextStub = new ExtensionContextStub();
   mdbTestExtension.testExtensionController = new MDBExtensionController(
     mdbTestExtension.extensionContextStub,
-    { shouldTrackTelemetry: false }
+    { shouldTrackTelemetry: false },
   );
 
   await mdbTestExtension.testExtensionController.activate();
@@ -50,18 +54,28 @@ export async function run(): Promise<void> {
         try {
           // Run the mocha test.
           mocha.run((failures) => {
-            if (failures > 0) {
-              e(new Error(`${failures} tests failed.`));
-            } else {
-              c();
-            }
+            // Deactivate the extension to properly clean up the language server
+            void mdbTestExtension.testExtensionController
+              .deactivate()
+              .then(() => {
+                if (failures > 0) {
+                  e(new Error(`${failures} tests failed.`));
+                } else {
+                  c();
+                }
+              })
+              .catch((deactivateErr) => {
+                console.error('Error deactivating extension:');
+                console.error(deactivateErr);
+                e(deactivateErr);
+              });
           });
         } catch (mochaRunErr) {
           console.error('Error running mocha tests:');
           console.error(mochaRunErr);
           e(mochaRunErr);
         }
-      }
+      },
     );
   });
 }

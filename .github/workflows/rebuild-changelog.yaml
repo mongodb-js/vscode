@@ -12,11 +12,21 @@ on:
   schedule:
     - cron: "0 3 * * *"
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   rebuild-changelog:
     name: Rebuild changelog
     runs-on: ubuntu-latest
     steps:
+      - uses: mongodb-js/devtools-shared/actions/setup-bot-token@main
+        id: app-token
+        with:
+          app-id: ${{ vars.DEVTOOLS_BOT_APP_ID }}
+          private-key: ${{ secrets.DEVTOOLS_BOT_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
           # don't checkout a detached HEAD, is important to have a real base
@@ -26,31 +36,30 @@ jobs:
           # this is important so git log can pick up on
           # the whole history to generate the CHANGELOG
           fetch-depth: '0'
-
-      - name: Set up Git
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Update CHANGELOG.md
         # List all the releases and rebuild
-        # the changelog with the last 30
-        # releases
-        # Use the `--limit` parameter in `gh release list`
-        # to tweak this number
+        # the changelog.
         run: |
           echo "# Change Log" > CHANGELOG.md
           echo "" >> CHANGELOG.md
 
-          tags=$(gh api repos/mongodb-js/vscode/releases | jq -r .[].tag_name | grep -v internal | grep -v pre | grep -v beta)
+          tags=$(gh api --paginate repos/mongodb-js/vscode/releases --jq '.[].tag_name' | grep -v internal | grep -v pre | grep -v beta)
 
           # NOTE: here the quotes around $tags are necessary
           echo "$tags" | while read tagName; do
 
             json=$(gh release view $tagName --json=name,publishedAt,url,body)
+            date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
+            if [[ "$date" = "null" ]]
+            then
+              echo "Skipping $tagName because it's not published yet"
+              continue
+            fi
+
             url=$(echo $json | jq -r .url)
             name=$(echo $json | jq -r .name)
-            date=$(echo $json | jq -r .publishedAt | cut -f1 -dT)
             body=$(echo $json | jq -r .body)
             echo "## [$name]($url) - $date" >> CHANGELOG.md
             echo "" >> CHANGELOG.md
@@ -59,11 +68,11 @@ jobs:
             echo "" >> CHANGELOG.md
           done
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # 7.0.6
         with:
           commit-message: Update changelog
           base: main
@@ -73,11 +82,12 @@ jobs:
             CHANGELOG.md
           body: |
             - Update `CHANGELOG.md`
+          token: ${{ steps.app-token.outputs.token }}
+          author: "${{ steps.app-token.outputs.app-slug}}[bot] <${{ steps.app-token.outputs.app-email }}>"
+          committer: "${{ steps.app-token.outputs.app-slug}}[bot] <${{ steps.app-token.outputs.app-email }}>"
 
       - name: Merge PR
         env:
-          PULL_REQUEST_NUMBER: ${{steps.cpr.outputs.pull-request-number}}
-          # NOTE: we don't use a PAT so to not trigger further automation
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          gh pr merge $PULL_REQUEST_NUMBER --squash --delete-branch
+          gh pr merge ${{steps.cpr.outputs.pull-request-number}} --squash --delete-branch --auto

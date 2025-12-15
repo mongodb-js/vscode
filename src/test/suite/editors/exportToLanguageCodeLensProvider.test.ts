@@ -1,11 +1,13 @@
 import { beforeEach } from 'mocha';
 import chai from 'chai';
 
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import ExportToLanguageCodeLensProvider, {
+  DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
+} from '../../../editors/exportToLanguageCodeLensProvider';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import StorageController from '../../../storage/storageController';
 import { ExtensionContextStub } from '../stubs';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import StatusView from '../../../views/statusView';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
@@ -14,8 +16,8 @@ const expect = chai.expect;
 
 const DEFAULT_EXPORT_TO_LANGUAGE_RESULT = {
   content: '123',
-  codeToTranspile: '123',
-  includeDriverSyntax: false,
+  prompt: '123',
+  includeDriverSyntax: DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
   language: 'shell',
 };
 
@@ -37,7 +39,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
       testStorageController,
-      extensionContextStub
+      extensionContextStub,
     );
     testStatusView = new StatusView(extensionContextStub);
     testConnectionController = new ConnectionController({
@@ -46,27 +48,27 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
       telemetryService: testTelemetryService,
     });
     testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
+      testConnectionController,
     );
     testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
-      testEditDocumentCodeLensProvider
+      testEditDocumentCodeLensProvider,
     );
     testExportToLanguageCodeLensProvider = new ExportToLanguageCodeLensProvider(
-      testPlaygroundResultProvider
+      testPlaygroundResultProvider,
     );
   });
 
-  test('renders the include driver syntax code lens by default for shell', () => {
+  test('renders the exclude driver syntax code lens by default for shell', () => {
     testPlaygroundResultProvider.setPlaygroundResult(
-      DEFAULT_EXPORT_TO_LANGUAGE_RESULT
+      DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
     );
 
     const codeLenses = testExportToLanguageCodeLensProvider.provideCodeLenses();
     expect(codeLenses).to.exist;
     if (codeLenses) {
       expect(codeLenses.length).to.be.equal(1);
-      expect(codeLenses[0].command?.title).to.be.equal('Include Driver Syntax');
+      expect(codeLenses[0].command?.title).to.be.equal('Exclude Driver Syntax');
     }
   });
 

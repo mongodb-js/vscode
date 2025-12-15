@@ -1,4 +1,4 @@
-import type { InternalPromptPurpose } from '../../telemetry/telemetryService';
+import type { InternalPromptPurpose } from '../../telemetry';
 import type { PromptArgsBase } from './promptBase';
 import { PromptBase } from './promptBase';
 

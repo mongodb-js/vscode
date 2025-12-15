@@ -54,17 +54,13 @@ runs:
         fi
       shell: bash
 
-    - name: Install npm
-      run: npm install -g npm@8.19.4
-      shell: bash
-
     - name: Install Dependencies
       shell: bash
       run: |
-        npm ci --omit=optional
+        pnpm install --frozen-lockfile
 
     - name: Run Checks
-      run: npm run check
+      run: pnpm run check
       # the glob here just fails
       if: ${{ runner.os != 'Windows' }}
       shell: bash
@@ -72,8 +68,9 @@ runs:
     - name: Run Tests
       env:
         NODE_OPTIONS: "--max_old_space_size=4096"
+        MDB_IS_TEST: "true"
       run: |
-        npm run test
+        pnpm run test
       shell: bash
 
     - name: Build .vsix
@@ -81,11 +78,11 @@ runs:
         NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
       # NOTE: --githubBranch is "The GitHub branch used to infer relative links in README.md."
       run: |
-        npx vsce package --githubBranch main
+        pnpm exec vsce package --githubBranch main
       shell: bash
 
     - name: Check .vsix filesize
-      run: npm run check-vsix-size
+      run: pnpm run check-vsix-size
       shell: bash
 
     - name: Sign .vsix
@@ -120,24 +117,34 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
       run: |
-        npm run snyk-test > /dev/null 2>&1
+        pnpm run snyk-test
 
-    - name: Create Jira Tickets
-      if: >
-        runner.os == 'Linux' &&
-        (
-          github.event_name == 'push' && github.ref == 'refs/heads/main' ||
-          github.event_name == 'workflow_dispatch' ||
-          github.event_name == 'schedule'
-        )
-      shell: bash
-      env:
-        JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
-        JIRA_BASE_URL: "https://jira.mongodb.org"
-        JIRA_PROJECT: "VSCODE"
-        JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
-      run: |
-        npm run create-vulnerability-tickets > /dev/null
+    - name: Upload Snyk Report
+      if: runner.os == 'Linux'
+      uses: actions/upload-artifact@v4
+      with:
+        name: Snyk Report - ${{ github.run_id }}
+        path: |
+          .sbom/snyk-test-result.html
+          .sbom/snyk-test-result.json
+
+    # TODO(VSCODE-706): Fix Snyk vuln ticket generation
+    # - name: Create Jira Tickets
+    #   if: >
+    #     runner.os == 'Linux' &&
+    #     (
+    #       github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+    #       github.event_name == 'workflow_dispatch' ||
+    #       github.event_name == 'schedule'
+    #     )
+    #   shell: bash
+    #   env:
+    #     JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
+    #     JIRA_BASE_URL: "https://jira.mongodb.org"
+    #     JIRA_PROJECT: "VSCODE"
+    #     JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
+    #   run: |
+    #     pnpm run create-vulnerability-tickets > /dev/null
 
     - name: Generate Vulnerability Report (Fail on >= High)
       if: runner.os == 'Linux'
@@ -148,4 +155,4 @@ runs:
         # available for everyone with read access to the repo, which is everyone that is
         # logged in for public repos.
         # This command is only here to fail on failures for `main` and tags.
-        npm run generate-vulnerability-report > /dev/null
+        pnpm run generate-vulnerability-report > /dev/null

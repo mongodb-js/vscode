@@ -1,6 +1,6 @@
 export default (
   error: any,
-  message?: string
+  message?: string,
 ): {
   name?: string;
   message: string;

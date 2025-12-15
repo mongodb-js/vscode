@@ -34,7 +34,7 @@ const connectedStatusDotStyles = cx(
   statusDotStyles,
   css({
     backgroundColor: palette.green.base,
-  })
+  }),
 );
 
 const connectedStatusDotLightModeStyles = css({
@@ -45,7 +45,7 @@ const disconnectedStatusDotStyles = cx(
   statusDotStyles,
   css({
     backgroundColor: palette.red.base,
-  })
+  }),
 );
 
 const statusContainerStyles = css({
@@ -151,22 +151,22 @@ const ConnectionStatus: React.FC = () => {
   const { connectionStatus, connectionName } = useConnectionStatus();
   return (
     <>
-      {connectionStatus === CONNECTION_STATUS.CONNECTED && (
+      {connectionStatus === CONNECTION_STATUS.connected && (
         <ConnectionStatusConnected connectionName={connectionName} />
       )}
-      {connectionStatus === CONNECTION_STATUS.DISCONNECTED && (
+      {connectionStatus === CONNECTION_STATUS.disconnected && (
         <Body as="div">
           <span className={disconnectedStatusDotStyles} />
           Not connected.
         </Body>
       )}
-      {connectionStatus === CONNECTION_STATUS.LOADING && (
+      {connectionStatus === CONNECTION_STATUS.loading && (
         <Body as="p">Loading...</Body>
       )}
-      {connectionStatus === CONNECTION_STATUS.CONNECTING && (
+      {connectionStatus === CONNECTION_STATUS.connecting && (
         <Body as="p">Connecting...</Body>
       )}
-      {connectionStatus === CONNECTION_STATUS.DISCONNECTING && (
+      {connectionStatus === CONNECTION_STATUS.disconnecting && (
         <Body as="p">Disconnecting...</Body>
       )}
     </>

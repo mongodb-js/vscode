@@ -29,7 +29,7 @@ suite('Playground', function () {
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'connectWithURI',
-      sandbox.fake()
+      sandbox.fake(),
     );
 
     const mockDocument = {
@@ -51,27 +51,27 @@ suite('Playground', function () {
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveDataService',
-      fakeGetActiveDataService
+      fakeGetActiveDataService,
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionName',
-      sandbox.fake.returns('localhost:27088')
+      sandbox.fake.returns('localhost:27088'),
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getActiveConnectionId',
-      sandbox.fake.returns('fake_active_connection_id')
+      sandbox.fake.returns('fake_active_connection_id'),
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'isCurrentlyConnected',
-      () => true
+      () => true,
     );
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'getMongoClientConnectionOptions',
-      fakeGetMongoClientConnectionOptions
+      fakeGetMongoClientConnectionOptions,
     );
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
 
@@ -80,7 +80,7 @@ suite('Playground', function () {
       {
         namespace: 'mongodbVSCodePlaygroundDB.sales',
         schemaFields: ['_id', 'name', 'time'],
-      }
+      },
     );
     await vscode.workspace
       .getConfiguration('mdb')
@@ -109,7 +109,7 @@ suite('Playground', function () {
     edit.replace(
       testDocumentUri,
       getFullRange(editor.document),
-      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ });"
+      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ });",
     );
     await vscode.workspace.applyEdit(edit);
 
@@ -123,7 +123,7 @@ suite('Playground', function () {
     await acceptFirstSuggestion(testDocumentUri, _disposables);
 
     expect(editor.document.getText()).to.be.eql(
-      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ name});"
+      "use('mongodbVSCodePlaygroundDB'); db.sales.find({ name});",
     );
   });
 
@@ -141,12 +141,12 @@ suite('Playground', function () {
     edit.replace(
       testDocumentUri,
       getFullRange(editor.document),
-      "use('test'); const mockDataArray = []; for(let i = 0; i < 50000; i++) { mockDataArray.push(Math.random() * 10000); } const docs = []; for(let i = 0; i < 10000000; i++) { docs.push({ mockData: [...mockDataArray], a: 'test 123', b: Math.ceil(Math.random() * 10000) }); }"
+      "use('test'); const mockDataArray = []; for(let i = 0; i < 50000; i++) { mockDataArray.push(Math.random() * 10000); } const docs = []; for(let i = 0; i < 10000000; i++) { docs.push({ mockData: [...mockDataArray], a: 'test 123', b: Math.ceil(Math.random() * 10000) }); }",
     );
     await vscode.workspace.applyEdit(edit);
     await vscode.commands.executeCommand('mdb.runPlayground');
 
-    const onDidChangeDiagnostics = () =>
+    const onDidChangeDiagnostics = (): Promise<unknown> =>
       new Promise((resolve) => {
         // The diagnostics are set again when the server restarts.
         vscode.languages.onDidChangeDiagnostics(resolve);
@@ -155,7 +155,7 @@ suite('Playground', function () {
 
     expect(showErrorMessageStub.calledOnce).to.equal(true);
     expect(showErrorMessageStub.firstCall.args[0]).to.equal(
-      'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.'
+      'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.',
     );
   });
 });

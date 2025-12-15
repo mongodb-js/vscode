@@ -4,6 +4,7 @@ import IndexTreeItem, {
   IndexFieldTreeItem,
   IndexKeyType,
 } from '../../../explorer/indexTreeItem';
+import type * as vscode from 'vscode';
 
 suite('IndexTreeItem Test Suite', () => {
   test('it has tree items for each key in the index', async () => {
@@ -32,17 +33,17 @@ suite('IndexTreeItem Test Suite', () => {
     test('it has an icon for the index type', () => {
       const testIndexFieldTreeItem = new IndexFieldTreeItem({
         indexKey: 'locations',
-        indexKeyType: IndexKeyType.GEOSPHERE,
+        indexKeyType: IndexKeyType.geosphere,
       });
 
       const iconPath = testIndexFieldTreeItem.iconPath as {
-        light: string;
-        dark: string;
+        light: vscode.Uri;
+        dark: vscode.Uri;
       };
       assert(
-        iconPath.dark.includes('index') &&
-          iconPath.dark.includes('geospatial.svg'),
-        'Expected icon path to point to an svg by the name "geospatial" in the index folder'
+        iconPath.dark.toString().includes('index') &&
+          iconPath.dark.toString().includes('geospatial.svg'),
+        'Expected icon path to point to an svg by the name "geospatial" in the index folder',
       );
     });
   });

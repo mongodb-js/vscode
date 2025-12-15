@@ -1,15 +1,14 @@
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
-import { ServerCommands } from './serverCommands';
-import type { Document } from 'bson';
+import util from 'util';
 
+import { ServerCommand } from './serverCommands';
 import type {
   ShellEvaluateResult,
   WorkerEvaluate,
   MongoClientOptions,
 } from '../types/playgroundType';
-import util from 'util';
 import { getEJSON } from '../utils/ejson';
 import type { DocumentViewAndEditFormat } from '../editors/types';
 
@@ -17,7 +16,6 @@ interface EvaluationResult {
   printable: any;
   type: string | null;
 }
-
 interface EvaluationResultWithExpectedFormat extends EvaluationResult {
   expectedFormat: DocumentViewAndEditFormat;
 }
@@ -26,7 +24,7 @@ const getContent = ({
   type,
   printable,
   expectedFormat,
-}: EvaluationResultWithExpectedFormat): Document => {
+}: EvaluationResultWithExpectedFormat): unknown => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
     if (expectedFormat === 'shell') {
       console.log('printable.documents', printable.documents);
@@ -47,12 +45,10 @@ const getContent = ({
 };
 
 export const getLanguage = (
-  evaluationResult: EvaluationResultWithExpectedFormat
+  content: unknown,
 ): 'json' | 'plaintext' | 'javascript' => {
-  const content = getContent(evaluationResult);
-
   if (typeof content === 'object' && content !== null) {
-    return evaluationResult.expectedFormat === 'shell' ? 'javascript' : 'json';
+    return content.expectedFormat === 'shell' ? 'javascript' : 'json';
   }
 
   return 'plaintext';
@@ -69,7 +65,7 @@ type ExecuteCodeOptions = {
 
 function handleEvalPrint(values: EvaluationResult[]): void {
   parentPort?.postMessage({
-    name: ServerCommands.SHOW_CONSOLE_OUTPUT,
+    name: ServerCommand.showConsoleOutput,
     payload: values.map((v) => {
       return typeof v.printable === 'string'
         ? v.printable
@@ -94,7 +90,7 @@ export const execute = async ({
 }> => {
   const serviceProvider = await NodeDriverServiceProvider.connect(
     connectionString,
-    connectionOptions
+    connectionOptions,
   );
 
   try {
@@ -114,7 +110,7 @@ export const execute = async ({
     if (filePath) {
       await runtime.evaluate(`(function () {
         globalThis.require = require('module').createRequire(${JSON.stringify(
-          filePath
+          filePath,
         )});
       } ())`);
     }
@@ -126,26 +122,37 @@ export const execute = async ({
         ? `${source.namespace.db}.${source.namespace.collection}`
         : undefined;
 
+    // The RPC protocol can't handle functions and it wouldn't make sense to return them anyway. Since just
+    // declaring a function doesn't execute it, the best thing we can do is return undefined, similarly to
+    // what we do when there's no return value from the script.
+    const rpcSafePrintable =
+      typeof printable !== 'function' ? printable : undefined;
+
     // Prepare a playground result.
+    const content = getContent({
+      expectedFormat,
+      type,
+      printable: rpcSafePrintable,
+    });
     const result = {
       namespace,
-      type: type ? type : typeof printable,
-      content: getContent({ expectedFormat, type, printable }),
-      language: getLanguage({ expectedFormat, type, printable }),
+      type: type ? type : typeof rpcSafePrintable,
+      content,
+      language: getLanguage(content),
     };
 
     return { data: { result } };
   } catch (error) {
     return { error, data: null };
   } finally {
-    await serviceProvider.close(true);
+    await serviceProvider.close();
   }
 };
 
 const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
-  if (name === ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND) {
+  if (name === ServerCommand.executeCodeFromPlayground) {
     parentPort?.postMessage({
-      name: ServerCommands.CODE_EXECUTION_RESULT,
+      name: ServerCommand.codeExecutionResult,
       payload: await execute(data),
     });
   }
@@ -156,5 +163,5 @@ parentPort?.once(
   'message',
   (message: { name: string; data: WorkerEvaluate }): void => {
     void handleMessageFromParentPort(message);
-  }
+  },
 );

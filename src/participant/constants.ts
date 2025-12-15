@@ -1,18 +1,11 @@
 import type * as vscode from 'vscode';
 import { ChatMetadataStore } from './chatMetadata';
+import type { ParticipantResponseType } from './participantTypes';
 
 export const CHAT_PARTICIPANT_ID = 'mongodb.participant';
 export const CHAT_PARTICIPANT_MODEL = 'gpt-4o';
-
-export type ParticipantResponseType =
-  | 'query'
-  | 'schema'
-  | 'docs'
-  | 'generic'
-  | 'emptyRequest'
-  | 'cancelledRequest'
-  | 'askToConnect'
-  | 'askForNamespace';
+export const COPILOT_EXTENSION_ID = 'GitHub.copilot';
+export const COPILOT_CHAT_EXTENSION_ID = 'GitHub.copilot-chat';
 
 export const codeBlockIdentifier = {
   start: '```javascript',
@@ -61,14 +54,14 @@ export function namespaceRequestChatResult({
 }
 
 export function createCancelledRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('cancelledRequest', history);
 }
 
 function createChatResult(
   intent: ParticipantResponseType,
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return {
     metadata: {
@@ -79,25 +72,25 @@ function createChatResult(
 }
 
 export function emptyRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('emptyRequest', history);
 }
 
 export function askToConnectChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('askToConnect', history);
 }
 
 export function genericRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('generic', history);
 }
 
 export function queryRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('query', history);
 }
@@ -119,7 +112,7 @@ export function docsRequestChatResult({
 }
 
 export function schemaRequestChatResult(
-  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>
+  history: ReadonlyArray<vscode.ChatRequestTurn | vscode.ChatResponseTurn>,
 ): ChatResult {
   return createChatResult('schema', history);
 }

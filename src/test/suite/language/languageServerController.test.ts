@@ -11,16 +11,16 @@ import chaiAsPromised from 'chai-as-promised';
 import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-import { LanguageServerController } from '../../../language';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { PlaygroundController } from '../../../editors';
 import PlaygroundResultProvider from '../../../editors/playgroundResultProvider';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
+import type { LanguageServerController } from '../../../language';
 
 const expect = chai.expect;
 
@@ -35,7 +35,7 @@ suite('Language Server Controller Test Suite', () => {
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    extensionContextStub
+    extensionContextStub,
   );
   const testStatusView = new StatusView(extensionContextStub);
   const testConnectionController = new ConnectionController({
@@ -44,11 +44,11 @@ suite('Language Server Controller Test Suite', () => {
     telemetryService: testTelemetryService,
   });
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
-    testConnectionController
+    testConnectionController,
   );
   const testPlaygroundResultProvider = new PlaygroundResultProvider(
     testConnectionController,
-    testEditDocumentCodeLensProvider
+    testEditDocumentCodeLensProvider,
   );
   const testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
 
@@ -58,9 +58,9 @@ suite('Language Server Controller Test Suite', () => {
   const sandbox = sinon.createSandbox();
 
   before(async () => {
-    languageServerControllerStub = new LanguageServerController(
-      extensionContextStub
-    );
+    languageServerControllerStub =
+      mdbTestExtension.testExtensionController._languageServerController;
+
     const testExportToLanguageCodeLensProvider =
       new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
 
@@ -73,7 +73,6 @@ suite('Language Server Controller Test Suite', () => {
       playgroundSelectionCodeActionProvider: testCodeActionProvider,
       exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
-    await languageServerControllerStub.startLanguageServer();
     await testPlaygroundController._activeConnectionChanged();
   });
 
@@ -82,7 +81,7 @@ suite('Language Server Controller Test Suite', () => {
     sandbox.replace(
       testConnectionController,
       'getActiveConnectionName',
-      () => 'fakeName'
+      () => 'fakeName',
     );
     sandbox.replace(
       testConnectionController,
@@ -93,12 +92,12 @@ suite('Language Server Controller Test Suite', () => {
             url: TEST_DATABASE_URI,
             options: {},
           }),
-        } as unknown as DataService)
+        }) as unknown as DataService,
     );
     sandbox.replace(
       testConnectionController,
       'isCurrentlyConnected',
-      () => true
+      () => true,
     );
   });
 
@@ -111,7 +110,7 @@ suite('Language Server Controller Test Suite', () => {
     const languageServerModuleBundlePath = path.join(
       extensionPath,
       'dist',
-      'languageServer.js'
+      'languageServer.js',
     );
     await fs.promises.stat(languageServerModuleBundlePath);
   });
@@ -134,7 +133,7 @@ suite('Language Server Controller Test Suite', () => {
       sandbox.replace(
         languageServerControllerStub,
         '_consoleOutputChannel',
-        mockOutputChannel
+        mockOutputChannel,
       );
     });
 
@@ -144,7 +143,7 @@ suite('Language Server Controller Test Suite', () => {
         '_evaluateWithCancelModal',
         sandbox.stub().resolves({
           result: '123',
-        })
+        }),
       );
 
       expect(outputChannelClearStub).to.not.be.called;
@@ -159,7 +158,7 @@ suite('Language Server Controller Test Suite', () => {
           expectedFormat: 'ejson',
           connectionId: 'pineapple',
         },
-        source.token
+        source.token,
       );
 
       expect(outputChannelClearStub).to.be.calledOnce;

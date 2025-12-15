@@ -12,8 +12,8 @@ import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 const { contributes } = require('../../../../package.json');
 
 function getTestIndexListTreeItem(
-  options?: Partial<ConstructorParameters<typeof IndexListTreeItem>[0]>
-) {
+  options?: Partial<ConstructorParameters<typeof IndexListTreeItem>[0]>,
+): IndexListTreeItem {
   return new IndexListTreeItem({
     collectionName: 'zebraWearwolf',
     databaseName: 'giraffeVampire',
@@ -49,7 +49,7 @@ suite('IndexListTreeItem Test Suite', () => {
 
     assert(
       indexListRegisteredCommandInPackageJson,
-      'Expected index list tree item to be registered with a command in package json'
+      'Expected index list tree item to be registered with a command in package json',
     );
   });
 
@@ -113,12 +113,12 @@ suite('IndexListTreeItem Test Suite', () => {
     });
 
     const indexesIconPath = testIndexListTreeItem.iconPath as {
-      light: string;
-      dark: string;
+      light: vscode.Uri;
+      dark: vscode.Uri;
     };
     assert(
-      indexesIconPath.dark.includes('indexes.svg'),
-      'Expected icon path to point to an svg by the name "indexes" with a dark mode'
+      indexesIconPath.dark.toString().includes('indexes.svg'),
+      'Expected icon path to point to an svg by the name "indexes" with a dark mode',
     );
   });
 
@@ -139,7 +139,7 @@ suite('IndexListTreeItem Test Suite', () => {
 
       assert.strictEqual(
         showErrorMessageStub.firstCall.args[0],
-        expectedMessage
+        expectedMessage,
       );
     } catch (error) {
       assert(!!error, 'Expected an error disconnect response.');
@@ -211,11 +211,11 @@ suite('IndexListTreeItem Test Suite', () => {
     assert.strictEqual(newIndexTreeItems[1].label, '_id_1_gnocchi_1');
     assert(
       newIndexTreeItems[0].isExpanded,
-      'Expected the first index in list to be expanded'
+      'Expected the first index in list to be expanded',
     );
     assert.strictEqual(
       newIndexTreeItems[0].collapsibleState,
-      vscode.TreeItemCollapsibleState.Expanded
+      vscode.TreeItemCollapsibleState.Expanded,
     );
   });
 });

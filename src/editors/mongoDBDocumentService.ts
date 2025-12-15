@@ -7,14 +7,15 @@ import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
-import type TelemetryService from '../telemetry/telemetryService';
+import type { TelemetryService } from '../telemetry';
 import { getEJSON } from '../utils/ejson';
+import { DocumentUpdatedTelemetryEvent } from '../telemetry';
 
 const log = createLogger('document controller');
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
-export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
+export const URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
@@ -50,9 +51,8 @@ export default class MongoDBDocumentService {
   _saveDocumentFailed(message: string): void {
     const errorMessage = `Unable to save document: ${message}`;
 
-    this._telemetryService.trackDocumentUpdated(
-      DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
-      false
+    this._telemetryService.track(
+      new DocumentUpdatedTelemetryEvent(DocumentSource.treeview, false),
     );
 
     throw new Error(errorMessage);
@@ -75,7 +75,7 @@ export default class MongoDBDocumentService {
 
     if (activeConnectionId !== connectionId) {
       return this._saveDocumentFailed(
-        `no longer connected to '${connectionName}'`
+        `no longer connected to '${connectionName}'`,
       );
     }
 
@@ -83,7 +83,7 @@ export default class MongoDBDocumentService {
 
     if (dataService === null) {
       return this._saveDocumentFailed(
-        `no longer connected to '${connectionName}'`
+        `no longer connected to '${connectionName}'`,
       );
     }
 
@@ -96,9 +96,11 @@ export default class MongoDBDocumentService {
         newDocument,
         {
           returnDocument: 'after',
-        }
+        },
       );
-      this._telemetryService.trackDocumentUpdated(source, true);
+      this._telemetryService.track(
+        new DocumentUpdatedTelemetryEvent(source, true),
+      );
     } catch (error) {
       return this._saveDocumentFailed(formatError(error).message);
     } finally {
@@ -118,7 +120,7 @@ export default class MongoDBDocumentService {
 
     if (activeConnectionId !== connectionId) {
       return this._fetchDocumentFailed(
-        `no longer connected to '${connectionName}'`
+        `no longer connected to '${connectionName}'`,
       );
     }
 
@@ -126,7 +128,7 @@ export default class MongoDBDocumentService {
 
     if (dataService === null) {
       return this._fetchDocumentFailed(
-        `no longer connected to ${connectionName}`
+        `no longer connected to ${connectionName}`,
       );
     }
 
@@ -136,7 +138,7 @@ export default class MongoDBDocumentService {
       const documents = await dataService.find(
         namespace,
         { _id: documentId },
-        { limit: 1 }
+        { limit: 1 },
       );
 
       if (!documents || documents.length === 0) {

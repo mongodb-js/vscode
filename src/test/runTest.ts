@@ -8,7 +8,7 @@ import { TEST_DATABASE_PORT } from './suite/dbTestHelper';
 
 // More information on vscode specific tests: https://github.com/microsoft/vscode-test
 
-async function startTestMongoDBServer() {
+async function startTestMongoDBServer(): Promise<MongoCluster> {
   console.log('Starting MongoDB server on port', TEST_DATABASE_PORT);
   return await MongoCluster.start({
     topology: 'standalone',
@@ -19,7 +19,7 @@ async function startTestMongoDBServer() {
 
 let testMongoDBServer: MongoCluster;
 
-function cleanup() {
+function cleanup(): void {
   console.log('Stopping MongoDB server on port', TEST_DATABASE_PORT);
   void testMongoDBServer?.close();
 }
@@ -39,7 +39,7 @@ async function main(): Promise<any> {
 
   // Download VS Code, unzip it and run the integration test
   await runTests({
-    version: 'insiders', // Download latest insiders.
+    version: 'insiders',
     extensionDevelopmentPath,
     extensionTestsPath,
     launchArgs: [testWorkspace, '--disable-extensions'],

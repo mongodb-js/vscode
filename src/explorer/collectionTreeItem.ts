@@ -3,7 +3,7 @@ import path from 'path';
 import type { DataService } from 'mongodb-data-service';
 
 import DocumentListTreeItem, {
-  CollectionTypes,
+  CollectionType,
   MAX_DOCUMENTS_VISIBLE,
 } from './documentListTreeItem';
 import formatError from '../utils/formatError';
@@ -14,31 +14,31 @@ import SchemaTreeItem from './schemaTreeItem';
 
 function getIconPath(
   type: string,
-  isExpanded: boolean
-): { light: string; dark: string } {
+  isExpanded: boolean,
+): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
-  if (type === CollectionTypes.timeseries) {
+  if (type === CollectionType.timeseries) {
     return {
-      light: path.join(LIGHT, 'collection-timeseries.svg'),
-      dark: path.join(DARK, 'collection-timeseries.svg'),
+      light: vscode.Uri.file(path.join(LIGHT, 'collection-timeseries.svg')),
+      dark: vscode.Uri.file(path.join(DARK, 'collection-timeseries.svg')),
     };
-  } else if (type === CollectionTypes.collection) {
+  } else if (type === CollectionType.collection) {
     if (isExpanded) {
       return {
-        light: path.join(LIGHT, 'collection-folder-open.svg'),
-        dark: path.join(DARK, 'collection-folder-open.svg'),
+        light: vscode.Uri.file(path.join(LIGHT, 'collection-folder-open.svg')),
+        dark: vscode.Uri.file(path.join(DARK, 'collection-folder-open.svg')),
       };
     }
     return {
-      light: path.join(LIGHT, 'collection-folder-closed.svg'),
-      dark: path.join(DARK, 'collection-folder-closed.svg'),
+      light: vscode.Uri.file(path.join(LIGHT, 'collection-folder-closed.svg')),
+      dark: vscode.Uri.file(path.join(DARK, 'collection-folder-closed.svg')),
     };
   }
   return {
-    light: path.join(LIGHT, 'view-folder.svg'),
-    dark: path.join(DARK, 'view-folder.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'view-folder.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'view-folder.svg')),
   };
 }
 
@@ -47,7 +47,7 @@ export type CollectionDetailsType = Awaited<
 >[number];
 
 function isChildCacheOutOfSync(
-  child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem
+  child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem,
 ): boolean {
   const isExpanded = child.isExpanded;
   const collapsibleState = child.collapsibleState;
@@ -81,7 +81,7 @@ export default class CollectionTreeItem
 
   isDropped = false;
 
-  iconPath: { light: string; dark: string };
+  iconPath: { light: vscode.Uri; dark: vscode.Uri };
 
   constructor({
     collection,
@@ -108,7 +108,7 @@ export default class CollectionTreeItem
       collection.name,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.collection = collection;
@@ -158,7 +158,7 @@ export default class CollectionTreeItem
         });
 
     this.tooltip =
-      collection.type === CollectionTypes.view
+      collection.type === CollectionType.view
         ? 'Read only view'
         : collection.name;
     this.iconPath = getIconPath(collection.type, isExpanded);
@@ -321,8 +321,8 @@ export default class CollectionTreeItem
   refreshDocumentCount = async (): Promise<number> => {
     // Skip the count on views and time-series collections since it will error.
     if (
-      this._type === CollectionTypes.view ||
-      this._type === CollectionTypes.timeseries
+      this._type === CollectionType.view ||
+      this._type === CollectionType.timeseries
     ) {
       this.documentCount = null;
       return 0;
@@ -334,7 +334,7 @@ export default class CollectionTreeItem
       this.documentCount = await this._dataService.estimatedCount(
         this.namespace,
         {}, // No options.
-        undefined
+        undefined,
       );
 
       return this.documentCount;
@@ -366,7 +366,7 @@ export default class CollectionTreeItem
       });
     } catch (error) {
       return Promise.reject(
-        new Error(`An error occurred parsing the collection name: ${error}`)
+        new Error(`An error occurred parsing the collection name: ${error}`),
       );
     }
 
@@ -377,7 +377,7 @@ export default class CollectionTreeItem
     try {
       const successfullyDroppedCollection =
         await this._dataService.dropCollection(
-          `${this.databaseName}.${collectionName}`
+          `${this.databaseName}.${collectionName}`,
         );
 
       this.isDropped = successfullyDroppedCollection;
@@ -385,7 +385,7 @@ export default class CollectionTreeItem
       return successfullyDroppedCollection;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Drop collection failed: ${formatError(error).message}`
+        `Drop collection failed: ${formatError(error).message}`,
       );
 
       return false;

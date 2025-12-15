@@ -17,11 +17,14 @@ const log = createLogger('documents tree item');
 export const MAX_DOCUMENTS_VISIBLE = 10;
 
 export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
-export enum CollectionTypes {
-  collection = 'collection',
-  view = 'view',
-  timeseries = 'timeseries',
-}
+export const CollectionType = {
+  collection: 'collection',
+  view: 'view',
+  timeseries: 'timeseries',
+} as const;
+
+export type CollectionType =
+  (typeof CollectionType)[keyof typeof CollectionType];
 
 const ITEM_LABEL = 'Documents';
 
@@ -51,9 +54,9 @@ class ShowMoreDocumentsTreeItem extends vscode.TreeItem {
 
 const getCollapsableStateForDocumentList = (
   isExpanded: boolean,
-  type: string
+  type: string,
 ): vscode.TreeItemCollapsibleState => {
-  if (type === CollectionTypes.view) {
+  if (type === CollectionType.view) {
     return vscode.TreeItemCollapsibleState.None;
   }
 
@@ -67,18 +70,18 @@ export const formatDocCount = (count: number): string => {
   return `${numeral(count).format('0a')}`.toUpperCase();
 };
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'documents.svg'),
-    dark: path.join(DARK, 'documents.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'documents.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'documents.svg')),
   };
 }
 
 function getTooltip(type: string, documentCount: number | null): string {
-  const typeString = type === CollectionTypes.view ? 'View' : 'Collection';
+  const typeString = type === CollectionType.view ? 'View' : 'Collection';
   if (documentCount !== null) {
     return `${typeString} Documents - ${documentCount}`;
   }
@@ -113,7 +116,7 @@ export default class DocumentListTreeItem
 
   isExpanded: boolean;
 
-  iconPath: { light: string; dark: string };
+  iconPath: { light: vscode.Uri; dark: vscode.Uri };
 
   constructor({
     collectionName,
@@ -178,7 +181,7 @@ export default class DocumentListTreeItem
   }
 
   async getChildren(): Promise<any[]> {
-    if (!this.isExpanded || this.type === CollectionTypes.view) {
+    if (!this.isExpanded || this.type === CollectionType.view) {
       return [];
     }
 
@@ -194,7 +197,7 @@ export default class DocumentListTreeItem
             documentIndexInTree: index,
             dataService: this._dataService,
             resetDocumentListCache: () => this.resetCache(),
-          })
+          }),
         );
       });
 
@@ -222,11 +225,11 @@ export default class DocumentListTreeItem
       documents = await this._dataService.find(
         this.namespace,
         {}, // No filter.
-        { limit: this._maxDocumentsToShow }
+        { limit: this._maxDocumentsToShow },
       );
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Fetch documents failed: ${formatError(error).message}`
+        `Fetch documents failed: ${formatError(error).message}`,
       );
       return [];
     }
@@ -240,7 +243,7 @@ export default class DocumentListTreeItem
             documentIndexInTree: index,
             dataService: this._dataService,
             resetDocumentListCache: () => this.resetCache(),
-          })
+          }),
         );
       });
     }
@@ -261,7 +264,7 @@ export default class DocumentListTreeItem
 
   onShowMoreClicked(): void {
     log.info(
-      `Show more documents clicked for the '${this.namespace}' namespace`
+      `Show more documents clicked for the '${this.namespace}' namespace`,
     );
 
     this._maxDocumentsToShow += MAX_DOCUMENTS_VISIBLE;

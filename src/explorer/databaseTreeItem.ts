@@ -8,13 +8,13 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'database.svg'),
-    dark: path.join(DARK, 'database.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'database.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'database.svg')),
   };
 }
 
@@ -51,7 +51,7 @@ export default class DatabaseTreeItem
       databaseName,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.databaseName = databaseName;
@@ -104,7 +104,7 @@ export default class DatabaseTreeItem
 
     // List collections and build tree items.
     const collections = await this._dataService.listCollections(
-      this.databaseName
+      this.databaseName,
     );
 
     this.cacheIsUpToDate = true;
@@ -128,8 +128,9 @@ export default class DatabaseTreeItem
 
       const sortFunction = (
         collectionA: CollectionDetailsType,
-        collectionB: CollectionDetailsType
-      ) => (collectionA.name || '').localeCompare(collectionB.name || '');
+        collectionB: CollectionDetailsType,
+      ): number =>
+        (collectionA.name || '').localeCompare(collectionB.name || '');
 
       const collectionTreeEntries = [
         ...otherCollections.sort(sortFunction),
@@ -214,7 +215,7 @@ export default class DatabaseTreeItem
       });
     } catch (e) {
       return Promise.reject(
-        new Error(`An error occurred parsing the database name: ${e}`)
+        new Error(`An error occurred parsing the database name: ${e}`),
       );
     }
 
@@ -223,16 +224,15 @@ export default class DatabaseTreeItem
     }
 
     try {
-      const successfullyDroppedDatabase = await this._dataService.dropDatabase(
-        databaseName
-      );
+      const successfullyDroppedDatabase =
+        await this._dataService.dropDatabase(databaseName);
 
       this.isDropped = successfullyDroppedDatabase;
 
       return successfullyDroppedDatabase;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Drop database failed: ${formatError(error).message}`
+        `Drop database failed: ${formatError(error).message}`,
       );
       return false;
     }

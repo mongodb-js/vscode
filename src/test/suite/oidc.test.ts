@@ -19,7 +19,10 @@ import { waitFor } from './waitFor';
 import { MongoCluster } from 'mongodb-runner';
 import type { MongoClusterOptions } from 'mongodb-runner';
 import { OIDCMockProvider } from '@mongodb-js/oidc-mock-provider';
-import type { OIDCMockProviderConfig } from '@mongodb-js/oidc-mock-provider';
+import type {
+  MaybePromise,
+  OIDCMockProviderConfig,
+} from '@mongodb-js/oidc-mock-provider';
 import { ConnectionString } from 'mongodb-connection-string-url';
 
 import launchMongoShell from '../../commands/launchMongoShell';
@@ -63,7 +66,7 @@ suite('OIDC Tests', function () {
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    extensionContextStub
+    extensionContextStub,
   );
   const testConnectionController = new ConnectionController({
     statusView: new StatusView(extensionContextStub),
@@ -96,10 +99,12 @@ suite('OIDC Tests', function () {
 
     oidcMockProviderEndpointAccesses = {};
     oidcMockProviderConfig = {
-      getTokenPayload(metadata: Parameters<typeof getTokenPayload>[0]) {
+      getTokenPayload(
+        metadata: Parameters<typeof getTokenPayload>[0],
+      ): ReturnType<typeof oidcMockProviderConfig.getTokenPayload> {
         return getTokenPayload(metadata);
       },
-      overrideRequestHandler(url, req, res) {
+      overrideRequestHandler(url, req, res): MaybePromise<void> {
         const { pathname } = new URL(url);
         oidcMockProviderEndpointAccesses[pathname] ??= 0;
         oidcMockProviderEndpointAccesses[pathname]++;
@@ -121,7 +126,7 @@ suite('OIDC Tests', function () {
 
     cluster = await MongoCluster.start({
       ...defaultClusterOptions,
-      version: '7.0.x',
+      version: '8.0.x',
       downloadOptions: { enterprise: true },
       args: [
         '--setParameter',
@@ -153,7 +158,7 @@ suite('OIDC Tests', function () {
     sandbox.stub(testTelemetryService, 'trackNewConnection');
     showInformationMessageStub = sandbox.stub(
       vscode.window,
-      'showInformationMessage'
+      'showInformationMessage',
     );
 
     // This is required to follow through the redirect while establishing
@@ -183,9 +188,9 @@ suite('OIDC Tests', function () {
 
   test('can successfully connect with a connection string', async function () {
     const succesfullyConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      });
     expect(succesfullyConnected).to.be.true;
 
     await launchMongoShell(testConnectionController);
@@ -199,7 +204,7 @@ suite('OIDC Tests', function () {
       expect.fail('Terminal connection string not found');
     }
     const terminalCsWithoutAppName = new ConnectionString(
-      terminalConnectionString
+      terminalConnectionString,
     );
     terminalCsWithoutAppName.searchParams.delete('appname');
 
@@ -217,15 +222,17 @@ suite('OIDC Tests', function () {
       .getConfiguration('mdb')
       .update('persistOIDCTokens', true);
     let tokenFetchCalls = 0;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return DEFAULT_TOKEN_PAYLOAD;
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      }),
     ).to.be.true;
 
     const connectionId = testConnectionController.getActiveConnectionId();
@@ -237,7 +244,7 @@ suite('OIDC Tests', function () {
 
     expect(
       (await testConnectionController.connectWithConnectionId(connectionId))
-        .successfullyConnected
+        .successfullyConnected,
     ).to.be.true;
     expect(tokenFetchCalls).to.equal(1);
   });
@@ -247,15 +254,17 @@ suite('OIDC Tests', function () {
       .getConfiguration('mdb')
       .update('persistOIDCTokens', false);
     let tokenFetchCalls = 0;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return DEFAULT_TOKEN_PAYLOAD;
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      }),
     ).to.be.true;
 
     const connectionId = testConnectionController.getActiveConnectionId();
@@ -267,7 +276,7 @@ suite('OIDC Tests', function () {
 
     expect(
       (await testConnectionController.connectWithConnectionId(connectionId))
-        .successfullyConnected
+        .successfullyConnected,
     ).to.be.true;
     expect(tokenFetchCalls).to.equal(2);
   });
@@ -276,9 +285,9 @@ suite('OIDC Tests', function () {
     const emitter = new EventEmitter();
     const secondConnectionEstablished = once(
       emitter,
-      'secondConnectionEstablished'
+      'secondConnectionEstablished',
     );
-    overrideRequestHandler = async (url) => {
+    overrideRequestHandler = async (url): Promise<void> => {
       if (new URL(url).pathname === '/authorize') {
         emitter.emit('authorizeEndpointCalled');
         // This does effectively mean that our 'fake browser'
@@ -291,17 +300,17 @@ suite('OIDC Tests', function () {
     };
 
     testConnectionController
-      .addNewConnectionStringAndConnect(connectionString)
+      .addNewConnectionStringAndConnect({ connectionString })
       .catch(() => {
         // ignored
       });
 
     await once(emitter, 'authorizeEndpointCalled');
-    overrideRequestHandler = () => {};
+    overrideRequestHandler = (): void => {};
     const connected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      });
     emitter.emit('secondConnectionEstablished');
     expect(connected).to.be.true;
   });
@@ -310,7 +319,7 @@ suite('OIDC Tests', function () {
     showInformationMessageStub.resolves('Confirm');
     const originalReAuthHandler =
       testConnectionController._reauthenticationHandler.bind(
-        testConnectionController
+        testConnectionController,
       );
     let reAuthCalled = false;
     let resolveReAuthPromise: (value?: unknown) => void;
@@ -326,7 +335,9 @@ suite('OIDC Tests', function () {
       });
     let tokenFetchCalls = 0;
     let afterReauth = false;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return {
         ...DEFAULT_TOKEN_PAYLOAD,
@@ -335,9 +346,9 @@ suite('OIDC Tests', function () {
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      }),
     ).to.be.true;
     afterReauth = true;
 
@@ -357,7 +368,7 @@ suite('OIDC Tests', function () {
     showInformationMessageStub.resolves('Declined');
     const originalReAuthHandler =
       testConnectionController._reauthenticationHandler.bind(
-        testConnectionController
+        testConnectionController,
       );
     let reAuthCalled = false;
     let resolveReAuthPromise: (value?: unknown) => void;
@@ -373,7 +384,9 @@ suite('OIDC Tests', function () {
       });
     let tokenFetchCalls = 0;
     let afterReauth = false;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return {
         ...DEFAULT_TOKEN_PAYLOAD,
@@ -382,9 +395,9 @@ suite('OIDC Tests', function () {
     };
 
     const isConnected =
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      );
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      });
 
     expect(isConnected).to.be.true;
 
@@ -412,15 +425,17 @@ suite('OIDC Tests', function () {
 
   test('shares the oidc state also with the playgrounds', async function () {
     let tokenFetchCalls = 0;
-    getTokenPayload = () => {
+    getTokenPayload = (): ReturnType<
+      typeof oidcMockProviderConfig.getTokenPayload
+    > => {
       tokenFetchCalls++;
       return DEFAULT_TOKEN_PAYLOAD;
     };
 
     expect(
-      await testConnectionController.addNewConnectionStringAndConnect(
-        connectionString
-      )
+      await testConnectionController.addNewConnectionStringAndConnect({
+        connectionString,
+      }),
     ).to.be.true;
 
     await vscode.commands.executeCommand('mdb.createPlayground');
@@ -435,7 +450,7 @@ suite('OIDC Tests', function () {
     edit.replace(
       testDocumentUri,
       getFullRange(editor.document),
-      "use('random'); db.randomColl.find({}).count();"
+      "use('random'); db.randomColl.find({}).count();",
     );
     await vscode.workspace.applyEdit(edit);
     await vscode.commands.executeCommand('mdb.runPlayground');

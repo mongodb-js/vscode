@@ -10,7 +10,7 @@ import ConnectionController from '../../../connectionController';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { ExtensionContextStub } from '../stubs';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
 suite('Active Connection CodeLens Provider Test Suite', () => {
@@ -18,7 +18,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    extensionContextStub
+    extensionContextStub,
   );
   const testStatusView = new StatusView(extensionContextStub);
   let testConnectionController: ConnectionController;
@@ -32,7 +32,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       telemetryService: testTelemetryService,
     });
     testCodeLensProvider = new ActiveConnectionCodeLensProvider(
-      testConnectionController
+      testConnectionController,
     );
   });
 
@@ -62,7 +62,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
         expect(codeLens[0].command?.title).to.be.equal(
-          'Disconnected. Click here to connect.'
+          '$(mdb-connection-inactive)Connect',
         );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
@@ -95,7 +95,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         sandbox.replace(
           testConnectionController,
           'getActiveConnectionName',
-          sandbox.fake.returns('fakeName')
+          sandbox.fake.returns('fakeName'),
         );
       });
 
@@ -105,19 +105,19 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getMongoClientConnectionOptions',
           sandbox.fake.returns({
             url: TEST_DATABASE_URI,
-          })
+          }),
         );
         const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
         expect(codeLens[0].command?.title).to.be.equal(
-          'Currently connected to fakeName. Click here to change connection.'
+          '$(mdb-connection-active)Connected to fakeName',
         );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
         expect(codeLens[0].command?.command).to.be.equal(
-          'mdb.changeActiveConnection'
+          'mdb.changeActiveConnection',
         );
       });
 
@@ -127,18 +127,18 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
           'getMongoClientConnectionOptions',
           sandbox.fake.returns({
             url: `${TEST_DATABASE_URI}/fakeDBName`,
-          })
+          }),
         );
         const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
         expect(codeLens).to.be.an('array');
         expect(codeLens.length).to.be.equal(1);
         expect(codeLens[0].command?.title).to.be.equal(
-          'Currently connected to fakeName with default database fakeDBName. Click here to change connection.'
+          '$(mdb-connection-active)Connected to fakeName with default database fakeDBName',
         );
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
         expect(codeLens[0].command?.command).to.be.equal(
-          'mdb.changeActiveConnection'
+          'mdb.changeActiveConnection',
         );
       });
     });
@@ -194,7 +194,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         sandbox.replace(
           testConnectionController,
           'getActiveConnectionName',
-          sandbox.fake.returns('fakeName')
+          sandbox.fake.returns('fakeName'),
         );
       });
 

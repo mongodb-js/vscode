@@ -4,16 +4,16 @@ import { render, screen } from '@testing-library/react';
 import ConnectHelper from '../../../../views/webview-app/connect-helper';
 import Sinon from 'sinon';
 import vscode from '../../../../views/webview-app/vscode-api';
-import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
+import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 describe('ConnectHelper test suite', function () {
   it('when rendered it should show both connection options', function () {
     render(
       <ConnectHelper
-        onClickOpenConnectionForm={() => {
+        onClickOpenConnectionForm={(): void => {
           /* noop */
         }}
-      />
+      />,
     );
     expect(screen.getByLabelText('Connect with connection string')).to.not.be
       .null;
@@ -24,14 +24,14 @@ describe('ConnectHelper test suite', function () {
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(
       <ConnectHelper
-        onClickOpenConnectionForm={() => {
+        onClickOpenConnectionForm={(): void => {
           /* noop */
         }}
-      />
+      />,
     );
     screen.getByLabelText('Connect with connection string').click();
     expect(postMessageStub).to.have.been.calledWithExactly({
-      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
+      command: MessageType.openConnectionStringInput,
     });
   });
 });

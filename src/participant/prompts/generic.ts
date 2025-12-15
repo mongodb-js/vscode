@@ -22,7 +22,7 @@ Rules:
 
   public getEmptyRequestResponse(): string {
     return vscode.l10n.t(
-      'Ask anything about MongoDB, from writing queries to questions about your cluster.'
+      'Ask anything about MongoDB, from writing queries to questions about your cluster.',
     );
   }
 }

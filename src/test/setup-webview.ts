@@ -7,7 +7,7 @@ chai.use(sinonChai);
 import { JSDOM, VirtualConsole } from 'jsdom';
 
 /**
- * NB: tabbable requires special overrides to work in jsdom environments as per
+ * NB: focus-trap and tabbable require special overrides to work in jsdom environments as per
  * documentation
  *
  * @see {@link https://github.com/focus-trap/tabbable?tab=readme-ov-file#testing-in-jsdom}
@@ -26,6 +26,22 @@ Object.assign(tabbable, {
     origTabbable.isFocusable(node, { ...options, displayCheck: 'none' }),
   isTabbable: (node, options) =>
     origTabbable.isTabbable(node, { ...options, displayCheck: 'none' }),
+});
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const focusTrap = require('focus-trap');
+
+Object.assign(focusTrap, {
+  ...focusTrap,
+  createFocusTrap: () => {
+    const trap = {
+      activate: (): unknown => trap,
+      deactivate: (): unknown => trap,
+      pause: (): void => {},
+      unpause: (): void => {},
+    };
+    return trap;
+  },
 });
 
 const virtualConsole = new VirtualConsole();
@@ -64,9 +80,9 @@ Object.assign(global, { TextDecoder, TextEncoder });
 
 (global as any).vscodeFake = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  postMessage: (message: unknown) => {},
+  postMessage: (message: unknown): void => {},
 };
 
-(global as any).acquireVsCodeApi = () => {
+(global as any).acquireVsCodeApi = (): any => {
   return (global as any).vscodeFake;
 };

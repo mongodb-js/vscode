@@ -1,5 +1,176 @@
 # Change Log
 
+## [v1.14.3](https://github.com/mongodb-js/vscode/releases/tag/v1.14.3) - 2025-12-09
+
+## What's Changed
+* chore: Prompt user to connect when running a playground VSCODE-686 by @tculig in https://github.com/mongodb-js/vscode/pull/1185
+
+## New Contributors
+* @dlemstra made their first contribution in https://github.com/mongodb-js/vscode/pull/1158
+* @tculig made their first contribution in https://github.com/mongodb-js/vscode/pull/1169
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.2...v1.14.3
+
+
+## [v1.14.2](https://github.com/mongodb-js/vscode/releases/tag/v1.14.2) - 2025-10-07
+
+## What's Changed
+* fix: snyk will now scan vscode project by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1136
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1148
+* chore: update mongodb-mcp-server to fix yargs-parser problem by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1153
+* chore: disable snyk vuln ticket generation by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1154
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.1...v1.14.2
+
+
+## [v1.14.1](https://github.com/mongodb-js/vscode/releases/tag/v1.14.1) - 2025-10-06
+
+## What's Changed
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1121
+* fix: add hosting_mode to mcp telemetry by @nirinchev in https://github.com/mongodb-js/vscode/pull/1134
+* chore: update mongosh by @gagik in https://github.com/mongodb-js/vscode/pull/1130
+* chore(deps-dev): bump mongodb-runner from 5.9.2 to 5.10.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1139
+* chore(deps-dev): bump @mongodb-js/signing-utils from 0.4.0 to 0.4.3 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1141
+* chore(deps-dev): bump @mongodb-js/oidc-mock-provider from 0.11.3 to 0.11.4 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1140
+* fix: disable MCP auto start and instead request on first load and new connection attempts VSCODE-704 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1132
+* chore(deps): bump mongodb from 6.19.0 to 6.20.0 in the driver group by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1142
+* chore(deps): bump @mongodb-js/mongodb-ts-autocomplete from 0.4.7 to 0.4.8 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1143
+* chore(deps): bump @mongodb-js/connection-info from 0.17.1 to 0.21.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1138
+* chore: bump mongodb-mcp-server to 1.0.2 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1146
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.0...v1.14.1
+
+
+## [v1.14.0](https://github.com/mongodb-js/vscode/releases/tag/v1.14.0) - 2025-09-16
+
+## What's Changed
+* chore: pin tests to run against 1.103.3 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1118
+* feat: integrate MongoDB MCP server with VSCode extension MCP-129 by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1115
+* chore: fix for publish workflow asking npm cache by @himanshusinghs in https://github.com/mongodb-js/vscode/pull/1122
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1068
+* chore(deps): bump the compass group with 2 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1073
+* chore: add codeowners VSCODE-687 by @nirinchev in https://github.com/mongodb-js/vscode/pull/1074
+* chore(deps): bump the compass group with 4 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1075
+* chore(deps-dev): bump mongodb-download-url from 1.5.7 to 1.6.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1076
+* chore(deps-dev): bump mongodb-runner from 5.8.3 to 5.9.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1077
+* chore(deps-dev): bump @mongodb-js/oidc-mock-provider from 0.10.3 to 0.11.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1078
+* chore(deps): bump @mongodb-js/devtools-connect from 3.7.2 to 3.8.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1079
+* chore(deps): bump @mongodb-js/device-id from 0.2.1 to 0.3.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1081
+* chore(deps-dev): bump @mongodb-js/signing-utils from 0.3.9 to 0.4.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1082
+* chore(deps): bump @mongodb-js/shell-bson-parser from 1.2.2 to 1.3.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1083
+* chore(deps): bump mongodb-cloud-info from 2.1.7 to 2.2.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1084
+* chore(deps-dev): bump @mongodb-js/sbom-tools from 0.7.4 to 0.8.1 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1088
+* chore(deps-dev): bump @mongodb-js/oidc-plugin from 1.1.7 to 1.1.8 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1086
+* chore(deps): bump the compass group with 6 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1085
+* chore(deps): bump mongodb-query-parser from 4.3.2 to 4.4.0 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1080
+* chore(deps): bump @mongodb-js/devtools-connect from 3.8.0 to 3.9.1 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1100
+* chore(deps): bump the mongosh group across 1 directory with 13 updates by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1103
+* chore(deps-dev): bump mongodb-download-url from 1.6.0 to 1.6.2 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1102
+* chore(deps): bump mongodb from 6.17.0 to 6.18.0 in the driver group by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1104
+* chore(deps-dev): bump @mongodb-js/mongodb-downloader from 0.4.0 to 0.4.2 by @dependabot[bot] in https://github.com/mongodb-js/vscode/pull/1096
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.13.3...v1.14.0
+
+
+## [v1.13.3](https://github.com/mongodb-js/vscode/releases/tag/v1.13.3) - 2025-06-09
+
+## What's Changed
+* chore: allow opting out of the welcome screen. This is mostly useful when including the extension in a preconfigured environment (e.g. Github Codespaces) where displaying the welcome screen is undesirable. VSCODE-697 by @nirinchev in https://github.com/mongodb-js/vscode/pull/1053
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.13.2...v1.13.3
+
+
+## [v1.13.2](https://github.com/mongodb-js/vscode/releases/tag/v1.13.2) - 2025-05-07
+
+* chore(deps): bump the compass group with 3 updates by @dependabot in https://github.com/mongodb-js/vscode/pull/1035
+* chore(deps): bump @mongodb-js/connection-info from 0.11.9 to 0.12.0 by @dependabot in https://github.com/mongodb-js/vscode/pull/1039
+* chore: move device_id to common properties by @gagik in https://github.com/mongodb-js/vscode/pull/1038
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.13.1...v1.13.2
+
+
+## [v1.13.1](https://github.com/mongodb-js/vscode/releases/tag/v1.13.1) - 2025-05-06
+
+## What's Changed
+* chore(deps): bump mongodb-schema from 12.5.2 to 12.6.2 by @dependabot in https://github.com/mongodb-js/vscode/pull/1006
+* chore(deps): bump the compass group with 6 updates by @dependabot in https://github.com/mongodb-js/vscode/pull/1007
+* chore(deps): bump the mongosh group with 10 updates by @dependabot in https://github.com/mongodb-js/vscode/pull/1009
+* chore(deps-dev): bump @mongodb-js/oidc-plugin from 1.1.6 to 1.1.7 by @dependabot in https://github.com/mongodb-js/vscode/pull/1032
+* chore(deps): bump the mongosh group with 7 updates by @dependabot in https://github.com/mongodb-js/vscode/pull/1033
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.13.0...v1.13.1
+
+
+## [v1.13.0](https://github.com/mongodb-js/vscode/releases/tag/v1.13.0) - 2025-04-04
+
+## What's Changed
+* chore(telemetry): append user anonymousId & connectionId to appName passed to server COMPASS-8591 by @gagik in https://github.com/mongodb-js/vscode/pull/982
+* feat: handle deep links to commands VSCODE-683 VSCODE-684 VSCODE-685 by @nirinchev in https://github.com/mongodb-js/vscode/pull/995
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.12.1...v1.13.0
+
+
+## [v1.12.1](https://github.com/mongodb-js/vscode/releases/tag/v1.12.1) - 2025-03-07
+
+## What's Changed
+* chore(deps): bump remaining driver, shell, compass deps VSCODE-680 by @addaleax in https://github.com/mongodb-js/vscode/pull/981
+* fix: hide preset connections from the Remove Connection command VSCODE-674 by @gagik in https://github.com/mongodb-js/vscode/pull/969
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.12.0...v1.12.1
+
+
+## [v1.12.0](https://github.com/mongodb-js/vscode/releases/tag/v1.12.0) - 2025-01-30
+
+## What's Changed
+* feat(tree-explorer): add ability to set preset connections in settings.json VSCODE-665 by @gagik in https://github.com/mongodb-js/vscode/pull/909
+* feat(participant): add disambiguation examples to answer MongoDB queries in Copilot by @GaurabAryal in https://github.com/mongodb-js/vscode/pull/911
+* fix(playground): fix playground error when returning a function declaration VSCODE-669 by @nirinchev in https://github.com/mongodb-js/vscode/pull/925
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.11.0...v1.12.0
+
+
+## [v1.11.0](https://github.com/mongodb-js/vscode/releases/tag/v1.11.0) - 2024-12-11
+
+## What's Changed
+* feat(playground): add Generate Query with Copilot code lens in playgrounds VSCODE-650 by @gagik in https://github.com/mongodb-js/vscode/pull/881
+* feat(copilot): optimize namespace for export to playground VSCODE-654 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/887
+* feat(tree-explorer): add buttons to ask Copilot and create playgrounds from tree view VSCODE-651 by @gagik in https://github.com/mongodb-js/vscode/pull/890
+* feat(participant): filter message history when it goes over maxInputTokens VSCODE-653 by @gagik in https://github.com/mongodb-js/vscode/pull/894
+* feat(participant): remove in-app notification for participant VSCODE-662 by @gagik in https://github.com/mongodb-js/vscode/pull/899
+* fix(connect): can not select files on the connection form VSCODE-658 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/898
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.10.0...v1.11.0
+
+
+## [v1.10.0](https://github.com/mongodb-js/vscode/releases/tag/v1.10.0) - 2024-11-25
+
+## What's Changed
+* feat(participant): export to a playground VSCODE-574 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/832
+* fix: filter long and invalid prompts in future messages VSCODE-614 by @gagik in https://github.com/mongodb-js/vscode/pull/861
+* feat(participant): use onChatParticipant for the activation event VSCODE-630 by @gagik in https://github.com/mongodb-js/vscode/pull/869
+* feat(chat): automatically pick the database & collection if there exists only one VSCODE-610 by @gagik in https://github.com/mongodb-js/vscode/pull/863
+* chore: add analytics url params to README VSCODE-637 by @Anemy in https://github.com/mongodb-js/vscode/pull/868
+* feat(chat): show errors if there are issues when getting databases & collections to pick VSCODE-610 by @gagik in https://github.com/mongodb-js/vscode/pull/864
+* feat(chat): filter namespace messages from history if it exists in metadata VSCODE-611 by @gagik in https://github.com/mongodb-js/vscode/pull/866
+* feat(chat): prompt to connect when a disconnected user tries to run code from participant VSCODE-618 by @gagik in https://github.com/mongodb-js/vscode/pull/872
+* feat(chat): include history from messages to docs chatbot VSCODE-632 by @gagik in https://github.com/mongodb-js/vscode/pull/871
+* feat(chat): update schema assistant prompt to handle empty and short prompts better VSCODE-648 by @gagik in https://github.com/mongodb-js/vscode/pull/874
+* feat(copilot): export to Language with Copilot VSCODE-573 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/870
+* feat(copilot): optimize export with copilot experience VSCODE-655 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/880
+* feat(participant): in-app notification to introduce users to copilot extension VSCODE-633 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/875
+* fix: show export to language icon only when copilot is active VSCODE-655 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/882
+
+## New Contributors
+* @gagik made their first contribution in https://github.com/mongodb-js/vscode/pull/862
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.9.3...v1.10.0
+
+
 ## [v1.9.3](https://github.com/mongodb-js/vscode/releases/tag/v1.9.3) - 2024-10-24
 
 ## What's Changed
@@ -410,5 +581,185 @@ To dig deeper please feel free to follow the links mentioned below:
 
 - Fixed showing an error when large files are shown in vscode which have tokenization disabled (VSCODE-250, #290)
 - Fixed showing recently dropped collections and databases in the explorer (VSCODE-244, #288)
+
+
+## [v0.5.0](https://github.com/mongodb-js/vscode/releases/tag/v0.5.0) - 2021-03-10
+
+### Added
+
+- Add documentation details to playground auto completion items (#267)
+
+### Fixed
+
+- Fix launching mongodb shell with ssl in bash (VSCODE-227, #270)
+
+
+## [v0.4.2](https://github.com/mongodb-js/vscode/releases/tag/v0.4.2) - 2021-02-17
+
+### Added
+
+- Add icon to refresh collection documents list (#264)
+
+### Changed
+
+- Updated the Atlas link to have https (#259)
+
+
+## [v0.4.1](https://github.com/mongodb-js/vscode/releases/tag/v0.4.1) - 2021-02-10
+
+### Changed
+
+- Updated the Atlas link in the overview page (#250)
+
+### Fixed
+
+- Fixed an issue with playground connectivity not defaulting the `directConnection` option to true (VSCODE-234, #255)
+- Fixed an issue around showing an error while editing a playground file without an active MongoDB connection (VSCODE-231, #251)
+
+
+## [v0.4.0](https://github.com/mongodb-js/vscode/releases/tag/v0.4.0) - 2021-01-25
+
+### Added
+
+- Added the ability to edit documents opened from the explorer panel (VSCODE-219, #226, #239)
+- Added the ability to open and edit documents from playground results (VSCODE-222, #232)
+- Added icons for connect and playground panel actions (VSCODE-179, #240)
+- Added the ability to specify multiple hosts and ports in the connection form (VSCODE-208, #224)
+- Added a feature where we show the overview page when the extension is first installed (VSCODE-167, #225)
+
+### Changed
+
+- Changed how we generate default connection names for new connections to better represent multiple hosts and ports, and srv records (VSCODE-221, #227)
+- Changed how we show connectivity errors with the connection form (VSCODE-196, #217)
+
+### Fixed
+
+- Fix opening documents with a binary `_id` from the explorer panel (VSCODE-118, #220)
+- Fixed playground log output panel to not display when a playground is open and when a playground is run and there was no log output (#234)
+- Fixed code lenses for partial playground executions sometimes being missing (VSCODE-226, #243)
+
+
+## [v0.3.0](https://github.com/mongodb-js/vscode/releases/tag/v0.3.0) - 2020-11-24
+
+### Added
+
+- Added a resources panel to the overview page (VSCODE-168, #208)
+- Added a button to change currently connected connection name in overview page (VSCODE-189, #191)
+
+### Changed
+
+- Moved playground output to the editor, logs remain in the output section (VSCODE-177, #198)
+- Playground results are now displayed in EJSON or text (VSCODE-203, #206)
+- Connect commands route to overview page instead of directly to connection form (VSCODE-170, #210)
+- Connection form shows in modal in overview page (VSCODE-173, #190)
+- Index creation template now uses `createIndex` instead of `ensureIndex` (#205)
+
+### Fixed
+
+- Fix x509 username being required in connection string building and parsing (VSCODE-202, #203)
+- Fix viewing documents Binary UUID _ids (VSCODE-118, #213)
+- Fix opening mongodb shell on windows with git bash (VSCODE-200, #201)
+- Fix opening mongodb shell on windows with an ssl file with a space in it (#201)
+- Fix password encoding of connection strings when copying connection string and opening in mongodb shell (VSCODE-198, #207)
+
+### Removed
+
+- Removed custom font in overview page (#192)
+- Removed sql pipeline stage operator (#211)
+
+
+## [v0.2.1](https://github.com/mongodb-js/vscode/releases/tag/0.2.1) - 2020-10-20
+
+### Added
+
+- Added the ability to use print() and console.log() in playgrounds [#184](https://github.com/mongodb-js/vscode/pull/184)
+- Added an overview page (more to come on this in future versions) [#178](https://github.com/mongodb-js/vscode/pull/178)
+- Added a tooltip to fields in a collection's schema to show types found in the sampling for that field [#179](https://github.com/mongodb-js/vscode/pull/179)
+
+
+## [v0.2.0](https://github.com/mongodb-js/vscode/releases/tag/v0.2.0) - 2020-10-01
+
+### Added
+- Added a Playgrounds panel that displays `.mongodb` playground files in the current VSCode workspace
+- Added a setting to configure which folders and files are excluded from the playgrounds panel file searching
+- Added a help and resources panel to the explorer with links to documentation and feedback portals
+- Added a button to the indexes folder in the tree view which creates a playground prefilled with an index creation script
+### Changed
+- Updated our mongosh dependency to 0.4.2 to bring more functionality to playgrounds
+### Fixed
+- Fixed indexes expanded state caching in the connection explorer panel tree view
+
+
+## [v0.1.1](https://github.com/mongodb-js/vscode/releases/tag/v0.1.1) - 2020-08-10
+
+### Added
+
+- Added a search for documents playground shortcut in the tree explorer view
+- Added a copy field name right click action in a collection's schema in the tree explorer view
+- Added a document count for a collection in the tree view (with hover tooltip for the full count)
+- Added the ability to change the current connection when in an open playground file by using the codelens on the first line of the playground
+
+### Changed
+
+- Allow connecting to a new connection while already connecting to another connection
+- Allow removing a new connection while it is connecting
+
+
+## [v0.1.0](https://github.com/mongodb-js/vscode/releases/tag/v0.1.0) - 2020-07-16
+
+### Added
+
+- Added the ability to run partial playgrounds
+- Added indexes to the explorer tree view
+
+### Fixed
+
+- Fixed an issue with the launch shell command in powershell
+- Fixed an issue with the tree explorer freezing when double clicking an open schema
+
+
+## [v0.0.4](https://github.com/mongodb-js/vscode/releases/tag/v0.0.4) - 2020-06-17
+
+### Added
+
+- Added `Launch MongoDB Shell` right click action for the active connection in the tree view
+
+### Fixed
+
+- Fixed an issue with connecting to ssl with the launch shell command
+- Fixed an issue with the launch shell command on windows
+- Fixed playgrounds not being able to run in WSL environments
+- Updated our connection model dependency to pull in a fix for connection strings with `readPreferenceTags`
+
+### Changed
+
+- Connections in the tree view are now alphabetically sorted
+
+
+## [v0.0.3](https://github.com/mongodb-js/vscode/releases/tag/v0.0.3) - 2020-05-26
+
+### Added
+
+- Added `require` support in playgrounds
+
+### Fixed
+
+- Fixed an issue with file pathing on SSL and SSH connections on windows
+- Fixed an issue with connecting to mongodb through the shell while using SSH
+- Fixed a connectivity issue with playgrounds and SSH connections
+- Fixed an issue with having a babel config in a workspace root
+
+
+## [v0.0.2](https://github.com/mongodb-js/vscode/releases/tag/v0.0.2) - 2020-05-13
+
+This is the marketplace preview release of MongoDB for VS Code.
+
+* MongoDB data explorer
+* MongoDB Playgrounds
+* Quick access to the MongoDB Shell
+
+Take a look at [README.md](https://github.com/mongodb-js/vscode/blob/master/README.md) for an overview of the features.
+
+This release can be found on the VS Code marketplace: https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode
 
 

@@ -24,8 +24,8 @@ import { ExtensionContextStub } from '../stubs';
 const { contributes } = require('../../../../package.json');
 
 function getTestSchemaTreeItem(
-  options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>
-) {
+  options?: Partial<ConstructorParameters<typeof SchemaTreeItem>[0]>,
+): SchemaTreeItem {
   return new SchemaTreeItem({
     databaseName: TEST_DB_NAME,
     collectionName: 'cheesePizza',
@@ -59,7 +59,7 @@ suite('SchemaTreeItem Test Suite', function () {
 
     assert(
       schemaRegisteredCommandInPackageJson,
-      'Expected schema tree item to be registered with a command in package json'
+      'Expected schema tree item to be registered with a command in package json',
     );
   });
 
@@ -68,7 +68,7 @@ suite('SchemaTreeItem Test Suite', function () {
 
     assert(
       !testSchemaTreeItem.hasClickedShowMoreFields,
-      'Expected "hasClickedShowMoreFields" to be false by default'
+      'Expected "hasClickedShowMoreFields" to be false by default',
     );
     testSchemaTreeItem.cacheIsUpToDate = true;
 
@@ -76,11 +76,11 @@ suite('SchemaTreeItem Test Suite', function () {
 
     assert(
       !testSchemaTreeItem.cacheIsUpToDate,
-      'Expected `cacheIsUpToDate` to be reset to false'
+      'Expected `cacheIsUpToDate` to be reset to false',
     );
     assert(
       testSchemaTreeItem.hasClickedShowMoreFields,
-      'Expected "hasClickedShowMoreFields" to be set to true'
+      'Expected "hasClickedShowMoreFields" to be set to true',
     );
   });
 
@@ -101,7 +101,7 @@ suite('SchemaTreeItem Test Suite', function () {
 
     const showInformationMessageStub = sandbox.stub(
       vscode.window,
-      'showInformationMessage'
+      'showInformationMessage',
     );
 
     const schemaFields = await testSchemaTreeItem.getChildren();
@@ -109,7 +109,7 @@ suite('SchemaTreeItem Test Suite', function () {
     assert.strictEqual(schemaFields.length, 0);
     assert.strictEqual(
       showInformationMessageStub.firstCall.args[0],
-      expectedMessage
+      expectedMessage,
     );
   });
 
@@ -137,11 +137,11 @@ suite('SchemaTreeItem Test Suite', function () {
       amountOfFieldsExpected + 1,
       `Expected ${amountOfFieldsExpected + 1} documents to be returned, found ${
         schemaFields.length
-      }`
+      }`,
     );
     assert.strictEqual(
       schemaFields[amountOfFieldsExpected].label,
-      'Show more fields...'
+      'Show more fields...',
     );
   });
 
@@ -188,11 +188,11 @@ suite('SchemaTreeItem Test Suite', function () {
         "Unable to parse schema: Cannot use 'in' operator to search for 'Symbol(Symbol.iterator)' in invalid schema to parse";
 
       assert.strictEqual(
-        (<any>error).message,
+        (error as Error).message,
         expectedMessage,
         `Expected error message to be "${expectedMessage}" found "${
-          (<any>error).message
-        }"`
+          (error as Error).message
+        }"`,
       );
     }
   });
@@ -284,7 +284,7 @@ suite('SchemaTreeItem Test Suite', function () {
       assert.strictEqual(schemaFields.length, 3);
       assert(
         fieldIsExpandable(schemaFields[1].field),
-        'Expected field to have expandable state'
+        'Expected field to have expandable state',
       );
       assert.strictEqual(fieldIsExpandable(schemaFields[2].field), false);
     });
@@ -296,12 +296,12 @@ suite('SchemaTreeItem Test Suite', function () {
 
     const schemaIconPath = testSchemaTreeItem.iconPath;
     assert(
-      schemaIconPath.light.includes('schema.svg'),
-      'Expected icon path to point to an svg by the name "schema" with a light mode'
+      schemaIconPath.light.toString().includes('schema.svg'),
+      'Expected icon path to point to an svg by the name "schema" with a light mode',
     );
     assert(
-      schemaIconPath.dark.includes('schema.svg'),
-      'Expected icon path to point to an svg by the name "schema" with a light mode'
+      schemaIconPath.dark.toString().includes('schema.svg'),
+      'Expected icon path to point to an svg by the name "schema" with a light mode',
     );
   });
 });

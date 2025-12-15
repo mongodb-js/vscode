@@ -3,7 +3,6 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
-
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, {
@@ -17,7 +16,7 @@ import {
   SecretStorageLocation,
   StorageLocation,
 } from '../../../storage/storageController';
-import TelemetryService from '../../../telemetry/telemetryService';
+import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, mockTextEditor } from '../stubs';
 
@@ -37,7 +36,7 @@ suite('Collection Documents Provider Test Suite', () => {
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
     testStorageController,
-    extensionContextStub
+    extensionContextStub,
   );
   const sandbox = sinon.createSandbox();
   let testConnectionController: ConnectionController;
@@ -59,7 +58,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     testQueryStore = new CollectionDocumentsOperationsStore();
     testCodeLensProvider = new EditDocumentCodeLensProvider(
-      testConnectionController
+      testConnectionController,
     );
     testCollectionViewProvider = new CollectionDocumentsProvider({
       context: extensionContextStub,
@@ -70,7 +69,7 @@ suite('Collection Documents Provider Test Suite', () => {
     });
     sandbox.stub(
       testConnectionController._telemetryService,
-      'trackNewConnection'
+      'trackNewConnection',
     );
   });
 
@@ -91,7 +90,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`
+      `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`,
     );
 
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
@@ -101,12 +100,12 @@ suite('Collection Documents Provider Test Suite', () => {
       await testCollectionViewProvider.provideTextDocumentContent(uri);
     assert.strictEqual(
       findStub.firstCall.args[0],
-      'my-favorite-fruit-is.pineapple'
+      'my-favorite-fruit-is.pineapple',
     );
     assert.strictEqual(findStub.firstCall.args[2]?.limit, 10);
     assert(
       documents.includes('Declaration of Independence'),
-      `Expected provideTextDocumentContent to return documents string, found ${documents}`
+      `Expected provideTextDocumentContent to return documents string, found ${documents}`,
     );
   });
 
@@ -134,7 +133,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`
+      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`,
     );
 
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
@@ -145,7 +144,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert.strictEqual(
       documents,
       mockDocumentsAsJsonString,
-      `Expected provideTextDocumentContent to return ejson stringified string, found ${documents}`
+      `Expected provideTextDocumentContent to return ejson stringified string, found ${documents}`,
     );
   });
 
@@ -165,16 +164,18 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
 
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`
+      `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`,
     );
 
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
     sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
-    assert(
-      testQueryStore.operations[operationId].hasMoreDocumentsToShow === false,
-      'Expected not to have more documents to show.'
+
+    assert.strictEqual(
+      testQueryStore.operations[operationId].hasMoreDocumentsToShow,
+      false,
+      'Expected not to have more documents to show.',
     );
 
     // Reset and test inverse.
@@ -196,13 +197,13 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}`
+      `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}`,
     );
 
     const showMessageStub = sandbox.stub(testStatusView, 'showMessage');
     const hideMessageStub = sandbox.stub(testStatusView, 'hideMessage');
 
-    mockActiveDataService.find = () => {
+    mockActiveDataService.find = (): Promise<{ field: string }[]> => {
       assert(showMessageStub.called);
       assert(!hideMessageStub.called);
       assert(showMessageStub.firstCall.args[0] === 'Fetching documents...');
@@ -229,7 +230,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
-      fakeGetActiveDataService
+      fakeGetActiveDataService,
     );
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
     sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
@@ -239,7 +240,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveConnectionId',
-      fakeActiveConnectionId
+      fakeActiveConnectionId,
     );
 
     const firstCollectionOperationId =
@@ -251,7 +252,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${firstCollectionOperationId}`,
     ].join('&');
     const firstCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`,
     );
 
     const activeTextEditor = mockTextEditor;
@@ -259,11 +260,11 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
-      () => activeTextEditor
+      () => activeTextEditor,
     );
 
     await testCollectionViewProvider.provideTextDocumentContent(
-      firstCollectionUri
+      firstCollectionUri,
     );
 
     let codeLenses = testCodeLensProvider.provideCodeLenses();
@@ -276,7 +277,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     assert(
       firstCodeLensRange.start.line === firstExpectedStartLine,
-      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`
+      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`,
     );
     assert(codeLenses[0].command?.title === 'Edit Document');
 
@@ -286,18 +287,18 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
-        firstCollectionNamespace
+        firstCollectionNamespace,
     );
     assert(
-      firstCollectionFirstCommandArguments[0].connectionId === connectionId
+      firstCollectionFirstCommandArguments[0].connectionId === connectionId,
     );
     assert(
       firstCollectionFirstCommandArguments[0].documentId ===
-        '5ea8745ee4811fafe8b65ecb'
+        '5ea8745ee4811fafe8b65ecb',
     );
 
     let codeLensesInfo = testCodeLensProvider._codeLensesInfo;
@@ -309,7 +310,8 @@ suite('Collection Documents Provider Test Suite', () => {
 
     assert(!!firstCollectionCodeLensesInfo);
     assert(
-      firstCollectionCodeLensesInfo[0].documentId === '5ea8745ee4811fafe8b65ecb'
+      firstCollectionCodeLensesInfo[0].documentId ===
+        '5ea8745ee4811fafe8b65ecb',
     );
 
     // Connect to another connection.
@@ -322,18 +324,18 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${secondCollectionOperationId}`,
     ].join('&');
     const secondCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`,
     );
 
     // Fake a new response from find.
     documents.length = 0;
     documents.push(
       { _id: '25', name: 'some name', price: 1000 },
-      { _id: '26', name: 'another name', price: 500 }
+      { _id: '26', name: 'another name', price: 500 },
     );
 
     await testCollectionViewProvider.provideTextDocumentContent(
-      secondCollectionUri
+      secondCollectionUri,
     );
     codeLenses = testCodeLensProvider.provideCodeLenses();
 
@@ -345,7 +347,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     assert(
       firstCodeLensRange.start.line === firstExpectedStartLine,
-      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`
+      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`,
     );
     assert(codeLenses[0].command?.title === 'Edit Document');
 
@@ -355,18 +357,18 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
-        firstCollectionNamespace
+        firstCollectionNamespace,
     );
     assert(
-      secondCollectionFirstCommandArguments[0].connectionId === connectionId
+      secondCollectionFirstCommandArguments[0].connectionId === connectionId,
     );
     assert(
       secondCollectionFirstCommandArguments[0].documentId ===
-        '5ea8745ee4811fafe8b65ecb'
+        '5ea8745ee4811fafe8b65ecb',
     );
 
     codeLensesInfo = testCodeLensProvider._codeLensesInfo;
@@ -377,7 +379,8 @@ suite('Collection Documents Provider Test Suite', () => {
       testCodeLensProvider._codeLensesInfo[firstCollectionUri.toString()];
 
     assert(
-      firstCollectionCodeLensesInfo[0].documentId === '5ea8745ee4811fafe8b65ecb'
+      firstCollectionCodeLensesInfo[0].documentId ===
+        '5ea8745ee4811fafe8b65ecb',
     );
 
     const secondCollectionCodeLensesInfo =
@@ -402,7 +405,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.replace(
       testCollectionViewProvider._connectionController,
       'getActiveDataService',
-      fakeGetActiveDataService
+      fakeGetActiveDataService,
     );
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
     sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
@@ -415,14 +418,14 @@ suite('Collection Documents Provider Test Suite', () => {
         id: firstConnectionId,
         name: 'localhost',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
       [secondConnectionId]: {
         id: secondConnectionId,
         name: 'compass',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
@@ -438,7 +441,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${firstCollectionOperationId}`,
     ].join('&');
     const firstCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`,
     );
 
     const activeTextEditor = mockTextEditor;
@@ -446,11 +449,11 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.replaceGetter(
       vscode.window,
       'activeTextEditor',
-      () => activeTextEditor
+      () => activeTextEditor,
     );
 
     await testCollectionViewProvider.provideTextDocumentContent(
-      firstCollectionUri
+      firstCollectionUri,
     );
 
     let codeLenses = testCodeLensProvider.provideCodeLenses();
@@ -463,7 +466,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     assert(
       firstCodeLensRange.start.line === firstExpectedStartLine,
-      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`
+      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`,
     );
     assert(codeLenses[0].command?.title === 'Edit Document');
 
@@ -473,18 +476,19 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
-        firstCollectionNamespace
+        firstCollectionNamespace,
     );
     assert(
-      firstCollectionFirstCommandArguments[0].connectionId === firstConnectionId
+      firstCollectionFirstCommandArguments[0].connectionId ===
+        firstConnectionId,
     );
     assert(
       firstCollectionFirstCommandArguments[0].documentId ===
-        '5ea8745ee4811fafe8b65ecb'
+        '5ea8745ee4811fafe8b65ecb',
     );
 
     let codeLensesInfo = testCodeLensProvider._codeLensesInfo;
@@ -496,7 +500,8 @@ suite('Collection Documents Provider Test Suite', () => {
 
     assert(!!firstCollectionCodeLensesInfo);
     assert(
-      firstCollectionCodeLensesInfo[0].documentId === '5ea8745ee4811fafe8b65ecb'
+      firstCollectionCodeLensesInfo[0].documentId ===
+        '5ea8745ee4811fafe8b65ecb',
     );
 
     // Connect to another connection.
@@ -511,7 +516,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${secondCollectionOperationId}`,
     ].join('&');
     const secondCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`
+      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`,
     );
 
     mockTextEditor.document.uri = secondCollectionUri;
@@ -520,11 +525,11 @@ suite('Collection Documents Provider Test Suite', () => {
     documents.length = 0;
     documents.push(
       { _id: '1234', location: 'schlossstraße', district: 'steglitz' },
-      { _id: '5678', location: 'bergmannstrasse', district: 'kreuzberg' }
+      { _id: '5678', location: 'bergmannstrasse', district: 'kreuzberg' },
     );
 
     await testCollectionViewProvider.provideTextDocumentContent(
-      secondCollectionUri
+      secondCollectionUri,
     );
     codeLenses = testCodeLensProvider.provideCodeLenses();
 
@@ -536,7 +541,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     assert(
       firstCodeLensRange.start.line === firstExpectedStartLine,
-      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`
+      `Expected a codeLens position to be at line ${firstExpectedStartLine}, found ${firstCodeLensRange.start.line}`,
     );
     assert(codeLenses[0].command?.title === 'Edit Document');
 
@@ -546,15 +551,15 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
-        secondCollectionNamespace
+        secondCollectionNamespace,
     );
     assert(
       secondCollectionFirstCommandArguments[0].connectionId ===
-        secondConnectionId
+        secondConnectionId,
     );
     assert(secondCollectionFirstCommandArguments[0].documentId === '1234');
 
@@ -563,7 +568,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     assert(
       secondCodeLensRange.start.line === secondExpectedStartLine,
-      `Expected a codeLens position to be at line ${secondExpectedStartLine}, found ${secondCodeLensRange.start.line}`
+      `Expected a codeLens position to be at line ${secondExpectedStartLine}, found ${secondCodeLensRange.start.line}`,
     );
     assert(codeLenses[0].command?.title === 'Edit Document');
 
@@ -581,7 +586,8 @@ suite('Collection Documents Provider Test Suite', () => {
       testCodeLensProvider._codeLensesInfo[firstCollectionUri.toString()];
 
     assert(
-      firstCollectionCodeLensesInfo[0].documentId === '5ea8745ee4811fafe8b65ecb'
+      firstCollectionCodeLensesInfo[0].documentId ===
+        '5ea8745ee4811fafe8b65ecb',
     );
 
     const secondCollectionCodeLensesInfo =

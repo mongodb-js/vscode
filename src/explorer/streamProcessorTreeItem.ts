@@ -6,13 +6,13 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'stream-processor.svg'),
-    dark: path.join(DARK, 'stream-processor.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'stream-processor.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'stream-processor.svg')),
   };
 }
 
@@ -45,7 +45,7 @@ export default class StreamProcessorTreeItem
       streamProcessorName,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this._dataService = dataService;
@@ -67,9 +67,9 @@ export default class StreamProcessorTreeItem
         : [
             new vscode.TreeItem(
               `State: ${this.streamProcessorState}`,
-              vscode.TreeItemCollapsibleState.None
+              vscode.TreeItemCollapsibleState.None,
             ),
-          ]
+          ],
     );
   }
 
@@ -91,7 +91,7 @@ export default class StreamProcessorTreeItem
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Start stream processor failed: ${formatError(error).message}`
+        `Start stream processor failed: ${formatError(error).message}`,
       );
       return false;
     }
@@ -104,7 +104,7 @@ export default class StreamProcessorTreeItem
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Stop stream processor failed: ${formatError(error).message}`
+        `Stop stream processor failed: ${formatError(error).message}`,
       );
       return false;
     }
@@ -127,7 +127,7 @@ export default class StreamProcessorTreeItem
       });
     } catch (e) {
       return Promise.reject(
-        new Error(`An error occurred parsing the stream processor name: ${e}`)
+        new Error(`An error occurred parsing the stream processor name: ${e}`),
       );
     }
 
@@ -141,7 +141,7 @@ export default class StreamProcessorTreeItem
       this.isDropped = true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Drop stream processor failed: ${formatError(error).message}`
+        `Drop stream processor failed: ${formatError(error).message}`,
       );
     }
     return this.isDropped;

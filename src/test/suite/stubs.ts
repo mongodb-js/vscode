@@ -175,7 +175,7 @@ class DataServiceStub {
 
   listDatabases(): Promise<any> {
     return Promise.resolve(
-      mockDatabaseNames.map((dbName) => ({ name: dbName }))
+      mockDatabaseNames.map((dbName) => ({ name: dbName })),
     );
   }
 
@@ -186,7 +186,7 @@ class DataServiceStub {
   find(
     namespace: string,
     filter: Filter<Document>,
-    options: FindOptions
+    options: FindOptions,
   ): Promise<Document[]> {
     return Promise.resolve(mockDocuments.slice(0, options.limit));
   }
@@ -233,11 +233,12 @@ const mockVSCodeTextDocument = {
   validateRange: (/* range: vscode.Range */): vscode.Range => mockRange,
   validatePosition: (/* position: vscode.Position */): vscode.Position =>
     mockPosition,
+  encoding: 'utf8',
 };
 
 const mockSelection = new vscode.Selection(
   new vscode.Position(0, 0),
-  new vscode.Position(0, 0)
+  new vscode.Position(0, 0),
 );
 
 const mockTextEditor = {
@@ -271,7 +272,7 @@ class LanguageServerControllerStub {
 
   constructor(
     context: ExtensionContextStub,
-    storageController: StorageController
+    storageController: StorageController,
   ) {
     this._context = context;
     this._storageController = storageController;
@@ -282,7 +283,7 @@ class LanguageServerControllerStub {
       '..',
       '..',
       'dist',
-      'languageServer.js'
+      'languageServer.js',
     );
     const debugOptions = { execArgv: ['--nolazy', '--inspect=6012'] };
 
@@ -327,7 +328,7 @@ class LanguageServerControllerStub {
       'test',
       'Test',
       serverOptions,
-      clientOptions
+      clientOptions,
     );
   }
 

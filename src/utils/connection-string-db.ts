@@ -1,7 +1,7 @@
 import ConnectionString from 'mongodb-connection-string-url';
 
 export const getDBFromConnectionString = (
-  connectionString: string
+  connectionString: string,
 ): string | null => {
   try {
     const connectionStringOb = new ConnectionString(connectionString);

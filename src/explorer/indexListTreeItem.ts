@@ -11,13 +11,13 @@ import type TreeItemParent from './treeItemParentInterface';
 
 const ITEM_LABEL = 'Indexes';
 
-function getIconPath(): { light: string; dark: string } {
+function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
   return {
-    light: path.join(LIGHT, 'indexes.svg'),
-    dark: path.join(DARK, 'indexes.svg'),
+    light: vscode.Uri.file(path.join(LIGHT, 'indexes.svg')),
+    dark: vscode.Uri.file(path.join(DARK, 'indexes.svg')),
   };
 }
 
@@ -56,7 +56,7 @@ export default class IndexListTreeItem
       ITEM_LABEL,
       isExpanded
         ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.Collapsed,
     );
 
     this.collectionName = collectionName;
@@ -91,7 +91,7 @@ export default class IndexListTreeItem
             index: cachedItem.index,
             namespace: cachedItem.namespace,
             isExpanded: cachedItem.isExpanded,
-          })
+          }),
         );
       });
 
@@ -106,11 +106,11 @@ export default class IndexListTreeItem
     try {
       indexes = await this._dataService.indexes(
         this._namespace,
-        {} // No options.
+        {}, // No options.
       );
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Fetch indexes failed: ${formatError(error).message}`
+        `Fetch indexes failed: ${formatError(error).message}`,
       );
       return [];
     }
@@ -123,7 +123,7 @@ export default class IndexListTreeItem
             namespace: this._namespace,
             isExpanded: false,
           });
-        })
+        }),
       ) as IndexTreeItem[];
     } else {
       this._childrenCache = [];

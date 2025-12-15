@@ -16,7 +16,7 @@ import type {
   ShellEvaluateResult,
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
-import { ServerCommands } from './serverCommands';
+import { ServerCommand } from './serverCommands';
 
 const log = createLogger('language server controller');
 
@@ -39,7 +39,7 @@ export default class LanguageServerController {
     const languageServerPath = path.join(
       context.extensionPath,
       'dist',
-      'languageServer.js'
+      'languageServer.js',
     );
 
     // The debug options for the server
@@ -92,7 +92,7 @@ export default class LanguageServerController {
       languageServerId,
       languageServerName,
       serverOptions,
-      clientOptions
+      clientOptions,
     );
   }
 
@@ -111,7 +111,7 @@ export default class LanguageServerController {
     // If the connection to server got closed, server will restart,
     // but we also need to re-send default configurations
     // https://jira.mongodb.org/browse/VSCODE-448
-    this._client.onNotification(ServerCommands.MONGODB_SERVICE_CREATED, () => {
+    this._client.onNotification(ServerCommand.mongodbServiceCreated, () => {
       const msg = this._currentConnectionId
         ? 'MongoDBService restored from an internal error'
         : 'MongoDBService initialized';
@@ -121,9 +121,9 @@ export default class LanguageServerController {
           connectionId: this._currentConnectionId,
           hasConnectionString: !!this._currentConnectionString,
           hasConnectionOptions: !!this._currentConnectionOptions,
-        })}`
+        })}`,
       );
-      void this._client.sendRequest(ServerCommands.INITIALIZE_MONGODB_SERVICE, {
+      void this._client.sendRequest(ServerCommand.initializeMongodbService, {
         extensionPath: this._context.extensionPath,
         connectionId: this._currentConnectionId,
         connectionString: this._currentConnectionString,
@@ -131,31 +131,25 @@ export default class LanguageServerController {
       });
     });
 
-    this._client.onNotification(ServerCommands.SHOW_INFO_MESSAGE, (message) => {
+    this._client.onNotification(ServerCommand.showInfoMessage, (message) => {
       log.info('The info message shown to a user', message);
       void vscode.window.showInformationMessage(message);
     });
 
-    this._client.onNotification(
-      ServerCommands.SHOW_ERROR_MESSAGE,
-      (message) => {
-        log.info('The error message shown to a user', message);
-        void vscode.window.showErrorMessage(message);
-      }
-    );
+    this._client.onNotification(ServerCommand.showErrorMessage, (message) => {
+      log.info('The error message shown to a user', message);
+      void vscode.window.showErrorMessage(message);
+    });
 
-    this._client.onNotification(
-      ServerCommands.SHOW_CONSOLE_OUTPUT,
-      (outputs) => {
-        for (const line of outputs) {
-          this._consoleOutputChannel.appendLine(
-            typeof line === 'string' ? line : util.inspect(line)
-          );
-        }
-
-        this._consoleOutputChannel.show(true);
+    this._client.onNotification(ServerCommand.showConsoleOutput, (outputs) => {
+      for (const line of outputs) {
+        this._consoleOutputChannel.appendLine(
+          typeof line === 'string' ? line : util.inspect(line),
+        );
       }
-    );
+
+      this._consoleOutputChannel.show(true);
+    });
   }
 
   deactivate(): Thenable<void> | undefined {
@@ -171,7 +165,7 @@ export default class LanguageServerController {
 
   async evaluate(
     playgroundExecuteParameters: PlaygroundEvaluateParams,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<ShellEvaluateResult> {
     log.info('Running a playground...', {
       connectionId: playgroundExecuteParameters.connectionId,
@@ -185,9 +179,9 @@ export default class LanguageServerController {
     // to the language server instance to execute scripts from a playground
     // and return results to the playground controller when ready.
     const res: ShellEvaluateResult = await this._client.sendRequest(
-      ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND,
+      ServerCommand.executeCodeFromPlayground,
       playgroundExecuteParameters,
-      token
+      token,
     );
 
     log.info('Evaluate response', {
@@ -218,28 +212,25 @@ export default class LanguageServerController {
     this._currentConnectionOptions = connectionOptions;
 
     const res = await this._client.sendRequest(
-      ServerCommands.ACTIVE_CONNECTION_CHANGED,
+      ServerCommand.activeConnectionChanged,
       {
         connectionId,
         connectionString,
         connectionOptions,
-      }
+      },
     );
     log.info('MongoDBService active connection has changed', res);
   }
 
   async resetCache(clear: ClearCompletionsCache): Promise<void> {
     log.info('Resetting MongoDBService cache...', clear);
-    await this._client.sendRequest(
-      ServerCommands.CLEAR_CACHED_COMPLETIONS,
-      clear
-    );
+    await this._client.sendRequest(ServerCommand.clearCachedCompletions, clear);
   }
 
   async updateCurrentSessionFields(params): Promise<void> {
     await this._client.sendRequest(
-      ServerCommands.UPDATE_CURRENT_SESSION_FIELDS,
-      params
+      ServerCommand.updateCurrentSessionFields,
+      params,
     );
   }
 }

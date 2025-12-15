@@ -38,14 +38,14 @@ const leftCardStyles = cx(
   inlineCardStyles,
   css({
     background: palette.gray.light2,
-  })
+  }),
 );
 
 const rightCardStyles = cx(
   inlineCardStyles,
   css({
     background: palette.gray.dark4,
-  })
+  }),
 );
 
 const getOSCommandShortcutName = (): string => {

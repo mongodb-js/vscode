@@ -2,7 +2,6 @@ const childProcess = require('child_process');
 const path = require('path');
 const { promises: fs } = require('fs');
 const os = require('os');
-const { glob } = require('glob');
 const { promisify } = require('util');
 const execFile = promisify(childProcess.execFile);
 
@@ -15,16 +14,16 @@ async function snykTest(cwd) {
 
     try {
       await execFile(
-        'npx',
+        'pnpm',
         [
+          'exec',
           'snyk',
           'test',
-          '--all-projects',
           '--severity-threshold=low',
           '--dev',
           `--json-file-output=${tmpPath}`,
         ],
-        { cwd, stdio: 'inherit' }
+        { cwd, stdio: 'inherit' },
       );
     } catch (err) {
       console.warn(err);
@@ -35,6 +34,7 @@ async function snykTest(cwd) {
     return res;
   } catch (err) {
     console.error(`testing ${cwd} failed. ${err.message}`);
+    throw err;
   } finally {
     try {
       await fs.rm(tmpPath);
@@ -49,9 +49,14 @@ async function main() {
   await fs.mkdir(path.join(rootPath, `.sbom`), { recursive: true });
   const results = await snykTest(rootPath);
 
+  if (!results) {
+    console.error('Snyk test failed to produce results');
+    process.exit(1);
+  }
+
   await fs.writeFile(
     path.join(rootPath, `.sbom/snyk-test-result.json`),
-    JSON.stringify(results, null, 2)
+    JSON.stringify(results, null, 2),
   );
 
   await execFile(
@@ -63,8 +68,11 @@ async function main() {
       '-o',
       path.join(rootPath, `.sbom/snyk-test-result.html`),
     ],
-    { cwd: rootPath }
+    { cwd: rootPath },
   );
 }
 
-main();
+main().catch((err) => {
+  console.error('Snyk test failed:', err);
+  process.exit(1);
+});

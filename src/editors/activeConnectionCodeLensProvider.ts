@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import type ConnectionController from '../connectionController';
 import { isPlayground } from '../utils/playground';
 import { getDBFromConnectionString } from '../utils/connection-string-db';
-import { DataServiceEventTypes } from '../connectionController';
 
 export default class ActiveConnectionCodeLensProvider
   implements vscode.CodeLensProvider
@@ -28,8 +27,8 @@ export default class ActiveConnectionCodeLensProvider
       this._onDidChangeCodeLenses.fire();
     };
     this._connectionController.addEventListener(
-      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      this._activeConnectionChangedHandler
+      'ACTIVE_CONNECTION_CHANGED',
+      this._activeConnectionChangedHandler,
     );
   }
 
@@ -50,15 +49,15 @@ export default class ActiveConnectionCodeLensProvider
         ? getDBFromConnectionString(connectionString)
         : null;
       message = defaultDB
-        ? `Currently connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}. Click here to change connection.`
-        : `Currently connected to ${this._connectionController.getActiveConnectionName()}. Click here to change connection.`;
+        ? `$(mdb-connection-active)Connected to ${this._connectionController.getActiveConnectionName()} with default database ${defaultDB}`
+        : `$(mdb-connection-active)Connected to ${this._connectionController.getActiveConnectionName()}`;
     } else {
-      message = 'Disconnected. Click here to connect.';
+      message = '$(mdb-connection-inactive)Connect';
     }
 
     codeLens.command = {
       title: message,
-      command: EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION,
+      command: ExtensionCommand.mdbChangeActiveConnection,
       arguments: [],
     };
 
@@ -67,8 +66,8 @@ export default class ActiveConnectionCodeLensProvider
 
   deactivate(): void {
     this._connectionController.removeEventListener(
-      DataServiceEventTypes.ACTIVE_CONNECTION_CHANGED,
-      this._activeConnectionChangedHandler
+      'ACTIVE_CONNECTION_CHANGED',
+      this._activeConnectionChangedHandler,
     );
   }
 }

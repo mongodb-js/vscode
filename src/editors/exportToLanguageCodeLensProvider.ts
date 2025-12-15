@@ -1,11 +1,10 @@
 import * as vscode from 'vscode';
 
-import EXTENSION_COMMANDS from '../commands';
-import {
-  ExportToLanguage,
-  isExportToLanguageResult,
-} from '../types/playgroundType';
+import ExtensionCommand from '../commands';
+import { isExportToLanguageResult } from '../types/playgroundType';
 import type PlaygroundResultProvider from './playgroundResultProvider';
+
+export const DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX = true;
 
 export default class ExportToLanguageCodeLensProvider
   implements vscode.CodeLensProvider
@@ -35,25 +34,24 @@ export default class ExportToLanguageCodeLensProvider
     if (
       !this._playgroundResultProvider._playgroundResult?.language ||
       ['json', 'plaintext'].includes(
-        this._playgroundResultProvider._playgroundResult?.language
+        this._playgroundResultProvider._playgroundResult?.language,
       ) ||
       !isExportToLanguageResult(
-        this._playgroundResultProvider._playgroundResult
+        this._playgroundResultProvider._playgroundResult,
       )
     ) {
       return;
     }
 
     if (
-      this._playgroundResultProvider._playgroundResult?.language !==
-      ExportToLanguage.CSHARP
+      this._playgroundResultProvider._playgroundResult?.language !== 'csharp'
     ) {
       driverSyntaxCodeLens.command = {
         title: this._playgroundResultProvider._playgroundResult
           .includeDriverSyntax
           ? 'Exclude Driver Syntax'
           : 'Include Driver Syntax',
-        command: EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX,
+        command: ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage,
         arguments: [
           !this._playgroundResultProvider._playgroundResult.includeDriverSyntax,
         ],

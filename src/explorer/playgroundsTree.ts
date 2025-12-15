@@ -3,7 +3,7 @@ import PlaygroundsTreeHeader from './playgroundsTreeHeader';
 import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import { getPlaygrounds } from '../utils/playground';
 
 const log = createLogger('playgrounds tree');
@@ -31,7 +31,7 @@ export default class PlaygroundsTree
   }
 
   public activateTreeViewEventHandlers = (
-    treeView: vscode.TreeView<vscode.TreeItem>
+    treeView: vscode.TreeView<vscode.TreeItem>,
   ): void => {
     treeView.onDidCollapseElement((event: any) => {
       log.info('Tree item was collapsed', event.element.label);
@@ -75,8 +75,8 @@ export default class PlaygroundsTree
 
         if (selectedItem.contextValue === PLAYGROUND_ITEM) {
           await vscode.commands.executeCommand(
-            EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
-            selectedItem
+            ExtensionCommand.mdbOpenPlaygroundFromTreeView,
+            selectedItem,
           );
         }
       }
@@ -120,7 +120,7 @@ export default class PlaygroundsTree
           fileName: playground.name,
           filePath: playground.path,
         }),
-      ])
+      ]),
     );
 
     return this._playgroundsTreeItems;
@@ -135,7 +135,7 @@ export default class PlaygroundsTree
 
       if (workspaceFolders) {
         workspaceFolders = workspaceFolders.filter(
-          (folder) => folder.uri.scheme === 'file'
+          (folder) => folder.uri.scheme === 'file',
         );
 
         for (const folder of workspaceFolders) {
@@ -146,7 +146,7 @@ export default class PlaygroundsTree
               new PlaygroundsTreeHeader({
                 fileUri: folder.uri,
                 playgroundsTreeItems: playgrounds,
-              })
+              }),
             );
           }
         }

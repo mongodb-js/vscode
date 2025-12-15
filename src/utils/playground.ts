@@ -8,7 +8,11 @@ import { createLogger } from '../logging';
 const log = createLogger('playground utils');
 
 export class FileStat implements vscode.FileStat {
-  constructor(private fsStat: fs.Stats) {}
+  private fsStat: fs.Stats;
+
+  constructor(fsStat: fs.Stats) {
+    this.fsStat = fsStat;
+  }
 
   get type(): vscode.FileType {
     if (this.fsStat.isFile()) {
@@ -91,7 +95,7 @@ export const getSelectedText = (): string | undefined => {
 
   // Sort lines selected as the may be mis-ordered from alt+click.
   const sortedSelections = (editor.selections as Array<vscode.Selection>).sort(
-    (a, b) => (a.start.line > b.start.line ? 1 : -1)
+    (a, b) => (a.start.line > b.start.line ? 1 : -1),
   );
 
   return sortedSelections
@@ -101,20 +105,6 @@ export const getSelectedText = (): string | undefined => {
 
 export const getAllText = (): string => {
   return vscode.window.activeTextEditor?.document.getText().trim() || '';
-};
-
-export const getPlaygroundExtensionForTelemetry = (
-  fileUri?: vscode.Uri
-): string => {
-  let fileType = 'other';
-
-  if (fileUri?.fsPath.match(/\.(mongodb\.js)$/gi)) {
-    fileType = 'mongodbjs';
-  } else if (fileUri?.fsPath.match(/\.(mongodb)$/gi)) {
-    fileType = 'mongodb';
-  }
-
-  return fileType;
 };
 
 export const getPlaygrounds = async ({
@@ -147,7 +137,7 @@ export const getPlaygrounds = async ({
     } catch (error) {
       log.error(
         'Getting playgrounds recursively from the workspace failed',
-        error
+        error,
       );
     }
   }

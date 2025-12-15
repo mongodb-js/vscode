@@ -5,7 +5,7 @@ import type { Document } from 'bson';
 import type ConnectionController from '../connectionController';
 import { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
-import EXTENSION_COMMANDS from '../commands';
+import { ExtensionCommand } from '../commands';
 import { PLAYGROUND_RESULT_URI } from './playgroundResultProvider';
 import type { PlaygroundRunResult } from '../types/playgroundType';
 
@@ -38,14 +38,14 @@ export default class EditDocumentCodeLensProvider
 
     resultCodeLensesInfo = this._updateCodeLensesForCursor({
       ...data,
-      source: DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+      source: DocumentSource.collectionview,
     });
 
     this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
   }
 
   updateCodeLensesForPlayground(playgroundResult: PlaygroundRunResult): void {
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DocumentSource.playground;
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     if (!playgroundResult || !playgroundResult.content) {
@@ -90,7 +90,7 @@ export default class EditDocumentCodeLensProvider
         if (item !== null && item._id && namespace) {
           resultCodeLensesInfo.push({
             documentId: EJSON.deserialize(
-              EJSON.serialize(item._id, { relaxed: false })
+              EJSON.serialize(item._id, { relaxed: false }),
             ),
             source,
             line,
@@ -124,7 +124,7 @@ export default class EditDocumentCodeLensProvider
       // show the single code lense after {.
       resultCodeLensesInfo.push({
         documentId: EJSON.deserialize(
-          EJSON.serialize(content._id, { relaxed: false })
+          EJSON.serialize(content._id, { relaxed: false }),
         ),
         source,
         line: 1,
@@ -148,11 +148,11 @@ export default class EditDocumentCodeLensProvider
         const range = new vscode.Range(position, position);
         const command: {
           title: string;
-          command: EXTENSION_COMMANDS;
+          command: ExtensionCommand;
           arguments: EditDocumentInfo[];
         } = {
           title: 'Edit Document',
-          command: EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
+          command: ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
           arguments: [item],
         };
 

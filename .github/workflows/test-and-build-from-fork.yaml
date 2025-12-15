@@ -1,0 +1,47 @@
+name: Test and Build (from fork)
+on:
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    name: Test and Build
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.15.1
+          cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Checks
+        run: pnpm run check
+        # the glob here just fails
+        if: ${{ runner.os != 'Windows' }}
+
+      - name: Run Tests
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
+          MDB_IS_TEST: "true"
+        run: pnpm run test
