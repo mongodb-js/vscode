@@ -3,7 +3,7 @@ import type { DocumentSourceDetails } from '../documentSource';
 import { DocumentSource } from '../documentSource';
 import type {
   ExportToPlaygroundError,
-  ParticipantErrorTypes,
+  ParticipantErrorType,
 } from '../participant/participantErrorTypes';
 import type {
   ParticipantCommandType,
@@ -332,7 +332,7 @@ export class SavedConnectionsLoadedTelemetryEvent
     connections_with_secrets_in_keytar: number;
 
     /** Total number of connections that have secrets stored in secret storage */
-    connections_with_secrets_in_secret_storage: number;
+    connections_with_secrets_in_SecretStorage: number;
   };
 
   constructor({
@@ -353,7 +353,7 @@ export class SavedConnectionsLoadedTelemetryEvent
       preset_connections: presetConnections,
       loaded_connections: loadedConnections,
       connections_with_secrets_in_keytar: connectionsWithSecretsInKeytar,
-      connections_with_secrets_in_secret_storage:
+      connections_with_secrets_in_SecretStorage:
         connectionsWithSecretsInSecretStorage,
     };
   }
@@ -422,7 +422,7 @@ export class ParticipantResponseFailedTelemetryEvent
     error_code?: string;
 
     /** The name of the error that caused the failure */
-    error_name: ParticipantErrorTypes;
+    error_name: ParticipantErrorType;
 
     /** Additional details about the error if any. */
     error_details?: string;
@@ -430,7 +430,7 @@ export class ParticipantResponseFailedTelemetryEvent
 
   constructor(
     command: ParticipantResponseType,
-    errorName: ParticipantErrorTypes,
+    errorName: ParticipantErrorType,
     errorCode?: string,
     errorDetails?: string,
   ) {
@@ -628,7 +628,7 @@ export class PresetConnectionEditedTelemetryEvent
 
   constructor(sourceDetails: 'tree_item' | 'header') {
     this.properties = {
-      source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+      source: DocumentSource.treeview,
       source_details: sourceDetails,
     };
   }

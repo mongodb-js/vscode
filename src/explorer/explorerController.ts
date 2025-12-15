@@ -6,13 +6,17 @@ import { createTrackedTreeView } from '../utils/treeViewHelper';
 import type { TelemetryService } from '../telemetry';
 
 export default class ExplorerController {
+  private _connectionController: ConnectionController;
+  private _telemetryService: TelemetryService;
   private _treeController: ExplorerTreeController;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
 
   constructor(
-    private _connectionController: ConnectionController,
-    private _telemetryService: TelemetryService,
+    connectionController: ConnectionController,
+    telemetryService: TelemetryService,
   ) {
+    this._connectionController = connectionController;
+    this._telemetryService = telemetryService;
     this._treeController = new ExplorerTreeController(
       this._connectionController,
       this._telemetryService,

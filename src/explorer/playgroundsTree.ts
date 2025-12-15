@@ -3,7 +3,7 @@ import PlaygroundsTreeHeader from './playgroundsTreeHeader';
 import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import { getPlaygrounds } from '../utils/playground';
 
 const log = createLogger('playgrounds tree');
@@ -75,7 +75,7 @@ export default class PlaygroundsTree
 
         if (selectedItem.contextValue === PLAYGROUND_ITEM) {
           await vscode.commands.executeCommand(
-            EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
+            ExtensionCommand.mdbOpenPlaygroundFromTreeView,
             selectedItem,
           );
         }

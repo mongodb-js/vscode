@@ -7,7 +7,7 @@ import path from 'path';
 
 import ConnectionController from '../../../connectionController';
 import { mdbTestExtension } from '../stubbableMdbExtension';
-import { MESSAGE_TYPES } from '../../../views/webview-app/extension-app-message-constants';
+import { MessageType } from '../../../views/webview-app/extension-app-message-constants';
 import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TelemetryService } from '../../../telemetry';
@@ -223,7 +223,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.CONNECT,
+      command: MessageType.connect,
       connectionInfo: {
         id: 2,
         connectionOptions: {
@@ -264,7 +264,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.CONNECT,
+      command: MessageType.connect,
       connectionInfo: {
         id: 'pineapple',
         connectionOptions: {
@@ -302,7 +302,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.CONNECT,
+      command: MessageType.connect,
       connectionInfo: {
         id: 'pineapple',
         connectionOptions: {
@@ -346,7 +346,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection call.
     messageReceived({
-      command: MESSAGE_TYPES.CONNECT,
+      command: MessageType.connect,
       connectionInfo: {
         id: 'pineapple',
         connectionOptions: {
@@ -384,7 +384,7 @@ suite('Webview Test Suite', () => {
     );
 
     messageReceived({
-      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
+      command: MessageType.openConnectionStringInput,
     });
 
     await waitFor(() => {
@@ -424,7 +424,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection status request call.
     messageReceived({
-      command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
+      command: MessageType.getConnectionStatus,
     });
   });
 
@@ -459,7 +459,7 @@ suite('Webview Test Suite', () => {
       .then(() => {
         // Mock a connection status request call.
         messageReceived({
-          command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
+          command: MessageType.getConnectionStatus,
         });
       });
   });
@@ -498,7 +498,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection status request call.
     messageReceived({
-      command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION,
+      command: MessageType.renameActiveConnection,
     });
 
     expect(mockRenameConnectionOnConnectionController).to.be.calledOnce;
@@ -538,7 +538,7 @@ suite('Webview Test Suite', () => {
 
     // Mock a connection status request call.
     messageReceived({
-      command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
+      command: MessageType.editConnectionAndConnect,
       connectionInfo: {
         id: 'pineapple',
         connectionOptions: {
@@ -644,7 +644,7 @@ suite('Webview Test Suite', () => {
       sandbox.replace(linkHelper, 'openLink', stubOpenLink);
 
       messageReceived({
-        command: MESSAGE_TYPES.OPEN_TRUSTED_LINK,
+        command: MessageType.openTrustedLink,
         linkTo: 'https://mongodb.com/test',
       });
 

@@ -33,7 +33,7 @@ suite('IndexTreeItem Test Suite', () => {
     test('it has an icon for the index type', () => {
       const testIndexFieldTreeItem = new IndexFieldTreeItem({
         indexKey: 'locations',
-        indexKeyType: IndexKeyType.GEOSPHERE,
+        indexKeyType: IndexKeyType.geosphere,
       });
 
       const iconPath = testIndexFieldTreeItem.iconPath as {

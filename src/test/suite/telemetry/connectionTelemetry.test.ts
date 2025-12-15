@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 
-import { ConnectionTypes } from '../../../connectionController';
+import { ConnectionType } from '../../../connectionController';
 import { getConnectionTelemetryProperties } from '../../../telemetry/connectionTelemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
@@ -62,7 +62,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       expect(instanceTelemetry.is_public_cloud).to.equal(true);
       expect(instanceTelemetry.public_cloud_name).to.equal('Azure');
@@ -95,7 +95,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       expect(instanceTelemetry.is_public_cloud).to.equal(false);
     });
@@ -130,7 +130,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       expect(instanceTelemetry.is_atlas).to.equal(false);
       expect(instanceTelemetry.atlas_hostname).to.equal(null);
@@ -168,7 +168,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       expect(instanceTelemetry.is_atlas).to.equal(true);
       expect(instanceTelemetry.atlas_hostname).to.equal(
@@ -208,7 +208,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       expect(instanceTelemetry.is_atlas).to.equal(true);
       expect(instanceTelemetry.atlas_hostname).to.equal(
@@ -247,7 +247,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       expect(instanceTelemetry.is_localhost).to.equal(true);
     });
@@ -281,7 +281,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.is_localhost).to.equal(false);
       expect(instanceTelemetry.is_atlas_url).to.equal(false);
@@ -316,7 +316,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       expect(instanceTelemetry.is_used_connect_screen).to.equal(true);
       expect(instanceTelemetry.is_used_command_palette).to.equal(false);
@@ -350,7 +350,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.is_used_connect_screen).to.equal(false);
       expect(instanceTelemetry.is_used_command_palette).to.equal(true);
@@ -384,7 +384,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_ID,
+        ConnectionType.connectionId,
       );
       expect(instanceTelemetry.is_used_connect_screen).to.equal(false);
       expect(instanceTelemetry.is_used_command_palette).to.equal(false);
@@ -420,7 +420,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.is_localhost).to.equal(false);
     });
@@ -452,7 +452,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.is_localhost).to.equal(true);
     });
@@ -490,7 +490,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.server_version).to.equal('4.3.9');
       expect(instanceTelemetry.server_arch).to.equal('debian');
@@ -530,7 +530,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.server_version).to.equal('4.3.2');
       expect(instanceTelemetry.server_arch).to.equal('darwin');
@@ -564,7 +564,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.auth_strategy).to.equal('DEFAULT');
     });
@@ -596,7 +596,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.auth_strategy).to.equal('NONE');
     });
@@ -630,7 +630,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
 
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       expect(instanceTelemetry.auth_strategy).to.equal('SCRAM-SHA-1');
     });
@@ -655,7 +655,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     test('track new connection event fetches the connection instance information', async () => {
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServ,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
 
       expect(instanceTelemetry.is_localhost).to.equal(true);

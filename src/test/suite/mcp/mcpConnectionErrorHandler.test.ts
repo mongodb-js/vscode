@@ -12,14 +12,15 @@ import type {
 } from 'mongodb-mcp-server';
 import { ErrorCodes } from 'mongodb-mcp-server';
 
+type MongoDBErrorCode =
+  | typeof ErrorCodes.NotConnectedToMongoDB
+  | typeof ErrorCodes.MisconfiguredConnectionString;
+
 class MongoDBError extends Error {
-  constructor(
-    public code:
-      | ErrorCodes.NotConnectedToMongoDB
-      | ErrorCodes.MisconfiguredConnectionString,
-    message: string,
-  ) {
+  code: MongoDBErrorCode;
+  constructor(code: MongoDBErrorCode, message: string) {
     super(message);
+    this.code = code;
   }
 }
 

@@ -9,7 +9,6 @@ import sinon from 'sinon';
 import type { SinonSpy } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { DatabaseTreeItem, DocumentTreeItem } from '../../../explorer';
@@ -25,6 +24,7 @@ import {
   SavedConnectionsLoadedTelemetryEvent,
 } from '../../../telemetry';
 import type { SegmentProperties } from '../../../telemetry/telemetryService';
+import { ConnectionType } from '../../../connectionController';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -157,7 +157,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via connection string', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -178,7 +178,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via connection form', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -199,7 +199,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via saved connection', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_ID,
+        ConnectionType.connectionId,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -218,7 +218,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document saved form a tree-view event', () => {
-      const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+      const source = DocumentSource.treeview;
       testTelemetryService.track(
         new DocumentUpdatedTelemetryEvent(source, true),
       );
@@ -237,7 +237,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document opened form playground results', () => {
-      const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+      const source = DocumentSource.playground;
       testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -556,7 +556,7 @@ suite('Telemetry Controller Test Suite', () => {
             loaded_connections: 3,
             preset_connections: 3,
             connections_with_secrets_in_keytar: 0,
-            connections_with_secrets_in_secret_storage: 3,
+            connections_with_secrets_in_SecretStorage: 3,
           },
         }),
       );

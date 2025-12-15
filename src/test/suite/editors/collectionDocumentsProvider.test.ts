@@ -3,7 +3,6 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
-
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, {
@@ -288,7 +287,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -358,7 +357,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
@@ -419,14 +418,14 @@ suite('Collection Documents Provider Test Suite', () => {
         id: firstConnectionId,
         name: 'localhost',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
       [secondConnectionId]: {
         id: secondConnectionId,
         name: 'compass',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
@@ -477,7 +476,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -552,7 +551,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===

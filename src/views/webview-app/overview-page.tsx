@@ -18,11 +18,11 @@ import AtlasCta from './atlas-cta';
 import ResourcesPanel from './resources-panel/panel';
 import { ConnectionForm } from './connection-form';
 import useConnectionForm, {
-  FILE_CHOOSER_MODE,
+  FileChooserMode,
   type FileChooserOptions,
 } from './use-connection-form';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
-import { MESSAGE_TYPES } from './extension-app-message-constants';
+import { MessageType } from './extension-app-message-constants';
 
 const pageStyles = css({
   width: '90%',
@@ -76,7 +76,7 @@ const OverviewPage: React.FC = () => {
       ): void => {
         const message = event.data;
         if (
-          message.command === MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT &&
+          message.command === MessageType.openFileChooserResult &&
           message.requestId === requestId
         ) {
           window.removeEventListener('message', messageHandler);
@@ -102,7 +102,7 @@ const OverviewPage: React.FC = () => {
       ): Promise<{ canceled: boolean; filePath?: string }> {
         return handleOpenFileChooserResult({
           electronFileDialogOptions,
-          mode: FILE_CHOOSER_MODE.SAVE,
+          mode: FileChooserMode.save,
         });
       },
       async showOpenDialog(
@@ -111,7 +111,7 @@ const OverviewPage: React.FC = () => {
       ): Promise<{ canceled: boolean; filePaths: string[] }> {
         return handleOpenFileChooserResult({
           electronFileDialogOptions,
-          mode: FILE_CHOOSER_MODE.OPEN,
+          mode: FileChooserMode.open,
         });
       },
     },

@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import ConnectHelper from '../../../../views/webview-app/connect-helper';
 import Sinon from 'sinon';
 import vscode from '../../../../views/webview-app/vscode-api';
-import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
+import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 describe('ConnectHelper test suite', function () {
   it('when rendered it should show both connection options', function () {
@@ -31,7 +31,7 @@ describe('ConnectHelper test suite', function () {
     );
     screen.getByLabelText('Connect with connection string').click();
     expect(postMessageStub).to.have.been.calledWithExactly({
-      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
+      command: MessageType.openConnectionStringInput,
     });
   });
 });

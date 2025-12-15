@@ -10,7 +10,7 @@ import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { StorageController } from '../storage';
-import { ParticipantErrorTypes } from '../participant/participantErrorTypes';
+import { ParticipantErrorType } from '../participant/participantErrorTypes';
 import type { ParticipantResponseType } from '../participant/participantTypes';
 import type { TelemetryEvent } from './telemetryEvents';
 import {
@@ -197,7 +197,7 @@ export class TelemetryService {
 
   trackParticipantError(err: any, command: ParticipantResponseType): void {
     let errorCode: string | undefined;
-    let errorName: ParticipantErrorTypes;
+    let errorName: ParticipantErrorType;
     // Making the chat request might fail because
     // - model does not exist
     // - user consent not given
@@ -214,13 +214,13 @@ export class TelemetryService {
     const message: string = err.message || err.toString();
 
     if (message.includes('off_topic')) {
-      errorName = ParticipantErrorTypes.CHAT_MODEL_OFF_TOPIC;
+      errorName = ParticipantErrorType.chatModelOffTopic;
     } else if (message.includes('Filtered by Responsible AI Service')) {
-      errorName = ParticipantErrorTypes.FILTERED;
+      errorName = ParticipantErrorType.filtered;
     } else if (message.includes('Prompt failed validation')) {
-      errorName = ParticipantErrorTypes.INVALID_PROMPT;
+      errorName = ParticipantErrorType.invalidPrompt;
     } else {
-      errorName = ParticipantErrorTypes.OTHER;
+      errorName = ParticipantErrorType.other;
     }
 
     this.track(

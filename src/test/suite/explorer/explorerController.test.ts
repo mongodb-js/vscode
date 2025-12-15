@@ -6,7 +6,7 @@ import { connect, createConnectionAttempt } from 'mongodb-data-service';
 import { mongoLogId } from 'mongodb-log-writer';
 
 import {
-  DefaultSavingLocations,
+  DefaultSavingLocation,
   SecretStorageLocation,
   StorageLocation,
 } from '../../../storage/storageController';
@@ -31,7 +31,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations['Session Only'],
+        DefaultSavingLocation.sessionOnly,
       );
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.stub(vscode.window, 'showErrorMessage');
@@ -47,7 +47,7 @@ suite('Explorer Controller Test Suite', function () {
       .getConfiguration('mdb.connectionSaving')
       .update(
         'defaultConnectionSavingLocation',
-        DefaultSavingLocations.Workspace,
+        DefaultSavingLocation.workspace,
       );
     // Reset our connections.
     await mdbTestExtension.testExtensionController._connectionController.disconnect();
@@ -68,7 +68,7 @@ suite('Explorer Controller Test Suite', function () {
         id: 'testConnectionId',
         connectionOptions: { connectionString: 'mongodb://localhost' },
         name: 'testConnectionName',
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
@@ -213,7 +213,7 @@ suite('Explorer Controller Test Suite', function () {
         testConnectionController._connections[connectionId].connectionOptions,
       name: 'aaa',
       id: 'aaa',
-      storageLocation: StorageLocation.WORKSPACE,
+      storageLocation: StorageLocation.workspace,
       secretStorageLocation: SecretStorageLocation.SecretStorage,
     };
 
@@ -222,7 +222,7 @@ suite('Explorer Controller Test Suite', function () {
         testConnectionController._connections[connectionId].connectionOptions,
       name: 'zzz',
       id: 'zzz',
-      storageLocation: StorageLocation.WORKSPACE,
+      storageLocation: StorageLocation.workspace,
       secretStorageLocation: SecretStorageLocation.SecretStorage,
     };
 

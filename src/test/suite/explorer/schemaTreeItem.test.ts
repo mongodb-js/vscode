@@ -188,10 +188,10 @@ suite('SchemaTreeItem Test Suite', function () {
         "Unable to parse schema: Cannot use 'in' operator to search for 'Symbol(Symbol.iterator)' in invalid schema to parse";
 
       assert.strictEqual(
-        (<any>error).message,
+        (error as Error).message,
         expectedMessage,
         `Expected error message to be "${expectedMessage}" found "${
-          (<any>error).message
+          (error as Error).message
         }"`,
       );
     }
