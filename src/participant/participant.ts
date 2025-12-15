@@ -241,7 +241,7 @@ export default class ParticipantController {
         message: `I want to ask questions about the \`${databaseName}\` database.`,
         isNewChat: true,
         telemetry: {
-          source: DocumentSource.DocumentSource_TREEVIEW,
+          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
           source_details: 'database',
         },
       });
@@ -252,7 +252,7 @@ export default class ParticipantController {
         message: `I want to ask questions about the \`${databaseName}\` database's \`${collectionName}\` collection.`,
         isNewChat: true,
         telemetry: {
-          source: DocumentSource.DocumentSource_TREEVIEW,
+          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
           source_details: 'collection',
         },
       });

@@ -287,7 +287,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DocumentSource_COLLECTIONVIEW,
+        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -357,7 +357,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DocumentSource_COLLECTIONVIEW,
+        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
@@ -476,7 +476,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DocumentSource_COLLECTIONVIEW,
+        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -551,7 +551,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DocumentSource_COLLECTIONVIEW,
+        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===

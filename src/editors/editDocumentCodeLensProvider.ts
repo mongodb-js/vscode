@@ -38,14 +38,14 @@ export default class EditDocumentCodeLensProvider
 
     resultCodeLensesInfo = this._updateCodeLensesForCursor({
       ...data,
-      source: DocumentSource.DocumentSource_COLLECTIONVIEW,
+      source: DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
     });
 
     this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
   }
 
   updateCodeLensesForPlayground(playgroundResult: PlaygroundRunResult): void {
-    const source = DocumentSource.DocumentSource_PLAYGROUND;
+    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     if (!playgroundResult || !playgroundResult.content) {

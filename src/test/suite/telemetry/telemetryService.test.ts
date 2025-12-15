@@ -218,7 +218,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document saved form a tree-view event', () => {
-      const source = DocumentSource.DocumentSource_TREEVIEW;
+      const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
       testTelemetryService.track(
         new DocumentUpdatedTelemetryEvent(source, true),
       );
@@ -237,7 +237,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document opened form playground results', () => {
-      const source = DocumentSource.DocumentSource_PLAYGROUND;
+      const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
       testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,

@@ -15,7 +15,7 @@ const log = createLogger('document controller');
 
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
-export const DocumentSource_URI_IDENTIFIER = 'source';
+export const DOCUMENT_SOURCE_URI_IDENTIFIER = 'source';
 
 export const VIEW_DOCUMENT_SCHEME = 'VIEW_DOCUMENT_SCHEME';
 
@@ -53,7 +53,7 @@ export default class MongoDBDocumentService {
 
     this._telemetryService.track(
       new DocumentUpdatedTelemetryEvent(
-        DocumentSource.DocumentSource_TREEVIEW,
+        DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
         false,
       ),
     );

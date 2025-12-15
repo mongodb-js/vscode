@@ -1942,7 +1942,7 @@ Schema:
               message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.DocumentSource_TREEVIEW,
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
                 source_details: 'database',
               },
             },
@@ -1973,7 +1973,7 @@ Schema:
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.DocumentSource_TREEVIEW,
+                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
                 source_details: 'collection',
               },
             },

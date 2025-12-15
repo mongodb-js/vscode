@@ -56,7 +56,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         },
       ],
       namespace: 'db.coll',
-      source: DocumentSource.DocumentSource_PLAYGROUND,
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
@@ -90,7 +90,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
         name: 'test name',
       },
       namespace: 'db.coll',
-      source: DocumentSource.DocumentSource_PLAYGROUND,
+      source: DocumentSource.DOCUMENT_SOURCE_PLAYGROUND,
     };
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');

@@ -628,7 +628,7 @@ export class PresetConnectionEditedTelemetryEvent
 
   constructor(sourceDetails: 'tree_item' | 'header') {
     this.properties = {
-      source: DocumentSource.DocumentSource_TREEVIEW,
+      source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
       source_details: sourceDetails,
     };
   }

@@ -870,7 +870,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       ExtensionCommand.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
       (element: DocumentTreeItem): Promise<boolean> => {
         return this._editorsController.openMongoDBDocument({
-          source: DocumentSource.DocumentSource_TREEVIEW,
+          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
           documentId: element.documentId,
           namespace: element.namespace,
           connectionId: this._connectionController.getActiveConnectionId(),
