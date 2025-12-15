@@ -1,8 +1,8 @@
 export const DocumentSource = {
-  TREEVIEW: 'treeview',
-  PLAYGROUND: 'playground',
-  COLLECTIONVIEW: 'collectionview',
-  CODELENS: 'codelens',
+  treeview: 'treeview',
+  playground: 'playground',
+  collectionview: 'collectionview',
+  codelens: 'codelens',
 } as const;
 
 export type DocumentSource =

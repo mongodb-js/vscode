@@ -77,7 +77,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', () => {
         expect(codeLens[0].range.start.line).to.be.equal(0);
         expect(codeLens[0].range.end.line).to.be.equal(0);
         expect(codeLens[0].command?.command).to.be.equal(
-          ExtensionCommand.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
+          ExtensionCommand.sendMessageToParticipantFromInput,
         );
       });
     });

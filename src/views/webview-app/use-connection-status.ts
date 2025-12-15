@@ -14,13 +14,13 @@ const useConnectionStatus = (): {
   connectionName: string;
 } => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
-    CONNECTION_STATUS.LOADING,
+    CONNECTION_STATUS.loading,
   );
   const [connectionName, setConnectionName] = useState('');
   useEffect(() => {
     const handleConnectionStatusResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
-      if (message.command === MessageType.CONNECTION_STATUS_MESSAGE) {
+      if (message.command === MessageType.connectionStatusMessage) {
         setConnectionStatus(message.connectionStatus);
         setConnectionName(message.activeConnectionName);
       }
@@ -29,7 +29,7 @@ const useConnectionStatus = (): {
 
     const requestConnectionStatus = (): void =>
       vscode.postMessage({
-        command: MessageType.GET_CONNECTION_STATUS,
+        command: MessageType.getConnectionStatus,
       });
 
     requestConnectionStatus();

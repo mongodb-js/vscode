@@ -227,7 +227,7 @@ export default class MongoDBService {
     return new Promise((resolve) => {
       if (this._currentConnectionId !== params.connectionId) {
         void this._connection.sendNotification(
-          ServerCommand.SHOW_ERROR_MESSAGE,
+          ServerCommand.showErrorMessage,
           "The playground's active connection does not match the extension's active connection. Please reconnect and try again.",
         );
         return resolve(null);
@@ -267,11 +267,11 @@ export default class MongoDBService {
         );
 
         worker?.on('message', ({ name, payload }) => {
-          if (name === ServerCommand.SHOW_CONSOLE_OUTPUT) {
+          if (name === ServerCommand.showConsoleOutput) {
             void this._connection.sendNotification(name, payload);
           }
 
-          if (name === ServerCommand.CODE_EXECUTION_RESULT) {
+          if (name === ServerCommand.codeExecutionResult) {
             const { error, data } = payload as {
               data: ShellEvaluateResult | null;
               error?: any;
@@ -281,7 +281,7 @@ export default class MongoDBService {
                 `WORKER error: ${util.inspect(error)}`,
               );
               void this._connection.sendNotification(
-                ServerCommand.SHOW_ERROR_MESSAGE,
+                ServerCommand.showErrorMessage,
                 formatError(error).message,
               );
             }
@@ -292,7 +292,7 @@ export default class MongoDBService {
         });
 
         worker.postMessage({
-          name: ServerCommand.EXECUTE_CODE_FROM_PLAYGROUND,
+          name: ServerCommand.executeCodeFromPlayground,
           data: {
             codeToEvaluate: params.codeToEvaluate,
             filePath: params.filePath,

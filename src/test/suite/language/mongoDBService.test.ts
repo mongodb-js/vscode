@@ -2965,7 +2965,7 @@ suite('MongoDBService Test Suite', () => {
         consoleOutputs = [];
 
         Sinon.stub(connection, 'sendNotification')
-          .withArgs(ServerCommand.SHOW_CONSOLE_OUTPUT)
+          .withArgs(ServerCommand.showConsoleOutput)
           .callsFake((_, params) =>
             Promise.resolve(void consoleOutputs.push(...params)),
           );

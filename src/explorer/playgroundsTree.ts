@@ -75,7 +75,7 @@ export default class PlaygroundsTree
 
         if (selectedItem.contextValue === PLAYGROUND_ITEM) {
           await vscode.commands.executeCommand(
-            ExtensionCommand.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
+            ExtensionCommand.mdbOpenPlaygroundFromTreeView,
             selectedItem,
           );
         }

@@ -5,15 +5,14 @@ import type { StoreConnectionInfo } from './connectionStorage';
 
 export const StorageVariable = {
   // Only exists on globalState.
-  GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW: 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
-  GLOBAL_SAVED_CONNECTIONS: 'GLOBAL_SAVED_CONNECTIONS',
+  globalHasBeenShownInitialView: 'GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW',
+  globalSavedConnections: 'GLOBAL_SAVED_CONNECTIONS',
   // Analytics user identify.
-  GLOBAL_USER_ID: 'GLOBAL_USER_ID',
-  GLOBAL_ANONYMOUS_ID: 'GLOBAL_ANONYMOUS_ID',
+  globalUserId: 'GLOBAL_USER_ID',
+  globalAnonymousId: 'GLOBAL_ANONYMOUS_ID',
   // Only exists on workspaceState.
-  WORKSPACE_SAVED_CONNECTIONS: 'WORKSPACE_SAVED_CONNECTIONS',
-  COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE:
-    'COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE',
+  workspaceSavedConnections: 'WORKSPACE_SAVED_CONNECTIONS',
+  copilotHasBeenShownWelcomeMessage: 'COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE',
 } as const;
 
 export type StorageVariable =
@@ -21,9 +20,9 @@ export type StorageVariable =
 
 // Typically variables default to 'GLOBAL' scope.
 export const StorageLocation = {
-  GLOBAL: 'GLOBAL',
-  WORKSPACE: 'WORKSPACE',
-  NONE: 'NONE',
+  global: 'GLOBAL',
+  workspace: 'WORKSPACE',
+  none: 'NONE',
 } as const;
 
 export type StorageLocation =
@@ -31,9 +30,9 @@ export type StorageLocation =
 
 // Coupled with the `defaultConnectionSavingLocation` configuration in `package.json`.
 export const DefaultSavingLocation = {
-  WORKSPACE: 'Workspace',
-  GLOBAL: 'Global',
-  SESSION_ONLY: 'Session Only',
+  workspace: 'Workspace',
+  global: 'Global',
+  sessionOnly: 'Session Only',
 } as const;
 
 export type DefaultSavingLocation =
@@ -56,35 +55,35 @@ export type SecretStorageLocation =
   (typeof SecretStorageLocation)[keyof typeof SecretStorageLocation];
 
 interface StorageVariableContents {
-  [StorageVariable.GLOBAL_USER_ID]: string;
-  [StorageVariable.GLOBAL_ANONYMOUS_ID]: string;
-  [StorageVariable.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW]: boolean;
-  [StorageVariable.GLOBAL_SAVED_CONNECTIONS]: ConnectionsFromStorage;
-  [StorageVariable.WORKSPACE_SAVED_CONNECTIONS]: ConnectionsFromStorage;
-  [StorageVariable.COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE]: boolean;
+  [StorageVariable.globalUserId]: string;
+  [StorageVariable.globalAnonymousId]: string;
+  [StorageVariable.globalHasBeenShownInitialView]: boolean;
+  [StorageVariable.globalSavedConnections]: ConnectionsFromStorage;
+  [StorageVariable.workspaceSavedConnections]: ConnectionsFromStorage;
+  [StorageVariable.copilotHasBeenShownWelcomeMessage]: boolean;
 }
 type StoredVariableName = keyof StorageVariableContents;
 type StoredItem<T extends StoredVariableName> = StorageVariableContents[T];
 
 export default class StorageController {
   _storage: {
-    [StorageLocation.GLOBAL]: vscode.Memento;
-    [StorageLocation.WORKSPACE]: vscode.Memento;
+    [StorageLocation.global]: vscode.Memento;
+    [StorageLocation.workspace]: vscode.Memento;
   };
 
   _secretStorage: vscode.SecretStorage;
 
   constructor(context: vscode.ExtensionContext) {
     this._storage = {
-      [StorageLocation.GLOBAL]: context.globalState,
-      [StorageLocation.WORKSPACE]: context.workspaceState,
+      [StorageLocation.global]: context.globalState,
+      [StorageLocation.workspace]: context.workspaceState,
     };
     this._secretStorage = context.secrets;
   }
 
   get<T extends StoredVariableName>(
     variableName: T,
-    storageLocation: StorageLocation = StorageLocation.GLOBAL,
+    storageLocation: StorageLocation = StorageLocation.global,
   ): StoredItem<T> {
     return this._storage[storageLocation].get(variableName);
   }
@@ -93,19 +92,19 @@ export default class StorageController {
   update<T extends StoredVariableName>(
     variableName: T,
     value: StoredItem<T>,
-    storageLocation: StorageLocation = StorageLocation.GLOBAL,
+    storageLocation: StorageLocation = StorageLocation.global,
   ): Thenable<void> {
     this._storage[storageLocation].update(variableName, value);
     return Promise.resolve();
   }
 
   getUserIdentity(): { anonymousId: string } {
-    let anonymousId = this.get(StorageVariable.GLOBAL_ANONYMOUS_ID);
+    let anonymousId = this.get(StorageVariable.globalAnonymousId);
 
     // The anonymousId becomes required with analytics-node v6.
     if (!anonymousId) {
       anonymousId = uuidv4();
-      void this.update(StorageVariable.GLOBAL_ANONYMOUS_ID, anonymousId);
+      void this.update(StorageVariable.globalAnonymousId, anonymousId);
     }
 
     return { anonymousId };

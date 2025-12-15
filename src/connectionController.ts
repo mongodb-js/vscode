@@ -48,21 +48,21 @@ interface DataServiceEventTypes {
 }
 
 export const ConnectionType = {
-  CONNECTION_FORM: 'CONNECTION_FORM',
-  CONNECTION_STRING: 'CONNECTION_STRING',
-  CONNECTION_ID: 'CONNECTION_ID',
+  connectionForm: 'CONNECTION_FORM',
+  connectionString: 'CONNECTION_STRING',
+  connectionId: 'CONNECTION_ID',
 } as const;
 
 export type ConnectionTypes =
   (typeof ConnectionType)[keyof typeof ConnectionType];
 
-export const NEW_CONNECTION_TYPE = {
-  NEW_CONNECTION: 'NEW_CONNECTION',
-  SAVED_CONNECTION: 'SAVED_CONNECTION',
+export const NewConnectionType = {
+  newConnection: 'NEW_CONNECTION',
+  savedConnection: 'SAVED_CONNECTION',
 } as const;
 
 export type NewConnectionType =
-  (typeof NEW_CONNECTION_TYPE)[keyof typeof NEW_CONNECTION_TYPE];
+  (typeof NewConnectionType)[keyof typeof NewConnectionType];
 
 interface ConnectionAttemptResult {
   successfullyConnected: boolean;
@@ -350,7 +350,7 @@ export default class ConnectionController {
             connectionOptions: {
               connectionString: connectionStringData.toString(),
             },
-            connectionType: ConnectionType.CONNECTION_STRING,
+            connectionType: ConnectionType.connectionString,
             name,
           }));
 
@@ -698,7 +698,7 @@ export default class ConnectionController {
 
       const result = await this._connect(
         connectionId,
-        ConnectionType.CONNECTION_ID,
+        ConnectionType.connectionId,
       );
 
       /** After successfully connecting with an overridden connection
@@ -1160,17 +1160,17 @@ export default class ConnectionController {
   getConnectionStatus(): ConnectionStatus {
     if (this.isCurrentlyConnected()) {
       if (this.isDisconnecting()) {
-        return CONNECTION_STATUS.DISCONNECTING;
+        return CONNECTION_STATUS.disconnecting;
       }
 
-      return CONNECTION_STATUS.CONNECTED;
+      return CONNECTION_STATUS.connected;
     }
 
     if (this.isConnecting()) {
-      return CONNECTION_STATUS.CONNECTING;
+      return CONNECTION_STATUS.connecting;
     }
 
-    return CONNECTION_STATUS.DISCONNECTED;
+    return CONNECTION_STATUS.disconnected;
   }
 
   getConnectionStatusStringForConnection(connectionId: string): string {
@@ -1218,7 +1218,7 @@ export default class ConnectionController {
         {
           label: 'Add new connection',
           data: {
-            type: NEW_CONNECTION_TYPE.NEW_CONNECTION,
+            type: NewConnectionType.newConnection,
           },
         },
       ];
@@ -1228,7 +1228,7 @@ export default class ConnectionController {
       {
         label: 'Add new connection',
         data: {
-          type: NEW_CONNECTION_TYPE.NEW_CONNECTION,
+          type: NewConnectionType.newConnection,
         },
       },
       ...Object.values(this._connections)
@@ -1238,7 +1238,7 @@ export default class ConnectionController {
         .map((item: LoadedConnection) => ({
           label: item.name,
           data: {
-            type: NEW_CONNECTION_TYPE.SAVED_CONNECTION,
+            type: NewConnectionType.savedConnection,
             connectionId: item.id,
           },
         })),
@@ -1257,9 +1257,7 @@ export default class ConnectionController {
       return false;
     }
 
-    if (
-      selectedQuickPickItem.data.type === NEW_CONNECTION_TYPE.NEW_CONNECTION
-    ) {
+    if (selectedQuickPickItem.data.type === NewConnectionType.newConnection) {
       return this.connectWithURI();
     }
 

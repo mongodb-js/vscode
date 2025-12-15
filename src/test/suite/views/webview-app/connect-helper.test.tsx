@@ -31,7 +31,7 @@ describe('ConnectHelper test suite', function () {
     );
     screen.getByLabelText('Connect with connection string').click();
     expect(postMessageStub).to.have.been.calledWithExactly({
-      command: MessageType.OPEN_CONNECTION_STRING_INPUT,
+      command: MessageType.openConnectionStringInput,
     });
   });
 });

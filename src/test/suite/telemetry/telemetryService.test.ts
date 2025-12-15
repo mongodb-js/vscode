@@ -157,7 +157,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via connection string', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionType.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -178,7 +178,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via connection form', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionType.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -199,7 +199,7 @@ suite('Telemetry Controller Test Suite', () => {
     test('track new connection event when connecting via saved connection', async () => {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionType.CONNECTION_ID,
+        ConnectionType.connectionId,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -218,7 +218,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document saved form a tree-view event', () => {
-      const source = DocumentSource.TREEVIEW;
+      const source = DocumentSource.treeview;
       testTelemetryService.track(
         new DocumentUpdatedTelemetryEvent(source, true),
       );
@@ -237,7 +237,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     test('track document opened form playground results', () => {
-      const source = DocumentSource.PLAYGROUND;
+      const source = DocumentSource.playground;
       testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,

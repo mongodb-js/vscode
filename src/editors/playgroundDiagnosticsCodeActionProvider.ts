@@ -39,7 +39,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
               vscode.CodeActionKind.QuickFix,
             );
             fix.command = {
-              command: ExtensionCommand.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
+              command: ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
               title: 'Fix invalid interactive syntax',
               arguments: [
                 {
@@ -68,7 +68,7 @@ export default class PlaygroundDiagnosticsCodeActionProvider
       );
 
       fix.command = {
-        command: ExtensionCommand.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
+        command: ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
         title: 'Fix invalid interactive syntax',
         arguments: [
           {

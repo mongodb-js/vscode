@@ -120,7 +120,7 @@ export default class ExplorerTreeController
 
         if (selectedItem.contextValue === DOCUMENT_ITEM) {
           await vscode.commands.executeCommand(
-            ExtensionCommand.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
+            ExtensionCommand.mdbOpenMongodbDocumentFromTree,
             event.selection[0],
           );
         }
@@ -130,7 +130,7 @@ export default class ExplorerTreeController
           selectedItem.type === CollectionType.view
         ) {
           await vscode.commands.executeCommand(
-            ExtensionCommand.MDB_VIEW_COLLECTION_DOCUMENTS,
+            ExtensionCommand.mdbViewCollectionDocuments,
             event.selection[0],
           );
         }

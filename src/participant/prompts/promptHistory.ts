@@ -12,7 +12,7 @@ export class PromptHistory {
     namespaceIsKnown: boolean;
   }): vscode.LanguageModelChatMessage | undefined {
     if (
-      currentTurn.result.errorDetails?.message === ParticipantErrorType.FILTERED
+      currentTurn.result.errorDetails?.message === ParticipantErrorType.filtered
     ) {
       return undefined;
     }
@@ -82,7 +82,7 @@ export class PromptHistory {
 
     if (
       nextTurn instanceof vscode.ChatResponseTurn &&
-      nextTurn.result.errorDetails?.message === ParticipantErrorType.FILTERED
+      nextTurn.result.errorDetails?.message === ParticipantErrorType.filtered
     ) {
       // If the response to this request led to a filtered error,
       // we do not want to include it in the history

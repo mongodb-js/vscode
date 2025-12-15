@@ -34,7 +34,7 @@ export class QueryWithCopilotCodeLensProvider
       command: 'query',
       isNewChat: true,
       telemetry: {
-        source: DocumentSource.CODELENS,
+        source: DocumentSource.codelens,
         source_details: undefined,
       },
     };
@@ -42,7 +42,7 @@ export class QueryWithCopilotCodeLensProvider
     return [
       new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
         title: '✨ Generate query with MongoDB Copilot',
-        command: ExtensionCommand.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
+        command: ExtensionCommand.sendMessageToParticipantFromInput,
         arguments: [options],
       }),
     ];

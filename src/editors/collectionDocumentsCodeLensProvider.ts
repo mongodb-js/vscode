@@ -91,7 +91,7 @@ export default class CollectionDocumentsCodeLensProvider
     codeLens.command = {
       title: commandTitle,
       tooltip: commandTooltip,
-      command: ExtensionCommand.MDB_CODELENS_SHOW_MORE_DOCUMENTS,
+      command: ExtensionCommand.mdbCodelensShowMoreDocuments,
       arguments: [{ operationId, connectionId, namespace }],
     };
 

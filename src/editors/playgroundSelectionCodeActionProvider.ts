@@ -47,7 +47,7 @@ export default class PlaygroundSelectionCodeActionProvider
     let codeActions: vscode.CodeAction[] = [
       this.createCodeAction({
         title: 'Run selected playground blocks',
-        command: ExtensionCommand.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
+        command: ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
       }),
     ];
 
@@ -61,7 +61,7 @@ export default class PlaygroundSelectionCodeActionProvider
         ...EXPORT_TO_LANGUAGE_ALIASES.map(({ id, alias }) =>
           this.createCodeAction({
             title: `Export To ${alias}`,
-            command: ExtensionCommand.MDB_EXPORT_TO_LANGUAGE,
+            command: ExtensionCommand.mdbExportToLanguage,
             arguments: [id],
           }),
         ),

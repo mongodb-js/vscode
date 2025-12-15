@@ -57,7 +57,7 @@ const MAX_TOTAL_PROMPT_LENGTH_MOCK = 16000;
 const loadedConnection = {
   id: 'id',
   name: 'localhost',
-  storageLocation: StorageLocation.NONE,
+  storageLocation: StorageLocation.none,
   secretStorageLocation: SecretStorageLocation.SecretStorage,
   connectionOptions: { connectionString: 'mongodb://localhost' },
 };
@@ -1942,7 +1942,7 @@ Schema:
               message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.TREEVIEW,
+                source: DocumentSource.treeview,
                 source_details: 'database',
               },
             },
@@ -1973,7 +1973,7 @@ Schema:
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.TREEVIEW,
+                source: DocumentSource.treeview,
                 source_details: 'collection',
               },
             },
@@ -2566,12 +2566,12 @@ Schema:
             `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
 
                     ${createMarkdownLink({
-                      commandId: ExtensionCommand.CONNECT_WITH_PARTICIPANT,
+                      commandId: ExtensionCommand.connectWithParticipant,
                       name: 'localhost',
                       data: {},
                     })}
                     ${createMarkdownLink({
-                      commandId: ExtensionCommand.CONNECT_WITH_PARTICIPANT,
+                      commandId: ExtensionCommand.connectWithParticipant,
                       name: 'atlas',
                       data: {},
                     })}`,
@@ -2638,7 +2638,7 @@ Schema:
             createChatResponseTurn('/query', undefined, {
               result: {
                 errorDetails: {
-                  message: ParticipantErrorType.FILTERED,
+                  message: ParticipantErrorType.filtered,
                 },
                 metadata: {},
               },

@@ -12,7 +12,7 @@ export const useDetectVsCodeDarkMode = (): boolean => {
   useEffect(() => {
     const onThemeChanged = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
-      if (message.command === MessageType.THEME_CHANGED) {
+      if (message.command === MessageType.themeChanged) {
         setDarkModeDetected(message.darkMode);
       }
     };

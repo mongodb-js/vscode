@@ -214,13 +214,13 @@ export class TelemetryService {
     const message: string = err.message || err.toString();
 
     if (message.includes('off_topic')) {
-      errorName = ParticipantErrorType.CHAT_MODEL_OFF_TOPIC;
+      errorName = ParticipantErrorType.chatModelOffTopic;
     } else if (message.includes('Filtered by Responsible AI Service')) {
-      errorName = ParticipantErrorType.FILTERED;
+      errorName = ParticipantErrorType.filtered;
     } else if (message.includes('Prompt failed validation')) {
-      errorName = ParticipantErrorType.INVALID_PROMPT;
+      errorName = ParticipantErrorType.invalidPrompt;
     } else {
-      errorName = ParticipantErrorType.OTHER;
+      errorName = ParticipantErrorType.other;
     }
 
     this.track(

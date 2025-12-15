@@ -57,7 +57,7 @@ export default class ActiveConnectionCodeLensProvider
 
     codeLens.command = {
       title: message,
-      command: ExtensionCommand.MDB_CHANGE_ACTIVE_CONNECTION,
+      command: ExtensionCommand.mdbChangeActiveConnection,
       arguments: [],
     };
 

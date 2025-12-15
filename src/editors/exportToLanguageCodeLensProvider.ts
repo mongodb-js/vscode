@@ -51,8 +51,7 @@ export default class ExportToLanguageCodeLensProvider
           .includeDriverSyntax
           ? 'Exclude Driver Syntax'
           : 'Include Driver Syntax',
-        command:
-          ExtensionCommand.MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE,
+        command: ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage,
         arguments: [
           !this._playgroundResultProvider._playgroundResult.includeDriverSyntax,
         ],

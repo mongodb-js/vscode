@@ -44,7 +44,7 @@ type ExecuteCodeOptions = {
 
 function handleEvalPrint(values: EvaluationResult[]): void {
   parentPort?.postMessage({
-    name: ServerCommand.SHOW_CONSOLE_OUTPUT,
+    name: ServerCommand.showConsoleOutput,
     payload: values.map((v) => {
       return typeof v.printable === 'string'
         ? v.printable
@@ -124,9 +124,9 @@ export const execute = async ({
 };
 
 const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
-  if (name === ServerCommand.EXECUTE_CODE_FROM_PLAYGROUND) {
+  if (name === ServerCommand.executeCodeFromPlayground) {
     parentPort?.postMessage({
-      name: ServerCommand.CODE_EXECUTION_RESULT,
+      name: ServerCommand.codeExecutionResult,
       payload: await execute(data),
     });
   }

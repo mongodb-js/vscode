@@ -52,7 +52,7 @@ export default class MongoDBDocumentService {
     const errorMessage = `Unable to save document: ${message}`;
 
     this._telemetryService.track(
-      new DocumentUpdatedTelemetryEvent(DocumentSource.TREEVIEW, false),
+      new DocumentUpdatedTelemetryEvent(DocumentSource.treeview, false),
     );
 
     throw new Error(errorMessage);

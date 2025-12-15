@@ -123,10 +123,9 @@ export async function getConnectionTelemetryProperties(
   connectionType: ConnectionTypes,
 ): Promise<NewConnectionTelemetryEventProperties> {
   let preparedProperties: NewConnectionTelemetryEventProperties = {
-    is_used_connect_screen: connectionType === ConnectionType.CONNECTION_FORM,
-    is_used_command_palette:
-      connectionType === ConnectionType.CONNECTION_STRING,
-    is_used_saved_connection: connectionType === ConnectionType.CONNECTION_ID,
+    is_used_connect_screen: connectionType === ConnectionType.connectionForm,
+    is_used_command_palette: connectionType === ConnectionType.connectionString,
+    is_used_saved_connection: connectionType === ConnectionType.connectionId,
     vscode_mdb_extension_version: version,
   };
 

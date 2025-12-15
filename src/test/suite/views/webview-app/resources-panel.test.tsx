@@ -38,7 +38,7 @@ describe('Resources panel test suite', function () {
     screen.getAllByTestId(/^link-\w+/).forEach((link) => {
       link.click();
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: MessageType.EXTENSION_LINK_CLICKED,
+        command: MessageType.extensionLinkClicked,
         screen: TELEMETRY_SCREEN_ID,
         linkId: link.getAttribute('data-testid')?.replace('link-', ''),
       });
@@ -47,7 +47,7 @@ describe('Resources panel test suite', function () {
     screen.getAllByTestId(/^footer-feature-\w+/).forEach((link) => {
       link.click();
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: MessageType.EXTENSION_LINK_CLICKED,
+        command: MessageType.extensionLinkClicked,
         screen: TELEMETRY_SCREEN_ID,
         linkId: link
           .getAttribute('data-testid')
@@ -58,7 +58,7 @@ describe('Resources panel test suite', function () {
     screen.getAllByTestId(/^footer-link-\w+/).forEach((link) => {
       link.click();
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: MessageType.EXTENSION_LINK_CLICKED,
+        command: MessageType.extensionLinkClicked,
         screen: TELEMETRY_SCREEN_ID,
         linkId: link.getAttribute('data-testid')?.replace('footer-link-', ''),
       });

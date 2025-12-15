@@ -38,14 +38,14 @@ export default class EditDocumentCodeLensProvider
 
     resultCodeLensesInfo = this._updateCodeLensesForCursor({
       ...data,
-      source: DocumentSource.COLLECTIONVIEW,
+      source: DocumentSource.collectionview,
     });
 
     this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
   }
 
   updateCodeLensesForPlayground(playgroundResult: PlaygroundRunResult): void {
-    const source = DocumentSource.PLAYGROUND;
+    const source = DocumentSource.playground;
     let resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     if (!playgroundResult || !playgroundResult.content) {
@@ -148,7 +148,7 @@ export default class EditDocumentCodeLensProvider
           arguments: EditDocumentInfo[];
         } = {
           title: 'Edit Document',
-          command: ExtensionCommand.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
+          command: ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
           arguments: [item],
         };
 

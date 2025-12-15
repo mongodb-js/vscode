@@ -904,7 +904,7 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           connectionOptions: { connectionString: 'mongodb://localhost' },
           name: 'NAAAME',
-          storageLocation: StorageLocation.NONE,
+          storageLocation: StorageLocation.none,
           secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
@@ -935,7 +935,7 @@ suite('MDBExtensionController Test Suite', function () {
           id: 'blueBerryPancakesAndTheSmellOfBacon',
           name: 'NAAAME',
           connectionOptions: { connectionString: 'mongodb://localhost' },
-          storageLocation: StorageLocation.NONE,
+          storageLocation: StorageLocation.none,
           secretStorageLocation: SecretStorageLocation.SecretStorage,
         };
 
@@ -1682,7 +1682,7 @@ suite('MDBExtensionController Test Suite', function () {
             );
             assert.strictEqual(
               executeCommandStub.firstCall.args[0],
-              ExtensionCommand.MDB_OPEN_OVERVIEW_PAGE,
+              ExtensionCommand.mdbOpenOverviewPage,
             );
           });
 
@@ -1690,7 +1690,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariable.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              StorageVariable.globalHasBeenShownInitialView,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
@@ -1735,7 +1735,7 @@ suite('MDBExtensionController Test Suite', function () {
             assert(fakeUpdate.called);
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],
-              StorageVariable.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+              StorageVariable.globalHasBeenShownInitialView,
             );
             assert.strictEqual(
               fakeUpdate.firstCall.args[0],

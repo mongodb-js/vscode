@@ -13,13 +13,12 @@ import { MessageType } from './extension-app-message-constants';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import type { ElectronFileDialogOptions } from '@mongodb-js/compass-components';
 
-export const FILE_CHOOSER_MODE = {
-  OPEN: 'open',
-  SAVE: 'save',
+export const FileChooserMode = {
+  open: 'open',
+  save: 'save',
 } as const;
 
-type FileChooserMode =
-  (typeof FILE_CHOOSER_MODE)[keyof typeof FILE_CHOOSER_MODE];
+type FileChooserMode = (typeof FileChooserMode)[keyof typeof FileChooserMode];
 
 export type FileChooserOptions = {
   electronFileDialogOptions?: Partial<ElectronFileDialogOptions>;
@@ -163,7 +162,7 @@ export default function useConnectionForm(): {
     const handleConnectResultResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (
-        message.command === MessageType.CONNECT_RESULT &&
+        message.command === MessageType.connectResult &&
         message.connectionId === initialConnectionInfo.id
       ) {
         dispatch({
@@ -182,7 +181,7 @@ export default function useConnectionForm(): {
   useEffect(() => {
     const handleConnectResultResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
-      if (message.command === MessageType.OPEN_EDIT_CONNECTION) {
+      if (message.command === MessageType.openEditConnection) {
         dispatch({
           type: 'open-edit-connection',
           connectionInfo: {
