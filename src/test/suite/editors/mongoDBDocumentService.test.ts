@@ -175,7 +175,9 @@ suite('MongoDB Document Service Test Suite', () => {
       source,
     });
 
-    expect(result).to.be.deep.equal(EJSON.serialize(documents[0]));
+    expect(result).to.be.deep.equal(
+      EJSON.serialize(documents[0], { relaxed: false })
+    );
   });
 
   test('fetchDocument calls find and returns a single document when connected - simplifying the uuid type', async () => {

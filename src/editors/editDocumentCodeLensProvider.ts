@@ -89,7 +89,9 @@ export default class EditDocumentCodeLensProvider
         // to be able to save the editable document.
         if (item !== null && item._id && namespace) {
           resultCodeLensesInfo.push({
-            documentId: EJSON.deserialize(EJSON.serialize(item._id)),
+            documentId: EJSON.deserialize(
+              EJSON.serialize(item._id, { relaxed: false })
+            ),
             source,
             line,
             namespace,
@@ -121,7 +123,9 @@ export default class EditDocumentCodeLensProvider
       // When the playground result is the single document,
       // show the single code lense after {.
       resultCodeLensesInfo.push({
-        documentId: EJSON.deserialize(EJSON.serialize(content._id)),
+        documentId: EJSON.deserialize(
+          EJSON.serialize(content._id, { relaxed: false })
+        ),
         source,
         line: 1,
         namespace,

@@ -43,6 +43,7 @@ export const runCodeInMessage = async (
       productName: 'VSCode Copilot AI accuracy tests',
       productDocsLink: 'N/A',
     },
+    expectedFormat: 'ejson',
     onPrint: (values) => {
       printOutput.push(
         ...values.map((v) =>

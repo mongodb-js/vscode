@@ -7,6 +7,7 @@ import {
   type ExportToLanguageResult,
 } from '../types/playgroundType';
 import { isExportToLanguageResult } from '../types/playgroundType';
+import { toJSString } from 'mongodb-query-parser';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -60,9 +61,14 @@ export default class PlaygroundResultProvider
       return 'undefined';
     }
 
+    // TODO: Possible bug that this update code lenses happens after the content is returned sometimes?
     this._editDocumentCodeLensProvider?.updateCodeLensesForPlayground(
       this._playgroundResult
     );
+
+    if (this._playgroundResult.type === 'javascript') {
+      return toJSString(this._playgroundResult.content, 2) ?? '';
+    }
 
     return JSON.stringify(this._playgroundResult.content, null, 2);
   }

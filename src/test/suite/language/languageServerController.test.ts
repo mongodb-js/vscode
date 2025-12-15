@@ -156,6 +156,7 @@ suite('Language Server Controller Test Suite', () => {
           print('test');
           console.log({ pineapple: 'yes' });
         `,
+          expectedFormat: 'ejson',
           connectionId: 'pineapple',
         },
         source.token

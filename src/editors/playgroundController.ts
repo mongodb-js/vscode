@@ -351,6 +351,10 @@ export default class PlaygroundController {
       // Send a request to the language server to execute scripts from a playground.
       result = await this._languageServerController.evaluate(
         {
+          expectedFormat:
+            vscode.workspace
+              .getConfiguration('mdb')
+              .get('documentViewAndEditFormat') ?? 'shell',
           codeToEvaluate,
           connectionId,
           filePath,

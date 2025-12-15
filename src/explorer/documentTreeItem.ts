@@ -80,13 +80,13 @@ export default class DocumentTreeItem
   async getStringifiedEJSONDocumentContents(): Promise<string> {
     const document = await this.getDocumentContents();
 
-    return EJSON.stringify(document, undefined, 2);
+    return EJSON.stringify(document, undefined, 2, { relaxed: false });
   }
 
   async getJSStringDocumentContents(): Promise<string> {
     const ejsonDocument = await this.getDocumentContents();
 
-    return toJSString(ejsonDocument, 2);
+    return toJSString(ejsonDocument, 2) ?? '';
   }
 
   async onDeleteDocumentClicked(): Promise<boolean> {

@@ -1135,6 +1135,15 @@
           "default": 10,
           "description": "The number of documents to fetch when viewing documents from a collection."
         },
+        "mdb.documentViewAndEditFormat": {
+          "type": "string",
+          "enum": [
+            "shell",
+            "ejson"
+          ],
+          "default": "shell",
+          "description": "The format to use when viewing and editing documents as well as playground results."
+        },
         "mdb.confirmRunAll": {
           "type": "boolean",
           "default": true,
@@ -1211,6 +1220,7 @@
     "@mongodb-js/connection-form": "^1.42.0",
     "@mongodb-js/connection-info": "^0.9.1",
     "@mongodb-js/mongodb-constants": "^0.10.3",
+    "@mongodb-js/shell-bson-parser": "^1.1.4",
     "@mongosh/browser-runtime-electron": "^2.3.3",
     "@mongosh/i18n": "^2.3.3",
     "@mongosh/service-provider-node-driver": "^2.3.3",

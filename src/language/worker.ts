@@ -11,29 +11,48 @@ import type {
 } from '../types/playgroundType';
 import util from 'util';
 import { getEJSON } from '../utils/ejson';
+import type { DocumentViewAndEditFormat } from '../editors/types';
 
 interface EvaluationResult {
   printable: any;
   type: string | null;
 }
 
-const getContent = ({ type, printable }: EvaluationResult): Document => {
+interface EvaluationResultWithExpectedFormat extends EvaluationResult {
+  expectedFormat: DocumentViewAndEditFormat;
+}
+
+const getContent = ({
+  type,
+  printable,
+  expectedFormat,
+}: EvaluationResultWithExpectedFormat): Document => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
+    if (expectedFormat === 'shell') {
+      console.log('printable.documents', printable.documents);
+      return printable.documents;
+    }
     return getEJSON(printable.documents);
   }
 
-  return typeof printable !== 'object' || printable === null
-    ? printable
-    : getEJSON(printable);
+  if (
+    expectedFormat === 'shell' ||
+    typeof printable !== 'object' ||
+    printable === null
+  ) {
+    return printable;
+  }
+
+  return getEJSON(printable);
 };
 
 export const getLanguage = (
-  evaluationResult: EvaluationResult
-): 'json' | 'plaintext' => {
+  evaluationResult: EvaluationResultWithExpectedFormat
+): 'json' | 'plaintext' | 'javascript' => {
   const content = getContent(evaluationResult);
 
   if (typeof content === 'object' && content !== null) {
-    return 'json';
+    return evaluationResult.expectedFormat === 'shell' ? 'javascript' : 'json';
   }
 
   return 'plaintext';
@@ -43,6 +62,7 @@ type ExecuteCodeOptions = {
   codeToEvaluate: string;
   connectionString: string;
   connectionOptions: MongoClientOptions;
+  expectedFormat: DocumentViewAndEditFormat;
   onPrint?: (values: EvaluationResult[]) => void;
   filePath?: string;
 };
@@ -64,6 +84,7 @@ function handleEvalPrint(values: EvaluationResult[]): void {
 export const execute = async ({
   codeToEvaluate,
   onPrint = handleEvalPrint,
+  expectedFormat,
   connectionString,
   connectionOptions,
   filePath,
@@ -109,8 +130,8 @@ export const execute = async ({
     const result = {
       namespace,
       type: type ? type : typeof printable,
-      content: getContent({ type, printable }),
-      language: getLanguage({ type, printable }),
+      content: getContent({ expectedFormat, type, printable }),
+      language: getLanguage({ expectedFormat, type, printable }),
     };
 
     return { data: { result } };

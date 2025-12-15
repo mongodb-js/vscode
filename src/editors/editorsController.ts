@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
+import parseShellStringToEJSON, {
+  ParseMode,
+} from '@mongodb-js/shell-bson-parser';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
@@ -217,6 +220,7 @@ export default class EditorsController {
     }
   }
 
+  // eslint-disable-next-line complexity
   async saveMongoDBDocument(): Promise<boolean> {
     const editor = vscode.window.activeTextEditor;
 
@@ -249,7 +253,18 @@ export default class EditorsController {
     }
 
     try {
-      const newDocument = EJSON.parse(editor.document.getText() || '');
+      const editFormat =
+        vscode.workspace
+          .getConfiguration('mdb')
+          .get('documentViewAndEditFormat') ?? 'shell';
+      let newDocument: Document;
+      if (editFormat === 'shell') {
+        newDocument = parseShellStringToEJSON(editor.document.getText() || '', {
+          mode: ParseMode.Strict,
+        });
+      } else {
+        newDocument = EJSON.parse(editor.document.getText() || '');
+      }
 
       await this._mongoDBDocumentService.replaceDocument({
         namespace,
