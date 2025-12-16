@@ -981,6 +981,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.askCopilotFromTreeItem",
+          "when": "false"
+        },
+        {
           "command": "mdb.addCollection",
           "when": "false"
         },
