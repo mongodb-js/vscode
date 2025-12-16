@@ -50,7 +50,7 @@
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
     "watch": "pnpm run compile && npm-run-all -p watch:*",
-    "watch:extension": "tsc -p ./ -watch",
+    "watch:extension": "tsc -p ./ --watch",
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "pnpm run compile",
     "test": "pnpm run test-webview && pnpm run test-extension",
