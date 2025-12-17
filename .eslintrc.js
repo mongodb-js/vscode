@@ -9,7 +9,7 @@ const ruleOverridesForJs = Object.keys(
 );
 
 const sharedRules = {
-  // TODO(@Anemy): Create a Jira ticket for this.
+  // TODO(VSCODE-724): Update our file naming and enable this rule.
   // We have a lot of files that do not match the filename rules.
   'filename-rules/match': 0,
   'mocha/no-exclusive-tests': 2,
