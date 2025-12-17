@@ -64,7 +64,7 @@ export const execute = async ({
   filePath,
 }: ExecuteCodeOptions): Promise<{
   data: ShellEvaluateResult | null;
-  error?: any;
+  error?: Error;
 }> => {
   const serviceProvider = await NodeDriverServiceProvider.connect(
     connectionString,
@@ -117,7 +117,7 @@ export const execute = async ({
 
     return { data: { result } };
   } catch (error) {
-    return { error, data: null };
+    return { error: error as Error, data: null };
   } finally {
     await serviceProvider.close();
   }

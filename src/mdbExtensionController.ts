@@ -57,6 +57,7 @@ import {
 
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
+import formatError from './utils/formatError';
 
 // Deep link command filtering: Commands are explicitly categorized as allowed or disallowed.
 // We use tests in mdbExtensionController.test.ts to enforce these lists being disjoint and complete.
@@ -359,7 +360,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       await vscode.commands.executeCommand(command, parameters);
     } catch (error) {
       await vscode.window.showErrorMessage(
-        `Failed to handle '${uri}': ${error}`,
+        `Failed to handle '${vscode.Uri.prototype.toString.call(uri)}': ${formatError(error).message}`,
       );
     }
   };

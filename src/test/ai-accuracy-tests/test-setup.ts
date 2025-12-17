@@ -20,7 +20,9 @@ const vscodeMock = {
     }),
   },
   window: {
-    createOutputChannel: (): void => {},
+    createOutputChannel: (): void => {
+      /* no-op */
+    },
   },
   lm: {
     selectChatModels: (): unknown => [

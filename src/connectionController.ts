@@ -88,7 +88,7 @@ interface NewConnectionParams {
   reuseExisting?: boolean;
 }
 
-export const DEFAULT_TELEMETRY_APP_NAME = `${packageJSON.name} ${packageJSON.version}`;
+export const DEFAULT_TELEMETRY_APP_NAME = `${packageJSON.name as string} ${packageJSON.version as string}`;
 
 function isOIDCAuth(connectionString: string): boolean {
   const authMechanismString = (
@@ -530,8 +530,6 @@ export default class ConnectionController {
           connectionErrorMessage: 'connection attempt cancelled',
         };
       }
-    } catch (error) {
-      throw error;
     } finally {
       if (
         this._connectionAttempt === connectionAttempt &&
@@ -628,7 +626,9 @@ export default class ConnectionController {
       return;
     }
 
-    let mergeConnectionInfo: LoadedConnection | {} = {};
+    let mergeConnectionInfo:
+      | RecursivePartial<LoadedConnection>
+      | Record<string, never> = {};
     if (vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')) {
       mergeConnectionInfo = {
         connectionOptions: await dataService.getUpdatedSecrets(),
@@ -657,7 +657,7 @@ export default class ConnectionController {
           }
           // Get updated secrets first (and not in parallel) so that the
           // race condition window between load() and save() is as short as possible.
-          const mergeConnectionInfo = {
+          const mergeConnectionInfo: RecursivePartial<LoadedConnection> = {
             connectionOptions: await dataService.getUpdatedSecrets(),
           };
           if (!mergeConnectionInfo) return;
@@ -836,7 +836,7 @@ export default class ConnectionController {
       | { connectionString: string }
       | { name: string }
       | { id: string }
-      | {}
+      | Record<string, never>
     ) & {
       force?: boolean;
     } = {},
@@ -964,7 +964,9 @@ export default class ConnectionController {
         },
       });
     } catch (e) {
-      throw new Error(`An error occurred parsing the connection name: ${e}`);
+      throw new Error(
+        `An error occurred parsing the connection name: ${(e as Error).message}`,
+      );
     }
 
     if (!inputtedConnectionName) {

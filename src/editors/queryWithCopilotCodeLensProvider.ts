@@ -8,8 +8,6 @@ import { DocumentSource } from '../documentSource';
 export class QueryWithCopilotCodeLensProvider
   implements vscode.CodeLensProvider
 {
-  constructor() {}
-
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     vscode.extensions.onDidChange;
 

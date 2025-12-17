@@ -1925,8 +1925,8 @@ Schema:
           Object.create(DatabaseTreeItem.prototype),
           {
             databaseName: 'testDb',
-          } as DatabaseTreeItem,
-        );
+          },
+        ) as DatabaseTreeItem;
 
         test('opens the chat and sends a message to set database context', async function () {
           expect(sendMessageToParticipantStub).not.called;
@@ -1956,8 +1956,8 @@ Schema:
           {
             databaseName: 'testDb',
             collectionName: 'testColl',
-          } as CollectionTreeItem,
-        );
+          },
+        ) as CollectionTreeItem;
 
         test('opens the chat and sends a message to set database and collection context', async function () {
           expect(sendMessageToParticipantStub).not.called;
@@ -2565,16 +2565,20 @@ Schema:
             '/query',
             `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
 
-                    ${createMarkdownLink({
-                      commandId: ExtensionCommand.connectWithParticipant,
-                      name: 'localhost',
-                      data: {},
-                    })}
-                    ${createMarkdownLink({
-                      commandId: ExtensionCommand.connectWithParticipant,
-                      name: 'atlas',
-                      data: {},
-                    })}`,
+                    ${
+                      createMarkdownLink({
+                        commandId: ExtensionCommand.connectWithParticipant,
+                        name: 'localhost',
+                        data: {},
+                      }).value
+                    }
+                    ${
+                      createMarkdownLink({
+                        commandId: ExtensionCommand.connectWithParticipant,
+                        name: 'atlas',
+                        data: {},
+                      }).value
+                    }`,
             {
               result: {
                 metadata: {

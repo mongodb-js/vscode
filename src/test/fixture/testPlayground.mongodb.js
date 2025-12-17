@@ -1,3 +1,3 @@
-/* global use, db */
+/* global use */
 
 use('test');

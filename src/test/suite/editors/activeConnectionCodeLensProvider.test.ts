@@ -13,7 +13,7 @@ import { ExtensionContextStub } from '../stubs';
 import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 
-suite('Active Connection CodeLens Provider Test Suite', () => {
+suite('Active Connection CodeLens Provider Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
@@ -40,7 +40,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     sandbox.restore();
   });
 
-  suite('the MongoDB playground in JS', () => {
+  suite('the MongoDB playground in JS', function () {
     const mockFileName = path.join('nonexistent', 'playground-test.mongodb.js');
     const mockDocumentUri = vscode.Uri.from({
       path: mockFileName,
@@ -50,13 +50,13 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       uri: mockDocumentUri,
     } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
 
-    suite('user is not connected', () => {
+    suite('user is not connected', function () {
       beforeEach(() => {
         const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
       });
 
-      test('show disconnected message in code lenses', () => {
+      test('show disconnected message in code lenses', function () {
         const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');
@@ -69,7 +69,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       });
     });
 
-    suite('user is connected', () => {
+    suite('user is connected', function () {
       beforeEach(() => {
         const findStub = sandbox.stub();
         findStub.resolves([
@@ -99,7 +99,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         );
       });
 
-      test('show active connection in code lenses', () => {
+      test('show active connection in code lenses', function () {
         sandbox.replace(
           testConnectionController,
           'getMongoClientConnectionOptions',
@@ -121,7 +121,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         );
       });
 
-      test('show active connection and default database in code lenses, when connected to a default database', () => {
+      test('show active connection and default database in code lenses, when connected to a default database', function () {
         sandbox.replace(
           testConnectionController,
           'getMongoClientConnectionOptions',
@@ -144,7 +144,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
     });
   });
 
-  suite('the regular JS file', () => {
+  suite('the regular JS file', function () {
     const mockFileName = path.join('nonexistent', 'playground-test.js');
     const mockDocumentUri = vscode.Uri.from({
       path: mockFileName,
@@ -154,13 +154,13 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       uri: mockDocumentUri,
     } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
 
-    suite('user is not connected', () => {
+    suite('user is not connected', function () {
       beforeEach(() => {
         const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
       });
 
-      test('show not show the active connection code lenses', () => {
+      test('show not show the active connection code lenses', function () {
         const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');
@@ -168,7 +168,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
       });
     });
 
-    suite('user is connected', () => {
+    suite('user is connected', function () {
       beforeEach(() => {
         const findStub = sandbox.stub();
         findStub.resolves([
@@ -198,7 +198,7 @@ suite('Active Connection CodeLens Provider Test Suite', () => {
         );
       });
 
-      test('show not show the active connection code lenses', () => {
+      test('show not show the active connection code lenses', function () {
         const codeLens = testCodeLensProvider.provideCodeLenses(mockTextDoc);
 
         expect(codeLens).to.be.an('array');

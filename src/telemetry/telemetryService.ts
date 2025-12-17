@@ -63,7 +63,7 @@ export class TelemetryService {
 
   public getCommonProperties(): Record<string, string | undefined> {
     return {
-      extension_version: `${version}`,
+      extension_version: `${version as string}`,
       device_id: this.deviceId,
       app_name: vscode.env.appName || 'Visual Studio Code - Unknown', // e.g., "VS Code" or "Azure Data Studio"
     };

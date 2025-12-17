@@ -16,7 +16,7 @@ export function getSimplifiedSampleDocuments(obj: Document[]): Document[] {
       }
       // Recursively truncate strings in nested objects or arrays.
       for (const key in value) {
-        if (value.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
           value[key] = truncate(value[key]);
         }
       }

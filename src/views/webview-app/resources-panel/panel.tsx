@@ -68,6 +68,7 @@ const resourcePanelContentStyles = css({
 const ResourcesPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   return (
     <div className={resourcesPanelStyles}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div className={resourcesPanelBackgroundStyles} onClick={onClose} />
       <div className={resourcePanelContentStyles}>
         <ResourcesPanelHeader onCloseClick={onClose} />

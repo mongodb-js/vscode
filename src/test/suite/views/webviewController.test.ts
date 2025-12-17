@@ -19,7 +19,7 @@ import WebviewController, {
 import * as linkHelper from '../../../utils/linkHelper';
 import { waitFor } from '../waitFor';
 
-suite('Webview Test Suite', () => {
+suite('Webview Test Suite', function () {
   const sandbox = sinon.createSandbox();
   let extensionContextStub: ExtensionContextStub;
   let testStorageController: StorageController;
@@ -55,7 +55,7 @@ suite('Webview Test Suite', () => {
     sandbox.restore();
   });
 
-  test('it creates a web view panel and sets the html content', () => {
+  test('it creates a web view panel and sets the html content', function () {
     const stubOnDidReceiveMessage = sandbox.stub();
     const fakeWebview = {
       html: '',
@@ -87,7 +87,7 @@ suite('Webview Test Suite', () => {
     expect(stubOnDidReceiveMessage).to.be.calledOnce;
   });
 
-  test('web view content is rendered with the js form', async () => {
+  test('web view content is rendered with the js form', async function () {
     async function readFile(filePath): Promise<string> {
       return new Promise((resolve, reject) => {
         fs.readFile(filePath, 'utf8', function (err, data) {
@@ -120,7 +120,7 @@ suite('Webview Test Suite', () => {
     expect(`${jsFileString}`).to.include('OverviewPage');
   });
 
-  test('web view content sets the segment anonymous id globally', () => {
+  test('web view content sets the segment anonymous id globally', function () {
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
@@ -137,7 +137,7 @@ suite('Webview Test Suite', () => {
     );
   });
 
-  test('web view content sets the oidc device auth id globally', () => {
+  test('web view content sets the oidc device auth id globally', function () {
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const htmlString = getWebviewContent({
       extensionPath,
@@ -171,7 +171,7 @@ suite('Webview Test Suite', () => {
         .update('showOIDCDeviceAuthFlow', originalDeviceAuthFlow);
     });
 
-    test('web view content sets the oidc device auth id globally', () => {
+    test('web view content sets the oidc device auth id globally', function () {
       const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
       const htmlString = getWebviewContent({
         extensionPath,
@@ -189,7 +189,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('web view listens for a connect message and adds the connection', (done) => {
+  test('web view listens for a connect message and adds the connection', function (done) {
     let messageReceivedSet = false;
     let messageReceived;
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
@@ -233,7 +233,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('web view sends a successful connect result on a successful connection', (done) => {
+  test('web view sends a successful connect result on a successful connection', function (done) {
     let messageReceivedSet = false;
     let messageReceived;
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
@@ -274,7 +274,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('web view sends an unsuccessful connect result on an unsuccessful connection', (done) => {
+  test('web view sends an unsuccessful connect result on an unsuccessful connection', function (done) {
     let messageReceived;
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
       webview: {
@@ -361,7 +361,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('web view runs the "connectWithURI" command when open connection string input is received', async () => {
+  test('web view runs the "connectWithURI" command when open connection string input is received', async function () {
     let messageReceived;
     const fakeWebview = {
       html: '',
@@ -397,7 +397,7 @@ suite('Webview Test Suite', () => {
     );
   });
 
-  test('webview returns the connection status on a connection status request', (done) => {
+  test('webview returns the connection status on a connection status request', function (done) {
     let messageReceived;
 
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
@@ -428,7 +428,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  test('webview returns the connection status on a connection status request', (done) => {
+  test('webview returns the connection status on a connection status request when connected', function (done) {
     let messageReceived;
 
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
@@ -464,7 +464,7 @@ suite('Webview Test Suite', () => {
       });
   });
 
-  test('calls to rename the active connection when a rename active connection message is passed', async () => {
+  test('calls to rename the active connection when a rename active connection message is passed', async function () {
     let messageReceived;
 
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
@@ -509,7 +509,7 @@ suite('Webview Test Suite', () => {
     await testConnectionController.disconnect();
   });
 
-  test('calls to edit a connection when an edit connection message is passed', async () => {
+  test('calls to edit a connection when an edit connection message is passed', async function () {
     let messageReceived;
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
       webview: {
@@ -602,7 +602,7 @@ suite('Webview Test Suite', () => {
     });
   });
 
-  suite('with a rendered webview', () => {
+  suite('with a rendered webview', function () {
     const extensionContextStub = new ExtensionContextStub();
     const testStorageController = new StorageController(extensionContextStub);
     const testTelemetryService = new TelemetryService(
@@ -639,7 +639,7 @@ suite('Webview Test Suite', () => {
       testWebviewController.openWebview(mdbTestExtension.extensionContextStub);
     });
 
-    test('it should handle opening trusted links', () => {
+    test('it should handle opening trusted links', function () {
       const stubOpenLink = sandbox.fake.resolves(null);
       sandbox.replace(linkHelper, 'openLink', stubOpenLink);
 

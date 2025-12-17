@@ -19,6 +19,7 @@ export default class DocumentTreeItem
   document: Document;
   documentId: any;
   resetDocumentListCache: () => Promise<void>;
+  tooltip: string;
 
   constructor({
     document,
@@ -96,7 +97,7 @@ export default class DocumentTreeItem
 
     if (shouldConfirmDeleteDocument === true) {
       const confirmationResult = await vscode.window.showInformationMessage(
-        `Are you sure you wish to drop this document "${this.tooltip}"?  This confirmation can be disabled in the extension settings.`,
+        `Are you sure you wish to drop this document${this.tooltip ? ` "${this.tooltip}"` : ''}?  This confirmation can be disabled in the extension settings.`,
         {
           modal: true,
         },
