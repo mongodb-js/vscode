@@ -6,6 +6,7 @@ import DocumentListTreeItem, {
   CollectionType,
   MAX_DOCUMENTS_VISIBLE,
 } from './documentListTreeItem';
+import ShowPreviewTreeItem from './documentListPreviewItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import IndexListTreeItem from './indexListTreeItem';
@@ -47,8 +48,15 @@ export type CollectionDetailsType = Awaited<
 >[number];
 
 function isChildCacheOutOfSync(
-  child: DocumentListTreeItem | SchemaTreeItem | IndexListTreeItem,
+  child:
+    | ShowPreviewTreeItem
+    | DocumentListTreeItem
+    | SchemaTreeItem
+    | IndexListTreeItem,
 ): boolean {
+  if (!('isExpanded' in child)) {
+    return false;
+  }
   const isExpanded = child.isExpanded;
   const collapsibleState = child.collapsibleState;
   return isExpanded
@@ -65,6 +73,7 @@ export default class CollectionTreeItem
   private _documentListChild: DocumentListTreeItem;
   private _schemaChild: SchemaTreeItem;
   private _indexListChild: IndexListTreeItem;
+  private _previewChild: ShowPreviewTreeItem;
 
   collection: CollectionDetailsType;
   collectionName: string;
@@ -93,6 +102,7 @@ export default class CollectionTreeItem
     existingDocumentListChild,
     existingSchemaChild,
     existingIndexListChild,
+    existingPreviewChild,
   }: {
     collection: CollectionDetailsType;
     databaseName: string;
@@ -103,6 +113,7 @@ export default class CollectionTreeItem
     existingDocumentListChild?: DocumentListTreeItem;
     existingSchemaChild?: SchemaTreeItem;
     existingIndexListChild?: IndexListTreeItem;
+    existingPreviewChild?: ShowPreviewTreeItem;
   }) {
     super(
       collection.name,
@@ -133,6 +144,18 @@ export default class CollectionTreeItem
           refreshDocumentCount: this.refreshDocumentCount,
           cacheIsUpToDate: false,
           childrenCache: [], // Empty cache.
+        });
+    this._previewChild = existingPreviewChild
+      ? existingPreviewChild
+      : new ShowPreviewTreeItem({
+          collectionName: this.collectionName,
+          databaseName: this.databaseName,
+          type: this._type,
+          dataService: this._dataService,
+          maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
+          cachedDocumentCount: this.documentCount,
+          refreshDocumentCount: this.refreshDocumentCount,
+          cacheIsUpToDate: false,
         });
     this._schemaChild = existingSchemaChild
       ? existingSchemaChild
@@ -183,7 +206,12 @@ export default class CollectionTreeItem
     }
 
     if (this.cacheIsUpToDate) {
-      return [this._documentListChild, this._schemaChild, this._indexListChild];
+      return [
+        this._previewChild,
+        this._documentListChild,
+        this._schemaChild,
+        this._indexListChild,
+      ];
     }
 
     this.cacheIsUpToDate = true;
@@ -192,7 +220,12 @@ export default class CollectionTreeItem
     // is ensure to be set by vscode.
     this.rebuildChildrenCache();
 
-    return [this._documentListChild, this._schemaChild, this._indexListChild];
+    return [
+      this._previewChild,
+      this._documentListChild,
+      this._schemaChild,
+      this._indexListChild,
+    ];
   }
 
   rebuildDocumentListTreeItem(): void {
@@ -234,12 +267,17 @@ export default class CollectionTreeItem
     });
   }
 
+  rebuildPreviewTreeItem(): void {
+    this._previewChild.refreshDocumentCount();
+  }
+
   rebuildChildrenCache(): void {
     // We rebuild the children here so their controlled `expanded` state
     // is ensure to be set by vscode.
     this.rebuildDocumentListTreeItem();
     this.rebuildSchemaTreeItem();
     this.rebuildIndexListTreeItem();
+    this.rebuildPreviewTreeItem();
   }
 
   needsToUpdateCache(): boolean {
@@ -308,6 +346,9 @@ export default class CollectionTreeItem
   }
   getIndexListChild(): IndexListTreeItem {
     return this._indexListChild;
+  }
+  getPreviewChild(): ShowPreviewTreeItem {
+    return this._previewChild;
   }
 
   getMaxDocumentsToShow(): number {

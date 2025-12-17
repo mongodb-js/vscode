@@ -12,6 +12,7 @@ import ConnectionController from './connectionController';
 import type ConnectionTreeItem from './explorer/connectionTreeItem';
 import type DatabaseTreeItem from './explorer/databaseTreeItem';
 import type DocumentListTreeItem from './explorer/documentListTreeItem';
+import type ShowPreviewTreeItem from './explorer/documentListPreviewItem';
 import { DocumentSource } from './documentSource';
 import type DocumentTreeItem from './explorer/documentTreeItem';
 import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
@@ -147,6 +148,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbCreateIndexTreeView,
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
+  ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -844,6 +846,33 @@ export default class MDBExtensionController implements vscode.Disposable {
         const namespace = `${element.databaseName}.${element.collectionName}`;
 
         return this._editorsController.onViewCollectionDocuments(namespace);
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+      async (element: ShowPreviewTreeItem): Promise<boolean> => {
+        const namespace = element.namespace;
+        // Fetch a batch of documents for client-side pagination
+        const fetchLimit = 100;
+        const documents = await element.loadPreview({ limit: fetchLimit });
+        const totalCount = await element.getTotalCount();
+
+        // Pass a fetch function to allow refreshing/sorting/limiting documents
+        const fetchDocuments = async (options?: {
+          sort?: 'default' | 'asc' | 'desc';
+          limit?: number;
+        }): Promise<Document[]> => element.loadPreview(options);
+
+        // Pass a function to get the total count
+        const getTotalCount = (): Promise<number> => element.getTotalCount();
+
+        return this._editorsController.openCollectionPreview(
+          namespace,
+          documents,
+          fetchDocuments,
+          totalCount,
+          getTotalCount,
+        );
       },
     );
     this.registerCommand(

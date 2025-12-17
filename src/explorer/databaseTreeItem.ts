@@ -96,6 +96,7 @@ export default class DatabaseTreeItem
           existingDocumentListChild: prevChild.getDocumentListChild(),
           existingSchemaChild: prevChild.getSchemaChild(),
           existingIndexListChild: prevChild.getIndexListChild(),
+          existingPreviewChild: prevChild.getPreviewChild(),
         });
       });
 
@@ -153,6 +154,8 @@ export default class DatabaseTreeItem
               pastChildrenCache[collection.name].getSchemaChild(),
             existingIndexListChild:
               pastChildrenCache[collection.name].getIndexListChild(),
+            existingPreviewChild:
+              pastChildrenCache[collection.name].getPreviewChild(),
           });
         } else {
           this._childrenCache[collection.name] = new CollectionTreeItem({

@@ -5,6 +5,7 @@ import ConnectionTreeItem from './connectionTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';
 import { DOCUMENT_LIST_ITEM, CollectionType } from './documentListTreeItem';
+import { PREVIEW_LIST_ITEM } from './documentListPreviewItem';
 import ExtensionCommand from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import type { LoadedConnection } from '../storage/connectionStorage';
@@ -131,6 +132,13 @@ export default class ExplorerTreeController
         ) {
           await vscode.commands.executeCommand(
             ExtensionCommand.mdbViewCollectionDocuments,
+            event.selection[0],
+          );
+        }
+
+        if (selectedItem.contextValue === PREVIEW_LIST_ITEM) {
+          await vscode.commands.executeCommand(
+            ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
             event.selection[0],
           );
         }
