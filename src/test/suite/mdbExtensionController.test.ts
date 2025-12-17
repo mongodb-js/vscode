@@ -1848,7 +1848,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       expect(fakeExecuteCommand).to.not.have.been.called;
       expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-        "Failed to handle 'vscode://mongodb.mongodb-vscode/invalid-command': Error: Unable to execute command 'mdb.invalid-command' since it is not registered by the MongoDB extension.",
+        "Failed to handle 'vscode://mongodb.mongodb-vscode/invalid-command': Unable to execute command 'mdb.invalid-command' since it is not registered by the MongoDB extension.",
       );
     });
 
@@ -1932,7 +1932,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI');
       expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-        "Failed to handle 'vscode://mongodb.mongodb-vscode/mdb.connectWithURI': Error: fake error",
+        "Failed to handle 'vscode://mongodb.mongodb-vscode/mdb.connectWithURI': fake error",
       );
     });
 
@@ -2004,7 +2004,7 @@ suite('MDBExtensionController Test Suite', function () {
 
             expect(fakeExecuteCommand).to.not.have.been.called;
             expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-              `Failed to handle 'vscode://mongodb.mongodb-vscode/${command}': Error: Command '${command}' cannot be invoked via deep links.`,
+              `Failed to handle 'vscode://mongodb.mongodb-vscode/${command}': Command '${command}' cannot be invoked via deep links.`,
             );
           });
         });
