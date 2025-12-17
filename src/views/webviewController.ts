@@ -73,11 +73,11 @@ export const getWebviewContent = ({
     <body>
       <div id="root"></div>
       ${getFeatureFlagsScript(nonce)}
-      <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      ${telemetryUserId ? `<script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>` : ''}
       <script nonce="${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
         showOIDCDeviceAuthFlow ? 'true' : 'false'
       };</script>
-      <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
+      <script nonce="${nonce}" src="${jsAppFileUrl.toString()}"></script>
     </body>
   </html>`;
 };
@@ -159,7 +159,7 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to open file chooser dialog: ${error}`,
+        `Unable to open file chooser dialog: ${(error as Error).message}`,
       );
     }
 
@@ -219,14 +219,14 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to load connection: ${error}`,
+        `Unable to load connection: ${(error as Error).message}`,
       );
 
       void panel.webview.postMessage({
         command: MessageType.connectResult,
         connectionId: connection.id,
         connectionSuccess: false,
-        connectionMessage: `Unable to load connection: ${error}`,
+        connectionMessage: `Unable to load connection: ${(error as Error).message}`,
       });
     }
   };

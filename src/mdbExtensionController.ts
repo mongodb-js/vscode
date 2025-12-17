@@ -359,7 +359,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       await vscode.commands.executeCommand(command, parameters);
     } catch (error) {
       await vscode.window.showErrorMessage(
-        `Failed to handle '${uri}': ${error}`,
+        `Failed to handle '${vscode.Uri.prototype.toString.call(uri)}': ${error as string}`,
       );
     }
   };

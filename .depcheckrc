@@ -1,8 +1,6 @@
 ignores:
- - "@mongodb-js/prettier-config-devtools"
  - "@types/jest"
  - "buffer"
- - "eslint-config-mongodb-js"
  - "mocha-junit-reporter"
  - "mocha-multi"
  - "mongodb-client-encryption"

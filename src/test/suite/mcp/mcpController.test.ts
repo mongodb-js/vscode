@@ -209,7 +209,7 @@ suite('MCPController test suite', function () {
 
     for (const storedValue of ['anything-else', null]) {
       // eslint-disable-next-line no-loop-func
-      suite(`if stored config "${storedValue}"`, function () {
+      suite(`if stored config "${storedValue ?? 'null'}"`, function () {
         test('should keep the stored value as it is, not show any auto-start config popups and not start the server', async function () {
           mcpAutoStartValue = storedValue;
           await mcpController.activate();

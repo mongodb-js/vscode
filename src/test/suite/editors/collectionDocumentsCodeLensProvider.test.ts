@@ -5,8 +5,8 @@ import CollectionDocumentsCodeLensProvider from '../../../editors/collectionDocu
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import { mockVSCodeTextDocument } from '../stubs';
 
-suite('Collection CodeLens Provider Test Suite', () => {
-  test('expected provideCodeLenses to return a code lens with positions at the end of the document', () => {
+suite('Collection CodeLens Provider Test Suite', function () {
+  test('expected provideCodeLenses to return a code lens with positions at the end of the document', function () {
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new CollectionDocumentsCodeLensProvider(
       testQueryStore,
@@ -37,7 +37,7 @@ suite('Collection CodeLens Provider Test Suite', () => {
     );
   });
 
-  test('expected provideCodeLenses to not return a code lens when there are no more documents to show', () => {
+  test('expected provideCodeLenses to not return a code lens when there are no more documents to show', function () {
     const testQueryStore = new CollectionDocumentsOperationsStore();
     const testCodeLensProvider = new CollectionDocumentsCodeLensProvider(
       testQueryStore,

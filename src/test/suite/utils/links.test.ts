@@ -34,13 +34,13 @@ const expectedLinks = {
     'https://docs.mongodb.com/manual/reference/configuration-options/?utm_source=vscode&utm_medium=product#net.ssl.PEMKeyPassword',
 };
 
-suite('LINKS', () => {
-  test('should have all links', () => {
+suite('LINKS', function () {
+  test('should have all links', function () {
     expect(Object.keys(expectedLinks)).to.deep.eq(Object.keys(LINKS));
   });
 
   Object.entries(expectedLinks).forEach(([name, expected]) => {
-    test(`${name} link should return ${expected}`, () => {
+    test(`${name} link should return ${expected}`, function () {
       if (typeof LINKS[name] === 'function') {
         expect(expected).to.eq(LINKS[name]('hi'));
       } else {

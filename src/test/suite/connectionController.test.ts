@@ -35,6 +35,10 @@ import getBuildInfo from 'mongodb-build-info';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../package.json');
+if (typeof version !== 'string') {
+  // Type safety that version is a string.
+  throw new Error('Could not load package.json version');
+}
 
 const testDatabaseConnectionName = 'localhost:27088';
 const testDatabaseURI2WithTimeout =
@@ -84,7 +88,7 @@ suite('Connection Controller Test Suite', function () {
     sandbox.restore();
   });
 
-  test('it connects to mongodb', async () => {
+  test('it connects to mongodb', async function () {
     const successfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI,
@@ -107,7 +111,7 @@ suite('Connection Controller Test Suite', function () {
       sandbox.stub(getBuildInfo, 'isAtlas').returns(true);
     });
 
-    test('should append appName with connection and anonymous id', async () => {
+    test('should append appName with connection and anonymous id', async function () {
       const successfullyConnected =
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI,
@@ -133,7 +137,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('should override legacy appended appName and persist it', async () => {
+    test('should override legacy appended appName and persist it', async function () {
       // Simulate legacy behavior of appending vscode appName by manually creating one
       const successfullyConnected =
         await testConnectionController.addNewConnectionStringAndConnect({
@@ -168,7 +172,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('does not override other user-set appName', async () => {
+    test('does not override other user-set appName', async function () {
       const successfullyConnected =
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: `${TEST_DATABASE_URI}/?appName=test-123+9.9.9`,
@@ -233,7 +237,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('"disconnect()" disconnects from the active connection', async () => {
+  test('"disconnect()" disconnects from the active connection', async function () {
     const successfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI,
@@ -263,7 +267,7 @@ suite('Connection Controller Test Suite', function () {
     expect(dataService).to.be.null;
   });
 
-  suite('onRemoveMongoDBConnection', () => {
+  suite('onRemoveMongoDBConnection', function () {
     const addConnection = (
       id: string,
       name: string,
@@ -280,7 +284,7 @@ suite('Connection Controller Test Suite', function () {
       };
     };
 
-    test('returns a reject promise when there is no active connection', async () => {
+    test('returns a reject promise when there is no active connection', async function () {
       const expectedMessage = 'No connections to remove.';
       const successfullyRemovedMongoDBConnection =
         await testConnectionController.onRemoveMongoDBConnection();
@@ -289,7 +293,7 @@ suite('Connection Controller Test Suite', function () {
       expect(successfullyRemovedMongoDBConnection).to.be.false;
     });
 
-    test('hides preset connections', async () => {
+    test('hides preset connections', async function () {
       addConnection('1234', 'valid 1');
       addConnection('5678', 'valid 2', undefined, { source: 'user' });
       addConnection('3333', 'invalid 1', undefined, {
@@ -313,7 +317,7 @@ suite('Connection Controller Test Suite', function () {
       expect(successfullyRemovedMongoDBConnection).to.be.false;
     });
 
-    test('when connection does not exist, shows error', async () => {
+    test('when connection does not exist, shows error', async function () {
       const didRemove =
         await testConnectionController.onRemoveMongoDBConnection({
           id: 'abc',
@@ -324,7 +328,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('when force: false, prompts user for confirmation', async () => {
+    test('when force: false, prompts user for confirmation', async function () {
       addConnection('1234', 'foo');
       showInformationMessageStub.resolves('No');
 
@@ -341,7 +345,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('when force: true, does not prompt user for confirmation', async () => {
+    test('when force: true, does not prompt user for confirmation', async function () {
       addConnection('1234', 'foo');
 
       const didRemove =
@@ -354,7 +358,7 @@ suite('Connection Controller Test Suite', function () {
       expect(testConnectionController._connections['1234']).to.be.undefined;
     });
 
-    test('with connection name, removes connection', async () => {
+    test('with connection name, removes connection', async function () {
       addConnection('1234', 'bar');
 
       const didRemove =
@@ -367,7 +371,7 @@ suite('Connection Controller Test Suite', function () {
       expect(testConnectionController._connections['1234']).to.be.undefined;
     });
 
-    test('with connection name, when not found, silently returns', async () => {
+    test('with connection name, when not found, silently returns, without connection string', async function () {
       addConnection('1234', 'bar');
 
       const didRemove =
@@ -381,7 +385,7 @@ suite('Connection Controller Test Suite', function () {
       expect(testConnectionController._connections['1234']).to.not.be.undefined;
     });
 
-    test('with connection name, when multiple connections match, removes first one', async () => {
+    test('with connection name, when multiple connections match, removes first one, no connection string', async function () {
       addConnection('1234', 'bar');
       addConnection('5678', 'bar');
 
@@ -396,7 +400,7 @@ suite('Connection Controller Test Suite', function () {
       expect(testConnectionController._connections['5678']).to.not.be.undefined;
     });
 
-    test('with connection string, removes connection', async () => {
+    test('with connection string, removes connection', async function () {
       addConnection('1234', 'bar', 'mongodb://localhost:12345');
 
       const didRemove =
@@ -409,7 +413,7 @@ suite('Connection Controller Test Suite', function () {
       expect(testConnectionController._connections['1234']).to.be.undefined;
     });
 
-    test('with connection name, when not found, silently returns', async () => {
+    test('with connection name, when not found, silently returns', async function () {
       addConnection('1234', 'bar', 'mongodb://localhost:12345');
 
       const didRemove =
@@ -423,7 +427,7 @@ suite('Connection Controller Test Suite', function () {
       expect(testConnectionController._connections['1234']).to.not.be.undefined;
     });
 
-    test('with connection name, when multiple connections match, removes first one', async () => {
+    test('with connection name, when multiple connections match, removes first one', async function () {
       addConnection('1234', 'foo', 'mongodb://localhost:12345');
       addConnection('5678', 'bar', 'mongodb://localhost:12345');
 
@@ -439,7 +443,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('when adding a new connection it disconnects from the current connection', async () => {
+  test('when adding a new connection it disconnects from the current connection', async function () {
     const succesfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI,
@@ -460,7 +464,7 @@ suite('Connection Controller Test Suite', function () {
     }
   });
 
-  test('when adding a new connection it sets the connection controller as connecting while it disconnects from the current connection', async () => {
+  test('when adding a new connection it sets the connection controller as connecting while it disconnects from the current connection', async function () {
     const succesfullyConnected =
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI,
@@ -484,7 +488,7 @@ suite('Connection Controller Test Suite', function () {
     expect(wasSetToConnectingWhenDisconnecting).to.be.true;
   });
 
-  test('"connect()" should fire the connections did change event the expected number of types', async () => {
+  test('"connect()" should fire the connections did change event the expected number of types', async function () {
     // The number of times we expect to re-render connections on the sidebar:
     // - connection attempt started
     // - connection attempt finished
@@ -507,7 +511,7 @@ suite('Connection Controller Test Suite', function () {
     expect(connectionsDidChangeEventFiredCount).to.equal(expectedTimesToFire);
   });
 
-  test('"connect()" then "disconnect()" should fire the connections did change event the expected number of types', async () => {
+  test('"connect()" then "disconnect()" should fire the connections did change event the expected number of types', async function () {
     // The number of times we expect to re-render connections on the sidebar:
     // - connection attempt started
     // - connection attempt finished
@@ -534,13 +538,13 @@ suite('Connection Controller Test Suite', function () {
     expect(connectionsDidChangeEventFiredCount).to.equal(expectedTimesToFire);
   });
 
-  test('when there are no existing connections in the store and the connection controller loads connections', async () => {
+  test('when there are no existing connections in the store and the connection controller loads connections', async function () {
     await testConnectionController.loadSavedConnections();
 
     expect(testConnectionController.getSavedConnections()).to.have.lengthOf(0);
   });
 
-  test('clears connections when loading saved connections', async () => {
+  test('clears connections when loading saved connections', async function () {
     // This might happen if i.e. one defines a preset connection and then deletes it.
     // In that case we'd have defined this connection but there was never a follow up
     // delete event to clear it. So on reload we need to start from a clean slate.
@@ -565,7 +569,7 @@ suite('Connection Controller Test Suite', function () {
     expect(testConnectionController._connections['1234']).to.be.undefined;
   });
 
-  test('the connection model loads both global and workspace stored connection models', async () => {
+  test('the connection model loads both global and workspace stored connection models', async function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update('defaultConnectionSavingLocation', DefaultSavingLocation.global);
@@ -603,7 +607,7 @@ suite('Connection Controller Test Suite', function () {
     ).to.equal('mongodb://localhost:27088/');
   });
 
-  test('when a connection is added it is saved to the global storage', async () => {
+  test('when a connection is added it is saved to the global storage', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -632,7 +636,7 @@ suite('Connection Controller Test Suite', function () {
     expect(workspaceStoreConnections).to.be.undefined;
   });
 
-  test('when a connection is added it is saved to the workspace store', async () => {
+  test('when a connection is added it is saved to the workspace store', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -665,7 +669,7 @@ suite('Connection Controller Test Suite', function () {
     expect(globalStoreConnections).to.be.undefined;
   });
 
-  test('a connection can be connected to by id', async () => {
+  test('a connection can be connected to by id', async function () {
     testConnectionController._connections = {
       '25': {
         id: '25',
@@ -683,7 +687,7 @@ suite('Connection Controller Test Suite', function () {
     expect(testConnectionController.getActiveConnectionId()).to.equal('25');
   });
 
-  test('a saved connection can be loaded and connected to workspace store', async () => {
+  test('a saved connection can be loaded and connected to workspace store', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -723,7 +727,7 @@ suite('Connection Controller Test Suite', function () {
     expect(name).to.equal('localhost:27088');
   });
 
-  test('"copyConnectionStringByConnectionId" returns the driver uri of a connection', async () => {
+  test('"copyConnectionStringByConnectionId" returns the driver uri of a connection', async function () {
     const expectedDriverUrl = 'mongodb://localhost:27088/';
 
     await testConnectionController.loadSavedConnections();
@@ -743,7 +747,7 @@ suite('Connection Controller Test Suite', function () {
     expect(testDriverUrl).to.equal(expectedDriverUrl);
   });
 
-  test('when a connection is added and the user has set it to not save on default it is not saved', async () => {
+  test('when a connection is added and the user has set it to not save on default it is not saved', async function () {
     await testConnectionController.loadSavedConnections();
 
     // Don't save connections on default.
@@ -806,7 +810,7 @@ suite('Connection Controller Test Suite', function () {
     expect(showInformationMessageStub.firstCall.args[0]).to.include('testabc');
   });
 
-  test('when a connection is removed it is also removed from workspace store', async () => {
+  test('when a connection is removed it is also removed from workspace store', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -839,7 +843,7 @@ suite('Connection Controller Test Suite', function () {
     expect(Object.keys(postWorkspaceStoreConnections)).to.have.lengthOf(0);
   });
 
-  test('when a connection is removed it is also removed from global storage', async () => {
+  test('when a connection is removed it is also removed from global storage', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -867,7 +871,7 @@ suite('Connection Controller Test Suite', function () {
     expect(Object.keys(postGlobalStoreConnections)).to.have.lengthOf(0);
   });
 
-  test('when a connection is removed, the secrets for that connection are also removed', async () => {
+  test('when a connection is removed, the secrets for that connection are also removed', async function () {
     const secretStorageDeleteSpy = sandbox.spy(
       testStorageController,
       'deleteSecret',
@@ -882,7 +886,7 @@ suite('Connection Controller Test Suite', function () {
     expect(secretStorageDeleteSpy.calledOnce).to.be.true;
   });
 
-  test('a saved to workspace connection can be renamed and loaded', async () => {
+  test('a saved to workspace connection can be renamed and loaded', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -930,7 +934,7 @@ suite('Connection Controller Test Suite', function () {
     expect(name, 'new connection name');
   });
 
-  test('a saved to workspace connection can be updated and loaded', async () => {
+  test('a saved to workspace connection can be updated and loaded', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -1007,7 +1011,7 @@ suite('Connection Controller Test Suite', function () {
     void testConnectionController.connectWithURI();
   });
 
-  test('ConnectionQuickPicks workspace connections list is displayed in the alphanumerical case insensitive order', async () => {
+  test('ConnectionQuickPicks workspace connections list is displayed in the alphanumerical case insensitive order', async function () {
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
       .update(
@@ -1056,8 +1060,8 @@ suite('Connection Controller Test Suite', function () {
     expect(connectionQuickPicks[2].label).to.equal('Lynx');
   });
 
-  suite('connecting to a new connection when already connecting', () => {
-    test('connects to the new connection', async () => {
+  suite('connecting to a new connection when already connecting', function () {
+    test('connects to the new connection', async function () {
       await Promise.all([
         testConnectionController.addNewConnectionStringAndConnect({
           connectionString: testDatabaseURI2WithTimeout,
@@ -1075,7 +1079,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('it only connects to the most recent connection attempt', async () => {
+    test('it only connects to the most recent connection attempt', async function () {
       for (let i = 0; i < 5; i++) {
         const id = `${i}`;
         testConnectionController._connections[id] = {
@@ -1113,7 +1117,7 @@ suite('Connection Controller Test Suite', function () {
       });
     });
 
-    test('two disconnects on one connection at once complete without erroring', (done) => {
+    test('two disconnects on one connection at once complete without erroring', function (done) {
       let disconnectsCompleted = 0;
       async function disconnect(): Promise<void> {
         try {
@@ -1138,7 +1142,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('a connection which fails can be removed while it is being connected to', async () => {
+  test('a connection which fails can be removed while it is being connected to', async function () {
     const connectionId = 'skateboard';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
@@ -1162,7 +1166,7 @@ suite('Connection Controller Test Suite', function () {
     expect(testConnectionController._connections[connectionId]).to.be.undefined;
   });
 
-  test('a successfully connecting connection can be removed while it is being connected to', async () => {
+  test('a successfully connecting connection can be removed while it is being connected to', async function () {
     const connectionId = 'skateboard2';
     testConnectionController._connections[connectionId] = {
       id: connectionId,
@@ -1195,7 +1199,7 @@ suite('Connection Controller Test Suite', function () {
     expect(testConnectionController.isCurrentlyConnected()).to.be.false;
   });
 
-  test('_getConnectionInfoWithSecrets returns the connection info with secrets', async () => {
+  test('_getConnectionInfoWithSecrets returns the connection info with secrets', async function () {
     const connectionInfo = {
       id: '1d700f37-ba57-4568-9552-0ea23effea89',
       name: 'localhost:27017',
@@ -1221,7 +1225,7 @@ suite('Connection Controller Test Suite', function () {
     expect(newSavedConnectionInfoWithSecrets).to.deep.equal(connectionInfo);
   });
 
-  test('getMongoClientConnectionOptions returns url and options properties', async () => {
+  test('getMongoClientConnectionOptions returns url and options properties', async function () {
     await testConnectionController.addNewConnectionStringAndConnect({
       connectionString: TEST_DATABASE_URI,
     });
@@ -1237,7 +1241,7 @@ suite('Connection Controller Test Suite', function () {
     delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const expectedVersion = require('../../../package.json').version;
+    const expectedVersion: string = require('../../../package.json').version;
     expect(mongoClientConnectionOptions).to.deep.equal({
       url: `mongodb://localhost:27088/?appName=mongodb-vscode+${expectedVersion}`,
       options: {
@@ -1253,7 +1257,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  test('_getConnectionStringWithProxy returns string with proxy options', () => {
+  test('_getConnectionStringWithProxy returns string with proxy options', function () {
     const expectedConnectionStringWithProxy = `mongodb://localhost:27088/?appName=mongodb-vscode+${version}&proxyHost=localhost&proxyPassword=gwce7tr8733ujbr&proxyPort=3378&proxyUsername=test`;
     const connectionString =
       testConnectionController._getConnectionStringWithProxy({
@@ -1268,7 +1272,7 @@ suite('Connection Controller Test Suite', function () {
     expect(connectionString).to.equal(expectedConnectionStringWithProxy);
   });
 
-  suite('loadSavedConnections', () => {
+  suite('loadSavedConnections', function () {
     const extensionSandbox = sinon.createSandbox();
     const testSandbox = sinon.createSandbox();
 
@@ -1286,8 +1290,8 @@ suite('Connection Controller Test Suite', function () {
       extensionSandbox.restore();
     });
 
-    suite('when connection secrets are already in SecretStorage', () => {
-      test('should be able to load connection with its secrets', async () => {
+    suite('when connection secrets are already in SecretStorage', function () {
+      test('should be able to load connection with its secrets', async function () {
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI,
         });
@@ -1321,7 +1325,7 @@ suite('Connection Controller Test Suite', function () {
       });
     });
 
-    test('should fire a CONNECTIONS_DID_CHANGE event if connections are loaded successfully', async () => {
+    test('should fire a CONNECTIONS_DID_CHANGE event if connections are loaded successfully', async function () {
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: TEST_DATABASE_URI_USER,
       });
@@ -1347,7 +1351,7 @@ suite('Connection Controller Test Suite', function () {
       expect(isConnectionChanged).to.be.true;
     });
 
-    test('should ignore older unsupported secrets', async () => {
+    test('should ignore older unsupported secrets', async function () {
       const loadedConnection = {
         id: 'random-connection-4',
         name: 'localhost:27089',
@@ -1412,7 +1416,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test.skip('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async () => {
+    test.skip('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async function () {
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (
           storage === StorageLocation.workspace ||
@@ -1490,7 +1494,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  suite('connectWithURI', () => {
+  suite('connectWithURI', function () {
     let showInputBoxStub: sinon.SinonStub;
     let addNewConnectionAndConnectStub: sinon.SinonStub;
 
@@ -1502,7 +1506,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('without arguments, prompts for input', async () => {
+    test('without arguments, prompts for input', async function () {
       showInputBoxStub.returns(undefined);
 
       const result = await testConnectionController.connectWithURI();
@@ -1510,7 +1514,7 @@ suite('Connection Controller Test Suite', function () {
       expect(showInputBoxStub).to.have.been.calledOnce;
     });
 
-    test('without arguments, uses input provided by user', async () => {
+    test('without arguments, uses input provided by user', async function () {
       showInputBoxStub.returns(TEST_DATABASE_URI);
       addNewConnectionAndConnectStub.returns(true);
 
@@ -1526,7 +1530,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    test('with arguments, uses provided connection string', async () => {
+    test('with arguments, uses provided connection string', async function () {
       addNewConnectionAndConnectStub.returns(true);
 
       const result = await testConnectionController.connectWithURI({
@@ -1546,7 +1550,7 @@ suite('Connection Controller Test Suite', function () {
     });
   });
 
-  suite('addNewConnectionStringAndConnect', () => {
+  suite('addNewConnectionStringAndConnect', function () {
     let fakeConnect: sinon.SinonStub;
 
     beforeEach(() => {
@@ -1555,7 +1559,7 @@ suite('Connection Controller Test Suite', function () {
         .resolves({ successfullyConnected: true, connectionErrorMessage: '' });
     });
 
-    test('saves connection without secrets to the global storage', async () => {
+    test('saves connection without secrets to the global storage', async function () {
       await vscode.workspace
         .getConfiguration('mdb.connectionSaving')
         .update(
@@ -1589,8 +1593,8 @@ suite('Connection Controller Test Suite', function () {
       ).to.equal('localhost:27088');
     });
 
-    suite('with reuseExisting: ', () => {
-      test('false, adds a new connection', async () => {
+    suite('with reuseExisting: ', function () {
+      test('false, adds a new connection', async function () {
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI_USER,
           name: 'foo',
@@ -1616,7 +1620,7 @@ suite('Connection Controller Test Suite', function () {
         expect(showInformationMessageStub).to.not.have.been.called;
       });
 
-      test('true, reuses existing connection', async () => {
+      test('true, reuses existing connection', async function () {
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI_USER,
           name: 'foo',
@@ -1645,7 +1649,7 @@ suite('Connection Controller Test Suite', function () {
         expect(showInformationMessageStub).to.not.have.been.called;
       });
 
-      test('true, does not override existing connection name', async () => {
+      test('true, does not override existing connection name', async function () {
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: TEST_DATABASE_URI_USER,
           name: 'foo',
@@ -1673,7 +1677,7 @@ suite('Connection Controller Test Suite', function () {
         );
       });
 
-      test('true, matches connection regardless of trailing slash', async () => {
+      test('true, matches connection regardless of trailing slash', async function () {
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: 'mongodb://localhost:12345/',
           reuseExisting: true,
@@ -1705,8 +1709,8 @@ suite('Connection Controller Test Suite', function () {
       });
     });
 
-    suite('with name: ', () => {
-      test('supplied, uses provided name', async () => {
+    suite('with name: ', function () {
+      test('supplied, uses provided name', async function () {
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: 'mongodb://localhost:12345/',
           name: 'foo',
@@ -1717,7 +1721,7 @@ suite('Connection Controller Test Suite', function () {
         expect(connections[0].name).to.equal('foo');
       });
 
-      test('not supplied, generates one', async () => {
+      test('not supplied, generates one', async function () {
         await testConnectionController.addNewConnectionStringAndConnect({
           connectionString: 'mongodb://localhost:12345/',
         });

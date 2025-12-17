@@ -24,7 +24,7 @@ class MongoDBError extends Error {
   }
 }
 
-suite('mcpConnectionErrorHandler suite', () => {
+suite('mcpConnectionErrorHandler suite', function () {
   let connectionController: ConnectionController;
   beforeEach(() => {
     const extensionContext = new ExtensionContextStub();
@@ -40,7 +40,7 @@ suite('mcpConnectionErrorHandler suite', () => {
     });
   });
 
-  test('should handle NotConnectedToMongoDB error', () => {
+  test('should handle NotConnectedToMongoDB error', function () {
     const handler = createMCPConnectionErrorHandler(connectionController);
     const result = handler(
       new MongoDBError(
@@ -57,7 +57,7 @@ suite('mcpConnectionErrorHandler suite', () => {
     });
   });
 
-  test('should handle MisconfiguredConnectionString error', () => {
+  test('should handle MisconfiguredConnectionString error', function () {
     const handler = createMCPConnectionErrorHandler(connectionController);
     const result = handler(
       new MongoDBError(
@@ -74,7 +74,7 @@ suite('mcpConnectionErrorHandler suite', () => {
     });
   });
 
-  test('should not handle any other errors', () => {
+  test('should not handle any other errors', function () {
     const handler = createMCPConnectionErrorHandler(connectionController);
     expect(
       handler(

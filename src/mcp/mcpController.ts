@@ -359,7 +359,7 @@ ${jsonConfig}`,
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to create a config document: ${error}`,
+        `Unable to create a config document: ${(error as Error).message}`,
       );
       return false;
     }

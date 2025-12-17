@@ -20,7 +20,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     sinon.restore();
   });
 
-  test('creates conversations', async () => {
+  test('creates conversations', async function () {
     const fetchStub = sinon.stub().resolves({
       status: 200,
       ok: true,
@@ -37,7 +37,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     expect(conversation._id).to.be.eql('650b4b260f975ef031016c8a');
   });
 
-  test('throws on server errors', async () => {
+  test('throws on server errors', async function () {
     const fetchStub = sinon.stub().resolves({
       status: 500,
       ok: false,
@@ -56,7 +56,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     }
   });
 
-  test('throws when aborted', async () => {
+  test('throws when aborted', async function () {
     try {
       const abortController = new AbortController();
       abortController.abort();
@@ -69,7 +69,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     }
   });
 
-  test('throws on bad requests', async () => {
+  test('throws on bad requests', async function () {
     const fetchStub = sinon.stub().resolves({
       status: 400,
       ok: false,
@@ -88,7 +88,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     }
   });
 
-  test('throws on a rate limit', async () => {
+  test('throws on a rate limit', async function () {
     const fetchStub = sinon.stub().resolves({
       status: 429,
       ok: false,
@@ -107,7 +107,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     }
   });
 
-  test('throws on timeout', async () => {
+  test('throws on timeout', async function () {
     const fetchStub = sinon.stub().resolves({
       status: 504,
       ok: false,
@@ -127,7 +127,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     }
   });
 
-  test('rates docs chatbot response', async () => {
+  test('rates docs chatbot response', async function () {
     const fetchStub = sinon.stub().resolves({
       status: 204,
       ok: true,
@@ -142,7 +142,7 @@ suite('DocsChatbotAIService Test Suite', function () {
     expect(rating).to.be.eql(true);
   });
 
-  test('has the correct headers', async () => {
+  test('has the correct headers', async function () {
     const fetchStub = sinon.stub().resolves({
       status: 200,
       ok: true,
@@ -165,8 +165,8 @@ suite('DocsChatbotAIService Test Suite', function () {
       body: '{"message":"pineapple"}',
       headers: {
         'Content-Type': 'application/json',
-        'X-Request-Origin': `vscode-mongodb-copilot-v${version}/docs`,
-        'User-Agent': `mongodb-vscode/${version}`,
+        'X-Request-Origin': `vscode-mongodb-copilot-v${version as string}/docs`,
+        'User-Agent': `mongodb-vscode/${version as string}`,
       },
       signal,
     });

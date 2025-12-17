@@ -59,7 +59,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     );
   });
 
-  test('renders the exclude driver syntax code lens by default for shell', () => {
+  test('renders the exclude driver syntax code lens by default for shell', function () {
     testPlaygroundResultProvider.setPlaygroundResult(
       DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
     );
@@ -72,7 +72,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     }
   });
 
-  test('renders the include driver syntax code lens when includeDriverSyntax is false for shell', () => {
+  test('renders the include driver syntax code lens when includeDriverSyntax is false for shell', function () {
     testPlaygroundResultProvider.setPlaygroundResult({
       ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       includeDriverSyntax: false,
@@ -86,7 +86,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     }
   });
 
-  test('renders the exclude driver syntax code lens when includeDriverSyntax is true for shell', () => {
+  test('renders the exclude driver syntax code lens when includeDriverSyntax is true for shell', function () {
     testPlaygroundResultProvider.setPlaygroundResult({
       ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       includeDriverSyntax: true,
@@ -100,7 +100,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     }
   });
 
-  test('does not render code lenses for csharp', () => {
+  test('does not render code lenses for csharp', function () {
     testPlaygroundResultProvider.setPlaygroundResult({
       ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       language: 'csharp',
@@ -110,7 +110,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     expect(codeLenses?.length).to.be.equal(0); // Csharp does not support driver syntax.
   });
 
-  test('does not render code lenses for json text', () => {
+  test('does not render code lenses for json text', function () {
     testPlaygroundResultProvider.setPlaygroundResult({
       ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       language: 'json',
@@ -120,7 +120,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
     expect(codeLenses).to.not.exist;
   });
 
-  test('does not render code lenses for plain text text', () => {
+  test('does not render code lenses for plain text text', function () {
     testPlaygroundResultProvider.setPlaygroundResult({
       ...DEFAULT_EXPORT_TO_LANGUAGE_RESULT,
       language: 'plaintext',

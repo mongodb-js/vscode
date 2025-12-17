@@ -69,8 +69,8 @@ export class DocsChatbotAIService {
   }): Promise<Response> {
     return fetch(uri, {
       headers: {
-        'X-Request-Origin': `vscode-mongodb-copilot-v${version}/docs`,
-        'User-Agent': `mongodb-vscode/${version}`,
+        'X-Request-Origin': `vscode-mongodb-copilot-v${version as string}/docs`,
+        'User-Agent': `mongodb-vscode/${version as string}`,
         ...headers,
       },
       method,
@@ -99,15 +99,17 @@ export class DocsChatbotAIService {
     }
 
     if (res.status === 400) {
-      throw new Error(`[Docs chatbot] Bad request: ${data.error}`);
+      throw new Error(`[Docs chatbot] Bad request: ${data?.error as string}`);
     }
     if (res.status === 429) {
-      throw new Error(`[Docs chatbot] Rate limited: ${data.error}`);
+      throw new Error(`[Docs chatbot] Rate limited: ${data?.error as string}`);
     }
     if (res.status >= 500) {
       throw new Error(
         `[Docs chatbot] Internal server error: ${
-          data.error ? data.error : `${res.status} - ${res.statusText}}`
+          data?.error
+            ? (data.error as string)
+            : `${res.status} - ${res.statusText}`
         }`,
       );
     }
@@ -144,21 +146,25 @@ export class DocsChatbotAIService {
     }
 
     if (res.status === 400) {
-      throw new Error(`[Docs chatbot] Bad request: ${data.error}`);
+      throw new Error(`[Docs chatbot] Bad request: ${data?.error as string}`);
     }
     if (res.status === 404) {
-      throw new Error(`[Docs chatbot] Conversation not found: ${data.error}`);
+      throw new Error(
+        `[Docs chatbot] Conversation not found: ${data?.error as string}`,
+      );
     }
     if (res.status === 429) {
-      throw new Error(`[Docs chatbot] Rate limited: ${data.error}`);
+      throw new Error(`[Docs chatbot] Rate limited: ${data?.error as string}`);
     }
     if (res.status === 504) {
-      throw new Error(`[Docs chatbot] Timeout: ${data.error}`);
+      throw new Error(`[Docs chatbot] Timeout: ${data?.error as string}`);
     }
     if (res.status >= 500) {
       throw new Error(
         `[Docs chatbot] Internal server error: ${
-          data.error ? data.error : `${res.status} - ${res.statusText}}`
+          data?.error
+            ? (data?.error as string)
+            : `${res.status} - ${res.statusText}`
         }`,
       );
     }
@@ -194,13 +200,17 @@ export class DocsChatbotAIService {
       try {
         data = await res.json();
       } catch (error) {
-        throw new Error(`[Docs chatbot] Internal server error: ${error}`);
+        throw new Error(
+          `[Docs chatbot] Internal server error: ${(error as Error).message}`,
+        );
       }
     }
 
     throw new Error(
       `[Docs chatbot] Internal server error: ${
-        data.error ? data.error : `${res.status} - ${res.statusText}}`
+        data?.error
+          ? (data?.error as string)
+          : `${res.status} - ${res.statusText}`
       }`,
     );
   }

@@ -6,12 +6,12 @@ import { createIdFactory, generateId } from '../../../utils/objectIdHelper';
 const CONFIG_SECTION = 'mdb';
 const CONFIG_NAME = 'uniqueObjectIdPerCursor';
 
-suite('ObjectId Test Suite', () => {
-  test('succesfully creates an ObjectId', () => {
+suite('ObjectId Test Suite', function () {
+  test('succesfully creates an ObjectId', function () {
     expect(() => generateId()).not.to.throw();
   });
 
-  test('should generate the same ObjectId when config is false', async () => {
+  test('should generate the same ObjectId when config is false', async function () {
     await vscode.workspace
       .getConfiguration(CONFIG_SECTION)
       .update(CONFIG_NAME, false);
@@ -22,7 +22,7 @@ suite('ObjectId Test Suite', () => {
     expect(ids[0]).to.equal(ids[1]);
   });
 
-  test('should generate unique ObjectIds when config is true', async () => {
+  test('should generate unique ObjectIds when config is true', async function () {
     await vscode.workspace
       .getConfiguration(CONFIG_SECTION)
       .update(CONFIG_NAME, true);

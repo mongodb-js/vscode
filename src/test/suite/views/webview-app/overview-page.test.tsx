@@ -12,7 +12,7 @@ import { MessageType } from '../../../../views/webview-app/extension-app-message
 const connectionFormTestId = 'connection-form-modal';
 
 describe('OverviewPage test suite', function () {
-  afterEach(() => {
+  afterEach(function () {
     cleanup();
     sinon.restore();
   });
@@ -43,6 +43,7 @@ describe('OverviewPage test suite', function () {
     // Without this it's flaky on mac CI.
     // TODO(COMPASS-7762): Once we update the connection form this may be able to go away.
     this.timeout(25000);
+
     it('is able to open and close the new connection form', async function () {
       render(<OverviewPage />);
 

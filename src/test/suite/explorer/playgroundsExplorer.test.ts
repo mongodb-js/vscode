@@ -27,7 +27,7 @@ suite('Playgrounds Controller Test Suite', function () {
       );
   });
 
-  test('should show a welcome view if playgrounds list is empty', async () => {
+  test('should show a welcome view if playgrounds list is empty', async function () {
     const treeController = testPlaygroundsExplorer.getTreeController();
 
     assert(!!treeController, 'Tree controller should not be undefined');
@@ -44,7 +44,7 @@ suite('Playgrounds Controller Test Suite', function () {
     }
   });
 
-  test('should search for playground in the workspace', async () => {
+  test('should search for playground in the workspace', async function () {
     const treeController = testPlaygroundsExplorer.getTreeController();
 
     try {
@@ -58,7 +58,7 @@ suite('Playgrounds Controller Test Suite', function () {
     }
   });
 
-  test('should exclude folders and files specified in extension settings', async () => {
+  test('should exclude folders and files specified in extension settings', async function () {
     const treeController = new PlaygroundsTree();
 
     try {
@@ -79,7 +79,7 @@ suite('Playgrounds Controller Test Suite', function () {
     }
   });
 
-  test('should fetch new folders and files to exclude after refreshing', async () => {
+  test('should fetch new folders and files to exclude after refreshing', async function () {
     try {
       const treeController = new PlaygroundsTree();
 
