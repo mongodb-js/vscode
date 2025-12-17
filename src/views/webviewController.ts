@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import path from 'path';
-import crypto from 'crypto';
 import type { ConnectionOptions } from 'mongodb-data-service';
 
 import type ConnectionController from '../connectionController';
@@ -23,22 +21,20 @@ import {
   OpenEditConnectionTelemetryEvent,
 } from '../telemetry';
 import type { FileChooserOptions } from './webview-app/use-connection-form';
+import {
+  createWebviewPanel,
+  getWebviewHtml,
+  getWebviewUri,
+  getNonce,
+} from '../utils/webviewHelpers';
 
 const log = createLogger('webview controller');
-
-const getNonce = (): string => {
-  return crypto.randomBytes(16).toString('base64');
-};
 
 export const getReactAppUri = (
   extensionPath: string,
   webview: vscode.Webview,
 ): vscode.Uri => {
-  const localFilePathUri = vscode.Uri.file(
-    path.join(extensionPath, 'dist', 'webviewApp.js'),
-  );
-  const jsAppFileWebviewUri = webview.asWebviewUri(localFilePathUri);
-  return jsAppFileWebviewUri;
+  return getWebviewUri(extensionPath, webview, 'dist', 'webviewApp.js');
 };
 
 export const getWebviewContent = ({
@@ -50,36 +46,24 @@ export const getWebviewContent = ({
   telemetryUserId?: string;
   webview: vscode.Webview;
 }): string => {
-  const jsAppFileUrl = getReactAppUri(extensionPath, webview);
-
-  // Use a nonce to only allow specific scripts to be run.
-  const nonce = getNonce();
-
   const showOIDCDeviceAuthFlow = vscode.workspace
     .getConfiguration('mdb')
     .get('showOIDCDeviceAuthFlow');
 
-  return `<!DOCTYPE html>
-  <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none';
-            script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https:;
-            style-src vscode-resource: 'self' 'unsafe-inline';
-            img-src vscode-resource: 'self'"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MongoDB</title>
-    </head>
-    <body>
-      <div id="root"></div>
-      ${getFeatureFlagsScript(nonce)}
-      <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
-      <script nonce="${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
+  const additionalHeadContent = `
+      ${getFeatureFlagsScript('\${nonce}')}
+      <script nonce="\${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      <script nonce="\${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
         showOIDCDeviceAuthFlow ? 'true' : 'false'
-      };</script>
-      <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
-    </body>
-  </html>`;
+      };</script>`;
+
+  return getWebviewHtml({
+    extensionPath,
+    webview,
+    scriptName: 'webviewApp.js',
+    title: 'MongoDB',
+    additionalHeadContent,
+  });
 };
 
 export default class WebviewController {
@@ -377,33 +361,16 @@ export default class WebviewController {
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
-    const panel = vscode.window.createWebviewPanel(
-      'connectDialogueWebview',
-      'MongoDB',
-      vscode.ViewColumn.One, // Editor column to show the webview panel in.
-      {
-        enableScripts: true,
-        retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'dist')),
-          vscode.Uri.file(path.join(extensionPath, 'resources')),
-        ],
-      },
-    );
+    const panel = createWebviewPanel({
+      viewType: 'connectDialogueWebview',
+      title: 'MongoDB',
+      extensionPath,
+      additionalResourceRoots: ['resources'],
+      iconName: 'leaf.svg',
+    });
 
     panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
     this._activeWebviewPanels.push(panel);
-
-    panel.iconPath = vscode.Uri.file(
-      path.join(
-        extensionPath,
-        'images',
-        vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
-          ? 'dark'
-          : 'light',
-        'leaf.svg',
-      ),
-    );
 
     const telemetryUserIdentity = this._storageController.getUserIdentity();
 
