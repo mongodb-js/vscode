@@ -367,7 +367,7 @@ export default class CollectionTreeItem
     } catch (error) {
       return Promise.reject(
         new Error(
-          `An error occurred parsing the collection name: ${(error as Error).message}`,
+          `An error occurred parsing the collection name: ${formatError(error).message}`,
         ),
       );
     }

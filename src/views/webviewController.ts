@@ -23,6 +23,7 @@ import {
   OpenEditConnectionTelemetryEvent,
 } from '../telemetry';
 import type { FileChooserOptions } from './webview-app/use-connection-form';
+import formatError from '../utils/formatError';
 
 const log = createLogger('webview controller');
 
@@ -159,7 +160,7 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to open file chooser dialog: ${(error as Error).message}`,
+        `Unable to open file chooser dialog: ${formatError(error).message}`,
       );
     }
 
@@ -219,14 +220,14 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to load connection: ${(error as Error).message}`,
+        `Unable to load connection: ${formatError(error).message}`,
       );
 
       void panel.webview.postMessage({
         command: MessageType.connectResult,
         connectionId: connection.id,
         connectionSuccess: false,
-        connectionMessage: `Unable to load connection: ${(error as Error).message}`,
+        connectionMessage: `Unable to load connection: ${formatError(error).message}`,
       });
     }
   };

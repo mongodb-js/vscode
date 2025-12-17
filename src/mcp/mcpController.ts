@@ -21,6 +21,7 @@ import { MCPConnectionManager } from './mcpConnectionManager';
 import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
 import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
+import formatError from '../utils/formatError';
 
 export type MCPServerStartupConfig =
   | 'prompt'
@@ -359,7 +360,7 @@ ${jsonConfig}`,
       return true;
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to create a config document: ${(error as Error).message}`,
+        `Unable to create a config document: ${formatError(error).message}`,
       );
       return false;
     }

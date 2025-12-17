@@ -332,7 +332,7 @@ export default class MongoDBService {
         return result.streamProcessors ?? [];
       } catch (error) {
         this._connection.console.error(
-          `LS get stream processors error: ${(error as Error).message}`,
+          `LS get stream processors error: ${formatError(error).message}`,
         );
       }
     }
@@ -357,7 +357,7 @@ export default class MongoDBService {
       result = documents.databases ?? [];
     } catch (error) {
       this._connection.console.error(
-        `LS get databases error: ${(error as Error).message}`,
+        `LS get databases error: ${formatError(error).message}`,
       );
     }
 
@@ -380,7 +380,7 @@ export default class MongoDBService {
       result = documents ? documents : [];
     } catch (error) {
       this._connection.console.error(
-        `LS get collections error: ${(error as Error).message}`,
+        `LS get collections error: ${formatError(error).message}`,
       );
     }
 
@@ -419,7 +419,7 @@ export default class MongoDBService {
       result = schema?.fields ? schema.fields.map((item) => item.name) : [];
     } catch (error) {
       this._connection.console.error(
-        `LS get schema fields error: ${(error as Error).message}`,
+        `LS get schema fields error: ${formatError(error).message}`,
       );
     }
 

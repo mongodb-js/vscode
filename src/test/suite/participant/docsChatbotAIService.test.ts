@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 
 import { DocsChatbotAIService } from '../../../participant/docsChatbotAIService';
+import formatError from '../../../utils/formatError';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -52,7 +53,7 @@ suite('DocsChatbotAIService Test Suite', function () {
       });
       expect.fail('It must fail with the server error');
     } catch (error) {
-      expect((error as Error).message).to.include('Internal server error');
+      expect(formatError(error).message).to.include('Internal server error');
     }
   });
 
@@ -65,7 +66,9 @@ suite('DocsChatbotAIService Test Suite', function () {
       });
       expect.fail('It must fail with the server error');
     } catch (error) {
-      expect((error as Error).message).to.include('This operation was aborted');
+      expect(formatError(error).message).to.include(
+        'This operation was aborted',
+      );
     }
   });
 
@@ -84,7 +87,7 @@ suite('DocsChatbotAIService Test Suite', function () {
       });
       expect.fail('It must fail with the bad request error');
     } catch (error) {
-      expect((error as Error).message).to.include('Bad request');
+      expect(formatError(error).message).to.include('Bad request');
     }
   });
 
@@ -103,7 +106,7 @@ suite('DocsChatbotAIService Test Suite', function () {
       });
       expect.fail('It must fail with the rate limited error');
     } catch (error) {
-      expect((error as Error).message).to.include('Rate limited');
+      expect(formatError(error).message).to.include('Rate limited');
     }
   });
 
@@ -123,7 +126,7 @@ suite('DocsChatbotAIService Test Suite', function () {
       });
       expect.fail('It must fail with the timeout error');
     } catch (error) {
-      expect((error as Error).message).to.include('Timeout');
+      expect(formatError(error).message).to.include('Timeout');
     }
   });
 

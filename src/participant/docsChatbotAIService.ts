@@ -1,4 +1,5 @@
 import type { Reference, VerifiedAnswer } from 'mongodb-rag-core';
+import formatError from '../utils/formatError';
 
 const MONGODB_DOCS_CHATBOT_BASE_URI = 'https://knowledge.mongodb.com/';
 
@@ -201,7 +202,7 @@ export class DocsChatbotAIService {
         data = await res.json();
       } catch (error) {
         throw new Error(
-          `[Docs chatbot] Internal server error: ${(error as Error).message}`,
+          `[Docs chatbot] Internal server error: ${formatError(error).message}`,
         );
       }
     }
