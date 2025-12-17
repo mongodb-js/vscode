@@ -84,8 +84,17 @@ export default class CollectionDocumentsCodeLensProvider
         .getConfiguration('mdb')
         .get('defaultLimit');
 
-      commandTitle = `... Showing ${amountOfDocs} documents. Click to open ${additionalDocumentsToFetch as string} more documents.`;
-      commandTooltip = `Click to open ${additionalDocumentsToFetch as string} more documents, this amount can be changed in the extension settings.`;
+      if (
+        typeof additionalDocumentsToFetch !== 'number' &&
+        typeof additionalDocumentsToFetch !== 'string'
+      ) {
+        throw new Error(
+          'Could not retrieve the defaultLimit setting from the extension settings.',
+        );
+      }
+
+      commandTitle = `... Showing ${amountOfDocs} documents. Click to open ${additionalDocumentsToFetch} more documents.`;
+      commandTooltip = `Click to open ${additionalDocumentsToFetch} more documents, this amount can be changed in the extension settings.`;
     }
 
     codeLens.command = {
