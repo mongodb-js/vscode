@@ -1,6 +1,6 @@
 import { URLSearchParams } from 'url';
 import * as vscode from 'vscode';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 
 import type CollectionDocumentsOperationStore from './collectionDocumentsOperationsStore';
 import {
@@ -84,6 +84,15 @@ export default class CollectionDocumentsCodeLensProvider
         .getConfiguration('mdb')
         .get('defaultLimit');
 
+      if (
+        typeof additionalDocumentsToFetch !== 'number' &&
+        typeof additionalDocumentsToFetch !== 'string'
+      ) {
+        throw new Error(
+          'Could not retrieve the defaultLimit setting from the extension settings.',
+        );
+      }
+
       commandTitle = `... Showing ${amountOfDocs} documents. Click to open ${additionalDocumentsToFetch} more documents.`;
       commandTooltip = `Click to open ${additionalDocumentsToFetch} more documents, this amount can be changed in the extension settings.`;
     }
@@ -91,7 +100,7 @@ export default class CollectionDocumentsCodeLensProvider
     codeLens.command = {
       title: commandTitle,
       tooltip: commandTooltip,
-      command: EXTENSION_COMMANDS.MDB_CODELENS_SHOW_MORE_DOCUMENTS,
+      command: ExtensionCommand.mdbCodelensShowMoreDocuments,
       arguments: [{ operationId, connectionId, namespace }],
     };
 

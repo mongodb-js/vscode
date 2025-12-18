@@ -129,7 +129,7 @@ const queryTestCases: (TestCase & {
       const result = await runCodeInMessage(responseContent, connectionString);
 
       const totalResponse = `${result.printOutput.join('')}${
-        result.data?.result?.content
+        result.data?.result?.content as string
       }`;
 
       const number = totalResponse.match(/\d+/);
@@ -540,7 +540,7 @@ const buildMessages = async ({
       });
 
     default:
-      throw new Error(`Unknown test case type: ${testCase.type}`);
+      throw new Error(`Unknown test case type: ${testCase.type as string}`);
   }
 };
 
@@ -749,9 +749,10 @@ describe('AI Accuracy Tests', function () {
           Test: testCase.testCase,
           Type: testCase.type,
           'User Input': testCase.userInput.slice(0, 100),
-          Namespace: testCase.collectionName
-            ? `${testCase.databaseName}.${testCase.collectionName}`
-            : '',
+          Namespace:
+            testCase.databaseName && testCase.collectionName
+              ? `${testCase.databaseName}.${testCase.collectionName}`
+              : '',
           Accuracy: averageAccuracy,
           Pass: didFail ? '✗' : '✓',
           'Avg Execution Time (ms)':

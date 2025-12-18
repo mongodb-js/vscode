@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import type ConnectionController from '../connectionController';
 import { isPlayground } from '../utils/playground';
 import { getDBFromConnectionString } from '../utils/connection-string-db';
@@ -57,7 +57,7 @@ export default class ActiveConnectionCodeLensProvider
 
     codeLens.command = {
       title: message,
-      command: EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION,
+      command: ExtensionCommand.mdbChangeActiveConnection,
       arguments: [],
     };
 

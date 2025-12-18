@@ -25,8 +25,8 @@ const getDefaultVSCodeConfigForMCP = (): vscode.WorkspaceConfiguration =>
     },
   }) as unknown as vscode.WorkspaceConfiguration;
 
-suite('MCPConfig test suite', () => {
-  test('normal calls with package.json properties should return expected MCP config from the configured VSCode config', () => {
+suite('MCPConfig test suite', function () {
+  test('normal calls with package.json properties should return expected MCP config from the configured VSCode config', function () {
     const output = getMCPConfigFromVSCodeSettings(
       undefined,
       getDefaultVSCodeConfigForMCP,
@@ -43,14 +43,14 @@ suite('MCPConfig test suite', () => {
     expect(output.readOnly).to.be.true;
   });
 
-  test('should return empty object if packageJsonConfiguredProperties resolves to empty object', () => {
+  test('should return empty object if packageJsonConfiguredProperties resolves to empty object', function () {
     expect(
       getMCPConfigFromVSCodeSettings({}, getDefaultVSCodeConfigForMCP),
     ).to.deep.equal({});
   });
 
-  suite('mcpConfigValues edge cases', () => {
-    test('should handle non-string values for string properties', () => {
+  suite('mcpConfigValues edge cases', function () {
+    test('should handle non-string values for string properties', function () {
       const mockConfig = {
         'mdb.mcp.apiBaseUrl': 42,
         'mdb.mcp.apiClientId': true,
@@ -77,7 +77,7 @@ suite('MCPConfig test suite', () => {
       expect(output.exportsPath?.endsWith('exports')).to.be.true;
     });
 
-    test('should handle whitespace-only string values', () => {
+    test('should handle whitespace-only string values', function () {
       const mockConfig = {
         'mdb.mcp.apiBaseUrl': '   ',
         'mdb.mcp.apiClientId': '\t\t',
@@ -104,7 +104,7 @@ suite('MCPConfig test suite', () => {
       expect(output.exportsPath?.endsWith('exports')).to.be.true;
     });
 
-    test('should properly trim and return valid string values', () => {
+    test('should properly trim and return valid string values', function () {
       const mockConfig = {
         'mdb.mcp.apiBaseUrl': '  https://custom.mongodb.com  ',
         'mdb.mcp.apiClientId': '\tcustom-client-id\t',
@@ -131,7 +131,7 @@ suite('MCPConfig test suite', () => {
       expect(output.exportsPath).to.equal('/custom/path');
     });
 
-    test('should handle non-array values for disabledTools', () => {
+    test('should handle non-array values for disabledTools', function () {
       const mockConfig = {
         'mdb.mcp.disabledTools': 'not-an-array',
       };

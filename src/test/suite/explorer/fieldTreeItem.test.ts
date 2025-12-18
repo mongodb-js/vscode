@@ -72,7 +72,7 @@ suite('FieldTreeItem Test Suite', function () {
     );
   });
 
-  test('it should have a different icon depending on the field type', () => {
+  test('it should have a different icon depending on the field type', function () {
     ext.context = new ExtensionContextStub();
 
     const stringField = getTestFieldTreeItem();
@@ -101,7 +101,7 @@ suite('FieldTreeItem Test Suite', function () {
     assert(numberIcon.light.toString().includes('number.svg'));
   });
 
-  test('getIconFileNameForField should return "mixed-type" for a polymorphic type field', () => {
+  test('getIconFileNameForField should return "mixed-type" for a polymorphic type field', function () {
     const notFullProbability = {
       name: 'test',
       probability: 1,
@@ -124,7 +124,7 @@ suite('FieldTreeItem Test Suite', function () {
     );
   });
 
-  test('getIconFileNameForField should return "mixed-type" for a field without 1 probability', () => {
+  test('getIconFileNameForField should return "mixed-type" for a field without 1 probability', function () {
     const notFullProbability = {
       name: 'test',
       probability: 0.5,
@@ -142,7 +142,7 @@ suite('FieldTreeItem Test Suite', function () {
     );
   });
 
-  test('it should have the fieldtype in the tooltip', () => {
+  test('it should have the fieldtype in the tooltip', function () {
     const testField = getTestFieldTreeItem({
       field: {
         name: 'test',
@@ -166,7 +166,7 @@ suite('FieldTreeItem Test Suite', function () {
     assert.strictEqual(testField.tooltip, 'test - mixed-type');
   });
 
-  suite('Full database tests', () => {
+  suite('Full database tests', function () {
     this.timeout(5000);
     let dataService;
 
@@ -182,7 +182,7 @@ suite('FieldTreeItem Test Suite', function () {
       dataService = await disconnectFromTestDB();
     });
 
-    test('field name is pulled from the name of a field', async () => {
+    test('field name is pulled from the name of a field', async function () {
       await seedTestDB('pie', [{ _id: 1, blueberryPie: 'yes' }]);
       const testSchemaTreeItem = getTestSchemaTreeItem({
         databaseName: TEST_DB_NAME,
@@ -197,7 +197,7 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(schemaFields[1].fieldName, 'blueberryPie');
     });
 
-    test('it shows dropdowns for nested subdocuments', async () => {
+    test('it shows dropdowns for nested subdocuments', async function () {
       await seedTestDB('gryffindor', [
         {
           _id: 1,
@@ -252,7 +252,7 @@ suite('FieldTreeItem Test Suite', function () {
       assert.strictEqual(nestedSubDocument.length, 3);
     });
 
-    test('it shows dropdowns for arrays', async () => {
+    test('it shows dropdowns for arrays', async function () {
       await seedTestDB('gryffindor', [
         {
           _id: 1,
@@ -289,7 +289,7 @@ suite('FieldTreeItem Test Suite', function () {
       );
     });
 
-    test('it shows dropdowns and fields for document fields in arrays', async () => {
+    test('it shows dropdowns and fields for document fields in arrays', async function () {
       await seedTestDB('beach', [
         {
           _id: 1,

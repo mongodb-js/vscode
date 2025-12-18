@@ -37,8 +37,12 @@ Object.assign(focusTrap, {
     const trap = {
       activate: (): unknown => trap,
       deactivate: (): unknown => trap,
-      pause: (): void => {},
-      unpause: (): void => {},
+      pause: (): void => {
+        /* no-op */
+      },
+      unpause: (): void => {
+        /* no-op */
+      },
     };
     return trap;
   },
@@ -80,7 +84,9 @@ Object.assign(global, { TextDecoder, TextEncoder });
 
 (global as any).vscodeFake = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  postMessage: (message: unknown): void => {},
+  postMessage: (message: unknown): void => {
+    /* no-op */
+  },
 };
 
 (global as any).acquireVsCodeApi = (): any => {

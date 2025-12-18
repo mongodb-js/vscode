@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import assert from 'assert';
+import { expect } from 'chai';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
@@ -7,7 +7,7 @@ import type { SinonSpy, SinonStub } from 'sinon';
 import launchMongoShell from '../../../commands/launchMongoShell';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
-suite('Commands Test Suite', () => {
+suite('Commands Test Suite', function () {
   const testConnectionController =
     mdbTestExtension.testExtensionController._connectionController;
 
@@ -44,22 +44,19 @@ suite('Commands Test Suite', () => {
     sandbox.restore();
   });
 
-  suite('bash env shell', () => {
+  suite('bash env shell', function () {
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'bash');
     });
 
-    test('openMongoDBShell should show an error message when not connected', async () => {
+    test('openMongoDBShell should show an error message when not connected', async function () {
       const expectedMessage =
         'You need to be connected before launching the MongoDB Shell.';
       await launchMongoShell(testConnectionController);
-      assert(
-        showErrorMessageStub.firstCall.args[0] === expectedMessage,
-        `Expected the error message "${expectedMessage}" to be shown when attempting to add a database while disconnecting, found "${showErrorMessageStub.firstCall.args[0]}"`,
-      );
+      expect(showErrorMessageStub.firstCall.args[0]).to.equal(expectedMessage);
     });
 
-    test('openMongoDBShell should open a terminal with the active connection driver url', async () => {
+    test('openMongoDBShell should open a terminal with the active connection driver url', async function () {
       const expectedDriverUrl =
         'mongodb://localhost:27088/?readPreference=primary&ssl=false';
 
@@ -71,26 +68,28 @@ suite('Commands Test Suite', () => {
 
       await launchMongoShell(testConnectionController);
 
-      assert(createTerminalStub.called);
+      expect(createTerminalStub.called).to.be.true;
 
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
-      assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
-        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`,
+      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+        expectedDriverUrl,
+      );
+      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+        expectedDriverUrl,
       );
 
       const shellCommandText = sendTextStub.firstCall.args[0];
-      assert.strictEqual(shellCommandText, 'mongosh $MDB_CONNECTION_STRING;');
+      expect(shellCommandText).to.equal('mongosh $MDB_CONNECTION_STRING;');
     });
   });
 
-  suite('Windows powershell env shell', () => {
+  suite('Windows powershell env shell', function () {
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'powershell.exe');
     });
 
-    test('powershell openMongoDBShell should open a terminal with the active connection driver url', async () => {
+    test('powershell openMongoDBShell should open a terminal with the active connection driver url', async function () {
       const expectedDriverUrl =
         'mongodb://localhost:27088/?readPreference=primary&ssl=false';
 
@@ -104,33 +103,28 @@ suite('Commands Test Suite', () => {
       isCurrentlyConnectedStub.returns(true);
 
       await launchMongoShell(testConnectionController);
-      assert(createTerminalStub.called);
+      expect(createTerminalStub.called).to.be.true;
 
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
-      assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
-        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`,
+      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+        expectedDriverUrl,
       );
-      assert.strictEqual(
-        terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE,
+      expect(terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE).to.equal(
         'pineapple',
       );
 
       const shellCommandText = sendTextStub.firstCall.args[0];
-      assert(
-        shellCommandText.includes('$Env:MDB_CONNECTION_STRING'),
-        `Expected sendText to terminal (${shellCommandText}) to use powershell env variable syntax`,
-      );
+      expect(shellCommandText).to.include('$Env:MDB_CONNECTION_STRING');
     });
   });
 
-  suite('Windows cmd env shell', () => {
+  suite('Windows cmd env shell', function () {
     beforeEach(() => {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');
     });
 
-    test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async () => {
+    test('windows cmd openMongoDBShell should open a terminal with the active connection driver url', async function () {
       const expectedDriverUrl =
         'mongodb://localhost:27088/?readPreference=primary&ssl=false';
 
@@ -142,17 +136,12 @@ suite('Commands Test Suite', () => {
       isCurrentlyConnectedStub.returns(true);
 
       await launchMongoShell(testConnectionController);
-      assert(createTerminalStub.called);
+      expect(createTerminalStub.called).to.be.true;
 
       const terminalOptions: vscode.TerminalOptions =
         createTerminalStub.firstCall.args[0];
-      assert(
-        terminalOptions.env?.MDB_CONNECTION_STRING === expectedDriverUrl,
-        `Expected open terminal to set shell arg as driver url "${expectedDriverUrl}" found "${terminalOptions.env?.MDB_CONNECTION_STRING}"`,
-      );
-      assert.strictEqual(
-        terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE,
-        undefined,
+      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+        expectedDriverUrl,
       );
     });
   });

@@ -6,7 +6,7 @@ import type { DataService } from 'mongodb-data-service';
 const { contributes } = require('../../../../package.json');
 
 import DocumentListTreeItem, {
-  CollectionTypes,
+  CollectionType,
   formatDocCount,
   MAX_DOCUMENTS_VISIBLE,
 } from '../../../explorer/documentListTreeItem';
@@ -21,7 +21,7 @@ function getTestDocumentListTreeItem(
   return new DocumentListTreeItem({
     collectionName: 'collectionName',
     databaseName: 'mock_db_name',
-    type: CollectionTypes.collection,
+    type: CollectionType.collection,
     dataService: dataServiceStub as unknown as DataService,
     isExpanded: false,
     maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
@@ -33,8 +33,8 @@ function getTestDocumentListTreeItem(
   });
 }
 
-suite('DocumentListTreeItem Test Suite', () => {
-  test('its context value should be in the package json', () => {
+suite('DocumentListTreeItem Test Suite', function () {
+  test('its context value should be in the package json', function () {
     let documentListRegisteredCommandInPackageJson = false;
     const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
@@ -50,7 +50,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  test('when the "show more" click handler is called => it increases the amount of documents to show by 10', () => {
+  test('when the "show more" click handler is called => it increases the amount of documents to show by 10', function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
     const maxDocumentsToShow = testDocumentListTreeItem.getMaxDocumentsToShow();
@@ -63,15 +63,15 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(newMaxDocumentsToShow, 20);
   });
 
-  suite('when not expanded', () => {
-    test('it does not show documents', async () => {
+  suite('when not expanded', function () {
+    test('it does not show documents', async function () {
       const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
       const collections = await testDocumentListTreeItem.getChildren();
       assert.strictEqual(collections.length, 0);
     });
 
-    test('it does not have a document count in the description', async () => {
+    test('it does not have a document count in the description', async function () {
       const testDocumentListTreeItem = getTestDocumentListTreeItem();
 
       await testDocumentListTreeItem.getChildren();
@@ -80,9 +80,9 @@ suite('DocumentListTreeItem Test Suite', () => {
     });
   });
 
-  test('a "view" type of document list does not show a dropdown', () => {
+  test('a "view" type of document list does not show a dropdown', function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
-      type: CollectionTypes.view,
+      type: CollectionType.view,
     });
 
     assert.strictEqual(
@@ -91,7 +91,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded shows the documents of a collection in tree', async () => {
+  test('when expanded shows the documents of a collection in tree', async function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_1',
       cachedDocumentCount: 25,
@@ -105,7 +105,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(documents[1].label, `"${mockDocuments[1]._id}"`);
   });
 
-  test('it should show a show more item when there are more documents to show', async () => {
+  test('it should show a show more item when there are more documents to show', async function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_2',
       cachedDocumentCount: 25,
@@ -118,7 +118,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(documents[10].label, 'Show more...');
   });
 
-  test('it should show more documents after the show more click handler is called', async () => {
+  test('it should show more documents after the show more click handler is called', async function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_3',
       cachedDocumentCount: 25,
@@ -133,7 +133,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(documents[20].label, 'Show more...');
   });
 
-  test('it should not show a show more item when there not are more documents to show', async () => {
+  test('it should not show a show more item when there not are more documents to show', async function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_4',
     });
@@ -153,7 +153,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded it updates the count of documents', async () => {
+  test('when expanded it updates the count of documents', async function () {
     let maxDocs;
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_1',
@@ -178,10 +178,10 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(newTestDocList.description, '25');
   });
 
-  test('it shows a documents icon', () => {
+  test('it shows a documents icon', function () {
     const testCollectionViewTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_4',
-      type: CollectionTypes.view,
+      type: CollectionType.view,
     });
 
     const viewIconPath = testCollectionViewTreeItem.iconPath;
@@ -192,7 +192,7 @@ suite('DocumentListTreeItem Test Suite', () => {
 
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       collectionName: 'mock_collection_name_4',
-      type: CollectionTypes.collection,
+      type: CollectionType.collection,
     });
 
     const collectionIconPath = testDocumentListTreeItem.iconPath;
@@ -202,7 +202,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  test('it shows the document count in the description', () => {
+  test('it shows the document count in the description', function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       cachedDocumentCount: 25,
     });
@@ -210,7 +210,7 @@ suite('DocumentListTreeItem Test Suite', () => {
     assert.strictEqual(testDocumentListTreeItem.description, '25');
   });
 
-  test('the tooltip shows the unformatted document count', () => {
+  test('the tooltip shows the unformatted document count', function () {
     const testDocumentListTreeItem = getTestDocumentListTreeItem({
       cachedDocumentCount: 2200000,
     });
@@ -223,14 +223,14 @@ suite('DocumentListTreeItem Test Suite', () => {
     );
   });
 
-  suite('formatDocCount', () => {
-    test('It formats the document count when the count is 0', () => {
+  suite('formatDocCount', function () {
+    test('It formats the document count when the count is 0', function () {
       const num = 0;
       const result = formatDocCount(num);
       assert.strictEqual(result, '0');
     });
 
-    test('It formats the document count when the count is 10009', () => {
+    test('It formats the document count when the count is 10009', function () {
       const num = 10009;
       const result = formatDocCount(num);
       assert.strictEqual(result, '10K');

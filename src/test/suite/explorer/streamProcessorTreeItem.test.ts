@@ -21,8 +21,8 @@ function getTestTreeItem(
   });
 }
 
-suite('StreamProcessorTreeItem Test Suite', () => {
-  test('its context value should be in the package json', () => {
+suite('StreamProcessorTreeItem Test Suite', function () {
+  test('its context value should be in the package json', function () {
     let spRegisteredCommandInPackageJson = false;
 
     const testStreamProcessorTreeItem = getTestTreeItem();
@@ -39,7 +39,7 @@ suite('StreamProcessorTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show state', async () => {
+  test('when not expanded it does not show state', async function () {
     const testStreamProcessorTreeItem = getTestTreeItem();
 
     const children = await testStreamProcessorTreeItem.getChildren();
@@ -50,7 +50,7 @@ suite('StreamProcessorTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded shows the state as a child item in tree', async () => {
+  test('when expanded shows the state as a child item in tree', async function () {
     const testStreamProcessorTreeItem = getTestTreeItem();
 
     await testStreamProcessorTreeItem.onDidExpand();

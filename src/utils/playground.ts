@@ -8,7 +8,11 @@ import { createLogger } from '../logging';
 const log = createLogger('playground utils');
 
 export class FileStat implements vscode.FileStat {
-  constructor(private fsStat: fs.Stats) {}
+  private fsStat: fs.Stats;
+
+  constructor(fsStat: fs.Stats) {
+    this.fsStat = fsStat;
+  }
 
   get type(): vscode.FileType {
     if (this.fsStat.isFile()) {

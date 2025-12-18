@@ -32,9 +32,9 @@ import { getFullRange } from '../suggestTestHelpers';
 import { isPlayground } from '../../../utils/playground';
 import { Prompts } from '../../../participant/prompts';
 import { createMarkdownLink } from '../../../participant/markdown';
-import EXTENSION_COMMANDS from '../../../commands';
+import ExtensionCommand from '../../../commands';
 import { getContentLength } from '../../../participant/prompts/promptBase';
-import { ParticipantErrorTypes } from '../../../participant/participantErrorTypes';
+import { ParticipantErrorType } from '../../../participant/participantErrorTypes';
 import * as model from '../../../participant/model';
 import {
   createChatRequestTurn,
@@ -47,8 +47,8 @@ import type {
   ParticipantRequestType,
   SendMessageToParticipantOptions,
 } from '../../../participant/participantTypes';
-import { DocumentSource } from '../../../documentSource';
 import { TelemetryService } from '../../../telemetry';
+import { DocumentSource } from '../../../documentSource';
 
 // The Copilot's model in not available in tests,
 // therefore we need to mock its methods and returning values.
@@ -57,7 +57,7 @@ const MAX_TOTAL_PROMPT_LENGTH_MOCK = 16000;
 const loadedConnection = {
   id: 'id',
   name: 'localhost',
-  storageLocation: StorageLocation.NONE,
+  storageLocation: StorageLocation.none,
   secretStorageLocation: SecretStorageLocation.SecretStorage,
   connectionOptions: { connectionString: 'mongodb://localhost' },
 };
@@ -1940,8 +1940,8 @@ Schema:
           Object.create(DatabaseTreeItem.prototype),
           {
             databaseName: 'testDb',
-          } as DatabaseTreeItem,
-        );
+          },
+        ) as DatabaseTreeItem;
 
         test('opens the chat and sends a message to set database context', async function () {
           expect(sendMessageToParticipantStub).not.called;
@@ -1957,7 +1957,7 @@ Schema:
               message: `I want to ask questions about the \`${mockDatabaseItem.databaseName}\` database.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source: DocumentSource.treeview,
                 source_details: 'database',
               },
             },
@@ -1971,8 +1971,8 @@ Schema:
           {
             databaseName: 'testDb',
             collectionName: 'testColl',
-          } as CollectionTreeItem,
-        );
+          },
+        ) as CollectionTreeItem;
 
         test('opens the chat and sends a message to set database and collection context', async function () {
           expect(sendMessageToParticipantStub).not.called;
@@ -1988,7 +1988,7 @@ Schema:
               message: `I want to ask questions about the \`${mockCollectionItem.databaseName}\` database's \`${mockCollectionItem.collectionName}\` collection.`,
               isNewChat: true,
               telemetry: {
-                source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+                source: DocumentSource.treeview,
                 source_details: 'collection',
               },
             },
@@ -2580,16 +2580,20 @@ Schema:
             '/query',
             `Looks like you aren't currently connected, first let's get you connected to the cluster we'd like to create this query to run against.
 
-                    ${createMarkdownLink({
-                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
-                      name: 'localhost',
-                      data: {},
-                    })}
-                    ${createMarkdownLink({
-                      commandId: EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
-                      name: 'atlas',
-                      data: {},
-                    })}`,
+                    ${
+                      createMarkdownLink({
+                        commandId: ExtensionCommand.connectWithParticipant,
+                        name: 'localhost',
+                        data: {},
+                      }).value
+                    }
+                    ${
+                      createMarkdownLink({
+                        commandId: ExtensionCommand.connectWithParticipant,
+                        name: 'atlas',
+                        data: {},
+                      }).value
+                    }`,
             {
               result: {
                 metadata: {
@@ -2653,7 +2657,7 @@ Schema:
             createChatResponseTurn('/query', undefined, {
               result: {
                 errorDetails: {
-                  message: ParticipantErrorTypes.FILTERED,
+                  message: ParticipantErrorType.filtered,
                 },
                 metadata: {},
               },

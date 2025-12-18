@@ -1,7 +1,7 @@
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
-import { ServerCommands } from './serverCommands';
+import { ServerCommand } from './serverCommands';
 
 import type {
   ShellEvaluateResult,
@@ -44,7 +44,7 @@ type ExecuteCodeOptions = {
 
 function handleEvalPrint(values: EvaluationResult[]): void {
   parentPort?.postMessage({
-    name: ServerCommands.SHOW_CONSOLE_OUTPUT,
+    name: ServerCommand.showConsoleOutput,
     payload: values.map((v) => {
       return typeof v.printable === 'string'
         ? v.printable
@@ -64,7 +64,7 @@ export const execute = async ({
   filePath,
 }: ExecuteCodeOptions): Promise<{
   data: ShellEvaluateResult | null;
-  error?: any;
+  error?: Error;
 }> => {
   const serviceProvider = await NodeDriverServiceProvider.connect(
     connectionString,
@@ -117,16 +117,16 @@ export const execute = async ({
 
     return { data: { result } };
   } catch (error) {
-    return { error, data: null };
+    return { error: error as Error, data: null };
   } finally {
     await serviceProvider.close();
   }
 };
 
 const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
-  if (name === ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND) {
+  if (name === ServerCommand.executeCodeFromPlayground) {
     parentPort?.postMessage({
-      name: ServerCommands.CODE_EXECUTION_RESULT,
+      name: ServerCommand.codeExecutionResult,
       payload: await execute(data),
     });
   }

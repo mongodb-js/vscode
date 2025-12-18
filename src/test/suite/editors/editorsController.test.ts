@@ -14,7 +14,7 @@ import { mockTextEditor } from '../stubs';
 
 const expect = chai.expect;
 
-suite('Editors Controller Test Suite', () => {
+suite('Editors Controller Test Suite', function () {
   const sandbox = sinon.createSandbox();
   let showErrorMessageStub: SinonStub;
 
@@ -27,8 +27,8 @@ suite('Editors Controller Test Suite', () => {
     sandbox.restore();
   });
 
-  suite('#getFileDisplayNameForDocumentId', () => {
-    test('it strips special characters from the document id', () => {
+  suite('#getFileDisplayNameForDocumentId', function () {
+    test('it strips special characters from the document id', function () {
       const str = 'abc//\\\nab  c"$%%..@1s   df""';
       const result = getFileDisplayNameForDocument(str, 'a.b');
       const expected =
@@ -36,7 +36,7 @@ suite('Editors Controller Test Suite', () => {
       assert.strictEqual(result, expected);
     });
 
-    test('it trims the string to 200 characters', () => {
+    test('it trims the string to 200 characters', function () {
       const str =
         '123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdffbnjiekbfdakjsdbfkjsabdfkjasbfbnjiekbfdakjsdbfkjsabdfkjasbkjasbfbnjiekbfdakjsdbfkjsabdfkjasb';
       const result = getFileDisplayNameForDocument(str, 'db.col');
@@ -45,7 +45,7 @@ suite('Editors Controller Test Suite', () => {
       assert.strictEqual(result, expected);
     });
 
-    test('it handles ids that are objects', () => {
+    test('it handles ids that are objects', function () {
       const str = {
         str: 'abc//\\\nab  c$%%..@1s   df"',
         b: new ObjectId('5d973ae744376d2aae72a160'),
@@ -56,7 +56,7 @@ suite('Editors Controller Test Suite', () => {
       assert.strictEqual(result, expected);
     });
 
-    test('has the namespace at the start of the display name', () => {
+    test('has the namespace at the start of the display name', function () {
       const str = 'pineapples';
       const result = getFileDisplayNameForDocument(str, 'grilled');
       const expected = 'grilled:"pineapples"';
@@ -64,7 +64,7 @@ suite('Editors Controller Test Suite', () => {
     });
   });
 
-  test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', () => {
+  test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', function () {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFavoriteNamespace';
     const testConnectionId = 'alienSateliteConnection';
@@ -82,7 +82,7 @@ suite('Editors Controller Test Suite', () => {
     );
   });
 
-  test('getViewCollectionDocumentsUri handles / \\ and % in the namespace', () => {
+  test('getViewCollectionDocumentsUri handles / \\ and % in the namespace', function () {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFa%%\\\\///\\%vorite%Namespace';
     const testConnectionId = 'alienSateliteConnection';
@@ -103,7 +103,7 @@ suite('Editors Controller Test Suite', () => {
     );
   });
 
-  test('saveMongoDBDocument returns false if there is no active editor', async () => {
+  test('saveMongoDBDocument returns false if there is no active editor', async function () {
     sandbox.replaceGetter(vscode.window, 'activeTextEditor', () => undefined);
 
     // Stub the built-in save command to prevent it from blocking in tests
@@ -119,7 +119,7 @@ suite('Editors Controller Test Suite', () => {
     expect(showErrorMessageStub.notCalled).to.be.equal(true);
   });
 
-  test('saveMongoDBDocument returns false if this is not a mongodb document', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document', async function () {
     const activeTextEditor = mockTextEditor;
     activeTextEditor.document.uri = vscode.Uri.parse(
       [
@@ -144,7 +144,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('saveMongoDBDocument returns false if this is not a mongodb document and namespace is missing', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document and namespace is missing', async function () {
     const activeTextEditor = mockTextEditor;
     activeTextEditor.document.uri = vscode.Uri.parse(
       [
@@ -168,7 +168,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('saveMongoDBDocument returns false if this is not a mongodb document and connectionId is missing', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document and connectionId is missing', async function () {
     const activeTextEditor = mockTextEditor;
     activeTextEditor.document.uri = vscode.Uri.parse(
       [
@@ -192,7 +192,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('saveMongoDBDocument returns false if this is not a mongodb document and documentId is missing', async () => {
+  test('saveMongoDBDocument returns false if this is not a mongodb document and documentId is missing', async function () {
     const activeTextEditor = mockTextEditor;
     activeTextEditor.document.uri = vscode.Uri.parse(
       [
@@ -216,7 +216,7 @@ suite('Editors Controller Test Suite', () => {
     expect(result).to.be.equal(false);
   });
 
-  test('saveMongoDBDocument returns false if a user saves an invalid javascript value', async () => {
+  test('saveMongoDBDocument returns false if a user saves an invalid javascript value', async function () {
     const activeTextEditor = mockTextEditor;
     activeTextEditor.document.uri = vscode.Uri.parse(
       [

@@ -15,7 +15,7 @@ suite('Help Explorer Test Suite', function () {
     sandbox.restore();
   });
 
-  test('tree view should be not created until it is activated', () => {
+  test('tree view should be not created until it is activated', function () {
     const testHelpExplorer = new HelpExplorer(
       mdbTestExtension.testExtensionController._telemetryService,
     );
@@ -24,7 +24,7 @@ suite('Help Explorer Test Suite', function () {
     assert(testHelpExplorer._treeView !== undefined);
   });
 
-  test('the tree should have 5 help tree items', async () => {
+  test('the tree should have 5 help tree items', async function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
     testHelpExplorer.activateHelpTreeView();
@@ -32,7 +32,7 @@ suite('Help Explorer Test Suite', function () {
     assert(helpTreeItems.length === 6);
   });
 
-  test('the tree should have an atlas item with a url and atlas icon', async () => {
+  test('the tree should have an atlas item with a url and atlas icon', async function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
     testHelpExplorer.activateHelpTreeView();
@@ -54,7 +54,7 @@ suite('Help Explorer Test Suite', function () {
     assert(atlasHelpItem.url.startsWith('https://') === true);
   });
 
-  test('when a help item that does not require a redirect is clicked on it should open the url with vscode', async () => {
+  test('when a help item that does not require a redirect is clicked on it should open the url with vscode', async function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 
@@ -80,7 +80,7 @@ suite('Help Explorer Test Suite', function () {
     );
   });
 
-  test('when a help item that requires a redirect is clicked on it should open the url with the link helper', async () => {
+  test('when a help item that requires a redirect is clicked on it should open the url with the link helper', async function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 
@@ -98,7 +98,7 @@ suite('Help Explorer Test Suite', function () {
     assert(stubExecuteCommand.firstCall.args[0] === atlasHelpItem.url);
   });
 
-  test('when a help item is clicked on it should have a telemetry trackLinkClicked event', async () => {
+  test('when a help item is clicked on it should have a telemetry trackLinkClicked event', async function () {
     const testHelpExplorer =
       mdbTestExtension.testExtensionController._helpExplorer;
 

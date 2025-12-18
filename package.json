@@ -41,21 +41,21 @@
   "main": "./dist/extension.js",
   "scripts": {
     "clean": "rimraf -g ./out/* ./dist/*",
-    "lint": "eslint . && prettier --check .",
-    "update-grammar": "ts-node ./scripts/update-grammar.ts",
+    "lint": "eslint . --fix && prettier --check .",
+    "update-grammar": "node ./scripts/update-grammar.ts",
     "precompile": "pnpm run clean",
     "compile": "npm-run-all compile:*",
-    "compile:constants": "ts-node ./scripts/generate-constants.ts",
+    "compile:constants": "node ./scripts/generate-constants.ts",
     "compile:resources": "pnpm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
     "watch": "pnpm run compile && npm-run-all -p watch:*",
-    "watch:extension": "pnpm run compile:extension -- -watch",
+    "watch:extension": "tsc -p ./ --watch",
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "pnpm run compile",
     "test": "pnpm run test-webview && pnpm run test-extension",
     "test-extension": "cross-env MDB_IS_TEST=true NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
-    "test-webview": "mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
+    "test-webview": "mocha -r ts-node/register --exit --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
     "ai-accuracy-tests": "env TS_NODE_FILES=true mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/ai-accuracy-tests/test-setup.ts ./src/test/ai-accuracy-tests/ai-accuracy-tests.ts",
     "analyze-bundle": "webpack --mode production --analyze",
     "vscode:prepublish": "pnpm run clean && pnpm run compile:constants && pnpm run compile:resources && webpack --mode production",
@@ -63,15 +63,15 @@
     "depcheck": "depcheck",
     "package": "cross-env NODE_OPTIONS='--require ./scripts/no-npm-list-fail.js' vsce package --githubBranch main",
     "local-install": "pnpm run package && code --install-extension ./mongodb-vscode-*.vsix",
-    "check-vsix-size": "ts-node ./scripts/check-vsix-size.ts",
+    "check-vsix-size": "node ./scripts/check-vsix-size.ts",
     "release-draft": "node ./scripts/release-draft.js",
-    "reformat": "prettier --write .",
+    "reformat": "eslint . --fix && prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
-    "generate-icon-font": "ts-node ./scripts/generate-icon-font.ts",
+    "generate-icon-font": "node ./scripts/generate-icon-font.ts",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
-    "precommit": "ts-node ./scripts/precommit.ts"
+    "precommit": "node ./scripts/precommit.ts"
   },
   "engines": {
     "vscode": "^1.101.1",
@@ -981,6 +981,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.askCopilotFromTreeItem",
+          "when": "false"
+        },
+        {
           "command": "mdb.addCollection",
           "when": "false"
         },
@@ -1403,7 +1407,7 @@
     "@babel/core": "^7.25.8",
     "@babel/parser": "^7.25.8",
     "@babel/traverse": "^7.25.7",
-    "@mongodb-js/compass-components": "^1.38.1",
+    "@mongodb-js/compass-components": "^1.59.2",
     "@mongodb-js/connection-form": "^1.52.3",
     "@mongodb-js/connection-info": "^0.21.0",
     "@mongodb-js/device-id": "^0.3.2",
@@ -1442,6 +1446,7 @@
     "@babel/preset-typescript": "^7.25.7",
     "@babel/types": "^7.25.8",
     "@modelcontextprotocol/sdk": "^1.24.3",
+    "@mongodb-js/eslint-config-devtools": "^0.9.12",
     "@mongodb-js/oidc-mock-provider": "^0.11.5",
     "@mongodb-js/oidc-plugin": "^2.0.5",
     "@mongodb-js/prettier-config-devtools": "^1.0.2",
@@ -1477,7 +1482,6 @@
     "depcheck": "^1.4.7",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
     "eslint": "^8.57.1",
-    "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.5.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "glob": "^13.0.0",
@@ -1519,10 +1523,6 @@
   "pnpm": {
     "overrides": {
       "react": "^18.3.1",
-      "@mongodb-js/compass-logging": "^1.7.18",
-      "@mongodb-js/compass-utils": "^0.9.16",
-      "@mongodb-js/compass-components": "1.38.1",
-      "parse-asn1": "5.1.6",
       "jsonwebtoken>jws": "3.2.3"
     }
   }

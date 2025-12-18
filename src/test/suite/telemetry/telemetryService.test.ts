@@ -9,7 +9,6 @@ import sinon from 'sinon';
 import type { SinonSpy } from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { ConnectionTypes } from '../../../connectionController';
 import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 import { DatabaseTreeItem, DocumentTreeItem } from '../../../explorer';
@@ -25,6 +24,7 @@ import {
   SavedConnectionsLoadedTelemetryEvent,
 } from '../../../telemetry';
 import type { SegmentProperties } from '../../../telemetry/telemetryService';
+import { ConnectionType } from '../../../connectionController';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
@@ -35,7 +35,7 @@ chai.use(sinonChai);
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
-suite('Telemetry Controller Test Suite', () => {
+suite('Telemetry Controller Test Suite', function () {
   const testTelemetryService =
     mdbTestExtension.testExtensionController._telemetryService;
 
@@ -119,7 +119,7 @@ suite('Telemetry Controller Test Suite', () => {
     sandbox.restore();
   });
 
-  test('get segment key', () => {
+  test('get segment key', function () {
     let segmentKey: string | undefined;
 
     try {
@@ -134,12 +134,12 @@ suite('Telemetry Controller Test Suite', () => {
     expect(testTelemetryService._segmentKey).to.be.a('string');
   });
 
-  suite('after setup is complete', () => {
+  suite('after setup is complete', function () {
     beforeEach(async () => {
       await testTelemetryService.activateSegmentAnalytics();
     });
 
-    test('track command run event', async () => {
+    test('track command run event', async function () {
       await vscode.commands.executeCommand('mdb.addConnection');
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -154,10 +154,10 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track new connection event when connecting via connection string', async () => {
+    test('track new connection event when connecting via connection string', async function () {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_STRING,
+        ConnectionType.connectionString,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -175,10 +175,10 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track new connection event when connecting via connection form', async () => {
+    test('track new connection event when connecting via connection form', async function () {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_FORM,
+        ConnectionType.connectionForm,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -196,10 +196,10 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track new connection event when connecting via saved connection', async () => {
+    test('track new connection event when connecting via saved connection', async function () {
       await testTelemetryService.trackNewConnection(
         dataServiceStub,
-        ConnectionTypes.CONNECTION_ID,
+        ConnectionType.connectionId,
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -217,8 +217,8 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track document saved form a tree-view event', () => {
-      const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+    test('track document saved form a tree-view event', function () {
+      const source = DocumentSource.treeview;
       testTelemetryService.track(
         new DocumentUpdatedTelemetryEvent(source, true),
       );
@@ -236,8 +236,8 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track document opened form playground results', () => {
-      const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    test('track document opened form playground results', function () {
+      const source = DocumentSource.playground;
       testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -249,7 +249,7 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track playground code executed event', async () => {
+    test('track playground code executed event', async function () {
       const testPlaygroundController =
         mdbTestExtension.testExtensionController._playgroundController;
       const source = new vscode.CancellationTokenSource();
@@ -275,7 +275,7 @@ suite('Telemetry Controller Test Suite', () => {
     });
 
     // TODO: re-enable two tests after https://jira.mongodb.org/browse/VSCODE-432
-    test.skip('track mongodb playground loaded event', async () => {
+    test.skip('track mongodb playground loaded event', async function () {
       const docPath = path.resolve(
         __dirname,
         '../../../../src/test/fixture/testPlayground.mongodb',
@@ -294,7 +294,7 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test.skip('track mongodbjs playground loaded event', async () => {
+    test.skip('track mongodbjs playground loaded event', async function () {
       const docPath = path.resolve(
         __dirname,
         '../../../../src/test/fixture/testPlayground.mongodb.js',
@@ -313,7 +313,7 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track playground saved event', () => {
+    test('track playground saved event', function () {
       testTelemetryService.track(
         new PlaygroundSavedTelemetryEvent(
           vscode.Uri.file('/users/peter/projects/test/myplayground.mongodb.js'),
@@ -332,7 +332,7 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track link clicked event', () => {
+    test('track link clicked event', function () {
       testTelemetryService.track(
         new LinkClickedTelemetryEvent('helpPanel', 'linkId'),
       );
@@ -350,7 +350,7 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    test('track playground exported to language', () => {
+    test('track playground exported to language', function () {
       testTelemetryService.track(
         new PlaygroundExportedToLanguageTelemetryEvent('java', 3, false),
       );
@@ -369,8 +369,8 @@ suite('Telemetry Controller Test Suite', () => {
       );
     });
 
-    suite('playground created', () => {
-      test('track on search for documents', async () => {
+    suite('playground created', function () {
+      test('track on search for documents', async function () {
         await vscode.commands.executeCommand('mdb.searchForDocuments', {
           databaseName: 'databaseName',
           collectionName: 'collectionName',
@@ -388,7 +388,7 @@ suite('Telemetry Controller Test Suite', () => {
         );
       });
 
-      test('track on create collection', async () => {
+      test('track on create collection', async function () {
         const testDatabaseTreeItem = new DatabaseTreeItem({
           databaseName: 'databaseName',
           dataService: new DataServiceStub() as unknown as DataService,
@@ -413,7 +413,7 @@ suite('Telemetry Controller Test Suite', () => {
         );
       });
 
-      test('track on create database', async () => {
+      test('track on create database', async function () {
         await vscode.commands.executeCommand('mdb.addDatabase', {
           connectionId: 'testconnectionId',
         });
@@ -430,7 +430,7 @@ suite('Telemetry Controller Test Suite', () => {
         );
       });
 
-      test('track on create index', async () => {
+      test('track on create index', async function () {
         await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
           databaseName: 'databaseName',
           collectionName: 'collectionName',
@@ -448,7 +448,7 @@ suite('Telemetry Controller Test Suite', () => {
         );
       });
 
-      test('track on clone document', async () => {
+      test('track on clone document', async function () {
         const mockDocument = {
           _id: 'pancakes',
           name: '',
@@ -485,7 +485,7 @@ suite('Telemetry Controller Test Suite', () => {
         );
       });
 
-      test('track on crud from the command palette', async () => {
+      test('track on crud from the command palette', async function () {
         await vscode.commands.executeCommand('mdb.createPlayground');
         sandbox.assert.calledWith(
           fakeSegmentAnalyticsTrack,
@@ -500,7 +500,7 @@ suite('Telemetry Controller Test Suite', () => {
         );
       });
 
-      test('track on crud from overview page', async () => {
+      test('track on crud from overview page', async function () {
         await vscode.commands.executeCommand(
           'mdb.createNewPlaygroundFromOverviewPage',
         );
@@ -517,7 +517,7 @@ suite('Telemetry Controller Test Suite', () => {
         );
       });
 
-      test('track on crud from tree view', async () => {
+      test('track on crud from tree view', async function () {
         await vscode.commands.executeCommand(
           'mdb.createNewPlaygroundFromTreeView',
         );
@@ -535,7 +535,7 @@ suite('Telemetry Controller Test Suite', () => {
       });
     });
 
-    test.skip('track saved connections loaded', () => {
+    test.skip('track saved connections loaded', function () {
       testTelemetryService.track(
         new SavedConnectionsLoadedTelemetryEvent({
           savedConnections: 3,
@@ -556,14 +556,14 @@ suite('Telemetry Controller Test Suite', () => {
             loaded_connections: 3,
             preset_connections: 3,
             connections_with_secrets_in_keytar: 0,
-            connections_with_secrets_in_secret_storage: 3,
+            connections_with_secrets_in_SecretStorage: 3,
           },
         }),
       );
     });
   });
 
-  suite('prepare playground result types', () => {
+  suite('prepare playground result types', function () {
     const unmappedTypes = [
       'BulkWriteResult',
       'Collection',
@@ -576,7 +576,7 @@ suite('Telemetry Controller Test Suite', () => {
       'undefined',
     ];
     for (const type of unmappedTypes) {
-      test(`reports original type if not remapped: ${type}`, () => {
+      test(`reports original type if not remapped: ${type}`, function () {
         const res = {
           result: {
             namespace: undefined,
@@ -605,7 +605,7 @@ suite('Telemetry Controller Test Suite', () => {
     };
 
     for (const [shellApiType, telemetryType] of Object.entries(mappedTypes)) {
-      test(`convert ${shellApiType} shellApiType to ${telemetryType} telemetry type`, () => {
+      test(`convert ${shellApiType} shellApiType to ${telemetryType} telemetry type`, function () {
         const res = {
           result: {
             namespace: undefined,
@@ -620,7 +620,7 @@ suite('Telemetry Controller Test Suite', () => {
       });
     }
 
-    test('convert result with missing type to "other"', () => {
+    test('convert result with missing type to "other"', function () {
       const res = {
         result: {
           namespace: undefined,
@@ -633,7 +633,7 @@ suite('Telemetry Controller Test Suite', () => {
       expect(type).to.deep.equal('other');
     });
 
-    test('convert shell api result with undefined result field "other"', () => {
+    test('convert shell api result with undefined result field "other"', function () {
       const res = {
         result: undefined,
       };
@@ -642,7 +642,7 @@ suite('Telemetry Controller Test Suite', () => {
       expect(type).to.deep.equal('other');
     });
 
-    test('convert null shell api result to null', () => {
+    test('convert null shell api result to null', function () {
       const type = new PlaygroundExecutedTelemetryEvent(null, false, false)
         .properties.type;
       expect(type).to.be.null;
@@ -656,7 +656,7 @@ suite('Telemetry Controller Test Suite', () => {
     return Object.keys(obj).filter((k) => Number.isNaN(k)) as TKey[];
   }
 
-  test('ChatResultFeedbackKind to TelemetryFeedbackKind maps all values', () => {
+  test('ChatResultFeedbackKind to TelemetryFeedbackKind maps all values', function () {
     for (const kind of enumKeys(vscode.ChatResultFeedbackKind)) {
       expect(
         new ParticipantFeedbackTelemetryEvent(
