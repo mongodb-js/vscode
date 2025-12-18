@@ -596,6 +596,7 @@ suite('Telemetry Controller Test Suite', function () {
     }
 
     const mappedTypes: Record<string, string> = {
+      __proto__: null,
       Cursor: 'query',
       DeleteResult: 'delete',
       InsertManyResult: 'insert',
