@@ -1416,6 +1416,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
+    // eslint-disable-next-line mocha/no-skipped-tests
     test.skip('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async function () {
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (

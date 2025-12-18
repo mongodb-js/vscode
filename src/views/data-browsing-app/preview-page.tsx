@@ -9,8 +9,8 @@ import {
   MenuItem,
   css,
   spacing,
+  useDarkMode,
 } from '@mongodb-js/compass-components';
-import { useDetectVsCodeDarkMode } from './use-detect-vscode-dark-mode';
 import {
   PreviewMessageType,
   type MessageFromExtensionToWebview,
@@ -111,7 +111,6 @@ const spinnerStyles = css({
 });
 
 const PreviewApp: React.FC = () => {
-  const darkMode = useDetectVsCodeDarkMode();
   const [documents, setDocuments] = useState<PreviewDocument[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
@@ -120,6 +119,7 @@ const PreviewApp: React.FC = () => {
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCountInCollection, setTotalCountInCollection] = useState<number | null>(null);
+  const darkMode = useDarkMode();
 
   const totalDocuments = documents.length;
   const totalPages = Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
@@ -226,7 +226,6 @@ const PreviewApp: React.FC = () => {
   };
 
   return (
-    <LeafyGreenProvider darkMode={darkMode}>
       <div
         style={{
           backgroundColor: darkMode ? '#1E1E1E' : '#FFFFFF',
@@ -396,7 +395,6 @@ const PreviewApp: React.FC = () => {
           )}
         </div>
       </div>
-    </LeafyGreenProvider>
   );
 };
 
