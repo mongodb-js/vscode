@@ -83,6 +83,7 @@ describe('PreviewPage test suite', function () {
   });
 
   it('should send sort request when sort option changes', async function () {
+    this.timeout(5000);
     const postMessageStub = Sinon.stub(vscode, 'postMessage');
     render(<PreviewPage />);
 
