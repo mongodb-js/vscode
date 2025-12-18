@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
-import { after, before } from 'mocha';
+import { after, afterEach, before, beforeEach } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
+import sinon from 'sinon';
 
 import type { CollectionTreeItem } from '../../../explorer';
 import DatabaseTreeItem from '../../../explorer/databaseTreeItem';
+import DocumentListTreeItem from '../../../explorer/documentListTreeItem';
 import { DataServiceStub, mockDatabaseNames, mockDatabases } from '../stubs';
 import {
   createTestDataService,
@@ -14,6 +16,7 @@ import {
   TEST_DB_NAME,
   TEST_DATABASE_URI,
 } from '../dbTestHelper';
+import * as featureFlags from '../../../featureFlags';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
@@ -32,6 +35,12 @@ function getTestDatabaseTreeItem(
 }
 
 suite('DatabaseTreeItem Test Suite', function () {
+  const sandbox = sinon.createSandbox();
+
+  afterEach(function () {
+    sandbox.restore();
+  });
+
   test('its context value should be in the package json', function () {
     let databaseRegisteredCommandInPackageJson = false;
 
@@ -78,6 +87,9 @@ suite('DatabaseTreeItem Test Suite', function () {
   });
 
   test('when expanded and collapsed its collections cache their expanded documents', async function () {
+    // This test uses DocumentListTreeItem which has isExpanded
+    sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
+
     const testDatabaseTreeItem = getTestDatabaseTreeItem();
 
     await testDatabaseTreeItem.onDidExpand();
@@ -88,14 +100,15 @@ suite('DatabaseTreeItem Test Suite', function () {
 
     await collectionTreeItems[1].onDidExpand();
     await collectionTreeItems[1].getChildren();
-    const documentListItem = collectionTreeItems[1].getDocumentListChild();
-    if (!documentListItem) {
-      assert(false, 'No document list tree item found on collection.');
-    }
-    await documentListItem.onDidExpand();
-    documentListItem.onShowMoreClicked();
+    const documentsChild = collectionTreeItems[1].getDocumentsChild();
+    assert(
+      documentsChild instanceof DocumentListTreeItem,
+      'Expected DocumentListTreeItem when feature flag is false',
+    );
+    await documentsChild.onDidExpand();
+    documentsChild.onShowMoreClicked();
 
-    const documents = await documentListItem.getChildren();
+    const documents = await documentsChild.getChildren();
     const amountOfDocs = documents.length;
     const expectedDocs = 21;
     assert.strictEqual(expectedDocs, amountOfDocs);
@@ -111,9 +124,14 @@ suite('DatabaseTreeItem Test Suite', function () {
 
     assert.strictEqual(newCollectionTreeItems[1].isExpanded, true);
 
-    const documentsPostCollapseExpand = await newCollectionTreeItems[1]
-      .getDocumentListChild()
-      .getChildren();
+    const documentsChildAfterExpand =
+      newCollectionTreeItems[1].getDocumentsChild();
+    assert(
+      documentsChildAfterExpand instanceof DocumentListTreeItem,
+      'Expected DocumentListTreeItem when feature flag is false',
+    );
+    const documentsPostCollapseExpand =
+      await documentsChildAfterExpand.getChildren();
 
     // It should cache that we activated show more.
     const amountOfCachedDocs = documentsPostCollapseExpand.length;

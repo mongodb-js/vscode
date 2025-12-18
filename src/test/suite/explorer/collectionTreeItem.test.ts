@@ -1,4 +1,5 @@
 import assert from 'assert';
+import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
@@ -6,6 +7,7 @@ import type { CollectionDetailsType } from '../../../explorer/collectionTreeItem
 import { CollectionType } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
+import * as featureFlags from '../../../featureFlags';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
@@ -29,6 +31,11 @@ function getTestCollectionTreeItem(
 
 suite('CollectionTreeItem Test Suite', function () {
   ext.context = new ExtensionContextStub();
+  const sandbox = sinon.createSandbox();
+
+  afterEach(function () {
+    sandbox.restore();
+  });
 
   test('its context value should be in the package json', function () {
     let registeredCommandInPackageJson = false;
@@ -43,41 +50,80 @@ suite('CollectionTreeItem Test Suite', function () {
     assert.strictEqual(registeredCommandInPackageJson, true);
   });
 
-  test('when expanded shows a documents folder and schema folder', async function () {
-    const testCollectionTreeItem = getTestCollectionTreeItem({
-      dataService: new DataServiceStub() as unknown as DataService,
+  suite('when useEnhancedDataBrowsingExperience is false', function () {
+    beforeEach(function () {
+      sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
     });
 
-    await testCollectionTreeItem.onDidExpand();
+    test('when expanded shows documents, schema, and indexes folders', async function () {
+      const testCollectionTreeItem = getTestCollectionTreeItem({
+        dataService: new DataServiceStub() as unknown as DataService,
+      });
 
-    const collectionChildren = await testCollectionTreeItem.getChildren();
+      await testCollectionTreeItem.onDidExpand();
 
-    assert.strictEqual(collectionChildren.length, 4);
-    assert.strictEqual(collectionChildren[0].label, 'Documents');
-    assert.strictEqual(collectionChildren[1].label, 'Documents');
-    assert.strictEqual(collectionChildren[2].label, 'Schema');
-    assert.strictEqual(collectionChildren[3].label, 'Indexes');
+      const collectionChildren = await testCollectionTreeItem.getChildren();
+
+      assert.strictEqual(collectionChildren.length, 3);
+      assert.strictEqual(collectionChildren[0].label, 'Documents');
+      assert.strictEqual(collectionChildren[1].label, 'Schema');
+      assert.strictEqual(collectionChildren[2].label, 'Indexes');
+    });
+
+    test('when expanded it shows the document count in the description of the document list', async function () {
+      const testCollectionTreeItem = getTestCollectionTreeItem({
+        dataService: {
+          estimatedCount: () => Promise.resolve(5000),
+        } as unknown as DataService,
+      });
+
+      await testCollectionTreeItem.onDidExpand();
+
+      const collectionChildren = await testCollectionTreeItem.getChildren();
+
+      assert.strictEqual(collectionChildren[0].label, 'Documents');
+      assert.strictEqual(collectionChildren[0].description, '5K');
+      assert.strictEqual(
+        collectionChildren[0].tooltip,
+        'Collection Documents - 5000',
+      );
+    });
   });
 
-  test('when expanded it shows the document count in the description of the document list', async function () {
-    const testCollectionTreeItem = getTestCollectionTreeItem({
-      dataService: {
-        estimatedCount: () => Promise.resolve(5000),
-      } as unknown as DataService,
+  suite('when useEnhancedDataBrowsingExperience is true', function () {
+    beforeEach(function () {
+      sandbox.stub(featureFlags, 'getFeatureFlag').returns(true);
     });
 
-    await testCollectionTreeItem.onDidExpand();
+    test('when expanded shows preview, schema, and indexes folders', async function () {
+      const testCollectionTreeItem = getTestCollectionTreeItem({
+        dataService: new DataServiceStub() as unknown as DataService,
+      });
 
-    const collectionChildren = await testCollectionTreeItem.getChildren();
+      await testCollectionTreeItem.onDidExpand();
 
-    assert.strictEqual(collectionChildren[0].label, 'Documents');
-    assert.strictEqual(collectionChildren[0].description, '5K');
-    assert.strictEqual(collectionChildren[1].label, 'Documents');
-    assert.strictEqual(collectionChildren[1].description, '5K');
-    assert.strictEqual(
-      collectionChildren[1].tooltip,
-      'Collection Documents - 5000',
-    );
+      const collectionChildren = await testCollectionTreeItem.getChildren();
+
+      assert.strictEqual(collectionChildren.length, 3);
+      assert.strictEqual(collectionChildren[0].label, 'Documents');
+      assert.strictEqual(collectionChildren[1].label, 'Schema');
+      assert.strictEqual(collectionChildren[2].label, 'Indexes');
+    });
+
+    test('when expanded it shows the document count in the description of the preview item', async function () {
+      const testCollectionTreeItem = getTestCollectionTreeItem({
+        dataService: {
+          estimatedCount: () => Promise.resolve(5000),
+        } as unknown as DataService,
+      });
+
+      await testCollectionTreeItem.onDidExpand();
+
+      const collectionChildren = await testCollectionTreeItem.getChildren();
+
+      assert.strictEqual(collectionChildren[0].label, 'Documents');
+      assert.strictEqual(collectionChildren[0].description, '5K');
+    });
   });
 
   test('a view should show a different icon from a collection', function () {

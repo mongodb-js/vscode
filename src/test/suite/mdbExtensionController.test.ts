@@ -34,6 +34,7 @@ import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
 } from '../../mdbExtensionController';
+import * as featureFlags from '../../featureFlags';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -453,12 +454,18 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshCollection command should reset the expanded state of its children and call to refresh the explorer controller', async function () {
+      // Use DocumentListTreeItem which has isExpanded property
+      sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
+
       const testTreeItem = getTestCollectionTreeItem();
       testTreeItem.isExpanded = true;
 
       // Set expanded.
       testTreeItem.getSchemaChild().isExpanded = true;
-      testTreeItem.getDocumentListChild().isExpanded = true;
+      const documentsChild = testTreeItem.getDocumentsChild();
+      if ('isExpanded' in documentsChild) {
+        documentsChild.isExpanded = true;
+      }
 
       const fakeRefresh = sandbox.fake();
       sandbox.replace(
@@ -481,6 +488,9 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshDocumentList command should update the document count and call to refresh the explorer controller', async function () {
+      // Disable enhanced data browsing to use DocumentListTreeItem
+      sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
+
       let count = 9000;
       const testTreeItem = getTestCollectionTreeItem({
         dataService: {
@@ -490,7 +500,8 @@ suite('MDBExtensionController Test Suite', function () {
       await testTreeItem.onDidExpand();
 
       const collectionChildren = await testTreeItem.getChildren();
-      const docListTreeItem = collectionChildren[1];
+      // With enhanced data browsing disabled, Documents is at index 0
+      const docListTreeItem = collectionChildren[0];
       assert.strictEqual(docListTreeItem.description, '9K');
       count = 10000;
       docListTreeItem.isExpanded = true;
