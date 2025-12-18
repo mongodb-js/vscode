@@ -11,7 +11,7 @@ export const PREVIEW_LIST_ITEM = 'documentListPreviewItem';
 
 export const formatDocCount = (count: number): string => {
   // We format the count (30000 -> 30k) and then display it uppercase (30K).
-  return `${numeral(count).format('0a')}`.toUpperCase();
+  return `${numeral(count).format('0a') as string}`.toUpperCase();
 };
 
 function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
