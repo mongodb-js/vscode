@@ -33,11 +33,6 @@ import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import type { QueryWithCopilotCodeLensProvider } from './queryWithCopilotCodeLensProvider';
-import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
-import {
-  PreviewMessageType,
-  type SortOption,
-} from '../views/data-browsing-app/extension-app-message-constants';
 
 const log = createLogger('editors controller');
 
@@ -109,7 +104,6 @@ export default class EditorsController {
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
   _queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
-  _activePreviewPanels: vscode.WebviewPanel[] = [];
 
   constructor({
     context,
@@ -307,139 +301,6 @@ export default class EditorsController {
       );
 
       return false;
-    }
-  }
-
-  openCollectionPreview(
-    namespace: string,
-    documents: Document[],
-    fetchDocuments?: (options?: {
-      sort?: SortOption;
-      limit?: number;
-    }) => Promise<Document[]>,
-    initialTotalCount?: number,
-    getTotalCount?: () => Promise<number>,
-  ): boolean {
-    log.info('Open collection preview', namespace);
-
-    try {
-      const extensionPath = this._context.extensionPath;
-
-      const panel = createWebviewPanel({
-        viewType: 'mongodbPreview',
-        title: `Preview: ${namespace}`,
-        extensionPath,
-      });
-
-      panel.webview.html = getWebviewHtml({
-        extensionPath,
-        webview: panel.webview,
-        scriptName: 'previewApp.js',
-        title: 'Preview',
-      });
-
-      panel.onDidDispose(() => this.onPreviewPanelClosed(panel));
-      this._activePreviewPanels.push(panel);
-
-      // Keep track of current documents, sort option, and total count
-      // Fetch limit is fixed - pagination is handled client-side
-      const FETCH_LIMIT = 100;
-      let currentDocuments = documents;
-      let currentSort: SortOption = 'default';
-      let totalCount = initialTotalCount ?? documents.length;
-
-      // Helper to send current documents to webview
-      const sendDocuments = (): void => {
-        void panel.webview.postMessage({
-          command: PreviewMessageType.loadDocuments,
-          documents: JSON.parse(EJSON.stringify(currentDocuments)),
-          totalCount,
-        });
-      };
-
-      // Helper to handle errors
-      const handleError = (operation: string, error: unknown): void => {
-        log.error(`${operation} failed:`, error);
-        void panel.webview.postMessage({
-          command: PreviewMessageType.refreshError,
-          error: formatError(error).message,
-        });
-      };
-
-      // Helper to fetch and update documents
-      const fetchAndUpdateDocuments = async (
-        operation: string,
-      ): Promise<void> => {
-        if (fetchDocuments) {
-          log.info(
-            `${operation} with sort:`,
-            currentSort,
-            'limit:',
-            FETCH_LIMIT,
-          );
-          currentDocuments = await fetchDocuments({
-            sort: currentSort,
-            limit: FETCH_LIMIT,
-          });
-          log.info(`${operation} complete, count:`, currentDocuments.length);
-        }
-      };
-
-      // Send documents to webview
-      panel.webview.onDidReceiveMessage(
-        async (message: { command: string; sort?: SortOption }) => {
-          log.info('Preview received message:', message.command);
-
-          switch (message.command) {
-            case PreviewMessageType.getDocuments:
-              sendDocuments();
-              break;
-
-            case PreviewMessageType.refreshDocuments:
-              try {
-                await fetchAndUpdateDocuments('Refreshing documents');
-                if (getTotalCount) {
-                  totalCount = await getTotalCount();
-                }
-                sendDocuments();
-              } catch (error) {
-                handleError('Refresh documents', error);
-              }
-              break;
-
-            case PreviewMessageType.sortDocuments:
-              try {
-                if (message.sort) {
-                  currentSort = message.sort;
-                  await fetchAndUpdateDocuments('Sorting documents');
-                }
-                sendDocuments();
-              } catch (error) {
-                handleError('Sort documents', error);
-              }
-              break;
-
-            default:
-              log.info('Unknown command:', message.command);
-              break;
-          }
-        },
-      );
-
-      return true;
-    } catch (error) {
-      void vscode.window.showErrorMessage(
-        `Unable to open preview: ${formatError(error).message}`,
-      );
-
-      return false;
-    }
-  }
-
-  private onPreviewPanelClosed(panel: vscode.WebviewPanel): void {
-    const panelIndex = this._activePreviewPanels.indexOf(panel);
-    if (panelIndex !== -1) {
-      this._activePreviewPanels.splice(panelIndex, 1);
     }
   }
 

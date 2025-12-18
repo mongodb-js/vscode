@@ -18,7 +18,10 @@ export const formatDocCount = (count: number): string => {
   return `${numeral(count).format('0a') as string}`.toUpperCase();
 };
 
-export function getDocumentsIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
+export function getDocumentsIconPath(): {
+  light: vscode.Uri;
+  dark: vscode.Uri;
+} {
   const LIGHT = path.join(getImagesPath(), 'light');
   const DARK = path.join(getImagesPath(), 'dark');
 
@@ -38,4 +41,3 @@ export function getDocumentsTooltip(
   }
   return `${typeString} Documents`;
 }
-
