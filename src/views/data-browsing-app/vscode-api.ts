@@ -33,4 +33,3 @@ export const sendSortDocuments = (sort: SortOption): void => {
 };
 
 export default vscode;
-

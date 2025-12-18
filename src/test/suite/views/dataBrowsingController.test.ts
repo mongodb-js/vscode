@@ -263,12 +263,13 @@ suite('DataBrowsingController Test Suite', function () {
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
       webview: {
         html: '',
-        postMessage: (message): void => {
+        postMessage: (message): Promise<boolean> => {
           expect(message.command).to.equal(PreviewMessageType.themeChanged);
           expect(message.darkMode).to.be.true;
           if (++callsSoFar === totalExpectedPostMessageCalls) {
             done();
           }
+          return Promise.resolve(true);
         },
         onDidReceiveMessage: (): void => {},
         asWebviewUri: sandbox.stub().returns(''),
@@ -294,18 +295,23 @@ suite('DataBrowsingController Test Suite', function () {
 
   test('removes panel from active panels when disposed', function () {
     const onDisposeCallback: (() => void)[] = [];
+    const panels: vscode.WebviewPanel[] = [];
 
-    sandbox.stub(vscode.window, 'createWebviewPanel').returns({
-      webview: {
-        html: '',
-        postMessage: sandbox.stub(),
-        onDidReceiveMessage: sandbox.stub(),
-        asWebviewUri: sandbox.stub().returns(''),
-      },
-      onDidDispose: (callback): void => {
-        onDisposeCallback.push(callback);
-      },
-    } as unknown as vscode.WebviewPanel);
+    sandbox.stub(vscode.window, 'createWebviewPanel').callsFake(() => {
+      const panel = {
+        webview: {
+          html: '',
+          postMessage: sandbox.stub().resolves(true),
+          onDidReceiveMessage: sandbox.stub(),
+          asWebviewUri: sandbox.stub().returns(''),
+        },
+        onDidDispose: (callback): void => {
+          onDisposeCallback.push(callback);
+        },
+      } as unknown as vscode.WebviewPanel;
+      panels.push(panel);
+      return panel;
+    });
 
     void testDataBrowsingController.openDataBrowser(
       mdbTestExtension.extensionContextStub,
@@ -361,4 +367,3 @@ suite('DataBrowsingController Test Suite', function () {
     });
   });
 });
-

@@ -11,7 +11,6 @@ import {
   useDarkMode,
 } from '@mongodb-js/compass-components';
 
-
 const documentTreeViewContainerStyles = css({
   marginBottom: spacing[200],
 });
@@ -127,8 +126,14 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
   };
 
   // Get dynamic styles based on dark mode
-  const keyStyles = cx(keyStylesBase, darkMode ? keyStylesDark : keyStylesLight);
-  const dividerStyles = cx(dividerStylesBase, darkMode ? dividerStylesDark : dividerStylesLight);
+  const keyStyles = cx(
+    keyStylesBase,
+    darkMode ? keyStylesDark : keyStylesLight,
+  );
+  const dividerStyles = cx(
+    dividerStylesBase,
+    darkMode ? dividerStylesDark : dividerStylesLight,
+  );
 
   const toggleExpanded = (key: string): void => {
     setExpandedKeys((prev) => {
@@ -176,7 +181,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
   const formatValue = (
     value: unknown,
     type: TreeNode['type'],
-    isExpanded = true
+    isExpanded = true,
   ): string => {
     if (type === 'null') return 'null';
     if (type === 'boolean') return String(value);
@@ -223,7 +228,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
 
   const renderExpandButton = (
     isExpanded: boolean,
-    itemKey: string
+    itemKey: string,
   ): JSX.Element => (
     <button
       type="button"
@@ -252,7 +257,8 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
           <div key={index}>
             <div className={nodeRowStyles}>
               <div className={caretStyles}>
-                {hasExpandableContent && renderExpandButton(isExpanded, itemKey)}
+                {hasExpandableContent &&
+                  renderExpandButton(isExpanded, itemKey)}
               </div>
               <div className={keyValueContainerStyles}>
                 <span style={{ color: getValueColor(type) }}>
@@ -282,7 +288,8 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
           <div key={key}>
             <div className={nodeRowStyles}>
               <div className={caretStyles}>
-                {hasExpandableContent && renderExpandButton(isExpanded, itemKey)}
+                {hasExpandableContent &&
+                  renderExpandButton(isExpanded, itemKey)}
               </div>
               <div className={keyValueContainerStyles}>
                 <span className={keyStyles}>{key}</span>
@@ -307,7 +314,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
 
   const renderClosingBracket = (
     nodeType: TreeNode['type'],
-    isLast: boolean
+    isLast: boolean,
   ): JSX.Element => (
     <div className={nodeRowStyles}>
       <div className={caretStyles} />
@@ -343,7 +350,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
   const getNodeDisplayValue = (
     node: TreeNode,
     isIdField: boolean,
-    isExpanded: boolean
+    isExpanded: boolean,
   ): string => {
     if (isIdField) {
       return formatIdValue(node.value);
@@ -356,7 +363,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
 
   const createRowClickHandler = (
     hasExpandableContent: boolean,
-    nodeKey: string
+    nodeKey: string,
   ): (() => void) | undefined =>
     hasExpandableContent ? (): void => toggleExpanded(nodeKey) : undefined;
 
@@ -404,7 +411,9 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
             {renderChildren(node.value, node.key)}
           </div>
         )}
-        {hasExpandableContent && isExpanded && renderClosingBracket(node.type, isLast)}
+        {hasExpandableContent &&
+          isExpanded &&
+          renderClosingBracket(node.type, isLast)}
       </div>
     );
   };
@@ -414,7 +423,9 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
   return (
     <div className={documentTreeViewContainerStyles}>
       <KeylineCard className={documentContentStyles}>
-        {nodes.map((node, index) => renderNode(node, index === nodes.length - 1))}
+        {nodes.map((node, index) =>
+          renderNode(node, index === nodes.length - 1),
+        )}
       </KeylineCard>
     </div>
   );

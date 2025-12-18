@@ -52,10 +52,11 @@ suite('CollectionTreeItem Test Suite', function () {
 
     const collectionChildren = await testCollectionTreeItem.getChildren();
 
-    assert.strictEqual(collectionChildren.length, 3);
+    assert.strictEqual(collectionChildren.length, 4);
     assert.strictEqual(collectionChildren[0].label, 'Documents');
-    assert.strictEqual(collectionChildren[1].label, 'Schema');
-    assert.strictEqual(collectionChildren[2].label, 'Indexes');
+    assert.strictEqual(collectionChildren[1].label, 'Documents');
+    assert.strictEqual(collectionChildren[2].label, 'Schema');
+    assert.strictEqual(collectionChildren[3].label, 'Indexes');
   });
 
   test('when expanded it shows the document count in the description of the document list', async function () {
@@ -71,8 +72,10 @@ suite('CollectionTreeItem Test Suite', function () {
 
     assert.strictEqual(collectionChildren[0].label, 'Documents');
     assert.strictEqual(collectionChildren[0].description, '5K');
+    assert.strictEqual(collectionChildren[1].label, 'Documents');
+    assert.strictEqual(collectionChildren[1].description, '5K');
     assert.strictEqual(
-      collectionChildren[0].tooltip,
+      collectionChildren[1].tooltip,
       'Collection Documents - 5000',
     );
   });

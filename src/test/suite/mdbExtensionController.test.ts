@@ -490,7 +490,7 @@ suite('MDBExtensionController Test Suite', function () {
       await testTreeItem.onDidExpand();
 
       const collectionChildren = await testTreeItem.getChildren();
-      const docListTreeItem = collectionChildren[0];
+      const docListTreeItem = collectionChildren[1];
       assert.strictEqual(docListTreeItem.description, '9K');
       count = 10000;
       docListTreeItem.isExpanded = true;

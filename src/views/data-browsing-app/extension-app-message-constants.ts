@@ -60,4 +60,3 @@ export type MessageFromExtensionToWebview =
   | LoadDocumentsMessage
   | RefreshErrorMessage
   | ThemeChangedMessage;
-
