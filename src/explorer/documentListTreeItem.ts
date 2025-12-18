@@ -1,13 +1,23 @@
 import * as vscode from 'vscode';
-import numeral from 'numeral';
-import path from 'path';
 
 import { createLogger } from '../logging';
 import DocumentTreeItem from './documentTreeItem';
 import formatError from '../utils/formatError';
-import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 import type { DataService } from 'mongodb-data-service';
+import {
+  CollectionType,
+  formatDocCount,
+  getDocumentsIconPath,
+  getDocumentsTooltip,
+} from './documentListUtils';
+
+export {
+  CollectionType,
+  formatDocCount,
+  getDocumentsIconPath,
+  getDocumentsTooltip,
+} from './documentListUtils';
 
 const log = createLogger('documents tree item');
 
@@ -17,14 +27,6 @@ const log = createLogger('documents tree item');
 export const MAX_DOCUMENTS_VISIBLE = 10;
 
 export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
-export const CollectionType = {
-  collection: 'collection',
-  view: 'view',
-  timeseries: 'timeseries',
-} as const;
-
-export type CollectionType =
-  (typeof CollectionType)[keyof typeof CollectionType];
 
 const ITEM_LABEL = 'Documents';
 
@@ -64,29 +66,6 @@ const getCollapsableStateForDocumentList = (
     ? vscode.TreeItemCollapsibleState.Expanded
     : vscode.TreeItemCollapsibleState.Collapsed;
 };
-
-export const formatDocCount = (count: number): string => {
-  // We format the count (30000 -> 30k) and then display it uppercase (30K).
-  return `${numeral(count).format('0a') as string}`.toUpperCase();
-};
-
-function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
-  const LIGHT = path.join(getImagesPath(), 'light');
-  const DARK = path.join(getImagesPath(), 'dark');
-
-  return {
-    light: vscode.Uri.file(path.join(LIGHT, 'documents.svg')),
-    dark: vscode.Uri.file(path.join(DARK, 'documents.svg')),
-  };
-}
-
-function getTooltip(type: string, documentCount: number | null): string {
-  const typeString = type === CollectionType.view ? 'View' : 'Collection';
-  if (documentCount !== null) {
-    return `${typeString} Documents - ${documentCount}`;
-  }
-  return `${typeString} Documents`;
-}
 
 export default class DocumentListTreeItem
   extends vscode.TreeItem
@@ -164,8 +143,8 @@ export default class DocumentListTreeItem
       this.description = formatDocCount(this._documentCount);
     }
 
-    this.iconPath = getIconPath();
-    this.tooltip = getTooltip(type, cachedDocumentCount);
+    this.iconPath = getDocumentsIconPath();
+    this.tooltip = getDocumentsTooltip(type, cachedDocumentCount);
   }
 
   getTreeItem(element: DocumentListTreeItem): DocumentListTreeItem {
