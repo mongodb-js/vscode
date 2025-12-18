@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { after, afterEach, before, beforeEach } from 'mocha';
+import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
