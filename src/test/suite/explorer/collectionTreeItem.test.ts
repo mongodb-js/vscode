@@ -1,6 +1,6 @@
 import assert from 'assert';
 import sinon from 'sinon';
-import { afterEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
