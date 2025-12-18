@@ -15,7 +15,7 @@ describe('Resources panel test suite', function () {
 
   it('should render resources panel', function () {
     render(<ResourcesPanel onClose={(): void => {}} />);
-    expect(screen.queryByLabelText('Close')).to.not.exist;
+    expect(screen.getByLabelText('Close')).to.exist;
     expect(screen.getAllByTestId(/link-\w+/)).to.have.length.greaterThan(0);
     expect(
       screen.getAllByTestId(/footer-feature-\w+/),
