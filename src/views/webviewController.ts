@@ -26,6 +26,7 @@ import {
   getWebviewHtml,
   getWebviewUri,
 } from '../utils/webviewHelpers';
+import formatError from '../utils/formatError';
 
 const log = createLogger('webview controller');
 
@@ -51,7 +52,7 @@ export const getWebviewContent = ({
 
   const additionalHeadContent = `
       ${getFeatureFlagsScript('\${nonce}')}
-      <script nonce="\${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
+      ${telemetryUserId ? `<script nonce="\${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>` : ''}
       <script nonce="\${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
         showOIDCDeviceAuthFlow ? 'true' : 'false'
       };</script>`;
@@ -142,7 +143,7 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to open file chooser dialog: ${error}`,
+        `Unable to open file chooser dialog: ${formatError(error).message}`,
       );
     }
 
@@ -202,14 +203,14 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to load connection: ${error}`,
+        `Unable to load connection: ${formatError(error).message}`,
       );
 
       void panel.webview.postMessage({
         command: MessageType.connectResult,
         connectionId: connection.id,
         connectionSuccess: false,
-        connectionMessage: `Unable to load connection: ${error}`,
+        connectionMessage: `Unable to load connection: ${formatError(error).message}`,
       });
     }
   };

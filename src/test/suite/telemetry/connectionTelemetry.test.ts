@@ -35,7 +35,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       sandbox.restore();
     });
 
-    test('it tracks public cloud info', async () => {
+    test('it tracks public cloud info', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -68,7 +68,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.public_cloud_name).to.equal('Azure');
     });
 
-    test('it tracks non public cloud info', async () => {
+    test('it tracks non public cloud info', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -100,7 +100,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_public_cloud).to.equal(false);
     });
 
-    test('it tracks atlas local dev', async () => {
+    test('it tracks atlas local dev', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -138,7 +138,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_local_atlas).to.equal(true);
     });
 
-    test('it tracks atlas', async () => {
+    test('it tracks atlas', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -178,7 +178,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_local_atlas).to.equal(false);
     });
 
-    test('it tracks atlas IPv6', async () => {
+    test('it tracks atlas IPv6', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -217,7 +217,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_atlas_url).to.equal(false);
     });
 
-    test('it tracks atlas with fallback to original uri if failed resolving srv', async () => {
+    test('it tracks atlas with fallback to original uri if failed resolving srv', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -252,7 +252,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_localhost).to.equal(true);
     });
 
-    test('it tracks digital ocean', async () => {
+    test('it tracks digital ocean', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -289,7 +289,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_genuine).to.equal(true);
     });
 
-    test('it tracks is_used_connect_screen true when the connection type is form', async () => {
+    test('it tracks is_used_connect_screen true when the connection type is form', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -323,7 +323,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
     });
 
-    test('it tracks is_used_command_palette true when the connection type is string', async () => {
+    test('it tracks is_used_command_palette true when the connection type is string', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -357,7 +357,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_used_saved_connection).to.equal(false);
     });
 
-    test('it tracks is_used_saved_connection true when the connection type is id', async () => {
+    test('it tracks is_used_saved_connection true when the connection type is id', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -391,7 +391,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_used_saved_connection).to.equal(true);
     });
 
-    test('it tracks is_localhost false for a remote connection', async () => {
+    test('it tracks is_localhost false for a remote connection', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -425,7 +425,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_localhost).to.equal(false);
     });
 
-    test('it tracks is_localhost true for a local connection', async () => {
+    test('it tracks is_localhost true for a local connection', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -457,7 +457,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_localhost).to.equal(true);
     });
 
-    test('it tracks server info for ubuntu', async () => {
+    test('it tracks server info for ubuntu', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -497,7 +497,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.server_os_family).to.equal('ubuntu');
     });
 
-    test('it tracks server info for mac', async () => {
+    test('it tracks server info for mac', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: true,
@@ -537,7 +537,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.server_os_family).to.equal('mac');
     });
 
-    test('it returns DEFAULT when auth mechanism undefined and username is specified', async () => {
+    test('it returns DEFAULT when auth mechanism undefined and username is specified', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -569,7 +569,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.auth_strategy).to.equal('DEFAULT');
     });
 
-    test('it returns NONE when auth mechanism undefined and username undefined', async () => {
+    test('it returns NONE when auth mechanism undefined and username undefined', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -601,7 +601,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.auth_strategy).to.equal('NONE');
     });
 
-    test('it returns authMechanism when specified', async () => {
+    test('it returns authMechanism when specified', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -652,7 +652,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       await dataServ.disconnect();
     });
 
-    test('track new connection event fetches the connection instance information', async () => {
+    test('track new connection event fetches the connection instance information', async function () {
       const instanceTelemetry = await getConnectionTelemetryProperties(
         dataServ,
         ConnectionType.connectionString,

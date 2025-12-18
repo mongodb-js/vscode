@@ -373,7 +373,9 @@ export default class ParticipantController {
 
       const runnableContent: string[] = [];
       await processStreamWithIdentifiers({
-        processStreamFragment: () => {},
+        processStreamFragment: () => {
+          /* no-op */
+        },
         onStreamIdentifier: (content: string) => {
           runnableContent.push(content.trim());
         },
@@ -1411,7 +1413,7 @@ export default class ParticipantController {
     } catch (e) {
       stream.markdown(
         vscode.l10n.t(
-          `Unable to generate a schema from the collection, an error occurred: ${e}`,
+          `Unable to generate a schema from the collection, an error occurred: ${(e as Error).message}`,
         ),
       );
       return schemaRequestChatResult(context.history);

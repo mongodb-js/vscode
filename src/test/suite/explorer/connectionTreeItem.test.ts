@@ -25,7 +25,7 @@ function getTestConnectionTreeItem(): ConnectionTreeItem {
   });
 }
 
-suite('ConnectionTreeItem Test Suite', () => {
+suite('ConnectionTreeItem Test Suite', function () {
   test('its context value should be in the package json', function () {
     let connectedRegisteredCommandInPackageJson = false;
     let disconnectedRegisteredCommandInPackageJson = false;
@@ -49,7 +49,7 @@ suite('ConnectionTreeItem Test Suite', () => {
     );
   });
 
-  suite('#getChildren', () => {
+  suite('#getChildren', function () {
     let testConnectionTreeItem: ConnectionTreeItem;
     const sandbox = sinon.createSandbox();
 
@@ -61,7 +61,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       sandbox.restore();
     });
 
-    test('returns database tree items with the databases', async () => {
+    test('returns database tree items with the databases', async function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
@@ -75,7 +75,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       assert.strictEqual(databaseItems[2].label, 'mockDatabase3');
     });
 
-    test('when listDatabases errors it wraps it in a nice message', async () => {
+    test('when listDatabases errors it wraps it in a nice message', async function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',
@@ -108,7 +108,7 @@ suite('ConnectionTreeItem Test Suite', () => {
         );
       });
 
-      test('returns stream processor tree items', async () => {
+      test('returns stream processor tree items', async function () {
         sandbox.replace(
           mdbTestExtension.testExtensionController._connectionController,
           'getActiveDataService',
@@ -122,7 +122,7 @@ suite('ConnectionTreeItem Test Suite', () => {
         assert.strictEqual(spItems[1].label, 'mockStreamProcessor2');
       });
 
-      test('when listStreamProcessors errors it wraps it in a nice message', async () => {
+      test('when listStreamProcessors errors it wraps it in a nice message', async function () {
         sandbox.replace(
           mdbTestExtension.testExtensionController._connectionController,
           'getActiveDataService',
@@ -148,7 +148,7 @@ suite('ConnectionTreeItem Test Suite', () => {
     });
   });
 
-  suite('#listDatabases', () => {
+  suite('#listDatabases', function () {
     let testConnectionTreeItem: ConnectionTreeItem;
     const sandbox = sinon.createSandbox();
 
@@ -160,7 +160,7 @@ suite('ConnectionTreeItem Test Suite', () => {
       sandbox.restore();
     });
 
-    test('returns a list of database names', async () => {
+    test('returns a list of database names', async function () {
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
         'getActiveDataService',

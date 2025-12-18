@@ -16,7 +16,7 @@ import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
-suite('MongoDB Document Service Test Suite', () => {
+suite('MongoDB Document Service Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
   const testStatusView = new StatusView(extensionContextStub);
@@ -46,7 +46,7 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.restore();
   });
 
-  test('replaceDocument calls findOneAndReplace and saves a document when connected', async () => {
+  test('replaceDocument calls findOneAndReplace and saves a document when connected', async function () {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
@@ -87,7 +87,7 @@ suite('MongoDB Document Service Test Suite', () => {
     expect(document).to.be.deep.equal(newDocument);
   });
 
-  test('replaceDocument calls findOneAndReplace and saves a document when connected - extending the uuid type', async () => {
+  test('replaceDocument calls findOneAndReplace and saves a document when connected - extending the uuid type', async function () {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
@@ -138,7 +138,7 @@ suite('MongoDB Document Service Test Suite', () => {
     expect(document).to.be.deep.equal(document);
   });
 
-  test('fetchDocument calls find and returns a single document when connected', async () => {
+  test('fetchDocument calls find and returns a single document when connected', async function () {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
@@ -178,7 +178,7 @@ suite('MongoDB Document Service Test Suite', () => {
     expect(result).to.be.deep.equal(EJSON.serialize(documents[0]));
   });
 
-  test('fetchDocument calls find and returns a single document when connected - simplifying the uuid type', async () => {
+  test('fetchDocument calls find and returns a single document when connected - simplifying the uuid type', async function () {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
@@ -231,7 +231,7 @@ suite('MongoDB Document Service Test Suite', () => {
     });
   });
 
-  test("if a user is not connected, documents won't be saved to MongoDB", async () => {
+  test("if a user is not connected, documents won't be saved to MongoDB", async function () {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
@@ -268,7 +268,7 @@ suite('MongoDB Document Service Test Suite', () => {
     }
   });
 
-  test("if a user switched the active connection, document opened from the previous connection can't be saved", async () => {
+  test("if a user switched the active connection, document opened from the previous connection can't be saved", async function () {
     const namespace = 'waffle.house';
     const connectionId = 'tasty_sandwhich';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
@@ -305,7 +305,7 @@ suite('MongoDB Document Service Test Suite', () => {
     }
   });
 
-  test("if a user switched the active connection, document can't be opened from the old playground results", async () => {
+  test("if a user switched the active connection, document can't be opened from the old playground results", async function () {
     const namespace = 'waffle.house';
     const connectionId = '123';
     const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';

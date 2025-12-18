@@ -94,7 +94,9 @@ const OverviewPage: React.FC = () => {
   // to send a message to the extension process to open the electron file dialog
   // and listen for the response to get the file path and send them to the electron file input backend.
   const dialogProvider: ElectronShowFileDialogProvider<void> = {
-    getCurrentWindow(): void {},
+    getCurrentWindow(): void {
+      /* Intentional left blank. */
+    },
     dialog: {
       async showSaveDialog(
         window: void,
