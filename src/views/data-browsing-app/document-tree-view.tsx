@@ -368,17 +368,30 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
     // For _id field, use string color; otherwise use type-based color
     const valueColor = getValueColor(isIdField ? 'string' : node.type);
 
+    const handleKeyDown = hasExpandableContent
+      ? (e: React.KeyboardEvent): void => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleExpanded(node.key);
+          }
+        }
+      : undefined;
+
     return (
       <div className={parentNodeStyles} key={node.key}>
         <div
           className={getRowClassName(hasExpandableContent)}
           onClick={createRowClickHandler(hasExpandableContent, node.key)}
+          onKeyDown={handleKeyDown}
+          role={hasExpandableContent ? 'button' : undefined}
+          tabIndex={hasExpandableContent ? 0 : undefined}
+          aria-expanded={hasExpandableContent ? isExpanded : undefined}
         >
           <div className={caretStyles}>
             {hasExpandableContent && renderExpandButton(isExpanded, node.key)}
           </div>
           <div className={keyValueContainerStyles}>
-            <span className={keyStyles}>"{node.key}"</span>
+            <span className={keyStyles}>&quot;{node.key}&quot;</span>
             <span className={dividerStyles}>:&nbsp;</span>
             <span style={{ color: valueColor }}>
               {getNodeDisplayValue(node, isIdField, isExpanded)}

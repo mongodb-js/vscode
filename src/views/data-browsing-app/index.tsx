@@ -1,7 +1,9 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import PreviewApp from './preview-app';
 
-ReactDOM.render(<PreviewApp />, document.getElementById('root'));
+const container = document.getElementById('root');
+const root = createRoot(container!);
+root.render(<PreviewApp />);
 

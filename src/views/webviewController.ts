@@ -51,7 +51,7 @@ export const getWebviewContent = ({
     .get('showOIDCDeviceAuthFlow');
 
   const additionalHeadContent = `
-      ${getFeatureFlagsScript('\${nonce}')}
+      ${getFeatureFlagsScript('${nonce}')}
       ${telemetryUserId ? `<script nonce="\${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>` : ''}
       <script nonce="\${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
         showOIDCDeviceAuthFlow ? 'true' : 'false'
