@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
-  LeafyGreenProvider,
   Icon,
   IconButton,
   Select,
@@ -118,7 +117,9 @@ const PreviewApp: React.FC = () => {
   const [viewType, setViewType] = useState<ViewType>('tree');
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [totalCountInCollection, setTotalCountInCollection] = useState<number | null>(null);
+  const [totalCountInCollection, setTotalCountInCollection] = useState<
+    number | null
+  >(null);
   const darkMode = useDarkMode();
 
   const totalDocuments = documents.length;
@@ -139,7 +140,8 @@ const PreviewApp: React.FC = () => {
   }, [documents, currentPage, itemsPerPage]);
 
   // Calculate pagination info
-  const startItem = totalDocuments === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const startItem =
+    totalDocuments === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalDocuments);
 
   // Track when loading started for minimum loading duration
@@ -226,177 +228,184 @@ const PreviewApp: React.FC = () => {
   };
 
   return (
-      <div
-        style={{
-          backgroundColor: darkMode ? '#1E1E1E' : '#FFFFFF',
-          minHeight: '100vh',
-          color: darkMode ? '#CCCCCC' : '#000000',
-        }}
-      >
-        {/* Toolbar */}
-        <div className={toolbarStyles}>
-          {/* Left side - Insert Document */}
-          <div className={toolbarGroupStyles}>
-            <IconButton
-              aria-label="Insert Document"
-              title="Insert Document"
-              onClick={(): void => {
-                // TODO: Implement insert document functionality
-              }}
-            >
-              <Icon glyph="Plus" />
-            </IconButton>
-            <span className={toolbarLabelStyles}>Insert Document</span>
-          </div>
-
-          {/* Right side - Actions */}
-          <div className={toolbarGroupWideStyles}>
-            {/* Refresh - single button with icon and text */}
-            <button
-              className={refreshButtonStyles}
-              onClick={handleRefresh}
-              title="Refresh"
-              disabled={isLoading}
-              style={{ opacity: isLoading ? 0.5 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
-            >
-              <Icon glyph="Refresh" size="small" />
-              <span>Refresh</span>
-            </button>
-
-            {/* Sort */}
-            <div className={toolbarGroupStyles}>
-              <span className={toolbarLabelStyles}>Sort</span>
-              <div className={selectWrapperStyles}>
-                <Select
-                  aria-label="Sort order"
-                  value={sortOption}
-                  onChange={handleSortChange}
-                  size="xsmall"
-                  allowDeselect={false}
-                  dropdownWidthBasis="option"
-                >
-                  <Option value="default">Default</Option>
-                  <Option value="asc">Ascending</Option>
-                  <Option value="desc">Descending</Option>
-                </Select>
-              </div>
-            </div>
-
-            {/* Items per page */}
-            <div className={selectWrapperStyles}>
-              <Select
-                aria-label="Items per page"
-                value={itemsPerPage.toString()}
-                onChange={handleItemsPerPageChange}
-                size="xsmall"
-                allowDeselect={false}
-                dropdownWidthBasis="option"
-              >
-                {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                  <Option key={option} value={option.toString()}>
-                    {option}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-
-            {/* Pagination info */}
-            <span className={paginationInfoStyles}>
-              {startItem}-{endItem} of {totalCountInCollection ?? totalDocuments}
-            </span>
-
-            {/* Page navigation arrows */}
-            <div className={paginationArrowsStyles}>
-              <IconButton
-                aria-label="Previous page"
-                title="Previous page"
-                onClick={handlePrevPage}
-                disabled={currentPage <= 1}
-              >
-                <Icon glyph="CaretLeft" />
-              </IconButton>
-              <IconButton
-                aria-label="Next page"
-                title="Next page"
-                onClick={handleNextPage}
-                disabled={currentPage >= totalPages}
-              >
-                <Icon glyph="CaretRight" />
-              </IconButton>
-            </div>
-
-            {/* View type */}
-            <div className={selectWrapperStyles}>
-              <Select
-                aria-label="View type"
-                value={viewType}
-                onChange={handleViewTypeChange}
-                size="xsmall"
-                allowDeselect={false}
-                dropdownWidthBasis="option"
-              >
-                <Option value="tree">Tree view</Option>
-                <Option value="json">JSON view</Option>
-                <Option value="table">Table view</Option>
-              </Select>
-            </div>
-
-            {/* Settings dropdown */}
-            <Menu
-              open={settingsMenuOpen}
-              setOpen={setSettingsMenuOpen}
-              trigger={
-                <IconButton
-                  aria-label="Settings"
-                  title="Settings"
-                  onClick={toggleSettingsMenu}
-                >
-                  <Icon glyph="Settings" />
-                </IconButton>
-              }
-            >
-              <MenuItem>Show line numbers</MenuItem>
-              <MenuItem>Expand all</MenuItem>
-              <MenuItem>Collapse all</MenuItem>
-              <MenuItem>Copy documents</MenuItem>
-            </Menu>
-          </div>
+    <div
+      style={{
+        backgroundColor: darkMode ? '#1E1E1E' : '#FFFFFF',
+        minHeight: '100vh',
+        color: darkMode ? '#CCCCCC' : '#000000',
+      }}
+    >
+      {/* Toolbar */}
+      <div className={toolbarStyles}>
+        {/* Left side - Insert Document */}
+        <div className={toolbarGroupStyles}>
+          <IconButton
+            aria-label="Insert Document"
+            title="Insert Document"
+            onClick={(): void => {
+              // TODO: Implement insert document functionality
+            }}
+          >
+            <Icon glyph="Plus" />
+          </IconButton>
+          <span className={toolbarLabelStyles}>Insert Document</span>
         </div>
 
-        {/* Documents content */}
-        <div style={{ padding: '16px' }}>
-          {/* Inject keyframes for spinner animation */}
-          <style>{spinnerKeyframes}</style>
+        {/* Right side - Actions */}
+        <div className={toolbarGroupWideStyles}>
+          {/* Refresh - single button with icon and text */}
+          <button
+            className={refreshButtonStyles}
+            onClick={handleRefresh}
+            title="Refresh"
+            disabled={isLoading}
+            style={{
+              opacity: isLoading ? 0.5 : 1,
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <Icon glyph="Refresh" size="small" />
+            <span>Refresh</span>
+          </button>
 
-          {isLoading ? (
-            <div className={loadingOverlayStyles}>
-              <span className={spinnerStyles}>
-                <Icon glyph="Refresh" size="large" />
-              </span>
-              <span style={{ color: darkMode ? '#888' : '#666' }}>
-                Loading documents...
-              </span>
+          {/* Sort */}
+          <div className={toolbarGroupStyles}>
+            <span className={toolbarLabelStyles}>Sort</span>
+            <div className={selectWrapperStyles}>
+              <Select
+                aria-label="Sort order"
+                value={sortOption}
+                onChange={handleSortChange}
+                size="xsmall"
+                allowDeselect={false}
+                dropdownWidthBasis="option"
+              >
+                <Option value="default">Default</Option>
+                <Option value="asc">Ascending</Option>
+                <Option value="desc">Descending</Option>
+              </Select>
             </div>
-          ) : (
-            <>
-              {displayedDocuments.map((doc, index) => (
-                <DocumentTreeView key={`${currentPage}-${index}`} document={doc} />
+          </div>
+
+          {/* Items per page */}
+          <div className={selectWrapperStyles}>
+            <Select
+              aria-label="Items per page"
+              value={itemsPerPage.toString()}
+              onChange={handleItemsPerPageChange}
+              size="xsmall"
+              allowDeselect={false}
+              dropdownWidthBasis="option"
+            >
+              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                <Option key={option} value={option.toString()}>
+                  {option}
+                </Option>
               ))}
-              {displayedDocuments.length === 0 && (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '32px',
-                  color: darkMode ? '#888' : '#666'
-                }}>
-                  No documents to display
-                </div>
-              )}
-            </>
-          )}
+            </Select>
+          </div>
+
+          {/* Pagination info */}
+          <span className={paginationInfoStyles}>
+            {startItem}-{endItem} of {totalCountInCollection ?? totalDocuments}
+          </span>
+
+          {/* Page navigation arrows */}
+          <div className={paginationArrowsStyles}>
+            <IconButton
+              aria-label="Previous page"
+              title="Previous page"
+              onClick={handlePrevPage}
+              disabled={currentPage <= 1}
+            >
+              <Icon glyph="CaretLeft" />
+            </IconButton>
+            <IconButton
+              aria-label="Next page"
+              title="Next page"
+              onClick={handleNextPage}
+              disabled={currentPage >= totalPages}
+            >
+              <Icon glyph="CaretRight" />
+            </IconButton>
+          </div>
+
+          {/* View type */}
+          <div className={selectWrapperStyles}>
+            <Select
+              aria-label="View type"
+              value={viewType}
+              onChange={handleViewTypeChange}
+              size="xsmall"
+              allowDeselect={false}
+              dropdownWidthBasis="option"
+            >
+              <Option value="tree">Tree view</Option>
+              <Option value="json">JSON view</Option>
+              <Option value="table">Table view</Option>
+            </Select>
+          </div>
+
+          {/* Settings dropdown */}
+          <Menu
+            open={settingsMenuOpen}
+            setOpen={setSettingsMenuOpen}
+            trigger={
+              <IconButton
+                aria-label="Settings"
+                title="Settings"
+                onClick={toggleSettingsMenu}
+              >
+                <Icon glyph="Settings" />
+              </IconButton>
+            }
+          >
+            <MenuItem>Show line numbers</MenuItem>
+            <MenuItem>Expand all</MenuItem>
+            <MenuItem>Collapse all</MenuItem>
+            <MenuItem>Copy documents</MenuItem>
+          </Menu>
         </div>
       </div>
+
+      {/* Documents content */}
+      <div style={{ padding: '16px' }}>
+        {/* Inject keyframes for spinner animation */}
+        <style>{spinnerKeyframes}</style>
+
+        {isLoading ? (
+          <div className={loadingOverlayStyles}>
+            <span className={spinnerStyles}>
+              <Icon glyph="Refresh" size="large" />
+            </span>
+            <span style={{ color: darkMode ? '#888' : '#666' }}>
+              Loading documents...
+            </span>
+          </div>
+        ) : (
+          <>
+            {displayedDocuments.map((doc, index) => (
+              <DocumentTreeView
+                key={`${currentPage}-${index}`}
+                document={doc}
+              />
+            ))}
+            {displayedDocuments.length === 0 && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '32px',
+                  color: darkMode ? '#888' : '#666',
+                }}
+              >
+                No documents to display
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
 export default PreviewApp;
-
