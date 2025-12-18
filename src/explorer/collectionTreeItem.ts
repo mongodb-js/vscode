@@ -268,7 +268,7 @@ export default class CollectionTreeItem
   }
 
   rebuildPreviewTreeItem(): void {
-    this._previewChild.refreshDocumentCount();
+    void this._previewChild.refreshDocumentCount();
   }
 
   rebuildChildrenCache(): void {

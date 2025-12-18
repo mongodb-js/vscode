@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import path from 'path';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
 
@@ -34,11 +33,11 @@ import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import type { QueryWithCopilotCodeLensProvider } from './queryWithCopilotCodeLensProvider';
+import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import {
-  createWebviewPanel,
-  getNonce,
-  getWebviewHtml,
-} from '../utils/webviewHelpers';
+  PreviewMessageType,
+  type SortOption,
+} from '../views/data-browsing-app/extension-app-message-constants';
 
 const log = createLogger('editors controller');
 
@@ -315,7 +314,7 @@ export default class EditorsController {
     namespace: string,
     documents: Document[],
     fetchDocuments?: (options?: {
-      sort?: 'default' | 'asc' | 'desc';
+      sort?: SortOption;
       limit?: number;
     }) => Promise<Document[]>,
     initialTotalCount?: number,
@@ -325,53 +324,34 @@ export default class EditorsController {
 
     try {
       const extensionPath = this._context.extensionPath;
-      const nonce = getNonce();
 
-      const panel = vscode.window.createWebviewPanel(
-        'mongodbPreview',
-        `Preview: ${namespace}`,
-        vscode.ViewColumn.One,
-        {
-          enableScripts: true,
-          retainContextWhenHidden: true,
-          localResourceRoots: [
-            vscode.Uri.file(path.join(extensionPath, 'dist')),
-          ],
-        },
-      );
+      const panel = createWebviewPanel({
+        viewType: 'mongodbPreview',
+        title: `Preview: ${namespace}`,
+        extensionPath,
+      });
 
-      const previewAppUri = panel.webview.asWebviewUri(
-        vscode.Uri.file(path.join(extensionPath, 'dist', 'previewApp.js')),
-      );
+      panel.webview.html = getWebviewHtml({
+        extensionPath,
+        webview: panel.webview,
+        scriptName: 'previewApp.js',
+        title: 'Preview',
+      });
 
-      panel.webview.html = `<!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none';
-                script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https:;
-                style-src vscode-resource: 'self' 'unsafe-inline';
-                img-src vscode-resource: 'self'"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Preview</title>
-          </head>
-          <body>
-            <div id="root"></div>
-            <script nonce="${nonce}" src="${previewAppUri}"></script>
-          </body>
-        </html>`;
+      panel.onDidDispose(() => this.onPreviewPanelClosed(panel));
+      this._activePreviewPanels.push(panel);
 
       // Keep track of current documents, sort option, and total count
       // Fetch limit is fixed - pagination is handled client-side
       const FETCH_LIMIT = 100;
       let currentDocuments = documents;
-      let currentSort: 'default' | 'asc' | 'desc' = 'default';
+      let currentSort: SortOption = 'default';
       let totalCount = initialTotalCount ?? documents.length;
 
       // Helper to send current documents to webview
       const sendDocuments = (): void => {
         void panel.webview.postMessage({
-          command: 'LOAD_DOCUMENTS',
+          command: PreviewMessageType.loadDocuments,
           documents: JSON.parse(EJSON.stringify(currentDocuments)),
           totalCount,
         });
@@ -381,7 +361,7 @@ export default class EditorsController {
       const handleError = (operation: string, error: unknown): void => {
         log.error(`${operation} failed:`, error);
         void panel.webview.postMessage({
-          command: 'REFRESH_ERROR',
+          command: PreviewMessageType.refreshError,
           error: formatError(error).message,
         });
       };
@@ -407,18 +387,15 @@ export default class EditorsController {
 
       // Send documents to webview
       panel.webview.onDidReceiveMessage(
-        async (message: {
-          command: string;
-          sort?: 'default' | 'asc' | 'desc';
-        }) => {
+        async (message: { command: string; sort?: SortOption }) => {
           log.info('Preview received message:', message.command);
 
           switch (message.command) {
-            case 'GET_DOCUMENTS':
+            case PreviewMessageType.getDocuments:
               sendDocuments();
               break;
 
-            case 'REFRESH_DOCUMENTS':
+            case PreviewMessageType.refreshDocuments:
               try {
                 await fetchAndUpdateDocuments('Refreshing documents');
                 if (getTotalCount) {
@@ -430,7 +407,7 @@ export default class EditorsController {
               }
               break;
 
-            case 'SORT_DOCUMENTS':
+            case PreviewMessageType.sortDocuments:
               try {
                 if (message.sort) {
                   currentSort = message.sort;

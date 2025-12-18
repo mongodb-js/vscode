@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   LeafyGreenProvider,
   Icon,
@@ -11,93 +11,74 @@ import {
   spacing,
 } from '@mongodb-js/compass-components';
 import { useDetectVsCodeDarkMode } from './use-detect-vscode-dark-mode';
+import {
+  PreviewMessageType,
+  type MessageFromExtensionToWebview,
+  type SortOption,
+} from './extension-app-message-constants';
+import {
+  sendGetDocuments,
+  sendRefreshDocuments,
+  sendSortDocuments,
+} from './vscode-api';
 import DocumentTreeView from './document-tree-view';
-
-declare const acquireVsCodeApi: () => {
-  postMessage: (message: unknown) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
 
 interface PreviewDocument {
   [key: string]: unknown;
 }
-
-type SortOption = 'default' | 'asc' | 'desc';
 type ViewType = 'tree' | 'json' | 'table';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
-// Styles
 const toolbarStyles = css({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: `${spacing[2]}px ${spacing[3]}px`,
+  padding: `${spacing[200]}px ${spacing[300]}px`,
   borderBottom: '1px solid var(--vscode-panel-border, #444)',
-  gap: spacing[3],
+  gap: spacing[300],
   flexWrap: 'wrap',
-});
-
-const toolbarLeftStyles = css({
-  display: 'flex',
-  alignItems: 'center',
-  gap: spacing[2],
-});
-
-const toolbarRightStyles = css({
-  display: 'flex',
-  alignItems: 'center',
-  gap: spacing[3],
 });
 
 const toolbarGroupStyles = css({
   display: 'flex',
   alignItems: 'center',
-  gap: spacing[2],
+  gap: spacing[200],
+});
+
+const toolbarGroupWideStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: spacing[300],
 });
 
 const toolbarLabelStyles = css({
-  fontSize: '13px',
+  fontSize: 13,
   fontWeight: 500,
 });
 
 const paginationInfoStyles = css({
-  fontSize: '13px',
+  fontSize: 13,
   whiteSpace: 'nowrap',
 });
 
 const selectWrapperStyles = css({
-  // Style the select button to fit content width
   '& button': {
     width: 'auto',
     minWidth: 'unset',
   },
-});
-
-const narrowSelectStyles = css({
-  // Style the select button to fit content width
-  '& button': {
-    width: 'auto',
-    minWidth: 'unset',
-  },
-});
-
-const settingsMenuStyles = css({
-  position: 'relative',
 });
 
 const refreshButtonStyles = css({
   display: 'flex',
   alignItems: 'center',
-  gap: '4px',
+  gap: spacing[100],
   background: 'none',
   border: 'none',
-  color: 'inherit',
   cursor: 'pointer',
-  padding: '4px 8px',
-  borderRadius: '4px',
-  fontSize: '13px',
+  padding: `${spacing[100]}px ${spacing[200]}px`,
+  borderRadius: spacing[100],
+  fontSize: 13,
   fontWeight: 500,
   '&:hover': {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -107,7 +88,6 @@ const refreshButtonStyles = css({
 const paginationArrowsStyles = css({
   display: 'flex',
   alignItems: 'center',
-  gap: '0',
 });
 
 const spinnerKeyframes = `
@@ -121,14 +101,13 @@ const loadingOverlayStyles = css({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '32px',
+  padding: spacing[600],
   flexDirection: 'column',
-  gap: '12px',
+  gap: spacing[300],
 });
 
 const spinnerStyles = css({
   animation: 'spin 1s linear infinite',
-  display: 'inline-block',
 });
 
 const PreviewApp: React.FC = () => {
@@ -163,17 +142,14 @@ const PreviewApp: React.FC = () => {
   const startItem = totalDocuments === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalDocuments);
 
-  // Store vscode API reference - acquireVsCodeApi should only be called once
-  const vscodeApi = useMemo(() => acquireVsCodeApi(), []);
-
   // Track when loading started for minimum loading duration
   const loadingStartTimeRef = useRef<number>(Date.now());
   const MIN_LOADING_DURATION_MS = 500;
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
-      const message = event.data;
-      if (message.command === 'LOAD_DOCUMENTS') {
+      const message: MessageFromExtensionToWebview = event.data;
+      if (message.command === PreviewMessageType.loadDocuments) {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
@@ -186,7 +162,7 @@ const PreviewApp: React.FC = () => {
           setCurrentPage(1); // Reset to first page when new documents are loaded
           setIsLoading(false);
         }, remainingTime);
-      } else if (message.command === 'REFRESH_ERROR') {
+      } else if (message.command === PreviewMessageType.refreshError) {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
@@ -201,17 +177,17 @@ const PreviewApp: React.FC = () => {
     window.addEventListener('message', handleMessage);
 
     // Request initial documents
-    vscodeApi.postMessage({ command: 'GET_DOCUMENTS' });
+    sendGetDocuments();
 
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [vscodeApi]);
+  }, []);
 
   const handleRefresh = (): void => {
     loadingStartTimeRef.current = Date.now();
     setIsLoading(true);
-    vscodeApi.postMessage({ command: 'REFRESH_DOCUMENTS' });
+    sendRefreshDocuments();
   };
 
   const handlePrevPage = (): void => {
@@ -231,7 +207,7 @@ const PreviewApp: React.FC = () => {
     setSortOption(newSortOption);
     loadingStartTimeRef.current = Date.now();
     setIsLoading(true);
-    vscodeApi.postMessage({ command: 'SORT_DOCUMENTS', sort: newSortOption });
+    sendSortDocuments(newSortOption);
   };
 
   const handleItemsPerPageChange = (value: string): void => {
@@ -261,7 +237,7 @@ const PreviewApp: React.FC = () => {
         {/* Toolbar */}
         <div className={toolbarStyles}>
           {/* Left side - Insert Document */}
-          <div className={toolbarLeftStyles}>
+          <div className={toolbarGroupStyles}>
             <IconButton
               aria-label="Insert Document"
               title="Insert Document"
@@ -275,7 +251,7 @@ const PreviewApp: React.FC = () => {
           </div>
 
           {/* Right side - Actions */}
-          <div className={toolbarRightStyles}>
+          <div className={toolbarGroupWideStyles}>
             {/* Refresh - single button with icon and text */}
             <button
               className={refreshButtonStyles}
@@ -308,7 +284,7 @@ const PreviewApp: React.FC = () => {
             </div>
 
             {/* Items per page */}
-            <div className={narrowSelectStyles}>
+            <div className={selectWrapperStyles}>
               <Select
                 aria-label="Items per page"
                 value={itemsPerPage.toString()}
@@ -367,26 +343,24 @@ const PreviewApp: React.FC = () => {
             </div>
 
             {/* Settings dropdown */}
-            <div className={settingsMenuStyles}>
-              <Menu
-                open={settingsMenuOpen}
-                setOpen={setSettingsMenuOpen}
-                trigger={
-                  <IconButton
-                    aria-label="Settings"
-                    title="Settings"
-                    onClick={toggleSettingsMenu}
-                  >
-                    <Icon glyph="Settings" />
-                  </IconButton>
-                }
-              >
-                <MenuItem>Show line numbers</MenuItem>
-                <MenuItem>Expand all</MenuItem>
-                <MenuItem>Collapse all</MenuItem>
-                <MenuItem>Copy documents</MenuItem>
-              </Menu>
-            </div>
+            <Menu
+              open={settingsMenuOpen}
+              setOpen={setSettingsMenuOpen}
+              trigger={
+                <IconButton
+                  aria-label="Settings"
+                  title="Settings"
+                  onClick={toggleSettingsMenu}
+                >
+                  <Icon glyph="Settings" />
+                </IconButton>
+              }
+            >
+              <MenuItem>Show line numbers</MenuItem>
+              <MenuItem>Expand all</MenuItem>
+              <MenuItem>Collapse all</MenuItem>
+              <MenuItem>Copy documents</MenuItem>
+            </Menu>
           </div>
         </div>
 

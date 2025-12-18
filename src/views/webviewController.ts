@@ -25,7 +25,6 @@ import {
   createWebviewPanel,
   getWebviewHtml,
   getWebviewUri,
-  getNonce,
 } from '../utils/webviewHelpers';
 
 const log = createLogger('webview controller');
