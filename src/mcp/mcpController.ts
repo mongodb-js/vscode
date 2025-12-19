@@ -200,7 +200,7 @@ export class MCPController {
       }
 
       const token = crypto.randomUUID();
-      const headers: Record<string, string> = {
+      const headers = {
         authorization: `Bearer ${token}`,
       };
       registerGlobalSecretToRedact(token, 'password');

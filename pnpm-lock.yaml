@@ -134,8 +134,8 @@ importers:
         specifier: ^1.24.0
         version: 1.24.3(@cfworker/json-schema@4.1.1)(zod@3.25.76)
       '@mongodb-js/eslint-config-devtools':
-        specifier: ^0.9.12
-        version: 0.9.12(eslint@8.57.1)(typescript@5.9.3)
+        specifier: ^0.11.2
+        version: 0.11.2(eslint@8.57.1)(typescript@5.9.3)
       '@mongodb-js/oidc-mock-provider':
         specifier: ^0.11.5
         version: 0.11.5
@@ -2368,10 +2368,13 @@ packages:
   '@mongodb-js/diagramming@2.2.2':
     resolution: {integrity: sha512-GCI+L9TBC7sbuEeJaazhdz1ELcvPRi6cjuOf9Lhx/9FhyV+7IpIGCQbm4V7OflBrqBTfZD4XrwzlkuZ55hRLaA==}
 
-  '@mongodb-js/eslint-config-devtools@0.9.12':
-    resolution: {integrity: sha512-8dN2FrWlxy74I3kvhRXNLkWFaPesYNKwbr5jMb7ahEBNfWoZIRruf7SJ3g7pW4/5WpsRCUXfgkxyBy3G2bK5UQ==}
+  '@mongodb-js/eslint-config-devtools@0.11.2':
+    resolution: {integrity: sha512-RgEavFg9aYhWH5RM0ws0IxURZa3eNLek7n27eLb1A5VBLvc4YFUuNbZ4KIpAhp5yP0IL0GmocnPJXO0FdmBMFQ==}
     peerDependencies:
       eslint: ^7.25.0 || ^8.0.0
+
+  '@mongodb-js/eslint-plugin-devtools@0.3.2':
+    resolution: {integrity: sha512-wvRoFR+F/TNCEDnyib0pkssJTuVrES64/7hv76GtPdpG9+guF8lf+H1tcXQQcmIPDvOvL3XZPP3Lwf1gJjIz8A==}
 
   '@mongodb-js/mongodb-constants@0.10.4':
     resolution: {integrity: sha512-fz7AjwBfN6iwb3Luo9N7qOKifUHJd38nS6tWRtkLDeMesbK7GyrD8ngI85RlJMTeZQCzDEx+XGfth02tD4pNXg==}
@@ -11605,12 +11608,13 @@ snapshots:
       - immer
       - supports-color
 
-  '@mongodb-js/eslint-config-devtools@0.9.12(eslint@8.57.1)(typescript@5.9.3)':
+  '@mongodb-js/eslint-config-devtools@0.11.2(eslint@8.57.1)(typescript@5.9.3)':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/eslint-parser': 7.28.5(@babel/core@7.28.5)(eslint@8.57.1)
       '@babel/preset-env': 7.28.5(@babel/core@7.28.5)
       '@babel/preset-react': 7.28.5(@babel/core@7.28.5)
+      '@mongodb-js/eslint-plugin-devtools': 0.3.2
       '@typescript-eslint/eslint-plugin': 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.9.3))(eslint@8.57.1)(typescript@5.9.3)
       '@typescript-eslint/parser': 5.62.0(eslint@8.57.1)(typescript@5.9.3)
       eslint: 8.57.1
@@ -11623,6 +11627,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  '@mongodb-js/eslint-plugin-devtools@0.3.2': {}
 
   '@mongodb-js/mongodb-constants@0.10.4':
     dependencies:
