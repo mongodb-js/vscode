@@ -1,6 +1,7 @@
 const FEATURE_FLAGS = {
-  useOldConnectionForm:
-    `${process.env.MDB_USE_OLD_CONNECTION_FORM ?? 'false'}` === 'true',
+  useOldConnectionForm: process.env.MDB_USE_OLD_CONNECTION_FORM === 'true',
+  useEnhancedDataBrowsingExperience:
+    process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true',
 };
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;
