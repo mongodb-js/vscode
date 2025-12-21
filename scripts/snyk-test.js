@@ -5,6 +5,11 @@ const os = require('os');
 const { promisify } = require('util');
 const execFile = promisify(childProcess.execFile);
 
+// On Windows, commands like pnpm/npx need the .cmd extension
+const isWindows = process.platform === 'win32';
+const pnpmCmd = isWindows ? 'pnpm.cmd' : 'pnpm';
+const npxCmd = isWindows ? 'npx.cmd' : 'npx';
+
 async function snykTest(cwd) {
   const tmpPath = path.join(os.tmpdir(), 'tempfile-' + Date.now());
 
@@ -14,7 +19,7 @@ async function snykTest(cwd) {
 
     try {
       await execFile(
-        'pnpm',
+        pnpmCmd,
         [
           'exec',
           'snyk',
@@ -23,7 +28,7 @@ async function snykTest(cwd) {
           '--dev',
           `--json-file-output=${tmpPath}`,
         ],
-        { cwd, stdio: 'inherit' },
+        { cwd, stdio: 'inherit', shell: isWindows },
       );
     } catch (err) {
       console.warn(err);
@@ -60,7 +65,7 @@ async function main() {
   );
 
   await execFile(
-    'npx',
+    npxCmd,
     [
       'snyk-to-html',
       '-i',
@@ -68,7 +73,7 @@ async function main() {
       '-o',
       path.join(rootPath, `.sbom/snyk-test-result.html`),
     ],
-    { cwd: rootPath },
+    { cwd: rootPath, shell: isWindows },
   );
 }
 
