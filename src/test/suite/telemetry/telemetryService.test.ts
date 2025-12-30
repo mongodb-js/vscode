@@ -275,6 +275,7 @@ suite('Telemetry Controller Test Suite', function () {
     });
 
     // TODO: re-enable two tests after https://jira.mongodb.org/browse/VSCODE-432
+    // eslint-disable-next-line mocha/no-skipped-tests
     test.skip('track mongodb playground loaded event', async function () {
       const docPath = path.resolve(
         __dirname,
@@ -294,6 +295,7 @@ suite('Telemetry Controller Test Suite', function () {
       );
     });
 
+    // eslint-disable-next-line mocha/no-skipped-tests
     test.skip('track mongodbjs playground loaded event', async function () {
       const docPath = path.resolve(
         __dirname,
@@ -535,6 +537,7 @@ suite('Telemetry Controller Test Suite', function () {
       });
     });
 
+    // eslint-disable-next-line mocha/no-skipped-tests
     test.skip('track saved connections loaded', function () {
       testTelemetryService.track(
         new SavedConnectionsLoadedTelemetryEvent({

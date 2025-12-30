@@ -111,6 +111,7 @@ suite('Webview Test Suite', function () {
     });
 
     expect(htmlString).to.include('dist/webviewApp.js');
+    expect(htmlString).to.include("window.WEBVIEW_TYPE = 'connection'");
 
     const webviewAppFileName = (): string => 'dist/webviewApp.js';
     const jsFileString = await readFile(

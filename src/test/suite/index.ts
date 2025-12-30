@@ -42,7 +42,7 @@ export async function run(): Promise<void> {
       '**/**.test.js',
       {
         cwd: testsRoot,
-        ignore: ['**/webview-app/**/*.js'],
+        ignore: ['**/webview-app/**/*.js', '**/data-browsing-app/**/*.js'],
       },
       (err, files) => {
         if (err) {
