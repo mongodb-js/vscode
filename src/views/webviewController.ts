@@ -21,21 +21,10 @@ import {
   OpenEditConnectionTelemetryEvent,
 } from '../telemetry';
 import type { FileChooserOptions } from './webview-app/use-connection-form';
-import {
-  createWebviewPanel,
-  getWebviewHtml,
-  getWebviewUri,
-} from '../utils/webviewHelpers';
+import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import formatError from '../utils/formatError';
 
 const log = createLogger('webview controller');
-
-export const getReactAppUri = (
-  extensionPath: string,
-  webview: vscode.Webview,
-): vscode.Uri => {
-  return getWebviewUri(extensionPath, webview, 'dist', 'webviewApp.js');
-};
 
 export const getWebviewContent = ({
   extensionPath,
@@ -60,7 +49,7 @@ export const getWebviewContent = ({
   return getWebviewHtml({
     extensionPath,
     webview,
-    scriptName: 'webviewApp.js',
+    webviewType: 'connection',
     title: 'MongoDB',
     additionalHeadContent,
   });

@@ -29,10 +29,12 @@ export const getWebviewUri = (
   return webview.asWebviewUri(localFilePathUri);
 };
 
+export type WebviewType = 'connection' | 'dataBrowser';
+
 export interface WebviewHtmlOptions {
   extensionPath: string;
   webview: vscode.Webview;
-  scriptName: string;
+  webviewType: WebviewType;
   title?: string;
   additionalHeadContent?: string;
 }
@@ -40,12 +42,17 @@ export interface WebviewHtmlOptions {
 export const getWebviewHtml = ({
   extensionPath,
   webview,
-  scriptName,
+  webviewType,
   title = 'MongoDB',
   additionalHeadContent = '',
 }: WebviewHtmlOptions): string => {
   const nonce = getNonce();
-  const scriptUri = getWebviewUri(extensionPath, webview, 'dist', scriptName);
+  const scriptUri = getWebviewUri(
+    extensionPath,
+    webview,
+    'dist',
+    'webviewApp.js',
+  );
 
   return `<!DOCTYPE html>
   <html lang="en">
@@ -60,6 +67,7 @@ export const getWebviewHtml = ({
     </head>
     <body>
       <div id="root"></div>
+      <script nonce="${nonce}">window.WEBVIEW_TYPE = '${webviewType}';</script>
       ${additionalHeadContent.replace(/\$\{nonce\}/g, nonce)}
       <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
     </body>

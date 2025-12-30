@@ -164,7 +164,6 @@ module.exports = (env, argv) => {
     target: 'web',
     entry: {
       webviewApp: './src/views/webview-app/index.tsx',
-      dataBrowsingApp: './src/views/data-browsing-app/index.tsx',
     },
     resolve: {
       extensions: ['.js', '.ts', '.tsx', '.json'],

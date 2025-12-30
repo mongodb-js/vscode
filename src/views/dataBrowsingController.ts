@@ -9,21 +9,10 @@ import {
   type SortOption,
 } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
-import {
-  createWebviewPanel,
-  getWebviewHtml,
-  getWebviewUri,
-} from '../utils/webviewHelpers';
+import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import formatError from '../utils/formatError';
 
 const log = createLogger('data browsing controller');
-
-export const getDataBrowsingAppUri = (
-  extensionPath: string,
-  webview: vscode.Webview,
-): vscode.Uri => {
-  return getWebviewUri(extensionPath, webview, 'dist', 'dataBrowsingApp.js');
-};
 
 export const getDataBrowsingContent = ({
   extensionPath,
@@ -35,7 +24,7 @@ export const getDataBrowsingContent = ({
   return getWebviewHtml({
     extensionPath,
     webview,
-    scriptName: 'dataBrowsingApp.js',
+    webviewType: 'dataBrowser',
     title: 'MongoDB Data Browser',
   });
 };

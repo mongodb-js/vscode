@@ -71,7 +71,7 @@ suite('DataBrowsingController Test Suite', function () {
     expect(stubOnDidReceiveMessage).to.be.calledOnce;
   });
 
-  test('web view content is rendered with the dataBrowsingApp.js script', function () {
+  test('web view content is rendered with the webviewApp.js script and dataBrowser type', function () {
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const htmlString = getDataBrowsingContent({
       extensionPath,
@@ -82,7 +82,8 @@ suite('DataBrowsingController Test Suite', function () {
       } as unknown as vscode.Webview,
     });
 
-    expect(htmlString).to.include('dist/dataBrowsingApp.js');
+    expect(htmlString).to.include('dist/webviewApp.js');
+    expect(htmlString).to.include("window.WEBVIEW_TYPE = 'dataBrowser'");
     expect(htmlString).to.include('MongoDB Data Browser');
   });
 
