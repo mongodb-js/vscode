@@ -14,7 +14,7 @@ import { StorageController } from '../../../storage';
 import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
 
-suite('Edit Document Code Lens Provider Test Suite', () => {
+suite('Edit Document Code Lens Provider Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
@@ -33,7 +33,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     sandbox.restore();
   });
 
-  test('provideCodeLenses returns an empty array if codeLensesInfo is empty', () => {
+  test('provideCodeLenses returns an empty array if codeLensesInfo is empty', function () {
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
       testConnectionController,
     );
@@ -43,7 +43,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     assert(codeLens.length === 0);
   });
 
-  test('the _updateCodeLensesForCursor function deserialize document id', () => {
+  test('the _updateCodeLensesForCursor function deserialize document id', function () {
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
       testConnectionController,
     );
@@ -79,7 +79,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
   });
 
-  test('the _updateCodeLensesForDocument function deserialize document id', () => {
+  test('the _updateCodeLensesForDocument function deserialize document id', function () {
     const testCodeLensProvider = new EditDocumentCodeLensProvider(
       testConnectionController,
     );
@@ -113,8 +113,8 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
     assert(util.inspect(codeLensesInfo.documentId) === util.inspect(bsonId));
   });
 
-  suite('after updateCodeLensesForPlayground', () => {
-    test('provideCodeLenses returns one code lens when result is a single document', () => {
+  suite('after updateCodeLensesForPlayground', function () {
+    test('provideCodeLenses returns one code lens when result is a single document', function () {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController,
       );
@@ -161,7 +161,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       assert(commandArguments[0].source === 'playground');
     });
 
-    test('provideCodeLenses returns two code lenses when result is array of two documents', () => {
+    test('provideCodeLenses returns two code lenses when result is array of two documents', function () {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController,
       );
@@ -215,7 +215,7 @@ suite('Edit Document Code Lens Provider Test Suite', () => {
       );
     });
 
-    test('provideCodeLenses returns code lenses when result is ejson array', () => {
+    test('provideCodeLenses returns code lenses when result is ejson array', function () {
       const testCodeLensProvider = new EditDocumentCodeLensProvider(
         testConnectionController,
       );

@@ -29,7 +29,7 @@ import Sinon from 'sinon';
 const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
 
-suite('MongoDBService Test Suite', () => {
+suite('MongoDBService Test Suite', function () {
   const params = {
     connectionId: 'pineapple',
     connectionString: 'mongodb://localhost:27088',
@@ -39,7 +39,7 @@ suite('MongoDBService Test Suite', () => {
     },
   };
 
-  test('the language server worker dependency bundle exists', async () => {
+  test('the language server worker dependency bundle exists', async function () {
     const languageServerModuleBundlePath = path.join(
       mdbTestExtension.extensionContextStub.extensionPath,
       'dist',
@@ -48,7 +48,7 @@ suite('MongoDBService Test Suite', () => {
     await fs.stat(languageServerModuleBundlePath);
   });
 
-  suite('Extension path', () => {
+  suite('Extension path', function () {
     const up = new StreamStub();
     const down = new StreamStub();
     const connection = createConnection(up, down);
@@ -62,7 +62,7 @@ suite('MongoDBService Test Suite', () => {
       await testMongoDBService.activeConnectionChanged(params);
     });
 
-    test('catches error when evaluate is called and extension path is empty string', async () => {
+    test('catches error when evaluate is called and extension path is empty string', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -76,13 +76,13 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.be.equal(null);
     });
 
-    test('catches error when _getCollectionsCompletionItems is called and extension path is empty string', async () => {
+    test('catches error when _getCollectionsCompletionItems is called and extension path is empty string', async function () {
       const result = await testMongoDBService._getCollections('testDB');
 
       expect(result).to.be.deep.equal([]);
     });
 
-    test('catches error when _getSchemaFields is called and extension path is empty string', async () => {
+    test('catches error when _getSchemaFields is called and extension path is empty string', async function () {
       const result = await testMongoDBService._getSchemaFields(
         'testDB',
         'testCol',
@@ -92,7 +92,7 @@ suite('MongoDBService Test Suite', () => {
     });
   });
 
-  suite('Connect', () => {
+  suite('Connect', function () {
     const up = new StreamStub();
     const down = new StreamStub();
     const connection = createConnection(up, down);
@@ -101,7 +101,7 @@ suite('MongoDBService Test Suite', () => {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    test('connect and disconnect from cli service provider', async () => {
+    test('connect and disconnect from cli service provider', async function () {
       await testMongoDBService.activeConnectionChanged(params);
 
       expect(testMongoDBService.connectionString).to.be.equal(
@@ -115,7 +115,7 @@ suite('MongoDBService Test Suite', () => {
     });
   });
 
-  suite('Complete', () => {
+  suite('Complete', function () {
     const up = new StreamStub();
     const down = new StreamStub();
     const connection = createConnection(up, down);
@@ -137,7 +137,7 @@ suite('MongoDBService Test Suite', () => {
       await testMongoDBService.activeConnectionChanged(params);
     });
 
-    test('provide shell collection methods completion if global scope', async () => {
+    test('provide shell collection methods completion if global scope', async function () {
       const content = 'db.test.';
       const position = { line: 0, character: 8 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -156,7 +156,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell collection methods completion if function scope', async () => {
+    test('provide shell collection methods completion if function scope', async function () {
       const content = 'const name = () => { db.test. }';
       const position = { line: 0, character: 29 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -175,7 +175,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell collection methods completion for a collection name in a bracket notation', async () => {
+    test('provide shell collection methods completion for a collection name in a bracket notation', async function () {
       const content = ['use("test");', 'db["test"].'].join('\n');
       const position = { line: 1, character: 11 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -194,7 +194,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell collection methods completion for a collection name in getCollection', async () => {
+    test('provide shell collection methods completion for a collection name in getCollection', async function () {
       const content = ['use("test");', 'db.getCollection("test").'].join('\n');
       const position = { line: 1, character: 41 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -213,7 +213,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell collection methods completion if single quotes', async () => {
+    test('provide shell collection methods completion if single quotes', async function () {
       const content = ["use('test');", "db['test']."].join('\n');
       const position = { line: 1, character: 11 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -232,7 +232,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell db methods completion with dot the same line', async () => {
+    test('provide shell db methods completion with dot the same line', async function () {
       const content = 'db.';
       const position = { line: 0, character: 3 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -251,7 +251,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell db methods completion with dot next line', async () => {
+    test('provide shell db methods completion with dot next line', async function () {
       const content = ['db', '.'].join('\n');
       const position = { line: 1, character: 1 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -270,7 +270,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell db methods completion with dot after space', async () => {
+    test('provide shell db methods completion with dot after space', async function () {
       const content = 'db .';
       const position = { line: 0, character: 4 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -289,7 +289,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell aggregation cursor methods completion', async () => {
+    test('provide shell aggregation cursor methods completion', async function () {
       const content = 'db.collection.aggregate().';
       const position = { line: 0, character: 26 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -308,7 +308,7 @@ suite('MongoDBService Test Suite', () => {
       expect(otherCompletion).to.be.undefined;
     });
 
-    test('provide shell find cursor methods completion without args', async () => {
+    test('provide shell find cursor methods completion without args', async function () {
       const content = 'db.collection.find().';
       const position = { line: 0, character: 21 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -327,7 +327,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell find cursor methods completion with args at the same line', async () => {
+    test('provide shell find cursor methods completion with args at the same line', async function () {
       const content = [
         'use("companies");',
         '',
@@ -350,7 +350,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide shell find cursor methods completion with args next line', async () => {
+    test('provide shell find cursor methods completion with args next line', async function () {
       const content = [
         'use("companies");',
         '',
@@ -375,7 +375,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide fields completion in find in dot notation when has db', async () => {
+    test('provide fields completion in find in dot notation when has db', async function () {
       const content = 'use("test"); db.collection.find({ j});';
       const position = { line: 0, character: 35 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -393,7 +393,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find in bracket notation when has db', async () => {
+    test('provide fields completion in find in bracket notation when has db', async function () {
       const content = 'use("test"); db["collection"].find({ j});';
       const position = { line: 0, character: 38 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -411,7 +411,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find if text not formatted', async () => {
+    test('provide fields completion in find if text not formatted', async function () {
       const content = 'use("test");db.collection.find({j});';
       const position = { line: 0, character: 33 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -429,7 +429,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find if functions are multi-lined', async () => {
+    test('provide fields completion in find if functions are multi-lined', async function () {
       const content = [
         'use("test");',
         'const name = () => {',
@@ -452,7 +452,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find if object is multi-lined', async () => {
+    test('provide fields completion in find if object is multi-lined', async function () {
       const content = [
         'use("test");',
         '',
@@ -476,7 +476,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find if a key is surrounded by spaces', async () => {
+    test('provide fields completion in find if a key is surrounded by spaces', async function () {
       const content = 'use("test"); db.collection.find({ j });';
       const position = { line: 0, character: 35 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -494,7 +494,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find for a proper db', async () => {
+    test('provide fields completion in find for a proper db', async function () {
       const content = 'use("first"); use("second"); db.collection.find({ t});';
       const position = { line: 0, character: 51 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -517,7 +517,7 @@ suite('MongoDBService Test Suite', () => {
       expect(tsCompletion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find inside function scope', async () => {
+    test('provide fields completion in find inside function scope', async function () {
       const content =
         'use("test"); const name = () => { db.collection.find({ j}); }';
       const position = { line: 0, character: 56 };
@@ -536,7 +536,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide fields completion in find for a proper collection', async () => {
+    test('provide fields completion in find for a proper collection', async function () {
       const content = 'use("test"); db.firstCollection.find({ j});';
       const position = { line: 0, character: 40 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -559,7 +559,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('do not provide fields completion in find if db not found', async () => {
+    test('do not provide fields completion in find if db not found', async function () {
       const content = 'db.collection.find({ j});';
       const position = { line: 0, character: 22 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -577,7 +577,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('do not provide fields completion in find outside object property', async () => {
+    test('do not provide fields completion in find outside object property', async function () {
       const content = 'use("test"); db.collection.find(j);';
       const position = { line: 0, character: 28 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -595,7 +595,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide fields completion in aggregate inside the $match stage', async () => {
+    test('provide fields completion in aggregate inside the $match stage', async function () {
       const content =
         'use("test"); db.collection.aggregate([ { $match: { j} } ])';
       const position = { line: 0, character: 52 };
@@ -614,7 +614,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide stages completion in aggregate when has db', async () => {
+    test('provide stages completion in aggregate when has db', async function () {
       const content = 'use("test"); db.collection.aggregate([{ $m}]);';
       const position = { line: 0, character: 42 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -638,7 +638,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide stages completion in aggregate if db not found', async () => {
+    test('provide stages completion in aggregate if db not found', async function () {
       const content = 'db.collection.aggregate([{ $m}]);';
       const position = { line: 0, character: 29 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -657,7 +657,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide stages completion in find if object is multi-lined', async () => {
+    test('provide stages completion in find if object is multi-lined', async function () {
       const content = [
         'use("test");',
         '',
@@ -682,7 +682,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide query completion for the $match stage', async () => {
+    test('provide query completion for the $match stage', async function () {
       const content = 'db.collection.aggregate([{ $match: { $e} }]);';
       const position = { line: 0, character: 39 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -698,7 +698,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('documentation');
     });
 
-    test('provide query completion in find', async () => {
+    test('provide query completion in find', async function () {
       const content = 'db.collection.find({ $e});';
       const position = { line: 0, character: 23 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -719,7 +719,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('do not provide query completion for other than $match stages', async () => {
+    test('do not provide query completion for other than $match stages', async function () {
       const content = 'db.collection.aggregate([{ $merge: { $e} }]);';
       const position = { line: 0, character: 39 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -734,7 +734,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide bson completion in find', async () => {
+    test('provide bson completion in find', async function () {
       const content = 'db.collection.find({ _id: O});';
       const position = { line: 0, character: 27 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -761,7 +761,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide bson completion in aggregate', async () => {
+    test('provide bson completion in aggregate', async function () {
       const content = 'db.collection.aggregate([{ $match: { _id: O }}]);';
       const position = { line: 0, character: 42 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -788,7 +788,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide system variable completion in find', async () => {
+    test('provide system variable completion in find', async function () {
       const content = 'db.collection.find({ _id: "$$N" });';
       const position = { line: 0, character: 30 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -807,7 +807,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide system variable completion in aggregate', async () => {
+    test('provide system variable completion in aggregate', async function () {
       const content = 'db.collection.aggregate([{ $match: { _id: "$$R" }}]);';
       const position = { line: 0, character: 46 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -826,7 +826,7 @@ suite('MongoDBService Test Suite', () => {
       expect((documentation as MarkupContent).value).to.include('[Read More]');
     });
 
-    test('provide field reference completion in find when has db', async () => {
+    test('provide field reference completion in find when has db', async function () {
       const content =
         "use('test'); db.collection.find({ $expr: { $gt: [{ $getField: { $literal: '$p' } }, 200] } });";
       const position = { line: 0, character: 77 };
@@ -845,7 +845,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Reference);
     });
 
-    test('do not provide field reference completion in find if db not found', async () => {
+    test('do not provide field reference completion in find if db not found', async function () {
       const content =
         "db.collection.find({ $expr: { $gt: [{ $getField: { $literal: '$p' } }, 200] } });";
       const position = { line: 0, character: 64 };
@@ -860,7 +860,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide field reference completion in aggregate when has db', async () => {
+    test('provide field reference completion in aggregate when has db', async function () {
       const content =
         "use('test'); db.collection.aggregate({ $match: { $expr: { $gt: [{ $getField: { $literal: '$p' } }, 200] } } });";
       const position = { line: 0, character: 92 };
@@ -878,7 +878,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Reference);
     });
 
-    test('provide field reference completion in aggregate when collection is specified via getCollection', async () => {
+    test('provide field reference completion in aggregate when collection is specified via getCollection', async function () {
       const content =
         "use('test'); db.getCollection('collection').aggregate([{ $match: '$p' }]);";
       const position = { line: 0, character: 68 };
@@ -896,7 +896,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.have.property('kind', CompletionItemKind.Reference);
     });
 
-    test('clear cached stream processors', async () => {
+    test('clear cached stream processors', async function () {
       const content = 'sp.';
       const position = { line: 0, character: 3 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -922,7 +922,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('clear cached databases', async () => {
+    test('clear cached databases', async function () {
       const content = 'use("m");';
       const position = { line: 0, character: 6 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -946,7 +946,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result.length).to.be.equal(0);
     });
 
-    test('clear cached collections', async () => {
+    test('clear cached collections', async function () {
       const content = 'use("test"); db.';
       const position = { line: 0, character: 16 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -971,7 +971,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('clear cached fields', async () => {
+    test('clear cached fields', async function () {
       const content = 'use("test"); db.collection.find({ j});';
       const position = { line: 0, character: 35 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -998,7 +998,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide aggregation expression completion for other than $match stages', async () => {
+    test('provide aggregation expression completion for other than $match stages', async function () {
       const content =
         'db.collection.aggregate([{ $project: { yearMonthDayUTC: { $d } } }]);';
       const position = { line: 0, character: 59 };
@@ -1019,7 +1019,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('do not provide aggregation expression completion for the $match stage', async () => {
+    test('do not provide aggregation expression completion for the $match stage', async function () {
       const content = 'db.collection.aggregate({ $match: { $d } });';
       const position = { line: 0, character: 38 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1033,7 +1033,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide aggregation conversion completion for other than $match stages', async () => {
+    test('provide aggregation conversion completion for other than $match stages', async function () {
       const content =
         'db.collection.aggregate([{ $project: { result: {$c} } }]);';
       const position = { line: 0, character: 50 };
@@ -1054,7 +1054,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('do not provide aggregation conversion completion for the $match stage', async () => {
+    test('do not provide aggregation conversion completion for the $match stage', async function () {
       const content = 'db.collection.aggregate([{ $match: { $c } }]);';
       const position = { line: 0, character: 39 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1068,7 +1068,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide aggregation accumulator completion for the $project stage', async () => {
+    test('provide aggregation accumulator completion for the $project stage', async function () {
       const content =
         'db.collection.aggregate([{ $project: { revenue: { $a} } }]);';
       const position = { line: 0, character: 52 };
@@ -1089,7 +1089,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('provide aggregation accumulator completion for the $group stage', async () => {
+    test('provide aggregation accumulator completion for the $group stage', async function () {
       const content =
         'db.collection.aggregate([{ $group: { _id: "$author", avgCopies: { $a} } }]);';
       const position = { line: 0, character: 68 };
@@ -1110,7 +1110,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('do not provide aggregation accumulator completion for the $match stage', async () => {
+    test('do not provide aggregation accumulator completion for the $match stage', async function () {
       const content = 'db.collection.aggregate([{ $match: { $a } }]);';
       const position = { line: 0, character: 39 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1124,7 +1124,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('do not provide aggregation accumulator completion for the $documents stage', async () => {
+    test('do not provide aggregation accumulator completion for the $documents stage', async function () {
       const content = 'db.collection.aggregate([{ $documents: { $a } }]);';
       const position = { line: 0, character: 43 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1138,7 +1138,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide aggregation accumulator direction completion for the $project stage', async () => {
+    test('provide aggregation accumulator direction completion for the $project stage', async function () {
       const content =
         'db.collection.aggregate([{ $project: { revenue: { $b} } }]);';
       const position = { line: 0, character: 52 };
@@ -1159,7 +1159,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('provide aggregation accumulator direction completion for the $group stage', async () => {
+    test('provide aggregation accumulator direction completion for the $group stage', async function () {
       const content =
         'db.collection.aggregate([{ $group: { _id: "$author", avgCopies: { $b} } }]);';
       const position = { line: 0, character: 68 };
@@ -1180,7 +1180,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('do not provide aggregation accumulator direction completion for the $match stage', async () => {
+    test('do not provide aggregation accumulator direction completion for the $match stage', async function () {
       const content = 'db.collection.aggregate([{ $match: { $b } }]);';
       const position = { line: 0, character: 39 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1194,7 +1194,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('do not provide aggregation accumulator direction completion for the $documents stage', async () => {
+    test('do not provide aggregation accumulator direction completion for the $documents stage', async function () {
       const content = 'db.collection.aggregate([{ $documents: { $b } }]);';
       const position = { line: 0, character: 43 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1208,7 +1208,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide aggregation accumulator window completion for the $setWindowFields stage', async () => {
+    test('provide aggregation accumulator window completion for the $setWindowFields stage', async function () {
       const content =
         'db.collection.aggregate([{ $setWindowFields: { partitionBy: "$state", output: { documentNumberForState: { $d} } } }]);';
       const position = { line: 0, character: 108 };
@@ -1229,7 +1229,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('do not provide aggregation accumulator window completion for the $group stage', async () => {
+    test('do not provide aggregation accumulator window completion for the $group stage', async function () {
       const content = 'db.collection.aggregate([{ $group: { $d } }]);';
       const position = { line: 0, character: 39 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1243,7 +1243,7 @@ suite('MongoDBService Test Suite', () => {
       expect(completion).to.be.undefined;
     });
 
-    test('provide db and use identifier completion', async () => {
+    test('provide db and use identifier completion', async function () {
       const content = '';
       const position = { line: 0, character: 0 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1275,7 +1275,7 @@ suite('MongoDBService Test Suite', () => {
       expect(useCompletion).to.have.property('detail', 'use(<databaseName>)');
     });
 
-    test('provide db names completion for literal', async () => {
+    test('provide db names completion for literal', async function () {
       const content = 'use("a");';
       const position = { line: 0, character: 6 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1291,7 +1291,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result[0]).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide db names completion for template start line', async () => {
+    test('provide db names completion for template start line', async function () {
       const content = ['use(`', '', '`);'].join('\n');
       const position = { line: 0, character: 5 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1307,7 +1307,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result[0]).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide db names completion for template middle line', async () => {
+    test('provide db names completion for template middle line', async function () {
       const content = ['use(`', '', '`);'].join('\n');
       const position = { line: 1, character: 0 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1323,7 +1323,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result[0]).to.have.property('kind', CompletionItemKind.Field);
     });
 
-    test('provide db names completion for template end line', async () => {
+    test('provide db names completion for template end line', async function () {
       const content = ['use(`', '', '`);'].join('\n');
       const position = { line: 2, character: 0 };
       const document = TextDocument.create('init', 'javascript', 1, content);
@@ -1373,7 +1373,7 @@ suite('MongoDBService Test Suite', () => {
       },
     ].forEach(
       ({ suiteDescription, beforeAssertions, defaultContent, dbInUse }) => {
-        suite(suiteDescription, () => {
+        suite(suiteDescription, function () {
           beforeEach(beforeAssertions);
           afterEach(() => {
             Sinon.restore();
@@ -1385,7 +1385,7 @@ suite('MongoDBService Test Suite', () => {
             });
           });
 
-          test('provide collection names completion for valid object names', async () => {
+          test('provide collection names completion for valid object names', async function () {
             const content = defaultContent ? `${defaultContent} db.` : 'db.';
             const position = { line: 0, character: content.length };
             const document = TextDocument.create(
@@ -1410,7 +1410,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion for object names with dashes', async () => {
+          test('provide collection names completion for object names with dashes', async function () {
             const content = defaultContent ? `${defaultContent} db.` : 'db.';
             const position = { line: 0, character: content.length };
             const document = TextDocument.create(
@@ -1445,7 +1445,7 @@ suite('MongoDBService Test Suite', () => {
               );
           });
 
-          test('provide collection names completion for object names with dots', async () => {
+          test('provide collection names completion for object names with dots', async function () {
             const content = defaultContent
               ? [defaultContent, '', 'db.']
               : ['db.'];
@@ -1480,7 +1480,7 @@ suite('MongoDBService Test Suite', () => {
               .that.has.property('newText', "db['animals.humans']");
           });
 
-          test('provide collection names completion in variable declarations', async () => {
+          test('provide collection names completion in variable declarations', async function () {
             const content = defaultContent
               ? [defaultContent, '', 'let a = db.']
               : ['let a = db.'];
@@ -1516,7 +1516,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion for db symbol with bracket notation', async () => {
+          test('provide collection names completion for db symbol with bracket notation', async function () {
             const content = defaultContent
               ? defaultContent + " db['']"
               : "db['']";
@@ -1546,7 +1546,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion for getCollection as a simple string', async () => {
+          test('provide collection names completion for getCollection as a simple string', async function () {
             const content = defaultContent
               ? defaultContent + " db.getCollection('')"
               : "db.getCollection('')";
@@ -1576,7 +1576,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion for getCollection as a string template', async () => {
+          test('provide collection names completion for getCollection as a string template', async function () {
             const content = defaultContent
               ? defaultContent + ' db.getCollection(``)'
               : 'db.getCollection(``)';
@@ -1606,7 +1606,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names and shell db symbol completion for db symbol with dot notation', async () => {
+          test('provide collection names and shell db symbol completion for db symbol with dot notation', async function () {
             const content = defaultContent ? defaultContent + ' db.' : 'db.';
             const position = { line: 0, character: content.length };
             const document = TextDocument.create(
@@ -1642,7 +1642,7 @@ suite('MongoDBService Test Suite', () => {
             expect(findShellCompletion).to.have.property('detail');
           });
 
-          test('provide only collection names and shell db symbol completion after find cursor', async () => {
+          test('provide only collection names and shell db symbol completion after find cursor', async function () {
             const content = [
               '',
               'let a = db.cocktailbars.find({}).toArray();',
@@ -1691,7 +1691,7 @@ suite('MongoDBService Test Suite', () => {
             expect(findCursorCompletion).to.be.undefined;
           });
 
-          test('provide only collection names and shell db symbol completion after aggregate cursor', async () => {
+          test('provide only collection names and shell db symbol completion after aggregate cursor', async function () {
             const content = [
               '',
               'let a = db.cocktailbars.aggregate({}).toArray();',
@@ -1740,7 +1740,7 @@ suite('MongoDBService Test Suite', () => {
             expect(findCursorCompletion).to.be.undefined;
           });
 
-          test('provide only collection names completion in the middle of expression', async () => {
+          test('provide only collection names completion in the middle of expression', async function () {
             const content = defaultContent
               ? defaultContent + ' db..find().close()'
               : 'db..find().close()';
@@ -1778,7 +1778,7 @@ suite('MongoDBService Test Suite', () => {
             expect(findCursorCompletion).to.be.undefined;
           });
 
-          test('provide collection names with dashes completion in the middle of expression', async () => {
+          test('provide collection names with dashes completion in the middle of expression', async function () {
             const content = defaultContent
               ? defaultContent + ' db..find()'
               : 'db..find()';
@@ -1812,7 +1812,7 @@ suite('MongoDBService Test Suite', () => {
               );
           });
 
-          test('provide collection names completion after single line comment', async () => {
+          test('provide collection names completion after single line comment', async function () {
             const content = ['', '// Comment', 'db.'];
             if (defaultContent) {
               content.unshift(defaultContent);
@@ -1842,7 +1842,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion after single line comment with new line character', async () => {
+          test('provide collection names completion after single line comment with new line character', async function () {
             const content = ['', '// Comment\\n', 'db.'];
             if (defaultContent) {
               content.unshift(defaultContent);
@@ -1872,7 +1872,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion after multi-line comment', async () => {
+          test('provide collection names completion after multi-line comment', async function () {
             const content = ['', '/*', ' * Comment', '*/', 'db.'];
             if (defaultContent) {
               content.unshift(defaultContent);
@@ -1902,7 +1902,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion after end of line comment', async () => {
+          test('provide collection names completion after end of line comment', async function () {
             const content = [
               defaultContent ? defaultContent + ' // Comment' : ' // Comment',
               '',
@@ -1933,7 +1933,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion at the same line block comment starts', async () => {
+          test('provide collection names completion at the same line block comment starts', async function () {
             const content = ['', 'db. /*', '* Comment', '*/'];
             if (defaultContent) {
               content.unshift(defaultContent);
@@ -1963,7 +1963,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion at the same line block comment ends', async () => {
+          test('provide collection names completion at the same line block comment ends', async function () {
             const content = ['', '/*', '  * Comment', '*/ db.'];
             if (defaultContent) {
               content.unshift(defaultContent);
@@ -1993,7 +1993,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion at the same line with end line comment', async () => {
+          test('provide collection names completion at the same line with end line comment', async function () {
             const content = ['', 'db. // Comment'];
             if (defaultContent) {
               content.unshift(defaultContent);
@@ -2023,7 +2023,7 @@ suite('MongoDBService Test Suite', () => {
             );
           });
 
-          test('provide collection names completion if code without a semicolon', async () => {
+          test('provide collection names completion if code without a semicolon', async function () {
             const content = ['', 'db.'];
             if (defaultContent) {
               content.unshift(defaultContent);
@@ -2066,7 +2066,7 @@ suite('MongoDBService Test Suite', () => {
         'process',
       ];
 
-      test('provide shell sp methods completion with dot the same line', async () => {
+      test('provide shell sp methods completion with dot the same line', async function () {
         const content = 'sp.';
         const position = { line: 0, character: 3 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2080,7 +2080,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide shell sp methods completion with dot next line', async () => {
+      test('provide shell sp methods completion with dot next line', async function () {
         const content = ['sp', '.'].join('\n');
         const position = { line: 1, character: 1 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2094,7 +2094,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide shell sp methods completion with dot after space', async () => {
+      test('provide shell sp methods completion with dot after space', async function () {
         const content = 'sp .';
         const position = { line: 0, character: 4 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2108,7 +2108,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide shell stream processor methods completion if global scope', async () => {
+      test('provide shell stream processor methods completion if global scope', async function () {
         const content = 'sp.test.';
         const position = { line: 0, character: 8 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2123,7 +2123,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide shell stream processor methods completion if function scope', async () => {
+      test('provide shell stream processor methods completion if function scope', async function () {
         const content = 'const name = () => { sp.test. }';
         const position = { line: 0, character: 29 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2137,7 +2137,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide shell stream processor methods completion for a processor name in a bracket notation', async () => {
+      test('provide shell stream processor methods completion for a processor name in a bracket notation', async function () {
         const content = 'sp["test"].';
         const position = { line: 0, character: 11 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2151,7 +2151,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide shell stream processor methods completion for a processor name in getProcessor', async () => {
+      test('provide shell stream processor methods completion for a processor name in getProcessor', async function () {
         const content = 'sp.getProcessor("test").';
         const position = { line: 0, character: 24 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2165,7 +2165,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide shell stream processor methods completion if single quotes', async () => {
+      test('provide shell stream processor methods completion if single quotes', async function () {
         const content = "sp['test'].";
         const position = { line: 0, character: 11 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2179,7 +2179,7 @@ suite('MongoDBService Test Suite', () => {
         });
       });
 
-      test('provide stream processor names completion for dot notation', async () => {
+      test('provide stream processor names completion for dot notation', async function () {
         const content = 'sp.';
         const position = { line: 0, character: 3 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2198,7 +2198,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion for object names with dashes', async () => {
+      test('provide stream processor names completion for object names with dashes', async function () {
         const content = 'sp.';
         const position = { line: 0, character: content.length };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2217,7 +2217,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion for object names with dots', async () => {
+      test('provide stream processor names completion for object names with dots', async function () {
         const content = 'sp.';
         const position = { line: 0, character: content.length };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2236,7 +2236,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion in variable declarations', async () => {
+      test('provide stream processor names completion in variable declarations', async function () {
         const content = 'let a = sp.';
         const position = { line: 0, character: content.length };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2255,7 +2255,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion for sp symbol with bracket notation', async () => {
+      test('provide stream processor names completion for sp symbol with bracket notation', async function () {
         const content = "sp['']";
         const position = { line: 0, character: 4 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2274,7 +2274,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion for getProcessor as a simple string', async () => {
+      test('provide stream processor names completion for getProcessor as a simple string', async function () {
         const content = "sp.getProcessor('')";
         const position = { line: 0, character: content.length - 2 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2296,7 +2296,7 @@ suite('MongoDBService Test Suite', () => {
         );
       });
 
-      test('provide stream processor names completion for getProcessor as a string template', async () => {
+      test('provide stream processor names completion for getProcessor as a string template', async function () {
         const content = 'sp.getProcessor(``)';
         const position = { line: 0, character: content.length - 2 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2318,7 +2318,7 @@ suite('MongoDBService Test Suite', () => {
         );
       });
 
-      test('provide shell sp and stream processor names completion in the middle of expression', async () => {
+      test('provide shell sp and stream processor names completion in the middle of expression', async function () {
         const content = 'sp..stop()';
         const position = { line: 0, character: 3 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2347,7 +2347,7 @@ suite('MongoDBService Test Suite', () => {
         );
       });
 
-      test('provide stream processor names with dashes completion in the middle of expression', async () => {
+      test('provide stream processor names with dashes completion in the middle of expression', async function () {
         const content = 'sp..stop()';
         const position = { line: 0, character: 3 };
         const document = TextDocument.create('init', 'javascript', 1, content);
@@ -2366,7 +2366,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion after single line comment', async () => {
+      test('provide stream processor names completion after single line comment', async function () {
         const content = ['', '// Comment', 'sp.'];
         const position = { line: content.length - 1, character: 3 };
         const document = TextDocument.create(
@@ -2390,7 +2390,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion after single line comment with new line character', async () => {
+      test('provide stream processor names completion after single line comment with new line character', async function () {
         const content = ['', '// Comment\\n', 'sp.'];
         const position = { line: content.length - 1, character: 3 };
         const document = TextDocument.create(
@@ -2414,7 +2414,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion after multi-line comment', async () => {
+      test('provide stream processor names completion after multi-line comment', async function () {
         const content = ['', '/*', ' * Comment', '*/', 'sp.'];
         const position = { line: content.length - 1, character: 3 };
         const document = TextDocument.create(
@@ -2438,7 +2438,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion after end of line comment', async () => {
+      test('provide stream processor names completion after end of line comment', async function () {
         const content = [' // Comment', '', 'sp.'];
         const position = { line: 2, character: 3 };
         const document = TextDocument.create(
@@ -2462,7 +2462,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion at the same line block comment starts', async () => {
+      test('provide stream processor names completion at the same line block comment starts', async function () {
         const content = ['', 'sp. /*', '* Comment', '*/'];
         const position = { line: content.length - 3, character: 3 };
         const document = TextDocument.create(
@@ -2486,7 +2486,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion at the same line block comment ends', async () => {
+      test('provide stream processor names completion at the same line block comment ends', async function () {
         const content = ['', '/*', '  * Comment', '*/ sp.'];
         const position = { line: content.length - 1, character: 6 };
         const document = TextDocument.create(
@@ -2510,7 +2510,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion at the same line with end line comment', async () => {
+      test('provide stream processor names completion at the same line with end line comment', async function () {
         const content = ['', 'sp. // Comment'];
         const position = { line: content.length - 1, character: 3 };
         const document = TextDocument.create(
@@ -2534,7 +2534,7 @@ suite('MongoDBService Test Suite', () => {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
 
-      test('provide stream processor names completion if code without a semicolon', async () => {
+      test('provide stream processor names completion if code without a semicolon', async function () {
         const content = ['', 'sp.'];
         const position = { line: content.length - 1, character: 3 };
         const document = TextDocument.create(
@@ -2585,7 +2585,7 @@ suite('MongoDBService Test Suite', () => {
       await mongoClient.close(true);
     });
 
-    test('evaluate should sum numbers', async () => {
+    test('evaluate should sum numbers', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2607,7 +2607,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    suite('DB commands evaluation', () => {
+    suite('DB commands evaluation', function () {
       const dbName1 = 'testDB1';
       const collectionName1 = 'testCollection1';
       let db1: Db;
@@ -2631,8 +2631,8 @@ suite('MongoDBService Test Suite', () => {
 
       suite(
         'when connected to a default database and no explicit call to use specified',
-        () => {
-          test('it should evaluate the playground in the context of default database', async () => {
+        function () {
+          test('it should evaluate the playground in the context of default database', async function () {
             await testMongoDBService.activeConnectionChanged({
               ...params,
               connectionString: `${params.connectionString}/${dbName1}`,
@@ -2663,8 +2663,8 @@ suite('MongoDBService Test Suite', () => {
 
       suite(
         'when connected to a default database and an explicit call to use a database is specified',
-        () => {
-          test('it should evaluate the playground in the context of specified database', async () => {
+        function () {
+          test('it should evaluate the playground in the context of specified database', async function () {
             await testMongoDBService.activeConnectionChanged({
               ...params,
               connectionString: `${params.connectionString}/${dbName1}`,
@@ -2695,8 +2695,8 @@ suite('MongoDBService Test Suite', () => {
 
       suite(
         'when not connected to any default database and an explicit call to use a database is specified',
-        () => {
-          test('it should evaluate the playground in the context of specified database', async () => {
+        function () {
+          test('it should evaluate the playground in the context of specified database', async function () {
             await testMongoDBService.activeConnectionChanged(params);
 
             const source = new CancellationTokenSource();
@@ -2723,7 +2723,7 @@ suite('MongoDBService Test Suite', () => {
       );
     });
 
-    test('should not run when the connectionId does not match', async () => {
+    test('should not run when the connectionId does not match', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2737,7 +2737,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.equal(null);
     });
 
-    test('evaluate multiplies commands at once', async () => {
+    test('evaluate multiplies commands at once', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2759,7 +2759,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('create each time a new runtime', async () => {
+    test('create each time a new runtime', async function () {
       const source = new CancellationTokenSource();
       const firstEvalResult = await testMongoDBService.evaluate(
         {
@@ -2800,7 +2800,7 @@ suite('MongoDBService Test Suite', () => {
       expect(secondEvalResult).to.deep.equal(secondRes);
     });
 
-    test('evaluate returns valid EJSON', async () => {
+    test('evaluate returns valid EJSON', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2828,7 +2828,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns an object', async () => {
+    test('evaluate returns an object', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2853,7 +2853,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns an array', async () => {
+    test('evaluate returns an array', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2880,7 +2880,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns undefined', async () => {
+    test('evaluate returns undefined', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2902,7 +2902,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns null', async () => {
+    test('evaluate returns null', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2924,7 +2924,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns single line strings', async () => {
+    test('evaluate returns single line strings', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2947,7 +2947,7 @@ suite('MongoDBService Test Suite', () => {
       expect(result).to.deep.equal(expectedResult);
     });
 
-    test('evaluate returns multiline strings', async () => {
+    test('evaluate returns multiline strings', async function () {
       const source = new CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
@@ -2991,7 +2991,7 @@ suite('MongoDBService Test Suite', () => {
         Sinon.restore();
       });
 
-      test('sends print() and console.log() output continuously', async () => {
+      test('sends print() and console.log() output continuously', async function () {
         const source = new CancellationTokenSource();
         const hexString = '65a482edbf4fc24c5255a8fa';
 
@@ -2999,7 +2999,7 @@ suite('MongoDBService Test Suite', () => {
           {
             connectionId: 'pineapple',
             expectedFormat: 'ejson',
-            codeToEvaluate: `print("Hello"); console.log(1,2,3); console.log(true); console.log(ObjectId(\'${hexString}\')); 42`,
+            codeToEvaluate: `print("Hello"); console.log(1,2,3); console.log(true); console.log(ObjectId('${hexString}')); 42`,
           },
           source.token,
         );
@@ -3010,7 +3010,7 @@ suite('MongoDBService Test Suite', () => {
           '2',
           '3',
           'true',
-          `ObjectId(\'${hexString}\')`,
+          `ObjectId('${hexString}')`,
         ];
         expect(consoleOutputs).to.deep.equal(expectedConsoleOutputs);
 
@@ -3041,7 +3041,7 @@ suite('MongoDBService Test Suite', () => {
       afterEach(async () => {
         await fs.rm(tmpDir, { recursive: true });
       });
-      test('evaluate allows to import file', async () => {
+      test('evaluate allows to import file', async function () {
         const source = new CancellationTokenSource();
         const result = await testMongoDBService.evaluate(
           {
@@ -3079,7 +3079,7 @@ suite('MongoDBService Test Suite', () => {
       testMongoDBService._cacheDatabaseCompletionItems([{ name: 'test' }]);
     });
 
-    test('does not find use diagnostic issue when a line does not start with use', () => {
+    test('does not find use diagnostic issue when a line does not start with use', function () {
       const textFromEditor =
         "You can use '.hasNext()/.next()' to iterate through the cursor page by page";
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
@@ -3087,35 +3087,35 @@ suite('MongoDBService Test Suite', () => {
       expect(diagnostics).to.be.deep.equal([]);
     });
 
-    test('does not find use diagnostic issue when use in the middle of other command', () => {
+    test('does not find use diagnostic issue when use in the middle of other command', function () {
       const textFromEditor = 'user.authenticate()';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
       expect(diagnostics).to.be.deep.equal([]);
     });
 
-    test('does not find use diagnostic issue when use is followed by a space and curly bracket', () => {
+    test('does not find use diagnostic issue when use is followed by a space and curly bracket', function () {
       const textFromEditor = 'use (';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
       expect(diagnostics).to.be.deep.equal([]);
     });
 
-    test('does not find use diagnostic issue when use is followed by a space and point', () => {
+    test('does not find use diagnostic issue when use is followed by a space and point', function () {
       const textFromEditor = 'use .';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
       expect(diagnostics).to.be.deep.equal([]);
     });
 
-    test('does not find use diagnostic issue when use is followed by a space and bracket', () => {
+    test('does not find use diagnostic issue when use is followed by a space and bracket', function () {
       const textFromEditor = 'use [';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
       expect(diagnostics).to.be.deep.equal([]);
     });
 
-    test('finds use without database diagnostic issue', () => {
+    test('finds use without database diagnostic issue', function () {
       const textFromEditor = 'use ';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3134,7 +3134,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds use with an existing database without quotes diagnostic issue', () => {
+    test('finds use with an existing database without quotes diagnostic issue', function () {
       const textFromEditor = 'use test';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3153,7 +3153,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds use with a new database without quotes diagnostic issue', () => {
+    test('finds use with a new database without quotes diagnostic issue', function () {
       const textFromEditor = 'use lena';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3172,7 +3172,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds use with database and single quotes diagnostic issue', () => {
+    test('finds use with database and single quotes diagnostic issue', function () {
       const textFromEditor = "use 'test'";
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3191,7 +3191,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds use with database and double quotes diagnostic issue', () => {
+    test('finds use with database and double quotes diagnostic issue', function () {
       const textFromEditor = 'use "test"';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3210,7 +3210,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show databases diagnostic issue', () => {
+    test('finds show databases diagnostic issue', function () {
       const textFromEditor = 'show databases';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3229,7 +3229,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show dbs diagnostic issue', () => {
+    test('finds show dbs diagnostic issue', function () {
       const textFromEditor = 'show dbs';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3248,7 +3248,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show collections diagnostic issue', () => {
+    test('finds show collections diagnostic issue', function () {
       const textFromEditor = 'show collections';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3267,7 +3267,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show tables diagnostic issue', () => {
+    test('finds show tables diagnostic issue', function () {
       const textFromEditor = 'show tables';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3286,7 +3286,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show profile diagnostic issue', () => {
+    test('finds show profile diagnostic issue', function () {
       const textFromEditor = 'show profile';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3305,7 +3305,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show users diagnostic issue', () => {
+    test('finds show users diagnostic issue', function () {
       const textFromEditor = 'show users';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3324,7 +3324,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show roles diagnostic issue', () => {
+    test('finds show roles diagnostic issue', function () {
       const textFromEditor = 'show roles';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3343,7 +3343,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show logs diagnostic issue', () => {
+    test('finds show logs diagnostic issue', function () {
       const textFromEditor = 'show logs';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3362,7 +3362,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show log diagnostic issue', () => {
+    test('finds show log diagnostic issue', function () {
       const textFromEditor = 'show log';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3381,7 +3381,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show log without type diagnostic issue', () => {
+    test('finds show log without type diagnostic issue', function () {
       const textFromEditor = 'show log ';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3400,7 +3400,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show log with type and single quotes diagnostic issue', () => {
+    test('finds show log with type and single quotes diagnostic issue', function () {
       const textFromEditor = "show log 'global'";
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 
@@ -3419,7 +3419,7 @@ suite('MongoDBService Test Suite', () => {
       ]);
     });
 
-    test('finds show log with type and double quotes diagnostic issue', () => {
+    test('finds show log with type and double quotes diagnostic issue', function () {
       const textFromEditor = 'show log "startupWarnings"';
       const diagnostics = testMongoDBService.provideDiagnostics(textFromEditor);
 

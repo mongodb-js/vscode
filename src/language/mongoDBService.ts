@@ -183,7 +183,7 @@ export default class MongoDBService {
     }
 
     this._connection.console.log(
-      `NodeDriverServiceProvider active connection has changed: { connectionId: ${connectionId} }`,
+      `NodeDriverServiceProvider active connection has changed: { connectionId: ${connectionId ?? 'null'} }`,
     );
     return {
       successfullyConnected: true,
@@ -333,7 +333,7 @@ export default class MongoDBService {
         return result.streamProcessors ?? [];
       } catch (error) {
         this._connection.console.error(
-          `LS get stream processors error: ${error}`,
+          `LS get stream processors error: ${formatError(error).message}`,
         );
       }
     }
@@ -357,7 +357,9 @@ export default class MongoDBService {
       const documents = await this._serviceProvider.listDatabases('admin');
       result = documents.databases ?? [];
     } catch (error) {
-      this._connection.console.error(`LS get databases error: ${error}`);
+      this._connection.console.error(
+        `LS get databases error: ${formatError(error).message}`,
+      );
     }
 
     return result;
@@ -378,7 +380,9 @@ export default class MongoDBService {
         await this._serviceProvider.listCollections(databaseName);
       result = documents ? documents : [];
     } catch (error) {
-      this._connection.console.error(`LS get collections error: ${error}`);
+      this._connection.console.error(
+        `LS get collections error: ${formatError(error).message}`,
+      );
     }
 
     return result;
@@ -415,7 +419,9 @@ export default class MongoDBService {
       const schema = await parseSchema(documents);
       result = schema?.fields ? schema.fields.map((item) => item.name) : [];
     } catch (error) {
-      this._connection.console.error(`LS get schema fields error: ${error}`);
+      this._connection.console.error(
+        `LS get schema fields error: ${formatError(error).message}`,
+      );
     }
 
     return result;
@@ -651,7 +657,9 @@ export default class MongoDBService {
       (state.stageOperator === null && state.isObjectKey)
     ) {
       const fields =
-        this._fields[`${state.databaseName}.${state.collectionName}`] || [];
+        state.databaseName && state.collectionName
+          ? this._fields[`${state.databaseName}.${state.collectionName}`] || []
+          : [];
       const message = [
         'VISITOR found',
         'query operator',
@@ -690,7 +698,9 @@ export default class MongoDBService {
   ): CompletionItem[] | undefined {
     if (state.stageOperator) {
       const fields =
-        this._fields[`${state.databaseName}.${state.collectionName}`] || [];
+        state.databaseName && state.collectionName
+          ? this._fields[`${state.databaseName}.${state.collectionName}`] || []
+          : [];
       const message = [
         'VISITOR found',
         'aggregation operator',
@@ -771,7 +781,9 @@ export default class MongoDBService {
   ): CompletionItem[] | undefined {
     if (state.isTextObjectValue) {
       const fields =
-        this._fields[`${state.databaseName}.${state.collectionName}`];
+        state.databaseName && state.collectionName
+          ? this._fields[`${state.databaseName}.${state.collectionName}`] || []
+          : [];
       this._connection.console.log('VISITOR found field reference completions');
 
       return getFilteredCompletions({
@@ -1232,7 +1244,7 @@ export default class MongoDBService {
   async _closeCurrentConnection(): Promise<void> {
     if (this._serviceProvider) {
       this._connection.console.log(
-        `Disconnecting from a previous connection... { connectionId: ${this._currentConnectionId} }`,
+        `Disconnecting from a previous connection... { connectionId: ${this._currentConnectionId ?? 'null'} }`,
       );
       const serviceProvider = this._serviceProvider;
       this._serviceProvider = undefined;

@@ -19,13 +19,12 @@ function simplifyEJSON(item: Document[] | Document): Document {
   // For this reason, we are applying this representation for subtype 4 only
   // see https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#special-rules-for-parsing-uuid-fields
   if (
-    (item as Document).$binary?.subType === '04' &&
-    typeof (item as Document).$binary?.base64 === 'string'
+    item.$binary?.subType === '04' &&
+    typeof item.$binary?.base64 === 'string'
   ) {
-    const hexString = Buffer.from(
-      (item as Document).$binary.base64,
-      'base64',
-    ).toString('hex');
+    const hexString = Buffer.from(item.$binary.base64, 'base64').toString(
+      'hex',
+    );
     const match = /^(.{8})(.{4})(.{4})(.{4})(.{12})$/.exec(hexString);
     if (!match) return item;
     const asUUID = match.slice(1, 6).join('-');

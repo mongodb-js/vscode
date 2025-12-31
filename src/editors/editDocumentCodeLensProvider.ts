@@ -15,7 +15,9 @@ export default class EditDocumentCodeLensProvider
   _onDidChangeCodeLenses: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
   _codeLenses: vscode.CodeLens[] = [];
-  _codeLensesInfo: { [name: string]: EditDocumentInfo[] } | {} = {};
+  _codeLensesInfo:
+    | { [name: string]: EditDocumentInfo[] }
+    | Record<string, never> = {};
   _connectionController: ConnectionController;
 
   readonly onDidChangeCodeLenses: vscode.Event<void> =

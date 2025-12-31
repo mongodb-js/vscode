@@ -7,14 +7,14 @@ import vscode from 'vscode';
 
 import { openLink } from '../../../utils/linkHelper';
 
-suite('Open Link Test Suite', () => {
+suite('Open Link Test Suite', function () {
   const sandbox = sinon.createSandbox();
 
   afterEach(() => {
     sandbox.restore();
   });
 
-  test('the helper server is instantiated correctly', () => {
+  test('the helper server is instantiated correctly', function () {
     const stubServer: any = { on: sandbox.spy(), listen: sandbox.spy() };
     const stubCreateServer: any = sinon
       .stub(http, 'createServer')
@@ -25,7 +25,7 @@ suite('Open Link Test Suite', () => {
     stubCreateServer.restore();
   });
 
-  test('the browser opens correctly for mongodb.com', () => {
+  test('the browser opens correctly for mongodb.com', function () {
     const stubServer: any = {
       on: sandbox.stub(),
       listen: sandbox.stub().callsArg(1),
@@ -49,7 +49,7 @@ suite('Open Link Test Suite', () => {
     stubCreateServer.restore();
   });
 
-  test('the browser opens correctly for a subdomain of mongodb.com', () => {
+  test('the browser opens correctly for a subdomain of mongodb.com', function () {
     const stubServer: any = {
       on: sandbox.stub(),
       listen: sandbox.stub().callsArg(1),
@@ -73,7 +73,7 @@ suite('Open Link Test Suite', () => {
     stubCreateServer.restore();
   });
 
-  test('handles errors', (done) => {
+  test('handles errors', function (done) {
     class EventEmitterStub extends EventEmitter {
       listen(): void {}
     }
@@ -89,21 +89,21 @@ suite('Open Link Test Suite', () => {
     eventEmitterStub.emit('error', new Error('some error'));
   });
 
-  test('does not allow insecure connections', (done) => {
+  test('does not allow insecure connections', function (done) {
     openLink('http://mongodb.com', 4321).catch((e) => {
       expect(e.message).to.equal('untrusted url');
       done();
     });
   });
 
-  test('does not allow untrusted urls', (done) => {
+  test('does not allow untrusted urls', function (done) {
     openLink('https://mongobd.com', 4321).catch((e) => {
       expect(e.message).to.equal('untrusted url');
       done();
     });
   });
 
-  test('does not allow untrusted urls that contain mongodb.com', (done) => {
+  test('does not allow untrusted urls that contain mongodb.com', function (done) {
     openLink('https://mongodb.com.foo.dev', 4321).catch((e) => {
       expect(e.message).to.equal('untrusted url');
       done();

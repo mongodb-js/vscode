@@ -16,9 +16,7 @@ class Logger implements ILogger {
   }
 
   private formatMessage(message?: any, ...optionalParams: any[]): string {
-    return `[${this.name}] ${message} ${
-      optionalParams.length ? util.inspect(optionalParams) : ''
-    }`;
+    return `[${this.name}] ${message as string} ${optionalParams.length ? util.inspect(optionalParams) : ''}`;
   }
 
   public trace(message?: any, ...optionalParams: any[]): void {

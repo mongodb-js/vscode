@@ -372,13 +372,13 @@ export class ParticipantFeedbackTelemetryEvent implements TelemetryEventBase {
     /** If the feedback was negative, the reason for the negative feedback. It's picked from
      * a set of predefined options and not a free-form text field.
      *  */
-    reason?: String;
+    reason?: string;
   };
 
   constructor(
     feedback: vscode.ChatResultFeedbackKind,
     responseType: ParticipantResponseType,
-    reason?: String,
+    reason?: string,
   ) {
     this.properties = {
       feedback: this.chatResultFeedbackKindToTelemetryValue(feedback),
@@ -641,7 +641,7 @@ export class PresetConnectionEditedTelemetryEvent
  */
 export class SidePanelOpenedTelemetryEvent implements TelemetryEventBase {
   type = 'Side Panel Opened';
-  properties: {};
+  properties: Record<string, never>;
 
   constructor() {
     this.properties = {};
