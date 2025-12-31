@@ -43,6 +43,9 @@ module.exports = (env, argv) => {
 
         'hadron-ipc': false,
 
+        // We don't use the diagramming library from compass-components and it's a large dep.
+        '@mongodb-js/diagramming': false,
+
         // We don't currently support kerberos in our extension.
         kerberos: false,
 
