@@ -4,6 +4,7 @@ import type { Document } from 'bson';
 import parseShellStringToEJSON, {
   ParseMode,
 } from '@mongodb-js/shell-bson-parser';
+import { toJSString } from 'mongodb-query-parser';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
@@ -23,6 +24,8 @@ import DocumentIdStore from './documentIdStore';
 import type { DocumentSource } from '../documentSource';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
+import type { DocumentViewAndEditFormat } from './types';
+import { getDocumentViewAndEditFormat } from './types';
 import formatError from '../utils/formatError';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
 import MongoDBDocumentService, {
@@ -224,7 +227,6 @@ export default class EditorsController {
     }
   }
 
-  // eslint-disable-next-line complexity
   async saveMongoDBDocument(): Promise<boolean> {
     const editor = vscode.window.activeTextEditor;
 
@@ -255,10 +257,8 @@ export default class EditorsController {
     }
 
     try {
-      const editFormat =
-        vscode.workspace
-          .getConfiguration('mdb')
-          .get('documentViewAndEditFormat') ?? 'shell';
+      // TODO: This should be earlier.
+      const editFormat = getDocumentViewAndEditFormat();
       let newDocument: Document;
       if (editFormat === 'shell') {
         newDocument = parseShellStringToEJSON(editor.document.getText() || '', {
@@ -374,11 +374,18 @@ export default class EditorsController {
     fileUri: vscode.Uri,
     document: Document,
   ): void {
-    this._memoryFileSystemProvider.writeFile(
-      fileUri,
-      Buffer.from(JSON.stringify(document, null, 2)),
-      { create: true, overwrite: true },
-    );
+    // TODO: This should be in the URI, not loaded on the fly.
+    const editFormat = getDocumentViewAndEditFormat();
+
+    const content =
+      editFormat === 'shell'
+        ? (toJSString(document, 2) ?? '')
+        : JSON.stringify(document, null, 2);
+
+    this._memoryFileSystemProvider.writeFile(fileUri, Buffer.from(content), {
+      create: true,
+      overwrite: true,
+    });
   }
 
   _resetMemoryFileSystemProvider(): void {

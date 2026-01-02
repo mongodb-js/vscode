@@ -36,6 +36,7 @@ import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import { getDocumentViewAndEditFormat } from './types';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 import {
@@ -390,10 +391,7 @@ export default class PlaygroundController {
       // Send a request to the language server to execute scripts from a playground.
       result = await this._languageServerController.evaluate(
         {
-          expectedFormat:
-            vscode.workspace
-              .getConfiguration('mdb')
-              .get('documentViewAndEditFormat') ?? 'shell',
+          expectedFormat: getDocumentViewAndEditFormat(),
           codeToEvaluate,
           connectionId,
           filePath,

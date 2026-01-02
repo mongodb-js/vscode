@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import { URLSearchParams } from 'url';
+import { toJSString } from 'mongodb-query-parser';
 
 import type CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
+import { getDocumentViewAndEditFormat } from './types';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -108,6 +110,14 @@ export default class CollectionViewProvider
         namespace,
         uri,
       });
+
+      const editFormat = getDocumentViewAndEditFormat();
+
+      if (editFormat === 'shell') {
+        // TODO
+        // const ejsonDocuments = documents.map((doc) => getEJSON(doc));
+        return toJSString(documents, 2) ?? '';
+      }
 
       return JSON.stringify(documents, null, 2);
     } catch (error) {

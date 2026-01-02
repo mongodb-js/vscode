@@ -46,9 +46,10 @@ const getContent = ({
 
 export const getLanguage = (
   content: unknown,
+  expectedFormat: DocumentViewAndEditFormat,
 ): 'json' | 'plaintext' | 'javascript' => {
   if (typeof content === 'object' && content !== null) {
-    return content.expectedFormat === 'shell' ? 'javascript' : 'json';
+    return expectedFormat === 'shell' ? 'javascript' : 'json';
   }
 
   return 'plaintext';
@@ -138,7 +139,7 @@ export const execute = async ({
       namespace,
       type: type ? type : typeof rpcSafePrintable,
       content,
-      language: getLanguage(content),
+      language: getLanguage(content, expectedFormat),
     };
 
     return { data: { result } };
