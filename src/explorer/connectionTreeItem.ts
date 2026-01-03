@@ -215,7 +215,8 @@ export default class ConnectionTreeItem
     const databases = await this.listDatabases();
     databases.sort((a: string, b: string) => a.localeCompare(b));
 
-    const newChildrenCache: Record<string, DatabaseTreeItem> = {};
+    const newChildrenCache: Record<string, DatabaseTreeItem> =
+      Object.create(null);
 
     databases.forEach((databaseName: string) => {
       const cachedItem = this._childrenCache[databaseName] as DatabaseTreeItem;
@@ -239,7 +240,8 @@ export default class ConnectionTreeItem
     const processors = await this.listStreamProcessors();
     processors.sort((a, b) => a.name.localeCompare(b.name));
 
-    const newChildrenCache: Record<string, StreamProcessorTreeItem> = {};
+    const newChildrenCache: Record<string, StreamProcessorTreeItem> =
+      Object.create(null);
 
     processors.forEach((sp) => {
       const cachedItem = this._childrenCache[
