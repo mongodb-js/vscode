@@ -91,6 +91,8 @@ suite('OIDC Tests', function () {
   let createTerminalStub: SinonStub;
   let sendTextStub: SinonStub;
 
+  let originalBrowserCommandForOIDCAuth;
+
   before(async function () {
     if (process.platform !== 'linux') {
       // OIDC is only supported on Linux in the 7.0+ enterprise server.
@@ -143,9 +145,31 @@ suite('OIDC Tests', function () {
     cs.searchParams.set('authMechanism', 'MONGODB-OIDC');
 
     connectionString = cs.toString();
+
+    originalBrowserCommandForOIDCAuth = vscode.workspace
+      .getConfiguration('mdb')
+      .get('browserCommandForOIDCAuth');
+
+    // This is required to follow through the redirect while establishing
+    // connection
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update(
+        'browserCommandForOIDCAuth',
+        browserShellCommand,
+        vscode.ConfigurationTarget.Global,
+      );
   });
 
   after(async function () {
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update(
+        'browserCommandForOIDCAuth',
+        originalBrowserCommandForOIDCAuth,
+        vscode.ConfigurationTarget.Global,
+      );
+
     if (process.platform !== 'linux') {
       return;
     }
@@ -154,18 +178,12 @@ suite('OIDC Tests', function () {
     await cluster?.close();
   });
 
-  beforeEach(async function () {
+  beforeEach(function () {
     sandbox.stub(testTelemetryService, 'trackNewConnection');
     showInformationMessageStub = sandbox.stub(
       vscode.window,
       'showInformationMessage',
     );
-
-    // This is required to follow through the redirect while establishing
-    // connection
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('browserCommandForOIDCAuth', browserShellCommand);
 
     createTerminalStub = sandbox.stub(vscode.window, 'createTerminal');
     sendTextStub = sandbox.stub();

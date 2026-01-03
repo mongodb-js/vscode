@@ -1150,7 +1150,8 @@
             "Use the legacy mongo shell"
           ],
           "default": "mongosh",
-          "description": "The MongoDB shell to use."
+          "description": "The MongoDB shell to use.",
+          "scope": "application"
         },
         "mdb.showMongoDBConnectionExplorer": {
           "type": "boolean",
@@ -1258,7 +1259,8 @@
         "mdb.browserCommandForOIDCAuth": {
           "type": "string",
           "default": "",
-          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
+          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser.",
+          "scope": "application"
         },
         "mdb.presetConnections": {
           "scope": "window",

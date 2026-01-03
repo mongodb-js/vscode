@@ -74,6 +74,13 @@ const openMongoDBShell = (
     return Promise.resolve(false);
   }
 
+  if (shellCommand !== 'mongo' && shellCommand !== 'mongosh') {
+    void vscode.window.showErrorMessage(
+      'Invalid MongoDB shell command specified. Please set the shell command to "mongo" or "mongosh" in the MongoDB extension settings.',
+    );
+    return Promise.resolve(false);
+  }
+
   const mdbConnectionString = connectionController.getActiveConnectionString();
   const parentHandle =
     connectionController.getMongoClientConnectionOptions()?.options

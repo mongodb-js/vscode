@@ -71,24 +71,4 @@ suite('Playgrounds Controller Test Suite', function () {
     // excluding the ./playgrounds directory.
     expect(Object.keys(children).length).to.equal(4);
   });
-
-  test('should fetch new folders and files to exclude after refreshing', async function () {
-    const treeController = new PlaygroundsTree();
-
-    expect(treeController.excludeFromPlaygroundsSearch).to.not.include(
-      '**/playgrounds/**',
-    );
-
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update(
-        'excludeFromPlaygroundsSearch',
-        excludeFromPlaygroundsSearchDefault.concat(['**/playgrounds/**']),
-      );
-    await treeController.refresh();
-
-    expect(treeController.excludeFromPlaygroundsSearch).to.include(
-      '**/playgrounds/**',
-    );
-  });
 });

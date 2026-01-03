@@ -163,12 +163,20 @@ suite('Webview Test Suite', function () {
 
       await vscode.workspace
         .getConfiguration('mdb')
-        .update('showOIDCDeviceAuthFlow', true);
+        .update(
+          'showOIDCDeviceAuthFlow',
+          true,
+          vscode.ConfigurationTarget.Global,
+        );
     });
     after(async function () {
       await vscode.workspace
         .getConfiguration('mdb')
-        .update('showOIDCDeviceAuthFlow', originalDeviceAuthFlow);
+        .update(
+          'showOIDCDeviceAuthFlow',
+          originalDeviceAuthFlow,
+          vscode.ConfigurationTarget.Global,
+        );
     });
 
     test('web view content sets the oidc device auth id globally', function () {

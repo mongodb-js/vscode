@@ -112,7 +112,7 @@ export const getPlaygrounds = async ({
   excludeFromPlaygroundsSearch,
 }: {
   fsPath: string;
-  excludeFromPlaygroundsSearch?: string[];
+  excludeFromPlaygroundsSearch: string[];
 }): Promise<{ name: string; path: string }[]> => {
   const result: { name: string; path: string }[] = [];
   const fileNames = await getFileNames(fsPath);
