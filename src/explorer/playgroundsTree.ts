@@ -11,7 +11,6 @@ const log = createLogger('playgrounds tree');
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem>
 {
-  public excludeFromPlaygroundsSearch: string[];
   private _playgroundsTreeHeaders: PlaygroundsTreeHeader[];
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
@@ -20,10 +19,6 @@ export default class PlaygroundsTree
   contextValue = 'playgroundsTree' as const;
 
   constructor() {
-    this.excludeFromPlaygroundsSearch =
-      vscode.workspace
-        .getConfiguration('mdb')
-        .get('excludeFromPlaygroundsSearch') || [];
     this._playgroundsTreeHeaders = [];
     this._playgroundsTreeItems = {};
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
@@ -84,11 +79,6 @@ export default class PlaygroundsTree
   };
 
   public refresh = (): Promise<boolean> => {
-    this.excludeFromPlaygroundsSearch =
-      vscode.workspace
-        .getConfiguration('mdb')
-        .get('excludeFromPlaygroundsSearch') || [];
-
     this._onDidChangeTreeData.fire(null);
 
     return Promise.resolve(true);

@@ -56,31 +56,60 @@ suite('Commands Test Suite', function () {
       expect(showErrorMessageStub.firstCall.args[0]).to.equal(expectedMessage);
     });
 
-    test('openMongoDBShell should open a terminal with the active connection driver url', async function () {
+    suite('when connected', function () {
       const expectedDriverUrl =
         'mongodb://localhost:27088/?readPreference=primary&ssl=false';
-
-      getMongoClientConnectionOptionsStub.returns({
-        url: 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
-        options: {},
+      beforeEach(() => {
+        getMongoClientConnectionOptionsStub.returns({
+          url: expectedDriverUrl,
+          options: {},
+        });
+        isCurrentlyConnectedStub.returns(true);
       });
-      isCurrentlyConnectedStub.returns(true);
 
-      await launchMongoShell(testConnectionController);
+      test('openMongoDBShell should show an error message when an invalid shell command is specified', async function () {
+        const expectedMessage =
+          'Invalid MongoDB shell command specified. Please set the shell command to "mongo" or "mongosh" in the MongoDB extension settings.';
+        sandbox.stub(vscode.workspace, 'getConfiguration').returns({
+          get: () => 'invalidShellCommand',
+        } as unknown as vscode.WorkspaceConfiguration);
+        await launchMongoShell(testConnectionController);
+        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
+          expectedMessage,
+        );
+      });
 
-      expect(createTerminalStub.called).to.be.true;
+      test('openMongoDBShell should show an error message when no shell command is specified', async function () {
+        const expectedMessage =
+          'No MongoDB shell command found. Please set the shell command in the MongoDB extension settings.';
+        sandbox.stub(vscode.workspace, 'getConfiguration').returns({
+          get: () => '',
+        } as unknown as vscode.WorkspaceConfiguration);
+        await launchMongoShell(testConnectionController);
+        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
+          expectedMessage,
+        );
+      });
 
-      const terminalOptions: vscode.TerminalOptions =
-        createTerminalStub.firstCall.args[0];
-      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
-        expectedDriverUrl,
-      );
-      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
-        expectedDriverUrl,
-      );
+      test('openMongoDBShell should open a terminal with the active connection driver url', async function () {
+        await launchMongoShell(testConnectionController);
 
-      const shellCommandText = sendTextStub.firstCall.args[0];
-      expect(shellCommandText).to.equal('mongosh $MDB_CONNECTION_STRING;');
+        expect(createTerminalStub.called).to.be.true;
+
+        const terminalOptions: vscode.TerminalOptions =
+          createTerminalStub.firstCall.args[0];
+        expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+          expectedDriverUrl,
+        );
+        expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+          expectedDriverUrl,
+        );
+
+        const shellCommandText = sendTextStub.firstCall.args[0];
+        expect(shellCommandText).to.equal('mongosh $MDB_CONNECTION_STRING;');
+
+        expect(showErrorMessageStub.called).to.be.false;
+      });
     });
   });
 
