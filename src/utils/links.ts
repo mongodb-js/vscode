@@ -10,7 +10,7 @@ const addUTMAttrs = (url: string): string => {
 
 const LINKS = {
   changelog: 'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
-  feedback: 'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/',
+  feedback: 'https://feedback.mongodb.com/?category=7548143030521447168',
   github: 'https://github.com/mongodb-js/vscode',
   reportBug: 'https://github.com/mongodb-js/vscode/issues',
   atlas: 'https://www.mongodb.com/cloud/atlas',
