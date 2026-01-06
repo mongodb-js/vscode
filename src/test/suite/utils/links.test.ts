@@ -4,7 +4,7 @@ import LINKS from '../../../utils/links';
 const expectedLinks = {
   changelog: 'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
   feedback:
-    'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/?utm_source=vscode&utm_medium=product',
+    'https://feedback.mongodb.com/?category=7548143030521447168&utm_source=vscode&utm_medium=product',
   github: 'https://github.com/mongodb-js/vscode',
   reportBug: 'https://github.com/mongodb-js/vscode/issues',
   atlas:
