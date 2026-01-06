@@ -85,9 +85,9 @@ export default class DocumentTreeItem
   }
 
   async getJSStringDocumentContents(): Promise<string> {
-    const ejsonDocument = await this.getDocumentContents();
+    const document = await this.getDocumentContents();
 
-    return toJSString(ejsonDocument, 2) ?? '';
+    return toJSString(document, 2) ?? '';
   }
 
   async onDeleteDocumentClicked(): Promise<boolean> {

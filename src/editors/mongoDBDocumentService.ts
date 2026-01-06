@@ -145,7 +145,7 @@ export default class MongoDBDocumentService {
         return;
       }
 
-      return getEJSON(documents[0]);
+      return data.format === 'ejson' ? getEJSON(documents[0]) : documents[0];
     } catch (error) {
       return this._fetchDocumentFailed(formatError(error).message);
     } finally {

@@ -208,6 +208,17 @@
         "extensions": [
           ".tf"
         ]
+      },
+      {
+        "id": "mongodb-document",
+        "aliases": [
+          "MongoDB Document",
+          "mongodb-document"
+        ],
+        "extensions": [
+          ".mdb"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
@@ -217,6 +228,11 @@
         "injectTo": [
           "source.js"
         ]
+      },
+      {
+        "language": "mongodb-document",
+        "scopeName": "source.mongodb-document",
+        "path": "./syntaxes/mongodb-document.tmLanguage.json"
       }
     ],
     "snippets": [

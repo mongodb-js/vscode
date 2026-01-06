@@ -171,6 +171,8 @@ suite('MongoDB Document Service Test Suite', function () {
       namespace,
       documentId,
       line,
+      // TODO: Shell test.
+      format: 'ejson',
       connectionId,
       source,
     });
@@ -223,6 +225,8 @@ suite('MongoDB Document Service Test Suite', function () {
       namespace,
       documentId,
       line,
+      // TODO: Shell test.
+      format: 'ejson',
       connectionId,
       source,
     });
@@ -336,6 +340,8 @@ suite('MongoDB Document Service Test Suite', function () {
         namespace,
         documentId,
         line,
+        // TODO: Shell test.
+        format: 'ejson',
         connectionId,
         source,
       });

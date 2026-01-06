@@ -24,7 +24,6 @@ import DocumentIdStore from './documentIdStore';
 import type { DocumentSource } from '../documentSource';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
-import type { DocumentViewAndEditFormat } from './types';
 import { getDocumentViewAndEditFormat } from './types';
 import formatError from '../utils/formatError';
 import { MemoryFileSystemProvider } from './memoryFileSystemProvider';
@@ -207,7 +206,11 @@ export default class EditorsController {
       const fileTitle = encodeURIComponent(
         getFileDisplayNameForDocument(data.documentId, data.namespace),
       );
-      const fileName = `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.json`;
+      const fileName =
+        data.format === 'ejson'
+          ? `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.json`
+          : `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.mdb`;
+      // const fileName = `${VIEW_DOCUMENT_SCHEME}:/${fileTitle}.json`;
 
       const fileUri = vscode.Uri.parse(fileName, true).with({
         query: `?${namespaceUriQuery}&${connectionIdUriQuery}&${documentIdUriQuery}&${documentSourceUriQuery}`,
@@ -218,6 +221,10 @@ export default class EditorsController {
       const document = await vscode.workspace.openTextDocument(fileUri);
 
       await vscode.window.showTextDocument(document, { preview: false });
+      await vscode.languages.setTextDocumentLanguage(
+        document,
+        data.format === 'ejson' ? 'json' : 'mongodb-document',
+      );
 
       return true;
     } catch (error) {
@@ -378,9 +385,9 @@ export default class EditorsController {
     const editFormat = getDocumentViewAndEditFormat();
 
     const content =
-      editFormat === 'shell'
-        ? (toJSString(document, 2) ?? '')
-        : JSON.stringify(document, null, 2);
+      editFormat === 'ejson'
+        ? JSON.stringify(document, null, 2)
+        : (toJSString(document, 2) ?? '');
 
     this._memoryFileSystemProvider.writeFile(fileUri, Buffer.from(content), {
       create: true,
@@ -418,19 +425,22 @@ export default class EditorsController {
       ),
     );
     this._context.subscriptions.push(
-      vscode.workspace.registerTextDocumentContentProvider(
-        PLAYGROUND_RESULT_SCHEME,
-        this._playgroundResultProvider,
+      vscode.languages.registerCodeLensProvider(
+        [
+          { scheme: PLAYGROUND_RESULT_SCHEME, language: 'json' },
+          { scheme: PLAYGROUND_RESULT_SCHEME, language: 'mongodb-document' },
+        ],
+        this._editDocumentCodeLensProvider,
       ),
     );
     // REGISTER CODE LENSES PROVIDERS.
     this._context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(
-        {
-          scheme: VIEW_COLLECTION_SCHEME,
-          language: 'json',
-        },
-        this._collectionDocumentsCodeLensProvider,
+        [
+          { scheme: VIEW_COLLECTION_SCHEME, language: 'json' },
+          { scheme: VIEW_COLLECTION_SCHEME, language: 'mongodb-document' },
+        ],
+        this._editDocumentCodeLensProvider,
       ),
     );
     this._context.subscriptions.push(

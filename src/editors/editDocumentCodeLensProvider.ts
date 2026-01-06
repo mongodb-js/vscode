@@ -8,6 +8,7 @@ import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import { ExtensionCommand } from '../commands';
 import { PLAYGROUND_RESULT_URI } from './playgroundResultProvider';
 import type { PlaygroundRunResult } from '../types/playgroundType';
+import { getDocumentViewAndEditFormat } from './types';
 
 export default class EditDocumentCodeLensProvider
   implements vscode.CodeLensProvider
@@ -94,6 +95,7 @@ export default class EditDocumentCodeLensProvider
             documentId: EJSON.deserialize(
               EJSON.serialize(item._id, { relaxed: false }),
             ),
+            format: getDocumentViewAndEditFormat(),
             source,
             line,
             namespace,
@@ -130,6 +132,7 @@ export default class EditDocumentCodeLensProvider
         ),
         source,
         line: 1,
+        format: getDocumentViewAndEditFormat(),
         namespace,
         connectionId,
       });

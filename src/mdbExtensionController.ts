@@ -58,6 +58,7 @@ import {
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
+import { getDocumentViewAndEditFormat } from './editors/types';
 
 // Deep link command filtering: Commands are explicitly categorized as allowed or disallowed.
 // We use tests in mdbExtensionController.test.ts to enforce these lists being disjoint and complete.
@@ -872,6 +873,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           source: DocumentSource.treeview,
           documentId: element.documentId,
           namespace: element.namespace,
+          format: getDocumentViewAndEditFormat(),
           connectionId: this._connectionController.getActiveConnectionId(),
           line: 1,
         });
@@ -955,8 +957,11 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       ExtensionCommand.mdbCopyDocumentContentsFromTreeView,
       async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
+        const documentFormat = getDocumentViewAndEditFormat();
         const documentContents =
-          await documentTreeItem.getStringifiedEJSONDocumentContents();
+          documentFormat === 'ejson'
+            ? await documentTreeItem.getStringifiedEJSONDocumentContents()
+            : await documentTreeItem.getJSStringDocumentContents();
         await vscode.env.clipboard.writeText(documentContents);
         void vscode.window.showInformationMessage('Copied to clipboard.');
 
