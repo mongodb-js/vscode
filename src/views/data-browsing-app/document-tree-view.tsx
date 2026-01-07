@@ -1,81 +1,80 @@
 import React, { useState } from 'react';
-import { css } from '@mongodb-js/compass-components';
+import { css, cx, spacing } from '@mongodb-js/compass-components';
+
+// Shared typography for monospace code display
+const codeTypography = {
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: 13,
+  lineHeight: '19px',
+} as const;
+
+const responsiveFontSize = {
+  '@media (max-width: 640px)': {
+    fontSize: 12,
+  },
+} as const;
 
 const documentTreeViewContainerStyles = css({
   display: 'flex',
-  padding: '0',
-  alignItems: 'flex-start',
   alignSelf: 'stretch',
-  position: 'relative',
   width: '100%',
-  marginBottom: '8px',
+  marginBottom: spacing[200],
 });
 
 const documentContentStyles = css({
   display: 'flex',
-  padding: '12px 16px',
+  padding: `${spacing[300]}px ${spacing[400]}px`,
   flexDirection: 'column',
-  justifyContent: 'flex-start',
-  alignItems: 'flex-start',
   flex: '1 0 0',
-  borderRadius: '4px',
+  borderRadius: spacing[100],
   border: '1px solid rgba(255, 255, 255, 0.1)',
-  position: 'relative',
   backgroundColor: '#2D2D30',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-  fontSize: '13px',
-  lineHeight: '19px',
+  ...codeTypography,
   width: '100%',
   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
   '@media (max-width: 991px)': {
     padding: '10px 14px',
   },
   '@media (max-width: 640px)': {
-    padding: '8px 12px',
-    fontSize: '12px',
+    padding: `${spacing[200]}px ${spacing[300]}px`,
+    fontSize: 12,
   },
 });
 
 const parentNodeStyles = css({
   display: 'flex',
-  padding: '0',
   flexDirection: 'column',
-  alignItems: 'flex-start',
-  position: 'relative',
   width: '100%',
 });
 
 const nodeRowStyles = css({
   display: 'flex',
-  alignItems: 'flex-start',
-  gap: '4px',
+  gap: spacing[100],
   alignSelf: 'stretch',
-  position: 'relative',
-  minHeight: '19px',
-  paddingLeft: '16px',
+  minHeight: 19,
+  paddingLeft: spacing[400],
   '@media (max-width: 640px)': {
-    gap: '3px',
-    paddingLeft: '12px',
+    gap: 3,
+    paddingLeft: spacing[300],
   },
 });
 
 const caretStyles = css({
-  width: '16px',
-  height: '19px',
-  position: 'relative',
+  width: spacing[400],
+  height: 19,
   flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  marginLeft: '-16px',
+  marginLeft: -spacing[400],
   '@media (max-width: 640px)': {
-    marginLeft: '-12px',
+    marginLeft: -spacing[300],
   },
 });
 
 const caretIconStyles = css({
   color: '#CCCCCC',
-  fontSize: '12px',
+  fontSize: 12,
   lineHeight: '19px',
   fontFamily: 'codicon',
   userSelect: 'none',
@@ -95,86 +94,64 @@ const caretExpandedStyles = css({
 });
 
 const childrenContainerStyles = css({
-  paddingLeft: '16px',
+  paddingLeft: spacing[400],
   '@media (max-width: 640px)': {
-    paddingLeft: '12px',
+    paddingLeft: spacing[300],
   },
 });
 
 const keyValueContainerStyles = css({
   display: 'flex',
-  alignItems: 'flex-start',
-  position: 'relative',
   flexWrap: 'wrap',
-  gap: '0',
 });
 
-const keyStyles = css({
-  color: '#9CDCFE',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-  fontSize: '13px',
-  lineHeight: '19px',
-  fontWeight: 400,
-  whiteSpace: 'nowrap',
-  '@media (max-width: 640px)': {
-    fontSize: '12px',
-  },
+const baseTextStyles = css({
+  ...codeTypography,
+  ...responsiveFontSize,
 });
 
-const colonStyles = css({
-  color: '#D4D4D4',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-  fontSize: '13px',
-  lineHeight: '19px',
-  fontWeight: 400,
-  '@media (max-width: 640px)': {
-    fontSize: '12px',
-  },
-});
+const keyStyles = cx(
+  baseTextStyles,
+  css({
+    color: '#9CDCFE',
+    whiteSpace: 'nowrap',
+  })
+);
 
-const valueStyles = css({
-  color: '#CE9178',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-  fontSize: '13px',
-  lineHeight: '19px',
-  fontWeight: 400,
-  '@media (max-width: 640px)': {
-    fontSize: '12px',
-  },
-});
+const colonStyles = cx(
+  baseTextStyles,
+  css({
+    color: '#D4D4D4',
+  })
+);
 
-const numberValueStyles = css({
-  color: '#B5CEA8',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-  fontSize: '13px',
-  lineHeight: '19px',
-  fontWeight: 400,
-  '@media (max-width: 640px)': {
-    fontSize: '12px',
-  },
-});
+const valueStyles = cx(
+  baseTextStyles,
+  css({
+    color: '#CE9178',
+  })
+);
 
-const objectValueStyles = css({
-  color: '#4EC9B0',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-  fontSize: '13px',
-  lineHeight: '19px',
-  fontWeight: 400,
-  '@media (max-width: 640px)': {
-    fontSize: '12px',
-  },
-});
+const numberValueStyles = cx(
+  baseTextStyles,
+  css({
+    color: '#B5CEA8',
+  })
+);
 
-const commaStyles = css({
-  color: '#D4D4D4',
-  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-  fontSize: '13px',
-  lineHeight: '19px',
-  fontWeight: 400,
-  '@media (max-width: 640px)': {
-    fontSize: '12px',
-  },
-});
+const objectValueStyles = cx(
+  baseTextStyles,
+  css({
+    color: '#4EC9B0',
+  })
+);
+
+const commaStyles = cx(
+  baseTextStyles,
+  css({
+    color: '#D4D4D4',
+  })
+);
 
 interface DocumentTreeViewProps {
   document: Record<string, unknown>;
