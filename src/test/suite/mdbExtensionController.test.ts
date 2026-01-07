@@ -9,6 +9,7 @@ import type { Document, Filter } from 'mongodb';
 
 import {
   CollectionTreeItem,
+  CollectionType,
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,
@@ -29,11 +30,11 @@ import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvide
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 import { expect } from 'chai';
 import { DeepLinkTelemetryEvent } from '../../telemetry';
-import { CollectionType } from '../../explorer/documentListTreeItem';
 import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
 } from '../../mdbExtensionController';
+import * as featureFlags from '../../featureFlags';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -453,12 +454,18 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshCollection command should reset the expanded state of its children and call to refresh the explorer controller', async function () {
+      // Use DocumentListTreeItem which has isExpanded property
+      sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
+
       const testTreeItem = getTestCollectionTreeItem();
       testTreeItem.isExpanded = true;
 
       // Set expanded.
       testTreeItem.getSchemaChild().isExpanded = true;
-      testTreeItem.getDocumentsChild().isExpanded = true;
+      const documentsChild = testTreeItem.getDocumentsChild();
+      if ('isExpanded' in documentsChild) {
+        documentsChild.isExpanded = true;
+      }
 
       const fakeRefresh = sandbox.fake();
       sandbox.replace(
@@ -481,6 +488,9 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshDocumentList command should update the document count and call to refresh the explorer controller', async function () {
+      // Disable enhanced data browsing to use DocumentListTreeItem
+      sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
+
       let count = 9000;
       const testTreeItem = getTestCollectionTreeItem({
         dataService: {
@@ -490,6 +500,7 @@ suite('MDBExtensionController Test Suite', function () {
       await testTreeItem.onDidExpand();
 
       const collectionChildren = await testTreeItem.getChildren();
+      // With enhanced data browsing disabled, Documents is at index 0
       const docListTreeItem = collectionChildren[0];
       assert.strictEqual(docListTreeItem.description, '9K');
       count = 10000;
@@ -736,6 +747,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
     // TODO: update or delete the test according to VSCODE-461
+    // eslint-disable-next-line mocha/no-skipped-tests
     test.skip('mdb.dropCollection fails when a collection does not exist', async function () {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
