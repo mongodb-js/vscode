@@ -458,7 +458,7 @@ suite('MDBExtensionController Test Suite', function () {
 
       // Set expanded.
       testTreeItem.getSchemaChild().isExpanded = true;
-      testTreeItem.getDocumentListChild().isExpanded = true;
+      testTreeItem.getDocumentsChild().isExpanded = true;
 
       const fakeRefresh = sandbox.fake();
       sandbox.replace(
