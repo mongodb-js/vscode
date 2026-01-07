@@ -3,7 +3,7 @@ import PlaygroundsTreeHeader from './playgroundsTreeHeader';
 import { PLAYGROUND_ITEM } from './playgroundsTreeItem';
 import { createLogger } from '../logging';
 import PlaygroundsTreeItem from './playgroundsTreeItem';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import { getPlaygrounds } from '../utils/playground';
 
 const log = createLogger('playgrounds tree');
@@ -11,7 +11,6 @@ const log = createLogger('playgrounds tree');
 export default class PlaygroundsTree
   implements vscode.TreeDataProvider<vscode.TreeItem>
 {
-  public excludeFromPlaygroundsSearch: string[];
   private _playgroundsTreeHeaders: PlaygroundsTreeHeader[];
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };
@@ -20,10 +19,6 @@ export default class PlaygroundsTree
   contextValue = 'playgroundsTree' as const;
 
   constructor() {
-    this.excludeFromPlaygroundsSearch =
-      vscode.workspace
-        .getConfiguration('mdb')
-        .get('excludeFromPlaygroundsSearch') || [];
     this._playgroundsTreeHeaders = [];
     this._playgroundsTreeItems = {};
     this._onDidChangeTreeData = new vscode.EventEmitter<void>();
@@ -75,7 +70,7 @@ export default class PlaygroundsTree
 
         if (selectedItem.contextValue === PLAYGROUND_ITEM) {
           await vscode.commands.executeCommand(
-            EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
+            ExtensionCommand.mdbOpenPlaygroundFromTreeView,
             selectedItem,
           );
         }
@@ -84,11 +79,6 @@ export default class PlaygroundsTree
   };
 
   public refresh = (): Promise<boolean> => {
-    this.excludeFromPlaygroundsSearch =
-      vscode.workspace
-        .getConfiguration('mdb')
-        .get('excludeFromPlaygroundsSearch') || [];
-
     this._onDidChangeTreeData.fire(null);
 
     return Promise.resolve(true);

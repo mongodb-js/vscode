@@ -4,8 +4,8 @@ import { expect } from 'chai';
 
 import App from '../../../../views/webview-app/app';
 
-describe('App Component Test Suite', () => {
-  it('it renders the overview page', () => {
+describe('App Component Test Suite', function () {
+  it('it renders the overview page', function () {
     render(<App />);
     expect(screen.getByTestId('overview-page')).to.exist;
   });

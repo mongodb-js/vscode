@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import { isExportToLanguageResult } from '../types/playgroundType';
 import type PlaygroundResultProvider from './playgroundResultProvider';
 
@@ -51,8 +51,7 @@ export default class ExportToLanguageCodeLensProvider
           .includeDriverSyntax
           ? 'Exclude Driver Syntax'
           : 'Include Driver Syntax',
-        command:
-          EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE,
+        command: ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage,
         arguments: [
           !this._playgroundResultProvider._playgroundResult.includeDriverSyntax,
         ],

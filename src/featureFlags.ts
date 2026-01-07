@@ -1,5 +1,6 @@
 const FEATURE_FLAGS = {
-  useOldConnectionForm: `${process.env.MDB_USE_OLD_CONNECTION_FORM}` === 'true',
+  useOldConnectionForm:
+    `${process.env.MDB_USE_OLD_CONNECTION_FORM ?? 'false'}` === 'true',
 };
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;

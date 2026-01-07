@@ -2,24 +2,25 @@ import { useState, useEffect } from 'react';
 import {
   CONNECTION_STATUS,
   type MessageFromExtensionToWebview,
-  MESSAGE_TYPES,
+  MessageType,
+  type ConnectionStatus,
 } from './extension-app-message-constants';
 import vscode from './vscode-api';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 
 const useConnectionStatus = (): {
-  connectionStatus: CONNECTION_STATUS;
+  connectionStatus: ConnectionStatus;
   connectionName: string;
 } => {
-  const [connectionStatus, setConnectionStatus] = useState<CONNECTION_STATUS>(
-    CONNECTION_STATUS.LOADING,
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
+    CONNECTION_STATUS.loading,
   );
   const [connectionName, setConnectionName] = useState('');
   useEffect(() => {
     const handleConnectionStatusResponse = (event): void => {
       const message: MessageFromExtensionToWebview = event.data;
-      if (message.command === MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE) {
+      if (message.command === MessageType.connectionStatusMessage) {
         setConnectionStatus(message.connectionStatus);
         setConnectionName(message.activeConnectionName);
       }
@@ -28,7 +29,7 @@ const useConnectionStatus = (): {
 
     const requestConnectionStatus = (): void =>
       vscode.postMessage({
-        command: MESSAGE_TYPES.GET_CONNECTION_STATUS,
+        command: MessageType.getConnectionStatus,
       });
 
     requestConnectionStatus();

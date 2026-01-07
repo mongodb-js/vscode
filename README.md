@@ -153,7 +153,7 @@ For issues, please create a ticket in our [JIRA Project](https://jira.mongodb.or
 
 For contributing, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Is there anything else you’d like to see in MongoDB for VS Code? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code?utm_source=vscode&utm_medium=product).
+Is there anything else you’d like to see in MongoDB for VS Code? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com/?category=7548143030521447168&utm_source=vscode&utm_medium=product).
 
 ## Building and Installing from Source
 

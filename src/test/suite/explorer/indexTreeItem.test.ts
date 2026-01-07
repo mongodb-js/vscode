@@ -6,8 +6,8 @@ import IndexTreeItem, {
 } from '../../../explorer/indexTreeItem';
 import type * as vscode from 'vscode';
 
-suite('IndexTreeItem Test Suite', () => {
-  test('it has tree items for each key in the index', async () => {
+suite('IndexTreeItem Test Suite', function () {
+  test('it has tree items for each key in the index', async function () {
     const testIndexTreeItem = new IndexTreeItem({
       index: {
         v: 1,
@@ -29,11 +29,11 @@ suite('IndexTreeItem Test Suite', () => {
     assert.strictEqual(indexKeyTreeItems[1].label, 'gnocchi');
   });
 
-  suite('IndexFieldTreeItem', () => {
-    test('it has an icon for the index type', () => {
+  suite('IndexFieldTreeItem', function () {
+    test('it has an icon for the index type', function () {
       const testIndexFieldTreeItem = new IndexFieldTreeItem({
         indexKey: 'locations',
-        indexKeyType: IndexKeyType.GEOSPHERE,
+        indexKeyType: IndexKeyType.geosphere,
       });
 
       const iconPath = testIndexFieldTreeItem.iconPath as {

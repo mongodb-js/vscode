@@ -25,7 +25,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
   // The test extension runner.
   extensionContextStub.extensionPath = '../../';
 
-  suite('the MongoDB playground in JS', () => {
+  suite('the MongoDB playground in JS', function () {
     const testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
     const sandbox = sinon.createSandbox();
     let testActiveTextEditor;
@@ -90,7 +90,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       sandbox.restore();
     });
 
-    suite('copilot is disabled', () => {
+    suite('copilot is disabled', function () {
       beforeEach(() => {
         sandbox.replace(
           vscode.extensions,
@@ -99,7 +99,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         );
       });
 
-      test('renders only the run selected playground blocks code action', () => {
+      test('renders only the run selected playground blocks code action', function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string => '123';
@@ -132,7 +132,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       });
     });
 
-    suite('copilot is active', () => {
+    suite('copilot is active', function () {
       beforeEach(() => {
         sandbox.replace(
           vscode.extensions,
@@ -141,7 +141,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         );
       });
 
-      test('does not render code actions when text is not selected', () => {
+      test('does not render code actions when text is not selected', function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string => '123';
@@ -154,7 +154,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         expect(codeActions).to.not.exist;
       });
 
-      test('renders the run selected playground blocks code action', () => {
+      test('renders the run selected playground blocks code action', function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string => '123';
@@ -186,7 +186,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         }
       });
 
-      suite('renders export to java code actions', () => {
+      suite('renders export to java code actions', function () {
         beforeEach(() => {
           const activeTextEditor = mockTextEditor;
           activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
@@ -202,7 +202,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
           });
         });
 
-        test('renders the exclude driver syntax code action and changes it to include', async () => {
+        test('renders the exclude driver syntax code action and changes it to include', async function () {
           const codeActions = testCodeActionProvider.provideCodeActions();
 
           if (!codeActions) {
@@ -260,7 +260,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         });
       });
 
-      test('renders export to csharp code actions', async () => {
+      test('renders export to csharp code actions', async function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string => "{ name: '22' }";
@@ -294,7 +294,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         }
       });
 
-      test('renders export to python code actions', async () => {
+      test('renders export to python code actions', async function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string =>
@@ -342,7 +342,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         }
       });
 
-      test('renders export to ruby code actions', async () => {
+      test('renders export to ruby code actions', async function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string =>
@@ -391,7 +391,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         }
       });
 
-      test('renders export to go code actions', async () => {
+      test('renders export to go code actions', async function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string =>
@@ -440,7 +440,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         }
       });
 
-      test('renders export to rust code actions', async () => {
+      test('renders export to rust code actions', async function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string =>
@@ -489,7 +489,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
         }
       });
 
-      test('renders export to php code actions', async () => {
+      test('renders export to php code actions', async function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
         activeTextEditor.document.getText = (): string =>
@@ -540,7 +540,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
     });
   });
 
-  suite('the regular JS file', () => {
+  suite('the regular JS file', function () {
     const testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
     const sandbox = sinon.createSandbox();
     let testActiveTextEditor;
@@ -557,7 +557,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       sandbox.restore();
     });
 
-    test('does not render code actions when text is not selected', () => {
+    test('does not render code actions when text is not selected', function () {
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse('test.js');
       activeTextEditor.document.getText = (): string => '123';
@@ -570,7 +570,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       expect(codeActions).to.be.undefined;
     });
 
-    test('does not render code actions when text is selected', () => {
+    test('does not render code actions when text is selected', function () {
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse('test.js');
       activeTextEditor.document.getText = (): string => '123';

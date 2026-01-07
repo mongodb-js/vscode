@@ -44,7 +44,7 @@ export interface NamespaceState {
 }
 
 export class Visitor {
-  _state: CompletionState | NamespaceState | {};
+  _state: CompletionState | NamespaceState | Record<string, never>;
   _selection: VisitorSelection;
 
   constructor() {
