@@ -1,94 +1,179 @@
 import React, { useState } from 'react';
-import {
-  css,
-  cx,
-  spacing,
-  fontFamilies,
-  KeylineCard,
-  Icon,
-  palette,
-  codePalette,
-  useDarkMode,
-} from '@mongodb-js/compass-components';
+import { css } from '@mongodb-js/compass-components';
 
 const documentTreeViewContainerStyles = css({
-  marginBottom: spacing[200],
+  display: 'flex',
+  padding: '0',
+  alignItems: 'flex-start',
+  alignSelf: 'stretch',
+  position: 'relative',
+  width: '100%',
+  marginBottom: '8px',
 });
 
 const documentContentStyles = css({
-  padding: `${spacing[300]}px ${spacing[400]}px`,
-  fontFamily: fontFamilies.code,
-  fontSize: 12,
-  lineHeight: '16px',
+  display: 'flex',
+  padding: '12px 16px',
+  flexDirection: 'column',
+  justifyContent: 'flex-start',
+  alignItems: 'flex-start',
+  flex: '1 0 0',
+  borderRadius: '4px',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  position: 'relative',
+  backgroundColor: '#2D2D30',
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: '13px',
+  lineHeight: '19px',
+  width: '100%',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
+  '@media (max-width: 991px)': {
+    padding: '10px 14px',
+  },
+  '@media (max-width: 640px)': {
+    padding: '8px 12px',
+    fontSize: '12px',
+  },
 });
 
 const parentNodeStyles = css({
   display: 'flex',
+  padding: '0',
   flexDirection: 'column',
+  alignItems: 'flex-start',
+  position: 'relative',
+  width: '100%',
 });
 
 const nodeRowStyles = css({
   display: 'flex',
-  gap: spacing[100],
-  minHeight: 16,
-  paddingLeft: spacing[400],
+  alignItems: 'flex-start',
+  gap: '4px',
+  alignSelf: 'stretch',
+  position: 'relative',
+  minHeight: '19px',
+  paddingLeft: '16px',
+  '@media (max-width: 640px)': {
+    gap: '3px',
+    paddingLeft: '12px',
+  },
 });
 
 const caretStyles = css({
-  width: spacing[400],
-  height: 16,
+  width: '16px',
+  height: '19px',
+  position: 'relative',
   flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  marginLeft: -spacing[400],
+  marginLeft: '-16px',
+  '@media (max-width: 640px)': {
+    marginLeft: '-12px',
+  },
 });
 
-const expandButtonStyles = css({
-  margin: 0,
-  padding: 0,
-  border: 'none',
-  background: 'none',
-  display: 'flex',
+const caretIconStyles = css({
+  color: '#CCCCCC',
+  fontSize: '12px',
+  lineHeight: '19px',
+  fontFamily: 'codicon',
+  userSelect: 'none',
   cursor: 'pointer',
+  transition: 'transform 0.1s ease',
+  '&:hover': {
+    color: '#FFFFFF',
+  },
 });
 
 const clickableRowStyle = css({
   cursor: 'pointer',
 });
 
+const caretExpandedStyles = css({
+  transform: 'rotate(90deg)',
+});
+
 const childrenContainerStyles = css({
-  paddingLeft: spacing[400],
+  paddingLeft: '16px',
+  '@media (max-width: 640px)': {
+    paddingLeft: '12px',
+  },
 });
 
 const keyValueContainerStyles = css({
   display: 'flex',
+  alignItems: 'flex-start',
+  position: 'relative',
   flexWrap: 'wrap',
+  gap: '0',
 });
 
-const keyStylesBase = css({
-  fontWeight: 'bold',
+const keyStyles = css({
+  color: '#9CDCFE',
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: '13px',
+  lineHeight: '19px',
+  fontWeight: 400,
   whiteSpace: 'nowrap',
+  '@media (max-width: 640px)': {
+    fontSize: '12px',
+  },
 });
 
-const keyStylesLight = css({
-  color: palette.gray.dark3,
+const colonStyles = css({
+  color: '#D4D4D4',
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: '13px',
+  lineHeight: '19px',
+  fontWeight: 400,
+  '@media (max-width: 640px)': {
+    fontSize: '12px',
+  },
 });
 
-const keyStylesDark = css({
-  color: palette.gray.light2,
+const valueStyles = css({
+  color: '#CE9178',
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: '13px',
+  lineHeight: '19px',
+  fontWeight: 400,
+  '@media (max-width: 640px)': {
+    fontSize: '12px',
+  },
 });
 
-const dividerStylesBase = css({
-  userSelect: 'none',
+const numberValueStyles = css({
+  color: '#B5CEA8',
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: '13px',
+  lineHeight: '19px',
+  fontWeight: 400,
+  '@media (max-width: 640px)': {
+    fontSize: '12px',
+  },
 });
 
-const dividerStylesLight = css({
-  color: palette.gray.dark1,
+const objectValueStyles = css({
+  color: '#4EC9B0',
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: '13px',
+  lineHeight: '19px',
+  fontWeight: 400,
+  '@media (max-width: 640px)': {
+    fontSize: '12px',
+  },
 });
 
-const dividerStylesDark = css({
-  color: palette.gray.light1,
+const commaStyles = css({
+  color: '#D4D4D4',
+  fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+  fontSize: '13px',
+  lineHeight: '19px',
+  fontWeight: 400,
+  '@media (max-width: 640px)': {
+    fontSize: '12px',
+  },
 });
 
 interface DocumentTreeViewProps {
@@ -103,37 +188,7 @@ interface TreeNode {
 }
 
 const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
-  const darkMode = useDarkMode();
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
-
-  // Get theme-aware color for value types using codePalette
-  const getValueColor = (type: TreeNode['type']): string => {
-    const themeColors = darkMode ? codePalette.dark : codePalette.light;
-    switch (type) {
-      case 'number':
-        return themeColors[9]; // Number color
-      case 'boolean':
-      case 'null':
-        return themeColors[10]; // Boolean/null color
-      case 'string':
-        return themeColors[7]; // String color
-      case 'object':
-      case 'array':
-        return themeColors[5]; // Object/array color
-      default:
-        return themeColors[7];
-    }
-  };
-
-  // Get dynamic styles based on dark mode
-  const keyStyles = cx(
-    keyStylesBase,
-    darkMode ? keyStylesDark : keyStylesLight,
-  );
-  const dividerStyles = cx(
-    dividerStylesBase,
-    darkMode ? dividerStylesDark : dividerStylesLight,
-  );
 
   const toggleExpanded = (key: string): void => {
     setExpandedKeys((prev) => {
@@ -181,7 +236,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
   const formatValue = (
     value: unknown,
     type: TreeNode['type'],
-    isExpanded = true,
+    isExpanded = true
   ): string => {
     if (type === 'null') return 'null';
     if (type === 'boolean') return String(value);
@@ -226,24 +281,6 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
     });
   };
 
-  const renderExpandButton = (
-    isExpanded: boolean,
-    itemKey: string,
-  ): JSX.Element => (
-    <button
-      type="button"
-      className={expandButtonStyles}
-      aria-pressed={isExpanded}
-      aria-label={isExpanded ? 'Collapse field items' : 'Expand field items'}
-      onClick={(evt): void => {
-        evt.stopPropagation();
-        toggleExpanded(itemKey);
-      }}
-    >
-      <Icon size="xsmall" glyph={isExpanded ? 'CaretDown' : 'CaretRight'} />
-    </button>
-  );
-
   const renderChildren = (value: unknown, parentKey: string): JSX.Element[] => {
     if (Array.isArray(value)) {
       return value.map((item, index) => {
@@ -257,14 +294,20 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
           <div key={index}>
             <div className={nodeRowStyles}>
               <div className={caretStyles}>
-                {hasExpandableContent &&
-                  renderExpandButton(isExpanded, itemKey)}
+                {hasExpandableContent && (
+                  <span
+                    className={`${caretIconStyles} ${isExpanded ? caretExpandedStyles : ''}`}
+                    onClick={(): void => toggleExpanded(itemKey)}
+                  >
+                    ›
+                  </span>
+                )}
               </div>
               <div className={keyValueContainerStyles}>
-                <span style={{ color: getValueColor(type) }}>
+                <span className={valueStyles}>
                   {formatValue(item, type)}
                 </span>
-                {!isLast && <span className={dividerStyles}>,</span>}
+                {!isLast && <span className={commaStyles}>,</span>}
               </div>
             </div>
             {hasExpandableContent && isExpanded && (
@@ -288,16 +331,22 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
           <div key={key}>
             <div className={nodeRowStyles}>
               <div className={caretStyles}>
-                {hasExpandableContent &&
-                  renderExpandButton(isExpanded, itemKey)}
+                {hasExpandableContent && (
+                  <span
+                    className={`${caretIconStyles} ${isExpanded ? caretExpandedStyles : ''}`}
+                    onClick={(): void => toggleExpanded(itemKey)}
+                  >
+                    ›
+                  </span>
+                )}
               </div>
               <div className={keyValueContainerStyles}>
                 <span className={keyStyles}>{key}</span>
-                <span className={dividerStyles}>:&nbsp;</span>
-                <span style={{ color: getValueColor(type) }}>
+                <span className={colonStyles}>:</span>
+                <span className={type === 'number' || type === 'boolean' || type === 'null' ? numberValueStyles : valueStyles}>
                   {formatValue(val, type)}
                 </span>
-                {!isLast && <span className={dividerStyles}>,</span>}
+                {!isLast && <span className={commaStyles}>,</span>}
               </div>
             </div>
             {hasExpandableContent && isExpanded && (
@@ -312,17 +361,30 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
     return [];
   };
 
+  const getValueClassName = (type: TreeNode['type']): string => {
+    if (type === 'number') {
+      return numberValueStyles;
+    }
+    if (type === 'object' || type === 'array') {
+      return objectValueStyles;
+    }
+    if (type === 'boolean' || type === 'null') {
+      return numberValueStyles;
+    }
+    return valueStyles;
+  };
+
   const renderClosingBracket = (
     nodeType: TreeNode['type'],
-    isLast: boolean,
+    isLast: boolean
   ): JSX.Element => (
     <div className={nodeRowStyles}>
       <div className={caretStyles} />
       <div className={keyValueContainerStyles}>
-        <span style={{ color: getValueColor(nodeType) }}>
+        <span className={objectValueStyles}>
           {nodeType === 'array' ? ']' : '}'}
         </span>
-        {!isLast && <span className={dividerStyles}>,</span>}
+        {!isLast && <span className={commaStyles}>,</span>}
       </div>
     </div>
   );
@@ -350,7 +412,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
   const getNodeDisplayValue = (
     node: TreeNode,
     isIdField: boolean,
-    isExpanded: boolean,
+    isExpanded: boolean
   ): string => {
     if (isIdField) {
       return formatIdValue(node.value);
@@ -358,12 +420,22 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
     return formatValue(node.value, node.type, isExpanded);
   };
 
+  const renderExpandCaret = (
+    isExpanded: boolean
+  ): JSX.Element => (
+    <span
+      className={`${caretIconStyles} ${isExpanded ? caretExpandedStyles : ''}`}
+    >
+      ›
+    </span>
+  );
+
   const getRowClassName = (hasExpandableContent: boolean): string =>
-    cx(nodeRowStyles, hasExpandableContent && clickableRowStyle);
+    `${nodeRowStyles} ${hasExpandableContent ? clickableRowStyle : ''}`;
 
   const createRowClickHandler = (
     hasExpandableContent: boolean,
-    nodeKey: string,
+    nodeKey: string
   ): (() => void) | undefined =>
     hasExpandableContent ? (): void => toggleExpanded(nodeKey) : undefined;
 
@@ -372,38 +444,24 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
     const hasExpandableContent =
       !isIdField && (node.type === 'object' || node.type === 'array');
     const isExpanded = expandedKeys.has(node.key);
-    // For _id field, use string color; otherwise use type-based color
-    const valueColor = getValueColor(isIdField ? 'string' : node.type);
-
-    const handleKeyDown = hasExpandableContent
-      ? (e: React.KeyboardEvent): void => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            toggleExpanded(node.key);
-          }
-        }
-      : undefined;
+    const displayClassName = isIdField ? valueStyles : getValueClassName(node.type);
 
     return (
       <div className={parentNodeStyles} key={node.key}>
         <div
           className={getRowClassName(hasExpandableContent)}
           onClick={createRowClickHandler(hasExpandableContent, node.key)}
-          onKeyDown={handleKeyDown}
-          role={hasExpandableContent ? 'button' : undefined}
-          tabIndex={hasExpandableContent ? 0 : undefined}
-          aria-expanded={hasExpandableContent ? isExpanded : undefined}
         >
           <div className={caretStyles}>
-            {hasExpandableContent && renderExpandButton(isExpanded, node.key)}
+            {hasExpandableContent && renderExpandCaret(isExpanded)}
           </div>
           <div className={keyValueContainerStyles}>
-            <span className={keyStyles}>&quot;{node.key}&quot;</span>
-            <span className={dividerStyles}>:&nbsp;</span>
-            <span style={{ color: valueColor }}>
+            <span className={keyStyles}>"{node.key}"</span>
+            <span className={colonStyles}>:</span>
+            <span className={displayClassName}>
               {getNodeDisplayValue(node, isIdField, isExpanded)}
             </span>
-            {!isExpanded && !isLast && <span className={dividerStyles}>,</span>}
+            {!isExpanded && !isLast && <span className={commaStyles}>,</span>}
           </div>
         </div>
         {hasExpandableContent && isExpanded && (
@@ -411,9 +469,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
             {renderChildren(node.value, node.key)}
           </div>
         )}
-        {hasExpandableContent &&
-          isExpanded &&
-          renderClosingBracket(node.type, isLast)}
+        {hasExpandableContent && isExpanded && renderClosingBracket(node.type, isLast)}
       </div>
     );
   };
@@ -422,11 +478,9 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
 
   return (
     <div className={documentTreeViewContainerStyles}>
-      <KeylineCard className={documentContentStyles}>
-        {nodes.map((node, index) =>
-          renderNode(node, index === nodes.length - 1),
-        )}
-      </KeylineCard>
+      <div className={documentContentStyles}>
+        {nodes.map((node, index) => renderNode(node, index === nodes.length - 1))}
+      </div>
     </div>
   );
 };
