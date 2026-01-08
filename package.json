@@ -48,7 +48,7 @@
     "compile:resources": "pnpm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
-    "watch": "pnpm run compile && pnpm run \"/^watch:*/\"",
+    "watch": "pnpm run compile && pnpm run --parallel \"/^watch:.*/\"",
     "watch:extension": "tsc -p ./ --watch",
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "pnpm run compile",
