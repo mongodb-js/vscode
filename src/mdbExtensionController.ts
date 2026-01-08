@@ -864,14 +864,18 @@ export default class MDBExtensionController implements vscode.Disposable {
         const documents = await element.loadPreview({ limit: fetchLimit });
         const totalCount = await element.getTotalCount();
 
-        // Pass a fetch function to allow refreshing/sorting/limiting documents
+        // Pass a fetch function to allow refreshing/sorting/limiting documents.
+        // The signal parameter allows cancellation of in-flight requests.
         const fetchDocuments = async (options?: {
           sort?: 'default' | 'asc' | 'desc';
           limit?: number;
+          signal?: AbortSignal;
         }): Promise<Document[]> => element.loadPreview(options);
 
-        // Pass a function to get the total count
-        const getTotalCount = (): Promise<number> => element.getTotalCount();
+        // Pass a function to get the total count.
+        // The signal parameter allows cancellation of in-flight requests.
+        const getTotalCount = (signal?: AbortSignal): Promise<number> =>
+          element.getTotalCount(signal);
 
         this._dataBrowsingController.openDataBrowser(this._context, {
           namespace,

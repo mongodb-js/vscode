@@ -35,9 +35,10 @@ export interface DataBrowsingOptions {
   fetchDocuments?: (options?: {
     sort?: SortOption;
     limit?: number;
+    signal?: AbortSignal;
   }) => Promise<Document[]>;
   initialTotalCount?: number;
-  getTotalCount?: () => Promise<number>;
+  getTotalCount?: (signal?: AbortSignal) => Promise<number>;
 }
 
 export default class DataBrowsingController {
@@ -45,6 +46,9 @@ export default class DataBrowsingController {
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
   _themeChangedSubscription: vscode.Disposable;
+
+  // Track active abort controllers per panel for cancelling in-flight requests.
+  _panelAbortControllers: Map<vscode.WebviewPanel, AbortController> = new Map();
 
   constructor({
     connectionController,
@@ -62,6 +66,38 @@ export default class DataBrowsingController {
 
   deactivate(): void {
     this._themeChangedSubscription?.dispose();
+    // Abort all in-flight requests on deactivation.
+    for (const abortController of this._panelAbortControllers.values()) {
+      abortController.abort();
+    }
+    this._panelAbortControllers.clear();
+  }
+
+  /**
+   * Creates a new AbortController for a panel, aborting any previous one.
+   * This ensures only one request is in-flight per panel at a time.
+   */
+  private _createAbortController(panel: vscode.WebviewPanel): AbortController {
+    // Abort any existing in-flight request for this panel.
+    const existingController = this._panelAbortControllers.get(panel);
+    if (existingController) {
+      existingController.abort();
+    }
+
+    const abortController = new AbortController();
+    this._panelAbortControllers.set(panel, abortController);
+    return abortController;
+  }
+
+  /**
+   * Cleans up the abort controller for a panel.
+   */
+  private _cleanupAbortController(panel: vscode.WebviewPanel): void {
+    const controller = this._panelAbortControllers.get(panel);
+    if (controller) {
+      controller.abort();
+      this._panelAbortControllers.delete(panel);
+    }
   }
 
   handleWebviewMessage = async (
@@ -89,10 +125,18 @@ export default class DataBrowsingController {
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
+    const abortController = this._createAbortController(panel);
+    const { signal } = abortController;
+
     try {
       const totalCount = options.getTotalCount
-        ? await options.getTotalCount()
+        ? await options.getTotalCount(signal)
         : options.initialTotalCount;
+
+      // Check if aborted before posting message.
+      if (signal.aborted) {
+        return;
+      }
 
       void panel.webview.postMessage({
         command: PreviewMessageType.loadDocuments,
@@ -100,6 +144,10 @@ export default class DataBrowsingController {
         totalCount,
       });
     } catch (error) {
+      // Don't report errors for aborted requests.
+      if (signal.aborted) {
+        return;
+      }
       log.error('Error getting documents', error);
       void panel.webview.postMessage({
         command: PreviewMessageType.refreshError,
@@ -112,12 +160,26 @@ export default class DataBrowsingController {
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
+    const abortController = this._createAbortController(panel);
+    const { signal } = abortController;
+
     try {
       if (options.fetchDocuments) {
-        const documents = await options.fetchDocuments();
+        const documents = await options.fetchDocuments({ signal });
+
+        // Check if aborted before continuing.
+        if (signal.aborted) {
+          return;
+        }
+
         const totalCount = options.getTotalCount
-          ? await options.getTotalCount()
+          ? await options.getTotalCount(signal)
           : options.initialTotalCount;
+
+        // Check if aborted before posting message.
+        if (signal.aborted) {
+          return;
+        }
 
         void panel.webview.postMessage({
           command: PreviewMessageType.loadDocuments,
@@ -132,6 +194,10 @@ export default class DataBrowsingController {
         });
       }
     } catch (error) {
+      // Don't report errors for aborted requests.
+      if (signal.aborted) {
+        return;
+      }
       log.error('Error refreshing documents', error);
       void panel.webview.postMessage({
         command: PreviewMessageType.refreshError,
@@ -145,12 +211,26 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
     sort: SortOption,
   ): Promise<void> => {
+    const abortController = this._createAbortController(panel);
+    const { signal } = abortController;
+
     try {
       if (options.fetchDocuments) {
-        const documents = await options.fetchDocuments({ sort });
+        const documents = await options.fetchDocuments({ sort, signal });
+
+        // Check if aborted before continuing.
+        if (signal.aborted) {
+          return;
+        }
+
         const totalCount = options.getTotalCount
-          ? await options.getTotalCount()
+          ? await options.getTotalCount(signal)
           : options.initialTotalCount;
+
+        // Check if aborted before posting message.
+        if (signal.aborted) {
+          return;
+        }
 
         void panel.webview.postMessage({
           command: PreviewMessageType.loadDocuments,
@@ -159,6 +239,10 @@ export default class DataBrowsingController {
         });
       }
     } catch (error) {
+      // Don't report errors for aborted requests.
+      if (signal.aborted) {
+        return;
+      }
       log.error('Error sorting documents', error);
       void panel.webview.postMessage({
         command: PreviewMessageType.refreshError,
@@ -182,6 +266,9 @@ export default class DataBrowsingController {
   };
 
   onWebviewPanelClosed = (disposedPanel: vscode.WebviewPanel): void => {
+    // Abort any in-flight requests for this panel.
+    this._cleanupAbortController(disposedPanel);
+
     this._activeWebviewPanels = this._activeWebviewPanels.filter(
       (panel) => panel !== disposedPanel,
     );

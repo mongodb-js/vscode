@@ -72,6 +72,7 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
   async loadPreview(options?: {
     sort?: 'default' | 'asc' | 'desc';
     limit?: number;
+    signal?: AbortSignal;
   }): Promise<any[]> {
     if (this.type === CollectionType.view) {
       return [];
@@ -81,7 +82,10 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
     let documents;
 
     try {
-      const findOptions: { limit: number; sort?: { _id: 1 | -1 } } = {
+      const findOptions: {
+        limit: number;
+        sort?: { _id: 1 | -1 };
+      } = {
         limit: options?.limit ?? this._maxDocumentsToShow,
       };
 
@@ -92,12 +96,22 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
         findOptions.sort = { _id: -1 };
       }
 
+      // Pass abortSignal for cancellation support via executionOptions.
+      const executionOptions = options?.signal
+        ? { abortSignal: options.signal }
+        : undefined;
+
       documents = await this._dataService.find(
         this.namespace,
         {}, // No filter.
         findOptions,
+        executionOptions,
       );
     } catch (error) {
+      // Don't show error message if the request was aborted.
+      if (options?.signal?.aborted) {
+        return [];
+      }
       void vscode.window.showErrorMessage(
         `Fetch documents failed: ${formatError(error).message}`,
       );
@@ -107,7 +121,7 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
     return documents;
   }
 
-  async getTotalCount(): Promise<number> {
+  async getTotalCount(signal?: AbortSignal): Promise<number> {
     if (
       this.type === CollectionType.view ||
       this.type === CollectionType.timeseries
@@ -116,13 +130,17 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
     }
 
     try {
+      // Pass abortSignal for cancellation support via executionOptions.
+      const executionOptions = signal ? { abortSignal: signal } : undefined;
+
       const count = await this._dataService.estimatedCount(
         this.namespace,
         {},
-        undefined,
+        executionOptions,
       );
       return count;
     } catch (error) {
+      // Return 0 silently if aborted or on error.
       return 0;
     }
   }
