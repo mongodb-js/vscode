@@ -53,6 +53,8 @@ export const getWebviewHtml = ({
     'dist',
     'webviewApp.js',
   );
+  // Add cache-busting query parameter
+  const scriptUriWithCacheBust = `${scriptUri.toString()}?v=${Date.now()}`;
 
   return `<!DOCTYPE html>
   <html lang="en">
@@ -69,7 +71,7 @@ export const getWebviewHtml = ({
       <div id="root"></div>
       <script nonce="${nonce}">window.WEBVIEW_TYPE = '${webviewType}';</script>
       ${additionalHeadContent.replace(/\$\{nonce\}/g, nonce)}
-      <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
+      <script nonce="${nonce}" src="${scriptUriWithCacheBust}"></script>
     </body>
   </html>`;
 };
