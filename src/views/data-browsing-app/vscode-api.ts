@@ -1,7 +1,6 @@
 import {
   PreviewMessageType,
   type MessageFromWebviewToExtension,
-  type SortOption,
 } from './extension-app-message-constants';
 
 interface VSCodeApi {
@@ -16,19 +15,6 @@ const vscode = acquireVsCodeApi();
 export const sendGetDocuments = (): void => {
   vscode.postMessage({
     command: PreviewMessageType.getDocuments,
-  });
-};
-
-export const sendRefreshDocuments = (): void => {
-  vscode.postMessage({
-    command: PreviewMessageType.refreshDocuments,
-  });
-};
-
-export const sendSortDocuments = (sort: SortOption): void => {
-  vscode.postMessage({
-    command: PreviewMessageType.sortDocuments,
-    sort,
   });
 };
 

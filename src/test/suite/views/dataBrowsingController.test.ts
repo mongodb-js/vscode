@@ -279,7 +279,6 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(postMessageStub.calledOnce).to.be.true;
       const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.refreshError);
       expect(message.error).to.include('Database error');
     });
   });

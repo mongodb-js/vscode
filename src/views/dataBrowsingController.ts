@@ -9,7 +9,6 @@ import {
 } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
-import formatError from '../utils/formatError';
 import { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 
 const log = createLogger('data browsing controller');
@@ -45,7 +44,6 @@ export default class DataBrowsingController {
   _connectionController: ConnectionController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
-  _themeChangedSubscription: vscode.Disposable;
 
   // Track active abort controllers per panel for cancelling in-flight requests.
   _panelAbortControllers: Map<vscode.WebviewPanel, AbortController> = new Map();
@@ -59,13 +57,9 @@ export default class DataBrowsingController {
   }) {
     this._connectionController = connectionController;
     this._telemetryService = telemetryService;
-    this._themeChangedSubscription = vscode.window.onDidChangeActiveColorTheme(
-      this.onThemeChanged,
-    );
   }
 
   deactivate(): void {
-    this._themeChangedSubscription?.dispose();
     // Abort all in-flight requests on deactivation.
     for (const abortController of this._panelAbortControllers.values()) {
       abortController.abort();
@@ -109,12 +103,6 @@ export default class DataBrowsingController {
       case PreviewMessageType.getDocuments:
         await this.handleGetDocuments(panel, options);
         return;
-      case PreviewMessageType.refreshDocuments:
-        await this.handleRefreshDocuments(panel, options);
-        return;
-      case PreviewMessageType.sortDocuments:
-        await this.handleSortDocuments(panel, options, message.sort);
-        return;
       default:
         // no-op.
         return;
@@ -149,10 +137,6 @@ export default class DataBrowsingController {
         return;
       }
       log.error('Error getting documents', error);
-      void panel.webview.postMessage({
-        command: PreviewMessageType.refreshError,
-        error: formatError(error).message,
-      });
     }
   };
 
@@ -199,10 +183,6 @@ export default class DataBrowsingController {
         return;
       }
       log.error('Error refreshing documents', error);
-      void panel.webview.postMessage({
-        command: PreviewMessageType.refreshError,
-        error: formatError(error).message,
-      });
     }
   };
 
@@ -244,10 +224,6 @@ export default class DataBrowsingController {
         return;
       }
       log.error('Error sorting documents', error);
-      void panel.webview.postMessage({
-        command: PreviewMessageType.refreshError,
-        error: formatError(error).message,
-      });
     }
   };
 
@@ -272,25 +248,6 @@ export default class DataBrowsingController {
     this._activeWebviewPanels = this._activeWebviewPanels.filter(
       (panel) => panel !== disposedPanel,
     );
-  };
-
-  onThemeChanged = (theme: vscode.ColorTheme): void => {
-    const darkModeDetected =
-      theme.kind === vscode.ColorThemeKind.Dark ||
-      theme.kind === vscode.ColorThemeKind.HighContrast;
-    for (const panel of this._activeWebviewPanels) {
-      void panel.webview
-        .postMessage({
-          command: PreviewMessageType.themeChanged,
-          darkMode: darkModeDetected,
-        })
-        .then(undefined, (error) => {
-          log.warn(
-            'Could not post THEME_CHANGED to webview, most likely already disposed',
-            error,
-          );
-        });
-    }
   };
 
   openDataBrowser(

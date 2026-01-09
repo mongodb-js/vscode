@@ -1,14 +1,9 @@
-// Message types for communication between extension and preview webview
 export const PreviewMessageType = {
   // Messages from webview to extension
   getDocuments: 'GET_DOCUMENTS',
-  refreshDocuments: 'REFRESH_DOCUMENTS',
-  sortDocuments: 'SORT_DOCUMENTS',
 
   // Messages from extension to webview
   loadDocuments: 'LOAD_DOCUMENTS',
-  refreshError: 'REFRESH_ERROR',
-  themeChanged: 'THEME_CHANGED',
 } as const;
 
 export type PreviewMessageType =
@@ -25,15 +20,6 @@ export interface GetDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.getDocuments;
 }
 
-export interface RefreshDocumentsMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.refreshDocuments;
-}
-
-export interface SortDocumentsMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.sortDocuments;
-  sort: SortOption;
-}
-
 // Messages from extension to webview
 export interface LoadDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadDocuments;
@@ -41,22 +27,6 @@ export interface LoadDocumentsMessage extends BasicWebviewMessage {
   totalCount?: number;
 }
 
-export interface RefreshErrorMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.refreshError;
-  error?: string;
-}
+export type MessageFromWebviewToExtension = GetDocumentsMessage;
 
-export interface ThemeChangedMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.themeChanged;
-  darkMode: boolean;
-}
-
-export type MessageFromWebviewToExtension =
-  | GetDocumentsMessage
-  | RefreshDocumentsMessage
-  | SortDocumentsMessage;
-
-export type MessageFromExtensionToWebview =
-  | LoadDocumentsMessage
-  | RefreshErrorMessage
-  | ThemeChangedMessage;
+export type MessageFromExtensionToWebview = LoadDocumentsMessage;
