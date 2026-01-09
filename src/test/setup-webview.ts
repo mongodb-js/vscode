@@ -78,10 +78,9 @@ if (
   typeof CSSStyleSheet !== 'undefined' &&
   !CSSStyleSheet.prototype.replaceSync
 ) {
-  CSSStyleSheet.prototype.replaceSync = function () {
-    // no-op in tests
-  };
-  CSSStyleSheet.prototype.replace = function () {
+  CSSStyleSheet.prototype.replaceSync = function (): void {};
+
+  CSSStyleSheet.prototype.replace = function (): Promise<CSSStyleSheet> {
     return Promise.resolve(this);
   };
 }

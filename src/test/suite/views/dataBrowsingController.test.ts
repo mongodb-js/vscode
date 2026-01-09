@@ -137,7 +137,7 @@ suite('DataBrowsingController Test Suite', function () {
   suite('Request handling with abort', function () {
     test('does not post message when request is aborted', async function () {
       const options = createMockOptions({
-        getTotalCount: sandbox.stub().callsFake(async () => {
+        getTotalCount: sandbox.stub().callsFake(() => {
           // Abort the controller during the request
           testController._panelAbortControllers.get(mockPanel)?.abort();
           return 10;
@@ -152,7 +152,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('does not throw when error occurs on aborted request', async function () {
       const options = createMockOptions({
-        getTotalCount: sandbox.stub().callsFake(async () => {
+        getTotalCount: sandbox.stub().callsFake(() => {
           // Abort the controller and throw an error
           testController._panelAbortControllers.get(mockPanel)?.abort();
           throw new Error('Connection error');
