@@ -88,7 +88,7 @@ suite('DatabaseTreeItem Test Suite', function () {
 
     await collectionTreeItems[1].onDidExpand();
     await collectionTreeItems[1].getChildren();
-    const documentListItem = collectionTreeItems[1].getDocumentListChild();
+    const documentListItem = collectionTreeItems[1].getDocumentsChild();
     if (!documentListItem) {
       assert(false, 'No document list tree item found on collection.');
     }
@@ -112,7 +112,7 @@ suite('DatabaseTreeItem Test Suite', function () {
     assert.strictEqual(newCollectionTreeItems[1].isExpanded, true);
 
     const documentsPostCollapseExpand = await newCollectionTreeItems[1]
-      .getDocumentListChild()
+      .getDocumentsChild()
       .getChildren();
 
     // It should cache that we activated show more.

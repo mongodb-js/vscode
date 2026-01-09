@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import numeral from 'numeral';
 import path from 'path';
 
 import { createLogger } from '../logging';
@@ -8,6 +7,7 @@ import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 import type { DataService } from 'mongodb-data-service';
+import { CollectionType, formatDocCount } from './documentUtils';
 
 const log = createLogger('documents tree item');
 
@@ -17,14 +17,6 @@ const log = createLogger('documents tree item');
 export const MAX_DOCUMENTS_VISIBLE = 10;
 
 export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
-export const CollectionType = {
-  collection: 'collection',
-  view: 'view',
-  timeseries: 'timeseries',
-} as const;
-
-export type CollectionType =
-  (typeof CollectionType)[keyof typeof CollectionType];
 
 const ITEM_LABEL = 'Documents';
 
@@ -63,11 +55,6 @@ const getCollapsableStateForDocumentList = (
   return isExpanded
     ? vscode.TreeItemCollapsibleState.Expanded
     : vscode.TreeItemCollapsibleState.Collapsed;
-};
-
-export const formatDocCount = (count: number): string => {
-  // We format the count (30000 -> 30k) and then display it uppercase (30K).
-  return `${numeral(count).format('0a') as string}`.toUpperCase();
 };
 
 function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {

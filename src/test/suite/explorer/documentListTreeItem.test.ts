@@ -6,12 +6,12 @@ import type { DataService } from 'mongodb-data-service';
 const { contributes } = require('../../../../package.json');
 
 import DocumentListTreeItem, {
-  CollectionType,
-  formatDocCount,
   MAX_DOCUMENTS_VISIBLE,
 } from '../../../explorer/documentListTreeItem';
 
 import { DataServiceStub, mockDocuments } from '../stubs';
+import { CollectionType } from '../../../explorer';
+import { formatDocCount } from '../../../explorer/documentUtils';
 
 const dataServiceStub = new DataServiceStub() as unknown as DataService;
 
