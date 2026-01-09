@@ -57,27 +57,25 @@ suite('DataBrowsingController Test Suite', function () {
     test('creates a new AbortController for each request', async function () {
       const options = createMockOptions();
 
-      // First request
       await testController.handleGetDocuments(mockPanel, options);
       expect(testController._panelAbortControllers.has(mockPanel)).to.be.true;
 
-      const firstController =
-        testController._panelAbortControllers.get(mockPanel);
-      expect(firstController).to.not.be.undefined;
-      expect(firstController!.signal.aborted).to.be.false;
+      const controller = testController._panelAbortControllers.get(mockPanel);
+      expect(controller).to.not.be.undefined;
+      expect(controller!.signal.aborted).to.be.false;
     });
 
     test('aborts previous AbortController when a new request starts', async function () {
       const options = createMockOptions({
-        fetchDocuments: sandbox.stub().callsFake(async () => {
+        getTotalCount: sandbox.stub().callsFake(async () => {
           // Simulate a slow request
           await new Promise((resolve) => setTimeout(resolve, 50));
-          return [{ _id: '1' }];
+          return 10;
         }),
       });
 
       // Start first request (don't await)
-      const firstRequest = testController.handleRefreshDocuments(
+      const firstRequest = testController.handleGetDocuments(
         mockPanel,
         options,
       );
@@ -85,7 +83,7 @@ suite('DataBrowsingController Test Suite', function () {
         testController._panelAbortControllers.get(mockPanel);
 
       // Start second request immediately (will abort the first)
-      const secondRequest = testController.handleRefreshDocuments(
+      const secondRequest = testController.handleGetDocuments(
         mockPanel,
         options,
       );
@@ -137,7 +135,7 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('Request handling with abort', function () {
-    test('does not post message when request is aborted (handleGetDocuments)', async function () {
+    test('does not post message when request is aborted', async function () {
       const options = createMockOptions({
         getTotalCount: sandbox.stub().callsFake(async () => {
           // Abort the controller during the request
@@ -152,69 +150,24 @@ suite('DataBrowsingController Test Suite', function () {
       expect(postMessageStub.called).to.be.false;
     });
 
-    test('does not post message when request is aborted (handleRefreshDocuments)', async function () {
+    test('does not throw when error occurs on aborted request', async function () {
       const options = createMockOptions({
-        fetchDocuments: sandbox.stub().callsFake(async () => {
-          // Abort the controller during the request
-          testController._panelAbortControllers.get(mockPanel)?.abort();
-          return [{ _id: '1' }];
-        }),
-      });
-
-      await testController.handleRefreshDocuments(mockPanel, options);
-
-      // postMessage should not be called because request was aborted
-      expect(postMessageStub.called).to.be.false;
-    });
-
-    test('does not post message when request is aborted (handleSortDocuments)', async function () {
-      const options = createMockOptions({
-        fetchDocuments: sandbox.stub().callsFake(async () => {
-          // Abort the controller during the request
-          testController._panelAbortControllers.get(mockPanel)?.abort();
-          return [{ _id: '1' }];
-        }),
-      });
-
-      await testController.handleSortDocuments(mockPanel, options, 'asc');
-
-      // postMessage should not be called because request was aborted
-      expect(postMessageStub.called).to.be.false;
-    });
-
-    test('does not post error message when error occurs on aborted request', async function () {
-      const options = createMockOptions({
-        fetchDocuments: sandbox.stub().callsFake(async ({ signal }) => {
+        getTotalCount: sandbox.stub().callsFake(async () => {
           // Abort the controller and throw an error
           testController._panelAbortControllers.get(mockPanel)?.abort();
           throw new Error('Connection error');
         }),
       });
 
-      await testController.handleRefreshDocuments(mockPanel, options);
+      // Should not throw
+      await testController.handleGetDocuments(mockPanel, options);
 
-      // postMessage should not be called with error because request was aborted
+      // postMessage should not be called because request was aborted
       expect(postMessageStub.called).to.be.false;
     });
   });
 
   suite('Signal passed to callbacks', function () {
-    test('passes signal to fetchDocuments callback', async function () {
-      const fetchDocumentsStub = sandbox.stub().resolves([{ _id: '1' }]);
-      const options = createMockOptions({
-        fetchDocuments: fetchDocumentsStub,
-        getTotalCount: undefined,
-        initialTotalCount: 5,
-      });
-
-      await testController.handleRefreshDocuments(mockPanel, options);
-
-      expect(fetchDocumentsStub.calledOnce).to.be.true;
-      const callArgs = fetchDocumentsStub.firstCall.args[0];
-      expect(callArgs).to.have.property('signal');
-      expect(callArgs.signal).to.be.instanceOf(AbortSignal);
-    });
-
     test('passes signal to getTotalCount callback', async function () {
       const getTotalCountStub = sandbox.stub().resolves(10);
       const options = createMockOptions({
@@ -226,24 +179,6 @@ suite('DataBrowsingController Test Suite', function () {
       expect(getTotalCountStub.calledOnce).to.be.true;
       const signal = getTotalCountStub.firstCall.args[0];
       expect(signal).to.be.instanceOf(AbortSignal);
-    });
-
-    test('passes sort option along with signal to fetchDocuments', async function () {
-      const fetchDocumentsStub = sandbox.stub().resolves([{ _id: '1' }]);
-      const options = createMockOptions({
-        fetchDocuments: fetchDocumentsStub,
-        getTotalCount: undefined,
-        initialTotalCount: 5,
-      });
-
-      await testController.handleSortDocuments(mockPanel, options, 'desc');
-
-      expect(fetchDocumentsStub.calledOnce).to.be.true;
-      const callArgs = fetchDocumentsStub.firstCall.args[0];
-      expect(callArgs).to.have.property('sort');
-      expect(callArgs.sort).to.equal('desc');
-      expect(callArgs).to.have.property('signal');
-      expect(callArgs.signal).to.be.instanceOf(AbortSignal);
     });
   });
 
@@ -260,26 +195,50 @@ suite('DataBrowsingController Test Suite', function () {
       expect(message.totalCount).to.equal(10);
     });
 
-    test('posts loadDocuments message on successful handleRefreshDocuments', async function () {
-      const options = createMockOptions();
+    test('uses initialTotalCount when getTotalCount is not provided', async function () {
+      const options = createMockOptions({
+        getTotalCount: undefined,
+        initialTotalCount: 5,
+      });
 
-      await testController.handleRefreshDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options);
 
       expect(postMessageStub.calledOnce).to.be.true;
       const message = postMessageStub.firstCall.args[0];
       expect(message.command).to.equal(PreviewMessageType.loadDocuments);
+      expect(message.totalCount).to.equal(5);
+    });
+  });
+
+  suite('handleWebviewMessage', function () {
+    test('calls handleGetDocuments when getDocuments message received', async function () {
+      const options = createMockOptions();
+      const handleGetDocumentsSpy = sandbox.spy(
+        testController,
+        'handleGetDocuments',
+      );
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.getDocuments },
+        mockPanel,
+        options,
+      );
+
+      expect(handleGetDocumentsSpy.calledOnce).to.be.true;
+      expect(handleGetDocumentsSpy.calledWith(mockPanel, options)).to.be.true;
     });
 
-    test('posts refreshError message when fetchDocuments throws (non-aborted)', async function () {
-      const options = createMockOptions({
-        fetchDocuments: sandbox.stub().rejects(new Error('Database error')),
-      });
+    test('does nothing for unknown message commands', async function () {
+      const options = createMockOptions();
 
-      await testController.handleRefreshDocuments(mockPanel, options);
+      // Should not throw
+      await testController.handleWebviewMessage(
+        { command: 'UNKNOWN_COMMAND' } as any,
+        mockPanel,
+        options,
+      );
 
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.error).to.include('Database error');
+      expect(postMessageStub.called).to.be.false;
     });
   });
 });

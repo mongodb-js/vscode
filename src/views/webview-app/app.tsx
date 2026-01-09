@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { LeafyGreenProvider } from '@mongodb-js/compass-components';
+import { VscodeProgressRing } from '@vscode-elements/react-elements';
 import { useDetectVsCodeDarkMode } from './use-detect-vscode-dark-mode';
 import type { WebviewType } from '../../utils/webviewHelpers';
 
@@ -21,7 +22,7 @@ const App: React.FC = () => {
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>
-      <Suspense fallback={null}>
+      <Suspense fallback={<VscodeProgressRing />}>
         {webviewType === 'dataBrowser' ? <PreviewPage /> : <OverviewPage />}
       </Suspense>
     </LeafyGreenProvider>

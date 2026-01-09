@@ -16,15 +16,17 @@ const log = createLogger('data browsing controller');
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
+  namespace,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
+  namespace: string;
 }): string => {
   return getWebviewHtml({
     extensionPath,
     webview,
     webviewType: 'dataBrowser',
-    title: 'MongoDB Data Browser',
+    title: namespace,
   });
 };
 
@@ -45,7 +47,6 @@ export default class DataBrowsingController {
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
 
-  // Track active abort controllers per panel for cancelling in-flight requests.
   _panelAbortControllers: Map<vscode.WebviewPanel, AbortController> = new Map();
 
   constructor({
@@ -60,7 +61,6 @@ export default class DataBrowsingController {
   }
 
   deactivate(): void {
-    // Abort all in-flight requests on deactivation.
     for (const abortController of this._panelAbortControllers.values()) {
       abortController.abort();
     }
@@ -72,7 +72,6 @@ export default class DataBrowsingController {
    * This ensures only one request is in-flight per panel at a time.
    */
   private _createAbortController(panel: vscode.WebviewPanel): AbortController {
-    // Abort any existing in-flight request for this panel.
     const existingController = this._panelAbortControllers.get(panel);
     if (existingController) {
       existingController.abort();
@@ -140,99 +139,11 @@ export default class DataBrowsingController {
     }
   };
 
-  handleRefreshDocuments = async (
-    panel: vscode.WebviewPanel,
-    options: DataBrowsingOptions,
-  ): Promise<void> => {
-    const abortController = this._createAbortController(panel);
-    const { signal } = abortController;
-
-    try {
-      if (options.fetchDocuments) {
-        const documents = await options.fetchDocuments({ signal });
-
-        // Check if aborted before continuing.
-        if (signal.aborted) {
-          return;
-        }
-
-        const totalCount = options.getTotalCount
-          ? await options.getTotalCount(signal)
-          : options.initialTotalCount;
-
-        // Check if aborted before posting message.
-        if (signal.aborted) {
-          return;
-        }
-
-        void panel.webview.postMessage({
-          command: PreviewMessageType.loadDocuments,
-          documents,
-          totalCount,
-        });
-      } else {
-        void panel.webview.postMessage({
-          command: PreviewMessageType.loadDocuments,
-          documents: options.documents,
-          totalCount: options.initialTotalCount,
-        });
-      }
-    } catch (error) {
-      // Don't report errors for aborted requests.
-      if (signal.aborted) {
-        return;
-      }
-      log.error('Error refreshing documents', error);
-    }
-  };
-
-  handleSortDocuments = async (
-    panel: vscode.WebviewPanel,
-    options: DataBrowsingOptions,
-    sort: SortOption,
-  ): Promise<void> => {
-    const abortController = this._createAbortController(panel);
-    const { signal } = abortController;
-
-    try {
-      if (options.fetchDocuments) {
-        const documents = await options.fetchDocuments({ sort, signal });
-
-        // Check if aborted before continuing.
-        if (signal.aborted) {
-          return;
-        }
-
-        const totalCount = options.getTotalCount
-          ? await options.getTotalCount(signal)
-          : options.initialTotalCount;
-
-        // Check if aborted before posting message.
-        if (signal.aborted) {
-          return;
-        }
-
-        void panel.webview.postMessage({
-          command: PreviewMessageType.loadDocuments,
-          documents,
-          totalCount,
-        });
-      }
-    } catch (error) {
-      // Don't report errors for aborted requests.
-      if (signal.aborted) {
-        return;
-      }
-      log.error('Error sorting documents', error);
-    }
-  };
-
   onReceivedWebviewMessage = async (
     message: MessageFromWebviewToExtension,
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
-    // Ensure handling message from the webview can't crash the extension.
     try {
       await this.handleWebviewMessage(message, panel, options);
     } catch (err) {
@@ -242,7 +153,6 @@ export default class DataBrowsingController {
   };
 
   onWebviewPanelClosed = (disposedPanel: vscode.WebviewPanel): void => {
-    // Abort any in-flight requests for this panel.
     this._cleanupAbortController(disposedPanel);
 
     this._activeWebviewPanels = this._activeWebviewPanels.filter(
@@ -257,10 +167,9 @@ export default class DataBrowsingController {
     log.info('Opening data browser...', options.namespace);
     const extensionPath = context.extensionPath;
 
-    // Create and show a new data browsing webview.
     const panel = createWebviewPanel({
       viewType: 'mongodbDataBrowser',
-      title: `Preview: ${options.namespace}`,
+      title: options.namespace,
       extensionPath,
       iconName: 'leaf.svg',
     });
@@ -271,9 +180,9 @@ export default class DataBrowsingController {
     panel.webview.html = getDataBrowsingContent({
       extensionPath,
       webview: panel.webview,
+      namespace: options.namespace,
     });
 
-    // Handle messages from the webview.
     panel.webview.onDidReceiveMessage(
       (message: MessageFromWebviewToExtension) =>
         this.onReceivedWebviewMessage(message, panel, options),
