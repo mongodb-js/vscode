@@ -1,5 +1,5 @@
 import sinon, { type SinonSandbox, type SinonStub } from 'sinon';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { expect } from 'chai';
 import { beforeEach, afterEach } from 'mocha';
 

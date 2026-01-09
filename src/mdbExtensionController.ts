@@ -58,7 +58,7 @@ import {
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
-import ShowPreviewTreeItem from './explorer/documentPreviewItem';
+import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
 import DataBrowsingController from './views/dataBrowsingController';
 
 // Deep link command filtering: Commands are explicitly categorized as allowed or disallowed.

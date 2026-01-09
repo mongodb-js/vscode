@@ -56,7 +56,7 @@ describe('PreviewApp test suite', function () {
               documents: [{ _id: { $oid: '123' }, name: 'Test' }],
               totalCount: 1,
             },
-          })
+          }),
         );
         // Wait for minimum loading duration
         await new Promise((resolve) => setTimeout(resolve, 600));
@@ -79,7 +79,7 @@ describe('PreviewApp test suite', function () {
               documents: [],
               totalCount: 0,
             },
-          })
+          }),
         );
         await new Promise((resolve) => setTimeout(resolve, 600));
       });
@@ -88,4 +88,3 @@ describe('PreviewApp test suite', function () {
     });
   });
 });
-

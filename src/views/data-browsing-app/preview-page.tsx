@@ -5,13 +5,9 @@ import {
   spacing,
   useDarkMode,
 } from '@mongodb-js/compass-components';
-import {
-  MessageFromExtensionToWebview,
-  PreviewMessageType,
-} from './extension-app-message-constants';
-import {
-  sendGetDocuments,
-} from './vscode-api';
+import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
+import { PreviewMessageType } from './extension-app-message-constants';
+import { sendGetDocuments } from './vscode-api';
 
 interface PreviewDocument {
   [key: string]: unknown;
@@ -39,7 +35,7 @@ const spinnerStyles = css({
 const PreviewApp: React.FC = () => {
   const [documents, setDocuments] = useState<PreviewDocument[]>([]);
   const darkMode = useDarkMode();
-    const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Track when loading started for minimum loading duration
   const loadingStartTimeRef = useRef<number>(Date.now());
@@ -55,7 +51,7 @@ const PreviewApp: React.FC = () => {
         // Ensure minimum loading duration before hiding loader
         setTimeout(() => {
           setDocuments(message.documents || []);
-               setIsLoading(false);
+          setIsLoading(false);
         }, remainingTime);
       }
     };
@@ -78,7 +74,7 @@ const PreviewApp: React.FC = () => {
         color: darkMode ? '#CCCCCC' : '#000000',
       }}
     >
-     <div style={{ padding: '16px' }}>
+      <div style={{ padding: '16px' }}>
         {/* Inject keyframes for spinner animation */}
         <style>{spinnerKeyframes}</style>
 
@@ -92,13 +88,10 @@ const PreviewApp: React.FC = () => {
             </span>
           </div>
         ) : (
-          <>
-             HELLO THERE! We have {documents.length} documents.
-          </>
+          <>HELLO THERE! We have {documents.length} documents.</>
         )}
       </div>
     </div>
-
   );
 };
 

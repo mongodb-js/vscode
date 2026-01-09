@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
@@ -9,7 +9,7 @@ import {
 } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
-import { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
+import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 
 const log = createLogger('data browsing controller');
 
