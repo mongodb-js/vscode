@@ -5,7 +5,7 @@ import { cleanup, render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import OverviewPage from '../../../../views/webview-app/overview-page';
-import vscode from '../../../../views/webview-app/vscode-api';
+import getVSCodeApi from '../../../../views/webview-app/vscode-api';
 import type { MessageFromWebviewToExtension } from '../../../../views/webview-app/extension-app-message-constants';
 import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
@@ -48,7 +48,7 @@ describe('OverviewPage test suite', function () {
       render(<OverviewPage />);
 
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       expect(postMessageSpy).to.not.be.called;
 
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
@@ -64,7 +64,7 @@ describe('OverviewPage test suite', function () {
     });
 
     it('should send connect request to webview controller when clicked on Connect button', async function () {
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
 
       render(<OverviewPage />);
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
@@ -81,7 +81,7 @@ describe('OverviewPage test suite', function () {
 
     it('should display error message returned from connection attempt', async function () {
       render(<OverviewPage />);
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
       await userEvent.click(screen.getByTestId('connect-button'));
       const connectionId = (postMessageSpy.lastCall.args[0] as any)
@@ -104,7 +104,7 @@ describe('OverviewPage test suite', function () {
 
     it('should close the connection modal when connected successfully', async function () {
       render(<OverviewPage />);
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
       await userEvent.click(screen.getByTestId('connect-button'));
       const connectionId = (postMessageSpy.lastCall.args[0] as any)
@@ -128,7 +128,7 @@ describe('OverviewPage test suite', function () {
     it('should handle editing a connection', async function () {
       render(<OverviewPage />);
 
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
       expect(screen.queryByText('pineapple')).to.not.exist;
 

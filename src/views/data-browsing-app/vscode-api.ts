@@ -10,12 +10,20 @@ interface VSCodeApi {
 }
 
 declare const acquireVsCodeApi: () => VSCodeApi;
-const vscode = acquireVsCodeApi();
+
+let vscode: VSCodeApi | undefined;
+
+const getVSCodeApi = (): VSCodeApi => {
+  if (!vscode) {
+    vscode = acquireVsCodeApi();
+  }
+  return vscode;
+};
 
 export const sendGetDocuments = (): void => {
-  vscode.postMessage({
+  getVSCodeApi().postMessage({
     command: PreviewMessageType.getDocuments,
   });
 };
 
-export default vscode;
+export default getVSCodeApi;

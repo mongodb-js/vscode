@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { render, screen } from '@testing-library/react';
 import ConnectHelper from '../../../../views/webview-app/connect-helper';
 import Sinon from 'sinon';
-import vscode from '../../../../views/webview-app/vscode-api';
+import getVSCodeApi from '../../../../views/webview-app/vscode-api';
 import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 describe('ConnectHelper test suite', function () {
@@ -21,7 +21,7 @@ describe('ConnectHelper test suite', function () {
   });
 
   it('when connecting with string, it should call vscode to open connection string input', function () {
-    const postMessageStub = Sinon.stub(vscode, 'postMessage');
+    const postMessageStub = Sinon.stub(getVSCodeApi(), 'postMessage');
     render(
       <ConnectHelper
         onClickOpenConnectionForm={(): void => {
