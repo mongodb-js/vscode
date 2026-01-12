@@ -2,6 +2,7 @@ import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
 import util from 'util';
+import { EJSON } from 'bson';
 
 import { ServerCommand } from './serverCommands';
 import type {
@@ -27,29 +28,30 @@ const getContent = ({
 }: EvaluationResultWithExpectedFormat): unknown => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
     if (expectedFormat === 'shell') {
-      console.log('printable.documents', printable.documents);
-      return printable.documents;
+      // We serialize the documents to send them over to the main
+      // extension to show the results.
+      // TODO: Document why not using the getEJSON method or have
+      // it explicitly patterned.
+      return EJSON.serialize(printable.documents, { relaxed: false });
     }
     return getEJSON(printable.documents);
   }
 
-  if (
-    expectedFormat === 'shell' ||
-    typeof printable !== 'object' ||
-    printable === null
-  ) {
+  if (typeof printable !== 'object' || printable === null) {
     return printable;
   }
 
-  return getEJSON(printable);
+  return expectedFormat === 'shell'
+    ? EJSON.serialize(printable, { relaxed: false })
+    : getEJSON(printable);
 };
 
 export const getLanguage = (
   content: unknown,
   expectedFormat: DocumentViewAndEditFormat,
-): 'json' | 'plaintext' | 'javascript' => {
+): 'json' | 'plaintext' | 'shell-js' => {
   if (typeof content === 'object' && content !== null) {
-    return expectedFormat === 'shell' ? 'javascript' : 'json';
+    return expectedFormat === 'shell' ? 'shell-js' : 'json';
   }
 
   return 'plaintext';

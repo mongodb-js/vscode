@@ -68,11 +68,12 @@ suite('Editors Controller Test Suite', function () {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFavoriteNamespace';
     const testConnectionId = 'alienSateliteConnection';
-    const testUri = getViewCollectionDocumentsUri(
-      testOpId,
-      testNamespace,
-      testConnectionId,
-    );
+    const testUri = getViewCollectionDocumentsUri({
+      editFormat: 'ejson',
+      operationId: testOpId,
+      namespace: testNamespace,
+      connectionId: testConnectionId,
+    });
 
     assert.strictEqual(testUri.path, 'Results: myFavoriteNamespace.json');
     assert.strictEqual(testUri.scheme, 'VIEW_COLLECTION_SCHEME');
@@ -86,11 +87,12 @@ suite('Editors Controller Test Suite', function () {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFa%%\\\\///\\%vorite%Namespace';
     const testConnectionId = 'alienSateliteConnection';
-    const testUri = getViewCollectionDocumentsUri(
-      testOpId,
-      testNamespace,
-      testConnectionId,
-    );
+    const testUri = getViewCollectionDocumentsUri({
+      editFormat: 'ejson',
+      operationId: testOpId,
+      namespace: testNamespace,
+      connectionId: testConnectionId,
+    });
 
     assert.strictEqual(
       testUri.path,

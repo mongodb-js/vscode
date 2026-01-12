@@ -459,7 +459,11 @@ export default class PlaygroundController {
     await this._showResultAsVirtualDocument();
 
     if (this._playgroundResultTextDocument) {
-      const language = result?.language || 'plaintext';
+      let language = result?.language || 'plaintext';
+      if (language === 'shell-js') {
+        // Show the shell syntax results with the mongodb-document language.
+        language = 'mongodb-document';
+      }
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,

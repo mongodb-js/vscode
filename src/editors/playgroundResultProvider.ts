@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import { toJSString } from 'mongodb-query-parser';
+import { EJSON } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
@@ -7,7 +9,6 @@ import {
   type ExportToLanguageResult,
 } from '../types/playgroundType';
 import { isExportToLanguageResult } from '../types/playgroundType';
-import { toJSString } from 'mongodb-query-parser';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -66,8 +67,12 @@ export default class PlaygroundResultProvider
       this._playgroundResult,
     );
 
-    if (this._playgroundResult.type === 'javascript') {
-      return toJSString(this._playgroundResult.content, 2) ?? '';
+    if (this._playgroundResult.language === 'shell-js') {
+      // TODO: There's a traversal here we could avoid if we
+      // toJSString ourselves the EJSON object.
+      return (
+        toJSString(EJSON.deserialize(this._playgroundResult.content), 2) ?? ''
+      );
     }
 
     return JSON.stringify(this._playgroundResult.content, null, 2);

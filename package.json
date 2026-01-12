@@ -215,10 +215,11 @@
           "MongoDB Document",
           "mongodb-document"
         ],
-        "extensions": [
-          ".mdb"
-        ],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/light/leaf.svg",
+          "dark": "./images/dark/leaf.svg"
+        }
       }
     ],
     "grammars": [
