@@ -3,7 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import AtlasCta from '../../../../views/webview-app/atlas-cta';
 import { expect } from 'chai';
 import Sinon from 'sinon';
-import getVSCodeApi from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 describe('AtlasCta test suite', function () {

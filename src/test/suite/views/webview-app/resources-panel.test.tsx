@@ -6,7 +6,7 @@ import ResourcesPanel, {
   TELEMETRY_SCREEN_ID,
 } from '../../../../views/webview-app/resources-panel/panel';
 import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
-import getVSCodeApi from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 
 describe('Resources panel test suite', function () {
   afterEach(function () {

@@ -7,7 +7,7 @@ import {
   CONNECTION_STATUS,
   MessageType,
 } from '../../../../views/webview-app/extension-app-message-constants';
-import getVSCodeApi from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 
 describe('ConnectionStatus test suite', function () {
   afterEach(function () {

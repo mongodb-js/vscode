@@ -5,7 +5,7 @@ import { cleanup, render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import OverviewPage from '../../../../views/webview-app/overview-page';
-import getVSCodeApi from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 import type { MessageFromWebviewToExtension } from '../../../../views/webview-app/extension-app-message-constants';
 import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 

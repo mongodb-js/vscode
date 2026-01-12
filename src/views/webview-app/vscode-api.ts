@@ -13,7 +13,7 @@ declare const acquireVsCodeApi: () => VSCodeApi;
 
 let vscode: VSCodeApi | undefined;
 
-const getVSCodeApi = (): VSCodeApi => {
+export const getVSCodeApi = (): VSCodeApi => {
   if (!vscode) {
     vscode = acquireVsCodeApi();
   }
@@ -99,4 +99,3 @@ export const openTrustedLink = (linkTo: string): void => {
   });
 };
 
-export default getVSCodeApi;

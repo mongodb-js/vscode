@@ -13,7 +13,7 @@ declare const acquireVsCodeApi: () => VSCodeApi;
 
 let vscode: VSCodeApi | undefined;
 
-const getVSCodeApi = (): VSCodeApi => {
+export const getVSCodeApi = (): VSCodeApi => {
   if (!vscode) {
     vscode = acquireVsCodeApi();
   }
@@ -25,5 +25,3 @@ export const sendGetDocuments = (): void => {
     command: PreviewMessageType.getDocuments,
   });
 };
-
-export default getVSCodeApi;

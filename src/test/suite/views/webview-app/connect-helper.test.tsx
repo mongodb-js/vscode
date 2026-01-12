@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { render, screen } from '@testing-library/react';
 import ConnectHelper from '../../../../views/webview-app/connect-helper';
 import Sinon from 'sinon';
-import getVSCodeApi from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 describe('ConnectHelper test suite', function () {
