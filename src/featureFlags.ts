@@ -1,4 +1,4 @@
-const FEATURE_FLAGS = {
+const FEATURE_FLAGS: Record<string, boolean> = {
   useEnhancedDataBrowsingExperience:
     process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true',
 };
@@ -10,6 +10,15 @@ export const getFeatureFlag = (flag: FeatureFlag): boolean => {
     return (window as any).MDB_FEATURE_FLAGS?.[flag];
   }
   return FEATURE_FLAGS[flag];
+};
+
+export const setFeatureFlag = (flag: FeatureFlag, value: boolean): void => {
+  FEATURE_FLAGS[flag] = value;
+};
+
+export const resetFeatureFlags = (): void => {
+  FEATURE_FLAGS.useEnhancedDataBrowsingExperience =
+    process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true';
 };
 
 export const getFeatureFlagsScript = (nonce: string): string => {

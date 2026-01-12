@@ -34,7 +34,7 @@ import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
 } from '../../mdbExtensionController';
-import * as featureFlags from '../../featureFlags';
+import { resetFeatureFlags } from '../../featureFlags';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -141,6 +141,7 @@ suite('MDBExtensionController Test Suite', function () {
 
   afterEach(() => {
     sandbox.restore();
+    resetFeatureFlags();
   });
 
   suite('Deep link command lists validation', function () {
@@ -454,9 +455,6 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshCollection command should reset the expanded state of its children and call to refresh the explorer controller', async function () {
-      // Use DocumentListTreeItem which has isExpanded property
-      sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
-
       const testTreeItem = getTestCollectionTreeItem();
       testTreeItem.isExpanded = true;
 
@@ -488,9 +486,6 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshDocumentList command should update the document count and call to refresh the explorer controller', async function () {
-      // Disable enhanced data browsing to use DocumentListTreeItem
-      sandbox.stub(featureFlags, 'getFeatureFlag').returns(false);
-
       let count = 9000;
       const testTreeItem = getTestCollectionTreeItem({
         dataService: {
