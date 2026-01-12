@@ -76,8 +76,7 @@ export const ExtensionCommand = {
   mdbDropStreamProcessor: 'mdb.dropStreamProcessor',
 
   // Commands for the data browsing upgrade.
-  mdbOpenCollectionPreviewFromTreeView:
-    'mdb.openCollectionPreviewFromTreeView',
+  mdbOpenCollectionPreviewFromTreeView: 'mdb.openCollectionPreviewFromTreeView',
 
   // Chat participant.
   openParticipantCodeInPlayground: 'mdb.openParticipantCodeInPlayground',

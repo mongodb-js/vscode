@@ -98,4 +98,3 @@ export const openTrustedLink = (linkTo: string): void => {
     linkTo,
   });
 };
-
