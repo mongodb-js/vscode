@@ -79,7 +79,10 @@ export function getViewCollectionDocumentsUri({
   const operationIdUriQuery = `${OPERATION_ID_URI_IDENTIFIER}=${operationId}`;
   const connectionIdUriQuery = `${CONNECTION_ID_URI_IDENTIFIER}=${connectionId}`;
   const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${namespace}`;
-  const uriQuery = `${namespaceUriQuery}&${connectionIdUriQuery}&${operationIdUriQuery}`;
+  // We store the format in the URI query string to later
+  // reference it and ensure we follow the format on the file.
+  const formatUriQuery = `${DOCUMENT_FORMAT_URI_IDENTIFIER}=${editFormat}`;
+  const uriQuery = `${namespaceUriQuery}&${connectionIdUriQuery}&${operationIdUriQuery}&${formatUriQuery}`;
 
   // Encode special file uri characters to ensure VSCode handles
   // it correctly in a uri while avoiding collisions.
@@ -91,7 +94,6 @@ export function getViewCollectionDocumentsUri({
 
   // The part of the URI after the scheme and before the query is the file name.
   const extension = editFormat === 'ejson' ? '.json' : '';
-  // TODO: Shouldn't the scheme have :/ after it?
   const fileName = `${VIEW_COLLECTION_SCHEME}:Results: ${namespaceDisplayName}${extension}`;
   return vscode.Uri.parse(fileName, true).with({
     query: uriQuery,
@@ -205,7 +207,6 @@ export default class EditorsController {
       // This happens as setTextDocumentLanguage creates a new document
       // instance when setting the language on a file without an extension.
       if (this._openingDocuments.has(uriKey)) {
-        // this._openingDocuments.delete(uriKey);
         return;
       }
 

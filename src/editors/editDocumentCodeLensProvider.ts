@@ -8,7 +8,7 @@ import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import { ExtensionCommand } from '../commands';
 import { PLAYGROUND_RESULT_URI } from './playgroundResultProvider';
 import type { PlaygroundRunResult } from '../types/playgroundType';
-import { getDocumentViewAndEditFormat } from './types';
+import type { DocumentViewAndEditFormat } from './types';
 
 export default class EditDocumentCodeLensProvider
   implements vscode.CodeLensProvider
@@ -34,6 +34,7 @@ export default class EditDocumentCodeLensProvider
 
   updateCodeLensesForCollection(data: {
     content: Document;
+    format: DocumentViewAndEditFormat;
     namespace?: string;
     uri: vscode.Uri;
   }): void {
@@ -58,7 +59,19 @@ export default class EditDocumentCodeLensProvider
     }
 
     const { content, namespace, type } = playgroundResult;
-    const data = { content, namespace, source };
+    const playgroundResultFormat =
+      playgroundResult.language === 'shell-js' ? 'shell' : 'ejson';
+    const data: {
+      content: any;
+      format: DocumentViewAndEditFormat;
+      namespace?: string;
+      source: DocumentSource;
+    } = {
+      content,
+      format: playgroundResultFormat,
+      namespace,
+      source,
+    };
 
     // Show code lenses only for the list of documents or a single document
     // that are returned by the find() method.
@@ -75,13 +88,14 @@ export default class EditDocumentCodeLensProvider
   _updateCodeLensesForCursor(data: {
     content: any;
     namespace?: string;
+    format: DocumentViewAndEditFormat;
     source: DocumentSource;
   }): EditDocumentInfo[] {
     const resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     if (Array.isArray(data.content)) {
       const connectionId = this._connectionController.getActiveConnectionId();
-      const { content, namespace, source } = data;
+      const { content, format, namespace, source } = data;
 
       // When the playground result is the collection,
       // show the first code lense after [{.
@@ -95,7 +109,7 @@ export default class EditDocumentCodeLensProvider
             documentId: EJSON.deserialize(
               EJSON.serialize(item._id, { relaxed: false }),
             ),
-            format: getDocumentViewAndEditFormat(),
+            format,
             source,
             line,
             namespace,
@@ -116,9 +130,10 @@ export default class EditDocumentCodeLensProvider
   _updateCodeLensesForDocument(data: {
     content: any;
     namespace?: string;
+    format: DocumentViewAndEditFormat;
     source: DocumentSource;
   }): EditDocumentInfo[] {
-    const { content, namespace, source } = data;
+    const { content, format, namespace, source } = data;
     const resultCodeLensesInfo: EditDocumentInfo[] = [];
 
     if (content._id && namespace) {
@@ -132,7 +147,7 @@ export default class EditDocumentCodeLensProvider
         ),
         source,
         line: 1,
-        format: getDocumentViewAndEditFormat(),
+        format,
         namespace,
         connectionId,
       });

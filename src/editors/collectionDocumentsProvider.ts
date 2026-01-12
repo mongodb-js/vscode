@@ -7,7 +7,7 @@ import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
-import { getDocumentViewAndEditFormat } from './types';
+import { DOCUMENT_FORMAT_URI_IDENTIFIER } from './mongoDBDocumentService';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -52,6 +52,10 @@ export default class CollectionViewProvider
     const namespace = String(uriParams.get(NAMESPACE_URI_IDENTIFIER));
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
+    const editFormat =
+      uriParams.get(DOCUMENT_FORMAT_URI_IDENTIFIER) === 'ejson'
+        ? 'ejson'
+        : 'shell';
 
     if (!operationId) {
       void vscode.window.showErrorMessage(
@@ -108,14 +112,11 @@ export default class CollectionViewProvider
       this._editDocumentCodeLensProvider.updateCodeLensesForCollection({
         content: documents,
         namespace,
+        format: editFormat,
         uri,
       });
 
-      const editFormat = getDocumentViewAndEditFormat();
-
       if (editFormat === 'shell') {
-        // TODO
-        // const ejsonDocuments = documents.map((doc) => getEJSON(doc));
         return toJSString(documents, 2) ?? '';
       }
 
