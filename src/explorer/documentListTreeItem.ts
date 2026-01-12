@@ -17,11 +17,14 @@ const log = createLogger('documents tree item');
 export const MAX_DOCUMENTS_VISIBLE = 10;
 
 export const DOCUMENT_LIST_ITEM = 'documentListTreeItem';
-export enum CollectionTypes {
-  collection = 'collection',
-  view = 'view',
-  timeseries = 'timeseries',
-}
+export const CollectionType = {
+  collection: 'collection',
+  view: 'view',
+  timeseries: 'timeseries',
+} as const;
+
+export type CollectionType =
+  (typeof CollectionType)[keyof typeof CollectionType];
 
 const ITEM_LABEL = 'Documents';
 
@@ -53,7 +56,7 @@ const getCollapsableStateForDocumentList = (
   isExpanded: boolean,
   type: string,
 ): vscode.TreeItemCollapsibleState => {
-  if (type === CollectionTypes.view) {
+  if (type === CollectionType.view) {
     return vscode.TreeItemCollapsibleState.None;
   }
 
@@ -64,7 +67,7 @@ const getCollapsableStateForDocumentList = (
 
 export const formatDocCount = (count: number): string => {
   // We format the count (30000 -> 30k) and then display it uppercase (30K).
-  return `${numeral(count).format('0a')}`.toUpperCase();
+  return `${numeral(count).format('0a') as string}`.toUpperCase();
 };
 
 function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
@@ -78,7 +81,7 @@ function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
 }
 
 function getTooltip(type: string, documentCount: number | null): string {
-  const typeString = type === CollectionTypes.view ? 'View' : 'Collection';
+  const typeString = type === CollectionType.view ? 'View' : 'Collection';
   if (documentCount !== null) {
     return `${typeString} Documents - ${documentCount}`;
   }
@@ -178,7 +181,7 @@ export default class DocumentListTreeItem
   }
 
   async getChildren(): Promise<any[]> {
-    if (!this.isExpanded || this.type === CollectionTypes.view) {
+    if (!this.isExpanded || this.type === CollectionType.view) {
       return [];
     }
 

@@ -199,7 +199,7 @@ export default class PlaygroundController {
 
       // Fill in initial content.
       const edit = new vscode.WorkspaceEdit();
-      edit.insert(documentUri, new vscode.Position(0, 0), `${content}`);
+      edit.insert(documentUri, new vscode.Position(0, 0), `${content ?? ''}`);
       await vscode.workspace.applyEdit(edit);
 
       // Actually show the editor.

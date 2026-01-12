@@ -2,7 +2,7 @@ import CollectionTreeItem from './collectionTreeItem';
 import ExplorerController from './explorerController';
 import ConnectionTreeItem from './connectionTreeItem';
 import DatabaseTreeItem from './databaseTreeItem';
-import { CollectionTypes } from './documentListTreeItem';
+import { CollectionType } from './documentListTreeItem';
 import DocumentTreeItem from './documentTreeItem';
 import HelpExplorer from './helpExplorer';
 import SchemaTreeItem from './schemaTreeItem';
@@ -11,7 +11,7 @@ import StreamProcessorTreeItem from './streamProcessorTreeItem';
 
 export {
   CollectionTreeItem,
-  CollectionTypes,
+  CollectionType,
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,

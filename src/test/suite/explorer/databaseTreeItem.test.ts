@@ -31,8 +31,8 @@ function getTestDatabaseTreeItem(
   });
 }
 
-suite('DatabaseTreeItem Test Suite', () => {
-  test('its context value should be in the package json', () => {
+suite('DatabaseTreeItem Test Suite', function () {
+  test('its context value should be in the package json', function () {
     let databaseRegisteredCommandInPackageJson = false;
 
     const testDatabaseTreeItem = getTestDatabaseTreeItem();
@@ -49,7 +49,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('when not expanded it does not show collections', async () => {
+  test('when not expanded it does not show collections', async function () {
     const testDatabaseTreeItem = getTestDatabaseTreeItem();
 
     const collections = await testDatabaseTreeItem.getChildren();
@@ -60,7 +60,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded shows the collections of a database in tree', async () => {
+  test('when expanded shows the collections of a database in tree', async function () {
     const testDatabaseTreeItem = getTestDatabaseTreeItem();
 
     await testDatabaseTreeItem.onDidExpand();
@@ -77,7 +77,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded and collapsed its collections cache their expanded documents', async () => {
+  test('when expanded and collapsed its collections cache their expanded documents', async function () {
     const testDatabaseTreeItem = getTestDatabaseTreeItem();
 
     await testDatabaseTreeItem.onDidExpand();
@@ -121,7 +121,7 @@ suite('DatabaseTreeItem Test Suite', () => {
     assert.strictEqual(amountOfCachedDocs, expectedCachedDocs);
   });
 
-  test('collections are displayed in the alphanumerical case insensitive order, with system collections last', async () => {
+  test('collections are displayed in the alphanumerical case insensitive order, with system collections last', async function () {
     const testDatabaseTreeItem = getTestDatabaseTreeItem({
       databaseName: mockDatabaseNames[2],
       isExpanded: true,
@@ -161,7 +161,7 @@ suite('DatabaseTreeItem Test Suite', () => {
       await disconnectFromTestDB();
     });
 
-    test('schema is cached when a database is collapsed and expanded', async () => {
+    test('schema is cached when a database is collapsed and expanded', async function () {
       const mockDocWithThirtyFields = {
         _id: 32,
         testerObject: {

@@ -3,7 +3,7 @@ import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import type { CollectionDetailsType } from '../../../explorer/collectionTreeItem';
-import { CollectionTypes } from '../../../explorer/documentListTreeItem';
+import { CollectionType } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
 
@@ -16,7 +16,7 @@ function getTestCollectionTreeItem(
   return new CollectionTreeItem({
     collection: {
       name: 'testColName',
-      type: CollectionTypes.collection,
+      type: CollectionType.collection,
     } as unknown as CollectionDetailsType,
     databaseName: 'testDbName',
     dataService: {} as DataService,
@@ -27,10 +27,10 @@ function getTestCollectionTreeItem(
   });
 }
 
-suite('CollectionTreeItem Test Suite', () => {
+suite('CollectionTreeItem Test Suite', function () {
   ext.context = new ExtensionContextStub();
 
-  test('its context value should be in the package json', () => {
+  test('its context value should be in the package json', function () {
     let registeredCommandInPackageJson = false;
     const testCollectionTreeItem = getTestCollectionTreeItem();
 
@@ -43,7 +43,7 @@ suite('CollectionTreeItem Test Suite', () => {
     assert.strictEqual(registeredCommandInPackageJson, true);
   });
 
-  test('when expanded shows a documents folder and schema folder', async () => {
+  test('when expanded shows a documents folder and schema folder', async function () {
     const testCollectionTreeItem = getTestCollectionTreeItem({
       dataService: new DataServiceStub() as unknown as DataService,
     });
@@ -58,7 +58,7 @@ suite('CollectionTreeItem Test Suite', () => {
     assert.strictEqual(collectionChildren[2].label, 'Indexes');
   });
 
-  test('when expanded it shows the document count in the description of the document list', async () => {
+  test('when expanded it shows the document count in the description of the document list', async function () {
     const testCollectionTreeItem = getTestCollectionTreeItem({
       dataService: {
         estimatedCount: () => Promise.resolve(5000),
@@ -77,11 +77,11 @@ suite('CollectionTreeItem Test Suite', () => {
     );
   });
 
-  test('a view should show a different icon from a collection', () => {
+  test('a view should show a different icon from a collection', function () {
     const testCollectionViewTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.view,
+        type: CollectionType.view,
       } as unknown as CollectionDetailsType,
     });
 
@@ -98,7 +98,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection,
+        type: CollectionType.collection,
       } as unknown as CollectionDetailsType,
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;
@@ -116,11 +116,11 @@ suite('CollectionTreeItem Test Suite', () => {
     );
   });
 
-  test('a time-series collection should show a different icon from a collection', () => {
+  test('a time-series collection should show a different icon from a collection', function () {
     const testCollectionTimeSeriesTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.timeseries,
+        type: CollectionType.timeseries,
       } as unknown as CollectionDetailsType,
     });
     const viewIconPath = testCollectionTimeSeriesTreeItem.iconPath;
@@ -136,7 +136,7 @@ suite('CollectionTreeItem Test Suite', () => {
     const testCollectionCollectionTreeItem = getTestCollectionTreeItem({
       collection: {
         name: 'mock_collection_name_1',
-        type: CollectionTypes.collection,
+        type: CollectionType.collection,
       } as unknown as CollectionDetailsType,
     });
     const collectionIconPath = testCollectionCollectionTreeItem.iconPath;

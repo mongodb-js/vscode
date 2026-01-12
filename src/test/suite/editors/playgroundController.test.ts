@@ -94,7 +94,7 @@ suite('Playground Controller Test Suite', function () {
     sandbox.restore();
   });
 
-  suite('passing connection details to service provider', () => {
+  suite('passing connection details to service provider', function () {
     let fakeConnectToServiceProvider: SinonSpy;
 
     beforeEach(async () => {
@@ -129,7 +129,7 @@ suite('Playground Controller Test Suite', function () {
       await testPlaygroundController._activeConnectionChanged();
     });
 
-    test('it should pass the active connection id to the language server for connecting', () => {
+    test('it should pass the active connection id to the language server for connecting', function () {
       expect(
         (
           fakeConnectToServiceProvider.firstCall.firstArg as {
@@ -139,7 +139,7 @@ suite('Playground Controller Test Suite', function () {
       ).to.equal('pineapple');
     });
 
-    test('it should pass ssl strings to the language server for connecting', () => {
+    test('it should pass ssl strings to the language server for connecting', function () {
       expect(
         (
           fakeConnectToServiceProvider.firstCall.firstArg as {
@@ -157,14 +157,14 @@ suite('Playground Controller Test Suite', function () {
     });
   });
 
-  suite('playground is not open', () => {
+  suite('playground is not open', function () {
     beforeEach(() => {
       sandbox.stub(vscode.window, 'activeTextEditor').get(function getterFn() {
         return undefined;
       });
     });
 
-    test('run all playground tells to open a playground file', async () => {
+    test('run all playground tells to open a playground file', async function () {
       const expectedMessage =
         'Please open a MongoDB playground file before running it.';
       await testPlaygroundController.runAllPlaygroundBlocks();
@@ -173,7 +173,7 @@ suite('Playground Controller Test Suite', function () {
       );
     });
 
-    test('run selected playground blocks tells to select one or more lines in the playground', async () => {
+    test('run selected playground blocks tells to select one or more lines in the playground', async function () {
       const expectedMessage =
         'Please select one or more lines in the playground.';
       await testPlaygroundController.runSelectedPlaygroundBlocks();
@@ -182,7 +182,7 @@ suite('Playground Controller Test Suite', function () {
       );
     });
 
-    test('run all or selected playground blocks tells to select one or more lines in the playground', async () => {
+    test('run all or selected playground blocks tells to select one or more lines in the playground', async function () {
       const expectedMessage =
         'Please open a MongoDB playground file before running it.';
       await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
@@ -192,7 +192,7 @@ suite('Playground Controller Test Suite', function () {
     });
   });
 
-  suite('playground is open', () => {
+  suite('playground is open', function () {
     beforeEach(() => {
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
@@ -202,7 +202,7 @@ suite('Playground Controller Test Suite', function () {
       });
     });
 
-    suite('user is not connected', () => {
+    suite('user is not connected', function () {
       let changeActiveConnectionStub: SinonStub;
       let isCurrentlyConnectedStub: SinonStub;
 
@@ -219,7 +219,7 @@ suite('Playground Controller Test Suite', function () {
         );
       });
 
-      test('run all playground blocks shows please connect to a database modal', async () => {
+      test('run all playground blocks shows please connect to a database modal', async function () {
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllPlaygroundBlocks();
@@ -228,7 +228,7 @@ suite('Playground Controller Test Suite', function () {
         );
       });
 
-      test('run selected playground blocks shows please connect to a database modal', async () => {
+      test('run selected playground blocks shows please connect to a database modal', async function () {
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runSelectedPlaygroundBlocks();
@@ -237,7 +237,7 @@ suite('Playground Controller Test Suite', function () {
         );
       });
 
-      test('run all or selected playground blocks shows please connect to a database modal', async () => {
+      test('run all or selected playground blocks shows please connect to a database modal', async function () {
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
@@ -246,7 +246,7 @@ suite('Playground Controller Test Suite', function () {
         );
       });
 
-      test('run all playground blocks shows please connect to a database modal, user dismisses', async () => {
+      test('run all playground blocks shows please connect to a database modal, user dismisses', async function () {
         const expectedMessage =
           'Please connect to a database before running a playground.';
         await testPlaygroundController.runAllPlaygroundBlocks();
@@ -261,7 +261,7 @@ suite('Playground Controller Test Suite', function () {
         expect(result).to.be.false;
       });
 
-      test('run all playground blocks shows please connect to a database modal, user connects', async () => {
+      test('run all playground blocks shows please connect to a database modal, user connects', async function () {
         const getConfigurationStub = sandbox.stub(
           vscode.workspace,
           'getConfiguration',
@@ -310,7 +310,7 @@ suite('Playground Controller Test Suite', function () {
 
         afterEach(() => sinon.restore());
 
-        test('prompts to connect to a database and succeeds with selection', async () => {
+        test('prompts to connect to a database and succeeds with selection', async function () {
           showInformationMessageStub.onFirstCall().resolves('Connect now');
           showInformationMessageStub.onSecondCall().resolves('Yes');
           changeActiveConnectionStub.resolves(true);
@@ -326,7 +326,7 @@ suite('Playground Controller Test Suite', function () {
           expect(result).is.true;
         });
 
-        test('prompts to connect to a database and errors if not selected', async () => {
+        test('prompts to connect to a database and errors if not selected', async function () {
           showInformationMessageStub.onFirstCall().resolves('Connect now');
           showInformationMessageStub.onSecondCall().resolves('Yes');
           changeActiveConnectionStub.resolves(false);
@@ -347,7 +347,7 @@ suite('Playground Controller Test Suite', function () {
       });
     });
 
-    suite('user is connected', () => {
+    suite('user is connected', function () {
       let showTextDocumentStub: SinonStub;
 
       beforeEach(async () => {
@@ -383,7 +383,7 @@ suite('Playground Controller Test Suite', function () {
         await testPlaygroundController._activeConnectionChanged();
       });
 
-      test('keep a playground in focus after running it', async () => {
+      test('keep a playground in focus after running it', async function () {
         await testPlaygroundController._showResultAsVirtualDocument();
 
         const showTextDocumentOptions = showTextDocumentStub.getCall(0).lastArg;
@@ -392,7 +392,7 @@ suite('Playground Controller Test Suite', function () {
         expect(showTextDocumentOptions.viewColumn).to.be.equal(-2);
       });
 
-      suite('confirmation modal', () => {
+      suite('confirmation modal', function () {
         beforeEach(function () {
           sandbox.replace(
             testPlaygroundController,
@@ -406,7 +406,7 @@ suite('Playground Controller Test Suite', function () {
           );
         });
 
-        test('show a confirmation message if mdb.confirmRunAll is true', async () => {
+        test('show a confirmation message if mdb.confirmRunAll is true', async function () {
           showInformationMessageStub.resolves('Yes');
 
           await vscode.workspace
@@ -420,7 +420,7 @@ suite('Playground Controller Test Suite', function () {
           expect(showInformationMessageStub).to.have.been.calledOnce;
         });
 
-        test('do not show a confirmation message if mdb.confirmRunAll is false', async () => {
+        test('do not show a confirmation message if mdb.confirmRunAll is false', async function () {
           showInformationMessageStub.resolves('Yes');
 
           await vscode.workspace
@@ -434,7 +434,7 @@ suite('Playground Controller Test Suite', function () {
           expect(showInformationMessageStub).to.not.have.been.called;
         });
 
-        test('do not run a playground if user selected No in the confirmation message', async () => {
+        test('do not run a playground if user selected No in the confirmation message', async function () {
           showInformationMessageStub.resolves('No');
 
           await vscode.workspace
@@ -460,7 +460,7 @@ suite('Playground Controller Test Suite', function () {
 
         afterEach(() => sinon.restore());
 
-        test('does not prompt to connect to the database', async () => {
+        test('does not prompt to connect to the database', async function () {
           const changeActiveConnectionStub = sinon.stub(
             testPlaygroundController._connectionController,
             'changeActiveConnection',

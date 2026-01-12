@@ -27,7 +27,7 @@ Respond with markdown, suggest code in a Markdown code block that begins with \`
     return Promise.resolve({
       prompt: `${
         prompt ? `The user provided additional information: "${prompt}"\n` : ''
-      }Include driver syntax: ${includeDriverSyntax}`,
+      }${includeDriverSyntax ? 'Include driver syntax.' : 'Do not include driver syntax.'}.`,
       hasSampleDocs: false,
     });
   }

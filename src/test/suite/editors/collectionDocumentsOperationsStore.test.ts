@@ -1,47 +1,32 @@
 import * as vscode from 'vscode';
-import assert from 'assert';
+import { expect } from 'chai';
 
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 
-suite('Collection Documents Operations Store Test Suite', () => {
-  test('expected CollectionDocumentsOperationsStore createNewOperation to add an operation with a document limit and return an id', () => {
+suite('Collection Documents Operations Store Test Suite', function () {
+  test('expected CollectionDocumentsOperationsStore createNewOperation to add an operation with a document limit and return an id', function () {
     const testOpsStore = new CollectionDocumentsOperationsStore();
     const opId = testOpsStore.createNewOperation();
-    assert(
-      !!testOpsStore.operations[opId],
-      `Expected operation with id ${opId}`,
-    );
-    assert(
-      Object.keys(testOpsStore.operations).length === 1,
-      `Expected an operation to be in the operations store, found ${testOpsStore.operations.length}`,
-    );
+    expect(testOpsStore.operations[opId]).to.exist;
+    expect(Object.keys(testOpsStore.operations).length).to.equal(1);
 
     const operation = testOpsStore.operations[opId];
     const expectedLimit = vscode.workspace
       .getConfiguration('mdb')
       .get('defaultLimit');
-    assert(
-      operation.currentLimit === expectedLimit,
-      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`,
-    );
+    expect(operation.currentLimit).to.equal(expectedLimit);
   });
 
-  test('expected increaseOperationDocumentLimit createNewOperation to increase limit by config setting', () => {
+  test('expected increaseOperationDocumentLimit createNewOperation to increase limit by config setting', function () {
     const testOpsStore = new CollectionDocumentsOperationsStore();
     const opId = testOpsStore.createNewOperation();
     const operation = testOpsStore.operations[opId];
     const expectedLimit = Number(
       vscode.workspace.getConfiguration('mdb').get('defaultLimit'),
     );
-    assert(
-      operation.currentLimit === expectedLimit,
-      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`,
-    );
+    expect(operation.currentLimit).to.equal(expectedLimit);
 
     testOpsStore.increaseOperationDocumentLimit(opId);
-    assert(
-      operation.currentLimit === expectedLimit * 2,
-      `Expected limit to be ${expectedLimit} found ${operation.currentLimit}`,
-    );
+    expect(operation.currentLimit).to.equal(expectedLimit * 2);
   });
 });

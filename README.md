@@ -1,7 +1,5 @@
 # MongoDB for VS Code
 
-[![Build Status](https://github.com/mongodb-js/vscode/actions/workflows/test-and-build.yaml/badge.svg?branchName=main)](https://github.com/mongodb-js/vscode/actions/workflows/test-and-build.yaml)
-
 MongoDB for VS Code makes it easy to work with your data in MongoDB directly from your VS Code environment. MongoDB for VS Code is the perfect companion for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register?utm_source=vscode&utm_medium=product), but you can also use it with your self-managed MongoDB instances.
 
 <p align="center">
@@ -153,7 +151,7 @@ For issues, please create a ticket in our [JIRA Project](https://jira.mongodb.or
 
 For contributing, please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Is there anything else you’d like to see in MongoDB for VS Code? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code?utm_source=vscode&utm_medium=product).
+Is there anything else you’d like to see in MongoDB for VS Code? Let us know by submitting suggestions in our [feedback forum](https://feedback.mongodb.com/?category=7548143030521447168&utm_source=vscode&utm_medium=product).
 
 ## Building and Installing from Source
 

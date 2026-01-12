@@ -1,5 +1,17 @@
 # Change Log
 
+## [v1.14.3](https://github.com/mongodb-js/vscode/releases/tag/v1.14.3) - 2025-12-09
+
+## What's Changed
+* chore: Prompt user to connect when running a playground VSCODE-686 by @tculig in https://github.com/mongodb-js/vscode/pull/1185
+
+## New Contributors
+* @dlemstra made their first contribution in https://github.com/mongodb-js/vscode/pull/1158
+* @tculig made their first contribution in https://github.com/mongodb-js/vscode/pull/1169
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.2...v1.14.3
+
+
 ## [v1.14.2](https://github.com/mongodb-js/vscode/releases/tag/v1.14.2) - 2025-10-07
 
 ## What's Changed

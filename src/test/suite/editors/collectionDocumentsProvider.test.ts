@@ -3,7 +3,6 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
-
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
 import CollectionDocumentsProvider, {
@@ -32,7 +31,7 @@ const mockDocumentsAsJsonString = `[
   }
 ]`;
 
-suite('Collection Documents Provider Test Suite', () => {
+suite('Collection Documents Provider Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
@@ -78,7 +77,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.restore();
   });
 
-  test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
+  test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async function () {
     const findStub = sandbox.stub();
     const onceStub = sandbox.stub();
     findStub.resolves([{ field: 'Declaration of Independence' }]);
@@ -110,7 +109,7 @@ suite('Collection Documents Provider Test Suite', () => {
     );
   });
 
-  test('provideTextDocumentContent returns a ejson.stringify string', async () => {
+  test('provideTextDocumentContent returns a ejson.stringify string', async function () {
     const mockDocuments = [
       {
         _id: 'first_id',
@@ -149,7 +148,7 @@ suite('Collection Documents Provider Test Suite', () => {
     );
   });
 
-  test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
+  test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async function () {
     const findStub = sandbox.stub();
     const onceStub = sandbox.stub();
     findStub.resolves([{ field: 'Apollo' }, { field: 'Gemini ' }]);
@@ -187,7 +186,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
   });
 
-  test('provideTextDocumentContent shows a status bar item while it is running then hide it', async () => {
+  test('provideTextDocumentContent shows a status bar item while it is running then hide it', async function () {
     const mockActiveDataService = {
       find: () => Promise.resolve([]),
       once: sandbox.stub(),
@@ -216,7 +215,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(hideMessageStub.called);
   });
 
-  test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async () => {
+  test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async function () {
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
@@ -288,7 +287,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -358,7 +357,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
@@ -391,7 +390,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(secondCollectionCodeLensesInfo[1].documentId === '26');
   });
 
-  test('provideTextDocumentContent sets different code lenses for identical namespaces from the different connections', async () => {
+  test('provideTextDocumentContent sets different code lenses for identical namespaces from the different connections', async function () {
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
@@ -419,14 +418,14 @@ suite('Collection Documents Provider Test Suite', () => {
         id: firstConnectionId,
         name: 'localhost',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
       [secondConnectionId]: {
         id: secondConnectionId,
         name: 'compass',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
@@ -477,7 +476,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -552,7 +551,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===

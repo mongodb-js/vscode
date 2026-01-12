@@ -67,7 +67,7 @@ const AtlasCta: React.FC = () => {
         <AtlasLogo />
         <div className={txtStyles}>
           <Body as="div">
-            <strong>New to MongoDB and don't have a cluster?</strong>
+            <strong>New to MongoDB and don&apos;t have a cluster?</strong>
           </Body>
           <Body as="div">
             Create one for free using&nbsp;
@@ -78,7 +78,7 @@ const AtlasCta: React.FC = () => {
               })}
               data-testid="link-atlas"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
               href={LINKS.atlas}
               onClick={(): void =>
                 trackExtensionLinkClicked('overviewPage', 'atlasLanding')

@@ -14,7 +14,10 @@ import { mongoLogId } from 'mongodb-log-writer';
 import { extractSecrets } from '@mongodb-js/connection-info';
 import { adjustConnectionOptionsBeforeConnect } from '@mongodb-js/connection-form';
 
-import { CONNECTION_STATUS } from './views/webview-app/extension-app-message-constants';
+import {
+  CONNECTION_STATUS,
+  type ConnectionStatus,
+} from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import formatError from './utils/formatError';
 import type { StorageController } from './storage';
@@ -44,16 +47,22 @@ interface DataServiceEventTypes {
   ACTIVE_CONNECTION_CHANGED: [];
 }
 
-export enum ConnectionTypes {
-  CONNECTION_FORM = 'CONNECTION_FORM',
-  CONNECTION_STRING = 'CONNECTION_STRING',
-  CONNECTION_ID = 'CONNECTION_ID',
-}
+export const ConnectionType = {
+  connectionForm: 'CONNECTION_FORM',
+  connectionString: 'CONNECTION_STRING',
+  connectionId: 'CONNECTION_ID',
+} as const;
 
-export enum NewConnectionType {
-  NEW_CONNECTION = 'NEW_CONNECTION',
-  SAVED_CONNECTION = 'SAVED_CONNECTION',
-}
+export type ConnectionTypes =
+  (typeof ConnectionType)[keyof typeof ConnectionType];
+
+export const NewConnectionType = {
+  newConnection: 'NEW_CONNECTION',
+  savedConnection: 'SAVED_CONNECTION',
+} as const;
+
+export type NewConnectionType =
+  (typeof NewConnectionType)[keyof typeof NewConnectionType];
 
 interface ConnectionAttemptResult {
   successfullyConnected: boolean;
@@ -79,7 +88,7 @@ interface NewConnectionParams {
   reuseExisting?: boolean;
 }
 
-export const DEFAULT_TELEMETRY_APP_NAME = `${packageJSON.name} ${packageJSON.version}`;
+export const DEFAULT_TELEMETRY_APP_NAME = `${packageJSON.name as string} ${packageJSON.version as string}`;
 
 function isOIDCAuth(connectionString: string): boolean {
   const authMechanismString = (
@@ -341,7 +350,7 @@ export default class ConnectionController {
             connectionOptions: {
               connectionString: connectionStringData.toString(),
             },
-            connectionType: ConnectionTypes.CONNECTION_STRING,
+            connectionType: ConnectionType.connectionString,
             name,
           }));
 
@@ -521,8 +530,6 @@ export default class ConnectionController {
           connectionErrorMessage: 'connection attempt cancelled',
         };
       }
-    } catch (error) {
-      throw error;
     } finally {
       if (
         this._connectionAttempt === connectionAttempt &&
@@ -619,7 +626,9 @@ export default class ConnectionController {
       return;
     }
 
-    let mergeConnectionInfo: LoadedConnection | {} = {};
+    let mergeConnectionInfo:
+      | RecursivePartial<LoadedConnection>
+      | Record<string, never> = {};
     if (vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')) {
       mergeConnectionInfo = {
         connectionOptions: await dataService.getUpdatedSecrets(),
@@ -648,7 +657,7 @@ export default class ConnectionController {
           }
           // Get updated secrets first (and not in parallel) so that the
           // race condition window between load() and save() is as short as possible.
-          const mergeConnectionInfo = {
+          const mergeConnectionInfo: RecursivePartial<LoadedConnection> = {
             connectionOptions: await dataService.getUpdatedSecrets(),
           };
           if (!mergeConnectionInfo) return;
@@ -689,7 +698,7 @@ export default class ConnectionController {
 
       const result = await this._connect(
         connectionId,
-        ConnectionTypes.CONNECTION_ID,
+        ConnectionType.connectionId,
       );
 
       /** After successfully connecting with an overridden connection
@@ -827,7 +836,7 @@ export default class ConnectionController {
       | { connectionString: string }
       | { name: string }
       | { id: string }
-      | {}
+      | Record<string, never>
     ) & {
       force?: boolean;
     } = {},
@@ -955,7 +964,9 @@ export default class ConnectionController {
         },
       });
     } catch (e) {
-      throw new Error(`An error occurred parsing the connection name: ${e}`);
+      throw new Error(
+        `An error occurred parsing the connection name: ${(e as Error).message}`,
+      );
     }
 
     if (!inputtedConnectionName) {
@@ -1148,20 +1159,20 @@ export default class ConnectionController {
     return url.toString();
   }
 
-  getConnectionStatus(): CONNECTION_STATUS {
+  getConnectionStatus(): ConnectionStatus {
     if (this.isCurrentlyConnected()) {
       if (this.isDisconnecting()) {
-        return CONNECTION_STATUS.DISCONNECTING;
+        return CONNECTION_STATUS.disconnecting;
       }
 
-      return CONNECTION_STATUS.CONNECTED;
+      return CONNECTION_STATUS.connected;
     }
 
     if (this.isConnecting()) {
-      return CONNECTION_STATUS.CONNECTING;
+      return CONNECTION_STATUS.connecting;
     }
 
-    return CONNECTION_STATUS.DISCONNECTED;
+    return CONNECTION_STATUS.disconnected;
   }
 
   getConnectionStatusStringForConnection(connectionId: string): string {
@@ -1209,7 +1220,7 @@ export default class ConnectionController {
         {
           label: 'Add new connection',
           data: {
-            type: NewConnectionType.NEW_CONNECTION,
+            type: NewConnectionType.newConnection,
           },
         },
       ];
@@ -1219,7 +1230,7 @@ export default class ConnectionController {
       {
         label: 'Add new connection',
         data: {
-          type: NewConnectionType.NEW_CONNECTION,
+          type: NewConnectionType.newConnection,
         },
       },
       ...Object.values(this._connections)
@@ -1229,7 +1240,7 @@ export default class ConnectionController {
         .map((item: LoadedConnection) => ({
           label: item.name,
           data: {
-            type: NewConnectionType.SAVED_CONNECTION,
+            type: NewConnectionType.savedConnection,
             connectionId: item.id,
           },
         })),
@@ -1248,7 +1259,7 @@ export default class ConnectionController {
       return false;
     }
 
-    if (selectedQuickPickItem.data.type === NewConnectionType.NEW_CONNECTION) {
+    if (selectedQuickPickItem.data.type === NewConnectionType.newConnection) {
       return this.connectWithURI();
     }
 

@@ -25,14 +25,13 @@ import {
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import { type ExportToLanguageResult } from './types/playgroundType';
-import type { ExtensionCommand } from './commands';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
 import { LanguageServerController } from './language';
 import launchMongoShell from './commands/launchMongoShell';
 import type SchemaTreeItem from './explorer/schemaTreeItem';
 import { StatusView } from './views';
-import { StorageController, StorageVariables } from './storage';
+import { StorageController, StorageVariable } from './storage';
 import { DeepLinkTelemetryEvent, TelemetryService } from './telemetry';
 import type PlaygroundsTreeItem from './explorer/playgroundsTreeItem';
 import PlaygroundResultProvider from './editors/playgroundResultProvider';
@@ -49,7 +48,7 @@ import type {
   SendMessageToParticipantFromInputOptions,
   ParticipantCommand,
 } from './participant/participantTypes';
-import EXTENSION_COMMANDS from './commands';
+import ExtensionCommand from './commands';
 import { COPILOT_EXTENSION_ID } from './participant/constants';
 import {
   CommandRunTelemetryEvent,
@@ -58,96 +57,97 @@ import {
 
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
+import formatError from './utils/formatError';
 
 // Deep link command filtering: Commands are explicitly categorized as allowed or disallowed.
 // We use tests in mdbExtensionController.test.ts to enforce these lists being disjoint and complete.
 export const DEEP_LINK_ALLOWED_COMMANDS = [
-  EXTENSION_COMMANDS.MDB_CONNECT,
-  EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI,
-  EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE,
-  EXTENSION_COMMANDS.MDB_DISCONNECT,
-  EXTENSION_COMMANDS.OPEN_MONGODB_ISSUE_REPORTER,
-  EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL,
-  EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND,
-  EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
-  EXTENSION_COMMANDS.MDB_RUN_ALL_PLAYGROUND_BLOCKS,
-  EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
-  EXTENSION_COMMANDS.MDB_EXPORT_CODE_TO_PLAYGROUND,
-  EXTENSION_COMMANDS.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
-  EXTENSION_COMMANDS.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
-  EXTENSION_COMMANDS.MDB_SELECT_TARGET_FOR_EXPORT_TO_LANGUAGE,
-  EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
-  EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE,
-  EXTENSION_COMMANDS.MDB_SAVE_MONGODB_DOCUMENT,
-  EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION,
-  EXTENSION_COMMANDS.MDB_CODELENS_SHOW_MORE_DOCUMENTS,
-  EXTENSION_COMMANDS.MDB_ADD_CONNECTION,
-  EXTENSION_COMMANDS.MDB_ADD_CONNECTION_WITH_URI,
-  EXTENSION_COMMANDS.MDB_EDIT_CONNECTION,
-  EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
-  EXTENSION_COMMANDS.MDB_COPY_CONNECTION_STRING,
-  EXTENSION_COMMANDS.MDB_EDIT_PRESET_CONNECTIONS,
-  EXTENSION_COMMANDS.MDB_RENAME_CONNECTION,
-  EXTENSION_COMMANDS.MDB_ADD_DATABASE,
-  EXTENSION_COMMANDS.MDB_SEARCH_FOR_DOCUMENTS,
-  EXTENSION_COMMANDS.MDB_COPY_DATABASE_NAME,
-  EXTENSION_COMMANDS.MDB_REFRESH_DATABASE,
-  EXTENSION_COMMANDS.MDB_ADD_COLLECTION,
-  EXTENSION_COMMANDS.MDB_COPY_COLLECTION_NAME,
-  EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,
-  EXTENSION_COMMANDS.MDB_REFRESH_COLLECTION,
-  EXTENSION_COMMANDS.MDB_REFRESH_DOCUMENT_LIST,
+  ExtensionCommand.mdbConnect,
+  ExtensionCommand.mdbConnectWithUri,
+  ExtensionCommand.mdbOpenOverviewPage,
+  ExtensionCommand.mdbDisconnect,
+  ExtensionCommand.openMongodbIssueReporter,
+  ExtensionCommand.mdbOpenMdbShell,
+  ExtensionCommand.mdbCreatePlayground,
+  ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
+  ExtensionCommand.mdbRunAllPlaygroundBlocks,
+  ExtensionCommand.mdbRunAllOrSelectedPlaygroundBlocks,
+  ExtensionCommand.mdbExportCodeToPlayground,
+  ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
+  ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
+  ExtensionCommand.mdbSelectTargetForExportToLanguage,
+  ExtensionCommand.mdbExportToLanguage,
+  ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage,
+  ExtensionCommand.mdbSaveMongodbDocument,
+  ExtensionCommand.mdbChangeActiveConnection,
+  ExtensionCommand.mdbCodelensShowMoreDocuments,
+  ExtensionCommand.mdbAddConnection,
+  ExtensionCommand.mdbAddConnectionWithUri,
+  ExtensionCommand.mdbEditConnection,
+  ExtensionCommand.mdbRefreshConnection,
+  ExtensionCommand.mdbCopyConnectionString,
+  ExtensionCommand.mdbEditPresetConnections,
+  ExtensionCommand.mdbRenameConnection,
+  ExtensionCommand.mdbAddDatabase,
+  ExtensionCommand.mdbSearchForDocuments,
+  ExtensionCommand.mdbCopyDatabaseName,
+  ExtensionCommand.mdbRefreshDatabase,
+  ExtensionCommand.mdbAddCollection,
+  ExtensionCommand.mdbCopyCollectionName,
+  ExtensionCommand.mdbViewCollectionDocuments,
+  ExtensionCommand.mdbRefreshCollection,
+  ExtensionCommand.mdbRefreshDocumentList,
 
-  EXTENSION_COMMANDS.MDB_REFRESH_SCHEMA,
-  EXTENSION_COMMANDS.MDB_COPY_SCHEMA_FIELD_NAME,
-  EXTENSION_COMMANDS.MDB_REFRESH_INDEXES,
-  EXTENSION_COMMANDS.MDB_INSERT_OBJECTID_TO_EDITOR,
-  EXTENSION_COMMANDS.MDB_GENERATE_OBJECTID_TO_CLIPBOARD,
+  ExtensionCommand.mdbRefreshSchema,
+  ExtensionCommand.mdbCopySchemaFieldName,
+  ExtensionCommand.mdbRefreshIndexes,
+  ExtensionCommand.mdbInsertObjectidToEditor,
+  ExtensionCommand.mdbGenerateObjectidToClipboard,
 
-  EXTENSION_COMMANDS.MDB_ADD_STREAM_PROCESSOR,
-  EXTENSION_COMMANDS.MDB_START_STREAM_PROCESSOR,
-  EXTENSION_COMMANDS.MDB_STOP_STREAM_PROCESSOR,
+  ExtensionCommand.mdbAddStreamProcessor,
+  ExtensionCommand.mdbStartStreamProcessor,
+  ExtensionCommand.mdbStopStreamProcessor,
 
-  EXTENSION_COMMANDS.START_MCP_SERVER,
-  EXTENSION_COMMANDS.STOP_MCP_SERVER,
-  EXTENSION_COMMANDS.GET_MCP_SERVER_CONFIG,
+  ExtensionCommand.startMcpServer,
+  ExtensionCommand.stopMcpServer,
+  ExtensionCommand.getMcpServerConfig,
 ] as const;
 
 export const DEEP_LINK_DISALLOWED_COMMANDS = [
   // Participant commands - internal APIs designed for chat UI only
-  EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
-  EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
-  EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
-  EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
-  EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
-  EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
-  EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT,
-  EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
-  EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+  ExtensionCommand.runParticipantCode,
+  ExtensionCommand.openParticipantCodeInPlayground,
+  ExtensionCommand.connectWithParticipant,
+  ExtensionCommand.selectDatabaseWithParticipant,
+  ExtensionCommand.selectCollectionWithParticipant,
+  ExtensionCommand.participantOpenRawSchemaOutput,
+  ExtensionCommand.sendMessageToParticipant,
+  ExtensionCommand.sendMessageToParticipantFromInput,
+  ExtensionCommand.showExportToLanguageResult,
   // Destructive operations
-  EXTENSION_COMMANDS.MDB_DROP_DATABASE,
-  EXTENSION_COMMANDS.MDB_DROP_COLLECTION,
-  EXTENSION_COMMANDS.MDB_DROP_STREAM_PROCESSOR,
-  EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION,
+  ExtensionCommand.mdbDropDatabase,
+  ExtensionCommand.mdbDropCollection,
+  ExtensionCommand.mdbDropStreamProcessor,
+  ExtensionCommand.mdbRemoveConnection,
 
   // Location-specific items - not intended to be accessed in other ways
-  EXTENSION_COMMANDS.MDB_DELETE_DOCUMENT_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_CONNECT_TO_CONNECTION_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_ITEM,
-  EXTENSION_COMMANDS.MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
-  EXTENSION_COMMANDS.MDB_INSERT_DOCUMENT_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_CLONE_DOCUMENT_FROM_TREE_VIEW,
-  EXTENSION_COMMANDS.ASK_COPILOT_FROM_TREE_ITEM,
-  EXTENSION_COMMANDS.MDB_CREATE_INDEX_TREE_VIEW,
-  EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
-  EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
+  ExtensionCommand.mdbDeleteDocumentFromTreeView,
+  ExtensionCommand.mdbRemoveConnectionTreeView,
+  ExtensionCommand.mdbOpenMdbShellFromTreeView,
+  ExtensionCommand.mdbRefreshPlaygroundsFromTreeView,
+  ExtensionCommand.mdbOpenPlaygroundFromTreeView,
+  ExtensionCommand.mdbConnectToConnectionTreeView,
+  ExtensionCommand.mdbCreatePlaygroundFromTreeView,
+  ExtensionCommand.mdbCreatePlaygroundFromTreeItem,
+  ExtensionCommand.mdbDisconnectFromConnectionTreeView,
+  ExtensionCommand.mdbOpenMongodbDocumentFromTree,
+  ExtensionCommand.mdbInsertDocumentFromTreeView,
+  ExtensionCommand.mdbCopyDocumentContentsFromTreeView,
+  ExtensionCommand.mdbCloneDocumentFromTreeView,
+  ExtensionCommand.askCopilotFromTreeItem,
+  ExtensionCommand.mdbCreateIndexTreeView,
+  ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
+  ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -340,9 +340,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     try {
       if (
-        !Object.values(EXTENSION_COMMANDS).includes(
-          command as EXTENSION_COMMANDS,
-        )
+        !Object.values(ExtensionCommand).includes(command as ExtensionCommand)
       ) {
         throw new Error(
           `Unable to execute command '${command}' since it is not registered by the MongoDB extension.`,
@@ -350,9 +348,9 @@ export default class MDBExtensionController implements vscode.Disposable {
       }
 
       if (
-        (
-          DEEP_LINK_DISALLOWED_COMMANDS as readonly EXTENSION_COMMANDS[]
-        ).includes(command as EXTENSION_COMMANDS)
+        (DEEP_LINK_DISALLOWED_COMMANDS as readonly ExtensionCommand[]).includes(
+          command as ExtensionCommand,
+        )
       ) {
         throw new Error(
           `Command '${command}' cannot be invoked via deep links.`,
@@ -362,7 +360,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       await vscode.commands.executeCommand(command, parameters);
     } catch (error) {
       await vscode.window.showErrorMessage(
-        `Failed to handle '${uri}': ${error}`,
+        `Failed to handle '${vscode.Uri.prototype.toString.call(uri)}': ${formatError(error).message}`,
       );
     }
   };
@@ -371,29 +369,29 @@ export default class MDBExtensionController implements vscode.Disposable {
     // Register our extension's commands. These are the event handlers and
     // control the functionality of our extension.
     // ------ CONNECTION ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE, () => {
+    this.registerCommand(ExtensionCommand.mdbOpenOverviewPage, () => {
       this._webviewController.openWebview(this._context);
       return Promise.resolve(true);
     });
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT, () => {
+    this.registerCommand(ExtensionCommand.mdbConnect, () => {
       this._webviewController.openWebview(this._context);
       return Promise.resolve(true);
     });
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI, (params) => {
+    this.registerCommand(ExtensionCommand.mdbConnectWithUri, (params) => {
       return this._connectionController.connectWithURI(params);
     });
-    this.registerCommand(EXTENSION_COMMANDS.MDB_DISCONNECT, () =>
+    this.registerCommand(ExtensionCommand.mdbDisconnect, () =>
       this._connectionController.disconnect(),
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION, (params) =>
+    this.registerCommand(ExtensionCommand.mdbRemoveConnection, (params) =>
       this._connectionController.onRemoveMongoDBConnection(params),
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CHANGE_ACTIVE_CONNECTION, () =>
+    this.registerCommand(ExtensionCommand.mdbChangeActiveConnection, () =>
       this._connectionController.changeActiveConnection(),
     );
 
     this.registerCommand(
-      EXTENSION_COMMANDS.OPEN_MONGODB_ISSUE_REPORTER,
+      ExtensionCommand.openMongodbIssueReporter,
       async () => {
         return await vscode.commands.executeCommand(
           'workbench.action.openIssueReporter',
@@ -406,67 +404,65 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     // ------ SHELL ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL, () =>
+    this.registerCommand(ExtensionCommand.mdbOpenMdbShell, () =>
       launchMongoShell(this._connectionController),
     );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_MDB_SHELL_FROM_TREE_VIEW,
-      () => launchMongoShell(this._connectionController),
+    this.registerCommand(ExtensionCommand.mdbOpenMdbShellFromTreeView, () =>
+      launchMongoShell(this._connectionController),
     );
 
     // ------ PLAYGROUND ------ //
-    this.registerCommand(EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND, () =>
+    this.registerCommand(ExtensionCommand.mdbCreatePlayground, () =>
       this._playgroundController.createPlayground(),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
+      ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
       () => this._playgroundController.createPlayground(),
     );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_RUN_SELECTED_PLAYGROUND_BLOCKS,
-      () => this._playgroundController.runSelectedPlaygroundBlocks(),
+    this.registerCommand(ExtensionCommand.mdbRunSelectedPlaygroundBlocks, () =>
+      this._playgroundController.runSelectedPlaygroundBlocks(),
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_RUN_ALL_PLAYGROUND_BLOCKS, () =>
+    this.registerCommand(ExtensionCommand.mdbRunAllPlaygroundBlocks, () =>
       this._playgroundController.runAllPlaygroundBlocks(),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_RUN_ALL_OR_SELECTED_PLAYGROUND_BLOCKS,
+      ExtensionCommand.mdbRunAllOrSelectedPlaygroundBlocks,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks(),
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_EXPORT_CODE_TO_PLAYGROUND, () =>
+    this.registerCommand(ExtensionCommand.mdbExportCodeToPlayground, () =>
       this._participantController.exportCodeToPlayground(),
     );
 
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_FIX_THIS_INVALID_INTERACTIVE_SYNTAX,
+      ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
       (data) =>
         this._playgroundController.fixThisInvalidInteractiveSyntax(data),
     );
 
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_FIX_ALL_INVALID_INTERACTIVE_SYNTAX,
+      ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
       (data) => this._playgroundController.fixAllInvalidInteractiveSyntax(data),
     );
 
     // ------ EXPORT TO LANGUAGE ------ //
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_SELECT_TARGET_FOR_EXPORT_TO_LANGUAGE,
+      ExtensionCommand.mdbSelectTargetForExportToLanguage,
       () => this._participantController.selectTargetForExportToLanguage(),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_EXPORT_TO_LANGUAGE,
+      ExtensionCommand.mdbExportToLanguage,
       (language: string) =>
         this._participantController.exportPlaygroundToLanguage(language),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CHANGE_DRIVER_SYNTAX_FOR_EXPORT_TO_LANGUAGE,
+      ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage,
       (includeDriverSyntax: boolean) =>
         this._participantController.changeDriverSyntaxForExportToLanguage(
           includeDriverSyntax,
         ),
     );
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.SHOW_EXPORT_TO_LANGUAGE_RESULT,
+      ExtensionCommand.showExportToLanguageResult,
       (data: ExportToLanguageResult) => {
         return this._playgroundController.showExportToLanguageResult(data);
       },
@@ -474,7 +470,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     // ------ DOCUMENTS ------ //
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_CODE_LENS,
+      ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
       (data: EditDocumentInfo) => {
         this._telemetryService.track(
           new DocumentEditedTelemetryEvent(data.source),
@@ -483,7 +479,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._editorsController.openMongoDBDocument(data);
       },
     );
-    this.registerCommand(EXTENSION_COMMANDS.MDB_SAVE_MONGODB_DOCUMENT, () =>
+    this.registerCommand(ExtensionCommand.mdbSaveMongodbDocument, () =>
       this._editorsController.saveMongoDBDocument(),
     );
 
@@ -492,7 +488,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     // ------ CHAT PARTICIPANT ------ //
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.OPEN_PARTICIPANT_CODE_IN_PLAYGROUND,
+      ExtensionCommand.openParticipantCodeInPlayground,
       ({ runnableContent }: RunParticipantCodeCommandArgs) => {
         return this._playgroundController.createPlaygroundFromParticipantCode({
           text: runnableContent,
@@ -500,14 +496,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT,
+      ExtensionCommand.sendMessageToParticipant,
       async (options: SendMessageToParticipantOptions) => {
         await this._participantController.sendMessageToParticipant(options);
         return true;
       },
     );
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
+      ExtensionCommand.sendMessageToParticipantFromInput,
       async (options: SendMessageToParticipantFromInputOptions) => {
         await this._participantController.sendMessageToParticipantFromInput(
           options,
@@ -516,14 +512,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.ASK_COPILOT_FROM_TREE_ITEM,
+      ExtensionCommand.askCopilotFromTreeItem,
       async (treeItem: DatabaseTreeItem | CollectionTreeItem) => {
         await this._participantController.askCopilotFromTreeItem(treeItem);
         return true;
       },
     );
     this.registerParticipantCommand(
-      EXTENSION_COMMANDS.RUN_PARTICIPANT_CODE,
+      ExtensionCommand.runParticipantCode,
       ({ runnableContent }: RunParticipantCodeCommandArgs) => {
         return this._playgroundController.evaluateParticipantCode(
           runnableContent,
@@ -531,13 +527,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.CONNECT_WITH_PARTICIPANT,
+      ExtensionCommand.connectWithParticipant,
       (data: { id?: string; command?: string }) => {
         return this._participantController.connectWithParticipant(data);
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.SELECT_DATABASE_WITH_PARTICIPANT,
+      ExtensionCommand.selectDatabaseWithParticipant,
       (data: {
         chatId: string;
         command: ParticipantCommand;
@@ -547,7 +543,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.SELECT_COLLECTION_WITH_PARTICIPANT,
+      ExtensionCommand.selectCollectionWithParticipant,
       (data: any) => {
         return this._participantController.selectCollectionWithParticipant(
           data,
@@ -555,7 +551,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.PARTICIPANT_OPEN_RAW_SCHEMA_OUTPUT,
+      ExtensionCommand.participantOpenRawSchemaOutput,
       async ({ schema }: OpenSchemaCommandArgs) => {
         const document = await vscode.workspace.openTextDocument({
           language: 'json',
@@ -603,7 +599,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   registerEditorCommands(): void {
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CODELENS_SHOW_MORE_DOCUMENTS,
+      ExtensionCommand.mdbCodelensShowMoreDocuments,
       ({ operationId, connectionId, namespace }) => {
         return this._editorsController.onViewMoreCollectionDocuments(
           operationId,
@@ -615,15 +611,15 @@ export default class MDBExtensionController implements vscode.Disposable {
   }
 
   registerTreeViewCommands(): void {
-    this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION, () => {
+    this.registerCommand(ExtensionCommand.mdbAddConnection, () => {
       this._webviewController.openWebview(this._context);
       return Promise.resolve(true);
     });
-    this.registerCommand(EXTENSION_COMMANDS.MDB_ADD_CONNECTION_WITH_URI, () =>
+    this.registerCommand(ExtensionCommand.mdbAddConnectionWithUri, () =>
       this._connectionController.connectWithURI(),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CONNECT_TO_CONNECTION_TREE_VIEW,
+      ExtensionCommand.mdbConnectToConnectionTreeView,
       async (connectionTreeItem: ConnectionTreeItem) => {
         const { successfullyConnected } =
           await this._connectionController.connectWithConnectionId(
@@ -633,7 +629,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_DISCONNECT_FROM_CONNECTION_TREE_VIEW,
+      ExtensionCommand.mdbDisconnectFromConnectionTreeView,
       () => {
         // In order for this command to be activated, the connection must
         // be the active connection, so we can just generally disconnect.
@@ -641,7 +637,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_CONNECTION,
+      ExtensionCommand.mdbRefreshConnection,
       async (connectionTreeItem: ConnectionTreeItem): Promise<boolean> => {
         connectionTreeItem.resetCache();
         this._explorerController.refresh();
@@ -656,14 +652,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_EDIT_PRESET_CONNECTIONS,
+      ExtensionCommand.mdbEditPresetConnections,
       async (element: ConnectionTreeItem | undefined) => {
         await this._connectionController.openPresetConnectionsSettings(element);
         return true;
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_COPY_CONNECTION_STRING,
+      ExtensionCommand.mdbCopyConnectionString,
       async (element: ConnectionTreeItem): Promise<boolean> => {
         const connectionString =
           this._connectionController.copyConnectionStringByConnectionId(
@@ -677,14 +673,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REMOVE_CONNECTION_TREE_VIEW,
+      ExtensionCommand.mdbRemoveConnectionTreeView,
       (element: ConnectionTreeItem) =>
         this._connectionController.onRemoveMongoDBConnection({
           id: element.connectionId,
         }),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_EDIT_CONNECTION,
+      ExtensionCommand.mdbEditConnection,
       (element: ConnectionTreeItem) => {
         const connectionOptions =
           this._connectionController.getConnectionConnectionOptions(
@@ -709,12 +705,12 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_RENAME_CONNECTION,
+      ExtensionCommand.mdbRenameConnection,
       (element: ConnectionTreeItem) =>
         this._connectionController.renameConnection(element.connectionId),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_ADD_DATABASE,
+      ExtensionCommand.mdbAddDatabase,
       async (element: ConnectionTreeItem): Promise<boolean> => {
         if (!element) {
           void vscode.window.showErrorMessage(
@@ -757,7 +753,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_COPY_DATABASE_NAME,
+      ExtensionCommand.mdbCopyDatabaseName,
       async (element: DatabaseTreeItem) => {
         await vscode.env.clipboard.writeText(element.databaseName);
         void vscode.window.showInformationMessage('Copied to clipboard.');
@@ -766,7 +762,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_DROP_DATABASE,
+      ExtensionCommand.mdbDropDatabase,
       async (element: DatabaseTreeItem): Promise<boolean> => {
         const successfullyDroppedDatabase =
           await element.onDropDatabaseClicked();
@@ -785,7 +781,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_DATABASE,
+      ExtensionCommand.mdbRefreshDatabase,
       async (databaseTreeItem: DatabaseTreeItem): Promise<boolean> => {
         databaseTreeItem.resetCache();
         this._explorerController.refresh();
@@ -798,7 +794,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_ADD_COLLECTION,
+      ExtensionCommand.mdbAddCollection,
       async (element: DatabaseTreeItem): Promise<boolean> => {
         if (this._connectionController.isDisconnecting()) {
           void vscode.window.showErrorMessage(
@@ -814,7 +810,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_COPY_COLLECTION_NAME,
+      ExtensionCommand.mdbCopyCollectionName,
       async (element: CollectionTreeItem): Promise<boolean> => {
         await vscode.env.clipboard.writeText(element.collectionName);
         void vscode.window.showInformationMessage('Copied to clipboard.');
@@ -823,7 +819,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_DROP_COLLECTION,
+      ExtensionCommand.mdbDropCollection,
       async (element: CollectionTreeItem): Promise<boolean> => {
         const successfullyDroppedCollection =
           await element.onDropCollectionClicked();
@@ -842,7 +838,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_VIEW_COLLECTION_DOCUMENTS,
+      ExtensionCommand.mdbViewCollectionDocuments,
       (
         element: CollectionTreeItem | DocumentListTreeItem,
       ): Promise<boolean> => {
@@ -852,7 +848,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_COLLECTION,
+      ExtensionCommand.mdbRefreshCollection,
       async (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
         this._explorerController.refresh();
@@ -862,7 +858,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_SEARCH_FOR_DOCUMENTS,
+      ExtensionCommand.mdbSearchForDocuments,
       (element: DocumentListTreeItem): Promise<boolean> =>
         this._playgroundController.createPlaygroundForSearch(
           element.databaseName,
@@ -870,10 +866,10 @@ export default class MDBExtensionController implements vscode.Disposable {
         ),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_MONGODB_DOCUMENT_FROM_TREE,
+      ExtensionCommand.mdbOpenMongodbDocumentFromTree,
       (element: DocumentTreeItem): Promise<boolean> => {
         return this._editorsController.openMongoDBDocument({
-          source: DocumentSource.DOCUMENT_SOURCE_TREEVIEW,
+          source: DocumentSource.treeview,
           documentId: element.documentId,
           namespace: element.namespace,
           connectionId: this._connectionController.getActiveConnectionId(),
@@ -882,7 +878,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_DOCUMENT_LIST,
+      ExtensionCommand.mdbRefreshDocumentList,
       async (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
         this._explorerController.refresh();
@@ -892,7 +888,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_INSERT_DOCUMENT_FROM_TREE_VIEW,
+      ExtensionCommand.mdbInsertDocumentFromTreeView,
       async (
         documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem,
       ): Promise<boolean> => {
@@ -903,7 +899,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_SCHEMA,
+      ExtensionCommand.mdbRefreshSchema,
       async (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();
         this._explorerController.refresh();
@@ -913,7 +909,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_COPY_SCHEMA_FIELD_NAME,
+      ExtensionCommand.mdbCopySchemaFieldName,
       async (fieldTreeItem: FieldTreeItem): Promise<boolean> => {
         await vscode.env.clipboard.writeText(fieldTreeItem.getFieldName());
         void vscode.window.showInformationMessage('Copied to clipboard.');
@@ -922,7 +918,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_INDEXES,
+      ExtensionCommand.mdbRefreshIndexes,
       (indexListTreeItem: IndexListTreeItem): Promise<boolean> => {
         indexListTreeItem.resetCache();
         this._explorerController.refresh();
@@ -931,7 +927,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_INDEX_TREE_VIEW,
+      ExtensionCommand.mdbCreateIndexTreeView,
       (indexListTreeItem: IndexListTreeItem): Promise<boolean> => {
         return this._playgroundController.createPlaygroundForNewIndex(
           indexListTreeItem.databaseName,
@@ -939,26 +935,25 @@ export default class MDBExtensionController implements vscode.Disposable {
         );
       },
     );
-    this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_VIEW,
-      () => this._playgroundController.createPlayground(),
+    this.registerCommand(ExtensionCommand.mdbCreatePlaygroundFromTreeView, () =>
+      this._playgroundController.createPlayground(),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_TREE_ITEM,
+      ExtensionCommand.mdbCreatePlaygroundFromTreeItem,
       (treeItem: DatabaseTreeItem | CollectionTreeItem) =>
         this._playgroundController.createPlaygroundFromTreeItem(treeItem),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_REFRESH_PLAYGROUNDS_FROM_TREE_VIEW,
+      ExtensionCommand.mdbRefreshPlaygroundsFromTreeView,
       () => this._playgroundsExplorer.refresh(),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_OPEN_PLAYGROUND_FROM_TREE_VIEW,
+      ExtensionCommand.mdbOpenPlaygroundFromTreeView,
       (playgroundsTreeItem: PlaygroundsTreeItem) =>
         this._playgroundController.openPlayground(playgroundsTreeItem.filePath),
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_COPY_DOCUMENT_CONTENTS_FROM_TREE_VIEW,
+      ExtensionCommand.mdbCopyDocumentContentsFromTreeView,
       async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
         const documentContents =
           await documentTreeItem.getStringifiedEJSONDocumentContents();
@@ -969,7 +964,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_CLONE_DOCUMENT_FROM_TREE_VIEW,
+      ExtensionCommand.mdbCloneDocumentFromTreeView,
       async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
         const documentContents =
           await documentTreeItem.getJSStringDocumentContents();
@@ -985,7 +980,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_DELETE_DOCUMENT_FROM_TREE_VIEW,
+      ExtensionCommand.mdbDeleteDocumentFromTreeView,
       async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
         const successfullyDropped =
           await documentTreeItem.onDeleteDocumentClicked();
@@ -1004,7 +999,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_INSERT_OBJECTID_TO_EDITOR,
+      ExtensionCommand.mdbInsertObjectidToEditor,
       async (): Promise<boolean> => {
         const editor = vscode.window.activeTextEditor;
 
@@ -1028,7 +1023,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_GENERATE_OBJECTID_TO_CLIPBOARD,
+      ExtensionCommand.mdbGenerateObjectidToClipboard,
       async (): Promise<boolean> => {
         await vscode.env.clipboard.writeText(generateId().toHexString());
         void vscode.window.showInformationMessage('Copied to clipboard.');
@@ -1039,7 +1034,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerAtlasStreamsTreeViewCommands();
 
     this.registerCommand(
-      EXTENSION_COMMANDS.START_MCP_SERVER,
+      ExtensionCommand.startMcpServer,
       async (): Promise<boolean> => {
         await this._mcpController.startServer();
         return true;
@@ -1047,7 +1042,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     this.registerCommand(
-      EXTENSION_COMMANDS.STOP_MCP_SERVER,
+      ExtensionCommand.stopMcpServer,
       async (): Promise<boolean> => {
         await this._mcpController.stopServer();
         return true;
@@ -1055,7 +1050,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
 
     this.registerCommand(
-      EXTENSION_COMMANDS.GET_MCP_SERVER_CONFIG,
+      ExtensionCommand.getMcpServerConfig,
       (): Promise<boolean> => {
         return this._mcpController.openServerConfig();
       },
@@ -1064,7 +1059,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
   registerAtlasStreamsTreeViewCommands(): void {
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_ADD_STREAM_PROCESSOR,
+      ExtensionCommand.mdbAddStreamProcessor,
       async (element: ConnectionTreeItem): Promise<boolean> => {
         if (!element) {
           void vscode.window.showErrorMessage(
@@ -1107,7 +1102,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_START_STREAM_PROCESSOR,
+      ExtensionCommand.mdbStartStreamProcessor,
       async (element: StreamProcessorTreeItem): Promise<boolean> => {
         const started = await element.onStartClicked();
         if (started) {
@@ -1121,7 +1116,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_STOP_STREAM_PROCESSOR,
+      ExtensionCommand.mdbStopStreamProcessor,
       async (element: StreamProcessorTreeItem): Promise<boolean> => {
         const stopped = await element.onStopClicked();
         if (stopped) {
@@ -1135,7 +1130,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      EXTENSION_COMMANDS.MDB_DROP_STREAM_PROCESSOR,
+      ExtensionCommand.mdbDropStreamProcessor,
       async (element: StreamProcessorTreeItem): Promise<boolean> => {
         const dropped = await element.onDropClicked();
         if (dropped) {
@@ -1161,7 +1156,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     }
 
     const hasBeenShownViewAlready = !!this._storageController.get(
-      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+      StorageVariable.globalHasBeenShownInitialView,
     );
 
     if (hasBeenShownViewAlready) {
@@ -1171,13 +1166,11 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     if (!this._connectionStorage.hasSavedConnections()) {
       // Only show the overview page if there are no saved connections.
-      void vscode.commands.executeCommand(
-        EXTENSION_COMMANDS.MDB_OPEN_OVERVIEW_PAGE,
-      );
+      void vscode.commands.executeCommand(ExtensionCommand.mdbOpenOverviewPage);
     }
 
     void this._storageController.update(
-      StorageVariables.GLOBAL_HAS_BEEN_SHOWN_INITIAL_VIEW,
+      StorageVariable.globalHasBeenShownInitialView,
       true,
     );
   }

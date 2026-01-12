@@ -25,7 +25,7 @@ function getTestIndexListTreeItem(
   });
 }
 
-suite('IndexListTreeItem Test Suite', () => {
+suite('IndexListTreeItem Test Suite', function () {
   let showErrorMessageStub: SinonStub;
   const sandbox = sinon.createSandbox();
 
@@ -37,7 +37,7 @@ suite('IndexListTreeItem Test Suite', () => {
     sandbox.restore();
   });
 
-  test('its context value should be in the package json', () => {
+  test('its context value should be in the package json', function () {
     let indexListRegisteredCommandInPackageJson = false;
     const testIndexListTreeItem = getTestIndexListTreeItem();
 
@@ -53,7 +53,7 @@ suite('IndexListTreeItem Test Suite', () => {
     );
   });
 
-  test('when expanded it fetches indexes and shows them', async () => {
+  test('when expanded it fetches indexes and shows them', async function () {
     const fakeFetchIndexes = [
       {
         v: 1,
@@ -102,7 +102,7 @@ suite('IndexListTreeItem Test Suite', () => {
     assert.strictEqual(indexTreeItems[1].label, '_id_1_gnocchi_1');
   });
 
-  test('it shows an indexes icon', () => {
+  test('it shows an indexes icon', function () {
     const testIndexListTreeItem = getTestIndexListTreeItem({
       collectionName: 'pineapple',
       dataService: {
@@ -122,7 +122,7 @@ suite('IndexListTreeItem Test Suite', () => {
     );
   });
 
-  test('when theres an error fetching indexes, the error is thrown in the caller (no timeout)', async () => {
+  test('when theres an error fetching indexes, the error is thrown in the caller (no timeout)', async function () {
     const expectedMessage = 'Some error message indexes could throw';
     const testIndexListTreeItem = getTestIndexListTreeItem({
       dataService: {
@@ -146,7 +146,7 @@ suite('IndexListTreeItem Test Suite', () => {
     }
   });
 
-  test('when rebuilt it maintains the expanded state of the cached indexes', async () => {
+  test('when rebuilt it maintains the expanded state of the cached indexes', async function () {
     const fakeFetchIndexes = [
       {
         v: 1,

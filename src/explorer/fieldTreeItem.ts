@@ -8,25 +8,27 @@ import type TreeItemParent from './treeItemParentInterface';
 // types returned by `parseSchema` with `mongodb-schema`.
 // We have types for elements we have special handing for (icons).
 // https://docs.mongodb.com/manual/reference/bson-types/
-export enum FieldType {
-  array = 'Array',
-  binary = 'Binary',
-  bool = 'Boolean',
-  date = 'Date',
-  decimal = 'Decimal128',
-  document = 'Document',
-  int = '32-bit integer',
-  javascript = 'Javascript',
-  long = '64-bit integer',
-  null = 'Null',
-  number = 'Number',
-  object = 'Object',
-  objectId = 'ObjectID',
-  regex = 'Regular Expression',
-  string = 'String',
-  timestamp = 'Timestamp',
-  undefined = 'Undefined',
-}
+export const FieldType = {
+  array: 'Array',
+  binary: 'Binary',
+  bool: 'Boolean',
+  date: 'Date',
+  decimal: 'Decimal128',
+  document: 'Document',
+  int: '32-bit integer',
+  javascript: 'Javascript',
+  long: '64-bit integer',
+  null: 'Null',
+  number: 'Number',
+  object: 'Object',
+  objectId: 'ObjectID',
+  regex: 'Regular Expression',
+  string: 'String',
+  timestamp: 'Timestamp',
+  undefined: 'Undefined',
+} as const;
+
+export type FieldType = (typeof FieldType)[keyof typeof FieldType];
 
 export type SchemaFieldType = {
   name: string;

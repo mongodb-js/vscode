@@ -1,59 +1,53 @@
-import assert from 'assert';
+import { expect } from 'chai';
 
 import StorageController, {
-  StorageVariables,
+  StorageVariable,
   StorageLocation,
 } from '../../../storage/storageController';
 import { ExtensionContextStub } from '../stubs';
 
-suite('Storage Controller Test Suite', () => {
-  test('getting a variable gets it from the global context store', () => {
+suite('Storage Controller Test Suite', function () {
+  test('getting a variable gets it from the global context store', function () {
     const extensionContextStub = new ExtensionContextStub();
     extensionContextStub._globalState = {
-      [StorageVariables.GLOBAL_SAVED_CONNECTIONS]: {
+      [StorageVariable.globalSavedConnections]: {
         collOne: { name: 'this_gonna_get_saved' },
       },
     };
     const testStorageController = new StorageController(extensionContextStub);
     const testVal = testStorageController.get(
-      StorageVariables.GLOBAL_SAVED_CONNECTIONS,
-      StorageLocation.GLOBAL,
+      StorageVariable.globalSavedConnections,
+      StorageLocation.global,
     );
-    assert(
-      testVal.collOne.name === 'this_gonna_get_saved',
-      `Expected ${testVal} from global state to equal 'this_gonna_get_saved'.`,
-    );
+    expect(testVal.collOne.name).to.equal('this_gonna_get_saved');
   });
 
-  test('getting a variable from the workspace state gets it from the workspace context store', () => {
+  test('getting a variable from the workspace state gets it from the workspace context store', function () {
     const extensionContextStub = new ExtensionContextStub();
     extensionContextStub._workspaceState = {
-      [StorageVariables.WORKSPACE_SAVED_CONNECTIONS]: {
+      [StorageVariable.workspaceSavedConnections]: {
         collTwo: { name: 'i_cant_believe_its_gonna_save_this' },
       },
     };
     const testStorageController = new StorageController(extensionContextStub);
     const testVal = testStorageController.get(
-      StorageVariables.WORKSPACE_SAVED_CONNECTIONS,
-      StorageLocation.WORKSPACE,
+      StorageVariable.workspaceSavedConnections,
+      StorageLocation.workspace,
     );
-    assert(
-      testVal.collTwo.name === 'i_cant_believe_its_gonna_save_this',
-      `Expected ${testVal} from workspace state to equal 'i_cant_believe_its_gonna_save_this'.`,
-    );
+    expect(testVal.collTwo.name).to.equal('i_cant_believe_its_gonna_save_this');
   });
 
-  suite('for a new user that does not have anonymousId', () => {
+  suite('for a new user that does not have anonymousId', function () {
     const extensionContextStub = new ExtensionContextStub();
     extensionContextStub._globalState = {};
     const testStorageController = new StorageController(extensionContextStub);
 
-    test('getUserIdentity adds anonymousId to the global storage and returns it to telemetry', () => {
+    test('getUserIdentity adds anonymousId to the global storage and returns it to telemetry', function () {
       const userIdentity = testStorageController.getUserIdentity();
       const anonymousId = testStorageController.get(
-        StorageVariables.GLOBAL_ANONYMOUS_ID,
+        StorageVariable.globalAnonymousId,
       );
-      assert.deepStrictEqual(userIdentity, { anonymousId });
+      expect(userIdentity).to.deep.equal({ anonymousId });
     });
   });
 });

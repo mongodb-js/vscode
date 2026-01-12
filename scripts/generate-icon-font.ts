@@ -1,7 +1,7 @@
-import webfont from 'webfont';
+import { webfont } from 'webfont';
 import fs from 'fs/promises';
-import { GlyphData } from 'webfont/dist/src/types';
 import prettier from 'prettier';
+import path from 'path';
 
 /** Icons to include in the generated icon font */
 const INCLUDED_ICONS = [
@@ -61,14 +61,14 @@ async function main(): Promise<void> {
   const prettierConfig = await prettier.resolveConfig('./.prettierrc.json');
   await fs.writeFile(
     './package.json',
-    prettier.format(JSON.stringify(currentConfiguration), {
+    await prettier.format(JSON.stringify(currentConfiguration), {
       ...prettierConfig,
       parser: 'json-stringify',
     }),
   );
 }
 
-function getUnicodeHex(glyph: GlyphData): string {
+function getUnicodeHex(glyph: any): string {
   if (glyph.metadata?.unicode == undefined) {
     throw new Error('No unicode defined');
   }
