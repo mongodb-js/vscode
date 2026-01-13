@@ -857,14 +857,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
-      async (element: ShowPreviewTreeItem): Promise<boolean> => {
+      (element: ShowPreviewTreeItem): Promise<boolean> => {
         this._dataBrowsingController.openDataBrowser(this._context, {
           namespace: element.namespace,
           fetchDocuments: (options) => element.loadPreview(options),
           getTotalCount: (signal) => element.getTotalCount(signal),
         });
 
-        return true;
+        return Promise.resolve(true);
       },
     );
     this.registerCommand(
