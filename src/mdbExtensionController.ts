@@ -858,26 +858,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
       async (element: ShowPreviewTreeItem): Promise<boolean> => {
-        const namespace = element.namespace;
-        const fetchLimit = 10;
-        const documents = await element.loadPreview({ limit: fetchLimit });
-        const totalCount = await element.getTotalCount();
-
-        const fetchDocuments = async (options?: {
-          sort?: 'default' | 'asc' | 'desc';
-          limit?: number;
-          signal?: AbortSignal;
-        }): Promise<Document[]> => element.loadPreview(options);
-
-        const getTotalCount = (signal?: AbortSignal): Promise<number> =>
-          element.getTotalCount(signal);
-
         this._dataBrowsingController.openDataBrowser(this._context, {
-          namespace,
-          documents,
-          fetchDocuments,
-          initialTotalCount: totalCount,
-          getTotalCount,
+          namespace: element.namespace,
+          fetchDocuments: (options) => element.loadPreview(options),
+          getTotalCount: (signal) => element.getTotalCount(signal),
         });
 
         return true;

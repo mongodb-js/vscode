@@ -32,10 +32,8 @@ suite('DataBrowsingController Test Suite', function () {
   ): DataBrowsingOptions {
     return {
       namespace: 'test.collection',
-      documents: [{ _id: '1', name: 'test' }],
       fetchDocuments: sandbox.stub().resolves([{ _id: '1', name: 'test' }]),
       getTotalCount: sandbox.stub().resolves(10),
-      initialTotalCount: 10,
       ...overrides,
     };
   }
@@ -180,33 +178,40 @@ suite('DataBrowsingController Test Suite', function () {
       const signal = getTotalCountStub.firstCall.args[0];
       expect(signal).to.be.instanceOf(AbortSignal);
     });
-  });
 
-  suite('Successful request handling', function () {
-    test('posts loadDocuments message on successful handleGetDocuments', async function () {
-      const options = createMockOptions();
-
-      await testController.handleGetDocuments(mockPanel, options);
-
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.loadDocuments);
-      expect(message.documents).to.deep.equal(options.documents);
-      expect(message.totalCount).to.equal(10);
-    });
-
-    test('uses initialTotalCount when getTotalCount is not provided', async function () {
+    test('passes signal to fetchDocuments callback', async function () {
+      const fetchDocumentsStub = sandbox
+        .stub()
+        .resolves([{ _id: '1', name: 'test' }]);
       const options = createMockOptions({
-        getTotalCount: undefined,
-        initialTotalCount: 5,
+        fetchDocuments: fetchDocumentsStub,
       });
 
       await testController.handleGetDocuments(mockPanel, options);
 
+      expect(fetchDocumentsStub.calledOnce).to.be.true;
+      const callArg = fetchDocumentsStub.firstCall.args[0];
+      expect(callArg.signal).to.be.instanceOf(AbortSignal);
+    });
+  });
+
+  suite('Successful request handling', function () {
+    test('posts loadDocuments message on successful handleGetDocuments', async function () {
+      const fetchDocumentsStub = sandbox
+        .stub()
+        .resolves([{ _id: '1', name: 'test' }]);
+      const options = createMockOptions({
+        fetchDocuments: fetchDocumentsStub,
+      });
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      expect(fetchDocumentsStub.calledOnce).to.be.true;
       expect(postMessageStub.calledOnce).to.be.true;
       const message = postMessageStub.firstCall.args[0];
       expect(message.command).to.equal(PreviewMessageType.loadDocuments);
-      expect(message.totalCount).to.equal(5);
+      expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
+      expect(message.totalCount).to.equal(10);
     });
   });
 

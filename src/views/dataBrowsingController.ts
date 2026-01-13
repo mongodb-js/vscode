@@ -32,14 +32,12 @@ export const getDataBrowsingContent = ({
 
 export interface DataBrowsingOptions {
   namespace: string;
-  documents: Document[];
-  fetchDocuments?: (options?: {
+  fetchDocuments: (options?: {
     sort?: SortOption;
     limit?: number;
     signal?: AbortSignal;
   }) => Promise<Document[]>;
-  initialTotalCount?: number;
-  getTotalCount?: (signal?: AbortSignal) => Promise<number>;
+  getTotalCount: (signal?: AbortSignal) => Promise<number>;
 }
 
 export default class DataBrowsingController {
@@ -116,9 +114,10 @@ export default class DataBrowsingController {
     const { signal } = abortController;
 
     try {
-      const totalCount = options.getTotalCount
-        ? await options.getTotalCount(signal)
-        : options.initialTotalCount;
+      const [documents, totalCount] = await Promise.all([
+        options.fetchDocuments({ signal }),
+        options.getTotalCount(signal),
+      ]);
 
       // Check if aborted before posting message.
       if (signal.aborted) {
@@ -127,7 +126,7 @@ export default class DataBrowsingController {
 
       void panel.webview.postMessage({
         command: PreviewMessageType.loadDocuments,
-        documents: options.documents,
+        documents,
         totalCount,
       });
     } catch (error) {
