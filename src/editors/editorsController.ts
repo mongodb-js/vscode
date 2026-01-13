@@ -511,8 +511,8 @@ export default class EditorsController {
       vscode.languages.registerCodeLensProvider(
         [
           { scheme: PLAYGROUND_RESULT_SCHEME, language: 'json' },
-          // TODO(LINK_TICKET_HERE): We don't have this code lens for the
-          // 'mongodb-document' language as we are planning to move the
+          // TODO(VSCODE-736): Remove this code lens. We don't have this code lens for
+          // the 'mongodb-document' language as we are planning to move the
           // results into the data browsing webview and provide the edit ability there.
         ],
         this._editDocumentCodeLensProvider,
