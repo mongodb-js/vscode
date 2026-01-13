@@ -49,9 +49,9 @@ const getContent = ({
 export const getLanguage = (
   content: unknown,
   expectedFormat: DocumentViewAndEditFormat,
-): 'json' | 'plaintext' | 'shell-js' => {
+): 'json' | 'plaintext' | 'shell' => {
   if (typeof content === 'object' && content !== null) {
-    return expectedFormat === 'shell' ? 'shell-js' : 'json';
+    return expectedFormat === 'shell' ? 'shell' : 'json';
   }
 
   return 'plaintext';

@@ -60,7 +60,7 @@ export default class EditDocumentCodeLensProvider
 
     const { content, namespace, type } = playgroundResult;
     const playgroundResultFormat =
-      playgroundResult.language === 'shell-js' ? 'shell' : 'ejson';
+      playgroundResult.language === 'shell' ? 'shell' : 'ejson';
     const data: {
       content: any;
       format: DocumentViewAndEditFormat;

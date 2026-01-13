@@ -248,7 +248,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    describe('with shell format preference', function () {
+    suite('with shell format preference', function () {
       test('mdb.viewCollectionDocuments command should call onViewCollectionDocuments on the editor controller with the collection namespace', async function () {
         const textCollectionTree = getTestCollectionTreeItem();
         await vscode.commands.executeCommand(
@@ -294,7 +294,7 @@ suite('MDBExtensionController Test Suite', function () {
       });
     });
 
-    describe('with ejson format preference', function () {
+    suite('with ejson format preference', function () {
       let documentViewAndEditFormat;
 
       beforeEach(async () => {
@@ -1160,14 +1160,14 @@ suite('MDBExtensionController Test Suite', function () {
       expect(fakeWriteText.called).to.be.true;
       expect(fakeWriteText.firstCall.args[0]).to.equal(
         `{
-_id: 'pancakes',
-time: ISODate('3001-01-01T05:00:00.000Z')
+  _id: 'pancakes',
+  time: ISODate('3001-01-01T05:00:00.000Z')
 }`,
       );
       expect(namespaceUsed).to.equal('waffle.house');
     });
 
-    describe('document operations with ejson format', function () {
+    suite('document operations with ejson format', function () {
       let documentViewAndEditFormat;
 
       beforeEach(async () => {
@@ -1469,7 +1469,7 @@ time: ISODate('3001-01-01T05:00:00.000Z')
           fakeWriteText.firstCall.args[0],
           `{
   "_id": {
-    "$oid": "6536b0aef59f6ffc9af93f3c",
+    "$oid": "6536b0aef59f6ffc9af93f3c"
   },
   "pineapple": {
     "$numberLong": "90071992547409920"

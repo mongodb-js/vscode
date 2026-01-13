@@ -8,6 +8,7 @@ import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
 import { DOCUMENT_FORMAT_URI_IDENTIFIER } from './mongoDBDocumentService';
+import { EJSON } from 'bson';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -120,7 +121,7 @@ export default class CollectionViewProvider
         return toJSString(documents, 2) ?? '';
       }
 
-      return JSON.stringify(documents, null, 2);
+      return EJSON.stringify(documents, undefined, 2, { relaxed: false });
     } catch (error) {
       const errorMessage = `Unable to list documents: ${
         formatError(error).message

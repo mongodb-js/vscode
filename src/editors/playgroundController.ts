@@ -460,7 +460,7 @@ export default class PlaygroundController {
 
     if (this._playgroundResultTextDocument) {
       let language = result?.language || 'plaintext';
-      if (language === 'shell-js') {
+      if (language === 'shell') {
         // Show the shell syntax results with the mongodb-document language.
         language = 'mongodb-document';
       }

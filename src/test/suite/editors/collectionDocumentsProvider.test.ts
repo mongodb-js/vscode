@@ -50,7 +50,7 @@ const mockDocumentsAsJsonString = `[
     "pineapple2": {
       "$numberLong": "900719925474099199"
     }
-  },
+  }
 ]`;
 
 const mockDocumentsAsJSString = `[

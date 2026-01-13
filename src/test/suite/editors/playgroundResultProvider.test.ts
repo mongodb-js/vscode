@@ -4,7 +4,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import type { Document } from 'mongodb';
-import { Long, ObjectId } from 'bson';
+import { EJSON, Long, ObjectId } from 'bson';
 
 import ConnectionController from '../../../connectionController';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -213,28 +213,32 @@ suite('Playground Result Provider Test Suite', function () {
     ).to.be.deep.equal(playgroundResult);
   });
 
-  test('provideTextDocumentContent returns shell syntax for shell-js language', function () {
+  test('provideTextDocumentContent returns shell syntax for shell language', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
     );
-    const content = [
-      {
-        _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
-        pineapple: new Long('90071992547409920'),
-        name: 'Berlin',
-      },
-      {
-        _id: new ObjectId('6536b0aef59f6ffc9af93f3d'),
-        pineapple2: new Long('900719925474099199'),
-        name: 'Rome',
-      },
-    ];
+    // Content is passed as serialized ejson from the worker.
+    const content = EJSON.serialize(
+      [
+        {
+          _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
+          pineapple: new Long('90071992547409920'),
+          name: 'Berlin',
+        },
+        {
+          _id: new ObjectId('6536b0aef59f6ffc9af93f3d'),
+          pineapple2: new Long('900719925474099199'),
+          name: 'Rome',
+        },
+      ],
+      { relaxed: false },
+    );
     const playgroundResult = {
       namespace: 'db.berlin',
       type: 'Cursor',
       content,
-      language: 'shell-js',
+      language: 'shell',
     };
 
     const fakeUpdateCodeLensesForPlayground = sandbox.fake();
@@ -250,15 +254,15 @@ suite('Playground Result Provider Test Suite', function () {
 
     expect(result).to.equal(`[
   {
-    _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
-    pineapple: new Long('90071992547409920'),
-    name: 'Berlin',
+    _id: ObjectId('6536b0aef59f6ffc9af93f3c'),
+    pineapple: NumberLong('90071992547409920'),
+    name: 'Berlin'
   },
   {
-    _id: new ObjectId('6536b0aef59f6ffc9af93f3d'),
-    pineapple2: new Long('900719925474099199'),
-    name: 'Rome',
-  },
+    _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
+    pineapple2: NumberLong('900719925474099199'),
+    name: 'Rome'
+  }
 ]`);
     expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
   });

@@ -67,11 +67,14 @@ export default class PlaygroundResultProvider
       this._playgroundResult,
     );
 
-    if (this._playgroundResult.language === 'shell-js') {
+    if (this._playgroundResult.language === 'shell') {
       // TODO: There's a traversal here we could avoid if we
       // toJSString ourselves the EJSON object.
       return (
-        toJSString(EJSON.deserialize(this._playgroundResult.content), 2) ?? ''
+        toJSString(
+          EJSON.deserialize(this._playgroundResult.content, { relaxed: false }),
+          2,
+        ) ?? ''
       );
     }
 
