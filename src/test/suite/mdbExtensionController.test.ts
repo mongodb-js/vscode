@@ -34,7 +34,7 @@ import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
 } from '../../mdbExtensionController';
-import { resetFeatureFlags } from '../../featureFlags';
+import { setFeatureFlag, resetFeatureFlags } from '../../featureFlags';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -515,6 +515,34 @@ suite('MDBExtensionController Test Suite', function () {
       assert.strictEqual(docListTreeItem.cacheIsUpToDate, false);
       assert.strictEqual(testTreeItem.documentCount, 10000);
       assert.strictEqual(fakeRefresh.called, true);
+    });
+
+    test('mdb.refreshCollection command with enhanced data browsing should reset the schema expanded state and call to refresh the explorer controller', async function () {
+      setFeatureFlag('useEnhancedDataBrowsingExperience', true);
+
+      const testTreeItem = getTestCollectionTreeItem();
+      testTreeItem.isExpanded = true;
+
+      testTreeItem.getSchemaChild().isExpanded = true;
+
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
+        mdbTestExtension.testExtensionController._explorerController,
+        'refresh',
+        fakeRefresh,
+      );
+      await vscode.commands.executeCommand(
+        'mdb.refreshCollection',
+        testTreeItem,
+      );
+      assert(
+        testTreeItem.getSchemaChild().isExpanded === false,
+        'Expected schema tree item child to be reset to not expanded.',
+      );
+      assert(
+        fakeRefresh.called === true,
+        'Expected explorer controller refresh to be called.',
+      );
     });
 
     test('mdb.refreshSchema command should reset its cache and call to refresh the explorer controller', async function () {
