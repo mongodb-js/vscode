@@ -1218,6 +1218,10 @@
             "shell",
             "ejson"
           ],
+          "enumDescriptions": [
+            "MongoDB Shell syntax (e.g., ObjectId('...'), new Date())",
+            "Extended JSON strict format (e.g., {\"$oid\": \"...\"}, {\"$date\": \"...\"})"
+          ],
           "default": "shell",
           "description": "The format to use when viewing and editing documents as well as playground results."
         },
