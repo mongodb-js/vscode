@@ -1,8 +1,10 @@
-const FEATURE_FLAGS: Record<string, boolean> = {
-  __proto__: null,
-  useEnhancedDataBrowsingExperience:
-    process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true',
-};
+const FEATURE_FLAGS: Record<string, boolean> = Object.assign(
+  Object.create(null),
+  {
+    useEnhancedDataBrowsingExperience:
+      process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true',
+  },
+);
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;
 
