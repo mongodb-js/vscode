@@ -240,6 +240,10 @@
       {
         "language": "terraform",
         "path": "./snippets/atlas-terraform.json"
+      },
+      {
+        "language": "mongodb-document",
+        "path": "./snippets/mongodb-document.json"
       }
     ],
     "commands": [
