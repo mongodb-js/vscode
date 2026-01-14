@@ -1,10 +1,4 @@
-const FEATURE_FLAGS: Record<string, boolean> = Object.assign(
-  Object.create(null),
-  {
-    useEnhancedDataBrowsingExperience:
-      process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true',
-  },
-);
+const FEATURE_FLAGS: Record<string, boolean> = Object.create(null);
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;
 
@@ -23,6 +17,9 @@ export const resetFeatureFlags = (): void => {
   FEATURE_FLAGS.useEnhancedDataBrowsingExperience =
     process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true';
 };
+
+// Initialize feature flags on module load.
+resetFeatureFlags();
 
 export const getFeatureFlagsScript = (nonce: string): string => {
   return `
