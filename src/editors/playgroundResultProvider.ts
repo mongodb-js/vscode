@@ -62,14 +62,11 @@ export default class PlaygroundResultProvider
       return 'undefined';
     }
 
-    // TODO: Possible bug that this update code lenses happens after the content is returned sometimes?
     this._editDocumentCodeLensProvider?.updateCodeLensesForPlayground(
       this._playgroundResult,
     );
 
     if (this._playgroundResult.language === 'shell') {
-      // TODO: There's a traversal here we could avoid if we
-      // toJSString ourselves the EJSON object.
       return (
         toJSString(
           EJSON.deserialize(this._playgroundResult.content, { relaxed: false }),

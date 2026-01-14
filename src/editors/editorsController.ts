@@ -442,8 +442,6 @@ export default class EditorsController {
       operationId,
     );
 
-    // TODO: Does this break now with the nwe format?
-
     // Notify the document provider to update with the new document limit.
     this._collectionViewProvider.onDidChangeEmitter.fire(uri);
 

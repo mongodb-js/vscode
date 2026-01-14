@@ -30,8 +30,6 @@ const getContent = ({
     if (expectedFormat === 'shell') {
       // We serialize the documents to send them over to the main
       // extension to show the results.
-      // TODO: Document why not using the getEJSON method or have
-      // it explicitly patterned.
       return EJSON.serialize(printable.documents, { relaxed: false });
     }
     return getEJSON(printable.documents);
