@@ -1223,7 +1223,7 @@
             "ejson"
           ],
           "enumDescriptions": [
-            "MongoDB Shell syntax (e.g., ObjectId('...'), new Date())",
+            "MongoDB Shell syntax (e.g., ObjectId('...'), ISODate('...'))",
             "Extended JSON strict format (e.g., {\"$oid\": \"...\"}, {\"$date\": \"...\"})"
           ],
           "default": "shell",
