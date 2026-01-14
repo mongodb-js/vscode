@@ -74,7 +74,9 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
       this.logger.error({
         id: MCPLogIds.ConnectError,
         context: 'vscode-mcp-connection-manager',
-        message: `Error connecting to VSCode connection - ${error instanceof Error ? error.message : String(error)}`,
+        message: `Error connecting to VSCode connection - ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       });
       return this.changeState('connection-error', {
         tag: 'errored',
@@ -90,7 +92,9 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
       this.logger.error({
         id: MCPLogIds.DisconnectError,
         context: 'vscode-mcp-connection-manager',
-        message: `Error disconnecting from VSCode connection - ${error instanceof Error ? error.message : String(error)}`,
+        message: `Error disconnecting from VSCode connection - ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       });
     }
 

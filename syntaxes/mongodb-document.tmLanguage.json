@@ -1,0 +1,86 @@
+{
+  "name": "MongoDB Document",
+  "scopeName": "source.mongodb-document",
+  "fileTypes": ["mongodb"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#bson-types" },
+    { "include": "#keywords" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.mongodb-document",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.mongodb-document",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.mongodb-document",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mongodb-document",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.mongodb-document",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mongodb-document",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.mongodb-document",
+          "match": "\\b\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b"
+        }
+      ]
+    },
+    "bson-types": {
+      "patterns": [
+        {
+          "name": "support.class.bson.mongodb-document",
+          "match": "\\b(ObjectId|ISODate|NumberLong|NumberInt|NumberDecimal|Binary|BinData|UUID|Code|Timestamp|MinKey|MaxKey|DBRef|Regex)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "constant.language.mongodb-document",
+          "match": "\\b(true|false|null|undefined|NaN|Infinity)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.mongodb-document",
+          "match": "[+\\-*/%=<>!&|]"
+        }
+      ]
+    }
+  }
+}

@@ -208,6 +208,18 @@
         "extensions": [
           ".tf"
         ]
+      },
+      {
+        "id": "mongodb-document",
+        "aliases": [
+          "MongoDB Document",
+          "mongodb-document"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/light/leaf.svg",
+          "dark": "./images/dark/leaf.svg"
+        }
       }
     ],
     "grammars": [
@@ -217,12 +229,21 @@
         "injectTo": [
           "source.js"
         ]
+      },
+      {
+        "language": "mongodb-document",
+        "scopeName": "source.mongodb-document",
+        "path": "./syntaxes/mongodb-document.tmLanguage.json"
       }
     ],
     "snippets": [
       {
         "language": "terraform",
         "path": "./snippets/atlas-terraform.json"
+      },
+      {
+        "language": "mongodb-document",
+        "path": "./snippets/mongodb-document.json"
       }
     ],
     "commands": [
@@ -1195,6 +1216,19 @@
           "default": 10,
           "description": "The number of documents to fetch when viewing documents from a collection."
         },
+        "mdb.documentViewAndEditFormat": {
+          "type": "string",
+          "enum": [
+            "shell",
+            "ejson"
+          ],
+          "enumDescriptions": [
+            "MongoDB Shell syntax (e.g., ObjectId('...'), new Date())",
+            "Extended JSON strict format (e.g., {\"$oid\": \"...\"}, {\"$date\": \"...\"})"
+          ],
+          "default": "shell",
+          "description": "The format to use when viewing and editing documents as well as playground results."
+        },
         "mdb.confirmRunAll": {
           "type": "boolean",
           "default": true,
@@ -1412,6 +1446,7 @@
     "@mongodb-js/connection-info": "^0.21.0",
     "@mongodb-js/device-id": "^0.3.2",
     "@mongodb-js/mongodb-constants": "^0.16.1",
+    "@mongodb-js/shell-bson-parser": "^1.1.4",
     "@mongosh/browser-runtime-electron": "^3.24.0",
     "@mongosh/i18n": "^2.16.0",
     "@mongosh/service-provider-node-driver": "^3.17.1",

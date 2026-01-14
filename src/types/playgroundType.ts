@@ -1,6 +1,8 @@
 import type * as vscode from 'vscode';
 import type { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
+import type { DocumentViewAndEditFormat } from '../editors/types';
+
 export type PlaygroundRunResult = {
   content: any;
   language?: string;
@@ -28,6 +30,7 @@ export type ShellEvaluateResult = {
 export type PlaygroundEvaluateParams = {
   codeToEvaluate: string;
   connectionId: string;
+  expectedFormat: DocumentViewAndEditFormat;
   filePath?: string;
 };
 

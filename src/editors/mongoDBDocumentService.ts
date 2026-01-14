@@ -13,6 +13,7 @@ import { DocumentUpdatedTelemetryEvent } from '../telemetry';
 
 const log = createLogger('document controller');
 
+export const DOCUMENT_FORMAT_URI_IDENTIFIER = 'format';
 export const DOCUMENT_ID_URI_IDENTIFIER = 'documentId';
 
 export const URI_IDENTIFIER = 'source';
@@ -145,7 +146,7 @@ export default class MongoDBDocumentService {
         return;
       }
 
-      return getEJSON(documents[0]);
+      return data.format === 'ejson' ? getEJSON(documents[0]) : documents[0];
     } catch (error) {
       return this._fetchDocumentFailed(formatError(error).message);
     } finally {
