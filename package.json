@@ -43,13 +43,12 @@
     "clean": "rimraf -g ./out/* ./dist/*",
     "lint": "eslint . --fix && prettier --check .",
     "update-grammar": "node ./scripts/update-grammar.ts",
-    "precompile": "pnpm run clean",
-    "compile": "npm-run-all compile:*",
+    "compile": "pnpm run clean && pnpm run --sequential \"/^compile:.*/\"",
     "compile:constants": "node ./scripts/generate-constants.ts",
     "compile:resources": "pnpm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
-    "watch": "pnpm run compile && npm-run-all -p watch:*",
+    "watch": "pnpm run compile && pnpm run --parallel \"/^watch:.*/\"",
     "watch:extension": "tsc -p ./ --watch",
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "pnpm run compile",
@@ -75,7 +74,7 @@
   },
   "engines": {
     "vscode": "^1.101.1",
-    "node": "^20.19.0 || ^22.12.0 || >= 23.0.0",
+    "node": "^22.20.0 || >= 23.0.0",
     "pnpm": ">=10.0.0"
   },
   "activationEvents": [
@@ -1171,7 +1170,8 @@
             "Use the legacy mongo shell"
           ],
           "default": "mongosh",
-          "description": "The MongoDB shell to use."
+          "description": "The MongoDB shell to use.",
+          "scope": "application"
         },
         "mdb.showMongoDBConnectionExplorer": {
           "type": "boolean",
@@ -1292,7 +1292,8 @@
         "mdb.browserCommandForOIDCAuth": {
           "type": "string",
           "default": "",
-          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
+          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser.",
+          "scope": "application"
         },
         "mdb.presetConnections": {
           "scope": "window",
@@ -1481,7 +1482,7 @@
     "@babel/preset-typescript": "^7.25.7",
     "@babel/types": "^7.25.8",
     "@modelcontextprotocol/sdk": "^1.24.0",
-    "@mongodb-js/eslint-config-devtools": "^0.9.12",
+    "@mongodb-js/eslint-config-devtools": "^0.11.2",
     "@mongodb-js/oidc-mock-provider": "^0.11.5",
     "@mongodb-js/oidc-plugin": "^2.0.5",
     "@mongodb-js/prettier-config-devtools": "^1.0.2",
@@ -1531,7 +1532,6 @@
     "mongodb-runner": "^5.10.0",
     "node-fetch": "^2.7.0",
     "node-loader": "^0.6.0",
-    "npm-run-all": "^4.1.5",
     "openai": "^4.68.1",
     "ora": "^5.4.1",
     "path-browserify": "^1.0.1",
