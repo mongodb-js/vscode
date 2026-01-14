@@ -14,9 +14,7 @@ declare const acquireVsCodeApi: () => VSCodeApi;
 let vscode: VSCodeApi | undefined;
 
 export const getVSCodeApi = (): VSCodeApi => {
-  if (!vscode) {
-    vscode = acquireVsCodeApi();
-  }
+  vscode ??= acquireVsCodeApi();
   return vscode;
 };
 
