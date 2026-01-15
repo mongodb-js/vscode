@@ -860,8 +860,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       (element: ShowPreviewTreeItem): Promise<boolean> => {
         this._dataBrowsingController.openDataBrowser(this._context, {
           namespace: element.namespace,
-          fetchDocuments: (options) => element.loadPreview(options),
-          getTotalCount: (signal) => element.getTotalCount(signal),
+          collectionType: element.type,
         });
 
         return Promise.resolve(true);

@@ -7,8 +7,11 @@ import { PreviewMessageType } from './data-browsing-app/extension-app-message-co
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
+import { CollectionType } from '../explorer/documentUtils';
 
 const log = createLogger('data browsing controller');
+
+const DEFAULT_DOCUMENTS_LIMIT = 10;
 
 export const getDataBrowsingContent = ({
   extensionPath,
@@ -29,11 +32,7 @@ export const getDataBrowsingContent = ({
 
 export interface DataBrowsingOptions {
   namespace: string;
-  fetchDocuments: (options?: {
-    limit?: number;
-    signal?: AbortSignal;
-  }) => Promise<Document[]>;
-  getTotalCount: (signal?: AbortSignal) => Promise<number>;
+  collectionType: string;
 }
 
 export default class DataBrowsingController {
@@ -111,8 +110,8 @@ export default class DataBrowsingController {
 
     try {
       const [documents, totalCount] = await Promise.all([
-        options.fetchDocuments({ signal }),
-        options.getTotalCount(signal),
+        this._fetchDocuments(options.namespace, options.collectionType, signal),
+        this._getTotalCount(options.namespace, options.collectionType, signal),
       ]);
 
       // Check if aborted before posting message.
@@ -133,6 +132,59 @@ export default class DataBrowsingController {
       log.error('Error getting documents', error);
     }
   };
+
+  private async _fetchDocuments(
+    namespace: string,
+    collectionType: string,
+    signal?: AbortSignal,
+  ): Promise<Document[]> {
+    if (collectionType === CollectionType.view) {
+      return [];
+    }
+
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      return [];
+    }
+
+    const findOptions = {
+      limit: DEFAULT_DOCUMENTS_LIMIT,
+    };
+
+    const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+    return dataService.find(namespace, {}, findOptions, executionOptions);
+  }
+
+  private async _getTotalCount(
+    namespace: string,
+    collectionType: string,
+    signal?: AbortSignal,
+  ): Promise<number> {
+    if (
+      collectionType === CollectionType.view ||
+      collectionType === CollectionType.timeseries
+    ) {
+      return 0;
+    }
+
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      return 0;
+    }
+
+    const stages = [{ $match: {} }, { $count: 'count' }];
+    const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+    const result = await dataService.aggregate(
+      namespace,
+      stages,
+      {},
+      executionOptions,
+    );
+
+    return result.length ? result[0].count : 0;
+  }
 
   onReceivedWebviewMessage = async (
     message: MessageFromWebviewToExtension,
