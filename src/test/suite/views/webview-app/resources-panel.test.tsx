@@ -6,7 +6,7 @@ import ResourcesPanel, {
   TELEMETRY_SCREEN_ID,
 } from '../../../../views/webview-app/resources-panel/panel';
 import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
-import vscode from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 
 describe('Resources panel test suite', function () {
   afterEach(function () {
@@ -33,7 +33,7 @@ describe('Resources panel test suite', function () {
   });
 
   it('should track link clicked event on click of any link', function () {
-    const postMessageStub = Sinon.stub(vscode, 'postMessage');
+    const postMessageStub = Sinon.stub(getVSCodeApi(), 'postMessage');
     render(<ResourcesPanel onClose={(): void => {}} />);
     screen.getAllByTestId(/^link-\w+/).forEach((link) => {
       link.click();

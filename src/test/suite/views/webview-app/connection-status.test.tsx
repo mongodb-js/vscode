@@ -7,7 +7,7 @@ import {
   CONNECTION_STATUS,
   MessageType,
 } from '../../../../views/webview-app/extension-app-message-constants';
-import vscode from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 
 describe('ConnectionStatus test suite', function () {
   afterEach(function () {
@@ -21,7 +21,7 @@ describe('ConnectionStatus test suite', function () {
   });
 
   it('should periodically request connection status', function () {
-    const postMessageStub = Sinon.stub(vscode, 'postMessage');
+    const postMessageStub = Sinon.stub(getVSCodeApi(), 'postMessage');
     render(<ConnectionStatus />);
     expect(postMessageStub).to.have.been.calledWithExactly({
       command: MessageType.getConnectionStatus,
@@ -104,7 +104,7 @@ describe('ConnectionStatus test suite', function () {
     });
 
     it('should allow editing the name of the connection', function () {
-      const postMessageStub = Sinon.stub(vscode, 'postMessage');
+      const postMessageStub = Sinon.stub(getVSCodeApi(), 'postMessage');
       screen.getByLabelText('Rename connection').click();
 
       expect(postMessageStub).to.be.calledWithExactly({
@@ -113,7 +113,7 @@ describe('ConnectionStatus test suite', function () {
     });
 
     it('should allow creating new playground', function () {
-      const postMessageStub = Sinon.stub(vscode, 'postMessage');
+      const postMessageStub = Sinon.stub(getVSCodeApi(), 'postMessage');
       screen.getByLabelText('Create playground').click();
 
       expect(postMessageStub).to.be.calledWithExactly({

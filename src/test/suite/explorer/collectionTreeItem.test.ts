@@ -3,9 +3,9 @@ import type { DataService } from 'mongodb-data-service';
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import type { CollectionDetailsType } from '../../../explorer/collectionTreeItem';
-import { CollectionType } from '../../../explorer/documentListTreeItem';
 import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
+import { CollectionType } from '../../../explorer';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../../package.json');
