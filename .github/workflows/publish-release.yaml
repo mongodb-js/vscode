@@ -22,7 +22,7 @@ jobs:
           curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
 
       - name: Install VSCode publishing dependencies
-        run: npm add -g vsce
+        run: npm install -g vsce
 
       - name: Download release assets
         run: |
