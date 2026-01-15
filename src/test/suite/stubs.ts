@@ -195,6 +195,10 @@ class DataServiceStub {
     return Promise.resolve(mockDocuments.slice(0, options.limit));
   }
 
+  aggregate(): Promise<Document[]> {
+    return Promise.resolve([{ count: mockDocuments.length }]);
+  }
+
   estimatedCount(): Promise<number> {
     return Promise.resolve(mockDocuments.length);
   }

@@ -121,15 +121,19 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
     }
 
     try {
-      // Pass abortSignal for cancellation support via executionOptions.
+      // Use aggregation pipeline to count documents.
+      const stages = [{ $match: {} }, { $count: 'count' }];
       const executionOptions = signal ? { abortSignal: signal } : undefined;
 
-      const count = await this._dataService.estimatedCount(
+      const result = await this._dataService.aggregate(
         this.namespace,
+        stages,
         {},
         executionOptions,
       );
-      return count;
+
+      // The collection could be empty.
+      return result.length ? result[0].count : 0;
     } catch (error) {
       // Return 0 silently if aborted or on error.
       return 0;
