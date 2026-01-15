@@ -495,7 +495,6 @@ suite('MDBExtensionController Test Suite', function () {
       await testTreeItem.onDidExpand();
 
       const collectionChildren = await testTreeItem.getChildren();
-      // With enhanced data browsing disabled, Documents is at index 0
       const docListTreeItem = collectionChildren[0];
       assert.strictEqual(docListTreeItem.description, '9K');
       count = 10000;

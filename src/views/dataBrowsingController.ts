@@ -109,10 +109,11 @@ export default class DataBrowsingController {
     const { signal } = abortController;
 
     try {
-      const [documents, totalCount] = await Promise.all([
-        this._fetchDocuments(options.namespace, options.collectionType, signal),
-        this._getTotalCount(options.namespace, options.collectionType, signal),
-      ]);
+      const documents = await this._fetchDocuments(
+        options.namespace,
+        options.collectionType,
+        signal,
+      );
 
       // Check if aborted before posting message.
       if (signal.aborted) {
@@ -122,7 +123,6 @@ export default class DataBrowsingController {
       void panel.webview.postMessage({
         command: PreviewMessageType.loadDocuments,
         documents,
-        totalCount,
       });
     } catch (error) {
       // Don't report errors for aborted requests.
@@ -154,36 +154,6 @@ export default class DataBrowsingController {
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
     return dataService.find(namespace, {}, findOptions, executionOptions);
-  }
-
-  private async _getTotalCount(
-    namespace: string,
-    collectionType: string,
-    signal?: AbortSignal,
-  ): Promise<number> {
-    if (
-      collectionType === CollectionType.view ||
-      collectionType === CollectionType.timeseries
-    ) {
-      return 0;
-    }
-
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      return 0;
-    }
-
-    const stages = [{ $match: {} }, { $count: 'count' }];
-    const executionOptions = signal ? { abortSignal: signal } : undefined;
-
-    const result = await dataService.aggregate(
-      namespace,
-      stages,
-      {},
-      executionOptions,
-    );
-
-    return result.length ? result[0].count : 0;
   }
 
   onReceivedWebviewMessage = async (

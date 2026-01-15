@@ -15,7 +15,6 @@ suite('DataBrowsingController Test Suite', function () {
   let postMessageStub: SinonStub;
   let mockDataService: {
     find: SinonStub;
-    aggregate: SinonStub;
   };
   let mockConnectionController: {
     getActiveDataService: SinonStub;
@@ -48,7 +47,6 @@ suite('DataBrowsingController Test Suite', function () {
   beforeEach(() => {
     mockDataService = {
       find: sandbox.stub().resolves([{ _id: '1', name: 'test' }]),
-      aggregate: sandbox.stub().resolves([{ count: 10 }]),
     };
     mockConnectionController = {
       getActiveDataService: sandbox.stub().returns(mockDataService),
@@ -78,10 +76,10 @@ suite('DataBrowsingController Test Suite', function () {
     });
 
     test('aborts previous AbortController when a new request starts', async function () {
-      // Simulate a slow aggregate request
-      mockDataService.aggregate = sandbox.stub().callsFake(async () => {
+      // Simulate a slow find request
+      mockDataService.find = sandbox.stub().callsFake(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
-        return [{ count: 10 }];
+        return [{ _id: '1', name: 'test' }];
       });
 
       const options = createMockOptions();
@@ -148,10 +146,10 @@ suite('DataBrowsingController Test Suite', function () {
 
   suite('Request handling with abort', function () {
     test('does not post message when request is aborted', async function () {
-      // Abort the controller during the aggregate request
-      mockDataService.aggregate = sandbox.stub().callsFake(() => {
+      // Abort the controller during the find request
+      mockDataService.find = sandbox.stub().callsFake(() => {
         testController._panelAbortControllers.get(mockPanel)?.abort();
-        return [{ count: 10 }];
+        return [{ _id: '1', name: 'test' }];
       });
 
       const options = createMockOptions();
@@ -163,8 +161,8 @@ suite('DataBrowsingController Test Suite', function () {
     });
 
     test('does not throw when error occurs on aborted request', async function () {
-      // Abort the controller and throw an error during aggregate
-      mockDataService.aggregate = sandbox.stub().callsFake(() => {
+      // Abort the controller and throw an error during find
+      mockDataService.find = sandbox.stub().callsFake(() => {
         testController._panelAbortControllers.get(mockPanel)?.abort();
         throw new Error('Connection error');
       });
@@ -180,16 +178,6 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('Signal passed to data service', function () {
-    test('passes signal to aggregate call', async function () {
-      const options = createMockOptions();
-
-      await testController.handleGetDocuments(mockPanel, options);
-
-      expect(mockDataService.aggregate.calledOnce).to.be.true;
-      const executionOptions = mockDataService.aggregate.firstCall.args[3];
-      expect(executionOptions.abortSignal).to.be.instanceOf(AbortSignal);
-    });
-
     test('passes signal to find call', async function () {
       const options = createMockOptions();
 
@@ -212,7 +200,6 @@ suite('DataBrowsingController Test Suite', function () {
       const message = postMessageStub.firstCall.args[0];
       expect(message.command).to.equal(PreviewMessageType.loadDocuments);
       expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
-      expect(message.totalCount).to.equal(10);
     });
   });
 
