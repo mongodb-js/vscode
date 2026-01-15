@@ -69,7 +69,7 @@ export const getWebviewHtml = ({
       <div id="root"></div>
       <script nonce="${nonce}">window.WEBVIEW_TYPE = '${webviewType}';</script>
       ${additionalHeadContent.replace(/\$\{nonce\}/g, nonce)}
-      <script nonce="${nonce}" src="${scriptUri}"></script>
+      <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
     </body>
   </html>`;
 };

@@ -44,11 +44,11 @@ describe('PreviewApp test suite', function () {
   });
 
   describe('Message handling', function () {
-    it('should display document count when loadDocuments message is received', async function () {
+    it('should display document count when loadDocuments message is received', function () {
       render(<PreviewApp />);
 
       // Simulate receiving documents from extension
-      await act(async () => {
+      act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
@@ -66,10 +66,10 @@ describe('PreviewApp test suite', function () {
       expect(screen.getByText(/We have 1 documents/)).to.exist;
     });
 
-    it('should display zero documents message when empty array received', async function () {
+    it('should display zero documents message when empty array received', function () {
       render(<PreviewApp />);
 
-      await act(async () => {
+      act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {

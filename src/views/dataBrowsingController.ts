@@ -3,9 +3,7 @@ import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import {
-  PreviewMessageType,
-} from './data-browsing-app/extension-app-message-constants';
+import { PreviewMessageType } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
