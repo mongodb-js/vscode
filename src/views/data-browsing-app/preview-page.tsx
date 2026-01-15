@@ -1,10 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {
-  Icon,
-  css,
-  spacing,
-  useDarkMode,
-} from '@mongodb-js/compass-components';
+import React, { useEffect, useState } from 'react';
+import { css, spacing, useDarkMode } from '@mongodb-js/compass-components';
+import { VscodeProgressRing } from '@vscode-elements/react-elements';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import { PreviewMessageType } from './extension-app-message-constants';
 import { sendGetDocuments } from './vscode-api';
@@ -12,13 +8,6 @@ import { sendGetDocuments } from './vscode-api';
 interface PreviewDocument {
   [key: string]: unknown;
 }
-const spinnerKeyframes = `
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-`;
-
 const loadingOverlayStyles = css({
   display: 'flex',
   alignItems: 'center',
@@ -28,31 +17,17 @@ const loadingOverlayStyles = css({
   gap: spacing[300],
 });
 
-const spinnerStyles = css({
-  animation: 'spin 1s linear infinite',
-});
-
 const PreviewApp: React.FC = () => {
   const [documents, setDocuments] = useState<PreviewDocument[]>([]);
   const darkMode = useDarkMode();
   const [isLoading, setIsLoading] = useState(true);
 
-  // Track when loading started for minimum loading duration
-  const loadingStartTimeRef = useRef<number>(Date.now());
-  const MIN_LOADING_DURATION_MS = 500;
-
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === PreviewMessageType.loadDocuments) {
-        const elapsed = Date.now() - loadingStartTimeRef.current;
-        const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
-
-        // Ensure minimum loading duration before hiding loader
-        setTimeout(() => {
-          setDocuments(message.documents || []);
-          setIsLoading(false);
-        }, remainingTime);
+        setDocuments(message.documents || []);
+        setIsLoading(false);
       }
     };
 
@@ -75,14 +50,9 @@ const PreviewApp: React.FC = () => {
       }}
     >
       <div style={{ padding: '16px' }}>
-        {/* Inject keyframes for spinner animation */}
-        <style>{spinnerKeyframes}</style>
-
         {isLoading ? (
           <div className={loadingOverlayStyles}>
-            <span className={spinnerStyles}>
-              <Icon glyph="Refresh" size="large" />
-            </span>
+            <VscodeProgressRing />
             <span style={{ color: darkMode ? '#888' : '#666' }}>
               Loading documents...
             </span>

@@ -9,8 +9,6 @@ export const PreviewMessageType = {
 export type PreviewMessageType =
   (typeof PreviewMessageType)[keyof typeof PreviewMessageType];
 
-export type SortOption = 'default' | 'asc' | 'desc';
-
 // Messages from webview to extension
 interface BasicWebviewMessage {
   command: string;

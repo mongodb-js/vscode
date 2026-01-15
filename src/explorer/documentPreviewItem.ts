@@ -70,7 +70,6 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
   }
 
   async loadPreview(options?: {
-    sort?: 'default' | 'asc' | 'desc';
     limit?: number;
     signal?: AbortSignal;
   }): Promise<any[]> {
@@ -84,17 +83,9 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
     try {
       const findOptions: {
         limit: number;
-        sort?: { _id: 1 | -1 };
       } = {
         limit: options?.limit ?? this._maxDocumentsToShow,
       };
-
-      // Add sort if specified (not 'default')
-      if (options?.sort === 'asc') {
-        findOptions.sort = { _id: 1 };
-      } else if (options?.sort === 'desc') {
-        findOptions.sort = { _id: -1 };
-      }
 
       // Pass abortSignal for cancellation support via executionOptions.
       const executionOptions = options?.signal

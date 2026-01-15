@@ -5,7 +5,6 @@ import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import {
   PreviewMessageType,
-  type SortOption,
 } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
@@ -33,7 +32,6 @@ export const getDataBrowsingContent = ({
 export interface DataBrowsingOptions {
   namespace: string;
   fetchDocuments: (options?: {
-    sort?: SortOption;
     limit?: number;
     signal?: AbortSignal;
   }) => Promise<Document[]>;

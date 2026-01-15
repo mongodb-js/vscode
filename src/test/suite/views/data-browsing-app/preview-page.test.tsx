@@ -58,8 +58,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        // Wait for minimum loading duration
-        await new Promise((resolve) => setTimeout(resolve, 600));
       });
 
       // Should no longer show loading
@@ -81,7 +79,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        await new Promise((resolve) => setTimeout(resolve, 600));
       });
 
       expect(screen.getByText(/We have 0 documents/)).to.exist;
