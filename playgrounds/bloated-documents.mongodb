@@ -3,11 +3,11 @@
 use("test");
 
 function largeString(length = 1000) {
-  let largeString = '';
+  let result = '';
   for (let i = 0; i < length; i++) {
-    largeString += alphabet[Math.floor(Math.random() * alphabet.length)];
+    result += alphabet[Math.floor(Math.random() * alphabet.length)];
   }
-  return largeString;
+  return result;
 }
 
 const alphabet = 'abcdefghijklmnopqrstuvwxyz';
