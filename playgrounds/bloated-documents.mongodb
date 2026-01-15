@@ -1,7 +1,5 @@
-// MongoDB Playground
-// Use Ctrl+Space inside a snippet or a string literal to trigger completions.
+// Playground for creating documents with very large strings and many fields. 
 
-// The current database to use.
 use("test");
 
 function largeString(length = 1000) {
