@@ -5,7 +5,7 @@ import {
   MessageType,
   type ConnectionStatus,
 } from './extension-app-message-constants';
-import vscode from './vscode-api';
+import { getVSCodeApi } from './vscode-api';
 
 const CONNECTION_STATUS_POLLING_FREQ_MS = 1000;
 
@@ -28,7 +28,7 @@ const useConnectionStatus = (): {
     window.addEventListener('message', handleConnectionStatusResponse);
 
     const requestConnectionStatus = (): void =>
-      vscode.postMessage({
+      getVSCodeApi().postMessage({
         command: MessageType.getConnectionStatus,
       });
 

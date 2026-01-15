@@ -10,6 +10,7 @@ import { expect } from 'chai';
 
 import {
   CollectionTreeItem,
+  CollectionType,
   ConnectionTreeItem,
   DatabaseTreeItem,
   DocumentTreeItem,
@@ -29,11 +30,11 @@ import {
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
 import { DeepLinkTelemetryEvent } from '../../telemetry';
-import { CollectionType } from '../../explorer/documentListTreeItem';
 import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
 } from '../../mdbExtensionController';
+import { setFeatureFlag, resetFeatureFlags } from '../../featureFlags';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -140,6 +141,7 @@ suite('MDBExtensionController Test Suite', function () {
 
   afterEach(() => {
     sandbox.restore();
+    resetFeatureFlags();
   });
 
   suite('Deep link command lists validation', function () {
@@ -520,7 +522,10 @@ suite('MDBExtensionController Test Suite', function () {
 
       // Set expanded.
       testTreeItem.getSchemaChild().isExpanded = true;
-      testTreeItem.getDocumentListChild().isExpanded = true;
+      const documentsChild = testTreeItem.getDocumentsChild();
+      if ('isExpanded' in documentsChild) {
+        documentsChild.isExpanded = true;
+      }
 
       const fakeRefresh = sandbox.fake();
       sandbox.replace(
@@ -571,6 +576,34 @@ suite('MDBExtensionController Test Suite', function () {
       assert.strictEqual(docListTreeItem.cacheIsUpToDate, false);
       assert.strictEqual(testTreeItem.documentCount, 10000);
       assert.strictEqual(fakeRefresh.called, true);
+    });
+
+    test('mdb.refreshCollection command with enhanced data browsing should reset the schema expanded state and call to refresh the explorer controller', async function () {
+      setFeatureFlag('useEnhancedDataBrowsingExperience', true);
+
+      const testTreeItem = getTestCollectionTreeItem();
+      testTreeItem.isExpanded = true;
+
+      testTreeItem.getSchemaChild().isExpanded = true;
+
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
+        mdbTestExtension.testExtensionController._explorerController,
+        'refresh',
+        fakeRefresh,
+      );
+      await vscode.commands.executeCommand(
+        'mdb.refreshCollection',
+        testTreeItem,
+      );
+      assert(
+        testTreeItem.getSchemaChild().isExpanded === false,
+        'Expected schema tree item child to be reset to not expanded.',
+      );
+      assert(
+        fakeRefresh.called === true,
+        'Expected explorer controller refresh to be called.',
+      );
     });
 
     test('mdb.refreshSchema command should reset its cache and call to refresh the explorer controller', async function () {
@@ -798,6 +831,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
     // TODO: update or delete the test according to VSCODE-461
+    // eslint-disable-next-line mocha/no-skipped-tests
     test.skip('mdb.dropCollection fails when a collection does not exist', async function () {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;

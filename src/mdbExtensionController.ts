@@ -59,6 +59,8 @@ import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
 import { getDocumentViewAndEditFormat } from './editors/types';
+import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
+import DataBrowsingController from './views/dataBrowsingController';
 
 // Deep link command filtering: Commands are explicitly categorized as allowed or disallowed.
 // We use tests in mdbExtensionController.test.ts to enforce these lists being disjoint and complete.
@@ -149,6 +151,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbCreateIndexTreeView,
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
+  ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -176,6 +179,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
   _mcpController: MCPController;
+  _dataBrowsingController: DataBrowsingController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -256,6 +260,10 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._webviewController = new WebviewController({
       connectionController: this._connectionController,
       storageController: this._storageController,
+      telemetryService: this._telemetryService,
+    });
+    this._dataBrowsingController = new DataBrowsingController({
+      connectionController: this._connectionController,
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
@@ -849,6 +857,17 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
+      ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+      (element: ShowPreviewTreeItem): Promise<boolean> => {
+        this._dataBrowsingController.openDataBrowser(this._context, {
+          namespace: element.namespace,
+          collectionType: element.type,
+        });
+
+        return Promise.resolve(true);
+      },
+    );
+    this.registerCommand(
       ExtensionCommand.mdbRefreshCollection,
       async (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
@@ -1195,6 +1214,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._telemetryService.deactivate();
     this._editorsController.deactivate();
     this._webviewController.deactivate();
+    this._dataBrowsingController.deactivate();
     this._activeConnectionCodeLensProvider.deactivate();
     this._connectionController.deactivate();
   }

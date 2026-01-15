@@ -1,5 +1,17 @@
 # Change Log
 
+## [v1.14.4](https://github.com/mongodb-js/vscode/releases/tag/v1.14.4) - 2026-01-15
+
+Edit the release notes before publishing.
+
+## What's Changed
+* fix: remove copilot command from command palette VSCODE-718 by @Anemy in https://github.com/mongodb-js/vscode/pull/1204
+* fix(settings): update shell and OIDC browser settings to be application scope VSCODE-726 by @Anemy in https://github.com/mongodb-js/vscode/pull/1211
+* fix: update feedback forum links VSCODE-716 by @Anemy in https://github.com/mongodb-js/vscode/pull/1212
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.3...v1.14.4
+
+
 ## [v1.14.3](https://github.com/mongodb-js/vscode/releases/tag/v1.14.3) - 2025-12-09
 
 ## What's Changed
