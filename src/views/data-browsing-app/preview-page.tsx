@@ -43,7 +43,9 @@ const PreviewApp: React.FC = () => {
           <VscodeLabel>Loading documents...</VscodeLabel>
         </>
       ) : (
-        <VscodeLabel>HELLO THERE! We have {documents.length} documents.</VscodeLabel>
+        <VscodeLabel>
+          HELLO THERE! We have {documents.length} documents.
+        </VscodeLabel>
       )}
     </VscodeFormContainer>
   );
