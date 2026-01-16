@@ -68,7 +68,10 @@ export default class DocumentTreeItem
     const documents = await this.dataService.find(
       this.namespace,
       { _id: this.documentId },
-      { limit: 1 },
+      {
+        limit: 1,
+        promoteValues: false,
+      },
     );
 
     if (!documents || documents.length === 0) {
@@ -81,13 +84,13 @@ export default class DocumentTreeItem
   async getStringifiedEJSONDocumentContents(): Promise<string> {
     const document = await this.getDocumentContents();
 
-    return EJSON.stringify(document, undefined, 2);
+    return EJSON.stringify(document, undefined, 2, { relaxed: false });
   }
 
   async getJSStringDocumentContents(): Promise<string> {
-    const ejsonDocument = await this.getDocumentContents();
+    const document = await this.getDocumentContents();
 
-    return toJSString(ejsonDocument, 2);
+    return toJSString(document, 2) ?? '';
   }
 
   async onDeleteDocumentClicked(): Promise<boolean> {

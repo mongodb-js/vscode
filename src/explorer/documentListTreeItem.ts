@@ -212,7 +212,10 @@ export default class DocumentListTreeItem
       documents = await this._dataService.find(
         this.namespace,
         {}, // No filter.
-        { limit: this._maxDocumentsToShow },
+        {
+          limit: this._maxDocumentsToShow,
+          promoteValues: false,
+        },
       );
     } catch (error) {
       void vscode.window.showErrorMessage(

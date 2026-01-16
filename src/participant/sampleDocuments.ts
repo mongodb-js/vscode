@@ -45,7 +45,8 @@ export async function getStringifiedSampleDocuments({
 
   let additionToPrompt: Document[] | Document = sampleDocuments;
   let promptInputTokens =
-    (await model.countTokens(prompt + toJSString(sampleDocuments))) || 0;
+    (await model.countTokens(prompt + (toJSString(sampleDocuments) ?? ''))) ||
+    0;
 
   // First check the length of all stringified sample documents.
   // If the resulting prompt is too large, proceed with only 1 sample document.
@@ -57,7 +58,7 @@ export async function getStringifiedSampleDocuments({
     additionToPrompt = sampleDocuments[0];
   }
 
-  const stringifiedDocuments = toJSString(additionToPrompt);
+  const stringifiedDocuments = toJSString(additionToPrompt) ?? '';
 
   // Re-evaluate promptInputTokens with less documents if necessary.
   if (promptInputTokens > model.maxInputTokens) {

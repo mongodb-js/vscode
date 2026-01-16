@@ -36,6 +36,7 @@ import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
+import { getDocumentViewAndEditFormat } from './types';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 import {
@@ -390,6 +391,7 @@ export default class PlaygroundController {
       // Send a request to the language server to execute scripts from a playground.
       result = await this._languageServerController.evaluate(
         {
+          expectedFormat: getDocumentViewAndEditFormat(),
           codeToEvaluate,
           connectionId,
           filePath,
@@ -457,7 +459,11 @@ export default class PlaygroundController {
     await this._showResultAsVirtualDocument();
 
     if (this._playgroundResultTextDocument) {
-      const language = result?.language || 'plaintext';
+      let language = result?.language || 'plaintext';
+      if (language === 'shell') {
+        // Show the shell syntax results with the mongodb-document language.
+        language = 'mongodb-document';
+      }
 
       await vscode.languages.setTextDocumentLanguage(
         this._playgroundResultTextDocument,

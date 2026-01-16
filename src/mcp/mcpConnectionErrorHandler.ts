@@ -15,7 +15,9 @@ export const createMCPConnectionErrorHandler = (
 
     const connectionGuidance: string[] = availableConnections.length
       ? [
-          `Following connections are available in the Sidebar for the user to connect to: ${JSON.stringify(availableConnections)}. Note to LLM: Provide user with the list of connections available and ask them to select a connection in the Sidebar.`,
+          `Following connections are available in the Sidebar for the user to connect to: ${JSON.stringify(
+            availableConnections,
+          )}. Note to LLM: Provide user with the list of connections available and ask them to select a connection in the Sidebar.`,
           'Note to LLM: Alternatively, if the user wish to establish a new MongoDB connection, then ask them to follow our official guide on the following link: https://www.mongodb.com/docs/mongodb-vscode/connect/#create-a-connection',
         ]
       : [
@@ -50,7 +52,11 @@ export const createMCPConnectionErrorHandler = (
             content: [
               {
                 type: 'text',
-                text: `MCP server is having trouble connecting to ${activeConnectionName ? activeConnectionName : 'the selected connection in the MongoDB VSCode extension'}.`,
+                text: `MCP server is having trouble connecting to ${
+                  activeConnectionName
+                    ? activeConnectionName
+                    : 'the selected connection in the MongoDB VSCode extension'
+                }.`,
               },
               ...resolutionGuidance.map<{ type: 'text'; text: string }>(
                 (text) => ({ type: 'text', text }),

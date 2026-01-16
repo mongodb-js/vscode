@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
 import { URLSearchParams } from 'url';
+import { toJSString } from 'mongodb-query-parser';
 
 import type CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
+import { DOCUMENT_FORMAT_URI_IDENTIFIER } from './mongoDBDocumentService';
+import { EJSON } from 'bson';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -50,6 +53,10 @@ export default class CollectionViewProvider
     const namespace = String(uriParams.get(NAMESPACE_URI_IDENTIFIER));
     const connectionId = uriParams.get(CONNECTION_ID_URI_IDENTIFIER);
     const operationId = uriParams.get(OPERATION_ID_URI_IDENTIFIER);
+    const editFormat =
+      uriParams.get(DOCUMENT_FORMAT_URI_IDENTIFIER) === 'ejson'
+        ? 'ejson'
+        : 'shell';
 
     if (!operationId) {
       void vscode.window.showErrorMessage(
@@ -93,7 +100,10 @@ export default class CollectionViewProvider
       const documents = await dataservice.find(
         namespace,
         {}, // No filter.
-        { limit: documentLimit },
+        {
+          limit: documentLimit,
+          promoteValues: false,
+        },
       );
 
       operation.isCurrentlyFetchingMoreDocuments = false;
@@ -106,10 +116,15 @@ export default class CollectionViewProvider
       this._editDocumentCodeLensProvider.updateCodeLensesForCollection({
         content: documents,
         namespace,
+        format: editFormat,
         uri,
       });
 
-      return JSON.stringify(documents, null, 2);
+      if (editFormat === 'shell') {
+        return toJSString(documents, 2) ?? '';
+      }
+
+      return EJSON.stringify(documents, undefined, 2, { relaxed: false });
     } catch (error) {
       const errorMessage = `Unable to list documents: ${
         formatError(error).message

@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import { toJSString } from 'mongodb-query-parser';
+import { EJSON } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
@@ -63,6 +65,15 @@ export default class PlaygroundResultProvider
     this._editDocumentCodeLensProvider?.updateCodeLensesForPlayground(
       this._playgroundResult,
     );
+
+    if (this._playgroundResult.language === 'shell') {
+      return (
+        toJSString(
+          EJSON.deserialize(this._playgroundResult.content, { relaxed: false }),
+          2,
+        ) ?? ''
+      );
+    }
 
     return JSON.stringify(this._playgroundResult.content, null, 2);
   }

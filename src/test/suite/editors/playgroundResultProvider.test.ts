@@ -4,6 +4,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import type { Document } from 'mongodb';
+import { EJSON, Long, ObjectId } from 'bson';
 
 import ConnectionController from '../../../connectionController';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -173,7 +174,7 @@ suite('Playground Result Provider Test Suite', function () {
     expect(result).to.be.equal('Berlin');
   });
 
-  test('provideTextDocumentContent returns Cursor formatted to string if content is string', function () {
+  test('provideTextDocumentContent returns Cursor formatted to a json string if content is string', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -210,6 +211,60 @@ suite('Playground Result Provider Test Suite', function () {
     expect(
       fakeUpdateCodeLensesForPlayground.firstCall.firstArg,
     ).to.be.deep.equal(playgroundResult);
+  });
+
+  test('provideTextDocumentContent returns shell syntax for shell language', function () {
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
+      testConnectionController,
+      testEditDocumentCodeLensProvider,
+    );
+    // Content is passed as serialized ejson from the worker.
+    const content = EJSON.serialize(
+      [
+        {
+          _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
+          pineapple: new Long('90071992547409920'),
+          name: 'Berlin',
+        },
+        {
+          _id: new ObjectId('6536b0aef59f6ffc9af93f3d'),
+          pineapple2: new Long('900719925474099199'),
+          name: 'Rome',
+        },
+      ],
+      { relaxed: false },
+    );
+    const playgroundResult = {
+      namespace: 'db.berlin',
+      type: 'Cursor',
+      content,
+      language: 'shell',
+    };
+
+    const fakeUpdateCodeLensesForPlayground = sandbox.fake();
+    sandbox.replace(
+      testPlaygroundResultProvider._editDocumentCodeLensProvider,
+      'updateCodeLensesForPlayground',
+      fakeUpdateCodeLensesForPlayground,
+    );
+
+    testPlaygroundResultProvider._playgroundResult = playgroundResult;
+
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
+
+    expect(result).to.equal(`[
+  {
+    _id: ObjectId('6536b0aef59f6ffc9af93f3c'),
+    pineapple: NumberLong('90071992547409920'),
+    name: 'Berlin'
+  },
+  {
+    _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
+    pineapple2: NumberLong('900719925474099199'),
+    name: 'Rome'
+  }
+]`);
+    expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
   });
 
   test('provideTextDocumentContent returns Document formatted to string if content is string', function () {

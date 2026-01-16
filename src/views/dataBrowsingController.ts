@@ -149,6 +149,7 @@ export default class DataBrowsingController {
 
     const findOptions = {
       limit: DEFAULT_DOCUMENTS_LIMIT,
+      promoteValues: false,
     };
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;

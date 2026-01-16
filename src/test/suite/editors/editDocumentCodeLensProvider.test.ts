@@ -48,13 +48,19 @@ suite('Edit Document Code Lens Provider Test Suite', function () {
       testConnectionController,
     );
     const ejsinId = { $oid: '5d973ae744376d2aae72a160' };
-    const playgroundResult = {
+    const playgroundResult: {
+      content: any;
+      format: 'ejson';
+      namespace: string;
+      source: DocumentSource;
+    } = {
       content: [
         {
           _id: ejsinId,
           name: 'test name',
         },
       ],
+      format: 'ejson',
       namespace: 'db.coll',
       source: DocumentSource.playground,
     };
