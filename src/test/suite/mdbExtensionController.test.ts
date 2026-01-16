@@ -250,50 +250,48 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    suite('with shell format preference', function () {
-      test('mdb.viewCollectionDocuments command should call onViewCollectionDocuments on the editor controller with the collection namespace', async function () {
-        const textCollectionTree = getTestCollectionTreeItem();
-        await vscode.commands.executeCommand(
-          'mdb.viewCollectionDocuments',
-          textCollectionTree,
-        );
-        expect(
-          openTextDocumentStub.firstCall.args[0].path.indexOf(
-            'Results: testDbName.testColName',
-          ),
-        ).to.equal(0);
-        expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
-          '.json',
-        );
-        expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
-          VIEW_COLLECTION_SCHEME,
-        );
-        expect(openTextDocumentStub.firstCall.args[0].query).to.include(
-          'namespace=testDbName.testColName',
-        );
-      });
+    test('mdb.viewCollectionDocuments command should call onViewCollectionDocuments on the editor controller with the collection namespace', async function () {
+      const textCollectionTree = getTestCollectionTreeItem();
+      await vscode.commands.executeCommand(
+        'mdb.viewCollectionDocuments',
+        textCollectionTree,
+      );
+      expect(
+        openTextDocumentStub.firstCall.args[0].path.indexOf(
+          'Results: testDbName.testColName',
+        ),
+      ).to.equal(0);
+      expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
+        '.json',
+      );
+      expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
+        VIEW_COLLECTION_SCHEME,
+      );
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'namespace=testDbName.testColName',
+      );
+    });
 
-      test('mdb.viewCollectionDocuments command should also work with the documents list', async function () {
-        const textCollectionTree = getTestCollectionTreeItem();
-        await vscode.commands.executeCommand(
-          'mdb.viewCollectionDocuments',
-          textCollectionTree,
-        );
-        expect(
-          openTextDocumentStub.firstCall.args[0].path.indexOf(
-            'Results: testDbName.testColName',
-          ),
-        ).to.equal(0);
-        expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
-          '.json',
-        );
-        expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
-          VIEW_COLLECTION_SCHEME,
-        );
-        expect(openTextDocumentStub.firstCall.args[0].query).to.include(
-          'namespace=testDbName.testColName',
-        );
-      });
+    test('mdb.viewCollectionDocuments command should also work with the documents list', async function () {
+      const textCollectionTree = getTestCollectionTreeItem();
+      await vscode.commands.executeCommand(
+        'mdb.viewCollectionDocuments',
+        textCollectionTree,
+      );
+      expect(
+        openTextDocumentStub.firstCall.args[0].path.indexOf(
+          'Results: testDbName.testColName',
+        ),
+      ).to.equal(0);
+      expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
+        '.json',
+      );
+      expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
+        VIEW_COLLECTION_SCHEME,
+      );
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'namespace=testDbName.testColName',
+      );
     });
 
     suite('with ejson format preference', function () {

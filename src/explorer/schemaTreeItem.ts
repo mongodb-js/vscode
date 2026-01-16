@@ -114,7 +114,10 @@ export default class SchemaTreeItem
       documents = await this._dataService.find(
         namespace,
         {}, // No filter.
-        { limit: MAX_DOCUMENTS_VISIBLE },
+        {
+          limit: MAX_DOCUMENTS_VISIBLE,
+          promoteValues: false,
+        },
       );
     } catch (error) {
       void vscode.window.showErrorMessage(

@@ -55,12 +55,12 @@ const mockDocumentsAsJsonString = `[
 
 const mockDocumentsAsJSString = `[
   {
-    _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
-    pineapple: new Long('90071992547409920'),
+    _id: ObjectId('6536b0aef59f6ffc9af93f3c'),
+    pineapple: NumberLong('90071992547409920')
   },
   {
-    _id: new ObjectId('6536b0aef59f6ffc9af93f3d'),
-    pineapple2: new Long('900719925474099199'),
+    _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
+    pineapple2: NumberLong('900719925474099199')
   },
 ]`;
 
@@ -184,7 +184,7 @@ suite('Collection Documents Provider Test Suite', function () {
     const documentString =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
 
-    expect(documentString).to.not.equal(mockDocumentsAsJSString);
+    expect(documentString).to.equal(mockDocumentsAsJSString);
   });
 
   test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async function () {

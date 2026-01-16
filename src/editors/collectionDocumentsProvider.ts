@@ -100,7 +100,10 @@ export default class CollectionViewProvider
       const documents = await dataservice.find(
         namespace,
         {}, // No filter.
-        { limit: documentLimit },
+        {
+          limit: documentLimit,
+          promoteValues: false,
+        },
       );
 
       operation.isCurrentlyFetchingMoreDocuments = false;

@@ -68,7 +68,10 @@ export default class DocumentTreeItem
     const documents = await this.dataService.find(
       this.namespace,
       { _id: this.documentId },
-      { limit: 1 },
+      {
+        limit: 1,
+        promoteValues: false,
+      },
     );
 
     if (!documents || documents.length === 0) {

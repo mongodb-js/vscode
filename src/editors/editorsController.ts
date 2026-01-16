@@ -42,6 +42,7 @@ import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import type { QueryWithCopilotCodeLensProvider } from './queryWithCopilotCodeLensProvider';
+import { getEJSON } from '../utils/ejson';
 
 const log = createLogger('editors controller');
 
@@ -459,7 +460,7 @@ export default class EditorsController {
   }): void {
     const content =
       format === 'ejson'
-        ? JSON.stringify(document, null, 2)
+        ? JSON.stringify(getEJSON(document), null, 2)
         : (toJSString(document, 2) ?? '');
 
     this._memoryFileSystemProvider.writeFile(fileUri, Buffer.from(content), {

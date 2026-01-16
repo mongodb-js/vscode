@@ -212,54 +212,6 @@ suite('MongoDB Document Service Test Suite', function () {
     expect(result).to.be.deep.equal(documents[0]);
   });
 
-  test('fetchDocument calls find and returns a single document when connected - simplifying the uuid type (ejson)', async function () {
-    const line = 1;
-    const documents = [
-      {
-        _id: '123',
-        myUuid: {
-          $binary: {
-            base64: 'yO2rw/c4TKO2jauSqRR4ow==',
-            subType: '04',
-          },
-        },
-      },
-    ];
-    const source = DocumentSource.playground;
-
-    const fakeGetActiveDataService = sandbox.fake.returns({
-      find: () => {
-        return Promise.resolve(documents);
-      },
-    });
-    sandbox.replace(
-      testConnectionController,
-      'getActiveDataService',
-      fakeGetActiveDataService,
-    );
-
-    const fakeGetActiveConnectionId = sandbox.fake.returns(connectionId);
-    sandbox.replace(
-      testConnectionController,
-      'getActiveConnectionId',
-      fakeGetActiveConnectionId,
-    );
-
-    const result = await testMongoDBDocumentService.fetchDocument({
-      namespace,
-      documentId,
-      line,
-      format: 'ejson',
-      connectionId,
-      source,
-    });
-
-    expect(result).to.be.deep.equal({
-      _id: '123',
-      myUuid: { $uuid: 'c8edabc3-f738-4ca3-b68d-ab92a91478a3' },
-    });
-  });
-
   test("if a user is not connected, documents won't be saved to MongoDB", async function () {
     const newDocument = { _id: '123', price: 5000 };
     const source = DocumentSource.treeview;

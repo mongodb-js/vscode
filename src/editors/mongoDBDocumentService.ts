@@ -8,7 +8,6 @@ import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
-import { getEJSON } from '../utils/ejson';
 import { DocumentUpdatedTelemetryEvent } from '../telemetry';
 
 const log = createLogger('document controller');
@@ -97,6 +96,7 @@ export default class MongoDBDocumentService {
         newDocument,
         {
           returnDocument: 'after',
+          promoteValues: false,
         },
       );
       this._telemetryService.track(
@@ -139,14 +139,17 @@ export default class MongoDBDocumentService {
       const documents = await dataService.find(
         namespace,
         { _id: documentId },
-        { limit: 1 },
+        {
+          limit: 1,
+          promoteValues: false,
+        },
       );
 
       if (!documents || documents.length === 0) {
         return;
       }
 
-      return data.format === 'ejson' ? getEJSON(documents[0]) : documents[0];
+      return documents[0];
     } catch (error) {
       return this._fetchDocumentFailed(formatError(error).message);
     } finally {
