@@ -463,10 +463,14 @@ export default class EditorsController {
         ? JSON.stringify(getEJSON(document), null, 2)
         : (toJSString(document, 2) ?? '');
 
-    this._memoryFileSystemProvider.writeFile(fileUri, Buffer.from(content), {
-      create: true,
-      overwrite: true,
-    });
+    this._memoryFileSystemProvider.writeFile(
+      fileUri,
+      new TextEncoder().encode(content),
+      {
+        create: true,
+        overwrite: true,
+      },
+    );
   }
 
   _resetMemoryFileSystemProvider(): void {

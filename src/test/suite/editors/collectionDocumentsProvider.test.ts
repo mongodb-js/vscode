@@ -61,7 +61,7 @@ const mockDocumentsAsJSString = `[
   {
     _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
     pineapple2: NumberLong('900719925474099199')
-  },
+  }
 ]`;
 
 suite('Collection Documents Provider Test Suite', function () {

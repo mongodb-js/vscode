@@ -9,18 +9,38 @@
     "body": "ISODate('$1')",
     "description": "BSON ISODate"
   },
+  "Double": {
+    "prefix": "Double",
+    "body": "Double('$1')",
+    "description": "BSON Double"
+  },
+  "Long": {
+    "prefix": "Long",
+    "body": "Long('$1')",
+    "description": "64-bit integer"
+  },
   "NumberLong": {
-    "prefix": ["NumberLong", "Long"],
+    "prefix": "NumberLong",
     "body": "NumberLong('$1')",
     "description": "64-bit integer"
   },
-  "NumberInt": {
-    "prefix": ["NumberInt", "Int"],
-    "body": "NumberInt('$1')",
+  "Int32": {
+    "prefix": "Int32",
+    "body": "Int32($1)",
     "description": "32-bit integer"
   },
+  "NumberInt": {
+    "prefix": "NumberInt",
+    "body": "NumberInt($1)",
+    "description": "32-bit integer"
+  },
+  "Decimal128": {
+    "prefix": "Decimal128",
+    "body": "Decimal128('$1')",
+    "description": "128-bit decimal"
+  },
   "NumberDecimal": {
-    "prefix": ["NumberDecimal", "Decimal"],
+    "prefix": "NumberDecimal",
     "body": "NumberDecimal('$1')",
     "description": "128-bit decimal"
   },
@@ -64,9 +84,9 @@
     "body": "Code('$1')",
     "description": "BSON Code"
   },
-  "Regex": {
-    "prefix": "Regex",
-    "body": "Regex('$1', '$2')",
+  "BSONRegExp": {
+    "prefix": "BSONRegExp",
+    "body": "BSONRegExp('$1', '$2')",
     "description": "BSON Regular Expression"
   }
 }

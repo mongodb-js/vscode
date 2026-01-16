@@ -62,7 +62,7 @@
       "patterns": [
         {
           "name": "support.class.bson.mongodb-document",
-          "match": "\\b(ObjectId|ISODate|NumberLong|NumberInt|NumberDecimal|Binary|BinData|UUID|Code|Timestamp|MinKey|MaxKey|DBRef|Regex)\\b"
+          "match": "\\b(ObjectId|ISODate|Double|Long|NumberLong|Int32|NumberInt|Decimal128|NumberDecimal|Binary|BinData|UUID|Code|Timestamp|MinKey|MaxKey|DBRef|BSONRegExp|RegExp)\\b"
         }
       ]
     },
