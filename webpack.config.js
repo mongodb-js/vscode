@@ -43,6 +43,9 @@ module.exports = (env, argv) => {
 
         'hadron-ipc': false,
 
+        // We don't use the diagramming library from compass-components and it's a large dep.
+        '@mongodb-js/diagramming': false,
+
         // We don't currently support kerberos in our extension.
         kerberos: false,
 
@@ -172,13 +175,22 @@ module.exports = (env, argv) => {
       fallback: {
         stream: require.resolve('stream-browserify'),
         buffer: require.resolve('buffer'),
-        crypto: require.resolve('crypto-browserify'),
+        // TODO(VSCODE-715): Remove this once we bump compass-components.
+        crypto: path.resolve(__dirname, 'src/utils/crypto-shim.js'),
         path: require.resolve('path-browserify'),
         mongodb: false,
       },
     },
     module: {
       rules: [
+        {
+          test: /\.mjs$/,
+          include: /node_modules/,
+          type: 'javascript/auto',
+          resolve: {
+            fullySpecified: false,
+          },
+        },
         {
           test: /\.(ts|tsx)$/,
           loader: 'ts-loader',

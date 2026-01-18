@@ -132,7 +132,7 @@ export default class SchemaTreeItem
       return await parseSchema(documents);
     } catch (parseError) {
       throw new Error(
-        `Unable to parse schema: ${(parseError as Error)?.message}`,
+        `Unable to parse schema: ${formatError(parseError).message}`,
       );
     }
   }

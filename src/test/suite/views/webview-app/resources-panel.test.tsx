@@ -5,8 +5,8 @@ import { cleanup, render, screen } from '@testing-library/react';
 import ResourcesPanel, {
   TELEMETRY_SCREEN_ID,
 } from '../../../../views/webview-app/resources-panel/panel';
-import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
-import vscode from '../../../../views/webview-app/vscode-api';
+import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 
 describe('Resources panel test suite', function () {
   afterEach(function () {
@@ -15,7 +15,7 @@ describe('Resources panel test suite', function () {
 
   it('should render resources panel', function () {
     render(<ResourcesPanel onClose={(): void => {}} />);
-    expect(() => screen.getByLabelText('Close')).to.not.throw;
+    expect(screen.getByLabelText('Close')).to.exist;
     expect(screen.getAllByTestId(/link-\w+/)).to.have.length.greaterThan(0);
     expect(
       screen.getAllByTestId(/footer-feature-\w+/),
@@ -33,12 +33,12 @@ describe('Resources panel test suite', function () {
   });
 
   it('should track link clicked event on click of any link', function () {
-    const postMessageStub = Sinon.stub(vscode, 'postMessage');
+    const postMessageStub = Sinon.stub(getVSCodeApi(), 'postMessage');
     render(<ResourcesPanel onClose={(): void => {}} />);
     screen.getAllByTestId(/^link-\w+/).forEach((link) => {
       link.click();
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
+        command: MessageType.extensionLinkClicked,
         screen: TELEMETRY_SCREEN_ID,
         linkId: link.getAttribute('data-testid')?.replace('link-', ''),
       });
@@ -47,7 +47,7 @@ describe('Resources panel test suite', function () {
     screen.getAllByTestId(/^footer-feature-\w+/).forEach((link) => {
       link.click();
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
+        command: MessageType.extensionLinkClicked,
         screen: TELEMETRY_SCREEN_ID,
         linkId: link
           .getAttribute('data-testid')
@@ -58,7 +58,7 @@ describe('Resources panel test suite', function () {
     screen.getAllByTestId(/^footer-link-\w+/).forEach((link) => {
       link.click();
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
+        command: MessageType.extensionLinkClicked,
         screen: TELEMETRY_SCREEN_ID,
         linkId: link.getAttribute('data-testid')?.replace('footer-link-', ''),
       });

@@ -4,7 +4,7 @@ import LINKS from '../../../utils/links';
 const expectedLinks = {
   changelog: 'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
   feedback:
-    'https://feedback.mongodb.com/forums/929236-mongodb-for-vs-code/?utm_source=vscode&utm_medium=product',
+    'https://feedback.mongodb.com/?category=7548143030521447168&utm_source=vscode&utm_medium=product',
   github: 'https://github.com/mongodb-js/vscode',
   reportBug: 'https://github.com/mongodb-js/vscode/issues',
   atlas:
@@ -34,13 +34,13 @@ const expectedLinks = {
     'https://docs.mongodb.com/manual/reference/configuration-options/?utm_source=vscode&utm_medium=product#net.ssl.PEMKeyPassword',
 };
 
-suite('LINKS', () => {
-  test('should have all links', () => {
+suite('LINKS', function () {
+  test('should have all links', function () {
     expect(Object.keys(expectedLinks)).to.deep.eq(Object.keys(LINKS));
   });
 
   Object.entries(expectedLinks).forEach(([name, expected]) => {
-    test(`${name} link should return ${expected}`, () => {
+    test(`${name} link should return ${expected}`, function () {
       if (typeof LINKS[name] === 'function') {
         expect(expected).to.eq(LINKS[name]('hi'));
       } else {

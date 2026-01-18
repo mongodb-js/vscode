@@ -6,8 +6,10 @@ import { createTrackedTreeView } from '../utils/treeViewHelper';
 export default class PlaygroundsExplorer {
   private _treeController: PlaygroundsTree;
   private _treeView?: vscode.TreeView<vscode.TreeItem>;
+  private _telemetryService: TelemetryService;
 
-  constructor(private _telemetryService: TelemetryService) {
+  constructor(telemetryService: TelemetryService) {
+    this._telemetryService = telemetryService;
     this._treeController = new PlaygroundsTree();
   }
 

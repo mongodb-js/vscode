@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import type { SendMessageToParticipantFromInputOptions } from '../participant/participantTypes';
 import { isPlayground } from '../utils/playground';
 import { COPILOT_EXTENSION_ID } from '../participant/constants';
@@ -8,8 +8,6 @@ import { DocumentSource } from '../documentSource';
 export class QueryWithCopilotCodeLensProvider
   implements vscode.CodeLensProvider
 {
-  constructor() {}
-
   readonly onDidChangeCodeLenses: vscode.Event<void> =
     vscode.extensions.onDidChange;
 
@@ -34,7 +32,7 @@ export class QueryWithCopilotCodeLensProvider
       command: 'query',
       isNewChat: true,
       telemetry: {
-        source: DocumentSource.DOCUMENT_SOURCE_CODELENS,
+        source: DocumentSource.codelens,
         source_details: undefined,
       },
     };
@@ -42,7 +40,7 @@ export class QueryWithCopilotCodeLensProvider
     return [
       new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
         title: '✨ Generate query with MongoDB Copilot',
-        command: EXTENSION_COMMANDS.SEND_MESSAGE_TO_PARTICIPANT_FROM_INPUT,
+        command: ExtensionCommand.sendMessageToParticipantFromInput,
         arguments: [options],
       }),
     ];

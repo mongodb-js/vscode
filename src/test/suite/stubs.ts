@@ -40,7 +40,9 @@ class ExtensionContextStub implements vscode.ExtensionContext {
 
   constructor() {
     this.languageModelAccessInformation = {
-      onDidChange: (): any => {},
+      onDidChange: (): any => {
+        /* no-op */
+      },
       canSendRequest: (): undefined => undefined,
     };
     this.globalStoragePath = '';
@@ -85,7 +87,9 @@ class ExtensionContextStub implements vscode.ExtensionContext {
           resolve();
         });
       },
-      setKeysForSync: (/* keys: string[] */): void => {},
+      setKeysForSync: (/* keys: string[] */): void => {
+        /* no-op */
+      },
     };
     this.extensionPath = path.join(__dirname, '..', '..', '..');
     this.storagePath = '';
@@ -191,6 +195,10 @@ class DataServiceStub {
     return Promise.resolve(mockDocuments.slice(0, options.limit));
   }
 
+  aggregate(): Promise<Document[]> {
+    return Promise.resolve([{ count: mockDocuments.length }]);
+  }
+
   estimatedCount(): Promise<number> {
     return Promise.resolve(mockDocuments.length);
   }
@@ -255,10 +263,18 @@ const mockTextEditor = {
   viewColumn: vscode.ViewColumn.Beside,
   edit: (): Promise<boolean> => Promise.resolve(true),
   insertSnippet: (): Promise<boolean> => Promise.resolve(true),
-  setDecorations: (): void => {},
-  revealRange: (): void => {},
-  show: (): void => {},
-  hide: (): void => {},
+  setDecorations: (): void => {
+    /* no-op */
+  },
+  revealRange: (): void => {
+    /* no-op */
+  },
+  show: (): void => {
+    /* no-op */
+  },
+  hide: (): void => {
+    /* no-op */
+  },
 };
 
 class LanguageServerControllerStub {
@@ -378,7 +394,9 @@ class StreamStub extends Duplex {
     done();
   }
 
-  _read(): void {}
+  _read(): void {
+    /* no-op */
+  }
 }
 
 export {

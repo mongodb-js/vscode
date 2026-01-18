@@ -4,9 +4,10 @@ import { expect } from 'chai';
 
 import App from '../../../../views/webview-app/app';
 
-describe('App Component Test Suite', () => {
-  it('it renders the overview page', () => {
+describe('App Component Test Suite', function () {
+  it('it renders the overview page', async function () {
     render(<App />);
-    expect(screen.getByTestId('overview-page')).to.exist;
+    // Use findByTestId to wait for lazy-loaded component to render
+    expect(await screen.findByTestId('overview-page')).to.exist;
   });
 });

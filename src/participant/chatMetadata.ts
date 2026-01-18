@@ -10,8 +10,6 @@ export type ChatMetadata = {
 export class ChatMetadataStore {
   _chats: { [chatId: string]: ChatMetadata } = {};
 
-  constructor() {}
-
   setChatMetadata(chatId: string, metadata: ChatMetadata): void {
     this._chats[chatId] = metadata;
   }

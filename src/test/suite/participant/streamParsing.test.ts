@@ -9,7 +9,7 @@ const defaultCodeBlockIdentifier = {
   end: '```',
 };
 
-suite('processStreamWithIdentifiers', () => {
+suite('processStreamWithIdentifiers', function () {
   let fragmentsProcessed: string[] = [];
   let identifiersStreamed: string[] = [];
 
@@ -26,7 +26,7 @@ suite('processStreamWithIdentifiers', () => {
     identifiersStreamed = [];
   });
 
-  test('empty', async () => {
+  test('empty', async function () {
     await processStreamWithIdentifiers({
       processStreamFragment,
       onStreamIdentifier,
@@ -38,7 +38,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed).to.be.empty;
   });
 
-  test('input with no code block', async () => {
+  test('input with no code block', async function () {
     const inputText = 'This is some sample text without code blocks.';
     const inputFragments = inputText.match(/.{1,5}/g) || [];
     const inputIterable = asyncIterableFromArray<string>(inputFragments);
@@ -54,7 +54,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed).to.be.empty;
   });
 
-  test('one code block with fragment sizes 2', async () => {
+  test('one code block with fragment sizes 2', async function () {
     const inputText = '```javascript\npineapple\n```\nMore text.';
     const inputFragments: string[] = [];
     let index = 0;
@@ -82,7 +82,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed[0]).to.equal('\npineapple\n');
   });
 
-  test('multiple code blocks', async () => {
+  test('multiple code blocks', async function () {
     const inputText =
       'Text before code.\n```\ncode1\n```\nText between code.\n```\ncode2\n```\nText after code.';
     const inputFragments = inputText.split('');
@@ -100,7 +100,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed).to.deep.equal(['\ncode1\n', '\ncode2\n']);
   });
 
-  test('unfinished code block', async () => {
+  test('unfinished code block', async function () {
     const inputText =
       'Text before code.\n```\ncode content without end identifier.';
     const inputFragments = inputText.split('');
@@ -118,7 +118,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed).to.be.empty;
   });
 
-  test('code block identifier is a fragment', async () => {
+  test('code block identifier is a fragment', async function () {
     const inputFragments = [
       'Text before code.\n',
       '```js',
@@ -149,7 +149,7 @@ suite('processStreamWithIdentifiers', () => {
     ]);
   });
 
-  test('code block identifier split between fragments', async () => {
+  test('code block identifier split between fragments', async function () {
     const inputFragments = [
       'Text before code.\n`',
       '``j',
@@ -174,7 +174,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed).to.deep.equal(['\ncode content\n']);
   });
 
-  test('fragments containing multiple code blocks', async () => {
+  test('fragments containing multiple code blocks', async function () {
     const inputFragments = [
       'Text before code.\n```',
       'js\ncode1\n```',
@@ -198,7 +198,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed).to.deep.equal(['\ncode1\n', '\ncode2\n']);
   });
 
-  test('one fragment containing multiple code blocks', async () => {
+  test('one fragment containing multiple code blocks', async function () {
     const inputFragments = [
       'Text before code.\n```js\ncode1\n```\nText between code.\n```js\ncode2\n```\nText after code.',
     ];
@@ -217,7 +217,7 @@ suite('processStreamWithIdentifiers', () => {
     expect(identifiersStreamed).to.deep.equal(['\ncode1\n', '\ncode2\n']);
   });
 
-  test('one fragment containing multiple code blocks emits event in correct order', async () => {
+  test('one fragment containing multiple code blocks emits event in correct order', async function () {
     // In case we have one fragment containing multiple code blocks, we want to make sure that
     // fragment notifications and identifier notifications arrive in the right order so that we're
     // adding code actions after the correct subfragment.

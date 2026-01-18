@@ -37,8 +37,12 @@ Object.assign(focusTrap, {
     const trap = {
       activate: (): unknown => trap,
       deactivate: (): unknown => trap,
-      pause: (): void => {},
-      unpause: (): void => {},
+      pause: (): void => {
+        /* no-op */
+      },
+      unpause: (): void => {
+        /* no-op */
+      },
     };
     return trap;
   },
@@ -69,6 +73,20 @@ Object.getOwnPropertyNames(global.window).forEach((property) => {
   global[property] = global.window[property];
 });
 
+// Polyfill for Constructable Stylesheets (required by @vscode-elements/elements)
+if (
+  typeof CSSStyleSheet !== 'undefined' &&
+  !CSSStyleSheet.prototype.replaceSync
+) {
+  CSSStyleSheet.prototype.replaceSync = function (): void {
+    // no-op: styles are not applied in test environment
+  };
+
+  CSSStyleSheet.prototype.replace = function (): Promise<CSSStyleSheet> {
+    return Promise.resolve(this);
+  };
+}
+
 // Overwrites the node.js version which is incompatible with jsdom.
 global.MessageEvent = global.window.MessageEvent;
 
@@ -80,7 +98,9 @@ Object.assign(global, { TextDecoder, TextEncoder });
 
 (global as any).vscodeFake = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  postMessage: (message: unknown): void => {},
+  postMessage: (message: unknown): void => {
+    /* no-op */
+  },
 };
 
 (global as any).acquireVsCodeApi = (): any => {

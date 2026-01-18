@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
-import path from 'path';
-import crypto from 'crypto';
 import type { ConnectionOptions } from 'mongodb-data-service';
 
 import type ConnectionController from '../connectionController';
-import { ConnectionTypes } from '../connectionController';
+import { ConnectionType } from '../connectionController';
 import { createLogger } from '../logging';
-import EXTENSION_COMMANDS from '../commands';
+import ExtensionCommand from '../commands';
 import type { MessageFromWebviewToExtension } from './webview-app/extension-app-message-constants';
 import {
-  MESSAGE_TYPES,
+  MessageType,
   VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID,
   VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
 } from './webview-app/extension-app-message-constants';
@@ -23,23 +21,10 @@ import {
   OpenEditConnectionTelemetryEvent,
 } from '../telemetry';
 import type { FileChooserOptions } from './webview-app/use-connection-form';
+import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
+import formatError from '../utils/formatError';
 
 const log = createLogger('webview controller');
-
-const getNonce = (): string => {
-  return crypto.randomBytes(16).toString('base64');
-};
-
-export const getReactAppUri = (
-  extensionPath: string,
-  webview: vscode.Webview,
-): vscode.Uri => {
-  const localFilePathUri = vscode.Uri.file(
-    path.join(extensionPath, 'dist', 'webviewApp.js'),
-  );
-  const jsAppFileWebviewUri = webview.asWebviewUri(localFilePathUri);
-  return jsAppFileWebviewUri;
-};
 
 export const getWebviewContent = ({
   extensionPath,
@@ -50,36 +35,24 @@ export const getWebviewContent = ({
   telemetryUserId?: string;
   webview: vscode.Webview;
 }): string => {
-  const jsAppFileUrl = getReactAppUri(extensionPath, webview);
-
-  // Use a nonce to only allow specific scripts to be run.
-  const nonce = getNonce();
-
   const showOIDCDeviceAuthFlow = vscode.workspace
     .getConfiguration('mdb')
     .get('showOIDCDeviceAuthFlow');
 
-  return `<!DOCTYPE html>
-  <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none';
-            script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https:;
-            style-src vscode-resource: 'self' 'unsafe-inline';
-            img-src vscode-resource: 'self'"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MongoDB</title>
-    </head>
-    <body>
-      <div id="root"></div>
-      ${getFeatureFlagsScript(nonce)}
-      <script nonce="${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>
-      <script nonce="${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
+  const additionalHeadContent = `
+      ${getFeatureFlagsScript('${nonce}')}
+      ${telemetryUserId ? `<script nonce="\${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>` : ''}
+      <script nonce="\${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
         showOIDCDeviceAuthFlow ? 'true' : 'false'
-      };</script>
-      <script nonce="${nonce}" src="${jsAppFileUrl}"></script>
-    </body>
-  </html>`;
+      };</script>`;
+
+  return getWebviewHtml({
+    extensionPath,
+    webview,
+    webviewType: 'connection',
+    title: 'MongoDB',
+    additionalHeadContent,
+  });
 };
 
 export default class WebviewController {
@@ -159,12 +132,12 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to open file chooser dialog: ${error}`,
+        `Unable to open file chooser dialog: ${formatError(error).message}`,
       );
     }
 
     void panel.webview.postMessage({
-      command: MESSAGE_TYPES.OPEN_FILE_CHOOSER_RESULT,
+      command: MessageType.openFileChooserResult,
       fileChooserResult: {
         canceled: false,
         ...(Array.isArray(files)
@@ -201,13 +174,13 @@ export default class WebviewController {
           : await this._connectionController.saveNewConnectionAndConnect({
               connectionId: connection.id,
               connectionOptions: connection.connectionOptions,
-              connectionType: ConnectionTypes.CONNECTION_FORM,
+              connectionType: ConnectionType.connectionForm,
             });
 
       try {
         // The webview may have been closed in which case this will throw.
         void panel.webview.postMessage({
-          command: MESSAGE_TYPES.CONNECT_RESULT,
+          command: MessageType.connectResult,
           connectionId: connection.id,
           connectionSuccess: successfullyConnected,
           connectionMessage: successfullyConnected
@@ -219,14 +192,14 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to load connection: ${error}`,
+        `Unable to load connection: ${formatError(error).message}`,
       );
 
       void panel.webview.postMessage({
-        command: MESSAGE_TYPES.CONNECT_RESULT,
+        command: MessageType.connectResult,
         connectionId: connection.id,
         connectionSuccess: false,
-        connectionMessage: `Unable to load connection: ${error}`,
+        connectionMessage: `Unable to load connection: ${formatError(error).message}`,
       });
     }
   };
@@ -237,16 +210,16 @@ export default class WebviewController {
     panel: vscode.WebviewPanel,
   ): Promise<void> => {
     switch (message.command) {
-      case MESSAGE_TYPES.CONNECT:
+      case MessageType.connect:
         await this.handleWebviewConnectAttempt({
           panel,
           connection: message.connectionInfo,
         });
         return;
-      case MESSAGE_TYPES.CANCEL_CONNECT:
+      case MessageType.cancelConnect:
         this._connectionController.cancelConnectionAttempt();
         return;
-      case MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT:
+      case MessageType.editConnectionAndConnect:
         await this.handleWebviewConnectAttempt({
           panel,
           connection: message.connectionInfo,
@@ -254,37 +227,35 @@ export default class WebviewController {
         });
         this._telemetryService.track(new ConnectionEditedTelemetryEvent());
         return;
-      case MESSAGE_TYPES.OPEN_FILE_CHOOSER:
+      case MessageType.openFileChooser:
         await this.handleWebviewOpenFileChooserAttempt({
           panel,
           fileChooserOptions: message.fileChooserOptions,
           requestId: message.requestId,
         });
         return;
-      case MESSAGE_TYPES.CREATE_NEW_PLAYGROUND:
+      case MessageType.createNewPlayground:
         void vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.MDB_CREATE_PLAYGROUND_FROM_OVERVIEW_PAGE,
+          ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
         );
         return;
-      case MESSAGE_TYPES.CONNECTION_FORM_OPENED:
+      case MessageType.connectionFormOpened:
         // If the connection string input is open we want to close it
         // when the user opens the form.
         this._connectionController.closeConnectionStringInput();
         return;
-      case MESSAGE_TYPES.GET_CONNECTION_STATUS:
+      case MessageType.getConnectionStatus:
         void panel.webview.postMessage({
-          command: MESSAGE_TYPES.CONNECTION_STATUS_MESSAGE,
+          command: MessageType.connectionStatusMessage,
           connectionStatus: this._connectionController.getConnectionStatus(),
           activeConnectionName:
             this._connectionController.getActiveConnectionName(),
         });
         return;
-      case MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT:
-        void vscode.commands.executeCommand(
-          EXTENSION_COMMANDS.MDB_CONNECT_WITH_URI,
-        );
+      case MessageType.openConnectionStringInput:
+        void vscode.commands.executeCommand(ExtensionCommand.mdbConnectWithUri);
         return;
-      case MESSAGE_TYPES.OPEN_TRUSTED_LINK:
+      case MessageType.openTrustedLink:
         try {
           await openLink(message.linkTo);
         } catch (err) {
@@ -295,12 +266,12 @@ export default class WebviewController {
           );
         }
         return;
-      case MESSAGE_TYPES.EXTENSION_LINK_CLICKED:
+      case MessageType.extensionLinkClicked:
         this._telemetryService.track(
           new LinkClickedTelemetryEvent(message.screen, message.linkId),
         );
         return;
-      case MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION:
+      case MessageType.renameActiveConnection:
         if (this._connectionController.isCurrentlyConnected()) {
           void this._connectionController.renameConnection(
             this._connectionController.getActiveConnectionId() as string,
@@ -339,7 +310,7 @@ export default class WebviewController {
     for (const panel of this._activeWebviewPanels) {
       void panel.webview
         .postMessage({
-          command: MESSAGE_TYPES.THEME_CHANGED,
+          command: MessageType.themeChanged,
           darkMode: darkModeDetected,
         })
         .then(undefined, (error) => {
@@ -369,7 +340,7 @@ export default class WebviewController {
     this._telemetryService.track(new OpenEditConnectionTelemetryEvent());
 
     void webviewPanel.webview.postMessage({
-      command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
+      command: MessageType.openEditConnection,
       connection,
     });
   };
@@ -379,33 +350,16 @@ export default class WebviewController {
     const extensionPath = context.extensionPath;
 
     // Create and show a new connect dialogue webview.
-    const panel = vscode.window.createWebviewPanel(
-      'connectDialogueWebview',
-      'MongoDB',
-      vscode.ViewColumn.One, // Editor column to show the webview panel in.
-      {
-        enableScripts: true,
-        retainContextWhenHidden: true,
-        localResourceRoots: [
-          vscode.Uri.file(path.join(extensionPath, 'dist')),
-          vscode.Uri.file(path.join(extensionPath, 'resources')),
-        ],
-      },
-    );
+    const panel = createWebviewPanel({
+      viewType: 'connectDialogueWebview',
+      title: 'MongoDB',
+      extensionPath,
+      additionalResourceRoots: ['resources'],
+      iconName: 'leaf.svg',
+    });
 
     panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
     this._activeWebviewPanels.push(panel);
-
-    panel.iconPath = vscode.Uri.file(
-      path.join(
-        extensionPath,
-        'images',
-        vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark
-          ? 'dark'
-          : 'light',
-        'leaf.svg',
-      ),
-    );
 
     const telemetryUserIdentity = this._storageController.getUserIdentity();
 

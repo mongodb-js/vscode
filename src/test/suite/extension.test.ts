@@ -1,19 +1,19 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
-import EXTENSION_COMMANDS from '../../commands';
+import ExtensionCommand from '../../commands';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { contributes } = require('../../../package.json');
 
-suite('Extension Test Suite', () => {
-  test('there should be 3 views registered in the package.json', () => {
+suite('Extension Test Suite', function () {
+  test('there should be 3 views registered in the package.json', function () {
     assert(contributes.views.mongoDB.length === 3);
     assert(contributes.views.mongoDB[0].id === 'mongoDBConnectionExplorer');
     assert(contributes.views.mongoDB[1].id === 'mongoDBPlaygroundsExplorer');
     assert(contributes.views.mongoDB[2].id === 'mongoDBHelpExplorer');
   });
 
-  test('commands are registered in vscode', async () => {
+  test('commands are registered in vscode', async function () {
     const registeredCommands = await vscode.commands.getCommands();
 
     const expectedCommands = [
@@ -63,7 +63,7 @@ suite('Extension Test Suite', () => {
       // Editor commands.
       'mdb.codeLens.showMoreDocumentsClicked',
 
-      ...Object.values(EXTENSION_COMMANDS),
+      ...Object.values(ExtensionCommand),
     ];
 
     for (const expectedCommand of expectedCommands) {

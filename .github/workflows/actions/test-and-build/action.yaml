@@ -117,7 +117,7 @@ runs:
       env:
         SNYK_TOKEN: ${{ inputs.SNYK_TOKEN }}
       run: |
-        pnpm run snyk-test > /dev/null 2>&1
+        pnpm run snyk-test
 
     - name: Upload Snyk Report
       if: runner.os == 'Linux'
@@ -128,22 +128,23 @@ runs:
           .sbom/snyk-test-result.html
           .sbom/snyk-test-result.json
 
-    - name: Create Jira Tickets
-      if: >
-        runner.os == 'Linux' &&
-        (
-          github.event_name == 'push' && github.ref == 'refs/heads/main' ||
-          github.event_name == 'workflow_dispatch' ||
-          github.event_name == 'schedule'
-        )
-      shell: bash
-      env:
-        JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
-        JIRA_BASE_URL: "https://jira.mongodb.org"
-        JIRA_PROJECT: "VSCODE"
-        JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
-      run: |
-        pnpm run create-vulnerability-tickets > /dev/null
+    # TODO(VSCODE-706): Fix Snyk vuln ticket generation
+    # - name: Create Jira Tickets
+    #   if: >
+    #     runner.os == 'Linux' &&
+    #     (
+    #       github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+    #       github.event_name == 'workflow_dispatch' ||
+    #       github.event_name == 'schedule'
+    #     )
+    #   shell: bash
+    #   env:
+    #     JIRA_API_TOKEN: ${{ inputs.JIRA_API_TOKEN }}
+    #     JIRA_BASE_URL: "https://jira.mongodb.org"
+    #     JIRA_PROJECT: "VSCODE"
+    #     JIRA_VULNERABILITY_BUILD_INFO: "- [GitHub Run|https://github.com/mongodb-js/vscode/actions/runs/${{github.run_id}}/jobs/${{github.job}}]"
+    #   run: |
+    #     pnpm run create-vulnerability-tickets > /dev/null
 
     - name: Generate Vulnerability Report (Fail on >= High)
       if: runner.os == 'Linux'
