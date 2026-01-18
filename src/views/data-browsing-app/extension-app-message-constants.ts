@@ -7,6 +7,7 @@ export const PreviewMessageType = {
   // Messages from extension to webview
   loadDocuments: 'LOAD_DOCUMENTS',
   refreshError: 'REFRESH_ERROR',
+  themeChanged: 'THEME_CHANGED',
 } as const;
 
 export type PreviewMessageType =

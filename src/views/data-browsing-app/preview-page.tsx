@@ -6,8 +6,6 @@ import {
   VscodeOption,
   VscodeProgressRing,
   VscodeSingleSelect,
-  VscodeToolbarButton,
-  VscodeCollapsible,
 } from '@vscode-elements/react-elements';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import { PreviewMessageType, type SortOption } from './extension-app-message-constants';
@@ -16,11 +14,11 @@ import {
   sendRefreshDocuments,
   sendSortDocuments,
 } from './vscode-api';
+import DocumentTreeView from './document-tree-view';
 
 interface PreviewDocument {
   [key: string]: unknown;
 }
-type ViewType = 'tree' | 'json' | 'table';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -74,12 +72,6 @@ const styles = {
     padding: '32px',
     color: 'var(--vscode-descriptionForeground)',
   },
-  documentCard: {
-    marginBottom: '8px',
-    backgroundColor: 'var(--vscode-editor-background)',
-    border: '1px solid var(--vscode-panel-border)',
-    borderRadius: '4px',
-  },
 };
 
 const PreviewApp: React.FC = () => {
@@ -87,7 +79,6 @@ const PreviewApp: React.FC = () => {
   const [sortOption, setSortOption] = useState<SortOption>('default');
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [viewType, setViewType] = useState<ViewType>('tree');
   const [isLoading, setIsLoading] = useState(true);
   const [totalCountInCollection, setTotalCountInCollection] = useState<
     number | null
@@ -191,45 +182,23 @@ const PreviewApp: React.FC = () => {
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
-  const handleViewTypeChange = (event: Event): void => {
-    const target = event.target as HTMLSelectElement;
-    setViewType(target.value as ViewType);
-    // TODO: Implement different view renderings
-  };
-
-  const renderDocumentContent = (doc: PreviewDocument): React.ReactNode => {
-    return (
-      <pre
-        style={{
-          margin: 0,
-          padding: '8px 12px',
-          fontSize: '12px',
-          overflow: 'auto',
-          whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-        }}
-      >
-        {JSON.stringify(doc, null, 2)}
-      </pre>
-    );
-  };
-
   return (
     <div style={styles.container}>
       {/* Toolbar */}
       <div style={styles.toolbar}>
         {/* Left side - Insert Document */}
         <div style={styles.toolbarGroup}>
-          <VscodeToolbarButton
+          <VscodeButton
             aria-label="Insert Document"
             title="Insert Document"
             onClick={(): void => {
               // TODO: Implement insert document functionality
             }}
+            secondary
           >
-            <VscodeIcon name="add" />
-          </VscodeToolbarButton>
-          <VscodeLabel>Insert Document</VscodeLabel>
+            <VscodeIcon name="add" slot="start" />
+            Insert Document
+          </VscodeButton>
         </div>
 
         {/* Right side - Actions */}
@@ -240,10 +209,11 @@ const PreviewApp: React.FC = () => {
             title="Refresh"
             onClick={handleRefresh}
             disabled={isLoading}
-            iconOnly
-            icon="refresh"
             secondary
-          />
+          >
+            <VscodeIcon name="refresh" slot="start" />
+            Refresh
+          </VscodeButton>
 
           {/* Sort */}
           <div style={styles.toolbarGroup}>
@@ -298,28 +268,6 @@ const PreviewApp: React.FC = () => {
               secondary
             />
           </div>
-
-          {/* View type */}
-          <VscodeSingleSelect
-            aria-label="View type"
-            value={viewType}
-            onChange={handleViewTypeChange}
-          >
-            <VscodeOption value="tree">Tree view</VscodeOption>
-            <VscodeOption value="json">JSON view</VscodeOption>
-            <VscodeOption value="table">Table view</VscodeOption>
-          </VscodeSingleSelect>
-
-          {/* Settings */}
-          <VscodeToolbarButton
-            aria-label="Settings"
-            title="Settings"
-            onClick={(): void => {
-              // TODO: Implement settings menu
-            }}
-          >
-            <VscodeIcon name="settings-gear" />
-          </VscodeToolbarButton>
         </div>
       </div>
 
@@ -332,19 +280,12 @@ const PreviewApp: React.FC = () => {
           </div>
         ) : (
           <>
-            {displayedDocuments.map((doc, index) => {
-              const docId =
-                doc._id !== undefined
-                  ? String(doc._id)
-                  : `Document ${startItem + index}`;
-              return (
-                <div key={`${currentPage}-${index}`} style={styles.documentCard}>
-                  <VscodeCollapsible title={docId} open>
-                    {renderDocumentContent(doc)}
-                  </VscodeCollapsible>
-                </div>
-              );
-            })}
+            {displayedDocuments.map((doc, index) => (
+              <DocumentTreeView
+                key={`${currentPage}-${index}`}
+                document={doc}
+              />
+            ))}
             {displayedDocuments.length === 0 && (
               <div style={styles.emptyState}>No documents to display</div>
             )}
