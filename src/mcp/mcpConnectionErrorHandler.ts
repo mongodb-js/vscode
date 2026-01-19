@@ -37,6 +37,7 @@ export const createMCPConnectionErrorHandler = (
                 (text) => ({ type: 'text', text }),
               ),
             ],
+            isError: true,
           },
         };
       case ErrorCodes.MisconfiguredConnectionString: {
@@ -56,6 +57,7 @@ export const createMCPConnectionErrorHandler = (
                 (text) => ({ type: 'text', text }),
               ),
             ],
+            isError: true,
           },
         };
       }
