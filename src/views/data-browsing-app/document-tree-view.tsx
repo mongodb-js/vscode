@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { VscodeIcon } from '@vscode-elements/react-elements';
 import type { JsonTokenColors } from './extension-app-message-constants';
 
 interface DocumentTreeViewProps {
@@ -46,13 +45,13 @@ const styles = {
     paddingLeft: '16px',
   },
   caret: {
-    width: '16px',
-    height: '18px',
+    width: "16px",
+    height: 16,
     flexShrink: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: '-16px',
+    marginLeft: "-16px",
   },
   expandButton: {
     margin: 0,
@@ -62,6 +61,14 @@ const styles = {
     display: 'flex',
     cursor: 'pointer',
     color: 'inherit',
+  },
+  caretChar: {
+    fontFamily: 'codicon',
+    fontSize: '12px',
+    fontStyle: 'normal',
+    fontWeight: 400,
+    lineHeight: '150%',
+    color: 'var(--vscode-foreground, #CCC)',
   },
   childrenContainer: {
     paddingLeft: '16px',
@@ -85,8 +92,9 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
     number: themeColors?.number ?? DEFAULT_COLORS.number,
     boolean: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
     null: themeColors?.null ?? DEFAULT_COLORS.null,
-    object: themeColors?.type ?? DEFAULT_COLORS.type,
-    array: themeColors?.type ?? DEFAULT_COLORS.type,
+    // Object/Array labels should use the keyword/boolean color (blue), not type color (teal)
+    object: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
+    array: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
     divider: themeColors?.punctuation ?? DEFAULT_COLORS.punctuation,
   }), [themeColors]);
 
@@ -178,7 +186,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
       aria-label={isExpanded ? 'Collapse' : 'Expand'}
       onClick={(e): void => { e.stopPropagation(); toggleExpanded(itemKey); }}
     >
-      <VscodeIcon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={12} />
+      <span style={styles.caretChar}>{isExpanded ? 'v' : '>'}</span>
     </button>
   );
 
