@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { VscodeIcon } from '@vscode-elements/react-elements';
+import { css, cx, spacing } from '@mongodb-js/compass-components';
 import type { JsonTokenColors } from './extension-app-message-constants';
 
 interface DocumentTreeViewProps {
@@ -26,55 +27,60 @@ const DEFAULT_COLORS = {
   punctuation: '#D4D4D4',
 };
 
-const styles = {
-  container: {
-    marginBottom: '8px',
-  },
-  card: {
-    backgroundColor: 'var(--vscode-editor-background)',
-    border: '1px solid var(--vscode-panel-border, #3C3C3C)',
-    borderRadius: '4px',
-    padding: '12px 16px',
-    fontFamily: 'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
-    fontSize: '12px',
-    lineHeight: '18px',
-  },
-  nodeRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 22,
-  },
-  caret: {
-    width: 16,
-    height: 16,
-    flexShrink: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  expandButton: {
-    margin: 0,
-    padding: 0,
-    border: 'none',
-    background: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    color: 'var(--vscode-foreground, #CCCCCC)',
-  },
-  childrenContainer: {
-    paddingLeft: '16px',
-  },
-  keyValueContainer: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-  },
-  clickableRow: {
-    cursor: 'pointer',
-  },
-};
+const containerStyles = css({
+  marginBottom: spacing[200],
+});
+
+const cardStyles = css({
+  backgroundColor: 'var(--vscode-editor-background)',
+  border: '1px solid var(--vscode-panel-border, #3C3C3C)',
+  borderRadius: spacing[100],
+  padding: `${spacing[300]}px ${spacing[400]}px`,
+  fontFamily: 'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
+  fontSize: '12px',
+  lineHeight: '18px',
+});
+
+const nodeRowStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  minHeight: 22,
+});
+
+const caretStyles = css({
+  width: 16,
+  height: 16,
+  flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
+
+const expandButtonStyles = css({
+  margin: 0,
+  padding: 0,
+  border: 'none',
+  background: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  color: 'var(--vscode-foreground, #CCCCCC)',
+});
+
+const childrenContainerStyles = css({
+  paddingLeft: spacing[400],
+});
+
+const keyValueContainerStyles = css({
+  display: 'flex',
+  flexWrap: 'wrap',
+});
+
+const clickableRowStyles = css({
+  cursor: 'pointer',
+});
 
 const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColors }) => {
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
@@ -176,7 +182,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
     <button
       role="button"
       tabIndex={0}
-      style={styles.expandButton}
+      className={expandButtonStyles}
       aria-expanded={isExpanded}
       aria-label={isExpanded ? 'Collapse' : 'Expand'}
       onClick={(e): void => { e.stopPropagation(); toggleExpanded(itemKey); }}
@@ -197,11 +203,11 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
 
         return (
           <div key={index}>
-            <div style={styles.nodeRow}>
-              <div style={styles.caret}>
+            <div className={nodeRowStyles}>
+              <div className={caretStyles}>
                 {hasExpandable && renderExpandButton(isExp, itemKey)}
               </div>
-              <div style={styles.keyValueContainer}>
+              <div className={keyValueContainerStyles}>
                 <span style={{ color: getValueColor(type) }}>
                   {formatValue(item, type, isExp)}
                 </span>
@@ -209,7 +215,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
               </div>
             </div>
             {hasExpandable && isExp && (
-              <div style={styles.childrenContainer}>
+              <div className={childrenContainerStyles}>
                 {renderChildren(item, itemKey)}
               </div>
             )}
@@ -227,11 +233,11 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
 
         return (
           <div key={key}>
-            <div style={styles.nodeRow}>
-              <div style={styles.caret}>
+            <div className={nodeRowStyles}>
+              <div className={caretStyles}>
                 {hasExpandable && renderExpandButton(isExp, itemKey)}
               </div>
-              <div style={styles.keyValueContainer}>
+              <div className={keyValueContainerStyles}>
                 <span style={{ color: colors.key, fontWeight: 'bold' }}>"{key}"</span>
                 <span style={{ color: colors.divider }}>:&nbsp;</span>
                 <span style={{ color: getValueColor(type) }}>
@@ -241,7 +247,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
               </div>
             </div>
             {hasExpandable && isExp && (
-              <div style={styles.childrenContainer}>
+              <div className={childrenContainerStyles}>
                 {renderChildren(val, itemKey)}
               </div>
             )}
@@ -253,9 +259,9 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
   };
 
   const renderClosingBracket = (nodeType: TreeNode['type'], isLast: boolean): JSX.Element => (
-    <div style={styles.nodeRow}>
-      <div style={styles.caret} />
-      <div style={styles.keyValueContainer}>
+    <div className={nodeRowStyles}>
+      <div className={caretStyles} />
+      <div className={keyValueContainerStyles}>
         <span style={{ color: getValueColor(nodeType) }}>
           {nodeType === 'array' ? ']' : '}'}
         </span>
@@ -286,17 +292,17 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
     const valueColor = getValueColor(isIdField ? 'string' : node.type);
 
     const handleClick = hasExpandable ? (): void => toggleExpanded(node.key) : undefined;
-    const rowStyle = hasExpandable
-      ? { ...styles.nodeRow, ...styles.clickableRow }
-      : styles.nodeRow;
+    const rowClassName = hasExpandable
+      ? cx(nodeRowStyles, clickableRowStyles)
+      : nodeRowStyles;
 
     return (
       <div key={node.key}>
-        <div style={rowStyle} onClick={handleClick}>
-          <div style={styles.caret}>
+        <div className={rowClassName} onClick={handleClick}>
+          <div className={caretStyles}>
             {hasExpandable && renderExpandButton(isExp, node.key)}
           </div>
-          <div style={styles.keyValueContainer}>
+          <div className={keyValueContainerStyles}>
             <span style={{ color: colors.key, fontWeight: 'bold' }}>"{node.key}"</span>
             <span style={{ color: colors.divider }}>:</span>
             <span style={{ color: valueColor }}>
@@ -306,7 +312,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
           </div>
         </div>
         {hasExpandable && isExp && (
-          <div style={styles.childrenContainer}>
+          <div className={childrenContainerStyles}>
             {renderChildren(node.value, node.key)}
           </div>
         )}
@@ -318,8 +324,8 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
   const nodes = parseDocument(document);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
+    <div className={containerStyles}>
+      <div className={cardStyles}>
         {nodes.map((node, index) => renderNode(node, index === nodes.length - 1))}
       </div>
     </div>

@@ -7,6 +7,7 @@ import {
   VscodeProgressRing,
   VscodeSingleSelect,
 } from '@vscode-elements/react-elements';
+import { css, spacing } from '@mongodb-js/compass-components';
 import type { MessageFromExtensionToWebview, JsonTokenColors } from './extension-app-message-constants';
 import { PreviewMessageType, type SortOption } from './extension-app-message-constants';
 import {
@@ -22,57 +23,63 @@ interface PreviewDocument {
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
-const styles = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column' as const,
-  },
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '8px 12px',
-    borderBottom: '1px solid var(--vscode-panel-border, #444)',
-    gap: '12px',
-    flexWrap: 'wrap' as const,
-  },
-  toolbarGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  toolbarGroupWide: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  paginationInfo: {
-    fontSize: '13px',
-    whiteSpace: 'nowrap' as const,
-  },
-  paginationArrows: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  loadingOverlay: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '48px',
-    flexDirection: 'column' as const,
-    gap: '12px',
-  },
-  content: {
-    padding: '16px',
-    flex: 1,
-  },
-  emptyState: {
-    textAlign: 'center' as const,
-    padding: '32px',
-    color: 'var(--vscode-descriptionForeground)',
-  },
-};
+const containerStyles = css({
+  minHeight: '100vh',
+  display: 'flex',
+  flexDirection: 'column',
+});
+
+const toolbarStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: `${spacing[200]}px ${spacing[300]}px`,
+  borderBottom: '1px solid var(--vscode-panel-border, #444)',
+  gap: spacing[300],
+  flexWrap: 'wrap',
+});
+
+const toolbarGroupStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: spacing[200],
+});
+
+const toolbarGroupWideStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: spacing[300],
+});
+
+const paginationInfoStyles = css({
+  fontSize: '13px',
+  whiteSpace: 'nowrap',
+});
+
+const paginationArrowsStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+});
+
+const loadingOverlayStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: spacing[600],
+  flexDirection: 'column',
+  gap: spacing[300],
+});
+
+const contentStyles = css({
+  padding: spacing[400],
+  flex: 1,
+});
+
+const emptyStateStyles = css({
+  textAlign: 'center',
+  padding: spacing[500],
+  color: 'var(--vscode-descriptionForeground)',
+});
 
 const PreviewApp: React.FC = () => {
   const [documents, setDocuments] = useState<PreviewDocument[]>([]);
@@ -187,11 +194,11 @@ const PreviewApp: React.FC = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className={containerStyles}>
       {/* Toolbar */}
-      <div style={styles.toolbar}>
+      <div className={toolbarStyles}>
         {/* Left side - Insert Document */}
-        <div style={styles.toolbarGroup}>
+        <div className={toolbarGroupStyles}>
           <VscodeButton
             aria-label="Insert Document"
             title="Insert Document"
@@ -206,7 +213,7 @@ const PreviewApp: React.FC = () => {
         </div>
 
         {/* Right side - Actions */}
-        <div style={styles.toolbarGroupWide}>
+        <div className={toolbarGroupWideStyles}>
           {/* Refresh */}
           <VscodeButton
             aria-label="Refresh"
@@ -220,7 +227,7 @@ const PreviewApp: React.FC = () => {
           </VscodeButton>
 
           {/* Sort */}
-          <div style={styles.toolbarGroup}>
+          <div className={toolbarGroupStyles}>
             <VscodeLabel>Sort</VscodeLabel>
             <VscodeSingleSelect
               aria-label="Sort order"
@@ -247,12 +254,12 @@ const PreviewApp: React.FC = () => {
           </VscodeSingleSelect>
 
           {/* Pagination info */}
-          <span style={styles.paginationInfo}>
+          <span className={paginationInfoStyles}>
             {startItem}-{endItem} of {totalCountInCollection ?? totalDocuments}
           </span>
 
           {/* Page navigation arrows */}
-          <div style={styles.paginationArrows}>
+          <div className={paginationArrowsStyles}>
             <VscodeButton
               aria-label="Previous page"
               title="Previous page"
@@ -276,9 +283,9 @@ const PreviewApp: React.FC = () => {
       </div>
 
       {/* Documents content */}
-      <div style={styles.content}>
+      <div className={contentStyles}>
         {isLoading ? (
-          <div style={styles.loadingOverlay}>
+          <div className={loadingOverlayStyles}>
             <VscodeProgressRing />
             <VscodeLabel>Loading documents...</VscodeLabel>
           </div>
@@ -292,7 +299,7 @@ const PreviewApp: React.FC = () => {
               />
             ))}
             {displayedDocuments.length === 0 && (
-              <div style={styles.emptyState}>No documents to display</div>
+              <div className={emptyStateStyles}>No documents to display</div>
             )}
           </>
         )}
