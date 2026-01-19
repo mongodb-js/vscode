@@ -86,9 +86,11 @@ const SCOPE_MAPPINGS: {
       colorKey: 'comment',
     },
     {
-      scopes: ['punctuation.separator', 'punctuation.accessor'],
+      // For punctuation, we want the general punctuation color but exclude definition markers
+      // (like quotes around strings, comment markers, etc.)
+      scopes: ['punctuation', 'punctuation.separator', 'punctuation.accessor', 'meta.brace'],
       colorKey: 'punctuation',
-      excludePatterns: ['punctuation.definition'],
+      excludePatterns: ['punctuation.definition', 'punctuation.section'],
     },
   ];
 
@@ -273,10 +275,18 @@ export function getThemeTokenColors(): JsonTokenColors {
     themeKind === vscode.ColorThemeKind.Light ||
     themeKind === vscode.ColorThemeKind.HighContrastLight;
 
+  // Punctuation should use the editor foreground color (same as regular text)
+  // VS Code doesn't expose the actual hex value via API, so we use defaults
+  // The default foreground colors are: dark = #D4D4D4, light = #000000
+  const defaultForeground = isLight ? '#000000' : '#D4D4D4';
+
   // Start with default colors based on theme kind
   const colors: JsonTokenColors = isLight
     ? { ...DEFAULT_LIGHT_COLORS }
     : { ...DEFAULT_DARK_COLORS };
+
+  // Ensure punctuation uses the editor foreground color (same as regular text)
+  colors.punctuation = defaultForeground;
 
   console.log(`[ThemeReader] Theme: ${themeName}, isLight: ${isLight}`);
   console.log(`[ThemeReader] Default colors:`, JSON.stringify(colors));
@@ -296,6 +306,15 @@ export function getThemeTokenColors(): JsonTokenColors {
 
   // Parse the theme file and extract colors
   const result = parseThemeFile(themePath, colors);
+
+  // If no specific punctuation color was found, use editor foreground
+  // (Most themes don't define punctuation, they let it inherit the default text color)
+  if (result.punctuation === colors.punctuation) {
+    // No change from default, use the editor foreground
+    result.punctuation = defaultForeground;
+    console.log(`[ThemeReader] Using editor foreground for punctuation: ${defaultForeground}`);
+  }
+
   console.log(`[ThemeReader] Final colors:`, JSON.stringify(result));
   return result;
 }
