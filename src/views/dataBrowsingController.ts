@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { Document } from 'bson';
+import path from 'path';
 
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
@@ -18,20 +19,31 @@ const log = createLogger('data browsing controller');
 
 const DEFAULT_DOCUMENTS_LIMIT = 10;
 
+/**
+ * Get the path to the codicons directory in the dist folder.
+ * Codicons are copied to dist/codicons during the webpack build.
+ */
+const getCodiconsDistPath = (extensionPath: string): string => {
+  return path.join(extensionPath, 'dist', 'codicons');
+};
+
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
   namespace,
+  codiconStylesheetUri,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
   namespace: string;
+  codiconStylesheetUri?: string;
 }): string => {
   return getWebviewHtml({
     extensionPath,
     webview,
     webviewType: 'dataBrowser',
     title: namespace,
+    codiconStylesheetUri,
   });
 };
 
@@ -313,6 +325,14 @@ export default class DataBrowsingController {
       iconName: 'leaf.svg',
     });
 
+    // Generate the codicon stylesheet URI for the webview
+    // Codicons are copied to dist/codicons during webpack build
+    const codiconsDistPath = getCodiconsDistPath(extensionPath);
+    const codiconCssUri = panel.webview.asWebviewUri(
+      vscode.Uri.file(path.join(codiconsDistPath, 'codicon.css')),
+    );
+    const codiconStylesheetUri = codiconCssUri.toString();
+
     panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
     this._activeWebviewPanels.push(panel);
 
@@ -320,6 +340,7 @@ export default class DataBrowsingController {
       extensionPath,
       webview: panel.webview,
       namespace: options.namespace,
+      codiconStylesheetUri,
     });
 
     panel.webview.onDidReceiveMessage(

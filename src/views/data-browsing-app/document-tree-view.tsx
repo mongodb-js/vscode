@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { VscodeIcon } from '@vscode-elements/react-elements';
 import type { JsonTokenColors } from './extension-app-message-constants';
 
 interface DocumentTreeViewProps {
@@ -40,18 +41,17 @@ const styles = {
   },
   nodeRow: {
     display: 'flex',
-    gap: '4px',
-    minHeight: '18px',
-    paddingLeft: '16px',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 22,
   },
   caret: {
-    width: "16px",
+    width: 16,
     height: 16,
     flexShrink: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: "-16px",
   },
   expandButton: {
     margin: 0,
@@ -59,16 +59,10 @@ const styles = {
     border: 'none',
     background: 'none',
     display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     cursor: 'pointer',
-    color: 'inherit',
-  },
-  caretChar: {
-    fontFamily: 'codicon',
-    fontSize: '12px',
-    fontStyle: 'normal',
-    fontWeight: 400,
-    lineHeight: '150%',
-    color: 'var(--vscode-foreground, #CCC)',
+    color: 'var(--vscode-foreground, #CCCCCC)',
   },
   childrenContainer: {
     paddingLeft: '16px',
@@ -180,13 +174,15 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColo
 
   const renderExpandButton = (isExpanded: boolean, itemKey: string): JSX.Element => (
     <button
-      type="button"
+      role="button"
+      tabIndex={0}
       style={styles.expandButton}
-      aria-pressed={isExpanded}
+      aria-expanded={isExpanded}
       aria-label={isExpanded ? 'Collapse' : 'Expand'}
       onClick={(e): void => { e.stopPropagation(); toggleExpanded(itemKey); }}
+      onKeyDown={(e): void => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); toggleExpanded(itemKey); } }}
     >
-      <span style={styles.caretChar}>{isExpanded ? 'v' : '>'}</span>
+      <VscodeIcon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={12}/>
     </button>
   );
 

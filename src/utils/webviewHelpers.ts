@@ -37,6 +37,7 @@ export interface WebviewHtmlOptions {
   webviewType: WebviewType;
   title?: string;
   additionalHeadContent?: string;
+  codiconStylesheetUri?: string;
 }
 
 export const getWebviewHtml = ({
@@ -45,6 +46,7 @@ export const getWebviewHtml = ({
   webviewType,
   title = 'MongoDB',
   additionalHeadContent = '',
+  codiconStylesheetUri,
 }: WebviewHtmlOptions): string => {
   const nonce = getNonce();
   const scriptUri = getWebviewUri(
@@ -54,6 +56,11 @@ export const getWebviewHtml = ({
     'webviewApp.js',
   );
 
+  // Build the codicon stylesheet link if URI is provided
+  const codiconLink = codiconStylesheetUri
+    ? `<link id="vscode-codicon-stylesheet" rel="stylesheet" href="${codiconStylesheetUri}" nonce="${nonce}">`
+    : '';
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
@@ -61,9 +68,11 @@ export const getWebviewHtml = ({
       <meta http-equiv="Content-Security-Policy" content="default-src 'none';
           script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https:;
           style-src vscode-resource: 'self' 'unsafe-inline';
+          font-src vscode-resource: 'self' data:;
           img-src vscode-resource: 'self'"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
+      ${codiconLink}
     </head>
     <body>
       <div id="root"></div>
