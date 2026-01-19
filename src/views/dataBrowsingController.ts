@@ -131,6 +131,10 @@ export default class DataBrowsingController {
     const abortController = this._createAbortController(panel);
     const { signal } = abortController;
 
+    // Send theme colors immediately when webview requests documents.
+    // This ensures the webview's message listener is definitely ready.
+    this._sendThemeColors(panel);
+
     try {
       const documents = await this._fetchDocuments(
         options.namespace,
@@ -295,11 +299,22 @@ export default class DataBrowsingController {
    * Sends the current theme colors to a webview panel.
    */
   private _sendThemeColors(panel: vscode.WebviewPanel): void {
-    const colors = getThemeTokenColors();
-    void panel.webview.postMessage({
-      command: PreviewMessageType.themeChanged,
-      colors,
-    });
+    try {
+      log.info('Getting theme colors...');
+      const colors = getThemeTokenColors();
+      log.info('Theme colors retrieved:', JSON.stringify(colors));
+      log.info('Posting message to webview...');
+      void panel.webview.postMessage({
+        command: PreviewMessageType.themeChanged,
+        colors,
+      }).then(
+        (success) => log.info('postMessage result:', success),
+        (err) => log.error('postMessage error:', err)
+      );
+      log.info('postMessage called');
+    } catch (err) {
+      log.error('Error in _sendThemeColors:', err);
+    }
   }
 
   /**
@@ -357,11 +372,7 @@ export default class DataBrowsingController {
       },
     );
     context.subscriptions.push(themeChangeDisposable);
-
-    // Send initial theme colors after a short delay to ensure webview is ready
-    setTimeout(() => {
-      this._sendThemeColors(panel);
-    }, 100);
+    this._sendThemeColors(panel);
 
     return panel;
   }

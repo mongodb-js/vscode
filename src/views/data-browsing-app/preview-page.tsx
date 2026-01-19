@@ -120,6 +120,11 @@ const PreviewApp: React.FC = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
+      console.log("handling message")
+      console.log(event.data)
+      console.log("Expected THEME_CHANGED value:", PreviewMessageType.themeChanged)
+      console.log("Received command:", event.data?.command)
+      console.log("Match?", event.data?.command === PreviewMessageType.themeChanged)
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === PreviewMessageType.loadDocuments) {
         const elapsed = Date.now() - loadingStartTimeRef.current;
@@ -145,10 +150,11 @@ const PreviewApp: React.FC = () => {
         }, remainingTime);
       } else if (message.command === PreviewMessageType.themeChanged) {
         // Update theme colors when theme changes
+        console.log('[DataBrowser] Received theme colors:', message.colors);
         setThemeColors(message.colors);
       }
     };
-
+    console.log("HELLO WORLD")
     window.addEventListener('message', handleMessage);
 
     // Request initial documents

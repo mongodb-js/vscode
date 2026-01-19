@@ -41,8 +41,12 @@ const DEFAULT_LIGHT_COLORS: JsonTokenColors = {
 };
 
 // Scopes we're looking for and their mapping to our color keys
-const SCOPE_MAPPINGS: { scopes: string[]; colorKey: keyof JsonTokenColors }[] =
-  [
+// We use exact matching to avoid false positives like "string.regexp" matching "string"
+const SCOPE_MAPPINGS: {
+  scopes: string[];
+  colorKey: keyof JsonTokenColors;
+  excludePatterns?: string[];  // Patterns to exclude from matching
+}[] = [
     {
       scopes: [
         'meta.object-literal.key',
@@ -51,6 +55,7 @@ const SCOPE_MAPPINGS: { scopes: string[]; colorKey: keyof JsonTokenColors }[] =
         'variable',
       ],
       colorKey: 'key',
+      excludePatterns: ['variable.language', 'variable.other.enummember'],
     },
     {
       scopes: [
@@ -60,15 +65,18 @@ const SCOPE_MAPPINGS: { scopes: string[]; colorKey: keyof JsonTokenColors }[] =
         'string.quoted.single',
       ],
       colorKey: 'string',
+      // Exclude special string types that have different colors
+      excludePatterns: ['string.regexp', 'string.tag', 'string.value', 'string.template'],
     },
     {
-      scopes: ['constant.numeric', 'constant.numeric.json'],
+      scopes: ['constant.numeric'],
       colorKey: 'number',
     },
     {
-      scopes: ['constant.language', 'constant.language.json'],
+      scopes: ['constant.language'],
       colorKey: 'boolean',
-    }, // covers true, false, null
+      excludePatterns: ['constant.language.import', 'constant.language.symbol'],
+    },
     {
       scopes: ['entity.name.type', 'support.class', 'support.type'],
       colorKey: 'type',
@@ -77,7 +85,11 @@ const SCOPE_MAPPINGS: { scopes: string[]; colorKey: keyof JsonTokenColors }[] =
       scopes: ['comment', 'comment.line', 'comment.block'],
       colorKey: 'comment',
     },
-    { scopes: ['punctuation', 'meta.brace'], colorKey: 'punctuation' },
+    {
+      scopes: ['punctuation.separator', 'punctuation.accessor'],
+      colorKey: 'punctuation',
+      excludePatterns: ['punctuation.definition'],
+    },
   ];
 
 interface ThemeTokenColor {
@@ -121,6 +133,62 @@ function findThemeFile(themeName: string): string | undefined {
 }
 
 /**
+ * Strip comments from JSONC content without breaking strings.
+ * This handles the case where // or /* appear inside string values.
+ */
+function stripJsonComments(content: string): string {
+  let result = '';
+  let i = 0;
+  let inString = false;
+  let stringChar = '';
+  console.log(content)
+  while (i < content.length) {
+    const char = content[i];
+    const nextChar = content[i + 1];
+
+    // Handle string boundaries
+    if ((char === '"' || char === "'") && (i === 0 || content[i - 1] !== '\\')) {
+      if (!inString) {
+        inString = true;
+        stringChar = char;
+      } else if (char === stringChar) {
+        inString = false;
+      }
+      result += char;
+      i++;
+      continue;
+    }
+
+    // Skip comments only when not inside a string
+    if (!inString) {
+      // Line comment
+      if (char === '/' && nextChar === '/') {
+        // Skip until end of line
+        while (i < content.length && content[i] !== '\n') {
+          i++;
+        }
+        continue;
+      }
+      // Block comment
+      if (char === '/' && nextChar === '*') {
+        i += 2;
+        // Skip until */
+        while (i < content.length - 1 && !(content[i] === '*' && content[i + 1] === '/')) {
+          i++;
+        }
+        i += 2; // Skip */
+        continue;
+      }
+    }
+
+    result += char;
+    i++;
+  }
+
+  return result;
+}
+
+/**
  * Parse a theme JSON file and extract token colors
  */
 function parseThemeFile(
@@ -129,10 +197,8 @@ function parseThemeFile(
 ): JsonTokenColors {
   try {
     const themeContent = fs.readFileSync(themePath, 'utf8');
-    // Handle JSON with comments (JSONC) by removing comments
-    const cleanedContent = themeContent
-      .replace(/\/\*[\s\S]*?\*\//g, '') // Remove block comments
-      .replace(/\/\/.*$/gm, ''); // Remove line comments
+    // Handle JSON with comments (JSONC) by stripping comments properly
+    const cleanedContent = stripJsonComments(themeContent);
 
     const theme: ThemeJson = JSON.parse(cleanedContent);
 
@@ -145,6 +211,9 @@ function parseThemeFile(
     }
 
     // Extract colors from tokenColors
+    // Track which scopes matched to help with debugging
+    const matchedScopes: Record<string, string> = {};
+
     if (theme.tokenColors) {
       for (const token of theme.tokenColors) {
         if (!token.settings?.foreground) {
@@ -159,14 +228,27 @@ function parseThemeFile(
 
         for (const mapping of SCOPE_MAPPINGS) {
           for (const scope of scopes) {
-            if (mapping.scopes.some((s) => scope.includes(s))) {
+            // Check if the theme scope matches one of our target scopes
+            // Using startsWith for proper prefix matching
+            const isMatch = mapping.scopes.some((s) => scope === s || scope.startsWith(s + '.'));
+
+            // Check if this scope should be excluded (e.g., string.regexp for string color)
+            const isExcluded = mapping.excludePatterns?.some(
+              (pattern) => scope === pattern || scope.startsWith(pattern + '.')
+            );
+
+            if (isMatch && !isExcluded) {
+              console.log(`[ThemeReader] Matched "${scope}" → ${mapping.colorKey} = ${token.settings.foreground}`);
               colors[mapping.colorKey] = token.settings.foreground;
+              matchedScopes[mapping.colorKey] = scope;
               break;
             }
           }
         }
       }
     }
+
+    console.log('[ThemeReader] Matched scopes:', JSON.stringify(matchedScopes));
 
     return colors;
   } catch (error) {
@@ -196,6 +278,9 @@ export function getThemeTokenColors(): JsonTokenColors {
     ? { ...DEFAULT_LIGHT_COLORS }
     : { ...DEFAULT_DARK_COLORS };
 
+  console.log(`[ThemeReader] Theme: ${themeName}, isLight: ${isLight}`);
+  console.log(`[ThemeReader] Default colors:`, JSON.stringify(colors));
+
   if (!themeName) {
     return colors;
   }
@@ -203,10 +288,14 @@ export function getThemeTokenColors(): JsonTokenColors {
   // Find the theme file
   const themePath = findThemeFile(themeName);
   if (!themePath) {
-    console.log(`Could not find theme file for: ${themeName}`);
+    console.log(`[ThemeReader] Could not find theme file for: ${themeName}`);
     return colors;
   }
 
+  console.log(`[ThemeReader] Found theme file: ${themePath}`);
+
   // Parse the theme file and extract colors
-  return parseThemeFile(themePath, colors);
+  const result = parseThemeFile(themePath, colors);
+  console.log(`[ThemeReader] Final colors:`, JSON.stringify(result));
+  return result;
 }
