@@ -7,7 +7,7 @@ import {
   VscodeProgressRing,
   VscodeSingleSelect,
 } from '@vscode-elements/react-elements';
-import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
+import type { MessageFromExtensionToWebview, JsonTokenColors } from './extension-app-message-constants';
 import { PreviewMessageType, type SortOption } from './extension-app-message-constants';
 import {
   sendGetDocuments,
@@ -83,6 +83,7 @@ const PreviewApp: React.FC = () => {
   const [totalCountInCollection, setTotalCountInCollection] = useState<
     number | null
   >(null);
+  const [themeColors, setThemeColors] = useState<JsonTokenColors | undefined>(undefined);
 
   const totalDocuments = documents.length;
   const totalPages = Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
@@ -135,6 +136,9 @@ const PreviewApp: React.FC = () => {
           setIsLoading(false);
           // Could show an error message here if needed
         }, remainingTime);
+      } else if (message.command === PreviewMessageType.themeChanged) {
+        // Update theme colors when theme changes
+        setThemeColors(message.colors);
       }
     };
 
@@ -284,6 +288,7 @@ const PreviewApp: React.FC = () => {
               <DocumentTreeView
                 key={`${currentPage}-${index}`}
                 document={doc}
+                themeColors={themeColors}
               />
             ))}
             {displayedDocuments.length === 0 && (

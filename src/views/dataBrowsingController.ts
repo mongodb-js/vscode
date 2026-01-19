@@ -1,4 +1,4 @@
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
@@ -12,6 +12,7 @@ import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
+import { getThemeTokenColors } from '../utils/themeColorReader';
 
 const log = createLogger('data browsing controller');
 
@@ -278,6 +279,26 @@ export default class DataBrowsingController {
     );
   };
 
+  /**
+   * Sends the current theme colors to a webview panel.
+   */
+  private _sendThemeColors(panel: vscode.WebviewPanel): void {
+    const colors = getThemeTokenColors();
+    void panel.webview.postMessage({
+      command: PreviewMessageType.themeChanged,
+      colors,
+    });
+  }
+
+  /**
+   * Sends theme colors to all active webview panels.
+   */
+  private _sendThemeColorsToAllPanels(): void {
+    for (const panel of this._activeWebviewPanels) {
+      this._sendThemeColors(panel);
+    }
+  }
+
   openDataBrowser(
     context: vscode.ExtensionContext,
     options: DataBrowsingOptions,
@@ -307,6 +328,19 @@ export default class DataBrowsingController {
       undefined,
       context.subscriptions,
     );
+
+    // Listen for theme changes and send updated colors to all panels
+    const themeChangeDisposable = vscode.window.onDidChangeActiveColorTheme(
+      () => {
+        this._sendThemeColorsToAllPanels();
+      },
+    );
+    context.subscriptions.push(themeChangeDisposable);
+
+    // Send initial theme colors after a short delay to ensure webview is ready
+    setTimeout(() => {
+      this._sendThemeColors(panel);
+    }, 100);
 
     return panel;
   }

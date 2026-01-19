@@ -45,6 +45,23 @@ export interface RefreshErrorMessage extends BasicWebviewMessage {
   error?: string;
 }
 
+// Theme colors for JSON syntax highlighting
+export interface JsonTokenColors {
+  key: string;
+  string: string;
+  number: string;
+  boolean: string;
+  null: string;
+  type: string;
+  comment: string;
+  punctuation: string;
+}
+
+export interface ThemeChangedMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.themeChanged;
+  colors: JsonTokenColors;
+}
+
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
   | RefreshDocumentsMessage
@@ -52,4 +69,5 @@ export type MessageFromWebviewToExtension =
 
 export type MessageFromExtensionToWebview =
   | LoadDocumentsMessage
-  | RefreshErrorMessage;
+  | RefreshErrorMessage
+  | ThemeChangedMessage;

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { VscodeIcon } from '@vscode-elements/react-elements';
+import type { JsonTokenColors } from './extension-app-message-constants';
 
 interface DocumentTreeViewProps {
   document: Record<string, unknown>;
+  themeColors?: JsonTokenColors;
 }
 
 interface TreeNode {
@@ -12,15 +14,16 @@ interface TreeNode {
   itemCount?: number;
 }
 
-// Color palette for syntax highlighting (VS Code dark theme compatible)
-const colors = {
-  key: 'var(--vscode-debugTokenExpression-name, #9CDCFE)',
-  string: 'var(--vscode-debugTokenExpression-string, #CE9178)',
-  number: 'var(--vscode-debugTokenExpression-number, #B5CEA8)',
-  boolean: 'var(--vscode-debugTokenExpression-boolean, #569CD6)',
-  null: 'var(--vscode-debugTokenExpression-boolean, #569CD6)',
-  objectArray: 'var(--vscode-symbolIcon-classForeground, #4EC9B0)',
-  divider: 'var(--vscode-foreground, #CCCCCC)',
+// Default color palette for syntax highlighting (VS Code Dark+ theme)
+const DEFAULT_COLORS = {
+  key: '#9CDCFE',
+  string: '#CE9178',
+  number: '#B5CEA8',
+  boolean: '#569CD6',
+  null: '#569CD6',
+  type: '#4EC9B0',
+  comment: '#6A9955',
+  punctuation: '#D4D4D4',
 };
 
 const styles = {
@@ -72,8 +75,20 @@ const styles = {
   },
 };
 
-const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
+const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColors }) => {
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+
+  // Merge theme colors with defaults
+  const colors = useMemo(() => ({
+    key: themeColors?.key ?? DEFAULT_COLORS.key,
+    string: themeColors?.string ?? DEFAULT_COLORS.string,
+    number: themeColors?.number ?? DEFAULT_COLORS.number,
+    boolean: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
+    null: themeColors?.null ?? DEFAULT_COLORS.null,
+    object: themeColors?.type ?? DEFAULT_COLORS.type,
+    array: themeColors?.type ?? DEFAULT_COLORS.type,
+    divider: themeColors?.punctuation ?? DEFAULT_COLORS.punctuation,
+  }), [themeColors]);
 
   const getValueColor = (type: TreeNode['type']): string => {
     switch (type) {
@@ -81,8 +96,8 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document }) => {
       case 'boolean':
       case 'null': return colors.boolean;
       case 'string': return colors.string;
-      case 'object':
-      case 'array': return colors.objectArray;
+      case 'object': return colors.object;
+      case 'array': return colors.object;
       default: return colors.string;
     }
   };
