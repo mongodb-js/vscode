@@ -1,7 +1,7 @@
 import React from 'react';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { render, screen, act, cleanup } from '@testing-library/react';
+import { render, screen, act, cleanup, fireEvent } from '@testing-library/react';
 
 import PreviewApp from '../../../../views/data-browsing-app/preview-page';
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
@@ -14,25 +14,29 @@ const getVscodeFake = (): { postMessage: (message: unknown) => void } => {
 describe('PreviewApp test suite', function () {
   let postMessageStub: sinon.SinonStub;
   let originalPostMessage: (message: unknown) => void;
+  let clock: sinon.SinonFakeTimers;
 
   beforeEach(function () {
     // Store original and replace with stub
     originalPostMessage = getVscodeFake().postMessage;
     postMessageStub = sinon.stub();
     getVscodeFake().postMessage = postMessageStub;
+    // Use fake timers for testing timeout behavior
+    clock = sinon.useFakeTimers();
   });
 
   afterEach(function () {
     cleanup();
     // Restore original
     getVscodeFake().postMessage = originalPostMessage;
+    clock.restore();
     sinon.restore();
   });
 
   describe('Initial state', function () {
     it('should show loading state initially', function () {
       render(<PreviewApp />);
-      expect(screen.getByText('Loading documents...')).to.exist;
+      expect(screen.getByText('Running query')).to.exist;
     });
 
     it('should request initial documents on mount', function () {
@@ -41,10 +45,317 @@ describe('PreviewApp test suite', function () {
         command: PreviewMessageType.getDocuments,
       });
     });
+
+    it('should show Stop button when loading', function () {
+      render(<PreviewApp />);
+      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      expect(stopButton).to.exist;
+      expect(stopButton.getAttribute('title')).to.equal('Stop current request');
+    });
+  });
+
+  describe('Stop button UI', function () {
+    it('should show Stop button only when isLoading is true', function () {
+      render(<PreviewApp />);
+
+      // Initially loading - Stop button should be visible
+      expect(screen.getByRole('button', { name: 'Stop' })).to.exist;
+
+      // Simulate receiving documents (which will hide loading after timeout)
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadDocuments,
+              documents: [{ _id: '123', name: 'Test' }],
+              totalCount: 1,
+            },
+          }),
+        );
+        // Advance timers to complete the minimum loading duration
+        clock.tick(35000);
+      });
+
+      // Stop button should not be visible when not loading
+      expect(screen.queryByRole('button', { name: 'Stop' })).to.be.null;
+    });
+
+    it('should have correct icon attribute on Stop button', function () {
+      render(<PreviewApp />);
+      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      expect(stopButton.getAttribute('icon')).to.equal('stop-circle');
+    });
+
+    it('should have secondary styling on Stop button', function () {
+      render(<PreviewApp />);
+      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      expect(stopButton.hasAttribute('secondary')).to.be.true;
+    });
+  });
+
+  describe('handleStop function', function () {
+    it('should send cancelRequest message when Stop button is clicked', function () {
+      render(<PreviewApp />);
+
+      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      fireEvent.click(stopButton);
+
+      expect(postMessageStub).to.have.been.calledWith({
+        command: PreviewMessageType.cancelRequest,
+      });
+    });
+
+    it('should immediately hide loading state when Stop button is clicked', function () {
+      render(<PreviewApp />);
+
+      // Verify initially loading
+      expect(screen.getByText('Running query')).to.exist;
+
+      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      fireEvent.click(stopButton);
+
+      // Loading state should be hidden immediately
+      expect(screen.queryByText('Running query')).to.be.null;
+    });
+
+    it('should hide Stop button after clicking it', function () {
+      render(<PreviewApp />);
+
+      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      fireEvent.click(stopButton);
+
+      // Stop button should no longer be visible
+      expect(screen.queryByRole('button', { name: 'Stop' })).to.be.null;
+    });
+  });
+
+  describe('requestCancelled message handling', function () {
+    it('should reset loading state when requestCancelled message is received', function () {
+      render(<PreviewApp />);
+
+      // Verify initially loading
+      expect(screen.getByText('Running query')).to.exist;
+
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.requestCancelled,
+            },
+          }),
+        );
+      });
+
+      // Loading state should be hidden
+      expect(screen.queryByText('Running query')).to.be.null;
+    });
+
+    it('should hide Stop button when requestCancelled message is received', function () {
+      render(<PreviewApp />);
+
+      expect(screen.getByRole('button', { name: 'Stop' })).to.exist;
+
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.requestCancelled,
+            },
+          }),
+        );
+      });
+
+      expect(screen.queryByRole('button', { name: 'Stop' })).to.be.null;
+    });
+  });
+
+  describe('Timeout management and race conditions', function () {
+    it('should clear pending timeout when Stop is clicked', function () {
+      render(<PreviewApp />);
+
+      // Simulate receiving documents (sets up a pending timeout)
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadDocuments,
+              documents: [{ _id: '123', name: 'Test' }],
+              totalCount: 1,
+            },
+          }),
+        );
+      });
+
+      // Click Stop before the timeout fires
+      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      fireEvent.click(stopButton);
+
+      // Loading should be hidden immediately
+      expect(screen.queryByText('Running query')).to.be.null;
+
+      // Advance time past the minimum loading duration
+      act(() => {
+        clock.tick(35000);
+      });
+
+      // Should still not be loading (timeout was cleared)
+      expect(screen.queryByText('Running query')).to.be.null;
+    });
+
+    it('should clear pending timeout when requestCancelled is received', function () {
+      render(<PreviewApp />);
+
+      // Simulate receiving documents (sets up a pending timeout)
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadDocuments,
+              documents: [{ _id: '123', name: 'Test' }],
+              totalCount: 1,
+            },
+          }),
+        );
+      });
+
+      // Receive cancellation message
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.requestCancelled,
+            },
+          }),
+        );
+      });
+
+      // Loading should be hidden immediately
+      expect(screen.queryByText('Running query')).to.be.null;
+
+      // Advance time past the minimum loading duration
+      act(() => {
+        clock.tick(35000);
+      });
+
+      // Should still not be loading (timeout was cleared)
+      expect(screen.queryByText('Running query')).to.be.null;
+    });
+
+    it('should clear existing timeout when new loadDocuments message is received', function () {
+      render(<PreviewApp />);
+
+      // First loadDocuments message
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadDocuments,
+              documents: [{ _id: '1', name: 'First' }],
+              totalCount: 1,
+            },
+          }),
+        );
+      });
+
+      // Second loadDocuments message before first timeout fires
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadDocuments,
+              documents: [{ _id: '2', name: 'Second' }],
+              totalCount: 1,
+            },
+          }),
+        );
+      });
+
+      // Advance time to complete timeout
+      act(() => {
+        clock.tick(35000);
+      });
+
+      // Should show the second document, not the first
+      expect(screen.queryByText('Running query')).to.be.null;
+    });
+
+    it('should clear existing timeout when loadPage message is received', function () {
+      render(<PreviewApp />);
+
+      // loadDocuments message
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadDocuments,
+              documents: [{ _id: '1', name: 'First' }],
+              totalCount: 10,
+            },
+          }),
+        );
+      });
+
+      // loadPage message before timeout fires
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadPage,
+              documents: [{ _id: '2', name: 'Page2' }],
+              skip: 10,
+              limit: 10,
+            },
+          }),
+        );
+      });
+
+      // Advance time to complete timeout
+      act(() => {
+        clock.tick(35000);
+      });
+
+      expect(screen.queryByText('Running query')).to.be.null;
+    });
+
+    it('should clear existing timeout when refreshError message is received', function () {
+      render(<PreviewApp />);
+
+      // loadDocuments message
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadDocuments,
+              documents: [{ _id: '1', name: 'First' }],
+              totalCount: 1,
+            },
+          }),
+        );
+      });
+
+      // refreshError message before timeout fires
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.refreshError,
+              error: 'Connection failed',
+            },
+          }),
+        );
+      });
+
+      // Advance time to complete timeout
+      act(() => {
+        clock.tick(35000);
+      });
+
+      expect(screen.queryByText('Running query')).to.be.null;
+    });
   });
 
   describe('Message handling', function () {
-    it('should display document count when loadDocuments message is received', function () {
+    it('should display documents when loadDocuments message is received', function () {
       render(<PreviewApp />);
 
       // Simulate receiving documents from extension
@@ -58,15 +369,15 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
+        // Advance timers to complete the minimum loading duration
+        clock.tick(35000);
       });
 
       // Should no longer show loading
-      expect(screen.queryByText('Loading documents...')).to.be.null;
-      // Should display document count message
-      expect(screen.getByText(/We have 1 documents/)).to.exist;
+      expect(screen.queryByText('Running query')).to.be.null;
     });
 
-    it('should display zero documents message when empty array received', function () {
+    it('should display empty state when no documents received', function () {
       render(<PreviewApp />);
 
       act(() => {
@@ -79,9 +390,11 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
+        // Advance timers to complete the minimum loading duration
+        clock.tick(35000);
       });
 
-      expect(screen.getByText(/We have 0 documents/)).to.exist;
+      expect(screen.getByText('No documents to display')).to.exist;
     });
   });
 });

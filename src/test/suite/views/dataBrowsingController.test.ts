@@ -350,4 +350,113 @@ suite('DataBrowsingController Test Suite', function () {
       expect(postMessageStub.called).to.be.false;
     });
   });
+
+  suite('handleCancelRequest', function () {
+    test('aborts the AbortController when cancel request is received', function () {
+      // Create an abort controller for the panel
+      (testController as any)._createAbortController(mockPanel);
+      const controller = testController._panelAbortControllers.get(mockPanel);
+
+      expect(controller!.signal.aborted).to.be.false;
+
+      testController.handleCancelRequest(mockPanel);
+
+      expect(controller!.signal.aborted).to.be.true;
+    });
+
+    test('removes the controller from _panelAbortControllers map', function () {
+      // Create an abort controller for the panel
+      (testController as any)._createAbortController(mockPanel);
+      expect(testController._panelAbortControllers.has(mockPanel)).to.be.true;
+
+      testController.handleCancelRequest(mockPanel);
+
+      expect(testController._panelAbortControllers.has(mockPanel)).to.be.false;
+    });
+
+    test('sends requestCancelled message to webview', function () {
+      // Create an abort controller for the panel
+      (testController as any)._createAbortController(mockPanel);
+
+      testController.handleCancelRequest(mockPanel);
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.requestCancelled);
+    });
+
+    test('sends requestCancelled message even when no controller exists', function () {
+      // No controller exists for this panel
+      expect(testController._panelAbortControllers.has(mockPanel)).to.be.false;
+
+      testController.handleCancelRequest(mockPanel);
+
+      // Should still send the cancelled message
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.requestCancelled);
+    });
+
+    test('does not throw when no controller exists for the panel', function () {
+      // No controller exists for this panel
+      expect(testController._panelAbortControllers.has(mockPanel)).to.be.false;
+
+      // Should not throw
+      expect(() => testController.handleCancelRequest(mockPanel)).to.not.throw();
+    });
+  });
+
+  suite('handleWebviewMessage for cancelRequest', function () {
+    test('calls handleCancelRequest when cancelRequest message received', async function () {
+      const options = createMockOptions();
+      const handleCancelRequestSpy = sandbox.spy(
+        testController,
+        'handleCancelRequest',
+      );
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.cancelRequest },
+        mockPanel,
+        options,
+      );
+
+      expect(handleCancelRequestSpy.calledOnce).to.be.true;
+      expect(handleCancelRequestSpy.calledWith(mockPanel)).to.be.true;
+    });
+
+    test('cancels in-flight request when cancelRequest message is received', async function () {
+      // Simulate a slow find request
+      let findResolve: (value: unknown) => void;
+      mockDataService.find = sandbox.stub().callsFake(() => {
+        return new Promise((resolve) => {
+          findResolve = resolve;
+        });
+      });
+      mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
+
+      const options = createMockOptions();
+
+      // Start a request (don't await)
+      const requestPromise = testController.handleGetDocuments(
+        mockPanel,
+        options,
+      );
+      const controller = testController._panelAbortControllers.get(mockPanel);
+
+      expect(controller!.signal.aborted).to.be.false;
+
+      // Send cancel request
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.cancelRequest },
+        mockPanel,
+        options,
+      );
+
+      expect(controller!.signal.aborted).to.be.true;
+
+      // Resolve the pending find to complete the test
+      findResolve!([]);
+      await requestPromise;
+    });
+  });
 });
