@@ -74,7 +74,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       const controller = testController._panelAbortControllers.get(mockPanel);
       expect(controller).to.not.be.undefined;
-      expect(controller!.signal.aborted).to.be.false;
+      expect(controller?.signal.aborted).to.be.false;
     });
 
     test('aborts previous AbortController when a new request starts', async function () {
@@ -103,9 +103,9 @@ suite('DataBrowsingController Test Suite', function () {
         testController._panelAbortControllers.get(mockPanel);
 
       // First controller should be aborted
-      expect(firstController!.signal.aborted).to.be.true;
+      expect(firstController?.signal.aborted).to.be.true;
       // Second controller should not be aborted
-      expect(secondController!.signal.aborted).to.be.false;
+      expect(secondController?.signal.aborted).to.be.false;
 
       await Promise.all([firstRequest, secondRequest]);
     });
@@ -121,7 +121,7 @@ suite('DataBrowsingController Test Suite', function () {
       testController.onWebviewPanelClosed(mockPanel);
 
       // Controller should be aborted and removed
-      expect(controller!.signal.aborted).to.be.true;
+      expect(controller?.signal.aborted).to.be.true;
       expect(testController._panelAbortControllers.has(mockPanel)).to.be.false;
     });
 
@@ -140,8 +140,8 @@ suite('DataBrowsingController Test Suite', function () {
       testController.deactivate();
 
       // Both controllers should be aborted
-      expect(controller1!.signal.aborted).to.be.true;
-      expect(controller2!.signal.aborted).to.be.true;
+      expect(controller1?.signal.aborted).to.be.true;
+      expect(controller2?.signal.aborted).to.be.true;
       expect(testController._panelAbortControllers.size).to.equal(0);
     });
   });
@@ -359,11 +359,11 @@ suite('DataBrowsingController Test Suite', function () {
       (testController as any)._createAbortController(mockPanel);
       const controller = testController._panelAbortControllers.get(mockPanel);
 
-      expect(controller!.signal.aborted).to.be.false;
+      expect(controller?.signal.aborted).to.be.false;
 
       testController.handleCancelRequest(mockPanel);
 
-      expect(controller!.signal.aborted).to.be.true;
+      expect(controller?.signal.aborted).to.be.true;
     });
 
     test('removes the controller from _panelAbortControllers map', function () {
@@ -447,7 +447,7 @@ suite('DataBrowsingController Test Suite', function () {
       );
       const controller = testController._panelAbortControllers.get(mockPanel);
 
-      expect(controller!.signal.aborted).to.be.false;
+      expect(controller?.signal.aborted).to.be.false;
 
       // Send cancel request
       await testController.handleWebviewMessage(
@@ -456,7 +456,7 @@ suite('DataBrowsingController Test Suite', function () {
         options,
       );
 
-      expect(controller!.signal.aborted).to.be.true;
+      expect(controller?.signal.aborted).to.be.true;
 
       // Resolve the pending find to complete the test
       findResolve!([]);
