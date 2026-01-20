@@ -219,7 +219,9 @@ suite('DataBrowsingController Test Suite', function () {
     });
 
     test('does not call aggregate for view collections', async function () {
-      const options = createMockOptions({ collectionType: CollectionType.view });
+      const options = createMockOptions({
+        collectionType: CollectionType.view,
+      });
 
       await testController.handleGetDocuments(mockPanel, options);
 
@@ -261,10 +263,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('calls handleFetchPage when fetchPage message received', async function () {
       const options = createMockOptions();
-      const handleFetchPageSpy = sandbox.spy(
-        testController,
-        'handleFetchPage',
-      );
+      const handleFetchPageSpy = sandbox.spy(testController, 'handleFetchPage');
 
       await testController.handleWebviewMessage(
         { command: PreviewMessageType.fetchPage, skip: 10, limit: 10 },
@@ -273,7 +272,8 @@ suite('DataBrowsingController Test Suite', function () {
       );
 
       expect(handleFetchPageSpy.calledOnce).to.be.true;
-      expect(handleFetchPageSpy.calledWith(mockPanel, options, 10, 10)).to.be.true;
+      expect(handleFetchPageSpy.calledWith(mockPanel, options, 10, 10)).to.be
+        .true;
     });
 
     test('does nothing for unknown message commands', async function () {
@@ -327,7 +327,9 @@ suite('DataBrowsingController Test Suite', function () {
     });
 
     test('posts refreshError message on fetch failure', async function () {
-      mockDataService.find = sandbox.stub().rejects(new Error('Connection failed'));
+      mockDataService.find = sandbox
+        .stub()
+        .rejects(new Error('Connection failed'));
       const options = createMockOptions();
 
       await testController.handleFetchPage(mockPanel, options, 10, 10);
@@ -402,7 +404,9 @@ suite('DataBrowsingController Test Suite', function () {
       expect(testController._panelAbortControllers.has(mockPanel)).to.be.false;
 
       // Should not throw
-      expect(() => testController.handleCancelRequest(mockPanel)).to.not.throw();
+      expect(() =>
+        testController.handleCancelRequest(mockPanel),
+      ).to.not.throw();
     });
   });
 

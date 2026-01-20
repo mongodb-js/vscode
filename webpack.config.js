@@ -215,10 +215,7 @@ module.exports = (env, argv) => {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: path.resolve(
-              __dirname,
-              'node_modules/@vscode/codicons/dist',
-            ),
+            from: path.resolve(__dirname, 'node_modules/@vscode/codicons/dist'),
             to: 'codicons',
           },
         ],

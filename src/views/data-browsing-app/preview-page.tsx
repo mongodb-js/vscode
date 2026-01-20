@@ -145,7 +145,6 @@ const PreviewApp: React.FC = () => {
   // Track pending timeout IDs so we can clear them on cancellation
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-
   // Helper to clear any pending loading timeout
   const clearPendingTimeout = useCallback((): void => {
     if (pendingTimeoutRef.current !== null) {

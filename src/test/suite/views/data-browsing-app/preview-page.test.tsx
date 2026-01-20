@@ -1,7 +1,13 @@
 import React from 'react';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { render, screen, act, cleanup, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  act,
+  cleanup,
+  fireEvent,
+} from '@testing-library/react';
 
 import PreviewApp from '../../../../views/data-browsing-app/preview-page';
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
