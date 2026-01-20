@@ -3,11 +3,13 @@ export const PreviewMessageType = {
   getDocuments: 'GET_DOCUMENTS',
   refreshDocuments: 'REFRESH_DOCUMENTS',
   fetchPage: 'FETCH_PAGE',
+  cancelRequest: 'CANCEL_REQUEST',
 
   // Messages from extension to webview
   loadDocuments: 'LOAD_DOCUMENTS',
   loadPage: 'LOAD_PAGE',
   refreshError: 'REFRESH_ERROR',
+  requestCancelled: 'REQUEST_CANCELLED',
   themeChanged: 'THEME_CHANGED',
 } as const;
 
@@ -33,6 +35,10 @@ export interface FetchPageMessage extends BasicWebviewMessage {
   limit: number;
 }
 
+export interface CancelRequestMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.cancelRequest;
+}
+
 // Messages from extension to webview
 export interface LoadDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadDocuments;
@@ -50,6 +56,10 @@ export interface LoadPageMessage extends BasicWebviewMessage {
   documents: Record<string, unknown>[];
   skip: number;
   limit: number;
+}
+
+export interface RequestCancelledMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.requestCancelled;
 }
 
 // Theme colors for JSON syntax highlighting
@@ -72,10 +82,12 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
   | RefreshDocumentsMessage
-  | FetchPageMessage;
+  | FetchPageMessage
+  | CancelRequestMessage;
 
 export type MessageFromExtensionToWebview =
   | LoadDocumentsMessage
   | LoadPageMessage
   | RefreshErrorMessage
+  | RequestCancelledMessage
   | ThemeChangedMessage;

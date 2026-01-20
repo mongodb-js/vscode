@@ -115,10 +115,26 @@ export default class DataBrowsingController {
       case PreviewMessageType.fetchPage:
         await this.handleFetchPage(panel, options, message.skip, message.limit);
         return;
+      case PreviewMessageType.cancelRequest:
+        this.handleCancelRequest(panel);
+        return;
       default:
         // no-op.
         return;
     }
+  };
+
+  handleCancelRequest = (panel: vscode.WebviewPanel): void => {
+    const controller = this._panelAbortControllers.get(panel);
+    if (controller) {
+      controller.abort();
+      this._panelAbortControllers.delete(panel);
+    }
+
+    // Notify the webview that the request was cancelled
+    void panel.webview.postMessage({
+      command: PreviewMessageType.requestCancelled,
+    });
   };
 
   handleGetDocuments = async (

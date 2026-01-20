@@ -39,3 +39,9 @@ export const sendFetchPage = (skip: number, limit: number): void => {
     limit,
   });
 };
+
+export const sendCancelRequest = (): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.cancelRequest,
+  });
+};

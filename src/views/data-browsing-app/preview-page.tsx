@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   VscodeButton,
   VscodeLabel,
@@ -12,7 +18,12 @@ import type {
   JsonTokenColors,
 } from './extension-app-message-constants';
 import { PreviewMessageType } from './extension-app-message-constants';
-import { sendGetDocuments, sendRefreshDocuments, sendFetchPage } from './vscode-api';
+import {
+  sendGetDocuments,
+  sendRefreshDocuments,
+  sendFetchPage,
+  sendCancelRequest,
+} from './vscode-api';
 import DocumentTreeView from './document-tree-view';
 
 interface PreviewDocument {
@@ -20,6 +31,7 @@ interface PreviewDocument {
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+const MIN_LOADING_DURATION_MS = 30000;
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -57,34 +69,33 @@ const paginationInfoStyles = css({
 const paginationArrowsStyles = css({
   display: 'flex',
   alignItems: 'center',
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-button-border': 'transparent',
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-button-secondaryBackground': 'transparent',
 });
 
 const refreshButtonStyles = css({
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-button-border': 'transparent',
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-button-secondaryBackground': 'transparent',
 });
 
 const fitContentSelectStyles = css({
   width: 'auto',
   minWidth: 'unset',
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-settings-dropdownBorder': 'transparent',
   '--vscode-single-select': {
     padding: '20px',
   },
 });
 
+const stopButtonStyles = css({
+  '--vscode-button-border': 'transparent',
+});
+
 const loadingOverlayStyles = css({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: spacing[600],
+  padding: spacing[1200],
   flexDirection: 'column',
   gap: spacing[300],
 });
@@ -102,7 +113,9 @@ const emptyStateStyles = css({
 
 const PreviewApp: React.FC = () => {
   // Current page's documents (fetched from server)
-  const [displayedDocuments, setDisplayedDocuments] = useState<PreviewDocument[]>([]);
+  const [displayedDocuments, setDisplayedDocuments] = useState<
+    PreviewDocument[]
+  >([]);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -132,15 +145,29 @@ const PreviewApp: React.FC = () => {
 
   // Track when loading started for minimum loading duration
   const loadingStartTimeRef = useRef<number>(Date.now());
-  const MIN_LOADING_DURATION_MS = 500;
+  // Track pending timeout IDs so we can clear them on cancellation
+  const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+
+  // Helper to clear any pending loading timeout
+  const clearPendingTimeout = useCallback((): void => {
+    if (pendingTimeoutRef.current !== null) {
+      clearTimeout(pendingTimeoutRef.current);
+      pendingTimeoutRef.current = null;
+    }
+  }, []);
 
   // Helper to fetch a specific page from the server
-  const fetchPageFromServer = useCallback((page: number, limit: number): void => {
-    const skip = (page - 1) * limit;
-    loadingStartTimeRef.current = Date.now();
-    setIsLoading(true);
-    sendFetchPage(skip, limit);
-  }, []);
+  const fetchPageFromServer = useCallback(
+    (page: number, limit: number): void => {
+      const skip = (page - 1) * limit;
+      clearPendingTimeout();
+      loadingStartTimeRef.current = Date.now();
+      setIsLoading(true);
+      sendFetchPage(skip, limit);
+    },
+    [clearPendingTimeout],
+  );
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
@@ -160,8 +187,12 @@ const PreviewApp: React.FC = () => {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
+        // Clear any existing timeout before setting a new one
+        clearPendingTimeout();
+
         // Ensure minimum loading duration before hiding loader
-        setTimeout(() => {
+        pendingTimeoutRef.current = setTimeout(() => {
+          pendingTimeoutRef.current = null;
           setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
           if (message.totalCount !== undefined) {
             setTotalCountInCollection(message.totalCount);
@@ -173,8 +204,12 @@ const PreviewApp: React.FC = () => {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
+        // Clear any existing timeout before setting a new one
+        clearPendingTimeout();
+
         // Ensure minimum loading duration before hiding loader
-        setTimeout(() => {
+        pendingTimeoutRef.current = setTimeout(() => {
+          pendingTimeoutRef.current = null;
           setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
           setIsLoading(false);
         }, remainingTime);
@@ -182,8 +217,12 @@ const PreviewApp: React.FC = () => {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
+        // Clear any existing timeout before setting a new one
+        clearPendingTimeout();
+
         // Ensure minimum loading duration before hiding loader
-        setTimeout(() => {
+        pendingTimeoutRef.current = setTimeout(() => {
+          pendingTimeoutRef.current = null;
           setIsLoading(false);
           // Could show an error message here if needed
         }, remainingTime);
@@ -191,6 +230,10 @@ const PreviewApp: React.FC = () => {
         // Update theme colors when theme changes
         console.log('[DataBrowser] Received theme colors:', message.colors);
         setThemeColors(message.colors);
+      } else if (message.command === PreviewMessageType.requestCancelled) {
+        // Request was cancelled - clear any pending timeouts and reset loading state immediately
+        clearPendingTimeout();
+        setIsLoading(false);
       }
     };
     console.log('HELLO WORLD');
@@ -201,14 +244,24 @@ const PreviewApp: React.FC = () => {
 
     return () => {
       window.removeEventListener('message', handleMessage);
+      // Clear any pending timeout on unmount
+      clearPendingTimeout();
     };
-  }, []);
+  }, [clearPendingTimeout]);
 
   const handleRefresh = (): void => {
+    clearPendingTimeout();
     loadingStartTimeRef.current = Date.now();
     setIsLoading(true);
     setCurrentPage(1); // Reset to first page when refreshing
     sendRefreshDocuments();
+  };
+
+  const handleStop = (): void => {
+    // Clear any pending timeouts immediately for instant UI feedback
+    clearPendingTimeout();
+    setIsLoading(false);
+    sendCancelRequest();
   };
 
   const handlePrevPage = (): void => {
@@ -306,7 +359,20 @@ const PreviewApp: React.FC = () => {
         {isLoading ? (
           <div className={loadingOverlayStyles}>
             <VscodeProgressRing />
-            <VscodeLabel>Loading documents...</VscodeLabel>
+            <VscodeLabel>Running query</VscodeLabel>
+            {/* Stop button - only shown when loading */}
+            {isLoading && (
+              <VscodeButton
+                className={stopButtonStyles}
+                aria-label="Stop"
+                title="Stop current request"
+                onClick={handleStop}
+                icon="stop-circle"
+                secondary
+              >
+                Stop
+              </VscodeButton>
+            )}
           </div>
         ) : (
           <>
