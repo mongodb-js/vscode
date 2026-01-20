@@ -243,6 +243,64 @@ suite('DataBrowsingController Test Suite', function () {
     });
   });
 
+  suite('Error handling in handleGetDocuments', function () {
+    test('posts refreshError message on fetch failure', async function () {
+      mockDataService.find = sandbox
+        .stub()
+        .rejects(new Error('Connection timeout'));
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.refreshError);
+      expect(message.error).to.equal('Connection timeout');
+    });
+
+    test('posts refreshError message when aggregate fails', async function () {
+      mockDataService.aggregate = sandbox
+        .stub()
+        .rejects(new Error('Aggregate failed'));
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.refreshError);
+      expect(message.error).to.equal('Aggregate failed');
+    });
+  });
+
+  suite('Data service not available', function () {
+    test('returns empty documents when no active data service', async function () {
+      mockConnectionController.getActiveDataService = sandbox
+        .stub()
+        .returns(null);
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.documents).to.deep.equal([]);
+      expect(message.totalCount).to.equal(0);
+    });
+
+    test('returns empty documents for handleFetchPage when no active data service', async function () {
+      mockConnectionController.getActiveDataService = sandbox
+        .stub()
+        .returns(null);
+      const options = createMockOptions();
+
+      await testController.handleFetchPage(mockPanel, options, 10, 10);
+
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.loadPage);
+      expect(message.documents).to.deep.equal([]);
+    });
+  });
+
   suite('handleWebviewMessage', function () {
     test('calls handleGetDocuments when getDocuments message received', async function () {
       const options = createMockOptions();
@@ -461,6 +519,75 @@ suite('DataBrowsingController Test Suite', function () {
       // Resolve the pending find to complete the test
       findResolve!([]);
       await requestPromise;
+    });
+  });
+
+  suite('handleRefreshDocuments', function () {
+    test('posts loadDocuments message with documents and totalCount on success', async function () {
+      const options = createMockOptions();
+
+      await testController.handleRefreshDocuments(mockPanel, options);
+
+      expect(mockDataService.find.calledOnce).to.be.true;
+      expect(mockDataService.aggregate.calledOnce).to.be.true;
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.loadDocuments);
+      expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
+      expect(message.totalCount).to.equal(16);
+    });
+
+    test('posts refreshError message on failure', async function () {
+      mockDataService.find = sandbox
+        .stub()
+        .rejects(new Error('Connection failed'));
+      const options = createMockOptions();
+
+      await testController.handleRefreshDocuments(mockPanel, options);
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.refreshError);
+      expect(message.error).to.equal('Connection failed');
+    });
+
+    test('does not post message when request is aborted', async function () {
+      mockDataService.find = sandbox.stub().callsFake(() => {
+        testController._panelAbortControllers.get(mockPanel)?.abort();
+        return [{ _id: '1', name: 'test' }];
+      });
+      const options = createMockOptions();
+
+      await testController.handleRefreshDocuments(mockPanel, options);
+
+      expect(postMessageStub.called).to.be.false;
+    });
+
+    test('creates new AbortController for refresh request', async function () {
+      const options = createMockOptions();
+
+      await testController.handleRefreshDocuments(mockPanel, options);
+
+      expect(testController._panelAbortControllers.has(mockPanel)).to.be.true;
+    });
+  });
+
+  suite('handleWebviewMessage for refreshDocuments', function () {
+    test('calls handleRefreshDocuments when refreshDocuments message received', async function () {
+      const options = createMockOptions();
+      const handleRefreshSpy = sandbox.spy(
+        testController,
+        'handleRefreshDocuments',
+      );
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.refreshDocuments },
+        mockPanel,
+        options,
+      );
+
+      expect(handleRefreshSpy.calledOnce).to.be.true;
+      expect(handleRefreshSpy.calledWith(mockPanel, options)).to.be.true;
     });
   });
 });

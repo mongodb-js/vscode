@@ -27,7 +27,7 @@ interface PreviewDocument {
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
-const MIN_LOADING_DURATION_MS = 500;
+export const MIN_LOADING_DURATION_MS = 500;
 
 const containerStyles = css({
   minHeight: '100vh',

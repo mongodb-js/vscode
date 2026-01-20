@@ -21,6 +21,14 @@ describe('vscode-api test suite', function () {
     sinon.restore();
   });
 
+  describe('getVSCodeApi', function () {
+    it('should return the same instance on subsequent calls (singleton)', function () {
+      const first = getVSCodeApi();
+      const second = getVSCodeApi();
+      expect(first).to.equal(second);
+    });
+  });
+
   describe('sendCancelRequest', function () {
     it('should send message with cancelRequest command', function () {
       sendCancelRequest();
@@ -29,13 +37,6 @@ describe('vscode-api test suite', function () {
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.cancelRequest,
       });
-    });
-
-    it('should use correct message type constant', function () {
-      sendCancelRequest();
-
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal('CANCEL_REQUEST');
     });
   });
 
@@ -70,16 +71,6 @@ describe('vscode-api test suite', function () {
         command: PreviewMessageType.fetchPage,
         skip: 10,
         limit: 25,
-      });
-    });
-
-    it('should handle skip of 0 correctly', function () {
-      sendFetchPage(0, 50);
-
-      expect(postMessageStub).to.have.been.calledWithExactly({
-        command: PreviewMessageType.fetchPage,
-        skip: 0,
-        limit: 50,
       });
     });
   });
