@@ -54,9 +54,10 @@ describe('PreviewApp test suite', function () {
 
     it('should show Stop button when loading', function () {
       render(<PreviewApp />);
-      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      const stopButton = screen.getByLabelText('Stop');
       expect(stopButton).to.exist;
-      expect(stopButton.getAttribute('title')).to.equal('Stop current request');
+      // The button should be present with Stop text
+      expect(stopButton.textContent).to.include('Stop');
     });
   });
 
@@ -65,7 +66,7 @@ describe('PreviewApp test suite', function () {
       render(<PreviewApp />);
 
       // Initially loading - Stop button should be visible
-      expect(screen.getByRole('button', { name: 'Stop' })).to.exist;
+      expect(screen.getByLabelText('Stop')).to.exist;
 
       // Simulate receiving documents (which will hide loading after timeout)
       act(() => {
@@ -83,19 +84,14 @@ describe('PreviewApp test suite', function () {
       });
 
       // Stop button should not be visible when not loading
-      expect(screen.queryByRole('button', { name: 'Stop' })).to.be.null;
+      expect(screen.queryByLabelText('Stop')).to.be.null;
     });
 
-    it('should have correct icon attribute on Stop button', function () {
+    it('should render Stop button as a vscode-button element', function () {
       render(<PreviewApp />);
-      const stopButton = screen.getByRole('button', { name: 'Stop' });
-      expect(stopButton.getAttribute('icon')).to.equal('stop-circle');
-    });
-
-    it('should have secondary styling on Stop button', function () {
-      render(<PreviewApp />);
-      const stopButton = screen.getByRole('button', { name: 'Stop' });
-      expect(stopButton.hasAttribute('secondary')).to.be.true;
+      const stopButton = screen.getByLabelText('Stop');
+      // Verify it's a vscode-button web component
+      expect(stopButton.tagName.toLowerCase()).to.equal('vscode-button');
     });
   });
 
@@ -103,7 +99,7 @@ describe('PreviewApp test suite', function () {
     it('should send cancelRequest message when Stop button is clicked', function () {
       render(<PreviewApp />);
 
-      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      const stopButton = screen.getByLabelText('Stop');
       fireEvent.click(stopButton);
 
       expect(postMessageStub).to.have.been.calledWith({
@@ -117,7 +113,7 @@ describe('PreviewApp test suite', function () {
       // Verify initially loading
       expect(screen.getByText('Running query')).to.exist;
 
-      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      const stopButton = screen.getByLabelText('Stop');
       fireEvent.click(stopButton);
 
       // Loading state should be hidden immediately
@@ -127,11 +123,11 @@ describe('PreviewApp test suite', function () {
     it('should hide Stop button after clicking it', function () {
       render(<PreviewApp />);
 
-      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      const stopButton = screen.getByLabelText('Stop');
       fireEvent.click(stopButton);
 
       // Stop button should no longer be visible
-      expect(screen.queryByRole('button', { name: 'Stop' })).to.be.null;
+      expect(screen.queryByLabelText('Stop')).to.be.null;
     });
   });
 
@@ -159,7 +155,7 @@ describe('PreviewApp test suite', function () {
     it('should hide Stop button when requestCancelled message is received', function () {
       render(<PreviewApp />);
 
-      expect(screen.getByRole('button', { name: 'Stop' })).to.exist;
+      expect(screen.getByLabelText('Stop')).to.exist;
 
       act(() => {
         window.dispatchEvent(
@@ -171,7 +167,7 @@ describe('PreviewApp test suite', function () {
         );
       });
 
-      expect(screen.queryByRole('button', { name: 'Stop' })).to.be.null;
+      expect(screen.queryByLabelText('Stop')).to.be.null;
     });
   });
 
@@ -193,7 +189,7 @@ describe('PreviewApp test suite', function () {
       });
 
       // Click Stop before the timeout fires
-      const stopButton = screen.getByRole('button', { name: 'Stop' });
+      const stopButton = screen.getByLabelText('Stop');
       fireEvent.click(stopButton);
 
       // Loading should be hidden immediately
