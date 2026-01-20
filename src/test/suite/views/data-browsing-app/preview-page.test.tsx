@@ -1,40 +1,24 @@
 import React from 'react';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import {
-  render,
-  screen,
-  act,
-  cleanup,
-  fireEvent,
-} from '@testing-library/react';
+import { render, screen, act, cleanup, fireEvent } from '@testing-library/react';
 
 import PreviewApp from '../../../../views/data-browsing-app/preview-page';
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
-
-// Access the global vscodeFake directly to avoid conflicts with other test suites
-const getVscodeFake = (): { postMessage: (message: unknown) => void } => {
-  return (global as any).vscodeFake;
-};
+import { getVSCodeApi } from '../../../../views/data-browsing-app/vscode-api';
 
 describe('PreviewApp test suite', function () {
   let postMessageStub: sinon.SinonStub;
-  let originalPostMessage: (message: unknown) => void;
   let clock: sinon.SinonFakeTimers;
 
   beforeEach(function () {
-    // Store original and replace with stub
-    originalPostMessage = getVscodeFake().postMessage;
-    postMessageStub = sinon.stub();
-    getVscodeFake().postMessage = postMessageStub;
+    postMessageStub = sinon.stub(getVSCodeApi(), 'postMessage');
     // Use fake timers for testing timeout behavior
     clock = sinon.useFakeTimers();
   });
 
   afterEach(function () {
     cleanup();
-    // Restore original
-    getVscodeFake().postMessage = originalPostMessage;
     clock.restore();
     sinon.restore();
   });
@@ -47,7 +31,7 @@ describe('PreviewApp test suite', function () {
 
     it('should request initial documents on mount', function () {
       render(<PreviewApp />);
-      expect(postMessageStub).to.have.been.calledWith({
+      expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
       });
     });
@@ -102,7 +86,7 @@ describe('PreviewApp test suite', function () {
       const stopButton = screen.getByLabelText('Stop');
       fireEvent.click(stopButton);
 
-      expect(postMessageStub).to.have.been.calledWith({
+      expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.cancelRequest,
       });
     });
