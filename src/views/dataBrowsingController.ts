@@ -112,6 +112,9 @@ export default class DataBrowsingController {
       case PreviewMessageType.refreshDocuments:
         await this.handleRefreshDocuments(panel, options);
         return;
+      case PreviewMessageType.fetchPage:
+        await this.handleFetchPage(panel, options, message.skip, message.limit);
+        return;
       default:
         // no-op.
         return;
@@ -130,11 +133,10 @@ export default class DataBrowsingController {
     this._sendThemeColors(panel);
 
     try {
-      const documents = await this._fetchDocuments(
-        options.namespace,
-        options.collectionType,
-        signal,
-      );
+      const [documents, totalCount] = await Promise.all([
+        this._fetchDocuments(options.namespace, options.collectionType, signal),
+        this._getTotalCount(options.namespace, options.collectionType, signal),
+      ]);
 
       // Check if aborted before posting message.
       if (signal.aborted) {
@@ -144,6 +146,7 @@ export default class DataBrowsingController {
       void panel.webview.postMessage({
         command: PreviewMessageType.loadDocuments,
         documents,
+        totalCount,
       });
     } catch (error) {
       // Don't report errors for aborted requests.
@@ -166,11 +169,10 @@ export default class DataBrowsingController {
     const { signal } = abortController;
 
     try {
-      const documents = await this._fetchDocuments(
-        options.namespace,
-        options.collectionType,
-        signal,
-      );
+      const [documents, totalCount] = await Promise.all([
+        this._fetchDocuments(options.namespace, options.collectionType, signal),
+        this._getTotalCount(options.namespace, options.collectionType, signal),
+      ]);
 
       // Check if aborted before posting message.
       if (signal.aborted) {
@@ -180,6 +182,7 @@ export default class DataBrowsingController {
       void panel.webview.postMessage({
         command: PreviewMessageType.loadDocuments,
         documents,
+        totalCount,
       });
     } catch (error) {
       // Don't report errors for aborted requests.
@@ -194,10 +197,54 @@ export default class DataBrowsingController {
     }
   };
 
+  handleFetchPage = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+    skip: number,
+    limit: number,
+  ): Promise<void> => {
+    const abortController = this._createAbortController(panel);
+    const { signal } = abortController;
+
+    try {
+      const documents = await this._fetchDocuments(
+        options.namespace,
+        options.collectionType,
+        signal,
+        skip,
+        limit,
+      );
+
+      // Check if aborted before posting message.
+      if (signal.aborted) {
+        return;
+      }
+
+      void panel.webview.postMessage({
+        command: PreviewMessageType.loadPage,
+        documents,
+        skip,
+        limit,
+      });
+    } catch (error) {
+      // Don't report errors for aborted requests.
+      if (signal.aborted) {
+        return;
+      }
+      log.error('Error fetching page', error);
+      void panel.webview.postMessage({
+        command: PreviewMessageType.refreshError,
+        error: formatError(error).message,
+      });
+    }
+  };
+
   private async _fetchDocuments(
     namespace: string,
     collectionType: string,
     signal?: AbortSignal,
+    skip?: number,
+    limit?: number,
   ): Promise<Document[]> {
     if (collectionType === CollectionType.view) {
       return [];
@@ -208,9 +255,13 @@ export default class DataBrowsingController {
       return [];
     }
 
-    const findOptions = {
-      limit: DEFAULT_DOCUMENTS_LIMIT,
+    const findOptions: { limit: number; skip?: number } = {
+      limit: limit ?? DEFAULT_DOCUMENTS_LIMIT,
     };
+
+    if (skip !== undefined && skip > 0) {
+      findOptions.skip = skip;
+    }
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
@@ -247,13 +298,15 @@ export default class DataBrowsingController {
       const colors = getThemeTokenColors();
       log.info('Theme colors retrieved:', JSON.stringify(colors));
       log.info('Posting message to webview...');
-      void panel.webview.postMessage({
-        command: PreviewMessageType.themeChanged,
-        colors,
-      }).then(
-        (success) => log.info('postMessage result:', success),
-        (err) => log.error('postMessage error:', err)
-      );
+      void panel.webview
+        .postMessage({
+          command: PreviewMessageType.themeChanged,
+          colors,
+        })
+        .then(
+          (success) => log.info('postMessage result:', success),
+          (err) => log.error('postMessage error:', err),
+        );
       log.info('postMessage called');
     } catch (err) {
       log.error('Error in _sendThemeColors:', err);
@@ -267,6 +320,36 @@ export default class DataBrowsingController {
     for (const panel of this._activeWebviewPanels) {
       this._sendThemeColors(panel);
     }
+  }
+
+  private async _getTotalCount(
+    namespace: string,
+    collectionType: string,
+    signal?: AbortSignal,
+  ): Promise<number> {
+    if (
+      collectionType === CollectionType.view ||
+      collectionType === CollectionType.timeseries
+    ) {
+      return 0;
+    }
+
+    const dataService = this._connectionController.getActiveDataService();
+    if (!dataService) {
+      return 0;
+    }
+
+    const stages = [{ $match: {} }, { $count: 'count' }];
+    const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+    const result = await dataService.aggregate(
+      namespace,
+      stages,
+      {},
+      executionOptions,
+    );
+
+    return result.length ? result[0].count : 0;
   }
 
   openDataBrowser(

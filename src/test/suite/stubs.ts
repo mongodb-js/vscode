@@ -192,7 +192,9 @@ class DataServiceStub {
     filter: Filter<Document>,
     options: FindOptions,
   ): Promise<Document[]> {
-    return Promise.resolve(mockDocuments.slice(0, options.limit));
+    const skip = (options as { skip?: number }).skip ?? 0;
+    const limit = options.limit ?? mockDocuments.length;
+    return Promise.resolve(mockDocuments.slice(skip, skip + limit));
   }
 
   aggregate(): Promise<Document[]> {

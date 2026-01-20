@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import {
   VscodeButton,
   VscodeLabel,
@@ -7,12 +7,12 @@ import {
   VscodeSingleSelect,
 } from '@vscode-elements/react-elements';
 import { css, spacing } from '@mongodb-js/compass-components';
-import type { MessageFromExtensionToWebview, JsonTokenColors } from './extension-app-message-constants';
+import type {
+  MessageFromExtensionToWebview,
+  JsonTokenColors,
+} from './extension-app-message-constants';
 import { PreviewMessageType } from './extension-app-message-constants';
-import {
-  sendGetDocuments,
-  sendRefreshDocuments,
-} from './vscode-api';
+import { sendGetDocuments, sendRefreshDocuments, sendFetchPage } from './vscode-api';
 import DocumentTreeView from './document-tree-view';
 
 interface PreviewDocument {
@@ -57,7 +57,7 @@ const paginationInfoStyles = css({
 const paginationArrowsStyles = css({
   display: 'flex',
   alignItems: 'center',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-button-border': 'transparent',
   // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-button-secondaryBackground': 'transparent',
@@ -76,7 +76,7 @@ const fitContentSelectStyles = css({
   // eslint-disable-next-line @typescript-eslint/naming-convention
   '--vscode-settings-dropdownBorder': 'transparent',
   '--vscode-single-select': {
-    padding: '20px'
+    padding: '20px',
   },
 });
 
@@ -101,31 +101,29 @@ const emptyStateStyles = css({
 });
 
 const PreviewApp: React.FC = () => {
-  const [documents, setDocuments] = useState<PreviewDocument[]>([]);
+  // Current page's documents (fetched from server)
+  const [displayedDocuments, setDisplayedDocuments] = useState<PreviewDocument[]>([]);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCountInCollection, setTotalCountInCollection] = useState<
     number | null
   >(null);
-  const [themeColors, setThemeColors] = useState<JsonTokenColors | undefined>(undefined);
+  const [themeColors, setThemeColors] = useState<JsonTokenColors | undefined>(
+    undefined,
+  );
 
-  const totalDocuments = documents.length;
-  const totalPages = Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
+  const totalDocuments = totalCountInCollection ?? displayedDocuments.length;
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
+  }, [totalDocuments, itemsPerPage]);
 
   // Ensure current page is valid
   useEffect(() => {
-    if (currentPage > totalPages) {
+    if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
     }
   }, [totalPages, currentPage]);
-
-  // Calculate displayed documents based on pagination
-  const displayedDocuments = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return documents.slice(startIndex, endIndex);
-  }, [documents, currentPage, itemsPerPage]);
 
   // Calculate pagination info
   const startItem =
@@ -136,13 +134,27 @@ const PreviewApp: React.FC = () => {
   const loadingStartTimeRef = useRef<number>(Date.now());
   const MIN_LOADING_DURATION_MS = 500;
 
+  // Helper to fetch a specific page from the server
+  const fetchPageFromServer = useCallback((page: number, limit: number): void => {
+    const skip = (page - 1) * limit;
+    loadingStartTimeRef.current = Date.now();
+    setIsLoading(true);
+    sendFetchPage(skip, limit);
+  }, []);
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
-      console.log("handling message")
-      console.log(event.data)
-      console.log("Expected THEME_CHANGED value:", PreviewMessageType.themeChanged)
-      console.log("Received command:", event.data?.command)
-      console.log("Match?", event.data?.command === PreviewMessageType.themeChanged)
+      console.log('handling message');
+      console.log(event.data);
+      console.log(
+        'Expected THEME_CHANGED value:',
+        PreviewMessageType.themeChanged,
+      );
+      console.log('Received command:', event.data?.command);
+      console.log(
+        'Match?',
+        event.data?.command === PreviewMessageType.themeChanged,
+      );
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === PreviewMessageType.loadDocuments) {
         const elapsed = Date.now() - loadingStartTimeRef.current;
@@ -150,11 +162,20 @@ const PreviewApp: React.FC = () => {
 
         // Ensure minimum loading duration before hiding loader
         setTimeout(() => {
-          setDocuments(message.documents || []);
+          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
           if (message.totalCount !== undefined) {
             setTotalCountInCollection(message.totalCount);
           }
           setCurrentPage(1); // Reset to first page when new documents are loaded
+          setIsLoading(false);
+        }, remainingTime);
+      } else if (message.command === PreviewMessageType.loadPage) {
+        const elapsed = Date.now() - loadingStartTimeRef.current;
+        const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
+
+        // Ensure minimum loading duration before hiding loader
+        setTimeout(() => {
+          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
           setIsLoading(false);
         }, remainingTime);
       } else if (message.command === PreviewMessageType.refreshError) {
@@ -172,7 +193,7 @@ const PreviewApp: React.FC = () => {
         setThemeColors(message.colors);
       }
     };
-    console.log("HELLO WORLD")
+    console.log('HELLO WORLD');
     window.addEventListener('message', handleMessage);
 
     // Request initial documents
@@ -186,18 +207,23 @@ const PreviewApp: React.FC = () => {
   const handleRefresh = (): void => {
     loadingStartTimeRef.current = Date.now();
     setIsLoading(true);
+    setCurrentPage(1); // Reset to first page when refreshing
     sendRefreshDocuments();
   };
 
   const handlePrevPage = (): void => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      const newPage = currentPage - 1;
+      setCurrentPage(newPage);
+      fetchPageFromServer(newPage, itemsPerPage);
     }
   };
 
   const handleNextPage = (): void => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      const newPage = currentPage + 1;
+      setCurrentPage(newPage);
+      fetchPageFromServer(newPage, itemsPerPage);
     }
   };
 
@@ -206,6 +232,8 @@ const PreviewApp: React.FC = () => {
     const newItemsPerPage = parseInt(target.value, 10);
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Reset to first page when changing items per page
+    // Fetch the first page with the new items per page
+    fetchPageFromServer(1, newItemsPerPage);
   };
 
   return (
@@ -213,9 +241,7 @@ const PreviewApp: React.FC = () => {
       {/* Toolbar */}
       <div className={toolbarStyles}>
         {/* Left side - Insert Document */}
-        <div className={toolbarGroupStyles}>
-
-        </div>
+        <div className={toolbarGroupStyles}></div>
 
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
@@ -257,7 +283,7 @@ const PreviewApp: React.FC = () => {
               aria-label="Previous page"
               title="Previous page"
               onClick={handlePrevPage}
-              disabled={currentPage <= 1}
+              disabled={currentPage <= 1 || isLoading}
               iconOnly
               icon="chevron-left"
               secondary
@@ -266,7 +292,7 @@ const PreviewApp: React.FC = () => {
               aria-label="Next page"
               title="Next page"
               onClick={handleNextPage}
-              disabled={currentPage >= totalPages}
+              disabled={currentPage >= totalPages || isLoading}
               iconOnly
               icon="chevron-right"
               secondary

@@ -31,3 +31,11 @@ export const sendRefreshDocuments = (): void => {
     command: PreviewMessageType.refreshDocuments,
   });
 };
+
+export const sendFetchPage = (skip: number, limit: number): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.fetchPage,
+    skip,
+    limit,
+  });
+};

@@ -2,9 +2,11 @@ export const PreviewMessageType = {
   // Messages from webview to extension
   getDocuments: 'GET_DOCUMENTS',
   refreshDocuments: 'REFRESH_DOCUMENTS',
+  fetchPage: 'FETCH_PAGE',
 
   // Messages from extension to webview
   loadDocuments: 'LOAD_DOCUMENTS',
+  loadPage: 'LOAD_PAGE',
   refreshError: 'REFRESH_ERROR',
   themeChanged: 'THEME_CHANGED',
 } as const;
@@ -25,6 +27,12 @@ export interface RefreshDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.refreshDocuments;
 }
 
+export interface FetchPageMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.fetchPage;
+  skip: number;
+  limit: number;
+}
+
 // Messages from extension to webview
 export interface LoadDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadDocuments;
@@ -35,6 +43,13 @@ export interface LoadDocumentsMessage extends BasicWebviewMessage {
 export interface RefreshErrorMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.refreshError;
   error?: string;
+}
+
+export interface LoadPageMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.loadPage;
+  documents: Record<string, unknown>[];
+  skip: number;
+  limit: number;
 }
 
 // Theme colors for JSON syntax highlighting
@@ -56,9 +71,11 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
 
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
-  | RefreshDocumentsMessage;
+  | RefreshDocumentsMessage
+  | FetchPageMessage;
 
 export type MessageFromExtensionToWebview =
   | LoadDocumentsMessage
+  | LoadPageMessage
   | RefreshErrorMessage
   | ThemeChangedMessage;

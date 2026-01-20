@@ -15,6 +15,7 @@ suite('DataBrowsingController Test Suite', function () {
   let postMessageStub: SinonStub;
   let mockDataService: {
     find: SinonStub;
+    aggregate: SinonStub;
   };
   let mockConnectionController: {
     getActiveDataService: SinonStub;
@@ -47,6 +48,7 @@ suite('DataBrowsingController Test Suite', function () {
   beforeEach(() => {
     mockDataService = {
       find: sandbox.stub().resolves([{ _id: '1', name: 'test' }]),
+      aggregate: sandbox.stub().resolves([{ count: 16 }]),
     };
     mockConnectionController = {
       getActiveDataService: sandbox.stub().returns(mockDataService),
@@ -151,6 +153,7 @@ suite('DataBrowsingController Test Suite', function () {
         testController._panelAbortControllers.get(mockPanel)?.abort();
         return [{ _id: '1', name: 'test' }];
       });
+      mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
 
       const options = createMockOptions();
 
@@ -166,6 +169,7 @@ suite('DataBrowsingController Test Suite', function () {
         testController._panelAbortControllers.get(mockPanel)?.abort();
         throw new Error('Connection error');
       });
+      mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
 
       const options = createMockOptions();
 
@@ -190,16 +194,50 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('Successful request handling', function () {
-    test('posts loadDocuments message on successful handleGetDocuments', async function () {
+    test('posts loadDocuments message with documents and totalCount on successful handleGetDocuments', async function () {
       const options = createMockOptions();
 
       await testController.handleGetDocuments(mockPanel, options);
 
       expect(mockDataService.find.calledOnce).to.be.true;
+      expect(mockDataService.aggregate.calledOnce).to.be.true;
       expect(postMessageStub.calledOnce).to.be.true;
       const message = postMessageStub.firstCall.args[0];
       expect(message.command).to.equal(PreviewMessageType.loadDocuments);
       expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
+      expect(message.totalCount).to.equal(16);
+    });
+
+    test('returns totalCount of 0 when aggregate returns empty array', async function () {
+      mockDataService.aggregate = sandbox.stub().resolves([]);
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.totalCount).to.equal(0);
+    });
+
+    test('does not call aggregate for view collections', async function () {
+      const options = createMockOptions({ collectionType: CollectionType.view });
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      expect(mockDataService.aggregate.called).to.be.false;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.totalCount).to.equal(0);
+    });
+
+    test('does not call aggregate for timeseries collections', async function () {
+      const options = createMockOptions({
+        collectionType: CollectionType.timeseries,
+      });
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      expect(mockDataService.aggregate.called).to.be.false;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.totalCount).to.equal(0);
     });
   });
 
@@ -221,6 +259,23 @@ suite('DataBrowsingController Test Suite', function () {
       expect(handleGetDocumentsSpy.calledWith(mockPanel, options)).to.be.true;
     });
 
+    test('calls handleFetchPage when fetchPage message received', async function () {
+      const options = createMockOptions();
+      const handleFetchPageSpy = sandbox.spy(
+        testController,
+        'handleFetchPage',
+      );
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.fetchPage, skip: 10, limit: 10 },
+        mockPanel,
+        options,
+      );
+
+      expect(handleFetchPageSpy.calledOnce).to.be.true;
+      expect(handleFetchPageSpy.calledWith(mockPanel, options, 10, 10)).to.be.true;
+    });
+
     test('does nothing for unknown message commands', async function () {
       const options = createMockOptions();
 
@@ -230,6 +285,67 @@ suite('DataBrowsingController Test Suite', function () {
         mockPanel,
         options,
       );
+
+      expect(postMessageStub.called).to.be.false;
+    });
+  });
+
+  suite('handleFetchPage', function () {
+    test('posts loadPage message with documents on successful fetch', async function () {
+      mockDataService.find = sandbox.stub().resolves([
+        { _id: '11', name: 'doc11' },
+        { _id: '12', name: 'doc12' },
+      ]);
+      const options = createMockOptions();
+
+      await testController.handleFetchPage(mockPanel, options, 10, 10);
+
+      expect(mockDataService.find.calledOnce).to.be.true;
+      const findOptions = mockDataService.find.firstCall.args[2];
+      expect(findOptions.skip).to.equal(10);
+      expect(findOptions.limit).to.equal(10);
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.loadPage);
+      expect(message.documents).to.deep.equal([
+        { _id: '11', name: 'doc11' },
+        { _id: '12', name: 'doc12' },
+      ]);
+      expect(message.skip).to.equal(10);
+      expect(message.limit).to.equal(10);
+    });
+
+    test('passes skip of 0 correctly', async function () {
+      const options = createMockOptions();
+
+      await testController.handleFetchPage(mockPanel, options, 0, 25);
+
+      const findOptions = mockDataService.find.firstCall.args[2];
+      expect(findOptions.limit).to.equal(25);
+      // skip should not be set when 0
+      expect(findOptions.skip).to.be.undefined;
+    });
+
+    test('posts refreshError message on fetch failure', async function () {
+      mockDataService.find = sandbox.stub().rejects(new Error('Connection failed'));
+      const options = createMockOptions();
+
+      await testController.handleFetchPage(mockPanel, options, 10, 10);
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.refreshError);
+      expect(message.error).to.equal('Connection failed');
+    });
+
+    test('does not post message when request is aborted', async function () {
+      mockDataService.find = sandbox.stub().callsFake(() => {
+        testController._panelAbortControllers.get(mockPanel)?.abort();
+        return [{ _id: '1', name: 'test' }];
+      });
+      const options = createMockOptions();
+
+      await testController.handleFetchPage(mockPanel, options, 10, 10);
 
       expect(postMessageStub.called).to.be.false;
     });
