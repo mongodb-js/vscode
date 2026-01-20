@@ -10,7 +10,6 @@ import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
-import { getThemeTokenColors } from '../utils/themeColorReader';
 
 const log = createLogger('data browsing controller');
 
@@ -143,10 +142,6 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     const abortController = this._createAbortController(panel);
     const { signal } = abortController;
-
-    // Send theme colors immediately when webview requests documents.
-    // This ensures the webview's message listener is definitely ready.
-    this._sendThemeColors(panel);
 
     try {
       const [documents, totalCount] = await Promise.all([
@@ -305,39 +300,6 @@ export default class DataBrowsingController {
     );
   };
 
-  /**
-   * Sends the current theme colors to a webview panel.
-   */
-  private _sendThemeColors(panel: vscode.WebviewPanel): void {
-    try {
-      log.info('Getting theme colors...');
-      const colors = getThemeTokenColors();
-      log.info('Theme colors retrieved:', JSON.stringify(colors));
-      log.info('Posting message to webview...');
-      void panel.webview
-        .postMessage({
-          command: PreviewMessageType.themeChanged,
-          colors,
-        })
-        .then(
-          (success) => log.info('postMessage result:', success),
-          (err) => log.error('postMessage error:', err),
-        );
-      log.info('postMessage called');
-    } catch (err) {
-      log.error('Error in _sendThemeColors:', err);
-    }
-  }
-
-  /**
-   * Sends theme colors to all active webview panels.
-   */
-  private _sendThemeColorsToAllPanels(): void {
-    for (const panel of this._activeWebviewPanels) {
-      this._sendThemeColors(panel);
-    }
-  }
-
   private async _getTotalCount(
     namespace: string,
     collectionType: string,
@@ -406,15 +368,6 @@ export default class DataBrowsingController {
       undefined,
       context.subscriptions,
     );
-
-    // Listen for theme changes and send updated colors to all panels
-    const themeChangeDisposable = vscode.window.onDidChangeActiveColorTheme(
-      () => {
-        this._sendThemeColorsToAllPanels();
-      },
-    );
-    context.subscriptions.push(themeChangeDisposable);
-    this._sendThemeColors(panel);
 
     return panel;
   }

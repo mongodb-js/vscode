@@ -13,10 +13,7 @@ import {
   VscodeSingleSelect,
 } from '@vscode-elements/react-elements';
 import { css, spacing } from '@mongodb-js/compass-components';
-import type {
-  MessageFromExtensionToWebview,
-  JsonTokenColors,
-} from './extension-app-message-constants';
+import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import { PreviewMessageType } from './extension-app-message-constants';
 import {
   sendGetDocuments,
@@ -24,14 +21,13 @@ import {
   sendFetchPage,
   sendCancelRequest,
 } from './vscode-api';
-import DocumentTreeView from './document-tree-view';
 
 interface PreviewDocument {
   [key: string]: unknown;
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
-const MIN_LOADING_DURATION_MS = 30000;
+const MIN_LOADING_DURATION_MS = 500;
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -47,6 +43,10 @@ const toolbarStyles = css({
   borderBottom: '1px solid var(--vscode-panel-border, #444)',
   gap: spacing[300],
   flexWrap: 'wrap',
+  position: 'sticky',
+  top: 0,
+  backgroundColor: 'var(--vscode-editor-background, #1e1e1e)',
+  zIndex: 10,
 });
 
 const toolbarGroupStyles = css({
@@ -122,9 +122,6 @@ const PreviewApp: React.FC = () => {
   const [totalCountInCollection, setTotalCountInCollection] = useState<
     number | null
   >(null);
-  const [themeColors, setThemeColors] = useState<JsonTokenColors | undefined>(
-    undefined,
-  );
 
   const totalDocuments = totalCountInCollection ?? displayedDocuments.length;
   const totalPages = useMemo(() => {
@@ -171,17 +168,6 @@ const PreviewApp: React.FC = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
-      console.log('handling message');
-      console.log(event.data);
-      console.log(
-        'Expected THEME_CHANGED value:',
-        PreviewMessageType.themeChanged,
-      );
-      console.log('Received command:', event.data?.command);
-      console.log(
-        'Match?',
-        event.data?.command === PreviewMessageType.themeChanged,
-      );
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === PreviewMessageType.loadDocuments) {
         const elapsed = Date.now() - loadingStartTimeRef.current;
@@ -226,10 +212,6 @@ const PreviewApp: React.FC = () => {
           setIsLoading(false);
           // Could show an error message here if needed
         }, remainingTime);
-      } else if (message.command === PreviewMessageType.themeChanged) {
-        // Update theme colors when theme changes
-        console.log('[DataBrowser] Received theme colors:', message.colors);
-        setThemeColors(message.colors);
       } else if (message.command === PreviewMessageType.requestCancelled) {
         // Request was cancelled - clear any pending timeouts and reset loading state immediately
         clearPendingTimeout();
@@ -377,11 +359,9 @@ const PreviewApp: React.FC = () => {
         ) : (
           <>
             {displayedDocuments.map((doc, index) => (
-              <DocumentTreeView
-                key={`${currentPage}-${index}`}
-                document={doc}
-                themeColors={themeColors}
-              />
+              <pre key={`${currentPage}-${index}`}>
+                {JSON.stringify(doc, null, 2)}
+              </pre>
             ))}
             {displayedDocuments.length === 0 && (
               <div className={emptyStateStyles}>No documents to display</div>

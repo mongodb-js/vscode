@@ -10,7 +10,6 @@ export const PreviewMessageType = {
   loadPage: 'LOAD_PAGE',
   refreshError: 'REFRESH_ERROR',
   requestCancelled: 'REQUEST_CANCELLED',
-  themeChanged: 'THEME_CHANGED',
 } as const;
 
 export type PreviewMessageType =
@@ -62,23 +61,6 @@ export interface RequestCancelledMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.requestCancelled;
 }
 
-// Theme colors for JSON syntax highlighting
-export interface JsonTokenColors {
-  key: string;
-  string: string;
-  number: string;
-  boolean: string;
-  null: string;
-  type: string;
-  comment: string;
-  punctuation: string;
-}
-
-export interface ThemeChangedMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.themeChanged;
-  colors: JsonTokenColors;
-}
-
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
   | RefreshDocumentsMessage
@@ -89,5 +71,4 @@ export type MessageFromExtensionToWebview =
   | LoadDocumentsMessage
   | LoadPageMessage
   | RefreshErrorMessage
-  | RequestCancelledMessage
-  | ThemeChangedMessage;
+  | RequestCancelledMessage;
