@@ -4,10 +4,7 @@ import path from 'path';
 
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import {
-  PreviewMessageType,
-  type SortOption,
-} from './data-browsing-app/extension-app-message-constants';
+import { PreviewMessageType } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
@@ -115,9 +112,6 @@ export default class DataBrowsingController {
       case PreviewMessageType.refreshDocuments:
         await this.handleRefreshDocuments(panel, options);
         return;
-      case PreviewMessageType.sortDocuments:
-        await this.handleSortDocuments(panel, options, message.sortOption);
-        return;
       default:
         // no-op.
         return;
@@ -200,49 +194,10 @@ export default class DataBrowsingController {
     }
   };
 
-  handleSortDocuments = async (
-    panel: vscode.WebviewPanel,
-    options: DataBrowsingOptions,
-    sortOption: SortOption,
-  ): Promise<void> => {
-    const abortController = this._createAbortController(panel);
-    const { signal } = abortController;
-
-    try {
-      const documents = await this._fetchDocuments(
-        options.namespace,
-        options.collectionType,
-        signal,
-        sortOption,
-      );
-
-      // Check if aborted before posting message.
-      if (signal.aborted) {
-        return;
-      }
-
-      void panel.webview.postMessage({
-        command: PreviewMessageType.loadDocuments,
-        documents,
-      });
-    } catch (error) {
-      // Don't report errors for aborted requests.
-      if (signal.aborted) {
-        return;
-      }
-      log.error('Error sorting documents', error);
-      void panel.webview.postMessage({
-        command: PreviewMessageType.refreshError,
-        error: formatError(error).message,
-      });
-    }
-  };
-
   private async _fetchDocuments(
     namespace: string,
     collectionType: string,
     signal?: AbortSignal,
-    sortOption?: SortOption,
   ): Promise<Document[]> {
     if (collectionType === CollectionType.view) {
       return [];
@@ -253,21 +208,9 @@ export default class DataBrowsingController {
       return [];
     }
 
-    // Build sort object based on sortOption
-    let sort: { _id: 1 | -1 } | undefined;
-    if (sortOption === 'asc') {
-      sort = { _id: 1 };
-    } else if (sortOption === 'desc') {
-      sort = { _id: -1 };
-    }
-
-    const findOptions: { limit: number; sort?: { _id: 1 | -1 } } = {
+    const findOptions = {
       limit: DEFAULT_DOCUMENTS_LIMIT,
     };
-
-    if (sort) {
-      findOptions.sort = sort;
-    }
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 

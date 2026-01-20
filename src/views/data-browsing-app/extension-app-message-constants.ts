@@ -2,7 +2,6 @@ export const PreviewMessageType = {
   // Messages from webview to extension
   getDocuments: 'GET_DOCUMENTS',
   refreshDocuments: 'REFRESH_DOCUMENTS',
-  sortDocuments: 'SORT_DOCUMENTS',
 
   // Messages from extension to webview
   loadDocuments: 'LOAD_DOCUMENTS',
@@ -12,8 +11,6 @@ export const PreviewMessageType = {
 
 export type PreviewMessageType =
   (typeof PreviewMessageType)[keyof typeof PreviewMessageType];
-
-export type SortOption = 'default' | 'asc' | 'desc';
 
 // Messages from webview to extension
 interface BasicWebviewMessage {
@@ -26,11 +23,6 @@ export interface GetDocumentsMessage extends BasicWebviewMessage {
 
 export interface RefreshDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.refreshDocuments;
-}
-
-export interface SortDocumentsMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.sortDocuments;
-  sortOption: SortOption;
 }
 
 // Messages from extension to webview
@@ -64,8 +56,7 @@ export interface ThemeChangedMessage extends BasicWebviewMessage {
 
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
-  | RefreshDocumentsMessage
-  | SortDocumentsMessage;
+  | RefreshDocumentsMessage;
 
 export type MessageFromExtensionToWebview =
   | LoadDocumentsMessage

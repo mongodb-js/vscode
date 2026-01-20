@@ -9,11 +9,10 @@ import {
 } from '@vscode-elements/react-elements';
 import { css, spacing } from '@mongodb-js/compass-components';
 import type { MessageFromExtensionToWebview, JsonTokenColors } from './extension-app-message-constants';
-import { PreviewMessageType, type SortOption } from './extension-app-message-constants';
+import { PreviewMessageType } from './extension-app-message-constants';
 import {
   sendGetDocuments,
   sendRefreshDocuments,
-  sendSortDocuments,
 } from './vscode-api';
 import DocumentTreeView from './document-tree-view';
 
@@ -83,7 +82,6 @@ const emptyStateStyles = css({
 
 const PreviewApp: React.FC = () => {
   const [documents, setDocuments] = useState<PreviewDocument[]>([]);
-  const [sortOption, setSortOption] = useState<SortOption>('default');
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -183,15 +181,6 @@ const PreviewApp: React.FC = () => {
     }
   };
 
-  const handleSortChange = (event: Event): void => {
-    const target = event.target as HTMLSelectElement;
-    const newSortOption = target.value as SortOption;
-    setSortOption(newSortOption);
-    loadingStartTimeRef.current = Date.now();
-    setIsLoading(true);
-    sendSortDocuments(newSortOption);
-  };
-
   const handleItemsPerPageChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const newItemsPerPage = parseInt(target.value, 10);
@@ -231,20 +220,6 @@ const PreviewApp: React.FC = () => {
             <VscodeIcon name="refresh" slot="start" />
             Refresh
           </VscodeButton>
-
-          {/* Sort */}
-          <div className={toolbarGroupStyles}>
-            <VscodeLabel>Sort</VscodeLabel>
-            <VscodeSingleSelect
-              aria-label="Sort order"
-              value={sortOption}
-              onChange={handleSortChange}
-            >
-              <VscodeOption value="default">Default</VscodeOption>
-              <VscodeOption value="asc">Ascending</VscodeOption>
-              <VscodeOption value="desc">Descending</VscodeOption>
-            </VscodeSingleSelect>
-          </div>
 
           {/* Items per page */}
           <VscodeSingleSelect
