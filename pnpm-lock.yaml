@@ -54,6 +54,9 @@ importers:
       '@vscode-elements/react-elements':
         specifier: ^2.4.0
         version: 2.4.0(@types/react@17.0.90)(@vscode/codicons@0.0.44)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@vscode/codicons':
+        specifier: ^0.0.44
+        version: 0.0.44
       bson:
         specifier: ^6.10.4
         version: 6.10.4
@@ -217,9 +220,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^5.62.0
         version: 5.62.0(eslint@8.57.1)(typescript@5.9.3)
-      '@vscode/codicons':
-        specifier: ^0.0.44
-        version: 0.0.44
       '@vscode/test-electron':
         specifier: ^2.4.1
         version: 2.5.2
