@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   VscodeButton,
-  VscodeIcon,
   VscodeLabel,
   VscodeOption,
   VscodeProgressRing,
@@ -58,6 +57,27 @@ const paginationInfoStyles = css({
 const paginationArrowsStyles = css({
   display: 'flex',
   alignItems: 'center',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+  '--vscode-button-border': 'transparent',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  '--vscode-button-secondaryBackground': 'transparent',
+});
+
+const refreshButtonStyles = css({
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  '--vscode-button-border': 'transparent',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  '--vscode-button-secondaryBackground': 'transparent',
+});
+
+const fitContentSelectStyles = css({
+  width: 'auto',
+  minWidth: 'unset',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  '--vscode-settings-dropdownBorder': 'transparent',
+  '--vscode-single-select': {
+    padding: '20px'
+  },
 });
 
 const loadingOverlayStyles = css({
@@ -194,35 +214,27 @@ const PreviewApp: React.FC = () => {
       <div className={toolbarStyles}>
         {/* Left side - Insert Document */}
         <div className={toolbarGroupStyles}>
-          <VscodeButton
-            aria-label="Insert Document"
-            title="Insert Document"
-            onClick={(): void => {
-              // TODO: Implement insert document functionality
-            }}
-            secondary
-          >
-            <VscodeIcon name="add" slot="start" />
-            Insert Document
-          </VscodeButton>
+
         </div>
 
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
           {/* Refresh */}
           <VscodeButton
+            className={refreshButtonStyles}
             aria-label="Refresh"
             title="Refresh"
             onClick={handleRefresh}
             disabled={isLoading}
+            icon="refresh"
             secondary
           >
-            <VscodeIcon name="refresh" slot="start" />
             Refresh
           </VscodeButton>
 
           {/* Items per page */}
           <VscodeSingleSelect
+            className={fitContentSelectStyles}
             aria-label="Items per page"
             value={itemsPerPage.toString()}
             onChange={handleItemsPerPageChange}
