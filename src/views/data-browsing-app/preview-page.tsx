@@ -112,7 +112,6 @@ const emptyStateStyles = css({
 });
 
 const PreviewApp: React.FC = () => {
-  // Current page's documents (fetched from server)
   const [displayedDocuments, setDisplayedDocuments] = useState<
     PreviewDocument[]
   >([]);
@@ -128,24 +127,19 @@ const PreviewApp: React.FC = () => {
     return Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
   }, [totalDocuments, itemsPerPage]);
 
-  // Ensure current page is valid
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
     }
   }, [totalPages, currentPage]);
 
-  // Calculate pagination info
   const startItem =
     totalDocuments === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalDocuments);
 
-  // Track when loading started for minimum loading duration
   const loadingStartTimeRef = useRef<number>(Date.now());
-  // Track pending timeout IDs so we can clear them on cancellation
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Helper to clear any pending loading timeout
   const clearPendingTimeout = useCallback((): void => {
     if (pendingTimeoutRef.current !== null) {
       clearTimeout(pendingTimeoutRef.current);
@@ -153,7 +147,6 @@ const PreviewApp: React.FC = () => {
     }
   }, []);
 
-  // Helper to fetch a specific page from the server
   const fetchPageFromServer = useCallback(
     (page: number, limit: number): void => {
       const skip = (page - 1) * limit;
@@ -172,7 +165,6 @@ const PreviewApp: React.FC = () => {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
-        // Clear any existing timeout before setting a new one
         clearPendingTimeout();
 
         // Ensure minimum loading duration before hiding loader
@@ -182,17 +174,15 @@ const PreviewApp: React.FC = () => {
           if (message.totalCount !== undefined) {
             setTotalCountInCollection(message.totalCount);
           }
-          setCurrentPage(1); // Reset to first page when new documents are loaded
+          setCurrentPage(1);
           setIsLoading(false);
         }, remainingTime);
       } else if (message.command === PreviewMessageType.loadPage) {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
-        // Clear any existing timeout before setting a new one
         clearPendingTimeout();
 
-        // Ensure minimum loading duration before hiding loader
         pendingTimeoutRef.current = setTimeout(() => {
           pendingTimeoutRef.current = null;
           setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
@@ -202,30 +192,25 @@ const PreviewApp: React.FC = () => {
         const elapsed = Date.now() - loadingStartTimeRef.current;
         const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
 
-        // Clear any existing timeout before setting a new one
         clearPendingTimeout();
 
-        // Ensure minimum loading duration before hiding loader
         pendingTimeoutRef.current = setTimeout(() => {
           pendingTimeoutRef.current = null;
           setIsLoading(false);
           // Could show an error message here if needed
         }, remainingTime);
       } else if (message.command === PreviewMessageType.requestCancelled) {
-        // Request was cancelled - clear any pending timeouts and reset loading state immediately
         clearPendingTimeout();
         setIsLoading(false);
       }
     };
-    console.log('HELLO WORLD');
+
     window.addEventListener('message', handleMessage);
 
-    // Request initial documents
     sendGetDocuments();
 
     return () => {
       window.removeEventListener('message', handleMessage);
-      // Clear any pending timeout on unmount
       clearPendingTimeout();
     };
   }, [clearPendingTimeout]);
@@ -234,12 +219,11 @@ const PreviewApp: React.FC = () => {
     clearPendingTimeout();
     loadingStartTimeRef.current = Date.now();
     setIsLoading(true);
-    setCurrentPage(1); // Reset to first page when refreshing
+    setCurrentPage(1);
     sendRefreshDocuments();
   };
 
   const handleStop = (): void => {
-    // Clear any pending timeouts immediately for instant UI feedback
     clearPendingTimeout();
     setIsLoading(false);
     sendCancelRequest();
@@ -265,8 +249,7 @@ const PreviewApp: React.FC = () => {
     const target = event.target as HTMLSelectElement;
     const newItemsPerPage = parseInt(target.value, 10);
     setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
-    // Fetch the first page with the new items per page
+    setCurrentPage(1);
     fetchPageFromServer(1, newItemsPerPage);
   };
 
@@ -276,10 +259,8 @@ const PreviewApp: React.FC = () => {
       <div className={toolbarStyles}>
         {/* Left side - Insert Document */}
         <div className={toolbarGroupStyles}></div>
-
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
-          {/* Refresh */}
           <VscodeButton
             className={refreshButtonStyles}
             aria-label="Refresh"

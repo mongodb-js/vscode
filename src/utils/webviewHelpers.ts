@@ -56,7 +56,6 @@ export const getWebviewHtml = ({
     'webviewApp.js',
   );
 
-  // Build the codicon stylesheet link if URI is provided
   const codiconLink = codiconStylesheetUri
     ? `<link id="vscode-codicon-stylesheet" rel="stylesheet" href="${codiconStylesheetUri}" nonce="${nonce}">`
     : '';
