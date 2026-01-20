@@ -488,7 +488,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('cancels in-flight request when cancelRequest message is received', async function () {
       // Simulate a slow find request
-      let findResolve: (value: unknown) => void;
+      let findResolve: (value: unknown) => void = () => {};
       mockDataService.find = sandbox.stub().callsFake(() => {
         return new Promise((resolve) => {
           findResolve = resolve;
@@ -516,8 +516,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(controller?.signal.aborted).to.be.true;
 
-      // Resolve the pending find to complete the test
-      findResolve!([]);
+      findResolve([]);
       await requestPromise;
     });
   });
