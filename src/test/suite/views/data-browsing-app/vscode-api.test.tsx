@@ -3,31 +3,21 @@ import sinon from 'sinon';
 
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
 import {
+  getVSCodeApi,
   sendCancelRequest,
   sendGetDocuments,
   sendRefreshDocuments,
   sendFetchPage,
 } from '../../../../views/data-browsing-app/vscode-api';
 
-// Access the global vscodeFake directly to avoid conflicts with other test suites
-const getVscodeFake = (): { postMessage: (message: unknown) => void } => {
-  return (global as any).vscodeFake;
-};
-
 describe('vscode-api test suite', function () {
   let postMessageStub: sinon.SinonStub;
-  let originalPostMessage: (message: unknown) => void;
 
   beforeEach(function () {
-    // Store original and replace with stub
-    originalPostMessage = getVscodeFake().postMessage;
-    postMessageStub = sinon.stub();
-    getVscodeFake().postMessage = postMessageStub;
+    postMessageStub = sinon.stub(getVSCodeApi(), 'postMessage');
   });
 
   afterEach(function () {
-    // Restore original
-    getVscodeFake().postMessage = originalPostMessage;
     sinon.restore();
   });
 
@@ -36,7 +26,7 @@ describe('vscode-api test suite', function () {
       sendCancelRequest();
 
       expect(postMessageStub).to.have.been.calledOnce;
-      expect(postMessageStub).to.have.been.calledWith({
+      expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.cancelRequest,
       });
     });
@@ -54,7 +44,7 @@ describe('vscode-api test suite', function () {
       sendGetDocuments();
 
       expect(postMessageStub).to.have.been.calledOnce;
-      expect(postMessageStub).to.have.been.calledWith({
+      expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
       });
     });
@@ -65,7 +55,7 @@ describe('vscode-api test suite', function () {
       sendRefreshDocuments();
 
       expect(postMessageStub).to.have.been.calledOnce;
-      expect(postMessageStub).to.have.been.calledWith({
+      expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.refreshDocuments,
       });
     });
@@ -76,7 +66,7 @@ describe('vscode-api test suite', function () {
       sendFetchPage(10, 25);
 
       expect(postMessageStub).to.have.been.calledOnce;
-      expect(postMessageStub).to.have.been.calledWith({
+      expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.fetchPage,
         skip: 10,
         limit: 25,
@@ -86,7 +76,7 @@ describe('vscode-api test suite', function () {
     it('should handle skip of 0 correctly', function () {
       sendFetchPage(0, 50);
 
-      expect(postMessageStub).to.have.been.calledWith({
+      expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.fetchPage,
         skip: 0,
         limit: 50,
