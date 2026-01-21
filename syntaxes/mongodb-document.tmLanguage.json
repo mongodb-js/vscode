@@ -1,0 +1,72 @@
+{
+  "name": "MongoDB Document",
+  "scopeName": "source.mongodb-document",
+  "fileTypes": ["mongodb"],
+  "patterns": [
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#bson-types" },
+    { "include": "#keywords" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.js",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.js",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.js",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.js",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.js",
+          "match": "\\b\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b"
+        }
+      ]
+    },
+    "bson-types": {
+      "patterns": [
+        {
+          "name": "support.class.js",
+          "match": "\\b(ObjectId|ISODate|Double|Long|NumberLong|Int32|NumberInt|Decimal128|NumberDecimal|Binary|BinData|UUID|Code|Timestamp|MinKey|MaxKey|DBRef|BSONRegExp|RegExp)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "constant.language.js",
+          "match": "\\b(true|false|null|undefined|NaN|Infinity)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.js",
+          "match": "[+\\-*/%=<>!&|]"
+        }
+      ]
+    }
+  }
+}

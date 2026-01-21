@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
-import { ObjectId } from 'bson';
+import { Long, ObjectId } from 'bson';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
 import type { Document, Filter } from 'mongodb';
+import { expect } from 'chai';
 
 import {
   CollectionTreeItem,
@@ -28,7 +29,6 @@ import {
 } from '../../storage/storageController';
 import { VIEW_COLLECTION_SCHEME } from '../../editors/collectionDocumentsProvider';
 import type { CollectionDetailsType } from '../../explorer/collectionTreeItem';
-import { expect } from 'chai';
 import { DeepLinkTelemetryEvent } from '../../telemetry';
 import {
   DEEP_LINK_ALLOWED_COMMANDS,
@@ -157,7 +157,9 @@ suite('MDBExtensionController Test Suite', function () {
 
       expect(overlap).to.deep.equal(
         [],
-        `Commands appear in both allowed and disallowed lists: ${overlap.join(', ')}`,
+        `Commands appear in both allowed and disallowed lists: ${overlap.join(
+          ', ',
+        )}`,
       );
     });
 
@@ -180,7 +182,9 @@ suite('MDBExtensionController Test Suite', function () {
       );
       expect(extra).to.deep.equal(
         [],
-        `Commands in allowed/disallowed lists but not in ExtensionCommand: ${extra.join(', ')}`,
+        `Commands in allowed/disallowed lists but not in ExtensionCommand: ${extra.join(
+          ', ',
+        )}`,
       );
     });
   });
@@ -252,21 +256,19 @@ suite('MDBExtensionController Test Suite', function () {
         'mdb.viewCollectionDocuments',
         textCollectionTree,
       );
-      assert.strictEqual(
+      expect(
         openTextDocumentStub.firstCall.args[0].path.indexOf(
           'Results: testDbName.testColName',
         ),
-        0,
+      ).to.equal(0);
+      expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
+        '.json',
       );
-      assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
-      assert.strictEqual(
-        openTextDocumentStub.firstCall.args[0].scheme,
+      expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
         VIEW_COLLECTION_SCHEME,
       );
-      assert(
-        openTextDocumentStub.firstCall.args[0].query.includes(
-          'namespace=testDbName.testColName',
-        ),
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'namespace=testDbName.testColName',
       );
     });
 
@@ -276,22 +278,80 @@ suite('MDBExtensionController Test Suite', function () {
         'mdb.viewCollectionDocuments',
         textCollectionTree,
       );
-      assert.strictEqual(
+      expect(
         openTextDocumentStub.firstCall.args[0].path.indexOf(
           'Results: testDbName.testColName',
         ),
-        0,
+      ).to.equal(0);
+      expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
+        '.json',
       );
-      assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
-      assert.strictEqual(
-        openTextDocumentStub.firstCall.args[0].scheme,
+      expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
         VIEW_COLLECTION_SCHEME,
       );
-      assert(
-        openTextDocumentStub.firstCall.args[0].query.includes(
-          'namespace=testDbName.testColName',
-        ),
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'namespace=testDbName.testColName',
       );
+    });
+
+    suite('with ejson format preference', function () {
+      let documentViewAndEditFormat;
+
+      beforeEach(async () => {
+        documentViewAndEditFormat = await vscode.workspace
+          .getConfiguration('mdb')
+          .get('documentViewAndEditFormat');
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('documentViewAndEditFormat', 'ejson', true);
+      });
+
+      afterEach(async () => {
+        // Unset the variable we set in `beforeEach`.
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('documentViewAndEditFormat', documentViewAndEditFormat, true);
+      });
+
+      test('mdb.viewCollectionDocuments command should call onViewCollectionDocuments on the editor controller with the collection namespace', async function () {
+        const textCollectionTree = getTestCollectionTreeItem();
+        await vscode.commands.executeCommand(
+          'mdb.viewCollectionDocuments',
+          textCollectionTree,
+        );
+        expect(
+          openTextDocumentStub.firstCall.args[0].path.indexOf(
+            'Results: testDbName.testColName',
+          ),
+        ).to.equal(0);
+        expect(openTextDocumentStub.firstCall.args[0].path).to.include('.json');
+        expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
+          VIEW_COLLECTION_SCHEME,
+        );
+        expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+          'namespace=testDbName.testColName',
+        );
+      });
+
+      test('mdb.viewCollectionDocuments command should also work with the documents list', async function () {
+        const textCollectionTree = getTestCollectionTreeItem();
+        await vscode.commands.executeCommand(
+          'mdb.viewCollectionDocuments',
+          textCollectionTree,
+        );
+        expect(
+          openTextDocumentStub.firstCall.args[0].path.indexOf(
+            'Results: testDbName.testColName',
+          ),
+        ).to.equal(0);
+        expect(openTextDocumentStub.firstCall.args[0].path).to.include('.json');
+        expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
+          VIEW_COLLECTION_SCHEME,
+        );
+        expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+          'namespace=testDbName.testColName',
+        );
+      });
     });
 
     test('mdb.addConnection command should call openWebview on the webview controller', async function () {
@@ -973,13 +1033,11 @@ suite('MDBExtensionController Test Suite', function () {
       mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
     });
 
-    test('mdb.openMongoDBDocumentFromTree opens a document from the sidebar and saves it to MongoDB', async function () {
+    test('mdb.openMongoDBDocumentFromTree opens a document from the sidebar and saves it to MongoDB with shell syntax', async function () {
       const mockDocument = {
         _id: 'pancakes',
         name: '',
-        time: {
-          $time: '12345',
-        },
+        time: new Date('3001-01-01T05:00:00.000Z'),
       };
       const fakeGet = sandbox.fake.returns('pancakes');
       sandbox.replace(
@@ -993,15 +1051,16 @@ suite('MDBExtensionController Test Suite', function () {
       activeTextEditor.document.uri = vscode.Uri.parse(
         [
           'VIEW_DOCUMENT_SCHEME:/',
-          'waffle.house:pancakes.json?',
+          'waffle.house:pancakes?',
           'namespace=waffle.house&',
           'connectionId=tasty_sandwich&',
           'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
-          'source=treeview',
+          'source=treeview&',
+          'format=shell',
         ].join(''),
       );
       activeTextEditor.document.getText = (): string =>
-        JSON.stringify(mockDocument);
+        `{\n  _id: 'pancakes',\n  name: '',\n  time: ISODate('3001-01-01T05:00:00.000Z')\n}`;
       sandbox.replaceGetter(
         vscode.window,
         'activeTextEditor',
@@ -1014,7 +1073,6 @@ suite('MDBExtensionController Test Suite', function () {
         },
         findOneAndReplace: () => {
           mockDocument.name = 'something sweet';
-
           return Promise.resolve(mockDocument);
         },
       });
@@ -1031,101 +1089,39 @@ suite('MDBExtensionController Test Suite', function () {
         'mdb.openMongoDBDocumentFromTree',
         documentItem,
       );
-      assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
-      assert.strictEqual(
-        openTextDocumentStub.firstCall.args[0].scheme,
+      expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
+        '.json',
+      );
+      expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
         'VIEW_DOCUMENT_SCHEME',
       );
-      assert(
-        openTextDocumentStub.firstCall.args[0].query.includes('documentId='),
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'documentId=',
       );
-      assert(
-        openTextDocumentStub.firstCall.args[0].query.includes('connectionId='),
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'connectionId=',
       );
-      assert(
-        openTextDocumentStub.firstCall.args[0].query.includes(
-          'source=treeview',
-        ),
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'source=treeview',
       );
-      assert(
-        openTextDocumentStub.firstCall.args[0].query.includes(
-          'namespace=waffle.house',
-        ),
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'namespace=waffle.house',
+      );
+      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
+        'format=shell',
       );
       await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
-      assert.strictEqual(mockDocument.name, 'something sweet');
-      assert.strictEqual(mockDocument.time.$time, '12345');
+      expect(mockDocument.name).to.equal('something sweet');
 
       const expectedMessage =
         "The document was saved successfully to 'waffle.house'";
 
-      assert.strictEqual(
-        showInformationMessageStub.firstCall.args[0],
+      expect(showInformationMessageStub.firstCall.args[0]).to.equal(
         expectedMessage,
       );
     });
 
-    test('mdb.openMongoDBDocumentFromTree opens a document from a tree with a treeview source', async function () {
-      const mockDocument = {
-        _id: 'pancakes',
-        name: '',
-        time: {
-          $time: '12345',
-        },
-      };
-      const documentItem = getTestDocumentTreeItem({
-        document: mockDocument,
-      });
-      const fakeFetchDocument = sandbox.fake.resolves(null);
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._editorsController
-          ._mongoDBDocumentService,
-        'fetchDocument',
-        fakeFetchDocument,
-      );
-      await vscode.commands.executeCommand(
-        'mdb.openMongoDBDocumentFromTree',
-        documentItem,
-      );
-      assert.strictEqual(
-        fakeFetchDocument.firstCall.args[0].source,
-        'treeview',
-      );
-    });
-
-    test('mdb.openMongoDBDocumentFromCodeLens opens a document from a playground results with a playground source', async function () {
-      const documentItem = {
-        source: 'playground',
-        line: 1,
-        documentId: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-        namespace: 'db.coll',
-        connectionId: null,
-      };
-      const fakeFetchDocument = sandbox.fake.resolves(null);
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._editorsController
-          ._mongoDBDocumentService,
-        'fetchDocument',
-        fakeFetchDocument,
-      );
-      await vscode.commands.executeCommand(
-        'mdb.openMongoDBDocumentFromCodeLens',
-        documentItem,
-      );
-      assert.strictEqual(
-        fakeFetchDocument.firstCall.args[0].source,
-        'playground',
-      );
-    });
-
-    test('mdb.saveMongoDBDocument replaces a document with a treeview source', async function () {
-      const mockDocument = {
-        _id: 'pancakes',
-        name: '',
-        time: {
-          $time: '12345',
-        },
-      };
+    test('mdb.saveMongoDBDocument replaces a document with a treeview source using shell format', async function () {
       const fakeGet = sandbox.fake.returns('pancakes');
       sandbox.replace(
         mdbTestExtension.testExtensionController._editorsController
@@ -1146,9 +1142,11 @@ suite('MDBExtensionController Test Suite', function () {
                   'connectionId=tasty_sandwich',
                   'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
                   'source=treeview',
+                  'format=shell',
                 ].join('&'),
               },
-              getText: () => JSON.stringify(mockDocument),
+              getText: () =>
+                `{\n  _id: 'pancakes',\n  name: '',\n  time: ISODate('3001-01-01T05:00:00.000Z')\n}`,
               save: () => {},
             },
           }) as unknown as typeof vscode.window.activeTextEditor,
@@ -1162,60 +1160,359 @@ suite('MDBExtensionController Test Suite', function () {
         fakeReplaceDocument,
       );
       await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
-      assert.strictEqual(
-        fakeReplaceDocument.firstCall.args[0].source,
-        'treeview',
-      );
+      expect(fakeReplaceDocument.firstCall.args[0].source).to.equal('treeview');
     });
 
-    test('mdb.saveMongoDBDocuments replaces a document with a playground source', async function () {
+    test('mdb.copyDocumentContentsFromTreeView should copy shell syntax to clipboard', async function () {
       const mockDocument = {
         _id: 'pancakes',
-        name: '',
-        time: {
-          $time: '12345',
-        },
+        time: new Date('3001-01-01T05:00:00.000Z'),
       };
-      const fakeGet = sandbox.fake.returns('pancakes');
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._editorsController
-          ._documentIdStore,
-        'get',
-        fakeGet,
-      );
-      sandbox.replaceGetter(
-        vscode.window,
-        'activeTextEditor',
-        () =>
-          ({
-            document: {
-              uri: {
-                scheme: 'VIEW_DOCUMENT_SCHEME',
-                query: [
-                  'namespace=waffle.house',
-                  'connectionId=tasty_sandwich',
-                  'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
-                  'source=playground',
-                ].join('&'),
-              },
-              getText: () => JSON.stringify(mockDocument),
-              save: () => {},
-            },
-          }) as unknown as typeof vscode.window.activeTextEditor,
-      );
+      let namespaceUsed = '';
 
-      const fakeReplaceDocument = sandbox.fake.resolves(null);
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._editorsController
-          ._mongoDBDocumentService,
-        'replaceDocument',
-        fakeReplaceDocument,
+      const findStub = sandbox.stub();
+      findStub.resolves([mockDocument]);
+
+      const dataServiceStub = {
+        find: (namespace: string) => {
+          namespaceUsed = namespace;
+          return Promise.resolve([mockDocument]);
+        },
+      } as unknown as DataService;
+      const documentTreeItem = getTestDocumentTreeItem({
+        dataService: dataServiceStub,
+      });
+
+      const fakeWriteText = sandbox.fake();
+      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
+        writeText: fakeWriteText,
+        readText: sandbox.fake(),
+      }));
+      await vscode.commands.executeCommand(
+        'mdb.copyDocumentContentsFromTreeView',
+        documentTreeItem,
       );
-      await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
-      assert.strictEqual(
-        fakeReplaceDocument.firstCall.args[0].source,
-        'playground',
+      expect(fakeWriteText.called).to.be.true;
+      expect(fakeWriteText.firstCall.args[0]).to.equal(
+        `{
+  _id: 'pancakes',
+  time: ISODate('3001-01-01T05:00:00.000Z')
+}`,
       );
+      expect(namespaceUsed).to.equal('waffle.house');
+    });
+
+    suite('document operations with ejson format', function () {
+      let documentViewAndEditFormat;
+
+      beforeEach(async () => {
+        documentViewAndEditFormat = vscode.workspace
+          .getConfiguration('mdb')
+          .get('documentViewAndEditFormat');
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('documentViewAndEditFormat', 'ejson', true);
+      });
+
+      afterEach(async () => {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('documentViewAndEditFormat', documentViewAndEditFormat, true);
+      });
+
+      test('mdb.openMongoDBDocumentFromTree opens a document from the sidebar and saves it to MongoDB', async function () {
+        const mockDocument = {
+          _id: 'pancakes',
+          name: '',
+          time: {
+            $time: '12345',
+          },
+        };
+        const fakeGet = sandbox.fake.returns('pancakes');
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._editorsController
+            ._documentIdStore,
+          'get',
+          fakeGet,
+        );
+
+        const activeTextEditor = mockTextEditor;
+        activeTextEditor.document.uri = vscode.Uri.parse(
+          [
+            'VIEW_DOCUMENT_SCHEME:/',
+            'waffle.house:pancakes.json?',
+            'namespace=waffle.house&',
+            'connectionId=tasty_sandwich&',
+            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
+            'source=treeview&',
+            'format=ejson',
+          ].join(''),
+        );
+        activeTextEditor.document.getText = (): string =>
+          JSON.stringify(mockDocument);
+        sandbox.replaceGetter(
+          vscode.window,
+          'activeTextEditor',
+          () => activeTextEditor,
+        );
+
+        const fakeGetActiveDataService = sandbox.fake.returns({
+          find: () => {
+            return Promise.resolve([mockDocument]);
+          },
+          findOneAndReplace: () => {
+            mockDocument.name = 'something sweet';
+
+            return Promise.resolve(mockDocument);
+          },
+        });
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._connectionController,
+          'getActiveDataService',
+          fakeGetActiveDataService,
+        );
+
+        const documentItem = getTestDocumentTreeItem({
+          document: mockDocument,
+        });
+        await vscode.commands.executeCommand(
+          'mdb.openMongoDBDocumentFromTree',
+          documentItem,
+        );
+        assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
+        assert.strictEqual(
+          openTextDocumentStub.firstCall.args[0].scheme,
+          'VIEW_DOCUMENT_SCHEME',
+        );
+        assert(
+          openTextDocumentStub.firstCall.args[0].query.includes('documentId='),
+        );
+        assert(
+          openTextDocumentStub.firstCall.args[0].query.includes(
+            'connectionId=',
+          ),
+        );
+        assert(
+          openTextDocumentStub.firstCall.args[0].query.includes(
+            'source=treeview',
+          ),
+        );
+        assert(
+          openTextDocumentStub.firstCall.args[0].query.includes(
+            'namespace=waffle.house',
+          ),
+        );
+        await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
+        assert.strictEqual(mockDocument.name, 'something sweet');
+        assert.strictEqual(mockDocument.time.$time, '12345');
+
+        const expectedMessage =
+          "The document was saved successfully to 'waffle.house'";
+
+        assert.strictEqual(
+          showInformationMessageStub.firstCall.args[0],
+          expectedMessage,
+        );
+      });
+
+      test('mdb.openMongoDBDocumentFromTree opens a document from a tree with a treeview source', async function () {
+        const mockDocument = {
+          _id: 'pancakes',
+          name: '',
+          time: {
+            $time: '12345',
+          },
+        };
+        const documentItem = getTestDocumentTreeItem({
+          document: mockDocument,
+        });
+        const fakeFetchDocument = sandbox.fake.resolves(null);
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._editorsController
+            ._mongoDBDocumentService,
+          'fetchDocument',
+          fakeFetchDocument,
+        );
+        await vscode.commands.executeCommand(
+          'mdb.openMongoDBDocumentFromTree',
+          documentItem,
+        );
+        assert.strictEqual(
+          fakeFetchDocument.firstCall.args[0].source,
+          'treeview',
+        );
+      });
+
+      test('mdb.openMongoDBDocumentFromCodeLens opens a document from a playground results with a playground source', async function () {
+        const documentItem = {
+          source: 'playground',
+          line: 1,
+          documentId: '93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+          namespace: 'db.coll',
+          connectionId: null,
+        };
+        const fakeFetchDocument = sandbox.fake.resolves(null);
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._editorsController
+            ._mongoDBDocumentService,
+          'fetchDocument',
+          fakeFetchDocument,
+        );
+        await vscode.commands.executeCommand(
+          'mdb.openMongoDBDocumentFromCodeLens',
+          documentItem,
+        );
+        assert.strictEqual(
+          fakeFetchDocument.firstCall.args[0].source,
+          'playground',
+        );
+      });
+
+      test('mdb.saveMongoDBDocument replaces a document with a treeview source', async function () {
+        const mockDocument = {
+          _id: 'pancakes',
+          name: '',
+          time: {
+            $time: '12345',
+          },
+        };
+        const fakeGet = sandbox.fake.returns('pancakes');
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._editorsController
+            ._documentIdStore,
+          'get',
+          fakeGet,
+        );
+        sandbox.replaceGetter(
+          vscode.window,
+          'activeTextEditor',
+          () =>
+            ({
+              document: {
+                uri: {
+                  scheme: 'VIEW_DOCUMENT_SCHEME',
+                  query: [
+                    'namespace=waffle.house',
+                    'connectionId=tasty_sandwich',
+                    'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+                    'source=treeview',
+                    'format=ejson',
+                  ].join('&'),
+                },
+                getText: () => JSON.stringify(mockDocument),
+                save: () => {},
+              },
+            }) as unknown as typeof vscode.window.activeTextEditor,
+        );
+
+        const fakeReplaceDocument = sandbox.fake.resolves(null);
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._editorsController
+            ._mongoDBDocumentService,
+          'replaceDocument',
+          fakeReplaceDocument,
+        );
+        await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
+        assert.strictEqual(
+          fakeReplaceDocument.firstCall.args[0].source,
+          'treeview',
+        );
+      });
+
+      test('mdb.saveMongoDBDocuments replaces a document with a playground source', async function () {
+        const mockDocument = {
+          _id: 'pancakes',
+          name: '',
+          time: {
+            $time: '12345',
+          },
+        };
+        const fakeGet = sandbox.fake.returns('pancakes');
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._editorsController
+            ._documentIdStore,
+          'get',
+          fakeGet,
+        );
+        sandbox.replaceGetter(
+          vscode.window,
+          'activeTextEditor',
+          () =>
+            ({
+              document: {
+                uri: {
+                  scheme: 'VIEW_DOCUMENT_SCHEME',
+                  query: [
+                    'namespace=waffle.house',
+                    'connectionId=tasty_sandwich',
+                    'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a',
+                    'source=playground',
+                    'format=ejson',
+                  ].join('&'),
+                },
+                getText: () => JSON.stringify(mockDocument),
+                save: () => {},
+              },
+            }) as unknown as typeof vscode.window.activeTextEditor,
+        );
+
+        const fakeReplaceDocument = sandbox.fake.resolves(null);
+        sandbox.replace(
+          mdbTestExtension.testExtensionController._editorsController
+            ._mongoDBDocumentService,
+          'replaceDocument',
+          fakeReplaceDocument,
+        );
+        await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
+        assert.strictEqual(
+          fakeReplaceDocument.firstCall.args[0].source,
+          'playground',
+        );
+      });
+
+      test("mdb.copyDocumentContentsFromTreeView should copy a document's content to the clipboard", async function () {
+        const mockDocument = {
+          _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
+          pineapple: new Long('90071992547409920'),
+        };
+        let namespaceUsed = '';
+
+        const findStub = sandbox.stub();
+        findStub.resolves([mockDocument]);
+
+        const dataServiceStub = {
+          find: (namespace: string) => {
+            namespaceUsed = namespace;
+            return Promise.resolve([mockDocument]);
+          },
+        } as unknown as DataService;
+        const documentTreeItem = getTestDocumentTreeItem({
+          dataService: dataServiceStub,
+        });
+
+        const fakeWriteText = sandbox.fake();
+        sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
+          writeText: fakeWriteText,
+          readText: sandbox.fake(),
+        }));
+        await vscode.commands.executeCommand(
+          'mdb.copyDocumentContentsFromTreeView',
+          documentTreeItem,
+        );
+        assert.strictEqual(fakeWriteText.called, true);
+        assert.strictEqual(
+          fakeWriteText.firstCall.args[0],
+          `{
+  "_id": {
+    "$oid": "6536b0aef59f6ffc9af93f3c"
+  },
+  "pineapple": {
+    "$numberLong": "90071992547409920"
+  }
+}`,
+        );
+        assert.strictEqual(namespaceUsed, 'waffle.house');
+      });
     });
 
     test('mdb.runSelectedPlaygroundBlocks runs selected playgroundB blocks once', async function () {
@@ -1274,50 +1571,6 @@ suite('MDBExtensionController Test Suite', function () {
         fakeRefresh.calledOnce,
         'Expected "refreshPlaygrounds" to be called on the playground controller.',
       );
-    });
-
-    test("mdb.copyDocumentContentsFromTreeView should copy a document's content to the clipboard", async function () {
-      const mockDocument = {
-        _id: 'pancakes',
-        time: {
-          $time: '12345',
-        },
-      };
-      let namespaceUsed = '';
-
-      const findStub = sandbox.stub();
-      findStub.resolves([mockDocument]);
-
-      const dataServiceStub = {
-        find: (namespace: string) => {
-          namespaceUsed = namespace;
-          return Promise.resolve([mockDocument]);
-        },
-      } as unknown as DataService;
-      const documentTreeItem = getTestDocumentTreeItem({
-        dataService: dataServiceStub,
-      });
-
-      const fakeWriteText = sandbox.fake();
-      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
-        writeText: fakeWriteText,
-        readText: sandbox.fake(),
-      }));
-      await vscode.commands.executeCommand(
-        'mdb.copyDocumentContentsFromTreeView',
-        documentTreeItem,
-      );
-      assert.strictEqual(fakeWriteText.called, true);
-      assert.strictEqual(
-        fakeWriteText.firstCall.args[0],
-        `{
-  "_id": "pancakes",
-  "time": {
-    "$time": "12345"
-  }
-}`,
-      );
-      assert.strictEqual(namespaceUsed, 'waffle.house');
     });
 
     test("mdb.cloneDocumentFromTreeView opens a playground with a document's content", async function () {

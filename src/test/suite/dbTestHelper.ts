@@ -11,7 +11,7 @@ export const TEST_DATABASE_URI_USER = `mongodb://${TEST_USER_USERNAME}:${TEST_US
 
 export const TEST_DB_NAME = 'vscodeTestDatabaseAA';
 
-let testDataService;
+let testDataService: DataService;
 
 export const createTestDataService = async (
   connectionString: string,
@@ -29,7 +29,7 @@ export const seedTestDB = async (
   await testDataService.insertMany(
     `${TEST_DB_NAME}.${collectionName}`,
     documentsArray,
-    {},
+    { promoteValues: false },
   );
 };
 

@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect } from 'chai';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
 import { ObjectId } from 'bson';
@@ -11,8 +10,6 @@ import {
   getViewCollectionDocumentsUri,
 } from '../../../editors/editorsController';
 import { mockTextEditor } from '../stubs';
-
-const expect = chai.expect;
 
 suite('Editors Controller Test Suite', function () {
   const sandbox = sinon.createSandbox();
@@ -33,7 +30,7 @@ suite('Editors Controller Test Suite', function () {
       const result = getFileDisplayNameForDocument(str, 'a.b');
       const expected =
         'a.b:"abc%2f%2f%5c%5c%5cnab  c%5c"$%25%25..@1s   df%5c"%5c""';
-      assert.strictEqual(result, expected);
+      expect(result).to.equal(expected);
     });
 
     test('it trims the string to 200 characters', function () {
@@ -42,7 +39,7 @@ suite('Editors Controller Test Suite', function () {
       const result = getFileDisplayNameForDocument(str, 'db.col');
       const expected =
         'db.col:"123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdffbnjiekbfdakjsdbfkjsabdfkjasbfbnjiekbfdakjsdbfkjsabdfkjasbkjasbfbnjiekbfdakjsd';
-      assert.strictEqual(result, expected);
+      expect(result).to.equal(expected);
     });
 
     test('it handles ids that are objects', function () {
@@ -53,14 +50,14 @@ suite('Editors Controller Test Suite', function () {
       const result = getFileDisplayNameForDocument(str, 'db.col');
       const expected =
         'db.col:{"str":"abc%2f%2f%5c%5c%5cnab  c$%25%25..@1s   df%5c"","b":{"$oid":"5d973ae744376d2aae72a160"}}';
-      assert.strictEqual(result, expected);
+      expect(result).to.equal(expected);
     });
 
     test('has the namespace at the start of the display name', function () {
       const str = 'pineapples';
       const result = getFileDisplayNameForDocument(str, 'grilled');
       const expected = 'grilled:"pineapples"';
-      assert.strictEqual(result, expected);
+      expect(result).to.equal(expected);
     });
   });
 
@@ -68,17 +65,36 @@ suite('Editors Controller Test Suite', function () {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFavoriteNamespace';
     const testConnectionId = 'alienSateliteConnection';
-    const testUri = getViewCollectionDocumentsUri(
-      testOpId,
-      testNamespace,
-      testConnectionId,
-    );
+    const testUri = getViewCollectionDocumentsUri({
+      editFormat: 'ejson',
+      operationId: testOpId,
+      namespace: testNamespace,
+      connectionId: testConnectionId,
+    });
 
-    assert.strictEqual(testUri.path, 'Results: myFavoriteNamespace.json');
-    assert.strictEqual(testUri.scheme, 'VIEW_COLLECTION_SCHEME');
-    assert.strictEqual(
+    expect(testUri.path).to.equal('Results: myFavoriteNamespace.json');
+    expect(testUri.scheme).to.equal('VIEW_COLLECTION_SCHEME');
+    expect(
       testUri.query,
-      'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
+      'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011&format=ejson',
+    );
+  });
+
+  test('getViewCollectionDocumentsUri builds a uri with shell format', function () {
+    const testOpId = '100011011101110011';
+    const testNamespace = 'myFavoriteNamespace';
+    const testConnectionId = 'alienSateliteConnection';
+    const testUri = getViewCollectionDocumentsUri({
+      editFormat: 'shell',
+      operationId: testOpId,
+      namespace: testNamespace,
+      connectionId: testConnectionId,
+    });
+
+    expect(testUri.path).to.equal('Results: myFavoriteNamespace');
+    expect(testUri.scheme).to.equal('VIEW_COLLECTION_SCHEME');
+    expect(testUri.query).to.equal(
+      'namespace=myFavoriteNamespace&connectionId=alienSateliteConnection&operationId=100011011101110011&format=shell',
     );
   });
 
@@ -86,20 +102,19 @@ suite('Editors Controller Test Suite', function () {
     const testOpId = '100011011101110011';
     const testNamespace = 'myFa%%\\\\///\\%vorite%Namespace';
     const testConnectionId = 'alienSateliteConnection';
-    const testUri = getViewCollectionDocumentsUri(
-      testOpId,
-      testNamespace,
-      testConnectionId,
-    );
+    const testUri = getViewCollectionDocumentsUri({
+      editFormat: 'ejson',
+      operationId: testOpId,
+      namespace: testNamespace,
+      connectionId: testConnectionId,
+    });
 
-    assert.strictEqual(
-      testUri.path,
+    expect(testUri.path).to.equal(
       'Results: myFa%25%25%5c%5c%2f%2f%2f%5c%25vorite%25Namespace.json',
     );
-    assert.strictEqual(testUri.scheme, 'VIEW_COLLECTION_SCHEME');
-    assert.strictEqual(
-      testUri.query,
-      'namespace=myFa%%\\\\///\\%vorite%Namespace&connectionId=alienSateliteConnection&operationId=100011011101110011',
+    expect(testUri.scheme).to.equal('VIEW_COLLECTION_SCHEME');
+    expect(testUri.query).to.equal(
+      'namespace=myFa%%\\\\///\\%vorite%Namespace&connectionId=alienSateliteConnection&operationId=100011011101110011&format=ejson',
     );
   });
 

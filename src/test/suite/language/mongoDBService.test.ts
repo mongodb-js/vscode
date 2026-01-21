@@ -67,6 +67,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           codeToEvaluate: '1 + 1',
+          expectedFormat: 'ejson',
           connectionId: 'pineapple',
         },
         source.token,
@@ -2589,6 +2590,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: '1 + 1',
         },
         source.token,
@@ -2640,6 +2642,7 @@ suite('MongoDBService Test Suite', function () {
             const result = await testMongoDBService.evaluate(
               {
                 connectionId: 'pineapple',
+                expectedFormat: 'ejson',
                 codeToEvaluate: `db.getCollection("${collectionName1}").findOne({}, { _id: 0, name: 1, number: 1 })`,
               },
               source.token,
@@ -2648,7 +2651,7 @@ suite('MongoDBService Test Suite', function () {
               result: {
                 namespace: `${dbName1}.${collectionName1}`,
                 type: 'Document',
-                content: { name: 'Test1', number: 1 },
+                content: { name: 'Test1', number: { $numberInt: '1' } },
                 language: 'json',
               },
             };
@@ -2671,6 +2674,7 @@ suite('MongoDBService Test Suite', function () {
             const result = await testMongoDBService.evaluate(
               {
                 connectionId: 'pineapple',
+                expectedFormat: 'ejson',
                 codeToEvaluate: `use('${dbName2}'); db.getCollection("${collectionName2}").findOne({}, { _id: 0, name: 1, number: 1 })`,
               },
               source.token,
@@ -2679,7 +2683,7 @@ suite('MongoDBService Test Suite', function () {
               result: {
                 namespace: `${dbName2}.${collectionName2}`,
                 type: 'Document',
-                content: { name: 'Test2', number: 2 },
+                content: { name: 'Test2', number: { $numberInt: '2' } },
                 language: 'json',
               },
             };
@@ -2699,6 +2703,7 @@ suite('MongoDBService Test Suite', function () {
             const result = await testMongoDBService.evaluate(
               {
                 connectionId: 'pineapple',
+                expectedFormat: 'ejson',
                 codeToEvaluate: `use('${dbName2}'); db.getCollection("${collectionName2}").findOne({}, { _id: 0, name: 1, number: 1 })`,
               },
               source.token,
@@ -2707,7 +2712,7 @@ suite('MongoDBService Test Suite', function () {
               result: {
                 namespace: `${dbName2}.${collectionName2}`,
                 type: 'Document',
-                content: { name: 'Test2', number: 2 },
+                content: { name: 'Test2', number: { $numberInt: '2' } },
                 language: 'json',
               },
             };
@@ -2723,6 +2728,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'not pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: '1 + 1',
         },
         source.token,
@@ -2736,6 +2742,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: 'const x = 1; x + 2',
         },
         source.token,
@@ -2757,6 +2764,7 @@ suite('MongoDBService Test Suite', function () {
       const firstEvalResult = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: 'const x = 1 + 1; x',
         },
         source.token,
@@ -2775,6 +2783,7 @@ suite('MongoDBService Test Suite', function () {
       const secondEvalResult = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: 'const x = 2 + 1; x',
         },
         source.token,
@@ -2796,6 +2805,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: `const { ObjectId } = require('bson');
           const x = { _id: new ObjectId('5fb292760ece2dc9c0362075') };
           x`,
@@ -2823,6 +2833,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: `const obj = { name: "a short string" };
           obj`,
         },
@@ -2847,6 +2858,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: `const arr = [{ name: "a short string" }];
           arr`,
         },
@@ -2873,6 +2885,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: 'undefined',
         },
         source.token,
@@ -2894,6 +2907,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: 'null',
         },
         source.token,
@@ -2915,6 +2929,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: `const x = 'A single line string';
           x`,
         },
@@ -2937,6 +2952,7 @@ suite('MongoDBService Test Suite', function () {
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
+          expectedFormat: 'ejson',
           codeToEvaluate: `const x = \`vscode
           is
           awesome\`;
@@ -2982,6 +2998,7 @@ suite('MongoDBService Test Suite', function () {
         const result = await testMongoDBService.evaluate(
           {
             connectionId: 'pineapple',
+            expectedFormat: 'ejson',
             codeToEvaluate: `print("Hello"); console.log(1,2,3); console.log(true); console.log(ObjectId('${hexString}')); 42`,
           },
           source.token,
@@ -3029,6 +3046,7 @@ suite('MongoDBService Test Suite', function () {
         const result = await testMongoDBService.evaluate(
           {
             connectionId: 'pineapple',
+            expectedFormat: 'ejson',
             codeToEvaluate: 'const { add } = require("./utils.js"); add(1, 2);',
             filePath: path.join(tmpDir, 'utils.js'),
           },
