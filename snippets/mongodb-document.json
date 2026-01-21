@@ -1,0 +1,92 @@
+{
+  "ObjectId": {
+    "prefix": "ObjectId",
+    "body": "ObjectId('$1')",
+    "description": "BSON ObjectId"
+  },
+  "ISODate": {
+    "prefix": "ISODate",
+    "body": "ISODate('$1')",
+    "description": "BSON ISODate"
+  },
+  "Double": {
+    "prefix": "Double",
+    "body": "Double('$1')",
+    "description": "BSON Double"
+  },
+  "Long": {
+    "prefix": "Long",
+    "body": "Long('$1')",
+    "description": "64-bit integer"
+  },
+  "NumberLong": {
+    "prefix": "NumberLong",
+    "body": "NumberLong('$1')",
+    "description": "64-bit integer"
+  },
+  "Int32": {
+    "prefix": "Int32",
+    "body": "Int32($1)",
+    "description": "32-bit integer"
+  },
+  "NumberInt": {
+    "prefix": "NumberInt",
+    "body": "NumberInt($1)",
+    "description": "32-bit integer"
+  },
+  "Decimal128": {
+    "prefix": "Decimal128",
+    "body": "Decimal128('$1')",
+    "description": "128-bit decimal"
+  },
+  "NumberDecimal": {
+    "prefix": "NumberDecimal",
+    "body": "NumberDecimal('$1')",
+    "description": "128-bit decimal"
+  },
+  "Binary": {
+    "prefix": "Binary",
+    "body": "Binary($1, $2)",
+    "description": "BSON Binary data"
+  },
+  "BinData": {
+    "prefix": "BinData",
+    "body": "BinData($1, '$2')",
+    "description": "BSON Binary data (legacy)"
+  },
+  "UUID": {
+    "prefix": "UUID",
+    "body": "UUID('$1')",
+    "description": "UUID"
+  },
+  "Timestamp": {
+    "prefix": "Timestamp",
+    "body": "Timestamp($1, $2)",
+    "description": "BSON Timestamp"
+  },
+  "MinKey": {
+    "prefix": "MinKey",
+    "body": "MinKey()",
+    "description": "BSON MinKey"
+  },
+  "MaxKey": {
+    "prefix": "MaxKey",
+    "body": "MaxKey()",
+    "description": "BSON MaxKey"
+  },
+  "DBRef": {
+    "prefix": "DBRef",
+    "body": "DBRef('$1', $2)",
+    "description": "BSON DBRef"
+  },
+  "Code": {
+    "prefix": "Code",
+    "body": "Code('$1')",
+    "description": "BSON Code"
+  },
+  "BSONRegExp": {
+    "prefix": "BSONRegExp",
+    "body": "BSONRegExp('$1', '$2')",
+    "description": "BSON Regular Expression"
+  }
+}
