@@ -21,6 +21,11 @@ import {
   sendFetchPage,
   sendCancelRequest,
 } from './vscode-api';
+import {
+  VSCODE_PANEL_BORDER,
+  VSCODE_EDITOR_BACKGROUND,
+  VSCODE_DESCRIPTION_FOREGROUND,
+} from '../vscode-styles';
 
 interface PreviewDocument {
   [key: string]: unknown;
@@ -40,12 +45,12 @@ const toolbarStyles = css({
   alignItems: 'center',
   justifyContent: 'space-between',
   padding: `${spacing[200]}px ${spacing[300]}px`,
-  borderBottom: '1px solid var(--vscode-panel-border, #444)',
+  borderBottom: `1px solid ${VSCODE_PANEL_BORDER}`,
   gap: spacing[300],
   flexWrap: 'wrap',
   position: 'sticky',
   top: 0,
-  backgroundColor: 'var(--vscode-editor-background, #1e1e1e)',
+  backgroundColor: VSCODE_EDITOR_BACKGROUND,
   zIndex: 10,
 });
 
@@ -69,26 +74,12 @@ const paginationInfoStyles = css({
 const paginationArrowsStyles = css({
   display: 'flex',
   alignItems: 'center',
-  '--vscode-button-border': 'transparent',
-  '--vscode-button-secondaryBackground': 'transparent',
-});
-
-const refreshButtonStyles = css({
-  '--vscode-button-border': 'transparent',
-  '--vscode-button-secondaryBackground': 'transparent',
+  gap: spacing[200],
 });
 
 const fitContentSelectStyles = css({
   width: 'auto',
   minWidth: 'unset',
-  '--vscode-settings-dropdownBorder': 'transparent',
-  '--vscode-single-select': {
-    padding: '20px',
-  },
-});
-
-const stopButtonStyles = css({
-  '--vscode-button-border': 'transparent',
 });
 
 const loadingOverlayStyles = css({
@@ -108,7 +99,7 @@ const contentStyles = css({
 const emptyStateStyles = css({
   textAlign: 'center',
   padding: spacing[500],
-  color: 'var(--vscode-descriptionForeground)',
+  color: VSCODE_DESCRIPTION_FOREGROUND,
 });
 
 const PreviewApp: React.FC = () => {
@@ -262,7 +253,6 @@ const PreviewApp: React.FC = () => {
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
           <VscodeButton
-            className={refreshButtonStyles}
             aria-label="Refresh"
             title="Refresh"
             onClick={handleRefresh}
@@ -325,7 +315,6 @@ const PreviewApp: React.FC = () => {
             {/* Stop button - only shown when loading */}
             {isLoading && (
               <VscodeButton
-                className={stopButtonStyles}
                 aria-label="Stop"
                 title="Stop current request"
                 onClick={handleStop}

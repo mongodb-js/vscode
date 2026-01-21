@@ -303,7 +303,7 @@ export default class DataBrowsingController {
   private async _getTotalCount(
     namespace: string,
     collectionType: string,
-    signal?: AbortSignal,
+    signal: AbortSignal,
   ): Promise<number> {
     if (
       collectionType === CollectionType.view ||
@@ -317,7 +317,7 @@ export default class DataBrowsingController {
       return 0;
     }
 
-    const stages = [{ $match: {} }, { $count: 'count' }];
+    const stages = [{ $count: 'count' }];
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
     const result = await dataService.aggregate(
