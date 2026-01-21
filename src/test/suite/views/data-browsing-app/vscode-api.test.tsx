@@ -39,17 +39,6 @@ describe('vscode-api test suite', function () {
   });
 
   describe('sendGetDocuments', function () {
-    it('should send message with getDocuments command', function () {
-      sendGetDocuments();
-
-      expect(postMessageStub).to.have.been.calledOnce;
-      expect(postMessageStub).to.have.been.calledWithExactly({
-        command: PreviewMessageType.getDocuments,
-        skip: undefined,
-        limit: undefined,
-      });
-    });
-
     it('should send message with getDocuments command and pagination params', function () {
       sendGetDocuments(10, 25);
 
@@ -58,6 +47,17 @@ describe('vscode-api test suite', function () {
         command: PreviewMessageType.getDocuments,
         skip: 10,
         limit: 25,
+      });
+    });
+
+    it('should send message with getDocuments command with zero skip', function () {
+      sendGetDocuments(0, 10);
+
+      expect(postMessageStub).to.have.been.calledOnce;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
       });
     });
   });

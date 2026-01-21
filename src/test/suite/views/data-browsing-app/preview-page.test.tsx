@@ -35,6 +35,8 @@ describe('PreviewApp test suite', function () {
       render(<PreviewApp />);
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
+        skip: 1,
+        limit: 10,
       });
     });
 
@@ -175,11 +177,20 @@ describe('PreviewApp test suite', function () {
     // Helper to complete initial loading
     function completeInitialLoading(): void {
       act(() => {
+        // Send loadDocuments message
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
               command: PreviewMessageType.loadDocuments,
               documents: [{ _id: '1', name: 'Doc1' }],
+            },
+          }),
+        );
+        // Send updateTotalCount message (now sent separately)
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.updateTotalCount,
               totalCount: 1,
             },
           }),
@@ -197,10 +208,11 @@ describe('PreviewApp test suite', function () {
       const refreshButton = screen.getByLabelText('Refresh');
       fireEvent.click(refreshButton);
 
+      // Refresh sends current page (reset to 1) and itemsPerPage (10)
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
-        skip: undefined,
-        limit: undefined,
+        skip: 1,
+        limit: 10,
       });
     });
 
@@ -231,11 +243,20 @@ describe('PreviewApp test suite', function () {
       }));
 
       act(() => {
+        // Send loadDocuments message
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
               command: PreviewMessageType.loadDocuments,
               documents,
+            },
+          }),
+        );
+        // Send updateTotalCount message (now sent separately)
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.updateTotalCount,
               totalCount,
             },
           }),

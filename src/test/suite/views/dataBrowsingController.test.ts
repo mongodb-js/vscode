@@ -194,18 +194,31 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('Successful request handling', function () {
-    test('posts loadDocuments message with documents and totalCount on successful handleGetDocuments', async function () {
+    test('posts loadDocuments message with documents on successful handleGetDocuments', async function () {
       const options = createMockOptions();
 
       await testController.handleGetDocuments(mockPanel, options);
 
       expect(mockDataService.find.calledOnce).to.be.true;
-      expect(mockDataService.aggregate.calledOnce).to.be.true;
       expect(postMessageStub.calledOnce).to.be.true;
       const message = postMessageStub.firstCall.args[0];
       expect(message.command).to.equal(PreviewMessageType.loadDocuments);
       expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
-      expect(message.totalCount).to.equal(16);
+    });
+
+    test('sends updateTotalCount message after loadDocuments', async function () {
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      // Wait for the async count to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockDataService.aggregate.calledOnce).to.be.true;
+      // Second call should be updateTotalCount
+      const countMessage = postMessageStub.secondCall?.args[0];
+      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.totalCount).to.equal(16);
     });
 
     test('returns totalCount of 0 when aggregate returns empty array', async function () {
@@ -214,32 +227,43 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options);
 
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.totalCount).to.equal(0);
+      // Wait for the async count to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const countMessage = postMessageStub.secondCall?.args[0];
+      expect(countMessage?.totalCount).to.equal(0);
     });
 
-    test('does not call aggregate for view collections and returns null', async function () {
+    test('does not call aggregate for view collections and sends null totalCount', async function () {
       const options = createMockOptions({
         collectionType: CollectionType.view,
       });
 
       await testController.handleGetDocuments(mockPanel, options);
 
+      // Wait for the async count to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
       expect(mockDataService.aggregate.called).to.be.false;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.totalCount).to.equal(null);
+      const countMessage = postMessageStub.secondCall?.args[0];
+      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.totalCount).to.equal(null);
     });
 
-    test('does not call aggregate for timeseries collections and returns null', async function () {
+    test('does not call aggregate for timeseries collections and sends null totalCount', async function () {
       const options = createMockOptions({
         collectionType: CollectionType.timeseries,
       });
 
       await testController.handleGetDocuments(mockPanel, options);
 
+      // Wait for the async count to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
       expect(mockDataService.aggregate.called).to.be.false;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.totalCount).to.equal(null);
+      const countMessage = postMessageStub.secondCall?.args[0];
+      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.totalCount).to.equal(null);
     });
   });
 
@@ -258,7 +282,7 @@ suite('DataBrowsingController Test Suite', function () {
       expect(message.error).to.equal('Connection timeout');
     });
 
-    test('posts refreshError message when aggregate fails', async function () {
+    test('posts updateTotalCountError message when aggregate fails', async function () {
       mockDataService.aggregate = sandbox
         .stub()
         .rejects(new Error('Aggregate failed'));
@@ -266,10 +290,17 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options);
 
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.refreshError);
-      expect(message.error).to.equal('Aggregate failed');
+      // Wait for the async count to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      // First message should be loadDocuments (successful)
+      const loadMessage = postMessageStub.firstCall.args[0];
+      expect(loadMessage.command).to.equal(PreviewMessageType.loadDocuments);
+
+      // Second message should be updateTotalCountError
+      const errorMessage = postMessageStub.secondCall?.args[0];
+      expect(errorMessage?.command).to.equal(PreviewMessageType.updateTotalCountError);
+      expect(errorMessage?.error).to.equal('Aggregate failed');
     });
   });
 
@@ -283,8 +314,24 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleGetDocuments(mockPanel, options);
 
       const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.loadDocuments);
       expect(message.documents).to.deep.equal([]);
-      expect(message.totalCount).to.equal(0);
+    });
+
+    test('sends totalCount of 0 when no active data service', async function () {
+      mockConnectionController.getActiveDataService = sandbox
+        .stub()
+        .returns(null);
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options);
+
+      // Wait for the async count to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const countMessage = postMessageStub.secondCall?.args[0];
+      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.totalCount).to.equal(0);
     });
 
     test('returns empty documents for handleGetDocuments with pagination when no active data service', async function () {
@@ -302,7 +349,7 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('handleWebviewMessage', function () {
-    test('calls handleGetDocuments when getDocuments message received', async function () {
+    test('calls handleGetDocuments when getDocuments message received with skip and limit', async function () {
       const options = createMockOptions();
       const handleGetDocumentsSpy = sandbox.spy(
         testController,
@@ -310,13 +357,13 @@ suite('DataBrowsingController Test Suite', function () {
       );
 
       await testController.handleWebviewMessage(
-        { command: PreviewMessageType.getDocuments },
+        { command: PreviewMessageType.getDocuments, skip: 0, limit: 10 },
         mockPanel,
         options,
       );
 
       expect(handleGetDocumentsSpy.calledOnce).to.be.true;
-      expect(handleGetDocumentsSpy.calledWith(mockPanel, options)).to.be.true;
+      expect(handleGetDocumentsSpy.calledWith(mockPanel, options, 0, 10)).to.be.true;
     });
 
     test('calls handleGetDocuments with pagination when getDocuments message received with skip and limit', async function () {
