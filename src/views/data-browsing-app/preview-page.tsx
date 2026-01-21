@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { Provider } from 'react-redux';
 import {
   VscodeButton,
   VscodeLabel,
@@ -15,13 +16,31 @@ import {
   VSCODE_EDITOR_BACKGROUND,
   VSCODE_DESCRIPTION_FOREGROUND,
 } from '../vscode-styles';
-
-interface PreviewDocument {
-  [key: string]: unknown;
-}
+import { store } from './store';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import {
+  loadDocuments,
+  loadPage,
+  stopLoading,
+  setTotalCountInCollection,
+  markCountReceived,
+  setCurrentPage,
+  setItemsPerPage,
+  startLoading,
+  startRefresh,
+  selectDisplayedDocuments,
+  selectCurrentPage,
+  selectItemsPerPage,
+  selectIsLoading,
+  selectTotalCountInCollection,
+  selectHasReceivedCount,
+  selectTotalPages,
+  selectStartItem,
+  selectEndItem,
+  type PreviewDocument,
+} from './store/documentQuerySlice';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
-const DEFAULT_ITEMS_PER_PAGE = 10;
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -95,44 +114,33 @@ const emptyStateStyles = css({
 });
 
 const PreviewApp: React.FC = () => {
-  const [displayedDocuments, setDisplayedDocuments] = useState<
-    PreviewDocument[]
-  >([]);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(
-    DEFAULT_ITEMS_PER_PAGE,
-  );
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [totalCountInCollection, setTotalCountInCollection] = useState<
-    number | null
-  >(null);
-  const [hasReceivedCount, setHasReceivedCount] = useState(false);
+  const dispatch = useAppDispatch();
 
-  const isCountAvailable = totalCountInCollection !== null;
-  const totalDocuments = isCountAvailable
-    ? totalCountInCollection
-    : displayedDocuments.length;
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
-  }, [totalDocuments, itemsPerPage]);
+  // Redux selectors
+  const displayedDocuments = useAppSelector(selectDisplayedDocuments);
+  const currentPage = useAppSelector(selectCurrentPage);
+  const itemsPerPage = useAppSelector(selectItemsPerPage);
+  const isLoading = useAppSelector(selectIsLoading);
+  const totalCountInCollection = useAppSelector(selectTotalCountInCollection);
+  const hasReceivedCount = useAppSelector(selectHasReceivedCount);
+  const totalPages = useAppSelector(selectTotalPages);
+  const startItem = useAppSelector(selectStartItem);
+  const endItem = useAppSelector(selectEndItem);
 
+  // Adjust current page if it exceeds total pages
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
+      dispatch(setCurrentPage(totalPages));
     }
-  }, [totalPages, currentPage]);
-
-  const startItem =
-    totalDocuments === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalDocuments);
+  }, [totalPages, currentPage, dispatch]);
 
   const fetchPageFromServer = useCallback(
     (page: number, limit: number): void => {
       const skip = (page - 1) * limit;
-      setIsLoading(true);
+      dispatch(startLoading());
       sendGetDocuments(skip, limit);
     },
-    [],
+    [dispatch],
   );
 
   useEffect(() => {
@@ -140,28 +148,24 @@ const PreviewApp: React.FC = () => {
       const message: MessageFromExtensionToWebview = event.data;
       switch (message.command) {
         case PreviewMessageType.loadDocuments:
-          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
-          setCurrentPage(1);
-          setIsLoading(false);
+          dispatch(loadDocuments((message.documents as PreviewDocument[]) || []));
           break;
         case PreviewMessageType.loadPage:
-          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
-          setIsLoading(false);
+          dispatch(loadPage((message.documents as PreviewDocument[]) || []));
           break;
         case PreviewMessageType.refreshError:
-          setIsLoading(false);
+          dispatch(stopLoading());
           // Could show an error message here if needed
           break;
         case PreviewMessageType.requestCancelled:
-          setIsLoading(false);
+          dispatch(stopLoading());
           break;
         case PreviewMessageType.updateTotalCount:
-          setTotalCountInCollection(message.totalCount);
-          setHasReceivedCount(true);
+          dispatch(setTotalCountInCollection(message.totalCount));
           break;
         case PreviewMessageType.updateTotalCountError:
           // Count fetch failed - mark as received with null value
-          setHasReceivedCount(true);
+          dispatch(markCountReceived());
           break;
       }
     };
@@ -173,23 +177,22 @@ const PreviewApp: React.FC = () => {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, []);
+  }, [dispatch, itemsPerPage]);
 
   const handleRefresh = (): void => {
-    setIsLoading(true);
-    setCurrentPage(1);
+    dispatch(startRefresh());
     sendGetDocuments(0, itemsPerPage);
   };
 
   const handleStop = (): void => {
-    setIsLoading(false);
+    dispatch(stopLoading());
     sendCancelRequest();
   };
 
   const handlePrevPage = (): void => {
     if (currentPage > 1) {
       const newPage = currentPage - 1;
-      setCurrentPage(newPage);
+      dispatch(setCurrentPage(newPage));
       fetchPageFromServer(newPage, itemsPerPage);
     }
   };
@@ -197,7 +200,7 @@ const PreviewApp: React.FC = () => {
   const handleNextPage = (): void => {
     if (currentPage < totalPages) {
       const newPage = currentPage + 1;
-      setCurrentPage(newPage);
+      dispatch(setCurrentPage(newPage));
       fetchPageFromServer(newPage, itemsPerPage);
     }
   };
@@ -205,8 +208,8 @@ const PreviewApp: React.FC = () => {
   const handleItemsPerPageChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const newItemsPerPage = parseInt(target.value, 10);
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
+    dispatch(setItemsPerPage(newItemsPerPage));
+    dispatch(setCurrentPage(1));
     fetchPageFromServer(1, newItemsPerPage);
   };
 
@@ -324,4 +327,13 @@ const PreviewApp: React.FC = () => {
   );
 };
 
-export default PreviewApp;
+// Wrapper component that provides the Redux store
+const PreviewAppWithProvider: React.FC = () => {
+  return (
+    <Provider store={store}>
+      <PreviewApp />
+    </Provider>
+  );
+};
+
+export default PreviewAppWithProvider;
