@@ -9,25 +9,19 @@ import {
   fireEvent,
 } from '@testing-library/react';
 
-import PreviewApp, {
-  MIN_LOADING_DURATION_MS,
-} from '../../../../views/data-browsing-app/preview-page';
+import PreviewApp from '../../../../views/data-browsing-app/preview-page';
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
 import { getVSCodeApi } from '../../../../views/data-browsing-app/vscode-api';
 
 describe('PreviewApp test suite', function () {
   let postMessageStub: sinon.SinonStub;
-  let clock: sinon.SinonFakeTimers;
 
   beforeEach(function () {
     postMessageStub = sinon.stub(getVSCodeApi(), 'postMessage');
-    // Use fake timers for testing timeout behavior
-    clock = sinon.useFakeTimers();
   });
 
   afterEach(function () {
     cleanup();
-    clock.restore();
     sinon.restore();
   });
 
@@ -60,7 +54,7 @@ describe('PreviewApp test suite', function () {
       // Initially loading - Stop button should be visible
       expect(screen.getByLabelText('Stop')).to.exist;
 
-      // Simulate receiving documents (which will hide loading after timeout)
+      // Simulate receiving documents (which will hide loading immediately)
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
@@ -71,8 +65,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        // Advance timers to complete the minimum loading duration
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
 
       // Stop button should not be visible when not loading
@@ -139,191 +131,6 @@ describe('PreviewApp test suite', function () {
     });
   });
 
-  describe('Timeout management and race conditions', function () {
-    it('should clear pending timeout when Stop is clicked', function () {
-      render(<PreviewApp />);
-
-      // Simulate receiving documents (sets up a pending timeout)
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.loadDocuments,
-              documents: [{ _id: '123', name: 'Test' }],
-              totalCount: 1,
-            },
-          }),
-        );
-      });
-
-      // Click Stop before the timeout fires
-      const stopButton = screen.getByLabelText('Stop');
-      fireEvent.click(stopButton);
-
-      // Loading should be hidden immediately
-      expect(screen.queryByText('Running query')).to.be.null;
-
-      // Advance time past the minimum loading duration
-      act(() => {
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
-      });
-
-      // Should still not be loading (timeout was cleared)
-      expect(screen.queryByText('Running query')).to.be.null;
-    });
-
-    it('should clear pending timeout when requestCancelled is received', function () {
-      render(<PreviewApp />);
-
-      // Simulate receiving documents (sets up a pending timeout)
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.loadDocuments,
-              documents: [{ _id: '123', name: 'Test' }],
-              totalCount: 1,
-            },
-          }),
-        );
-      });
-
-      // Receive cancellation message
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.requestCancelled,
-            },
-          }),
-        );
-      });
-
-      // Loading should be hidden immediately
-      expect(screen.queryByText('Running query')).to.be.null;
-
-      // Advance time past the minimum loading duration
-      act(() => {
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
-      });
-
-      // Should still not be loading (timeout was cleared)
-      expect(screen.queryByText('Running query')).to.be.null;
-    });
-
-    it('should clear existing timeout when new loadDocuments message is received', function () {
-      render(<PreviewApp />);
-
-      // First loadDocuments message
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.loadDocuments,
-              documents: [{ _id: '1', name: 'First' }],
-              totalCount: 1,
-            },
-          }),
-        );
-      });
-
-      // Second loadDocuments message before first timeout fires
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.loadDocuments,
-              documents: [{ _id: '2', name: 'Second' }],
-              totalCount: 1,
-            },
-          }),
-        );
-      });
-
-      // Advance time to complete timeout
-      act(() => {
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
-      });
-
-      // Should show the second document, not the first
-      expect(screen.queryByText('Running query')).to.be.null;
-    });
-
-    it('should clear existing timeout when loadPage message is received', function () {
-      render(<PreviewApp />);
-
-      // loadDocuments message
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.loadDocuments,
-              documents: [{ _id: '1', name: 'First' }],
-              totalCount: 10,
-            },
-          }),
-        );
-      });
-
-      // loadPage message before timeout fires
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.loadPage,
-              documents: [{ _id: '2', name: 'Page2' }],
-              skip: 10,
-              limit: 10,
-            },
-          }),
-        );
-      });
-
-      // Advance time to complete timeout
-      act(() => {
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
-      });
-
-      expect(screen.queryByText('Running query')).to.be.null;
-    });
-
-    it('should clear existing timeout when refreshError message is received', function () {
-      render(<PreviewApp />);
-
-      // loadDocuments message
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.loadDocuments,
-              documents: [{ _id: '1', name: 'First' }],
-              totalCount: 1,
-            },
-          }),
-        );
-      });
-
-      // refreshError message before timeout fires
-      act(() => {
-        window.dispatchEvent(
-          new MessageEvent('message', {
-            data: {
-              command: PreviewMessageType.refreshError,
-              error: 'Connection failed',
-            },
-          }),
-        );
-      });
-
-      // Advance time to complete timeout
-      act(() => {
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
-      });
-
-      expect(screen.queryByText('Running query')).to.be.null;
-    });
-  });
-
   describe('Message handling', function () {
     it('should display documents when loadDocuments message is received', function () {
       render(<PreviewApp />);
@@ -339,8 +146,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        // Advance timers to complete the minimum loading duration
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
 
       // Should no longer show loading
@@ -360,8 +165,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        // Advance timers to complete the minimum loading duration
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
 
       expect(screen.getByText('No documents to display')).to.exist;
@@ -381,7 +184,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
     }
 
@@ -436,7 +238,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
     }
 
@@ -545,7 +346,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
 
       // Should render the document content
@@ -568,7 +368,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
 
       // Both documents should be rendered
@@ -592,7 +391,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
 
       // Then receive page 2 documents
@@ -607,7 +405,6 @@ describe('PreviewApp test suite', function () {
             },
           }),
         );
-        clock.tick(MIN_LOADING_DURATION_MS + 1);
       });
 
       // Should show the new document

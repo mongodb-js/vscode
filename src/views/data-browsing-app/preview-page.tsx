@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   VscodeButton,
   VscodeLabel,
@@ -32,7 +26,6 @@ interface PreviewDocument {
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
-export const MIN_LOADING_DURATION_MS = 500;
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -128,70 +121,32 @@ const PreviewApp: React.FC = () => {
     totalDocuments === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalDocuments);
 
-  const loadingStartTimeRef = useRef<number>(Date.now());
-  const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const clearPendingTimeout = useCallback((): void => {
-    if (pendingTimeoutRef.current !== null) {
-      clearTimeout(pendingTimeoutRef.current);
-      pendingTimeoutRef.current = null;
-    }
-  }, []);
-
   const fetchPageFromServer = useCallback(
     (page: number, limit: number): void => {
       const skip = (page - 1) * limit;
-      clearPendingTimeout();
-      loadingStartTimeRef.current = Date.now();
       setIsLoading(true);
       sendFetchPage(skip, limit);
     },
-    [clearPendingTimeout],
+    [],
   );
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === PreviewMessageType.loadDocuments) {
-        const elapsed = Date.now() - loadingStartTimeRef.current;
-        const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
-
-        clearPendingTimeout();
-
-        // Ensure minimum loading duration before hiding loader
-        pendingTimeoutRef.current = setTimeout(() => {
-          pendingTimeoutRef.current = null;
-          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
-          if (message.totalCount !== undefined) {
-            setTotalCountInCollection(message.totalCount);
-          }
-          setCurrentPage(1);
-          setIsLoading(false);
-        }, remainingTime);
+        setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
+        if (message.totalCount !== undefined) {
+          setTotalCountInCollection(message.totalCount);
+        }
+        setCurrentPage(1);
+        setIsLoading(false);
       } else if (message.command === PreviewMessageType.loadPage) {
-        const elapsed = Date.now() - loadingStartTimeRef.current;
-        const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
-
-        clearPendingTimeout();
-
-        pendingTimeoutRef.current = setTimeout(() => {
-          pendingTimeoutRef.current = null;
-          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
-          setIsLoading(false);
-        }, remainingTime);
+        setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
+        setIsLoading(false);
       } else if (message.command === PreviewMessageType.refreshError) {
-        const elapsed = Date.now() - loadingStartTimeRef.current;
-        const remainingTime = Math.max(0, MIN_LOADING_DURATION_MS - elapsed);
-
-        clearPendingTimeout();
-
-        pendingTimeoutRef.current = setTimeout(() => {
-          pendingTimeoutRef.current = null;
-          setIsLoading(false);
-          // Could show an error message here if needed
-        }, remainingTime);
+        setIsLoading(false);
+        // Could show an error message here if needed
       } else if (message.command === PreviewMessageType.requestCancelled) {
-        clearPendingTimeout();
         setIsLoading(false);
       } else if (message.command === PreviewMessageType.updateTotalCount) {
         setTotalCountInCollection(message.totalCount);
@@ -207,20 +162,16 @@ const PreviewApp: React.FC = () => {
 
     return () => {
       window.removeEventListener('message', handleMessage);
-      clearPendingTimeout();
     };
-  }, [clearPendingTimeout]);
+  }, []);
 
   const handleRefresh = (): void => {
-    clearPendingTimeout();
-    loadingStartTimeRef.current = Date.now();
     setIsLoading(true);
     setCurrentPage(1);
     sendRefreshDocuments();
   };
 
   const handleStop = (): void => {
-    clearPendingTimeout();
     setIsLoading(false);
     sendCancelRequest();
   };
