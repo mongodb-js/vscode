@@ -1,8 +1,6 @@
 export const PreviewMessageType = {
   // Messages from webview to extension
   getDocuments: 'GET_DOCUMENTS',
-  refreshDocuments: 'REFRESH_DOCUMENTS',
-  fetchPage: 'FETCH_PAGE',
   cancelRequest: 'CANCEL_REQUEST',
 
   // Messages from extension to webview
@@ -24,14 +22,6 @@ interface BasicWebviewMessage {
 
 export interface GetDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.getDocuments;
-}
-
-export interface RefreshDocumentsMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.refreshDocuments;
-}
-
-export interface FetchPageMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.fetchPage;
   skip: number;
   limit: number;
 }
@@ -44,7 +34,6 @@ export interface CancelRequestMessage extends BasicWebviewMessage {
 export interface LoadDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadDocuments;
   documents: Record<string, unknown>[];
-  totalCount?: number | null;
 }
 
 export interface RefreshErrorMessage extends BasicWebviewMessage {
@@ -75,8 +64,6 @@ export interface UpdateTotalCountErrorMessage extends BasicWebviewMessage {
 
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
-  | RefreshDocumentsMessage
-  | FetchPageMessage
   | CancelRequestMessage;
 
 export type MessageFromExtensionToWebview =

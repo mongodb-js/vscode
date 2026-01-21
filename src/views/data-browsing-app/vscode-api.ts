@@ -20,21 +20,9 @@ export const getVSCodeApi = (): VSCodeApi => {
   return vscode;
 };
 
-export const sendGetDocuments = (): void => {
+export const sendGetDocuments = (skip: number, limit: number): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.getDocuments,
-  });
-};
-
-export const sendRefreshDocuments = (): void => {
-  getVSCodeApi().postMessage({
-    command: PreviewMessageType.refreshDocuments,
-  });
-};
-
-export const sendFetchPage = (skip: number, limit: number): void => {
-  getVSCodeApi().postMessage({
-    command: PreviewMessageType.fetchPage,
     skip,
     limit,
   });

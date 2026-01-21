@@ -6,8 +6,6 @@ import {
   getVSCodeApi,
   sendCancelRequest,
   sendGetDocuments,
-  sendRefreshDocuments,
-  sendFetchPage,
 } from '../../../../views/data-browsing-app/vscode-api';
 
 describe('vscode-api test suite', function () {
@@ -47,31 +45,21 @@ describe('vscode-api test suite', function () {
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
+        skip: undefined,
+        limit: undefined,
       });
     });
-  });
 
-  describe('sendRefreshDocuments', function () {
-    it('should send message with refreshDocuments command', function () {
-      sendRefreshDocuments();
+    it('should send message with getDocuments command and pagination params', function () {
+      sendGetDocuments(10, 25);
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: PreviewMessageType.refreshDocuments,
-      });
-    });
-  });
-
-  describe('sendFetchPage', function () {
-    it('should send message with fetchPage command and pagination params', function () {
-      sendFetchPage(10, 25);
-
-      expect(postMessageStub).to.have.been.calledOnce;
-      expect(postMessageStub).to.have.been.calledWithExactly({
-        command: PreviewMessageType.fetchPage,
+        command: PreviewMessageType.getDocuments,
         skip: 10,
         limit: 25,
       });
     });
   });
+
 });

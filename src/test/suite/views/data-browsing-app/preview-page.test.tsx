@@ -187,7 +187,7 @@ describe('PreviewApp test suite', function () {
       });
     }
 
-    it('should send refreshDocuments when clicked after loading completes', function () {
+    it('should send getDocuments when clicked after loading completes', function () {
       render(<PreviewApp />);
       completeInitialLoading();
 
@@ -198,7 +198,9 @@ describe('PreviewApp test suite', function () {
       fireEvent.click(refreshButton);
 
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: PreviewMessageType.refreshDocuments,
+        command: PreviewMessageType.getDocuments,
+        skip: undefined,
+        limit: undefined,
       });
     });
 
@@ -247,19 +249,20 @@ describe('PreviewApp test suite', function () {
 
       postMessageStub.resetHistory();
 
-      // Click Previous on first page - should not send fetchPage
+      // Click Previous on first page - should not send getDocuments with pagination
       const prevButton = screen.getByLabelText('Previous page');
       fireEvent.click(prevButton);
 
-      // Should not have sent any fetchPage message
+      // Should not have sent any getDocuments message with skip parameter
       expect(
         postMessageStub.calledWithMatch({
-          command: PreviewMessageType.fetchPage,
+          command: PreviewMessageType.getDocuments,
+          skip: sinon.match.number,
         }),
       ).to.be.false;
     });
 
-    it('should send fetchPage message when Next button is clicked', function () {
+    it('should send getDocuments message with pagination when Next button is clicked', function () {
       render(<PreviewApp />);
       loadDocumentsWithPagination(50);
 
@@ -269,7 +272,7 @@ describe('PreviewApp test suite', function () {
       fireEvent.click(nextButton);
 
       expect(postMessageStub).to.have.been.calledWithExactly({
-        command: PreviewMessageType.fetchPage,
+        command: PreviewMessageType.getDocuments,
         skip: 10,
         limit: 10,
       });
@@ -282,14 +285,15 @@ describe('PreviewApp test suite', function () {
 
       postMessageStub.resetHistory();
 
-      // Click Next on last page - should not send fetchPage
+      // Click Next on last page - should not send getDocuments with pagination
       const nextButton = screen.getByLabelText('Next page');
       fireEvent.click(nextButton);
 
-      // Should not have sent any fetchPage message
+      // Should not have sent any getDocuments message with skip parameter
       expect(
         postMessageStub.calledWithMatch({
-          command: PreviewMessageType.fetchPage,
+          command: PreviewMessageType.getDocuments,
+          skip: sinon.match.number,
         }),
       ).to.be.false;
     });
@@ -314,10 +318,11 @@ describe('PreviewApp test suite', function () {
       fireEvent.click(prevButton);
       fireEvent.click(nextButton);
 
-      // Should not have sent any fetchPage messages
+      // Should not have sent any getDocuments messages with pagination
       expect(
         postMessageStub.calledWithMatch({
-          command: PreviewMessageType.fetchPage,
+          command: PreviewMessageType.getDocuments,
+          skip: sinon.match.number,
         }),
       ).to.be.false;
     });

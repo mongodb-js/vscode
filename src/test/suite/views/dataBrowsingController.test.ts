@@ -287,13 +287,13 @@ suite('DataBrowsingController Test Suite', function () {
       expect(message.totalCount).to.equal(0);
     });
 
-    test('returns empty documents for handleFetchPage when no active data service', async function () {
+    test('returns empty documents for handleGetDocuments with pagination when no active data service', async function () {
       mockConnectionController.getActiveDataService = sandbox
         .stub()
         .returns(null);
       const options = createMockOptions();
 
-      await testController.handleFetchPage(mockPanel, options, 10, 10);
+      await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
       const message = postMessageStub.firstCall.args[0];
       expect(message.command).to.equal(PreviewMessageType.loadPage);
@@ -319,18 +319,21 @@ suite('DataBrowsingController Test Suite', function () {
       expect(handleGetDocumentsSpy.calledWith(mockPanel, options)).to.be.true;
     });
 
-    test('calls handleFetchPage when fetchPage message received', async function () {
+    test('calls handleGetDocuments with pagination when getDocuments message received with skip and limit', async function () {
       const options = createMockOptions();
-      const handleFetchPageSpy = sandbox.spy(testController, 'handleFetchPage');
+      const handleGetDocumentsSpy = sandbox.spy(
+        testController,
+        'handleGetDocuments',
+      );
 
       await testController.handleWebviewMessage(
-        { command: PreviewMessageType.fetchPage, skip: 10, limit: 10 },
+        { command: PreviewMessageType.getDocuments, skip: 10, limit: 10 },
         mockPanel,
         options,
       );
 
-      expect(handleFetchPageSpy.calledOnce).to.be.true;
-      expect(handleFetchPageSpy.calledWith(mockPanel, options, 10, 10)).to.be
+      expect(handleGetDocumentsSpy.calledOnce).to.be.true;
+      expect(handleGetDocumentsSpy.calledWith(mockPanel, options, 10, 10)).to.be
         .true;
     });
 
@@ -348,7 +351,7 @@ suite('DataBrowsingController Test Suite', function () {
     });
   });
 
-  suite('handleFetchPage', function () {
+  suite('handleGetDocuments with pagination', function () {
     test('posts loadPage message with documents on successful fetch', async function () {
       mockDataService.find = sandbox.stub().resolves([
         { _id: '11', name: 'doc11' },
@@ -356,7 +359,7 @@ suite('DataBrowsingController Test Suite', function () {
       ]);
       const options = createMockOptions();
 
-      await testController.handleFetchPage(mockPanel, options, 10, 10);
+      await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
       expect(mockDataService.find.calledOnce).to.be.true;
       const findOptions = mockDataService.find.firstCall.args[2];
@@ -376,7 +379,7 @@ suite('DataBrowsingController Test Suite', function () {
     test('passes skip of 0 correctly', async function () {
       const options = createMockOptions();
 
-      await testController.handleFetchPage(mockPanel, options, 0, 25);
+      await testController.handleGetDocuments(mockPanel, options, 0, 25);
 
       const findOptions = mockDataService.find.firstCall.args[2];
       expect(findOptions.limit).to.equal(25);
@@ -390,7 +393,7 @@ suite('DataBrowsingController Test Suite', function () {
         .rejects(new Error('Connection failed'));
       const options = createMockOptions();
 
-      await testController.handleFetchPage(mockPanel, options, 10, 10);
+      await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
       expect(postMessageStub.calledOnce).to.be.true;
       const message = postMessageStub.firstCall.args[0];
@@ -405,7 +408,7 @@ suite('DataBrowsingController Test Suite', function () {
       });
       const options = createMockOptions();
 
-      await testController.handleFetchPage(mockPanel, options, 10, 10);
+      await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
       expect(postMessageStub.called).to.be.false;
     });
@@ -521,22 +524,4 @@ suite('DataBrowsingController Test Suite', function () {
     });
   });
 
-  suite('handleWebviewMessage for refreshDocuments', function () {
-    test('calls handleGetDocuments when refreshDocuments message received', async function () {
-      const options = createMockOptions();
-      const handleGetDocumentsSpy = sandbox.spy(
-        testController,
-        'handleGetDocuments',
-      );
-
-      await testController.handleWebviewMessage(
-        { command: PreviewMessageType.refreshDocuments },
-        mockPanel,
-        options,
-      );
-
-      expect(handleGetDocumentsSpy.calledOnce).to.be.true;
-      expect(handleGetDocumentsSpy.calledWith(mockPanel, options)).to.be.true;
-    });
-  });
 });

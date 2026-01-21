@@ -9,12 +9,7 @@ import {
 import { css, spacing } from '@mongodb-js/compass-components';
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import { PreviewMessageType } from './extension-app-message-constants';
-import {
-  sendGetDocuments,
-  sendRefreshDocuments,
-  sendFetchPage,
-  sendCancelRequest,
-} from './vscode-api';
+import { sendGetDocuments, sendCancelRequest } from './vscode-api';
 import {
   VSCODE_PANEL_BORDER,
   VSCODE_EDITOR_BACKGROUND,
@@ -26,6 +21,7 @@ interface PreviewDocument {
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+const DEFAULT_ITEMS_PER_PAGE = 10;
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -99,7 +95,7 @@ const PreviewApp: React.FC = () => {
   const [displayedDocuments, setDisplayedDocuments] = useState<
     PreviewDocument[]
   >([]);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(DEFAULT_ITEMS_PER_PAGE);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCountInCollection, setTotalCountInCollection] = useState<
@@ -129,7 +125,7 @@ const PreviewApp: React.FC = () => {
     (page: number, limit: number): void => {
       const skip = (page - 1) * limit;
       setIsLoading(true);
-      sendFetchPage(skip, limit);
+      sendGetDocuments(skip, limit);
     },
     [],
   );
@@ -139,10 +135,6 @@ const PreviewApp: React.FC = () => {
       const message: MessageFromExtensionToWebview = event.data;
       if (message.command === PreviewMessageType.loadDocuments) {
         setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
-        if (message.totalCount !== undefined) {
-          setTotalCountInCollection(message.totalCount);
-          setHasReceivedCount(true);
-        }
         setCurrentPage(1);
         setIsLoading(false);
       } else if (message.command === PreviewMessageType.loadPage) {
@@ -164,7 +156,7 @@ const PreviewApp: React.FC = () => {
 
     window.addEventListener('message', handleMessage);
 
-    sendGetDocuments();
+    sendGetDocuments(currentPage,itemsPerPage);
 
     return () => {
       window.removeEventListener('message', handleMessage);
@@ -174,7 +166,7 @@ const PreviewApp: React.FC = () => {
   const handleRefresh = (): void => {
     setIsLoading(true);
     setCurrentPage(1);
-    sendRefreshDocuments();
+    sendGetDocuments(currentPage,itemsPerPage);
   };
 
   const handleStop = (): void => {

@@ -95,13 +95,7 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     switch (message.command) {
       case PreviewMessageType.getDocuments:
-        await this.handleGetDocuments(panel, options);
-        return;
-      case PreviewMessageType.refreshDocuments:
-        await this.handleGetDocuments(panel, options);
-        return;
-      case PreviewMessageType.fetchPage:
-        await this.handleFetchPage(panel, options, message.skip, message.limit);
+        await this.handleGetDocuments(panel, options, message.skip, message.limit);
         return;
       case PreviewMessageType.cancelRequest:
         this.handleCancelRequest(panel);
@@ -127,48 +121,61 @@ export default class DataBrowsingController {
   handleGetDocuments = async (
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
+    skip?: number,
+    limit?: number,
   ): Promise<void> => {
     const abortController = this._createAbortController(panel);
     const { signal } = abortController;
+    const isPagination = skip !== undefined;
 
     try {
       const documents = await this._fetchDocuments(
         options.namespace,
-        options.collectionType,
         signal,
+        skip,
+        limit,
       );
 
       if (signal.aborted) {
         return;
       }
 
-      void panel.webview.postMessage({
-        command: PreviewMessageType.loadDocuments,
-        documents,
-      });
+      if (isPagination) {
+        void panel.webview.postMessage({
+          command: PreviewMessageType.loadPage,
+          documents,
+          skip,
+          limit,
+        });
+      } else {
+        void panel.webview.postMessage({
+          command: PreviewMessageType.loadDocuments,
+          documents,
+        });
 
-      void this._getTotalCount(
-        options.namespace,
-        options.collectionType,
-        signal,
-      ).then((totalCount) => {
-        if (signal.aborted) {
-          return;
-        }
-        void panel.webview.postMessage({
-          command: PreviewMessageType.updateTotalCount,
-          totalCount,
+        void this._getTotalCount(
+          options.namespace,
+          options.collectionType,
+          signal,
+        ).then((totalCount) => {
+          if (signal.aborted) {
+            return;
+          }
+          void panel.webview.postMessage({
+            command: PreviewMessageType.updateTotalCount,
+            totalCount,
+          });
+        }).catch((error) => {
+          if (signal.aborted) {
+            return;
+          }
+          log.error('Error fetching total count', error);
+          void panel.webview.postMessage({
+            command: PreviewMessageType.updateTotalCountError,
+            error: formatError(error).message,
+          });
         });
-      }).catch((error) => {
-        if (signal.aborted) {
-          return;
-        }
-        log.error('Error fetching total count', error);
-        void panel.webview.postMessage({
-          command: PreviewMessageType.updateTotalCountError,
-          error: formatError(error).message,
-        });
-      });
+      }
     } catch (error) {
       if (signal.aborted) {
         return;
@@ -181,56 +188,12 @@ export default class DataBrowsingController {
     }
   };
 
-  handleFetchPage = async (
-    panel: vscode.WebviewPanel,
-    options: DataBrowsingOptions,
-    skip: number,
-    limit: number,
-  ): Promise<void> => {
-    const abortController = this._createAbortController(panel);
-    const { signal } = abortController;
-
-    try {
-      const documents = await this._fetchDocuments(
-        options.namespace,
-        options.collectionType,
-        signal,
-        skip,
-        limit,
-      );
-
-      if (signal.aborted) {
-        return;
-      }
-
-      void panel.webview.postMessage({
-        command: PreviewMessageType.loadPage,
-        documents,
-        skip,
-        limit,
-      });
-    } catch (error) {
-      if (signal.aborted) {
-        return;
-      }
-      log.error('Error fetching page', error);
-      void panel.webview.postMessage({
-        command: PreviewMessageType.refreshError,
-        error: formatError(error).message,
-      });
-    }
-  };
-
   private async _fetchDocuments(
     namespace: string,
-    collectionType: string,
     signal?: AbortSignal,
     skip?: number,
     limit?: number,
   ): Promise<Document[]> {
-    if (collectionType === CollectionType.view) {
-      return [];
-    }
 
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
