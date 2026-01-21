@@ -8,12 +8,17 @@ import {
   cleanup,
   fireEvent,
 } from '@testing-library/react';
+import { Provider } from 'react-redux';
 
 import PreviewApp from '../../../../views/data-browsing-app/preview-page';
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
 import { getVSCodeApi } from '../../../../views/data-browsing-app/vscode-api';
 import { store } from '../../../../views/data-browsing-app/store';
 import { resetState } from '../../../../views/data-browsing-app/store/documentQuerySlice';
+
+function renderWithProvider(ui: React.ReactElement) {
+  return render(<Provider store={store}>{ui}</Provider>);
+}
 
 describe('PreviewApp test suite', function () {
   let postMessageStub: sinon.SinonStub;
@@ -31,12 +36,12 @@ describe('PreviewApp test suite', function () {
 
   describe('Initial state', function () {
     it('should show loading state initially', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       expect(screen.getByText('Running query')).to.exist;
     });
 
     it('should request initial documents on mount', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
         skip: 0,
@@ -45,7 +50,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should show Stop button when loading', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       const stopButton = screen.getByLabelText('Stop');
       expect(stopButton).to.exist;
       // The button should be present with Stop text
@@ -55,7 +60,7 @@ describe('PreviewApp test suite', function () {
 
   describe('Stop button UI', function () {
     it('should show Stop button only when isLoading is true', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       // Initially loading - Stop button should be visible
       expect(screen.getByLabelText('Stop')).to.exist;
@@ -78,7 +83,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should render Stop button as a vscode-button element', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       const stopButton = screen.getByLabelText('Stop');
       // Verify it's a vscode-button web component
       expect(stopButton.tagName.toLowerCase()).to.equal('vscode-button');
@@ -87,7 +92,7 @@ describe('PreviewApp test suite', function () {
 
   describe('handleStop function', function () {
     it('should send cancelRequest message when Stop button is clicked', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       const stopButton = screen.getByLabelText('Stop');
       fireEvent.click(stopButton);
@@ -98,7 +103,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should immediately hide loading state and Stop button when Stop is clicked', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       // Verify initially loading with Stop button visible
       expect(screen.getByText('Running query')).to.exist;
@@ -115,7 +120,7 @@ describe('PreviewApp test suite', function () {
 
   describe('requestCancelled message handling', function () {
     it('should reset loading state and hide Stop button when requestCancelled is received', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       // Verify initially loading with Stop button visible
       expect(screen.getByText('Running query')).to.exist;
@@ -139,7 +144,7 @@ describe('PreviewApp test suite', function () {
 
   describe('Message handling', function () {
     it('should display documents when loadDocuments message is received', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       // Simulate receiving documents from extension
       act(() => {
@@ -159,7 +164,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should display empty state when no documents received', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       act(() => {
         window.dispatchEvent(
@@ -203,7 +208,7 @@ describe('PreviewApp test suite', function () {
     }
 
     it('should send getDocuments when clicked after loading completes', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       completeInitialLoading();
 
       // Reset stub to clear previous calls
@@ -221,7 +226,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should show loading state when Refresh is clicked', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       completeInitialLoading();
 
       // Verify not loading
@@ -269,7 +274,7 @@ describe('PreviewApp test suite', function () {
     }
 
     it('should not navigate to previous page when on first page', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       loadDocumentsWithPagination(50);
 
       postMessageStub.resetHistory();
@@ -288,7 +293,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should send getDocuments message with pagination when Next button is clicked', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       loadDocumentsWithPagination(50);
 
       postMessageStub.resetHistory();
@@ -304,7 +309,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should not navigate to next page when on last page', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       // Load only 5 documents with totalCount of 5 (fits on one page)
       loadDocumentsWithPagination(5, 5);
 
@@ -324,7 +329,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should display correct pagination info', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
       loadDocumentsWithPagination(50);
 
       // Should show "1-10 of 50"
@@ -332,7 +337,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should not navigate when pagination buttons clicked while loading', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       // Reset stub to clear initial getDocuments call
       postMessageStub.resetHistory();
@@ -355,7 +360,7 @@ describe('PreviewApp test suite', function () {
 
   describe('Items per page', function () {
     it('should render items per page dropdown with default value', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       const dropdown = screen.getByLabelText('Items per page');
       expect(dropdown).to.exist;
@@ -364,7 +369,7 @@ describe('PreviewApp test suite', function () {
 
   describe('Document content verification', function () {
     it('should render document JSON content after loading', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       act(() => {
         window.dispatchEvent(
@@ -383,7 +388,7 @@ describe('PreviewApp test suite', function () {
     });
 
     it('should render multiple documents', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       act(() => {
         window.dispatchEvent(
@@ -408,7 +413,7 @@ describe('PreviewApp test suite', function () {
 
   describe('loadPage message handling', function () {
     it('should update documents when loadPage message is received', function () {
-      render(<PreviewApp />);
+      renderWithProvider(<PreviewApp />);
 
       // First load initial documents
       act(() => {
