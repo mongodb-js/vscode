@@ -522,18 +522,32 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('handleRefreshDocuments', function () {
-    test('posts loadDocuments message with documents and totalCount on success', async function () {
+    test('posts loadDocuments message with documents immediately, then updateTotalCount separately', async function () {
       const options = createMockOptions();
 
       await testController.handleRefreshDocuments(mockPanel, options);
 
+      // Wait for the async count operation to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       expect(mockDataService.find.calledOnce).to.be.true;
       expect(mockDataService.aggregate.calledOnce).to.be.true;
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.loadDocuments);
-      expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
-      expect(message.totalCount).to.equal(16);
+      expect(postMessageStub.calledTwice).to.be.true;
+
+      // First message should be loadDocuments without totalCount
+      const loadDocsMessage = postMessageStub.firstCall.args[0];
+      expect(loadDocsMessage.command).to.equal(PreviewMessageType.loadDocuments);
+      expect(loadDocsMessage.documents).to.deep.equal([
+        { _id: '1', name: 'test' },
+      ]);
+      expect(loadDocsMessage.totalCount).to.be.undefined;
+
+      // Second message should be updateTotalCount
+      const updateCountMessage = postMessageStub.secondCall.args[0];
+      expect(updateCountMessage.command).to.equal(
+        PreviewMessageType.updateTotalCount,
+      );
+      expect(updateCountMessage.totalCount).to.equal(16);
     });
 
     test('posts refreshError message on failure', async function () {
@@ -568,6 +582,33 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleRefreshDocuments(mockPanel, options);
 
       expect(testController._panelAbortControllers.has(mockPanel)).to.be.true;
+    });
+
+    test('still sends documents and posts count error if count fetch fails', async function () {
+      mockDataService.aggregate = sandbox
+        .stub()
+        .rejects(new Error('Count failed'));
+      const options = createMockOptions();
+
+      await testController.handleRefreshDocuments(mockPanel, options);
+
+      // Wait for the async count operation to complete (with error)
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should have sent loadDocuments and updateTotalCountError messages
+      expect(postMessageStub.calledTwice).to.be.true;
+
+      const loadDocsMessage = postMessageStub.firstCall.args[0];
+      expect(loadDocsMessage.command).to.equal(PreviewMessageType.loadDocuments);
+      expect(loadDocsMessage.documents).to.deep.equal([
+        { _id: '1', name: 'test' },
+      ]);
+
+      const errorMessage = postMessageStub.secondCall.args[0];
+      expect(errorMessage.command).to.equal(
+        PreviewMessageType.updateTotalCountError,
+      );
+      expect(errorMessage.error).to.equal('Count failed');
     });
   });
 

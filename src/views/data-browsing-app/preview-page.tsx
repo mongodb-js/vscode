@@ -193,6 +193,11 @@ const PreviewApp: React.FC = () => {
       } else if (message.command === PreviewMessageType.requestCancelled) {
         clearPendingTimeout();
         setIsLoading(false);
+      } else if (message.command === PreviewMessageType.updateTotalCount) {
+        setTotalCountInCollection(message.totalCount);
+      } else if (message.command === PreviewMessageType.updateTotalCountError) {
+        // Count fetch failed - webview can decide how to handle this
+        // For now, we leave the count as undefined (pagination will be hidden)
       }
     };
 

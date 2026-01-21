@@ -10,6 +10,8 @@ export const PreviewMessageType = {
   loadPage: 'LOAD_PAGE',
   refreshError: 'REFRESH_ERROR',
   requestCancelled: 'REQUEST_CANCELLED',
+  updateTotalCount: 'UPDATE_TOTAL_COUNT',
+  updateTotalCountError: 'UPDATE_TOTAL_COUNT_ERROR',
 } as const;
 
 export type PreviewMessageType =
@@ -61,6 +63,16 @@ export interface RequestCancelledMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.requestCancelled;
 }
 
+export interface UpdateTotalCountMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.updateTotalCount;
+  totalCount: number;
+}
+
+export interface UpdateTotalCountErrorMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.updateTotalCountError;
+  error?: string;
+}
+
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
   | RefreshDocumentsMessage
@@ -71,4 +83,6 @@ export type MessageFromExtensionToWebview =
   | LoadDocumentsMessage
   | LoadPageMessage
   | RefreshErrorMessage
-  | RequestCancelledMessage;
+  | RequestCancelledMessage
+  | UpdateTotalCountMessage
+  | UpdateTotalCountErrorMessage;

@@ -180,12 +180,12 @@ export default class DataBrowsingController {
     const { signal } = abortController;
 
     try {
-      const [documents, totalCount] = await Promise.all([
-        this._fetchDocuments(options.namespace, options.collectionType, signal),
-        this._getTotalCount(options.namespace, options.collectionType, signal),
-      ]);
+      const documents = await this._fetchDocuments(
+        options.namespace,
+        options.collectionType,
+        signal,
+      );
 
-      // Check if aborted before posting message.
       if (signal.aborted) {
         return;
       }
@@ -193,10 +193,31 @@ export default class DataBrowsingController {
       void panel.webview.postMessage({
         command: PreviewMessageType.loadDocuments,
         documents,
-        totalCount,
+      });
+
+      void this._getTotalCount(
+        options.namespace,
+        options.collectionType,
+        signal,
+      ).then((totalCount) => {
+        if (signal.aborted) {
+          return;
+        }
+        void panel.webview.postMessage({
+          command: PreviewMessageType.updateTotalCount,
+          totalCount,
+        });
+      }).catch((error) => {
+        if (signal.aborted) {
+          return;
+        }
+        log.error('Error fetching total count', error);
+        void panel.webview.postMessage({
+          command: PreviewMessageType.updateTotalCountError,
+          error: formatError(error).message,
+        });
       });
     } catch (error) {
-      // Don't report errors for aborted requests.
       if (signal.aborted) {
         return;
       }
