@@ -58,6 +58,9 @@ const toolbarGroupWideStyles = css({
 const paginationInfoStyles = css({
   fontSize: '13px',
   whiteSpace: 'nowrap',
+  display: 'flex',
+  gap: spacing[200],
+  alignItems: 'center',
 });
 
 const paginationArrowsStyles = css({
@@ -95,7 +98,9 @@ const PreviewApp: React.FC = () => {
   const [displayedDocuments, setDisplayedDocuments] = useState<
     PreviewDocument[]
   >([]);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(DEFAULT_ITEMS_PER_PAGE);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(
+    DEFAULT_ITEMS_PER_PAGE,
+  );
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCountInCollection, setTotalCountInCollection] = useState<
@@ -133,30 +138,37 @@ const PreviewApp: React.FC = () => {
   useEffect(() => {
     const handleMessage = (event: MessageEvent): void => {
       const message: MessageFromExtensionToWebview = event.data;
-      if (message.command === PreviewMessageType.loadDocuments) {
-        setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
-        setCurrentPage(1);
-        setIsLoading(false);
-      } else if (message.command === PreviewMessageType.loadPage) {
-        setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
-        setIsLoading(false);
-      } else if (message.command === PreviewMessageType.refreshError) {
-        setIsLoading(false);
-        // Could show an error message here if needed
-      } else if (message.command === PreviewMessageType.requestCancelled) {
-        setIsLoading(false);
-      } else if (message.command === PreviewMessageType.updateTotalCount) {
-        setTotalCountInCollection(message.totalCount);
-        setHasReceivedCount(true);
-      } else if (message.command === PreviewMessageType.updateTotalCountError) {
-        // Count fetch failed - mark as received with null value
-        setHasReceivedCount(true);
+      switch (message.command) {
+        case PreviewMessageType.loadDocuments:
+          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
+          setCurrentPage(1);
+          setIsLoading(false);
+          break;
+        case PreviewMessageType.loadPage:
+          setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
+          setIsLoading(false);
+          break;
+        case PreviewMessageType.refreshError:
+          setIsLoading(false);
+          // Could show an error message here if needed
+          break;
+        case PreviewMessageType.requestCancelled:
+          setIsLoading(false);
+          break;
+        case PreviewMessageType.updateTotalCount:
+          setTotalCountInCollection(message.totalCount);
+          setHasReceivedCount(true);
+          break;
+        case PreviewMessageType.updateTotalCountError:
+          // Count fetch failed - mark as received with null value
+          setHasReceivedCount(true);
+          break;
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    sendGetDocuments(currentPage,itemsPerPage);
+    sendGetDocuments(0, itemsPerPage);
 
     return () => {
       window.removeEventListener('message', handleMessage);
@@ -166,7 +178,7 @@ const PreviewApp: React.FC = () => {
   const handleRefresh = (): void => {
     setIsLoading(true);
     setCurrentPage(1);
-    sendGetDocuments(currentPage,itemsPerPage);
+    sendGetDocuments(0, itemsPerPage);
   };
 
   const handleStop = (): void => {
@@ -235,7 +247,14 @@ const PreviewApp: React.FC = () => {
           <span className={paginationInfoStyles}>
             {startItem}-{endItem} of{' '}
             {!hasReceivedCount ? (
-              <VscodeProgressRing style={{ width: 14, height: 14 }} />
+              <VscodeProgressRing
+                style={{
+                  width: 14,
+                  height: 14,
+                  display: 'inline-block',
+                  verticalAlign: 'middle',
+                }}
+              />
             ) : totalCountInCollection === null ? (
               <span title="We don't run a count for time series and views">
                 N/A

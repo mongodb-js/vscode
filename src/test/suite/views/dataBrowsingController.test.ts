@@ -217,7 +217,9 @@ suite('DataBrowsingController Test Suite', function () {
       expect(mockDataService.aggregate.calledOnce).to.be.true;
       // Second call should be updateTotalCount
       const countMessage = postMessageStub.secondCall?.args[0];
-      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.command).to.equal(
+        PreviewMessageType.updateTotalCount,
+      );
       expect(countMessage?.totalCount).to.equal(16);
     });
 
@@ -246,7 +248,9 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(mockDataService.aggregate.called).to.be.false;
       const countMessage = postMessageStub.secondCall?.args[0];
-      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.command).to.equal(
+        PreviewMessageType.updateTotalCount,
+      );
       expect(countMessage?.totalCount).to.equal(null);
     });
 
@@ -262,7 +266,9 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(mockDataService.aggregate.called).to.be.false;
       const countMessage = postMessageStub.secondCall?.args[0];
-      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.command).to.equal(
+        PreviewMessageType.updateTotalCount,
+      );
       expect(countMessage?.totalCount).to.equal(null);
     });
   });
@@ -299,7 +305,9 @@ suite('DataBrowsingController Test Suite', function () {
 
       // Second message should be updateTotalCountError
       const errorMessage = postMessageStub.secondCall?.args[0];
-      expect(errorMessage?.command).to.equal(PreviewMessageType.updateTotalCountError);
+      expect(errorMessage?.command).to.equal(
+        PreviewMessageType.updateTotalCountError,
+      );
       expect(errorMessage?.error).to.equal('Aggregate failed');
     });
   });
@@ -330,7 +338,9 @@ suite('DataBrowsingController Test Suite', function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       const countMessage = postMessageStub.secondCall?.args[0];
-      expect(countMessage?.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(countMessage?.command).to.equal(
+        PreviewMessageType.updateTotalCount,
+      );
       expect(countMessage?.totalCount).to.equal(0);
     });
 
@@ -363,7 +373,8 @@ suite('DataBrowsingController Test Suite', function () {
       );
 
       expect(handleGetDocumentsSpy.calledOnce).to.be.true;
-      expect(handleGetDocumentsSpy.calledWith(mockPanel, options, 0, 10)).to.be.true;
+      expect(handleGetDocumentsSpy.calledWith(mockPanel, options, 0, 10)).to.be
+        .true;
     });
 
     test('calls handleGetDocuments with pagination when getDocuments message received with skip and limit', async function () {
@@ -570,5 +581,4 @@ suite('DataBrowsingController Test Suite', function () {
       await requestPromise;
     });
   });
-
 });

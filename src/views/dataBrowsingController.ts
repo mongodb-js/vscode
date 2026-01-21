@@ -95,7 +95,12 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     switch (message.command) {
       case PreviewMessageType.getDocuments:
-        await this.handleGetDocuments(panel, options, message.skip, message.limit);
+        await this.handleGetDocuments(
+          panel,
+          options,
+          message.skip,
+          message.limit,
+        );
         return;
       case PreviewMessageType.cancelRequest:
         this.handleCancelRequest(panel);
@@ -126,7 +131,7 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     const abortController = this._createAbortController(panel);
     const { signal } = abortController;
-    const isPagination = skip !== undefined;
+    const isPagination = skip !== undefined && skip > 0;
 
     try {
       const documents = await this._fetchDocuments(
@@ -157,24 +162,26 @@ export default class DataBrowsingController {
           options.namespace,
           options.collectionType,
           signal,
-        ).then((totalCount) => {
-          if (signal.aborted) {
-            return;
-          }
-          void panel.webview.postMessage({
-            command: PreviewMessageType.updateTotalCount,
-            totalCount,
+        )
+          .then((totalCount) => {
+            if (signal.aborted) {
+              return;
+            }
+            void panel.webview.postMessage({
+              command: PreviewMessageType.updateTotalCount,
+              totalCount,
+            });
+          })
+          .catch((error) => {
+            if (signal.aborted) {
+              return;
+            }
+            log.error('Error fetching total count', error);
+            void panel.webview.postMessage({
+              command: PreviewMessageType.updateTotalCountError,
+              error: formatError(error).message,
+            });
           });
-        }).catch((error) => {
-          if (signal.aborted) {
-            return;
-          }
-          log.error('Error fetching total count', error);
-          void panel.webview.postMessage({
-            command: PreviewMessageType.updateTotalCountError,
-            error: formatError(error).message,
-          });
-        });
       }
     } catch (error) {
       if (signal.aborted) {
@@ -194,7 +201,6 @@ export default class DataBrowsingController {
     skip?: number,
     limit?: number,
   ): Promise<Document[]> {
-
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       return [];
@@ -239,7 +245,7 @@ export default class DataBrowsingController {
     collectionType: string,
     signal: AbortSignal,
   ): Promise<number | null> {
-     if (
+    if (
       collectionType === CollectionType.view ||
       collectionType === CollectionType.timeseries
     ) {

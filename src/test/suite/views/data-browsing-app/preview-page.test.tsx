@@ -35,7 +35,7 @@ describe('PreviewApp test suite', function () {
       render(<PreviewApp />);
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
-        skip: 1,
+        skip: 0,
         limit: 10,
       });
     });
@@ -208,10 +208,10 @@ describe('PreviewApp test suite', function () {
       const refreshButton = screen.getByLabelText('Refresh');
       fireEvent.click(refreshButton);
 
-      // Refresh sends current page (reset to 1) and itemsPerPage (10)
+      // Refresh sends skip=0 (to reload first page) and itemsPerPage (10)
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
-        skip: 1,
+        skip: 0,
         limit: 10,
       });
     });

@@ -61,5 +61,4 @@ describe('vscode-api test suite', function () {
       });
     });
   });
-
 });
