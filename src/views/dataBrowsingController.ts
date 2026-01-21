@@ -15,10 +15,6 @@ const log = createLogger('data browsing controller');
 
 const DEFAULT_DOCUMENTS_LIMIT = 10;
 
-/**
- * Get the path to the codicons directory in the dist folder.
- * Codicons are copied to dist/codicons during the webpack build.
- */
 const getCodiconsDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'codicons');
 };
@@ -32,7 +28,7 @@ export const getDataBrowsingContent = ({
   extensionPath: string;
   webview: vscode.Webview;
   namespace: string;
-  codiconStylesheetUri?: string;
+  codiconStylesheetUri: string;
 }): string => {
   return getWebviewHtml({
     extensionPath,
@@ -73,10 +69,6 @@ export default class DataBrowsingController {
     this._panelAbortControllers.clear();
   }
 
-  /**
-   * Creates a new AbortController for a panel, aborting any previous one.
-   * This ensures only one request is in-flight per panel at a time.
-   */
   private _createAbortController(panel: vscode.WebviewPanel): AbortController {
     const existingController = this._panelAbortControllers.get(panel);
     if (existingController) {
@@ -88,9 +80,6 @@ export default class DataBrowsingController {
     return abortController;
   }
 
-  /**
-   * Cleans up the abort controller for a panel.
-   */
   private _cleanupAbortController(panel: vscode.WebviewPanel): void {
     const controller = this._panelAbortControllers.get(panel);
     if (controller) {
@@ -109,7 +98,7 @@ export default class DataBrowsingController {
         await this.handleGetDocuments(panel, options);
         return;
       case PreviewMessageType.refreshDocuments:
-        await this.handleRefreshDocuments(panel, options);
+        await this.handleGetDocuments(panel, options);
         return;
       case PreviewMessageType.fetchPage:
         await this.handleFetchPage(panel, options, message.skip, message.limit);
@@ -130,49 +119,12 @@ export default class DataBrowsingController {
       this._panelAbortControllers.delete(panel);
     }
 
-    // Notify the webview that the request was cancelled
     void panel.webview.postMessage({
       command: PreviewMessageType.requestCancelled,
     });
   };
 
   handleGetDocuments = async (
-    panel: vscode.WebviewPanel,
-    options: DataBrowsingOptions,
-  ): Promise<void> => {
-    const abortController = this._createAbortController(panel);
-    const { signal } = abortController;
-
-    try {
-      const [documents, totalCount] = await Promise.all([
-        this._fetchDocuments(options.namespace, options.collectionType, signal),
-        this._getTotalCount(options.namespace, options.collectionType, signal),
-      ]);
-
-      // Check if aborted before posting message.
-      if (signal.aborted) {
-        return;
-      }
-
-      void panel.webview.postMessage({
-        command: PreviewMessageType.loadDocuments,
-        documents,
-        totalCount,
-      });
-    } catch (error) {
-      // Don't report errors for aborted requests.
-      if (signal.aborted) {
-        return;
-      }
-      log.error('Error getting documents', error);
-      void panel.webview.postMessage({
-        command: PreviewMessageType.refreshError,
-        error: formatError(error).message,
-      });
-    }
-  };
-
-  handleRefreshDocuments = async (
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
@@ -247,7 +199,6 @@ export default class DataBrowsingController {
         limit,
       );
 
-      // Check if aborted before posting message.
       if (signal.aborted) {
         return;
       }
@@ -259,7 +210,6 @@ export default class DataBrowsingController {
         limit,
       });
     } catch (error) {
-      // Don't report errors for aborted requests.
       if (signal.aborted) {
         return;
       }
