@@ -3,7 +3,6 @@
   "scopeName": "source.mongodb-document",
   "fileTypes": ["mongodb"],
   "patterns": [
-    { "include": "#comments" },
     { "include": "#strings" },
     { "include": "#numbers" },
     { "include": "#bson-types" },
@@ -11,39 +10,26 @@
     { "include": "#operators" }
   ],
   "repository": {
-    "comments": {
-      "patterns": [
-        {
-          "name": "comment.line.double-slash.mongodb-document",
-          "match": "//.*$"
-        },
-        {
-          "name": "comment.block.mongodb-document",
-          "begin": "/\\*",
-          "end": "\\*/"
-        }
-      ]
-    },
     "strings": {
       "patterns": [
         {
-          "name": "string.quoted.double.mongodb-document",
+          "name": "string.quoted.double.js",
           "begin": "\"",
           "end": "\"",
           "patterns": [
             {
-              "name": "constant.character.escape.mongodb-document",
+              "name": "constant.character.escape.js",
               "match": "\\\\."
             }
           ]
         },
         {
-          "name": "string.quoted.single.mongodb-document",
+          "name": "string.quoted.single.js",
           "begin": "'",
           "end": "'",
           "patterns": [
             {
-              "name": "constant.character.escape.mongodb-document",
+              "name": "constant.character.escape.js",
               "match": "\\\\."
             }
           ]
@@ -53,7 +39,7 @@
     "numbers": {
       "patterns": [
         {
-          "name": "constant.numeric.mongodb-document",
+          "name": "constant.numeric.js",
           "match": "\\b\\d+(\\.\\d+)?([eE][+-]?\\d+)?\\b"
         }
       ]
@@ -61,7 +47,7 @@
     "bson-types": {
       "patterns": [
         {
-          "name": "support.class.bson.mongodb-document",
+          "name": "support.class.js",
           "match": "\\b(ObjectId|ISODate|Double|Long|NumberLong|Int32|NumberInt|Decimal128|NumberDecimal|Binary|BinData|UUID|Code|Timestamp|MinKey|MaxKey|DBRef|BSONRegExp|RegExp)\\b"
         }
       ]
@@ -69,7 +55,7 @@
     "keywords": {
       "patterns": [
         {
-          "name": "constant.language.mongodb-document",
+          "name": "constant.language.js",
           "match": "\\b(true|false|null|undefined|NaN|Infinity)\\b"
         }
       ]
@@ -77,7 +63,7 @@
     "operators": {
       "patterns": [
         {
-          "name": "keyword.operator.mongodb-document",
+          "name": "keyword.operator.js",
           "match": "[+\\-*/%=<>!&|]"
         }
       ]
