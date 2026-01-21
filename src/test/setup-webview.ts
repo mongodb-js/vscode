@@ -51,9 +51,21 @@ Object.assign(focusTrap, {
 const virtualConsole = new VirtualConsole();
 virtualConsole.sendTo(console, { omitJSDOMErrors: true });
 virtualConsole.on('jsdomError', (err) => {
-  if (err.message !== 'Not implemented: navigation (except hash changes)') {
-    console.error(err);
+  // Ignore navigation not implemented errors
+  if (err.message === 'Not implemented: navigation (except hash changes)') {
+    return;
   }
+
+  // Ignore @vscode-elements/elements slot handling errors in JSDOM
+  // These occur because JSDOM's shadow DOM implementation doesn't fully match browser behavior
+  if (
+    err.detail?.message?.includes("reading 'trim'") &&
+    err.detail?.stack?.includes('vscode-select-base')
+  ) {
+    return;
+  }
+
+  console.error(err);
 });
 
 global.window = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -86,6 +98,23 @@ if (
     return Promise.resolve(this);
   };
 }
+
+// Polyfill for ResizeObserver (required by @vscode-elements/elements)
+// JSDOM does not support ResizeObserver, so we provide a no-op implementation
+class ResizeObserverPolyfill {
+  observe(): void {
+    // no-op
+  }
+  unobserve(): void {
+    // no-op
+  }
+  disconnect(): void {
+    // no-op
+  }
+}
+
+global.ResizeObserver = ResizeObserverPolyfill as any;
+global.window.ResizeObserver = ResizeObserverPolyfill as any;
 
 // Overwrites the node.js version which is incompatible with jsdom.
 global.MessageEvent = global.window.MessageEvent;
