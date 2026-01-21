@@ -44,7 +44,7 @@ export interface CancelRequestMessage extends BasicWebviewMessage {
 export interface LoadDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadDocuments;
   documents: Record<string, unknown>[];
-  totalCount?: number;
+  totalCount?: number | null;
 }
 
 export interface RefreshErrorMessage extends BasicWebviewMessage {
@@ -65,7 +65,7 @@ export interface RequestCancelledMessage extends BasicWebviewMessage {
 
 export interface UpdateTotalCountMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.updateTotalCount;
-  totalCount: number;
+  totalCount: number | null;
 }
 
 export interface UpdateTotalCountErrorMessage extends BasicWebviewMessage {

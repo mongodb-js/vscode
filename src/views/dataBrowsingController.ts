@@ -325,12 +325,12 @@ export default class DataBrowsingController {
     namespace: string,
     collectionType: string,
     signal: AbortSignal,
-  ): Promise<number> {
-    if (
+  ): Promise<number | null> {
+     if (
       collectionType === CollectionType.view ||
       collectionType === CollectionType.timeseries
     ) {
-      return 0;
+      return null;
     }
 
     const dataService = this._connectionController.getActiveDataService();

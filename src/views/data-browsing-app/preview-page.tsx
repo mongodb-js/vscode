@@ -105,8 +105,12 @@ const PreviewApp: React.FC = () => {
   const [totalCountInCollection, setTotalCountInCollection] = useState<
     number | null
   >(null);
+  const [hasReceivedCount, setHasReceivedCount] = useState(false);
 
-  const totalDocuments = totalCountInCollection ?? displayedDocuments.length;
+  const isCountAvailable = totalCountInCollection !== null;
+  const totalDocuments = isCountAvailable
+    ? totalCountInCollection
+    : displayedDocuments.length;
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
   }, [totalDocuments, itemsPerPage]);
@@ -137,6 +141,7 @@ const PreviewApp: React.FC = () => {
         setDisplayedDocuments((message.documents as PreviewDocument[]) || []);
         if (message.totalCount !== undefined) {
           setTotalCountInCollection(message.totalCount);
+          setHasReceivedCount(true);
         }
         setCurrentPage(1);
         setIsLoading(false);
@@ -150,9 +155,10 @@ const PreviewApp: React.FC = () => {
         setIsLoading(false);
       } else if (message.command === PreviewMessageType.updateTotalCount) {
         setTotalCountInCollection(message.totalCount);
+        setHasReceivedCount(true);
       } else if (message.command === PreviewMessageType.updateTotalCountError) {
-        // Count fetch failed - webview can decide how to handle this
-        // For now, we leave the count as undefined (pagination will be hidden)
+        // Count fetch failed - mark as received with null value
+        setHasReceivedCount(true);
       }
     };
 
@@ -235,7 +241,16 @@ const PreviewApp: React.FC = () => {
 
           {/* Pagination info */}
           <span className={paginationInfoStyles}>
-            {startItem}-{endItem} of {totalCountInCollection ?? totalDocuments}
+            {startItem}-{endItem} of{' '}
+            {!hasReceivedCount ? (
+              <VscodeProgressRing style={{ width: 14, height: 14 }} />
+            ) : totalCountInCollection === null ? (
+              <span title="We don't run a count for time series and views">
+                N/A
+              </span>
+            ) : (
+              totalCountInCollection
+            )}
           </span>
 
           {/* Page navigation arrows */}

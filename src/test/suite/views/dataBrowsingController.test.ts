@@ -218,7 +218,7 @@ suite('DataBrowsingController Test Suite', function () {
       expect(message.totalCount).to.equal(0);
     });
 
-    test('does not call aggregate for view collections', async function () {
+    test('does not call aggregate for view collections and returns null', async function () {
       const options = createMockOptions({
         collectionType: CollectionType.view,
       });
@@ -227,10 +227,10 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(mockDataService.aggregate.called).to.be.false;
       const message = postMessageStub.firstCall.args[0];
-      expect(message.totalCount).to.equal(0);
+      expect(message.totalCount).to.equal(null);
     });
 
-    test('does not call aggregate for timeseries collections', async function () {
+    test('does not call aggregate for timeseries collections and returns null', async function () {
       const options = createMockOptions({
         collectionType: CollectionType.timeseries,
       });
@@ -239,7 +239,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(mockDataService.aggregate.called).to.be.false;
       const message = postMessageStub.firstCall.args[0];
-      expect(message.totalCount).to.equal(0);
+      expect(message.totalCount).to.equal(null);
     });
   });
 
