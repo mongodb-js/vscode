@@ -1,5 +1,4 @@
 import React, { useEffect, useCallback } from 'react';
-import { Provider } from 'react-redux';
 import {
   VscodeButton,
   VscodeLabel,
@@ -16,7 +15,6 @@ import {
   VSCODE_EDITOR_BACKGROUND,
   VSCODE_DESCRIPTION_FOREGROUND,
 } from '../vscode-styles';
-import { store } from './store';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import {
   loadDocuments,
@@ -329,13 +327,4 @@ const PreviewApp: React.FC = () => {
   );
 };
 
-// Wrapper component that provides the Redux store
-const PreviewAppWithProvider: React.FC = () => {
-  return (
-    <Provider store={store}>
-      <PreviewApp />
-    </Provider>
-  );
-};
-
-export default PreviewAppWithProvider;
+export default PreviewApp;
