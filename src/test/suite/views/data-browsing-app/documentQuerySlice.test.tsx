@@ -138,7 +138,11 @@ describe('documentQuerySlice', function () {
 
     describe('startLoading', function () {
       it('should set loading to true and clear error', function () {
-        const state = { ...initialState, isLoading: false, error: 'Some error' };
+        const state = {
+          ...initialState,
+          isLoading: false,
+          error: 'Some error',
+        };
         const result = reducer(state, startLoading());
         expect(result.isLoading).to.be.true;
         expect(result.error).to.be.null;
@@ -245,17 +249,29 @@ describe('documentQuerySlice', function () {
       });
 
       it('selectTotalCountInCollection should return total count', function () {
-        expect(selectTotalCountInCollection(createState({ totalCountInCollection: 50 }))).to.equal(50);
-        expect(selectTotalCountInCollection(createState({ totalCountInCollection: null }))).to.be.null;
+        expect(
+          selectTotalCountInCollection(
+            createState({ totalCountInCollection: 50 }),
+          ),
+        ).to.equal(50);
+        expect(
+          selectTotalCountInCollection(
+            createState({ totalCountInCollection: null }),
+          ),
+        ).to.be.null;
       });
 
       it('selectHasReceivedCount should return has received count flag', function () {
-        expect(selectHasReceivedCount(createState({ hasReceivedCount: true }))).to.be.true;
-        expect(selectHasReceivedCount(createState({ hasReceivedCount: false }))).to.be.false;
+        expect(selectHasReceivedCount(createState({ hasReceivedCount: true })))
+          .to.be.true;
+        expect(selectHasReceivedCount(createState({ hasReceivedCount: false })))
+          .to.be.false;
       });
 
       it('selectError should return error', function () {
-        expect(selectError(createState({ error: 'Test error' }))).to.equal('Test error');
+        expect(selectError(createState({ error: 'Test error' }))).to.equal(
+          'Test error',
+        );
         expect(selectError(createState({ error: null }))).to.be.null;
       });
     });
@@ -379,4 +395,3 @@ describe('documentQuerySlice', function () {
     });
   });
 });
-

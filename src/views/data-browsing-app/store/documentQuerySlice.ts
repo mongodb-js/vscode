@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -30,7 +31,10 @@ const documentQuerySlice = createSlice({
   name: 'documentQuery',
   initialState,
   reducers: {
-    setDisplayedDocuments: (state, action: PayloadAction<PreviewDocument[]>) => {
+    setDisplayedDocuments: (
+      state,
+      action: PayloadAction<PreviewDocument[]>,
+    ) => {
       state.displayedDocuments = action.payload;
     },
     loadDocuments: (state, action: PayloadAction<PreviewDocument[]>) => {
@@ -60,7 +64,10 @@ const documentQuerySlice = createSlice({
     stopLoading: (state) => {
       state.isLoading = false;
     },
-    setTotalCountInCollection: (state, action: PayloadAction<number | null>) => {
+    setTotalCountInCollection: (
+      state,
+      action: PayloadAction<number | null>,
+    ) => {
       state.totalCountInCollection = action.payload;
       state.hasReceivedCount = true;
     },
@@ -98,8 +105,9 @@ export const {
 
 type StateWithDocumentQuery = { documentQuery: DocumentQueryState };
 
-export const selectDisplayedDocuments = (state: StateWithDocumentQuery): PreviewDocument[] =>
-  state.documentQuery.displayedDocuments;
+export const selectDisplayedDocuments = (
+  state: StateWithDocumentQuery,
+): PreviewDocument[] => state.documentQuery.displayedDocuments;
 
 export const selectCurrentPage = (state: StateWithDocumentQuery): number =>
   state.documentQuery.currentPage;
@@ -110,18 +118,21 @@ export const selectItemsPerPage = (state: StateWithDocumentQuery): number =>
 export const selectIsLoading = (state: StateWithDocumentQuery): boolean =>
   state.documentQuery.isLoading;
 
-export const selectTotalCountInCollection = (state: StateWithDocumentQuery): number | null =>
-  state.documentQuery.totalCountInCollection;
+export const selectTotalCountInCollection = (
+  state: StateWithDocumentQuery,
+): number | null => state.documentQuery.totalCountInCollection;
 
-export const selectHasReceivedCount = (state: StateWithDocumentQuery): boolean =>
-  state.documentQuery.hasReceivedCount;
+export const selectHasReceivedCount = (
+  state: StateWithDocumentQuery,
+): boolean => state.documentQuery.hasReceivedCount;
 
 export const selectError = (state: StateWithDocumentQuery): string | null =>
   state.documentQuery.error;
 
 // Derived selectors
-export const selectIsCountAvailable = (state: StateWithDocumentQuery): boolean =>
-  state.documentQuery.totalCountInCollection !== null;
+export const selectIsCountAvailable = (
+  state: StateWithDocumentQuery,
+): boolean => state.documentQuery.totalCountInCollection !== null;
 
 export const selectTotalDocuments = (state: StateWithDocumentQuery): number => {
   const { totalCountInCollection, displayedDocuments } = state.documentQuery;
@@ -149,4 +160,3 @@ export const selectEndItem = (state: StateWithDocumentQuery): number => {
 };
 
 export default documentQuerySlice.reducer;
-

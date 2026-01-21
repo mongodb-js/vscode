@@ -148,7 +148,9 @@ const PreviewApp: React.FC = () => {
       const message: MessageFromExtensionToWebview = event.data;
       switch (message.command) {
         case PreviewMessageType.loadDocuments:
-          dispatch(loadDocuments((message.documents as PreviewDocument[]) || []));
+          dispatch(
+            loadDocuments((message.documents as PreviewDocument[]) || []),
+          );
           break;
         case PreviewMessageType.loadPage:
           dispatch(loadPage((message.documents as PreviewDocument[]) || []));
