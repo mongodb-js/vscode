@@ -102,6 +102,9 @@ export default class DataBrowsingController {
           message.limit,
         );
         return;
+      case PreviewMessageType.getTotalCount:
+        await this.handleGetTotalCount(panel, options);
+        return;
       case PreviewMessageType.cancelRequest:
         this.handleCancelRequest(panel);
         return;
@@ -126,12 +129,11 @@ export default class DataBrowsingController {
   handleGetDocuments = async (
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
-    skip?: number,
-    limit?: number,
+    skip: number,
+    limit: number,
   ): Promise<void> => {
     const abortController = this._createAbortController(panel);
     const { signal } = abortController;
-    const isPagination = skip !== undefined && skip > 0;
 
     try {
       const documents = await this._fetchDocuments(
@@ -145,51 +147,51 @@ export default class DataBrowsingController {
         return;
       }
 
-      if (isPagination) {
-        void panel.webview.postMessage({
-          command: PreviewMessageType.loadPage,
-          documents,
-          skip,
-          limit,
-        });
-      } else {
-        void panel.webview.postMessage({
-          command: PreviewMessageType.loadDocuments,
-          documents,
-        });
-
-        void this._getTotalCount(
-          options.namespace,
-          options.collectionType,
-          signal,
-        )
-          .then((totalCount) => {
-            if (signal.aborted) {
-              return;
-            }
-            void panel.webview.postMessage({
-              command: PreviewMessageType.updateTotalCount,
-              totalCount,
-            });
-          })
-          .catch((error) => {
-            if (signal.aborted) {
-              return;
-            }
-            log.error('Error fetching total count', error);
-            void panel.webview.postMessage({
-              command: PreviewMessageType.updateTotalCountError,
-              error: formatError(error).message,
-            });
-          });
-      }
+      void panel.webview.postMessage({
+        command: PreviewMessageType.loadPage,
+        documents,
+      });
     } catch (error) {
       if (signal.aborted) {
         return;
       }
       log.error('Error refreshing documents', error);
       void panel.webview.postMessage({
-        command: PreviewMessageType.refreshError,
+        command: PreviewMessageType.getDocumentError,
+        error: formatError(error).message,
+      });
+    }
+  };
+
+  handleGetTotalCount = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+  ): Promise<void> => {
+    const abortController = this._createAbortController(panel);
+    const { signal } = abortController;
+
+    try {
+      const totalCount = await this._getTotalCount(
+        options.namespace,
+        options.collectionType,
+        signal,
+      );
+
+      if (signal.aborted) {
+        return;
+      }
+
+      void panel.webview.postMessage({
+        command: PreviewMessageType.updateTotalCount,
+        totalCount,
+      });
+    } catch (error) {
+      if (signal.aborted) {
+        return;
+      }
+      log.error('Error fetching total count', error);
+      void panel.webview.postMessage({
+        command: PreviewMessageType.updateTotalCountError,
         error: formatError(error).message,
       });
     }

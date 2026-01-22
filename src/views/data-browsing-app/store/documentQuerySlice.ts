@@ -37,12 +37,6 @@ const documentQuerySlice = createSlice({
     ) => {
       state.displayedDocuments = action.payload;
     },
-    loadDocuments: (state, action: PayloadAction<PreviewDocument[]>) => {
-      state.displayedDocuments = action.payload;
-      state.currentPage = 1;
-      state.isLoading = false;
-      state.error = null;
-    },
     loadPage: (state, action: PayloadAction<PreviewDocument[]>) => {
       state.displayedDocuments = action.payload;
       state.isLoading = false;
@@ -89,7 +83,6 @@ const documentQuerySlice = createSlice({
 
 export const {
   setDisplayedDocuments,
-  loadDocuments,
   loadPage,
   setCurrentPage,
   setItemsPerPage,

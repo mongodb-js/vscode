@@ -7,7 +7,11 @@ import {
   stopLoading,
   selectTotalPages,
 } from './documentQuerySlice';
-import { sendGetDocuments, sendCancelRequest } from '../vscode-api';
+import {
+  sendGetDocuments,
+  sendGetTotalCount,
+  sendCancelRequest,
+} from '../vscode-api';
 
 const getState = () => store.getState().documentQuery;
 
@@ -15,11 +19,13 @@ export const refreshDocuments = (): void => {
   const { itemsPerPage } = getState();
   store.dispatch(startRefresh());
   sendGetDocuments(0, itemsPerPage);
+  sendGetTotalCount();
 };
 
 export const fetchInitialDocuments = (): void => {
   const { itemsPerPage } = getState();
   sendGetDocuments(0, itemsPerPage);
+  sendGetTotalCount();
 };
 
 export const goToPreviousPage = (): void => {

@@ -19,13 +19,14 @@ describe('messageHandler test suite', function () {
   });
 
   describe('handleExtensionMessage', function () {
-    describe('loadDocuments', function () {
-      it('should dispatch loadDocuments action with documents', function () {
+    describe('loadPage', function () {
+      it('should dispatch loadPage action with documents on initial load', function () {
         const documents = [{ _id: '1', name: 'Test' }];
 
         handleExtensionMessage({
-          command: PreviewMessageType.loadDocuments,
+          command: PreviewMessageType.loadPage,
           documents,
+          isInitialLoad: true,
         });
 
         expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
@@ -35,10 +36,39 @@ describe('messageHandler test suite', function () {
         expect(store.getState().documentQuery.currentPage).to.equal(1);
       });
 
+      it('should dispatch loadPage action with documents on pagination', function () {
+        const documents = [{ _id: '11', name: 'Page2Doc' }];
+
+        handleExtensionMessage({
+          command: PreviewMessageType.loadPage,
+          documents,
+          isInitialLoad: false,
+        });
+
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          documents,
+        );
+        expect(store.getState().documentQuery.isLoading).to.be.false;
+      });
+
+      it('should reset currentPage to 1 when isInitialLoad is true', function () {
+        // Set page to something other than 1
+        store.dispatch(startLoading());
+
+        handleExtensionMessage({
+          command: PreviewMessageType.loadPage,
+          documents: [{ _id: '1' }],
+          isInitialLoad: true,
+        });
+
+        expect(store.getState().documentQuery.currentPage).to.equal(1);
+      });
+
       it('should handle empty documents array', function () {
         handleExtensionMessage({
-          command: PreviewMessageType.loadDocuments,
+          command: PreviewMessageType.loadPage,
           documents: [],
+          isInitialLoad: true,
         });
 
         expect(
@@ -48,7 +78,8 @@ describe('messageHandler test suite', function () {
 
       it('should handle undefined documents', function () {
         handleExtensionMessage({
-          command: PreviewMessageType.loadDocuments,
+          command: PreviewMessageType.loadPage,
+          isInitialLoad: true,
         } as any);
 
         expect(
@@ -57,31 +88,13 @@ describe('messageHandler test suite', function () {
       });
     });
 
-    describe('loadPage', function () {
-      it('should dispatch loadPage action with documents', function () {
-        const documents = [{ _id: '11', name: 'Page2Doc' }];
-
-        handleExtensionMessage({
-          command: PreviewMessageType.loadPage,
-          documents,
-          skip: 10,
-          limit: 10,
-        });
-
-        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
-          documents,
-        );
-        expect(store.getState().documentQuery.isLoading).to.be.false;
-      });
-    });
-
-    describe('refreshError', function () {
-      it('should stop loading on refresh error', function () {
+    describe('getDocumentError', function () {
+      it('should stop loading on document get error', function () {
         store.dispatch(startLoading());
         expect(store.getState().documentQuery.isLoading).to.be.true;
 
         handleExtensionMessage({
-          command: PreviewMessageType.refreshError,
+          command: PreviewMessageType.getDocumentError,
         });
 
         expect(store.getState().documentQuery.isLoading).to.be.false;

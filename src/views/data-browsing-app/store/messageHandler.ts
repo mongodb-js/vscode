@@ -2,7 +2,6 @@ import { store } from './index';
 import type { MessageFromExtensionToWebview } from '../extension-app-message-constants';
 import { PreviewMessageType } from '../extension-app-message-constants';
 import {
-  loadDocuments,
   loadPage,
   stopLoading,
   setTotalCountInCollection,
@@ -14,15 +13,10 @@ export const handleExtensionMessage = (
   message: MessageFromExtensionToWebview,
 ): void => {
   switch (message.command) {
-    case PreviewMessageType.loadDocuments:
-      store.dispatch(
-        loadDocuments((message.documents as PreviewDocument[]) || []),
-      );
-      break;
     case PreviewMessageType.loadPage:
       store.dispatch(loadPage((message.documents as PreviewDocument[]) || []));
       break;
-    case PreviewMessageType.refreshError:
+    case PreviewMessageType.getDocumentError:
       store.dispatch(stopLoading());
       // Could dispatch an error action here if we want to display error messages
       break;

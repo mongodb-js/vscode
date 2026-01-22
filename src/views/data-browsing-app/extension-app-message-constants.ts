@@ -1,12 +1,12 @@
 export const PreviewMessageType = {
   // Messages from webview to extension
   getDocuments: 'GET_DOCUMENTS',
+  getTotalCount: 'GET_TOTAL_COUNT',
   cancelRequest: 'CANCEL_REQUEST',
 
   // Messages from extension to webview
-  loadDocuments: 'LOAD_DOCUMENTS',
   loadPage: 'LOAD_PAGE',
-  refreshError: 'REFRESH_ERROR',
+  getDocumentError: 'DOCUMENT_GET_ERROR',
   requestCancelled: 'REQUEST_CANCELLED',
   updateTotalCount: 'UPDATE_TOTAL_COUNT',
   updateTotalCountError: 'UPDATE_TOTAL_COUNT_ERROR',
@@ -30,22 +30,19 @@ export interface CancelRequestMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.cancelRequest;
 }
 
+export interface GetTotalCountMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.getTotalCount;
+}
+
 // Messages from extension to webview
-export interface LoadDocumentsMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.loadDocuments;
-  documents: Record<string, unknown>[];
-}
-
-export interface RefreshErrorMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.refreshError;
-  error?: string;
-}
-
 export interface LoadPageMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadPage;
   documents: Record<string, unknown>[];
-  skip: number;
-  limit: number;
+}
+
+export interface DocumentGetErrorMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.getDocumentError;
+  error?: string;
 }
 
 export interface RequestCancelledMessage extends BasicWebviewMessage {
@@ -64,12 +61,12 @@ export interface UpdateTotalCountErrorMessage extends BasicWebviewMessage {
 
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
+  | GetTotalCountMessage
   | CancelRequestMessage;
 
 export type MessageFromExtensionToWebview =
-  | LoadDocumentsMessage
   | LoadPageMessage
-  | RefreshErrorMessage
+  | DocumentGetErrorMessage
   | RequestCancelledMessage
   | UpdateTotalCountMessage
   | UpdateTotalCountErrorMessage;

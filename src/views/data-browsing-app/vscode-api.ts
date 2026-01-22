@@ -28,6 +28,12 @@ export const sendGetDocuments = (skip: number, limit: number): void => {
   });
 };
 
+export const sendGetTotalCount = (): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.getTotalCount,
+  });
+};
+
 export const sendCancelRequest = (): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.cancelRequest,

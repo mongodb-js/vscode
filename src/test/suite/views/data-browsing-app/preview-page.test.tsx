@@ -70,9 +70,8 @@ describe('PreviewApp test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents: [{ _id: '123', name: 'Test' }],
-              totalCount: 1,
             },
           }),
         );
@@ -143,7 +142,7 @@ describe('PreviewApp test suite', function () {
   });
 
   describe('Message handling', function () {
-    it('should display documents when loadDocuments message is received', function () {
+    it('should display documents when loadPage message is received', function () {
       renderWithProvider(<PreviewApp />);
 
       // Simulate receiving documents from extension
@@ -151,9 +150,8 @@ describe('PreviewApp test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents: [{ _id: { $oid: '123' }, name: 'Test' }],
-              totalCount: 1,
             },
           }),
         );
@@ -170,9 +168,8 @@ describe('PreviewApp test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents: [],
-              totalCount: 0,
             },
           }),
         );
@@ -186,11 +183,11 @@ describe('PreviewApp test suite', function () {
     // Helper to complete initial loading
     function completeInitialLoading(): void {
       act(() => {
-        // Send loadDocuments message
+        // Send loadPage message
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents: [{ _id: '1', name: 'Doc1' }],
             },
           }),
@@ -252,11 +249,11 @@ describe('PreviewApp test suite', function () {
       }));
 
       act(() => {
-        // Send loadDocuments message
+        // Send loadPage message
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents,
             },
           }),
@@ -375,9 +372,8 @@ describe('PreviewApp test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents: [{ _id: '123', name: 'TestDocument', value: 42 }],
-              totalCount: 1,
             },
           }),
         );
@@ -394,12 +390,11 @@ describe('PreviewApp test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents: [
                 { _id: '1', name: 'First' },
                 { _id: '2', name: 'Second' },
               ],
-              totalCount: 2,
             },
           }),
         );
@@ -420,9 +415,8 @@ describe('PreviewApp test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: PreviewMessageType.loadDocuments,
+              command: PreviewMessageType.loadPage,
               documents: [{ _id: '1', name: 'FirstPage' }],
-              totalCount: 20,
             },
           }),
         );
@@ -435,8 +429,6 @@ describe('PreviewApp test suite', function () {
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '11', name: 'SecondPage' }],
-              skip: 10,
-              limit: 10,
             },
           }),
         );

@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import reducer, {
   setDisplayedDocuments,
-  loadDocuments,
   loadPage,
   setCurrentPage,
   setItemsPerPage,
@@ -80,32 +79,21 @@ describe('documentQuerySlice', function () {
       });
     });
 
-    describe('loadDocuments', function () {
-      it('should set documents and reset page to 1', function () {
-        const state = { ...initialState, currentPage: 5, isLoading: true };
-        const documents: PreviewDocument[] = [{ _id: '1' }];
-        const result = reducer(state, loadDocuments(documents));
-        expect(result.displayedDocuments).to.deep.equal(documents);
-        expect(result.currentPage).to.equal(1);
-        expect(result.isLoading).to.be.false;
-        expect(result.error).to.be.null;
-      });
-
-      it('should clear any existing error', function () {
-        const state = { ...initialState, error: 'Previous error' };
-        const result = reducer(state, loadDocuments([]));
-        expect(result.error).to.be.null;
-      });
-    });
-
     describe('loadPage', function () {
-      it('should set documents without resetting page', function () {
+      it('should set documents and stop loading', function () {
         const state = { ...initialState, currentPage: 3, isLoading: true };
         const documents: PreviewDocument[] = [{ _id: '1' }];
         const result = reducer(state, loadPage(documents));
         expect(result.displayedDocuments).to.deep.equal(documents);
         expect(result.currentPage).to.equal(3);
         expect(result.isLoading).to.be.false;
+        expect(result.error).to.be.null;
+      });
+
+      it('should clear any existing error', function () {
+        const state = { ...initialState, error: 'Previous error' };
+        const result = reducer(state, loadPage([]));
+        expect(result.error).to.be.null;
       });
     });
 
