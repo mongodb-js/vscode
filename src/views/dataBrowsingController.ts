@@ -44,12 +44,20 @@ export interface DataBrowsingOptions {
   collectionType: string;
 }
 
+type RequestType = 'documents' | 'totalCount';
+
+interface PanelAbortControllers {
+  documents?: AbortController;
+  totalCount?: AbortController;
+}
+
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
 
-  _panelAbortControllers: Map<vscode.WebviewPanel, AbortController> = new Map();
+  _panelAbortControllers: Map<vscode.WebviewPanel, PanelAbortControllers> =
+    new Map();
 
   constructor({
     connectionController,
@@ -63,27 +71,36 @@ export default class DataBrowsingController {
   }
 
   deactivate(): void {
-    for (const abortController of this._panelAbortControllers.values()) {
-      abortController.abort();
+    for (const controllers of this._panelAbortControllers.values()) {
+      controllers.documents?.abort();
+      controllers.totalCount?.abort();
     }
     this._panelAbortControllers.clear();
   }
 
-  private _createAbortController(panel: vscode.WebviewPanel): AbortController {
-    const existingController = this._panelAbortControllers.get(panel);
-    if (existingController) {
-      existingController.abort();
+  private _createAbortController(
+    panel: vscode.WebviewPanel,
+    requestType: RequestType,
+  ): AbortController {
+    let controllers = this._panelAbortControllers.get(panel);
+    if (!controllers) {
+      controllers = {};
+      this._panelAbortControllers.set(panel, controllers);
     }
 
+    // Abort existing controller for this request type if any
+    controllers[requestType]?.abort();
+
     const abortController = new AbortController();
-    this._panelAbortControllers.set(panel, abortController);
+    controllers[requestType] = abortController;
     return abortController;
   }
 
   private _cleanupAbortController(panel: vscode.WebviewPanel): void {
-    const controller = this._panelAbortControllers.get(panel);
-    if (controller) {
-      controller.abort();
+    const controllers = this._panelAbortControllers.get(panel);
+    if (controllers) {
+      controllers.documents?.abort();
+      controllers.totalCount?.abort();
       this._panelAbortControllers.delete(panel);
     }
   }
@@ -115,9 +132,10 @@ export default class DataBrowsingController {
   };
 
   handleCancelRequest = (panel: vscode.WebviewPanel): void => {
-    const controller = this._panelAbortControllers.get(panel);
-    if (controller) {
-      controller.abort();
+    const controllers = this._panelAbortControllers.get(panel);
+    if (controllers) {
+      controllers.documents?.abort();
+      controllers.totalCount?.abort();
       this._panelAbortControllers.delete(panel);
     }
 
@@ -132,7 +150,7 @@ export default class DataBrowsingController {
     skip: number,
     limit: number,
   ): Promise<void> => {
-    const abortController = this._createAbortController(panel);
+    const abortController = this._createAbortController(panel, 'documents');
     const { signal } = abortController;
 
     try {
@@ -167,7 +185,7 @@ export default class DataBrowsingController {
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
-    const abortController = this._createAbortController(panel);
+    const abortController = this._createAbortController(panel, 'totalCount');
     const { signal } = abortController;
 
     try {

@@ -66,18 +66,18 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('AbortController management', function () {
-    test('creates a new AbortController for each request', async function () {
+    test('creates a new AbortController for each request type', async function () {
       const options = createMockOptions();
 
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
       expect(testController._panelAbortControllers.has(mockPanel)).to.be.true;
 
-      const controller = testController._panelAbortControllers.get(mockPanel);
-      expect(controller).to.not.be.undefined;
-      expect(controller?.signal.aborted).to.be.false;
+      const controllers = testController._panelAbortControllers.get(mockPanel);
+      expect(controllers).to.not.be.undefined;
+      expect(controllers?.documents?.signal.aborted).to.be.false;
     });
 
-    test('aborts previous AbortController when a new request starts', async function () {
+    test('aborts previous AbortController when a new request of the same type starts', async function () {
       // Simulate a slow find request
       mockDataService.find = sandbox.stub().callsFake(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -90,17 +90,21 @@ suite('DataBrowsingController Test Suite', function () {
       const firstRequest = testController.handleGetDocuments(
         mockPanel,
         options,
+        0,
+        10,
       );
       const firstController =
-        testController._panelAbortControllers.get(mockPanel);
+        testController._panelAbortControllers.get(mockPanel)?.documents;
 
       // Start second request immediately (will abort the first)
       const secondRequest = testController.handleGetDocuments(
         mockPanel,
         options,
+        0,
+        10,
       );
       const secondController =
-        testController._panelAbortControllers.get(mockPanel);
+        testController._panelAbortControllers.get(mockPanel)?.documents;
 
       // First controller should be aborted
       expect(firstController?.signal.aborted).to.be.true;
@@ -110,31 +114,104 @@ suite('DataBrowsingController Test Suite', function () {
       await Promise.all([firstRequest, secondRequest]);
     });
 
-    test('cleans up AbortController when panel closes', function () {
-      // Create a controller for the panel
-      (testController as any)._createAbortController(mockPanel);
-      expect(testController._panelAbortControllers.has(mockPanel)).to.be.true;
+    test('does not abort documents controller when totalCount request starts', async function () {
+      // Simulate slow requests
+      mockDataService.find = sandbox.stub().callsFake(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return [{ _id: '1', name: 'test' }];
+      });
+      mockDataService.aggregate = sandbox.stub().callsFake(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return [{ count: 100 }];
+      });
 
-      const controller = testController._panelAbortControllers.get(mockPanel);
+      const options = createMockOptions();
+
+      // Start documents request (don't await)
+      const documentsRequest = testController.handleGetDocuments(
+        mockPanel,
+        options,
+        0,
+        10,
+      );
+      const documentsController =
+        testController._panelAbortControllers.get(mockPanel)?.documents;
+
+      // Start totalCount request (should NOT abort documents)
+      const countRequest = testController.handleGetTotalCount(
+        mockPanel,
+        options,
+      );
+      const countController =
+        testController._panelAbortControllers.get(mockPanel)?.totalCount;
+
+      // Documents controller should NOT be aborted
+      expect(documentsController?.signal.aborted).to.be.false;
+      // Count controller should not be aborted either
+      expect(countController?.signal.aborted).to.be.false;
+
+      await Promise.all([documentsRequest, countRequest]);
+    });
+
+    test('cleans up all AbortControllers when panel closes', async function () {
+      const options = createMockOptions();
+
+      // Simulate slow requests
+      mockDataService.find = sandbox.stub().callsFake(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return [{ _id: '1', name: 'test' }];
+      });
+      mockDataService.aggregate = sandbox.stub().callsFake(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return [{ count: 100 }];
+      });
+
+      // Start both requests
+      const documentsRequest = testController.handleGetDocuments(
+        mockPanel,
+        options,
+        0,
+        10,
+      );
+      const countRequest = testController.handleGetTotalCount(
+        mockPanel,
+        options,
+      );
+
+      const controllers = testController._panelAbortControllers.get(mockPanel);
+      const documentsController = controllers?.documents;
+      const countController = controllers?.totalCount;
 
       // Simulate panel close
       testController.onWebviewPanelClosed(mockPanel);
 
-      // Controller should be aborted and removed
-      expect(controller?.signal.aborted).to.be.true;
+      // Both controllers should be aborted and removed
+      expect(documentsController?.signal.aborted).to.be.true;
+      expect(countController?.signal.aborted).to.be.true;
       expect(testController._panelAbortControllers.has(mockPanel)).to.be.false;
+
+      await Promise.all([documentsRequest, countRequest]);
     });
 
-    test('aborts all AbortControllers on deactivate', function () {
+    test('aborts all AbortControllers on deactivate', async function () {
       const panel1 = createMockPanel();
       const panel2 = createMockPanel();
+      const options = createMockOptions();
+
+      // Simulate slow requests
+      mockDataService.find = sandbox.stub().callsFake(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return [{ _id: '1', name: 'test' }];
+      });
 
       // Create controllers for both panels
-      (testController as any)._createAbortController(panel1);
-      (testController as any)._createAbortController(panel2);
+      const request1 = testController.handleGetDocuments(panel1, options, 0, 10);
+      const request2 = testController.handleGetDocuments(panel2, options, 0, 10);
 
-      const controller1 = testController._panelAbortControllers.get(panel1);
-      const controller2 = testController._panelAbortControllers.get(panel2);
+      const controller1 =
+        testController._panelAbortControllers.get(panel1)?.documents;
+      const controller2 =
+        testController._panelAbortControllers.get(panel2)?.documents;
 
       // Deactivate
       testController.deactivate();
@@ -143,6 +220,8 @@ suite('DataBrowsingController Test Suite', function () {
       expect(controller1?.signal.aborted).to.be.true;
       expect(controller2?.signal.aborted).to.be.true;
       expect(testController._panelAbortControllers.size).to.equal(0);
+
+      await Promise.all([request1, request2]);
     });
   });
 
@@ -150,14 +229,14 @@ suite('DataBrowsingController Test Suite', function () {
     test('does not post message when request is aborted', async function () {
       // Abort the controller during the find request
       mockDataService.find = sandbox.stub().callsFake(() => {
-        testController._panelAbortControllers.get(mockPanel)?.abort();
+        testController._panelAbortControllers.get(mockPanel)?.documents?.abort();
         return [{ _id: '1', name: 'test' }];
       });
       mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
 
       const options = createMockOptions();
 
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       // postMessage should not be called because request was aborted
       expect(postMessageStub.called).to.be.false;
@@ -166,7 +245,7 @@ suite('DataBrowsingController Test Suite', function () {
     test('does not throw when error occurs on aborted request', async function () {
       // Abort the controller and throw an error during find
       mockDataService.find = sandbox.stub().callsFake(() => {
-        testController._panelAbortControllers.get(mockPanel)?.abort();
+        testController._panelAbortControllers.get(mockPanel)?.documents?.abort();
         throw new Error('Connection error');
       });
       mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
@@ -174,7 +253,7 @@ suite('DataBrowsingController Test Suite', function () {
       const options = createMockOptions();
 
       // Should not throw
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       // postMessage should not be called because request was aborted
       expect(postMessageStub.called).to.be.false;
@@ -185,7 +264,7 @@ suite('DataBrowsingController Test Suite', function () {
     test('passes signal to find call', async function () {
       const options = createMockOptions();
 
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       expect(mockDataService.find.calledOnce).to.be.true;
       const executionOptions = mockDataService.find.firstCall.args[3];
@@ -197,7 +276,7 @@ suite('DataBrowsingController Test Suite', function () {
     test('posts loadPage message with documents on initial handleGetDocuments', async function () {
       const options = createMockOptions();
 
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       expect(mockDataService.find.calledOnce).to.be.true;
       expect(postMessageStub.calledOnce).to.be.true;
@@ -219,7 +298,7 @@ suite('DataBrowsingController Test Suite', function () {
     test('does not call aggregate in handleGetDocuments', async function () {
       const options = createMockOptions();
 
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       expect(mockDataService.aggregate.called).to.be.false;
     });
@@ -232,7 +311,7 @@ suite('DataBrowsingController Test Suite', function () {
         .rejects(new Error('Connection timeout'));
       const options = createMockOptions();
 
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       expect(postMessageStub.calledOnce).to.be.true;
       const message = postMessageStub.firstCall.args[0];
