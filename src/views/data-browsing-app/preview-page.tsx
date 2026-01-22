@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import {
   VscodeButton,
   VscodeLabel,
@@ -7,25 +7,13 @@ import {
   VscodeSingleSelect,
 } from '@vscode-elements/react-elements';
 import { css, spacing } from '@mongodb-js/compass-components';
-import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
-import { PreviewMessageType } from './extension-app-message-constants';
-import { sendGetDocuments, sendCancelRequest } from './vscode-api';
 import {
   VSCODE_PANEL_BORDER,
   VSCODE_EDITOR_BACKGROUND,
   VSCODE_DESCRIPTION_FOREGROUND,
 } from '../vscode-styles';
-import { useAppDispatch, useAppSelector } from './store/hooks';
+import { useAppSelector } from './store/hooks';
 import {
-  loadDocuments,
-  loadPage,
-  stopLoading,
-  setTotalCountInCollection,
-  markCountReceived,
-  setCurrentPage,
-  setItemsPerPage,
-  startLoading,
-  startRefresh,
   selectDisplayedDocuments,
   selectCurrentPage,
   selectItemsPerPage,
@@ -35,8 +23,17 @@ import {
   selectTotalPages,
   selectStartItem,
   selectEndItem,
-  type PreviewDocument,
 } from './store/documentQuerySlice';
+import { setupMessageHandler } from './store/messageHandler';
+import {
+  refreshDocuments,
+  fetchInitialDocuments,
+  goToPreviousPage,
+  goToNextPage,
+  changeItemsPerPage,
+  cancelRequest,
+  adjustCurrentPage,
+} from './store/actions';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -112,9 +109,6 @@ const emptyStateStyles = css({
 });
 
 const PreviewApp: React.FC = () => {
-  const dispatch = useAppDispatch();
-
-  // Redux selectors
   const displayedDocuments = useAppSelector(selectDisplayedDocuments);
   const currentPage = useAppSelector(selectCurrentPage);
   const itemsPerPage = useAppSelector(selectItemsPerPage);
@@ -125,92 +119,20 @@ const PreviewApp: React.FC = () => {
   const startItem = useAppSelector(selectStartItem);
   const endItem = useAppSelector(selectEndItem);
 
-  // Adjust current page if it exceeds total pages
   useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      dispatch(setCurrentPage(totalPages));
-    }
-  }, [totalPages, currentPage, dispatch]);
-
-  const fetchPageFromServer = useCallback(
-    (page: number, limit: number): void => {
-      const skip = (page - 1) * limit;
-      dispatch(startLoading());
-      sendGetDocuments(skip, limit);
-    },
-    [dispatch],
-  );
+    adjustCurrentPage();
+  }, [totalPages, currentPage]);
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent): void => {
-      const message: MessageFromExtensionToWebview = event.data;
-      switch (message.command) {
-        case PreviewMessageType.loadDocuments:
-          dispatch(
-            loadDocuments((message.documents as PreviewDocument[]) || []),
-          );
-          break;
-        case PreviewMessageType.loadPage:
-          dispatch(loadPage((message.documents as PreviewDocument[]) || []));
-          break;
-        case PreviewMessageType.refreshError:
-          dispatch(stopLoading());
-          // Could show an error message here if needed
-          break;
-        case PreviewMessageType.requestCancelled:
-          dispatch(stopLoading());
-          break;
-        case PreviewMessageType.updateTotalCount:
-          dispatch(setTotalCountInCollection(message.totalCount));
-          break;
-        case PreviewMessageType.updateTotalCountError:
-          // Count fetch failed - mark as received with null value
-          dispatch(markCountReceived());
-          break;
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    sendGetDocuments(0, itemsPerPage);
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [dispatch, itemsPerPage]);
-
-  const handleRefresh = (): void => {
-    dispatch(startRefresh());
-    sendGetDocuments(0, itemsPerPage);
-  };
-
-  const handleStop = (): void => {
-    dispatch(stopLoading());
-    sendCancelRequest();
-  };
-
-  const handlePrevPage = (): void => {
-    if (currentPage > 1) {
-      const newPage = currentPage - 1;
-      dispatch(setCurrentPage(newPage));
-      fetchPageFromServer(newPage, itemsPerPage);
-    }
-  };
-
-  const handleNextPage = (): void => {
-    if (currentPage < totalPages) {
-      const newPage = currentPage + 1;
-      dispatch(setCurrentPage(newPage));
-      fetchPageFromServer(newPage, itemsPerPage);
-    }
-  };
+    const cleanup = setupMessageHandler();
+    fetchInitialDocuments();
+    return cleanup;
+  }, []);
 
   const handleItemsPerPageChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const newItemsPerPage = parseInt(target.value, 10);
-    dispatch(setItemsPerPage(newItemsPerPage));
-    dispatch(setCurrentPage(1));
-    fetchPageFromServer(1, newItemsPerPage);
+    changeItemsPerPage(newItemsPerPage);
   };
 
   return (
@@ -224,7 +146,7 @@ const PreviewApp: React.FC = () => {
           <VscodeButton
             aria-label="Refresh"
             title="Refresh"
-            onClick={handleRefresh}
+            onClick={refreshDocuments}
             disabled={isLoading}
             icon="refresh"
             secondary
@@ -272,7 +194,7 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Previous page"
               title="Previous page"
-              onClick={handlePrevPage}
+              onClick={goToPreviousPage}
               disabled={currentPage <= 1 || isLoading}
               iconOnly
               icon="chevron-left"
@@ -281,7 +203,7 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Next page"
               title="Next page"
-              onClick={handleNextPage}
+              onClick={goToNextPage}
               disabled={currentPage >= totalPages || isLoading}
               iconOnly
               icon="chevron-right"
@@ -302,7 +224,7 @@ const PreviewApp: React.FC = () => {
               <VscodeButton
                 aria-label="Stop"
                 title="Stop current request"
-                onClick={handleStop}
+                onClick={cancelRequest}
                 icon="stop-circle"
                 secondary
               >
