@@ -223,7 +223,7 @@ export default class DataBrowsingController {
   ): Promise<Document[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      return [];
+      throw new Error('No active database connection');
     }
 
     const findOptions: { limit: number; skip?: number } = {
@@ -274,7 +274,7 @@ export default class DataBrowsingController {
 
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
-      return 0;
+      throw new Error('No active database connection');
     }
 
     const stages = [{ $count: 'count' }];

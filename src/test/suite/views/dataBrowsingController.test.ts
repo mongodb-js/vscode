@@ -321,7 +321,7 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('Data service not available', function () {
-    test('returns empty documents when no active data service', async function () {
+    test('posts error message when no active data service', async function () {
       mockConnectionController.getActiveDataService = sandbox
         .stub()
         .returns(null);
@@ -330,11 +330,11 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.loadPage);
-      expect(message.documents).to.deep.equal([]);
+      expect(message.command).to.equal(PreviewMessageType.getDocumentError);
+      expect(message.error).to.equal('No active database connection');
     });
 
-    test('returns empty documents for handleGetDocuments with pagination when no active data service', async function () {
+    test('posts error message for handleGetDocuments with pagination when no active data service', async function () {
       mockConnectionController.getActiveDataService = sandbox
         .stub()
         .returns(null);
@@ -343,8 +343,8 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
       const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.loadPage);
-      expect(message.documents).to.deep.equal([]);
+      expect(message.command).to.equal(PreviewMessageType.getDocumentError);
+      expect(message.error).to.equal('No active database connection');
     });
   });
 
@@ -636,7 +636,7 @@ suite('DataBrowsingController Test Suite', function () {
       expect(message.error).to.equal('Aggregate failed');
     });
 
-    test('sends totalCount of 0 when no active data service', async function () {
+    test('posts error message when no active data service', async function () {
       mockConnectionController.getActiveDataService = sandbox
         .stub()
         .returns(null);
@@ -645,8 +645,8 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleGetTotalCount(mockPanel, options);
 
       const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.updateTotalCount);
-      expect(message.totalCount).to.equal(0);
+      expect(message.command).to.equal(PreviewMessageType.updateTotalCountError);
+      expect(message.error).to.equal('No active database connection');
     });
 
     test('does not post message when request is aborted', async function () {
