@@ -6,6 +6,7 @@ import {
   setItemsPerPage,
   stopLoading,
   selectTotalPages,
+  clearRequestError,
 } from './documentQuerySlice';
 import {
   sendGetDocuments,
@@ -24,6 +25,8 @@ export const refreshDocuments = (): void => {
 
 export const fetchInitialDocuments = (): void => {
   const { itemsPerPage } = getState();
+  store.dispatch(clearRequestError('getDocuments'));
+  store.dispatch(clearRequestError('getTotalCount'));
   sendGetDocuments(0, itemsPerPage);
   sendGetTotalCount();
 };
@@ -71,3 +74,7 @@ export const adjustCurrentPage = (): void => {
   }
 };
 
+export const fetchTotalCount = (): void => {
+  store.dispatch(clearRequestError('getTotalCount'));
+  sendGetTotalCount();
+};

@@ -5,6 +5,13 @@ export interface PreviewDocument {
   [key: string]: unknown;
 }
 
+export type ErrorType = 'getDocuments' | 'getTotalCount';
+
+export interface ErrorsState {
+  getDocuments: string | null;
+  getTotalCount: string | null;
+}
+
 export interface DocumentQueryState {
   displayedDocuments: PreviewDocument[];
   currentPage: number;
@@ -13,6 +20,7 @@ export interface DocumentQueryState {
   totalCountInCollection: number | null;
   hasReceivedCount: boolean;
   error: string | null;
+  errors: ErrorsState;
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -25,6 +33,10 @@ const initialState: DocumentQueryState = {
   totalCountInCollection: null,
   hasReceivedCount: false,
   error: null,
+  errors: {
+    getDocuments: null,
+    getTotalCount: null,
+  },
 };
 
 const documentQuerySlice = createSlice({
@@ -41,6 +53,7 @@ const documentQuerySlice = createSlice({
       state.displayedDocuments = action.payload;
       state.isLoading = false;
       state.error = null;
+      state.errors.getDocuments = null;
     },
     setCurrentPage: (state, action: PayloadAction<number>) => {
       state.currentPage = action.payload;
@@ -54,6 +67,7 @@ const documentQuerySlice = createSlice({
     startLoading: (state) => {
       state.isLoading = true;
       state.error = null;
+      state.errors.getDocuments = null;
     },
     stopLoading: (state) => {
       state.isLoading = false;
@@ -64,6 +78,7 @@ const documentQuerySlice = createSlice({
     ) => {
       state.totalCountInCollection = action.payload;
       state.hasReceivedCount = true;
+      state.errors.getTotalCount = null;
     },
     markCountReceived: (state) => {
       state.hasReceivedCount = true;
@@ -72,11 +87,25 @@ const documentQuerySlice = createSlice({
       state.error = action.payload;
       state.isLoading = false;
     },
+    setRequestError: (
+      state,
+      action: PayloadAction<{ type: ErrorType; message: string }>,
+    ) => {
+      state.errors[action.payload.type] = action.payload.message;
+      if (action.payload.type === 'getDocuments') {
+        state.isLoading = false;
+      }
+    },
+    clearRequestError: (state, action: PayloadAction<ErrorType>) => {
+      state.errors[action.payload] = null;
+    },
     resetState: () => initialState,
     startRefresh: (state) => {
       state.isLoading = true;
       state.currentPage = 1;
       state.error = null;
+      state.errors.getDocuments = null;
+      state.errors.getTotalCount = null;
     },
   },
 });
@@ -92,6 +121,8 @@ export const {
   setTotalCountInCollection,
   markCountReceived,
   setError,
+  setRequestError,
+  clearRequestError,
   resetState,
   startRefresh,
 } = documentQuerySlice.actions;
@@ -121,6 +152,17 @@ export const selectHasReceivedCount = (
 
 export const selectError = (state: StateWithDocumentQuery): string | null =>
   state.documentQuery.error;
+
+export const selectErrors = (state: StateWithDocumentQuery): ErrorsState =>
+  state.documentQuery.errors;
+
+export const selectGetDocumentsError = (
+  state: StateWithDocumentQuery,
+): string | null => state.documentQuery.errors.getDocuments;
+
+export const selectGetTotalCountError = (
+  state: StateWithDocumentQuery,
+): string | null => state.documentQuery.errors.getTotalCount;
 
 // Derived selectors
 export const selectIsCountAvailable = (

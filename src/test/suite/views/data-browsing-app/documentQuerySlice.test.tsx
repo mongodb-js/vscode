@@ -37,6 +37,10 @@ describe('documentQuerySlice', function () {
     totalCountInCollection: null,
     hasReceivedCount: false,
     error: null,
+    errors: {
+      getDocuments: null,
+      getTotalCount: null,
+    },
   };
 
   const createState = (
@@ -191,6 +195,10 @@ describe('documentQuerySlice', function () {
           totalCountInCollection: 100,
           hasReceivedCount: true,
           error: 'Some error',
+          errors: {
+            getDocuments: 'doc error',
+            getTotalCount: 'count error',
+          },
         };
         const result = reducer(modifiedState, resetState());
         expect(result).to.deep.equal(initialState);

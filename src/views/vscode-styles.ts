@@ -12,3 +12,8 @@ export const VSCODE_PANEL_BORDER = 'var(--vscode-panel-border)';
 export const VSCODE_SIDEBAR_BACKGROUND = 'var(--vscode-sideBar-background)';
 export const VSCODE_DESCRIPTION_FOREGROUND =
   'var(--vscode-descriptionForeground)';
+export const VSCODE_ERROR_FOREGROUND = 'var(--vscode-errorForeground)';
+export const VSCODE_INPUT_VALIDATION_ERROR_BACKGROUND =
+  'var(--vscode-inputValidation-errorBackground)';
+export const VSCODE_INPUT_VALIDATION_ERROR_BORDER =
+  'var(--vscode-inputValidation-errorBorder)';

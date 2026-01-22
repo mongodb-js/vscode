@@ -11,6 +11,9 @@ import {
   VSCODE_PANEL_BORDER,
   VSCODE_EDITOR_BACKGROUND,
   VSCODE_DESCRIPTION_FOREGROUND,
+  VSCODE_ERROR_FOREGROUND,
+  VSCODE_INPUT_VALIDATION_ERROR_BACKGROUND,
+  VSCODE_INPUT_VALIDATION_ERROR_BORDER,
 } from '../vscode-styles';
 import { useAppSelector } from './store/hooks';
 import {
@@ -23,6 +26,8 @@ import {
   selectTotalPages,
   selectStartItem,
   selectEndItem,
+  selectGetDocumentsError,
+  selectGetTotalCountError,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
 import {
@@ -108,6 +113,24 @@ const emptyStateStyles = css({
   color: VSCODE_DESCRIPTION_FOREGROUND,
 });
 
+const errorBannerStyles = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: spacing[200],
+  padding: `${spacing[200]}px ${spacing[300]}px`,
+  backgroundColor: VSCODE_INPUT_VALIDATION_ERROR_BACKGROUND,
+  borderLeft: `3px solid ${VSCODE_INPUT_VALIDATION_ERROR_BORDER}`,
+  color: VSCODE_ERROR_FOREGROUND,
+  fontSize: '13px',
+  marginBottom: spacing[200],
+});
+
+const countErrorStyles = css({
+  color: VSCODE_ERROR_FOREGROUND,
+  fontSize: '13px',
+  cursor: 'help',
+});
+
 const PreviewApp: React.FC = () => {
   const displayedDocuments = useAppSelector(selectDisplayedDocuments);
   const currentPage = useAppSelector(selectCurrentPage);
@@ -118,6 +141,8 @@ const PreviewApp: React.FC = () => {
   const totalPages = useAppSelector(selectTotalPages);
   const startItem = useAppSelector(selectStartItem);
   const endItem = useAppSelector(selectEndItem);
+  const getDocumentsError = useAppSelector(selectGetDocumentsError);
+  const getTotalCountError = useAppSelector(selectGetTotalCountError);
 
   useEffect(() => {
     adjustCurrentPage();
@@ -180,6 +205,10 @@ const PreviewApp: React.FC = () => {
                   verticalAlign: 'middle',
                 }}
               />
+            ) : getTotalCountError ? (
+              <span className={countErrorStyles} title={getTotalCountError}>
+                Error
+              </span>
             ) : totalCountInCollection === null ? (
               <span title="We don't run a count for time series and views">
                 N/A
@@ -215,6 +244,13 @@ const PreviewApp: React.FC = () => {
 
       {/* Documents content */}
       <div className={contentStyles}>
+        {/* Error banner for getDocuments errors */}
+        {getDocumentsError && (
+          <div className={errorBannerStyles}>
+            <span>Error fetching documents: {getDocumentsError}</span>
+          </div>
+        )}
+
         {isLoading ? (
           <div className={loadingOverlayStyles}>
             <VscodeProgressRing />
@@ -239,7 +275,7 @@ const PreviewApp: React.FC = () => {
                 {JSON.stringify(doc, null, 2)}
               </pre>
             ))}
-            {displayedDocuments.length === 0 && (
+            {displayedDocuments.length === 0 && !getDocumentsError && (
               <div className={emptyStateStyles}>No documents to display</div>
             )}
           </>
