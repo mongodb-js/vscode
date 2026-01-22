@@ -3,12 +3,8 @@ import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
-import { ObjectId } from 'bson';
 
-import {
-  getFileDisplayNameForDocument,
-  getViewCollectionDocumentsUri,
-} from '../../../editors/editorsController';
+import { getViewCollectionDocumentsUri } from '../../../editors/editorsController';
 import { mockTextEditor } from '../stubs';
 
 suite('Editors Controller Test Suite', function () {
@@ -22,43 +18,6 @@ suite('Editors Controller Test Suite', function () {
 
   afterEach(() => {
     sandbox.restore();
-  });
-
-  suite('#getFileDisplayNameForDocumentId', function () {
-    test('it strips special characters from the document id', function () {
-      const str = 'abc//\\\nab  c"$%%..@1s   df""';
-      const result = getFileDisplayNameForDocument(str, 'a.b');
-      const expected =
-        'a.b:"abc%2f%2f%5c%5c%5cnab  c%5c"$%25%25..@1s   df%5c"%5c""';
-      expect(result).to.equal(expected);
-    });
-
-    test('it trims the string to 200 characters', function () {
-      const str =
-        '123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdffbnjiekbfdakjsdbfkjsabdfkjasbfbnjiekbfdakjsdbfkjsabdfkjasbkjasbfbnjiekbfdakjsdbfkjsabdfkjasb';
-      const result = getFileDisplayNameForDocument(str, 'db.col');
-      const expected =
-        'db.col:"123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdf123sdfhadfbnjiekbfdakjsdbfkjsabdfkjasbdfkjsvasdjvbskdafdffbnjiekbfdakjsdbfkjsabdfkjasbfbnjiekbfdakjsdbfkjsabdfkjasbkjasbfbnjiekbfdakjsd';
-      expect(result).to.equal(expected);
-    });
-
-    test('it handles ids that are objects', function () {
-      const str = {
-        str: 'abc//\\\nab  c$%%..@1s   df"',
-        b: new ObjectId('5d973ae744376d2aae72a160'),
-      };
-      const result = getFileDisplayNameForDocument(str, 'db.col');
-      const expected =
-        'db.col:{"str":"abc%2f%2f%5c%5c%5cnab  c$%25%25..@1s   df%5c"","b":{"$oid":"5d973ae744376d2aae72a160"}}';
-      expect(result).to.equal(expected);
-    });
-
-    test('has the namespace at the start of the display name', function () {
-      const str = 'pineapples';
-      const result = getFileDisplayNameForDocument(str, 'grilled');
-      const expected = 'grilled:"pineapples"';
-      expect(result).to.equal(expected);
-    });
   });
 
   test('getViewCollectionDocumentsUri builds a uri from the namespace and connection info', function () {
