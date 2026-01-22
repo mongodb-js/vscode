@@ -56,9 +56,10 @@ export function getFileDisplayNameForDocument(
   document: Document,
   namespace: string,
 ): string {
-  const documentName = getDisplayNameForDocument(document) ?? 'document';
+  const documentName: string =
+    getDisplayNameForDocument(document) ?? 'document';
 
-  let trimmedNamespace;
+  let trimmedNamespace: string;
   if (namespace.length > 100) {
     const databaseName = namespace.split('.')[0];
     const collectionName = namespace.slice(databaseName.length + 1);

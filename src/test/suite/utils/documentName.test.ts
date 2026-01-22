@@ -7,7 +7,7 @@ import { getFileDisplayNameForDocument } from '../../../utils/documentName';
 
 suite('#getFileDisplayNameForDocumentId', function () {
   let originalDefaultDocumentDisplayName;
-  beforeEach(async function () {
+  beforeEach(function () {
     originalDefaultDocumentDisplayName = vscode.workspace
       .getConfiguration('mdb')
       .get('defaultDocumentDisplayName');
@@ -36,7 +36,7 @@ suite('#getFileDisplayNameForDocumentId', function () {
       .update('defaultDocumentDisplayName', undefined);
 
     const str = 'abc//\\\nab  c$%%..@1s   df"';
-    const result = await getFileDisplayNameForDocument({ _id: str }, 'a.b');
+    const result = getFileDisplayNameForDocument({ _id: str }, 'a.b');
     const expected = 'a.b: abc%2f%2f%5c%5c%5cnab  c$%25%25..@1s   df"';
     expect(result).to.equal(expected);
   });
@@ -53,7 +53,7 @@ suite('#getFileDisplayNameForDocumentId', function () {
     expect(result).to.equal('db.col: pineapple');
   });
 
-  test('handles ObjectId as _id', async function () {
+  test('handles ObjectId as _id', function () {
     const objectId = new ObjectId('5d973ae744376d2aae72a161');
     const result = getFileDisplayNameForDocument({ _id: objectId }, 'db.col');
     expect(result).to.equal("db.col: ObjectId('5d973ae744376d2aae72a161')");
@@ -80,7 +80,7 @@ suite('#getFileDisplayNameForDocumentId', function () {
     expect(result).to.equal(expected);
   });
 
-  test('trims long namespaces to 100 characters', async function () {
+  test('trims long namespaces to 100 characters', function () {
     const longDb = 'a'.repeat(60);
     const longCol = 'b'.repeat(60);
     const namespace = `${longDb}.${longCol}`;
