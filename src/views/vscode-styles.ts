@@ -12,6 +12,3 @@ export const VSCODE_PANEL_BORDER = 'var(--vscode-panel-border)';
 export const VSCODE_SIDEBAR_BACKGROUND = 'var(--vscode-sideBar-background)';
 export const VSCODE_DESCRIPTION_FOREGROUND =
   'var(--vscode-descriptionForeground)';
-export const VSCODE_BUTTON_BORDER_TRANSPARENT = 'transparent';
-export const VSCODE_BUTTON_SECONDARY_BACKGROUND_TRANSPARENT = 'transparent';
-export const VSCODE_SETTINGS_DROPDOWN_BORDER_TRANSPARENT = 'transparent';

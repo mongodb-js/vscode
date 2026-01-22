@@ -327,7 +327,7 @@ suite('DataBrowsingController Test Suite', function () {
         .returns(null);
       const options = createMockOptions();
 
-      await testController.handleGetDocuments(mockPanel, options);
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       const message = postMessageStub.firstCall.args[0];
       expect(message.command).to.equal(PreviewMessageType.loadPage);
@@ -449,7 +449,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('does not post message when request is aborted', async function () {
       mockDataService.find = sandbox.stub().callsFake(() => {
-        testController._panelAbortControllers.get(mockPanel)?.abort();
+        testController._panelAbortControllers.get(mockPanel)?.documents?.abort();
         return [{ _id: '1', name: 'test' }];
       });
       const options = createMockOptions();
@@ -463,19 +463,19 @@ suite('DataBrowsingController Test Suite', function () {
   suite('handleCancelRequest', function () {
     test('aborts the AbortController when cancel request is received', function () {
       // Create an abort controller for the panel
-      (testController as any)._createAbortController(mockPanel);
+      (testController as any)._createAbortController(mockPanel, 'documents');
       const controller = testController._panelAbortControllers.get(mockPanel);
 
-      expect(controller?.signal.aborted).to.be.false;
+      expect(controller?.documents?.signal.aborted).to.be.false;
 
       testController.handleCancelRequest(mockPanel);
 
-      expect(controller?.signal.aborted).to.be.true;
+      expect(controller?.documents?.signal.aborted).to.be.true;
     });
 
     test('removes the controller from _panelAbortControllers map', function () {
       // Create an abort controller for the panel
-      (testController as any)._createAbortController(mockPanel);
+      (testController as any)._createAbortController(mockPanel, 'documents');
       expect(testController._panelAbortControllers.has(mockPanel)).to.be.true;
 
       testController.handleCancelRequest(mockPanel);
@@ -485,7 +485,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('sends requestCancelled message to webview', function () {
       // Create an abort controller for the panel
-      (testController as any)._createAbortController(mockPanel);
+      (testController as any)._createAbortController(mockPanel, 'documents');
 
       testController.handleCancelRequest(mockPanel);
 
@@ -551,10 +551,12 @@ suite('DataBrowsingController Test Suite', function () {
       const requestPromise = testController.handleGetDocuments(
         mockPanel,
         options,
+        0,
+        10,
       );
       const controller = testController._panelAbortControllers.get(mockPanel);
 
-      expect(controller?.signal.aborted).to.be.false;
+      expect(controller?.documents?.signal.aborted).to.be.false;
 
       // Send cancel request
       await testController.handleWebviewMessage(
@@ -563,7 +565,7 @@ suite('DataBrowsingController Test Suite', function () {
         options,
       );
 
-      expect(controller?.signal.aborted).to.be.true;
+      expect(controller?.documents?.signal.aborted).to.be.true;
 
       findResolve([]);
       await requestPromise;
@@ -649,7 +651,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('does not post message when request is aborted', async function () {
       mockDataService.aggregate = sandbox.stub().callsFake(() => {
-        testController._panelAbortControllers.get(mockPanel)?.abort();
+        testController._panelAbortControllers.get(mockPanel)?.totalCount?.abort();
         return [{ count: 16 }];
       });
       const options = createMockOptions();
