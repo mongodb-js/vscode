@@ -2,11 +2,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
-import { store } from '../../../../views/data-browsing-app/store';
-import {
-  resetState,
-  startLoading,
-} from '../../../../views/data-browsing-app/store/documentQuerySlice';
+import { createStore } from '../../../../views/data-browsing-app/store';
 import {
   handleExtensionMessage,
   setupMessageHandler,
@@ -15,15 +11,15 @@ import {
 describe('messageHandler test suite', function () {
   afterEach(function () {
     sinon.restore();
-    store.dispatch(resetState());
   });
 
   describe('handleExtensionMessage', function () {
     describe('loadPage', function () {
       it('should dispatch loadPage action with documents', function () {
+        const store = createStore();
         const documents = [{ _id: '1', name: 'Test' }];
 
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.loadPage,
           documents,
         });
@@ -35,9 +31,10 @@ describe('messageHandler test suite', function () {
       });
 
       it('should dispatch loadPage action with documents on pagination', function () {
+        const store = createStore();
         const documents = [{ _id: '11', name: 'Page2Doc' }];
 
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.loadPage,
           documents,
         });
@@ -49,10 +46,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should not reset currentPage on loadPage', function () {
-        // Set page to something other than 1
-        store.dispatch(startLoading());
-
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.loadPage,
           documents: [{ _id: '1' }],
         });
@@ -62,7 +57,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should handle empty documents array', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.loadPage,
           documents: [],
         });
@@ -73,7 +69,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should handle undefined documents', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.loadPage,
           isInitialLoad: true,
         } as any);
@@ -84,8 +81,9 @@ describe('messageHandler test suite', function () {
       });
 
       it('should clear getDocuments error on successful load', function () {
+        const store = createStore();
         // First set an error
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.getDocumentError,
           error: 'Previous error',
         });
@@ -94,7 +92,7 @@ describe('messageHandler test suite', function () {
         );
 
         // Then load documents successfully
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.loadPage,
           documents: [{ _id: '1' }],
         });
@@ -105,10 +103,11 @@ describe('messageHandler test suite', function () {
 
     describe('getDocumentError', function () {
       it('should stop loading on document get error', function () {
-        store.dispatch(startLoading());
+        const store = createStore();
+        // Initial state already has isLoading: true
         expect(store.getState().documentQuery.isLoading).to.be.true;
 
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.getDocumentError,
         });
 
@@ -116,7 +115,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should set getDocuments error with provided message', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.getDocumentError,
           error: 'Connection timeout',
         });
@@ -127,7 +127,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should set default error message when no error provided', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.getDocumentError,
         });
 
@@ -139,10 +140,11 @@ describe('messageHandler test suite', function () {
 
     describe('requestCancelled', function () {
       it('should stop loading when request is cancelled', function () {
-        store.dispatch(startLoading());
+        const store = createStore();
+        // Initial state already has isLoading: true
         expect(store.getState().documentQuery.isLoading).to.be.true;
 
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.requestCancelled,
         });
 
@@ -152,7 +154,8 @@ describe('messageHandler test suite', function () {
 
     describe('updateTotalCount', function () {
       it('should set total count in collection', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateTotalCount,
           totalCount: 100,
         });
@@ -164,7 +167,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should handle zero count', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateTotalCount,
           totalCount: 0,
         });
@@ -175,8 +179,9 @@ describe('messageHandler test suite', function () {
       });
 
       it('should clear getTotalCount error on successful count update', function () {
+        const store = createStore();
         // First set an error
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateTotalCountError,
           error: 'Previous count error',
         });
@@ -185,7 +190,7 @@ describe('messageHandler test suite', function () {
         );
 
         // Then update count successfully
-        handleExtensionMessage({
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateTotalCount,
           totalCount: 50,
         });
@@ -196,7 +201,8 @@ describe('messageHandler test suite', function () {
 
     describe('updateTotalCountError', function () {
       it('should mark count as received without setting value', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateTotalCountError,
         });
 
@@ -206,7 +212,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should set getTotalCount error with provided message', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateTotalCountError,
           error: 'Count query timed out',
         });
@@ -217,7 +224,8 @@ describe('messageHandler test suite', function () {
       });
 
       it('should set default error message when no error provided', function () {
-        handleExtensionMessage({
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateTotalCountError,
         });
 
@@ -230,9 +238,10 @@ describe('messageHandler test suite', function () {
 
   describe('setupMessageHandler', function () {
     it('should add message event listener', function () {
+      const store = createStore();
       const addEventListenerSpy = sinon.spy(window, 'addEventListener');
 
-      setupMessageHandler();
+      setupMessageHandler(store.dispatch);
 
       expect(addEventListenerSpy).to.have.been.calledWith(
         'message',
@@ -241,9 +250,10 @@ describe('messageHandler test suite', function () {
     });
 
     it('should return cleanup function that removes listener', function () {
+      const store = createStore();
       const removeEventListenerSpy = sinon.spy(window, 'removeEventListener');
 
-      const cleanup = setupMessageHandler();
+      const cleanup = setupMessageHandler(store.dispatch);
       cleanup();
 
       expect(removeEventListenerSpy).to.have.been.calledWith(
