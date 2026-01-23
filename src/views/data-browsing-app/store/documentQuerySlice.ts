@@ -1,5 +1,10 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
+import {
+  sendGetDocuments,
+  sendGetTotalCount,
+  sendCancelRequest,
+} from '../vscode-api';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -25,7 +30,7 @@ export interface DocumentQueryState {
 
 const DEFAULT_ITEMS_PER_PAGE = 10;
 
-const initialState: DocumentQueryState = {
+export const initialState: DocumentQueryState = {
   displayedDocuments: [],
   currentPage: 1,
   itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
@@ -39,92 +44,122 @@ const initialState: DocumentQueryState = {
   },
 };
 
+const calculateTotalPages = (state: DocumentQueryState): number => {
+  const totalDocuments =
+    state.totalCountInCollection !== null
+      ? state.totalCountInCollection
+      : state.displayedDocuments.length;
+  return Math.max(1, Math.ceil(totalDocuments / state.itemsPerPage));
+};
+
 const documentQuerySlice = createSlice({
   name: 'documentQuery',
   initialState,
   reducers: {
-    setDisplayedDocuments: (
-      state,
-      action: PayloadAction<PreviewDocument[]>,
-    ) => {
-      state.displayedDocuments = action.payload;
-    },
-    loadPage: (state, action: PayloadAction<PreviewDocument[]>) => {
-      state.displayedDocuments = action.payload;
-      state.isLoading = false;
-      state.error = null;
-      state.errors.getDocuments = null;
-    },
-    setCurrentPage: (state, action: PayloadAction<number>) => {
-      state.currentPage = action.payload;
-    },
-    setItemsPerPage: (state, action: PayloadAction<number>) => {
-      state.itemsPerPage = action.payload;
-    },
-    setIsLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-    },
-    startLoading: (state) => {
-      state.isLoading = true;
-      state.error = null;
-      state.errors.getDocuments = null;
-    },
-    stopLoading: (state) => {
-      state.isLoading = false;
-    },
-    setTotalCountInCollection: (
-      state,
-      action: PayloadAction<number | null>,
-    ) => {
-      state.totalCountInCollection = action.payload;
-      state.hasReceivedCount = true;
-      state.errors.getTotalCount = null;
-    },
-    markCountReceived: (state) => {
-      state.hasReceivedCount = true;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-      state.isLoading = false;
-    },
-    setRequestError: (
-      state,
-      action: PayloadAction<{ type: ErrorType; message: string }>,
-    ) => {
-      state.errors[action.payload.type] = action.payload.message;
-      if (action.payload.type === 'getDocuments') {
-        state.isLoading = false;
-      }
-    },
-    clearRequestError: (state, action: PayloadAction<ErrorType>) => {
-      state.errors[action.payload] = null;
-    },
-    resetState: () => initialState,
-    startRefresh: (state) => {
+    // ========================================
+    // UI Actions (dispatched from preview-page.tsx)
+    // ========================================
+    refreshDocuments: (state) => {
       state.isLoading = true;
       state.currentPage = 1;
       state.error = null;
       state.errors.getDocuments = null;
       state.errors.getTotalCount = null;
+      sendGetDocuments(0, state.itemsPerPage);
+      sendGetTotalCount();
+    },
+    fetchInitialDocuments: (state) => {
+      state.errors.getDocuments = null;
+      state.errors.getTotalCount = null;
+      sendGetDocuments(0, state.itemsPerPage);
+      sendGetTotalCount();
+    },
+    goToPreviousPage: (state) => {
+      if (state.currentPage > 1) {
+        const newPage = state.currentPage - 1;
+        const skip = (newPage - 1) * state.itemsPerPage;
+        state.currentPage = newPage;
+        state.isLoading = true;
+        state.error = null;
+        state.errors.getDocuments = null;
+        sendGetDocuments(skip, state.itemsPerPage);
+      }
+    },
+    goToNextPage: (state) => {
+      const totalPages = calculateTotalPages(state);
+      if (state.currentPage < totalPages) {
+        const newPage = state.currentPage + 1;
+        const skip = (newPage - 1) * state.itemsPerPage;
+        state.currentPage = newPage;
+        state.isLoading = true;
+        state.error = null;
+        state.errors.getDocuments = null;
+        sendGetDocuments(skip, state.itemsPerPage);
+      }
+    },
+    changeItemsPerPage: (state, action: PayloadAction<number>) => {
+      const newItemsPerPage = action.payload;
+      state.itemsPerPage = newItemsPerPage;
+      state.currentPage = 1;
+      state.isLoading = true;
+      state.error = null;
+      state.errors.getDocuments = null;
+      sendGetDocuments(0, newItemsPerPage);
+    },
+    cancelRequest: (state) => {
+      state.isLoading = false;
+      sendCancelRequest();
+    },
+    adjustCurrentPage: (state) => {
+      const totalPages = calculateTotalPages(state);
+      if (state.currentPage > totalPages && totalPages > 0) {
+        state.currentPage = totalPages;
+      }
+    },
+
+    // ========================================
+    // Message Handler Actions (dispatched from messageHandler.ts)
+    // ========================================
+    handleDocumentsLoaded: (state, action: PayloadAction<PreviewDocument[]>) => {
+      state.displayedDocuments = action.payload;
+      state.isLoading = false;
+      state.error = null;
+      state.errors.getDocuments = null;
+    },
+    handleDocumentError: (state, action: PayloadAction<string>) => {
+      state.errors.getDocuments = action.payload;
+      state.isLoading = false;
+    },
+    handleRequestCancelled: (state) => {
+      state.isLoading = false;
+    },
+    handleTotalCountReceived: (state, action: PayloadAction<number | null>) => {
+      state.totalCountInCollection = action.payload;
+      state.hasReceivedCount = true;
+      state.errors.getTotalCount = null;
+    },
+    handleTotalCountError: (state, action: PayloadAction<string>) => {
+      state.hasReceivedCount = true;
+      state.errors.getTotalCount = action.payload;
     },
   },
 });
 
+// UI Actions - dispatched from preview-page.tsx
 export const {
-  setDisplayedDocuments,
-  loadPage,
-  setCurrentPage,
-  setItemsPerPage,
-  setIsLoading,
-  startLoading,
-  stopLoading,
-  setTotalCountInCollection,
-  markCountReceived,
-  setError,
-  setRequestError,
-  clearRequestError,
-  resetState,
-  startRefresh,
+  refreshDocuments,
+  fetchInitialDocuments,
+  goToPreviousPage,
+  goToNextPage,
+  changeItemsPerPage,
+  cancelRequest,
+  adjustCurrentPage,
+  // Message Handler Actions - dispatched from messageHandler.ts
+  handleDocumentsLoaded,
+  handleDocumentError,
+  handleRequestCancelled,
+  handleTotalCountReceived,
+  handleTotalCountError,
 } = documentQuerySlice.actions;
 
 type StateWithDocumentQuery = { documentQuery: DocumentQueryState };

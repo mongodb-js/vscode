@@ -1,11 +1,20 @@
 import { configureStore } from '@reduxjs/toolkit';
-import documentQueryReducer from './documentQuerySlice';
+import documentQueryReducer, {
+  type DocumentQueryState,
+} from './documentQuerySlice';
 
-export const store = configureStore({
-  reducer: {
-    documentQuery: documentQueryReducer,
-  },
-});
+export type RootState = {
+  documentQuery: DocumentQueryState;
+};
 
-export type RootState = ReturnType<typeof store.getState>;
+export const createStore = (preloadedState?: Partial<RootState>) =>
+  configureStore({
+    reducer: {
+      documentQuery: documentQueryReducer,
+    },
+    preloadedState: preloadedState as RootState | undefined,
+  });
+
+export const store = createStore();
+
 export type AppDispatch = typeof store.dispatch;

@@ -15,7 +15,7 @@ import {
   VSCODE_INPUT_VALIDATION_ERROR_BACKGROUND,
   VSCODE_INPUT_VALIDATION_ERROR_BORDER,
 } from '../vscode-styles';
-import { useAppSelector } from './store/hooks';
+import { useAppSelector, useAppDispatch } from './store/hooks';
 import {
   selectDisplayedDocuments,
   selectCurrentPage,
@@ -28,9 +28,6 @@ import {
   selectEndItem,
   selectGetDocumentsError,
   selectGetTotalCountError,
-} from './store/documentQuerySlice';
-import { setupMessageHandler } from './store/messageHandler';
-import {
   refreshDocuments,
   fetchInitialDocuments,
   goToPreviousPage,
@@ -38,7 +35,8 @@ import {
   changeItemsPerPage,
   cancelRequest,
   adjustCurrentPage,
-} from './store/actions';
+} from './store/documentQuerySlice';
+import { setupMessageHandler } from './store/messageHandler';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -132,6 +130,7 @@ const countErrorStyles = css({
 });
 
 const PreviewApp: React.FC = () => {
+  const dispatch = useAppDispatch();
   const displayedDocuments = useAppSelector(selectDisplayedDocuments);
   const currentPage = useAppSelector(selectCurrentPage);
   const itemsPerPage = useAppSelector(selectItemsPerPage);
@@ -145,19 +144,19 @@ const PreviewApp: React.FC = () => {
   const getTotalCountError = useAppSelector(selectGetTotalCountError);
 
   useEffect(() => {
-    adjustCurrentPage();
-  }, [totalPages, currentPage]);
+    dispatch(adjustCurrentPage());
+  }, [dispatch, totalPages, currentPage]);
 
   useEffect(() => {
-    const cleanup = setupMessageHandler();
-    fetchInitialDocuments();
+    const cleanup = setupMessageHandler(dispatch);
+    dispatch(fetchInitialDocuments());
     return cleanup;
-  }, []);
+  }, [dispatch]);
 
   const handleItemsPerPageChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const newItemsPerPage = parseInt(target.value, 10);
-    changeItemsPerPage(newItemsPerPage);
+    dispatch(changeItemsPerPage(newItemsPerPage));
   };
 
   return (
@@ -171,7 +170,7 @@ const PreviewApp: React.FC = () => {
           <VscodeButton
             aria-label="Refresh"
             title="Refresh"
-            onClick={refreshDocuments}
+            onClick={() => dispatch(refreshDocuments())}
             disabled={isLoading}
             icon="refresh"
             secondary
@@ -223,7 +222,7 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Previous page"
               title="Previous page"
-              onClick={goToPreviousPage}
+              onClick={() => dispatch(goToPreviousPage())}
               disabled={currentPage <= 1 || isLoading}
               iconOnly
               icon="chevron-left"
@@ -232,7 +231,7 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Next page"
               title="Next page"
-              onClick={goToNextPage}
+              onClick={() => dispatch(goToNextPage())}
               disabled={currentPage >= totalPages || isLoading}
               iconOnly
               icon="chevron-right"
@@ -260,7 +259,7 @@ const PreviewApp: React.FC = () => {
               <VscodeButton
                 aria-label="Stop"
                 title="Stop current request"
-                onClick={cancelRequest}
+                onClick={() => dispatch(cancelRequest())}
                 icon="stop-circle"
                 secondary
               >
