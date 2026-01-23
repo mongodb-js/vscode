@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import chai from 'chai';
-import { EJSON } from 'bson';
+import { EJSON, Long, ObjectId } from 'bson';
 import sinon from 'sinon';
 
 import ConnectionController from '../../../connectionController';
@@ -16,10 +16,16 @@ import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
-suite('MongoDB Document Service Test Suite', () => {
+const namespace = 'waffle.house';
+const connectionId = 'tasty_sandwhich';
+const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+
+suite('MongoDB Document Service Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
   const testStatusView = new StatusView(extensionContextStub);
+  sinon.stub(testStatusView, 'showMessage');
+  sinon.stub(testStatusView, 'hideMessage');
   const testTelemetryService = new TelemetryService(
     testStorageController,
     extensionContextStub,
@@ -46,13 +52,10 @@ suite('MongoDB Document Service Test Suite', () => {
     sandbox.restore();
   });
 
-  test('replaceDocument calls findOneAndReplace and saves a document when connected', async () => {
-    const namespace = 'waffle.house';
-    const connectionId = 'tasty_sandwhich';
-    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+  test('replaceDocument calls findOneAndReplace and saves a document when connected', async function () {
     const document: { _id: string; price?: number } = { _id: '123' };
     const newDocument = { _id: '123', price: 5000 };
-    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+    const source = DocumentSource.treeview;
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
     sandbox.replace(
@@ -73,8 +76,6 @@ suite('MongoDB Document Service Test Suite', () => {
       'getActiveDataService',
       fakeGetActiveDataService,
     );
-    sandbox.stub(testStatusView, 'showMessage');
-    sandbox.stub(testStatusView, 'hideMessage');
 
     await testMongoDBDocumentService.replaceDocument({
       namespace,
@@ -87,10 +88,7 @@ suite('MongoDB Document Service Test Suite', () => {
     expect(document).to.be.deep.equal(newDocument);
   });
 
-  test('replaceDocument calls findOneAndReplace and saves a document when connected - extending the uuid type', async () => {
-    const namespace = 'waffle.house';
-    const connectionId = 'tasty_sandwhich';
-    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+  test('replaceDocument calls findOneAndReplace and saves a document when connected - extending the uuid type', async function () {
     const document: { _id: string; myUuid?: { $uuid: string } } = {
       _id: '123',
     };
@@ -103,7 +101,7 @@ suite('MongoDB Document Service Test Suite', () => {
         },
       },
     };
-    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+    const source = DocumentSource.treeview;
 
     const fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwhich');
     sandbox.replace(
@@ -124,8 +122,6 @@ suite('MongoDB Document Service Test Suite', () => {
       'getActiveDataService',
       fakeGetActiveDataService,
     );
-    sandbox.stub(testStatusView, 'showMessage');
-    sandbox.stub(testStatusView, 'hideMessage');
 
     await testMongoDBDocumentService.replaceDocument({
       namespace,
@@ -138,13 +134,10 @@ suite('MongoDB Document Service Test Suite', () => {
     expect(document).to.be.deep.equal(document);
   });
 
-  test('fetchDocument calls find and returns a single document when connected', async () => {
-    const namespace = 'waffle.house';
-    const connectionId = 'tasty_sandwhich';
-    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+  test('fetchDocument calls find and returns a single document when connected ejson', async function () {
     const line = 1;
     const documents = [{ _id: '123' }];
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DocumentSource.playground;
 
     const fakeGetActiveDataService = sandbox.fake.returns({
       find: () => {
@@ -164,37 +157,30 @@ suite('MongoDB Document Service Test Suite', () => {
       fakeGetActiveConnectionId,
     );
 
-    sandbox.stub(testStatusView, 'showMessage');
-    sandbox.stub(testStatusView, 'hideMessage');
-
     const result = await testMongoDBDocumentService.fetchDocument({
       namespace,
       documentId,
       line,
+      format: 'ejson',
       connectionId,
       source,
     });
 
-    expect(result).to.be.deep.equal(EJSON.serialize(documents[0]));
+    expect(result).to.be.deep.equal(
+      EJSON.serialize(documents[0], { relaxed: false }),
+    );
   });
 
-  test('fetchDocument calls find and returns a single document when connected - simplifying the uuid type', async () => {
-    const namespace = 'waffle.house';
-    const connectionId = 'tasty_sandwhich';
-    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+  test('fetchDocument calls find and returns a single document when connected shell', async function () {
     const line = 1;
     const documents = [
       {
-        _id: '123',
-        myUuid: {
-          $binary: {
-            base64: 'yO2rw/c4TKO2jauSqRR4ow==',
-            subType: '04',
-          },
-        },
+        _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
+        pineapple: new Long('90071992547409920'),
+        name: 'Berlin',
       },
     ];
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DocumentSource.playground;
 
     const fakeGetActiveDataService = sandbox.fake.returns({
       find: () => {
@@ -214,29 +200,21 @@ suite('MongoDB Document Service Test Suite', () => {
       fakeGetActiveConnectionId,
     );
 
-    sandbox.stub(testStatusView, 'showMessage');
-    sandbox.stub(testStatusView, 'hideMessage');
-
     const result = await testMongoDBDocumentService.fetchDocument({
       namespace,
       documentId,
       line,
+      format: 'shell',
       connectionId,
       source,
     });
 
-    expect(result).to.be.deep.equal({
-      _id: '123',
-      myUuid: { $uuid: 'c8edabc3-f738-4ca3-b68d-ab92a91478a3' },
-    });
+    expect(result).to.be.deep.equal(documents[0]);
   });
 
-  test("if a user is not connected, documents won't be saved to MongoDB", async () => {
-    const namespace = 'waffle.house';
-    const connectionId = 'tasty_sandwhich';
-    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+  test("if a user is not connected, documents won't be saved to MongoDB", async function () {
     const newDocument = { _id: '123', price: 5000 };
-    const source = DocumentSource.DOCUMENT_SOURCE_TREEVIEW;
+    const source = DocumentSource.treeview;
 
     const fakeActiveConnectionId = sandbox.fake.returns(null);
     sandbox.replace(
@@ -260,6 +238,7 @@ suite('MongoDB Document Service Test Suite', () => {
         newDocument,
         source,
       });
+      throw new Error('expected earlier failure');
     } catch (error) {
       const expectedMessage =
         "Unable to save document: no longer connected to 'tasty_sandwhich'";
@@ -268,12 +247,9 @@ suite('MongoDB Document Service Test Suite', () => {
     }
   });
 
-  test("if a user switched the active connection, document opened from the previous connection can't be saved", async () => {
-    const namespace = 'waffle.house';
-    const connectionId = 'tasty_sandwhich';
-    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+  test("if a user switched the active connection, document opened from the previous connection can't be saved", async function () {
     const newDocument = { _id: '123', price: 5000 };
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DocumentSource.playground;
 
     const fakeActiveConnectionId = sandbox.fake.returns('berlin.coctails');
     sandbox.replace(
@@ -297,6 +273,7 @@ suite('MongoDB Document Service Test Suite', () => {
         newDocument,
         source,
       });
+      throw new Error('expected earlier failure');
     } catch (error) {
       const expectedMessage =
         "Unable to save document: no longer connected to 'tasty_sandwhich'";
@@ -305,12 +282,9 @@ suite('MongoDB Document Service Test Suite', () => {
     }
   });
 
-  test("if a user switched the active connection, document can't be opened from the old playground results", async () => {
-    const namespace = 'waffle.house';
-    const connectionId = '123';
-    const documentId = '93333a0d-83f6-4e6f-a575-af7ea6187a4a';
+  test("if a user switched the active connection, document can't be opened from the old playground results", async function () {
     const line = 1;
-    const source = DocumentSource.DOCUMENT_SOURCE_PLAYGROUND;
+    const source = DocumentSource.playground;
 
     const fakeGetActiveConnectionId = sandbox.fake.returns('345');
     sandbox.replace(
@@ -326,17 +300,16 @@ suite('MongoDB Document Service Test Suite', () => {
       fakeGetSavedConnectionName,
     );
 
-    sandbox.stub(testStatusView, 'showMessage');
-    sandbox.stub(testStatusView, 'hideMessage');
-
     try {
       await testMongoDBDocumentService.fetchDocument({
         namespace,
         documentId,
         line,
-        connectionId,
+        format: 'ejson',
+        connectionId: '123',
         source,
       });
+      throw new Error('expected earlier failure');
     } catch (error) {
       const expectedMessage =
         "Unable to fetch document: no longer connected to 'tasty_sandwhich'";

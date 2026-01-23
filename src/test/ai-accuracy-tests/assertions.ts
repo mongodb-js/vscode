@@ -43,6 +43,7 @@ export const runCodeInMessage = async (
       productName: 'VSCode Copilot AI accuracy tests',
       productDocsLink: 'N/A',
     },
+    expectedFormat: 'ejson',
     onPrint: (values) => {
       printOutput.push(
         ...values.map((v) =>
@@ -56,7 +57,7 @@ export const runCodeInMessage = async (
 
   if (error) {
     throw new Error(
-      `An error occurred when attempting to run the code in the message: \n${message}\n___Error:\n${error}`,
+      `An error occurred when attempting to run the code in the message: \n${message}\n___Error:\n${error.message}`,
     );
   }
 

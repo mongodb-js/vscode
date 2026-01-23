@@ -3,8 +3,8 @@ import { expect } from 'chai';
 import { render, screen } from '@testing-library/react';
 import ConnectHelper from '../../../../views/webview-app/connect-helper';
 import Sinon from 'sinon';
-import vscode from '../../../../views/webview-app/vscode-api';
-import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
+import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 describe('ConnectHelper test suite', function () {
   it('when rendered it should show both connection options', function () {
@@ -21,7 +21,7 @@ describe('ConnectHelper test suite', function () {
   });
 
   it('when connecting with string, it should call vscode to open connection string input', function () {
-    const postMessageStub = Sinon.stub(vscode, 'postMessage');
+    const postMessageStub = Sinon.stub(getVSCodeApi(), 'postMessage');
     render(
       <ConnectHelper
         onClickOpenConnectionForm={(): void => {
@@ -31,7 +31,7 @@ describe('ConnectHelper test suite', function () {
     );
     screen.getByLabelText('Connect with connection string').click();
     expect(postMessageStub).to.have.been.calledWithExactly({
-      command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
+      command: MessageType.openConnectionStringInput,
     });
   });
 });

@@ -68,6 +68,7 @@ const ConnectionForm: React.FunctionComponent<
       // modal releases.
       contentClassName={modalContentStyles}
       setOpen={(): void => onClose()}
+      darkMode={darkMode}
       open={open}
       size="large"
     >

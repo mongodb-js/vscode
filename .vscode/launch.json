@@ -16,20 +16,8 @@
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"
       ],
-      "preLaunchTask": "${defaultBuildTask}"
-    },
-    {
-      "name": "Launch Extension (prod webpack)",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ],
-      "preLaunchTask": "npm: webpack-dev"
+      "preLaunchTask": "${defaultBuildTask}",
+      "envFile": "${workspaceFolder}/.env"
     },
     {
       "type": "node",

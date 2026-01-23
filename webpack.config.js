@@ -3,6 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin');
 const { merge } = require('webpack-merge');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -42,6 +43,9 @@ module.exports = (env, argv) => {
         electron: false,
 
         'hadron-ipc': false,
+
+        // We don't use the diagramming library from compass-components and it's a large dep.
+        '@mongodb-js/diagramming': false,
 
         // We don't currently support kerberos in our extension.
         kerberos: false,
@@ -172,13 +176,22 @@ module.exports = (env, argv) => {
       fallback: {
         stream: require.resolve('stream-browserify'),
         buffer: require.resolve('buffer'),
-        crypto: require.resolve('crypto-browserify'),
+        // TODO(VSCODE-715): Remove this once we bump compass-components.
+        crypto: path.resolve(__dirname, 'src/utils/crypto-shim.js'),
         path: require.resolve('path-browserify'),
         mongodb: false,
       },
     },
     module: {
       rules: [
+        {
+          test: /\.mjs$/,
+          include: /node_modules/,
+          type: 'javascript/auto',
+          resolve: {
+            fullySpecified: false,
+          },
+        },
         {
           test: /\.(ts|tsx)$/,
           loader: 'ts-loader',
@@ -197,6 +210,15 @@ module.exports = (env, argv) => {
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
         process: 'process/browser',
+      }),
+      // Copy VS Code codicons to dist for webview icon rendering
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: path.resolve(__dirname, 'node_modules/@vscode/codicons/dist'),
+            to: 'codicons',
+          },
+        ],
       }),
     ],
     watchOptions: {

@@ -1,34 +1,55 @@
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
-import { ServerCommands } from './serverCommands';
+import util from 'util';
+import { EJSON } from 'bson';
 
+import { ServerCommand } from './serverCommands';
 import type {
   ShellEvaluateResult,
   WorkerEvaluate,
   MongoClientOptions,
 } from '../types/playgroundType';
-import util from 'util';
 import { getEJSON } from '../utils/ejson';
+import type { DocumentViewAndEditFormat } from '../editors/types';
 
 interface EvaluationResult {
   printable: any;
   type: string | null;
 }
+interface EvaluationResultWithExpectedFormat extends EvaluationResult {
+  expectedFormat: DocumentViewAndEditFormat;
+}
 
-const getContent = ({ type, printable }: EvaluationResult): unknown => {
+const getContent = ({
+  type,
+  printable,
+  expectedFormat,
+}: EvaluationResultWithExpectedFormat): unknown => {
   if (type === 'Cursor' || type === 'AggregationCursor') {
+    if (expectedFormat === 'shell') {
+      // We serialize the documents to send them over to the main
+      // extension to show the results.
+      return EJSON.serialize(printable.documents, { relaxed: false });
+    }
     return getEJSON(printable.documents);
   }
 
-  return typeof printable !== 'object' || printable === null
-    ? printable
+  if (typeof printable !== 'object' || printable === null) {
+    return printable;
+  }
+
+  return expectedFormat === 'shell'
+    ? EJSON.serialize(printable, { relaxed: false })
     : getEJSON(printable);
 };
 
-export const getLanguage = (content: unknown): 'json' | 'plaintext' => {
+export const getLanguage = (
+  content: unknown,
+  expectedFormat: DocumentViewAndEditFormat,
+): 'json' | 'plaintext' | 'shell' => {
   if (typeof content === 'object' && content !== null) {
-    return 'json';
+    return expectedFormat === 'shell' ? 'shell' : 'json';
   }
 
   return 'plaintext';
@@ -38,13 +59,14 @@ type ExecuteCodeOptions = {
   codeToEvaluate: string;
   connectionString: string;
   connectionOptions: MongoClientOptions;
+  expectedFormat: DocumentViewAndEditFormat;
   onPrint?: (values: EvaluationResult[]) => void;
   filePath?: string;
 };
 
 function handleEvalPrint(values: EvaluationResult[]): void {
   parentPort?.postMessage({
-    name: ServerCommands.SHOW_CONSOLE_OUTPUT,
+    name: ServerCommand.showConsoleOutput,
     payload: values.map((v) => {
       return typeof v.printable === 'string'
         ? v.printable
@@ -59,12 +81,13 @@ function handleEvalPrint(values: EvaluationResult[]): void {
 export const execute = async ({
   codeToEvaluate,
   onPrint = handleEvalPrint,
+  expectedFormat,
   connectionString,
   connectionOptions,
   filePath,
 }: ExecuteCodeOptions): Promise<{
   data: ShellEvaluateResult | null;
-  error?: any;
+  error?: Error;
 }> => {
   const serviceProvider = await NodeDriverServiceProvider.connect(
     connectionString,
@@ -107,26 +130,30 @@ export const execute = async ({
       typeof printable !== 'function' ? printable : undefined;
 
     // Prepare a playground result.
-    const content = getContent({ type, printable: rpcSafePrintable });
+    const content = getContent({
+      expectedFormat,
+      type,
+      printable: rpcSafePrintable,
+    });
     const result = {
       namespace,
       type: type ? type : typeof rpcSafePrintable,
       content,
-      language: getLanguage(content),
+      language: getLanguage(content, expectedFormat),
     };
 
     return { data: { result } };
   } catch (error) {
-    return { error, data: null };
+    return { error: error as Error, data: null };
   } finally {
     await serviceProvider.close();
   }
 };
 
 const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
-  if (name === ServerCommands.EXECUTE_CODE_FROM_PLAYGROUND) {
+  if (name === ServerCommand.executeCodeFromPlayground) {
     parentPort?.postMessage({
-      name: ServerCommands.CODE_EXECUTION_RESULT,
+      name: ServerCommand.codeExecutionResult,
       payload: await execute(data),
     });
   }

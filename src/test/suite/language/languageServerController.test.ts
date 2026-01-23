@@ -26,7 +26,7 @@ const expect = chai.expect;
 
 chai.use(chaiAsPromised);
 
-suite('Language Server Controller Test Suite', () => {
+suite('Language Server Controller Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
 
   // The test extension runner.
@@ -105,7 +105,7 @@ suite('Language Server Controller Test Suite', () => {
     sandbox.restore();
   });
 
-  test('the language server dependency bundle exists', async () => {
+  test('the language server dependency bundle exists', async function () {
     const extensionPath = mdbTestExtension.extensionContextStub.extensionPath;
     const languageServerModuleBundlePath = path.join(
       extensionPath,
@@ -115,7 +115,7 @@ suite('Language Server Controller Test Suite', () => {
     await fs.promises.stat(languageServerModuleBundlePath);
   });
 
-  suite('console output channels', () => {
+  suite('console output channels', function () {
     let outputChannelAppendLineStub: SinonStub;
     let outputChannelClearStub: SinonStub;
     let outputChannelShowStub: SinonStub;
@@ -137,7 +137,7 @@ suite('Language Server Controller Test Suite', () => {
       );
     });
 
-    test('clear output channel when evaluating', async () => {
+    test('clear output channel when evaluating', async function () {
       sandbox.replace(
         testPlaygroundController,
         '_evaluateWithCancelModal',
@@ -155,6 +155,7 @@ suite('Language Server Controller Test Suite', () => {
           print('test');
           console.log({ pineapple: 'yes' });
         `,
+          expectedFormat: 'ejson',
           connectionId: 'pineapple',
         },
         source.token,

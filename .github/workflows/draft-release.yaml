@@ -43,8 +43,11 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 22.15.1
+          node-version: 22.21.1
           cache: pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Determine Next Version
         shell: bash

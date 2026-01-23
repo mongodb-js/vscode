@@ -1,6 +1,4 @@
-const FEATURE_FLAGS = {
-  useOldConnectionForm: `${process.env.MDB_USE_OLD_CONNECTION_FORM}` === 'true',
-};
+const FEATURE_FLAGS: Record<string, boolean> = Object.create(null);
 
 export type FeatureFlag = keyof typeof FEATURE_FLAGS;
 
@@ -10,6 +8,18 @@ export const getFeatureFlag = (flag: FeatureFlag): boolean => {
   }
   return FEATURE_FLAGS[flag];
 };
+
+export const setFeatureFlag = (flag: FeatureFlag, value: boolean): void => {
+  FEATURE_FLAGS[flag] = value;
+};
+
+export const resetFeatureFlags = (): void => {
+  FEATURE_FLAGS.useEnhancedDataBrowsingExperience =
+    process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true';
+};
+
+// Initialize feature flags on module load.
+resetFeatureFlags();
 
 export const getFeatureFlagsScript = (nonce: string): string => {
   return `

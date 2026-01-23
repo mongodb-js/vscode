@@ -41,21 +41,20 @@
   "main": "./dist/extension.js",
   "scripts": {
     "clean": "rimraf -g ./out/* ./dist/*",
-    "lint": "eslint . && prettier --check .",
-    "update-grammar": "ts-node ./scripts/update-grammar.ts",
-    "precompile": "pnpm run clean",
-    "compile": "npm-run-all compile:*",
-    "compile:constants": "ts-node ./scripts/generate-constants.ts",
+    "lint": "eslint . --fix && prettier --check .",
+    "update-grammar": "node ./scripts/update-grammar.ts",
+    "compile": "pnpm run clean && pnpm run --sequential \"/^compile:.*/\"",
+    "compile:constants": "node ./scripts/generate-constants.ts",
     "compile:resources": "pnpm run update-grammar",
     "compile:extension": "tsc -p ./",
     "compile:extension-bundles": "webpack --mode development",
-    "watch": "pnpm run compile && npm-run-all -p watch:*",
-    "watch:extension": "pnpm run compile:extension -- -watch",
+    "watch": "pnpm run compile && pnpm run --parallel \"/^watch:.*/\"",
+    "watch:extension": "tsc -p ./ --watch",
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "pnpm run compile",
     "test": "pnpm run test-webview && pnpm run test-extension",
     "test-extension": "cross-env MDB_IS_TEST=true NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
-    "test-webview": "mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/webview-app/**/*.test.tsx",
+    "test-webview": "mocha -r ts-node/register --exit --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/**/*.test.tsx",
     "ai-accuracy-tests": "env TS_NODE_FILES=true mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/ai-accuracy-tests/test-setup.ts ./src/test/ai-accuracy-tests/ai-accuracy-tests.ts",
     "analyze-bundle": "webpack --mode production --analyze",
     "vscode:prepublish": "pnpm run clean && pnpm run compile:constants && pnpm run compile:resources && webpack --mode production",
@@ -63,19 +62,19 @@
     "depcheck": "depcheck",
     "package": "cross-env NODE_OPTIONS='--require ./scripts/no-npm-list-fail.js' vsce package --githubBranch main",
     "local-install": "pnpm run package && code --install-extension ./mongodb-vscode-*.vsix",
-    "check-vsix-size": "ts-node ./scripts/check-vsix-size.ts",
+    "check-vsix-size": "node ./scripts/check-vsix-size.ts",
     "release-draft": "node ./scripts/release-draft.js",
-    "reformat": "prettier --write .",
+    "reformat": "eslint . --fix && prettier --write .",
     "snyk-test": "node scripts/snyk-test.js",
-    "generate-icon-font": "ts-node ./scripts/generate-icon-font.ts",
+    "generate-icon-font": "node ./scripts/generate-icon-font.ts",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
-    "precommit": "ts-node ./scripts/precommit.ts"
+    "precommit": "node ./scripts/precommit.ts"
   },
   "engines": {
     "vscode": "^1.101.1",
-    "node": "^20.19.0 || ^22.12.0 || >= 23.0.0",
+    "node": "^22.20.0 || >= 23.0.0",
     "pnpm": ">=10.0.0"
   },
   "activationEvents": [
@@ -208,6 +207,18 @@
         "extensions": [
           ".tf"
         ]
+      },
+      {
+        "id": "mongodb-document",
+        "aliases": [
+          "MongoDB Document",
+          "mongodb-document"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/light/leaf.svg",
+          "dark": "./images/dark/leaf.svg"
+        }
       }
     ],
     "grammars": [
@@ -217,12 +228,21 @@
         "injectTo": [
           "source.js"
         ]
+      },
+      {
+        "language": "mongodb-document",
+        "scopeName": "source.mongodb-document",
+        "path": "./syntaxes/mongodb-document.tmLanguage.json"
       }
     ],
     "snippets": [
       {
         "language": "terraform",
         "path": "./snippets/atlas-terraform.json"
+      },
+      {
+        "language": "mongodb-document",
+        "path": "./snippets/mongodb-document.json"
       }
     ],
     "commands": [
@@ -981,6 +1001,10 @@
           "when": "false"
         },
         {
+          "command": "mdb.askCopilotFromTreeItem",
+          "when": "false"
+        },
+        {
           "command": "mdb.addCollection",
           "when": "false"
         },
@@ -1146,7 +1170,8 @@
             "Use the legacy mongo shell"
           ],
           "default": "mongosh",
-          "description": "The MongoDB shell to use."
+          "description": "The MongoDB shell to use.",
+          "scope": "application"
         },
         "mdb.showMongoDBConnectionExplorer": {
           "type": "boolean",
@@ -1190,6 +1215,19 @@
           "type": "number",
           "default": 10,
           "description": "The number of documents to fetch when viewing documents from a collection."
+        },
+        "mdb.documentViewAndEditFormat": {
+          "type": "string",
+          "enum": [
+            "shell",
+            "ejson"
+          ],
+          "enumDescriptions": [
+            "MongoDB Shell syntax (e.g., ObjectId('...'), ISODate('...'))",
+            "Extended JSON strict format (e.g., {\"$oid\": \"...\"}, {\"$date\": \"...\"})"
+          ],
+          "default": "shell",
+          "description": "The format to use when viewing and editing documents as well as playground results."
         },
         "mdb.confirmRunAll": {
           "type": "boolean",
@@ -1254,7 +1292,8 @@
         "mdb.browserCommandForOIDCAuth": {
           "type": "string",
           "default": "",
-          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser."
+          "description": "Specify a shell command that is run to start the browser for authenticating with the OIDC identity provider for the server connection. Leave this empty for default browser.",
+          "scope": "application"
         },
         "mdb.presetConnections": {
           "scope": "window",
@@ -1403,16 +1442,20 @@
     "@babel/core": "^7.25.8",
     "@babel/parser": "^7.25.8",
     "@babel/traverse": "^7.25.7",
-    "@mongodb-js/compass-components": "^1.38.1",
+    "@mongodb-js/compass-components": "^1.59.2",
     "@mongodb-js/connection-form": "^1.52.3",
     "@mongodb-js/connection-info": "^0.21.0",
     "@mongodb-js/device-id": "^0.3.2",
     "@mongodb-js/mongodb-constants": "^0.16.1",
+    "@mongodb-js/shell-bson-parser": "^1.1.4",
     "@mongosh/browser-runtime-electron": "^3.24.0",
     "@mongosh/i18n": "^2.16.0",
     "@mongosh/service-provider-node-driver": "^3.17.1",
     "@mongosh/shell-api": "^3.23.0",
+    "@reduxjs/toolkit": "^2.11.2",
     "@segment/analytics-node": "^1.3.0",
+    "@vscode-elements/react-elements": "^2.4.0",
+    "@vscode/codicons": "^0.0.44",
     "bson": "^6.10.4",
     "debug": "^4.3.7",
     "dotenv": "^16.4.5",
@@ -1424,7 +1467,7 @@
     "mongodb-connection-string-url": "^3.0.2",
     "mongodb-data-service": "^22.30.1",
     "mongodb-log-writer": "^2.4.1",
-    "mongodb-mcp-server": "^1.3.0-pre.2",
+    "mongodb-mcp-server": "^1.5.0",
     "mongodb-query-parser": "^4.4.2",
     "mongodb-schema": "^12.6.3",
     "node-machine-id": "1.1.12",
@@ -1432,6 +1475,7 @@
     "query-string": "^7.1.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-redux": "^9.2.0",
     "ts-log": "^2.2.7",
     "uuid": "^8.3.2",
     "vscode-languageclient": "^9.0.1",
@@ -1441,7 +1485,8 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.25.7",
     "@babel/types": "^7.25.8",
-    "@modelcontextprotocol/sdk": "^1.18.2",
+    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@mongodb-js/eslint-config-devtools": "^0.11.2",
     "@mongodb-js/oidc-mock-provider": "^0.11.5",
     "@mongodb-js/oidc-plugin": "^2.0.5",
     "@mongodb-js/prettier-config-devtools": "^1.0.2",
@@ -1469,16 +1514,15 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^3.2.0",
+    "@vscode/vsce": "^3.7.1",
     "buffer": "^6.0.3",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
+    "copy-webpack-plugin": "^13.0.1",
     "cross-env": "^7.0.3",
-    "crypto-browserify": "^3.12.0",
     "depcheck": "^1.4.7",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
     "eslint": "^8.57.1",
-    "eslint-config-mongodb-js": "^5.0.3",
     "eslint-plugin-mocha": "^10.5.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "glob": "^7.2.3",
@@ -1493,14 +1537,13 @@
     "mongodb-runner": "^5.10.0",
     "node-fetch": "^2.7.0",
     "node-loader": "^0.6.0",
-    "npm-run-all": "^4.1.5",
     "openai": "^4.68.1",
     "ora": "^5.4.1",
     "path-browserify": "^1.0.1",
     "prettier": "^3.5.3",
     "process": "^0.11.10",
-    "rewiremock": "^3.14.5",
     "rimraf": "^6.1.2",
+    "semver": "^7.7.3",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.7.0",
     "snyk": "^1.1301.0",
@@ -1520,10 +1563,7 @@
   "pnpm": {
     "overrides": {
       "react": "^18.3.1",
-      "@mongodb-js/compass-logging": "^1.7.18",
-      "@mongodb-js/compass-utils": "^0.9.16",
-      "@mongodb-js/compass-components": "1.38.1",
-      "parse-asn1": "5.1.6"
+      "jsonwebtoken>jws": "3.2.3"
     }
   }
 }

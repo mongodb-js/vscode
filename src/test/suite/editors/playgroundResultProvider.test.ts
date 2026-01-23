@@ -4,6 +4,7 @@ import chai from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import type { Document } from 'mongodb';
+import { EJSON, Long, ObjectId } from 'bson';
 
 import ConnectionController from '../../../connectionController';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -19,7 +20,7 @@ import { ExtensionContextStub } from '../stubs';
 
 const expect = chai.expect;
 
-suite('Playground Result Provider Test Suite', () => {
+suite('Playground Result Provider Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
@@ -41,7 +42,7 @@ suite('Playground Result Provider Test Suite', () => {
     sandbox.restore();
   });
 
-  test('setPlaygroundResult refreshes private playground result property', () => {
+  test('setPlaygroundResult refreshes private playground result property', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -61,7 +62,7 @@ suite('Playground Result Provider Test Suite', () => {
     );
   });
 
-  test('provideTextDocumentContent returns undefined formatted to string if content is undefined', () => {
+  test('provideTextDocumentContent returns undefined formatted to string if content is undefined', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -77,7 +78,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal('undefined');
   });
 
-  test('provideTextDocumentContent returns null formatted to string if content is null', () => {
+  test('provideTextDocumentContent returns null formatted to string if content is null', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -93,7 +94,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal('null');
   });
 
-  test('provideTextDocumentContent returns number formatted to string if content is number', () => {
+  test('provideTextDocumentContent returns number formatted to string if content is number', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -109,7 +110,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal('4');
   });
 
-  test('provideTextDocumentContent returns array formatted to string if content is array', () => {
+  test('provideTextDocumentContent returns array formatted to string if content is array', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -125,7 +126,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal('[]');
   });
 
-  test('provideTextDocumentContent returns object formatted to string if content is object', () => {
+  test('provideTextDocumentContent returns object formatted to string if content is object', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -141,7 +142,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal('{}');
   });
 
-  test('provideTextDocumentContent returns boolean formatted to string if content is boolean', () => {
+  test('provideTextDocumentContent returns boolean formatted to string if content is boolean', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -157,7 +158,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal('true');
   });
 
-  test('provideTextDocumentContent returns string if content is string', () => {
+  test('provideTextDocumentContent returns string if content is string', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -173,7 +174,7 @@ suite('Playground Result Provider Test Suite', () => {
     expect(result).to.be.equal('Berlin');
   });
 
-  test('provideTextDocumentContent returns Cursor formatted to string if content is string', () => {
+  test('provideTextDocumentContent returns Cursor formatted to a json string if content is string', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -212,7 +213,61 @@ suite('Playground Result Provider Test Suite', () => {
     ).to.be.deep.equal(playgroundResult);
   });
 
-  test('provideTextDocumentContent returns Document formatted to string if content is string', () => {
+  test('provideTextDocumentContent returns shell syntax for shell language', function () {
+    const testPlaygroundResultProvider = new PlaygroundResultProvider(
+      testConnectionController,
+      testEditDocumentCodeLensProvider,
+    );
+    // Content is passed as serialized ejson from the worker.
+    const content = EJSON.serialize(
+      [
+        {
+          _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
+          pineapple: new Long('90071992547409920'),
+          name: 'Berlin',
+        },
+        {
+          _id: new ObjectId('6536b0aef59f6ffc9af93f3d'),
+          pineapple2: new Long('900719925474099199'),
+          name: 'Rome',
+        },
+      ],
+      { relaxed: false },
+    );
+    const playgroundResult = {
+      namespace: 'db.berlin',
+      type: 'Cursor',
+      content,
+      language: 'shell',
+    };
+
+    const fakeUpdateCodeLensesForPlayground = sandbox.fake();
+    sandbox.replace(
+      testPlaygroundResultProvider._editDocumentCodeLensProvider,
+      'updateCodeLensesForPlayground',
+      fakeUpdateCodeLensesForPlayground,
+    );
+
+    testPlaygroundResultProvider._playgroundResult = playgroundResult;
+
+    const result = testPlaygroundResultProvider.provideTextDocumentContent();
+
+    expect(result).to.equal(`[
+  {
+    _id: ObjectId('6536b0aef59f6ffc9af93f3c'),
+    pineapple: NumberLong('90071992547409920'),
+    name: 'Berlin'
+  },
+  {
+    _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
+    pineapple2: NumberLong('900719925474099199'),
+    name: 'Rome'
+  }
+]`);
+    expect(fakeUpdateCodeLensesForPlayground.calledOnce).to.equal(true);
+  });
+
+  test('provideTextDocumentContent returns Document formatted to string if content is string', function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,
@@ -245,7 +300,7 @@ suite('Playground Result Provider Test Suite', () => {
     ).to.be.deep.equal(playgroundResult);
   });
 
-  test('provideTextDocumentContent sets different code lenses for the playground and the collection', async () => {
+  test('provideTextDocumentContent sets different code lenses for the playground and the collection', async function () {
     const testPlaygroundResultProvider = new PlaygroundResultProvider(
       testConnectionController,
       testEditDocumentCodeLensProvider,

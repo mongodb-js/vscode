@@ -37,8 +37,12 @@ Object.assign(focusTrap, {
     const trap = {
       activate: (): unknown => trap,
       deactivate: (): unknown => trap,
-      pause: (): void => {},
-      unpause: (): void => {},
+      pause: (): void => {
+        /* no-op */
+      },
+      unpause: (): void => {
+        /* no-op */
+      },
     };
     return trap;
   },
@@ -47,9 +51,21 @@ Object.assign(focusTrap, {
 const virtualConsole = new VirtualConsole();
 virtualConsole.sendTo(console, { omitJSDOMErrors: true });
 virtualConsole.on('jsdomError', (err) => {
-  if (err.message !== 'Not implemented: navigation (except hash changes)') {
-    console.error(err);
+  // Ignore navigation not implemented errors
+  if (err.message === 'Not implemented: navigation (except hash changes)') {
+    return;
   }
+
+  // Ignore @vscode-elements/elements slot handling errors in JSDOM
+  // These occur because JSDOM's shadow DOM implementation doesn't fully match browser behavior
+  if (
+    err.detail?.message?.includes("reading 'trim'") &&
+    err.detail?.stack?.includes('vscode-select-base')
+  ) {
+    return;
+  }
+
+  console.error(err);
 });
 
 global.window = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
@@ -69,6 +85,37 @@ Object.getOwnPropertyNames(global.window).forEach((property) => {
   global[property] = global.window[property];
 });
 
+// Polyfill for Constructable Stylesheets (required by @vscode-elements/elements)
+if (
+  typeof CSSStyleSheet !== 'undefined' &&
+  !CSSStyleSheet.prototype.replaceSync
+) {
+  CSSStyleSheet.prototype.replaceSync = function (): void {
+    // no-op: styles are not applied in test environment
+  };
+
+  CSSStyleSheet.prototype.replace = function (): Promise<CSSStyleSheet> {
+    return Promise.resolve(this);
+  };
+}
+
+// Polyfill for ResizeObserver (required by @vscode-elements/elements)
+// JSDOM does not support ResizeObserver, so we provide a no-op implementation
+class ResizeObserverPolyfill {
+  observe(): void {
+    // no-op
+  }
+  unobserve(): void {
+    // no-op
+  }
+  disconnect(): void {
+    // no-op
+  }
+}
+
+global.ResizeObserver = ResizeObserverPolyfill as any;
+global.window.ResizeObserver = ResizeObserverPolyfill as any;
+
 // Overwrites the node.js version which is incompatible with jsdom.
 global.MessageEvent = global.window.MessageEvent;
 
@@ -80,7 +127,9 @@ Object.assign(global, { TextDecoder, TextEncoder });
 
 (global as any).vscodeFake = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  postMessage: (message: unknown): void => {},
+  postMessage: (message: unknown): void => {
+    /* no-op */
+  },
 };
 
 (global as any).acquireVsCodeApi = (): any => {

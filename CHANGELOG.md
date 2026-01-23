@@ -1,5 +1,40 @@
 # Change Log
 
+## [v1.14.6](https://github.com/mongodb-js/vscode/releases/tag/v1.14.6) - 2026-01-15
+
+## What's Changed
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.5...v1.14.6
+
+
+## [v1.14.5](https://github.com/mongodb-js/vscode/releases/tag/v1.14.5) - 2026-01-15
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.4...v1.14.5
+
+
+## [v1.14.4](https://github.com/mongodb-js/vscode/releases/tag/v1.14.4) - 2026-01-15
+
+## What's Changed
+* fix: remove copilot command from command palette VSCODE-718 by @Anemy in https://github.com/mongodb-js/vscode/pull/1204
+* fix(settings): update shell and OIDC browser settings to be application scope VSCODE-726 by @Anemy in https://github.com/mongodb-js/vscode/pull/1211
+* fix: update feedback forum links VSCODE-716 by @Anemy in https://github.com/mongodb-js/vscode/pull/1212
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.3...v1.14.4
+
+
+## [v1.14.3](https://github.com/mongodb-js/vscode/releases/tag/v1.14.3) - 2025-12-09
+
+## What's Changed
+* chore: Prompt user to connect when running a playground VSCODE-686 by @tculig in https://github.com/mongodb-js/vscode/pull/1185
+
+## New Contributors
+* @dlemstra made their first contribution in https://github.com/mongodb-js/vscode/pull/1158
+* @tculig made their first contribution in https://github.com/mongodb-js/vscode/pull/1169
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.2...v1.14.3
+
+
 ## [v1.14.2](https://github.com/mongodb-js/vscode/releases/tag/v1.14.2) - 2025-10-07
 
 ## What's Changed

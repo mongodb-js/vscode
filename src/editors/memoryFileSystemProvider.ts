@@ -226,7 +226,9 @@ export class MemoryFileSystemProvider implements vscode.FileSystemProvider {
 
   watch(/* _resource: vscode.Uri */): vscode.Disposable {
     // Ignore, fires for all changes...
-    return new vscode.Disposable(() => {});
+    return new vscode.Disposable(() => {
+      /* no-op */
+    });
   }
 
   _fireSoon(...events: vscode.FileChangeEvent[]): void {

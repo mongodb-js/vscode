@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.25.0
+version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JS-SEMVER-3247795:
@@ -12,7 +12,24 @@ ignore:
         created: 2023-07-12T09:00:55.557Z
   SNYK-JS-AXIOS-6032459:
     - '*':
-        reason: "This vulnerability doesn't affect us"
+        reason: This vulnerability doesn't affect us
         expires: 2023-12-10T10:34:29.166Z
         created: 2023-11-10T10:34:29.178Z
+  SNYK-JS-QS-14724253:
+    - '*':
+        reason: >-
+          Not applicable: this is a resource allocation vulnerability that
+          requires untrusted user input to be passed to the qs.parse function.
+          This is only relevant to servers that parse untrusted connection
+          strings. We are only parsing query strings locally from the user
+          themselves.
+        expires: 2026-02-08T16:27:04.343Z
+        created: 2026-01-09T16:27:04.350Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-14871802:
+    - '*':
+        reason: >-
+          Not applicable: we don't use templated uris in a way this vulnerability
+          would be exploitable.
+        expires: 2026-02-11T23:25:45.051Z
+        created: 2026-01-12T23:25:45.058Z
 patch: {}

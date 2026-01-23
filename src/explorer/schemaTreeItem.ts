@@ -114,7 +114,10 @@ export default class SchemaTreeItem
       documents = await this._dataService.find(
         namespace,
         {}, // No filter.
-        { limit: MAX_DOCUMENTS_VISIBLE },
+        {
+          limit: MAX_DOCUMENTS_VISIBLE,
+          promoteValues: false,
+        },
       );
     } catch (error) {
       void vscode.window.showErrorMessage(
@@ -132,7 +135,7 @@ export default class SchemaTreeItem
       return await parseSchema(documents);
     } catch (parseError) {
       throw new Error(
-        `Unable to parse schema: ${(parseError as Error)?.message}`,
+        `Unable to parse schema: ${formatError(parseError).message}`,
       );
     }
   }

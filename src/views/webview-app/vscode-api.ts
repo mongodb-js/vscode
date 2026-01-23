@@ -1,5 +1,5 @@
 import {
-  MESSAGE_TYPES,
+  MessageType,
   type MessageFromWebviewToExtension,
   type ConnectMessage,
 } from './extension-app-message-constants';
@@ -10,13 +10,19 @@ interface VSCodeApi {
 }
 
 declare const acquireVsCodeApi: () => VSCodeApi;
-const vscode = acquireVsCodeApi();
+
+let vscode: VSCodeApi | undefined;
+
+export const getVSCodeApi = (): VSCodeApi => {
+  vscode ??= acquireVsCodeApi();
+  return vscode;
+};
 
 export const sendEditConnectionToExtension = (
   connectionInfo: ConnectMessage['connectionInfo'],
 ): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
+  getVSCodeApi().postMessage({
+    command: MessageType.editConnectionAndConnect,
     connectionInfo,
   });
 };
@@ -24,8 +30,8 @@ export const sendEditConnectionToExtension = (
 export const sendConnectToExtension = (
   connectionInfo: ConnectMessage['connectionInfo'],
 ): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.CONNECT,
+  getVSCodeApi().postMessage({
+    command: MessageType.connect,
     connectionInfo,
   });
 };
@@ -34,42 +40,42 @@ export const sendOpenFileChooserToExtension = (
   fileChooserOptions: FileChooserOptions,
   requestId: string,
 ): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.OPEN_FILE_CHOOSER,
+  getVSCodeApi().postMessage({
+    command: MessageType.openFileChooser,
     fileChooserOptions,
     requestId,
   });
 };
 
 export const sendCancelConnectToExtension = (): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.CANCEL_CONNECT,
+  getVSCodeApi().postMessage({
+    command: MessageType.cancelConnect,
   });
 };
 
 // When the form is opened we want to close the connection string
 // input if it's open, so we message the extension.
 export const sendFormOpenedToExtension = (): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.CONNECTION_FORM_OPENED,
+  getVSCodeApi().postMessage({
+    command: MessageType.connectionFormOpened,
   });
 };
 
 export const renameActiveConnection = (): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.RENAME_ACTIVE_CONNECTION,
+  getVSCodeApi().postMessage({
+    command: MessageType.renameActiveConnection,
   });
 };
 
 export const createNewPlayground = (): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.CREATE_NEW_PLAYGROUND,
+  getVSCodeApi().postMessage({
+    command: MessageType.createNewPlayground,
   });
 };
 
 export const connectWithConnectionString = (): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.OPEN_CONNECTION_STRING_INPUT,
+  getVSCodeApi().postMessage({
+    command: MessageType.openConnectionStringInput,
   });
 };
 
@@ -77,18 +83,16 @@ export const trackExtensionLinkClicked = (
   screen: string,
   linkId: string,
 ): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.EXTENSION_LINK_CLICKED,
+  getVSCodeApi().postMessage({
+    command: MessageType.extensionLinkClicked,
     screen,
     linkId,
   });
 };
 
 export const openTrustedLink = (linkTo: string): void => {
-  vscode.postMessage({
-    command: MESSAGE_TYPES.OPEN_TRUSTED_LINK,
+  getVSCodeApi().postMessage({
+    command: MessageType.openTrustedLink,
     linkTo,
   });
 };
-
-export default vscode;

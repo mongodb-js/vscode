@@ -12,21 +12,17 @@ jobs:
     name: Publish Release
     runs-on: ubuntu-latest
     steps:
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: 22.15.1
-          cache: pnpm
+          node-version: 22.21.1
 
       - name: Run node-gyp bug workaround script
         run: |
           curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
 
       - name: Install VSCode publishing dependencies
-        run: pnpm add -g vsce
+        run: npm install -g vsce
 
       - name: Download release assets
         run: |
@@ -47,6 +43,6 @@ jobs:
       - name: Publish to marketplace
         run: |
           echo "Publishing ${VSIX_PATH} to marketplace"
-          pnpm exec vsce publish --packagePath "${VSIX_PATH}" --githubBranch main
+          npx vsce publish --packagePath "${VSIX_PATH}" --githubBranch main
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}

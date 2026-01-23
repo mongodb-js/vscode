@@ -1,8 +1,6 @@
 ignores:
- - "@mongodb-js/prettier-config-devtools"
  - "@types/jest"
  - "buffer"
- - "eslint-config-mongodb-js"
  - "mocha-junit-reporter"
  - "mocha-multi"
  - "mongodb-client-encryption"
@@ -20,3 +18,5 @@ ignores:
  - "ejson-shell-parser" # Used by the connection-form.
  - "rimraf" # Used in 'clean' script to remove previous build artifacts
  - "snyk" # Used in 'snyk-test' script to create sbom
+ - "semver"
+ - "@vscode/codicons" # Copied to dist by webpack for webview icon rendering

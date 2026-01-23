@@ -2,7 +2,9 @@ import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
+import { expect } from 'chai';
 import type { DataService } from 'mongodb-data-service';
+import { Long, ObjectId } from 'bson';
 
 import { DocumentSource } from '../../../documentSource';
 import CollectionDocumentsOperationsStore from '../../../editors/collectionDocumentsOperationsStore';
@@ -21,18 +23,48 @@ import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, mockTextEditor } from '../stubs';
 
-const mockDocumentsAsJsonString = `[
+const mockDocuments = [
   {
-    "_id": "first_id",
-    "field1": "first_field"
+    _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
+    pineapple: new Long('90071992547409920'),
   },
   {
-    "_id": "first_id",
-    "field1": "first_field"
+    _id: new ObjectId('6536b0aef59f6ffc9af93f3d'),
+    pineapple2: new Long('900719925474099199'),
+  },
+];
+
+const mockDocumentsAsJsonString = `[
+  {
+    "_id": {
+      "$oid": "6536b0aef59f6ffc9af93f3c"
+    },
+    "pineapple": {
+      "$numberLong": "90071992547409920"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6536b0aef59f6ffc9af93f3d"
+    },
+    "pineapple2": {
+      "$numberLong": "900719925474099199"
+    }
   }
 ]`;
 
-suite('Collection Documents Provider Test Suite', () => {
+const mockDocumentsAsJSString = `[
+  {
+    _id: ObjectId('6536b0aef59f6ffc9af93f3c'),
+    pineapple: NumberLong('90071992547409920')
+  },
+  {
+    _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
+    pineapple2: NumberLong('900719925474099199')
+  }
+]`;
+
+suite('Collection Documents Provider Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
   const testStorageController = new StorageController(extensionContextStub);
   const testTelemetryService = new TelemetryService(
@@ -78,7 +110,7 @@ suite('Collection Documents Provider Test Suite', () => {
     sandbox.restore();
   });
 
-  test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async () => {
+  test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async function () {
     const findStub = sandbox.stub();
     const onceStub = sandbox.stub();
     findStub.resolves([{ field: 'Declaration of Independence' }]);
@@ -91,7 +123,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}`,
+      `scheme:Results: filename.json?namespace=my-favorite-fruit-is.pineapple&operationId=${operationId}&format=ejson`,
     );
 
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
@@ -99,29 +131,14 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
-    assert.strictEqual(
-      findStub.firstCall.args[0],
+    expect(findStub.firstCall.args[0]).to.equal(
       'my-favorite-fruit-is.pineapple',
     );
-    assert.strictEqual(findStub.firstCall.args[2]?.limit, 10);
-    assert(
-      documents.includes('Declaration of Independence'),
-      `Expected provideTextDocumentContent to return documents string, found ${documents}`,
-    );
+    expect(findStub.firstCall.args[2]?.limit).to.equal(10);
+    expect(documents).to.include('Declaration of Independence');
   });
 
-  test('provideTextDocumentContent returns a ejson.stringify string', async () => {
-    const mockDocuments = [
-      {
-        _id: 'first_id',
-        field1: 'first_field',
-      },
-      {
-        _id: 'first_id',
-        field1: 'first_field',
-      },
-    ];
-
+  test('provideTextDocumentContent returns a ejson.stringify string with format ejson', async function () {
     const findStub = sandbox.stub();
     const onceStub = sandbox.stub();
     findStub.resolves(mockDocuments);
@@ -134,7 +151,7 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}`,
+      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
     );
 
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
@@ -142,14 +159,35 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const documents =
       await testCollectionViewProvider.provideTextDocumentContent(uri);
-    assert.strictEqual(
-      documents,
-      mockDocumentsAsJsonString,
-      `Expected provideTextDocumentContent to return ejson stringified string, found ${documents}`,
-    );
+    expect(documents).to.equal(mockDocumentsAsJsonString);
   });
 
-  test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async () => {
+  test('provideTextDocumentContent returns shell syntax string when the format is shell', async function () {
+    const findStub = sandbox.stub();
+    const onceStub = sandbox.stub();
+    findStub.resolves(mockDocuments);
+    const testDataService = {
+      find: findStub,
+      once: onceStub,
+    } as unknown as DataService;
+
+    testConnectionController.setActiveDataService(testDataService);
+
+    const operationId = testQueryStore.createNewOperation();
+    const uri = vscode.Uri.parse(
+      `scheme:Results: filename?namespace=test.test&operationId=${operationId}&format=shell`,
+    );
+
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
+
+    const documentString =
+      await testCollectionViewProvider.provideTextDocumentContent(uri);
+
+    expect(documentString).to.equal(mockDocumentsAsJSString);
+  });
+
+  test('provideTextDocumentContent sets hasMoreDocumentsToShow to false when there arent more documents', async function () {
     const findStub = sandbox.stub();
     const onceStub = sandbox.stub();
     findStub.resolves([{ field: 'Apollo' }, { field: 'Gemini ' }]);
@@ -165,7 +203,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
 
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}`,
+      `scheme:Results: filename.json?namespace=vostok.mercury&operationId=${operationId}&format=ejson`,
     );
 
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
@@ -187,7 +225,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(testQueryStore.operations[operationId].hasMoreDocumentsToShow);
   });
 
-  test('provideTextDocumentContent shows a status bar item while it is running then hide it', async () => {
+  test('provideTextDocumentContent shows a status bar item while it is running then hide it', async function () {
     const mockActiveDataService = {
       find: () => Promise.resolve([]),
       once: sandbox.stub(),
@@ -198,25 +236,27 @@ suite('Collection Documents Provider Test Suite', () => {
 
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
-      `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}`,
+      `scheme:Results: filename.json?namespace=aaaaaaaa&operationId=${operationId}&format=ejson`,
     );
 
     const showMessageStub = sandbox.stub(testStatusView, 'showMessage');
     const hideMessageStub = sandbox.stub(testStatusView, 'hideMessage');
 
     mockActiveDataService.find = (): Promise<{ field: string }[]> => {
-      assert(showMessageStub.called);
-      assert(!hideMessageStub.called);
-      assert(showMessageStub.firstCall.args[0] === 'Fetching documents...');
+      expect(showMessageStub.called).to.be.true;
+      expect(hideMessageStub.called).to.be.false;
+      expect(showMessageStub.firstCall.args[0]).to.equal(
+        'Fetching documents...',
+      );
 
       return Promise.resolve([{ field: 'aaaaaaaaaaaaaaaaa' }]);
     };
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
-    assert(hideMessageStub.called);
+    expect(hideMessageStub.called).to.be.true;
   });
 
-  test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async () => {
+  test('provideTextDocumentContent sets different code lenses for different namespaces from the same connection', async function () {
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
@@ -288,7 +328,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -325,7 +365,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${secondCollectionOperationId}`,
     ].join('&');
     const secondCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`,
+      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}&format=ejson`,
     );
 
     // Fake a new response from find.
@@ -358,7 +398,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===
@@ -391,7 +431,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(secondCollectionCodeLensesInfo[1].documentId === '26');
   });
 
-  test('provideTextDocumentContent sets different code lenses for identical namespaces from the different connections', async () => {
+  test('provideTextDocumentContent sets different code lenses for identical namespaces from the different connections', async function () {
     testCollectionViewProvider._operationsStore =
       new CollectionDocumentsOperationsStore();
 
@@ -419,14 +459,14 @@ suite('Collection Documents Provider Test Suite', () => {
         id: firstConnectionId,
         name: 'localhost',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
       [secondConnectionId]: {
         id: secondConnectionId,
         name: 'compass',
         connectionOptions: { connectionString: TEST_DATABASE_URI },
-        storageLocation: StorageLocation.NONE,
+        storageLocation: StorageLocation.none,
         secretStorageLocation: SecretStorageLocation.SecretStorage,
       },
     };
@@ -442,7 +482,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${firstCollectionOperationId}`,
     ].join('&');
     const firstCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}`,
+      `${VIEW_COLLECTION_SCHEME}:Results: ${firstCollectionNamespace}.json?${firstCollectionQuery}&format=ejson`,
     );
 
     const activeTextEditor = mockTextEditor;
@@ -477,7 +517,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!firstCollectionFirstCommandArguments);
     assert(
       firstCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       firstCollectionFirstCommandArguments[0].namespace ===
@@ -517,7 +557,7 @@ suite('Collection Documents Provider Test Suite', () => {
       `operationId=${secondCollectionOperationId}`,
     ].join('&');
     const secondCollectionUri = vscode.Uri.parse(
-      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}`,
+      `${VIEW_COLLECTION_SCHEME}:Results: ${secondCollectionNamespace}.json?${secondCollectionQuery}&format=ejson`,
     );
 
     mockTextEditor.document.uri = secondCollectionUri;
@@ -552,7 +592,7 @@ suite('Collection Documents Provider Test Suite', () => {
     assert(!!secondCollectionFirstCommandArguments);
     assert(
       secondCollectionFirstCommandArguments[0].source ===
-        DocumentSource.DOCUMENT_SOURCE_COLLECTIONVIEW,
+        DocumentSource.collectionview,
     );
     assert(
       secondCollectionFirstCommandArguments[0].namespace ===

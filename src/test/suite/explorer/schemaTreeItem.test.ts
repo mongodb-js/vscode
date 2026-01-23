@@ -47,7 +47,7 @@ suite('SchemaTreeItem Test Suite', function () {
     sandbox.restore();
   });
 
-  test('its context value should be in the package json', () => {
+  test('its context value should be in the package json', function () {
     let schemaRegisteredCommandInPackageJson = false;
     const testSchemaTreeItem = getTestSchemaTreeItem();
 
@@ -63,7 +63,7 @@ suite('SchemaTreeItem Test Suite', function () {
     );
   });
 
-  test('when the "show more" click handler function is called it sets the schema to show more fields', () => {
+  test('when the "show more" click handler function is called it sets the schema to show more fields', function () {
     const testSchemaTreeItem = getTestSchemaTreeItem();
 
     assert(
@@ -84,7 +84,7 @@ suite('SchemaTreeItem Test Suite', function () {
     );
   });
 
-  test('when there are no documents in the schema it should show a message', async () => {
+  test('when there are no documents in the schema it should show a message', async function () {
     const expectedMessage =
       'No documents were found when attempting to parse schema.';
 
@@ -113,7 +113,7 @@ suite('SchemaTreeItem Test Suite', function () {
     );
   });
 
-  test('it should show a show more item when there are more fields to show', async () => {
+  test('it should show a show more item when there are more fields to show', async function () {
     const amountOfFieldsExpected = FIELDS_TO_SHOW;
     const mockDocWithTwentyFields = {};
     for (let i = 0; i < 20; i++) {
@@ -145,7 +145,7 @@ suite('SchemaTreeItem Test Suite', function () {
     );
   });
 
-  test('it should show more fields after the show more click handler is called', async () => {
+  test('it should show more fields after the show more click handler is called', async function () {
     const mockDocWithThirtyFields = {};
     for (let i = 0; i < 30; i++) {
       mockDocWithThirtyFields[`${i}`] = 'some value';
@@ -168,7 +168,7 @@ suite('SchemaTreeItem Test Suite', function () {
     assert.strictEqual(schemaFields.length, amountOfFieldsExpected);
   });
 
-  test('When schema parsing fails it displays an error message', async () => {
+  test('When schema parsing fails it displays an error message', async function () {
     const findStub = sandbox.stub();
     findStub.resolves('invalid schema to parse' as unknown as Document[]);
     const testDataService = {
@@ -188,16 +188,16 @@ suite('SchemaTreeItem Test Suite', function () {
         "Unable to parse schema: Cannot use 'in' operator to search for 'Symbol(Symbol.iterator)' in invalid schema to parse";
 
       assert.strictEqual(
-        (<any>error).message,
+        (error as Error).message,
         expectedMessage,
         `Expected error message to be "${expectedMessage}" found "${
-          (<any>error).message
+          (error as Error).message
         }"`,
       );
     }
   });
 
-  suite('Live Database Tests', () => {
+  suite('Live Database Tests', function () {
     this.timeout(5000);
     let dataService;
 
@@ -213,7 +213,7 @@ suite('SchemaTreeItem Test Suite', function () {
       await disconnectFromTestDB();
     });
 
-    test('when not expanded it has not yet pulled the schema', async () => {
+    test('when not expanded it has not yet pulled the schema', async function () {
       await seedTestDB('pizza', [
         {
           _id: 10,
@@ -231,7 +231,7 @@ suite('SchemaTreeItem Test Suite', function () {
       assert.strictEqual(schemaFields.length, 0);
     });
 
-    test('when expanded shows the fields of a schema', async () => {
+    test('when expanded shows the fields of a schema', async function () {
       await seedTestDB('pizza', [
         {
           _id: 1,
@@ -252,7 +252,7 @@ suite('SchemaTreeItem Test Suite', function () {
       assert.strictEqual(schemaFields[1].label, 'nameOfTastyPie');
     });
 
-    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', async () => {
+    test('it only shows a dropdown for fields which are always documents - and not for polymorphic', async function () {
       await seedTestDB('pizza', [
         {
           _id: 1,
@@ -290,7 +290,7 @@ suite('SchemaTreeItem Test Suite', function () {
     });
   });
 
-  test('it should have an icon with the name schema', () => {
+  test('it should have an icon with the name schema', function () {
     ext.context = new ExtensionContextStub();
     const testSchemaTreeItem = getTestSchemaTreeItem();
 

@@ -3,6 +3,7 @@ import { css, cx, palette, useDarkMode } from '@mongodb-js/compass-components';
 import LINKS from '../../../utils/links';
 import { trackExtensionLinkClicked } from '../vscode-api';
 import { TELEMETRY_SCREEN_ID } from './panel';
+import { VSCODE_EDITOR_FOREGROUND } from '../../vscode-styles';
 
 const FooterFeatures = [
   {
@@ -69,7 +70,7 @@ const footerItemLinkStyles = css({
   margin: '5px 0px',
   textDecoration: 'none',
   display: 'block',
-  color: 'var(--vscode-editor-foreground)',
+  color: VSCODE_EDITOR_FOREGROUND,
   '&:hover': {
     color: palette.green.base,
   },

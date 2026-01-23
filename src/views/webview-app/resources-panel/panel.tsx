@@ -3,6 +3,7 @@ import { css, keyframes } from '@mongodb-js/compass-components';
 import ResourcesPanelHeader from './header';
 import ResourcesPanelLinks from './links';
 import ResourcesPanelFooter from './footer';
+import { VSCODE_EDITOR_BACKGROUND } from '../../vscode-styles';
 
 const panelActualWidth = 428;
 const panelWidthWithMargin = 468;
@@ -57,7 +58,7 @@ const resourcePanelContentStyles = css({
   overflow: 'auto',
   padding: '24px',
   paddingBottom: '48px',
-  background: 'var(--vscode-editor-background)',
+  background: VSCODE_EDITOR_BACKGROUND,
   animationDuration: '250ms',
   animationDirection: 'forwards',
   animationName: panelOpenAnimation,
@@ -68,6 +69,7 @@ const resourcePanelContentStyles = css({
 const ResourcesPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   return (
     <div className={resourcesPanelStyles}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div className={resourcesPanelBackgroundStyles} onClick={onClose} />
       <div className={resourcePanelContentStyles}>
         <ResourcesPanelHeader onCloseClick={onClose} />

@@ -19,7 +19,7 @@ function getTestDocumentTreeItem(
   });
 }
 
-suite('DocumentTreeItem Test Suite', () => {
+suite('DocumentTreeItem Test Suite', function () {
   test('it makes the document _id the label of the document tree item', function () {
     const mockDocument = {
       _id: 'mock_document_id',

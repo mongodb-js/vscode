@@ -5,14 +5,14 @@ import { cleanup, render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import OverviewPage from '../../../../views/webview-app/overview-page';
-import vscode from '../../../../views/webview-app/vscode-api';
+import { getVSCodeApi } from '../../../../views/webview-app/vscode-api';
 import type { MessageFromWebviewToExtension } from '../../../../views/webview-app/extension-app-message-constants';
-import { MESSAGE_TYPES } from '../../../../views/webview-app/extension-app-message-constants';
+import { MessageType } from '../../../../views/webview-app/extension-app-message-constants';
 
 const connectionFormTestId = 'connection-form-modal';
 
 describe('OverviewPage test suite', function () {
-  afterEach(() => {
+  afterEach(function () {
     cleanup();
     sinon.restore();
   });
@@ -43,11 +43,12 @@ describe('OverviewPage test suite', function () {
     // Without this it's flaky on mac CI.
     // TODO(COMPASS-7762): Once we update the connection form this may be able to go away.
     this.timeout(25000);
+
     it('is able to open and close the new connection form', async function () {
       render(<OverviewPage />);
 
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       expect(postMessageSpy).to.not.be.called;
 
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
@@ -55,7 +56,7 @@ describe('OverviewPage test suite', function () {
       expect(screen.getByTestId(connectionFormTestId)).to.exist;
       const message = postMessageSpy.firstCall.args[0];
       expect(message).to.deep.equal({
-        command: MESSAGE_TYPES.CONNECTION_FORM_OPENED,
+        command: MessageType.connectionFormOpened,
       });
 
       await userEvent.click(screen.getByLabelText('Close modal'));
@@ -63,7 +64,7 @@ describe('OverviewPage test suite', function () {
     });
 
     it('should send connect request to webview controller when clicked on Connect button', async function () {
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
 
       render(<OverviewPage />);
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
@@ -72,7 +73,7 @@ describe('OverviewPage test suite', function () {
         .null;
       await userEvent.click(screen.getByTestId('connect-button'));
       const argsWithoutConnectId = postMessageSpy.lastCall.args[0] as any;
-      expect(argsWithoutConnectId.command).to.equal(MESSAGE_TYPES.CONNECT);
+      expect(argsWithoutConnectId.command).to.equal(MessageType.connect);
       expect(
         argsWithoutConnectId.connectionInfo.connectionOptions.connectionString,
       ).to.equal('mongodb://localhost:27017');
@@ -80,7 +81,7 @@ describe('OverviewPage test suite', function () {
 
     it('should display error message returned from connection attempt', async function () {
       render(<OverviewPage />);
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
       await userEvent.click(screen.getByTestId('connect-button'));
       const connectionId = (postMessageSpy.lastCall.args[0] as any)
@@ -90,7 +91,7 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId,
               connectionSuccess: false,
               connectionMessage: 'server not found',
@@ -103,7 +104,7 @@ describe('OverviewPage test suite', function () {
 
     it('should close the connection modal when connected successfully', async function () {
       render(<OverviewPage />);
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       await userEvent.click(screen.getByTestId('open-connection-form-button'));
       await userEvent.click(screen.getByTestId('connect-button'));
       const connectionId = (postMessageSpy.lastCall.args[0] as any)
@@ -113,7 +114,7 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId,
               connectionSuccess: true,
               connectionMessage: '',
@@ -127,7 +128,7 @@ describe('OverviewPage test suite', function () {
     it('should handle editing a connection', async function () {
       render(<OverviewPage />);
 
-      const postMessageSpy = sinon.spy(vscode, 'postMessage');
+      const postMessageSpy = sinon.spy(getVSCodeApi(), 'postMessage');
       expect(screen.queryByTestId(connectionFormTestId)).to.not.exist;
       expect(screen.queryByText('pineapple')).to.not.exist;
 
@@ -135,7 +136,7 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.OPEN_EDIT_CONNECTION,
+              command: MessageType.openEditConnection,
               connection: {
                 id: 'pear',
                 name: 'pineapple',
@@ -160,8 +161,7 @@ describe('OverviewPage test suite', function () {
           .getCalls()
           .filter(
             (call) =>
-              call.args[0].command ===
-              MESSAGE_TYPES.EDIT_CONNECTION_AND_CONNECT,
+              call.args[0].command === MessageType.editConnectionAndConnect,
           );
       };
       expect(getConnectMessages()).to.have.length(0);
@@ -189,7 +189,7 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId: 1, // different from the attempt id generated by our click
               connectionSuccess: true,
               connectionMessage: '',
@@ -204,7 +204,7 @@ describe('OverviewPage test suite', function () {
         window.dispatchEvent(
           new MessageEvent('message', {
             data: {
-              command: MESSAGE_TYPES.CONNECT_RESULT,
+              command: MessageType.connectResult,
               connectionId: 2, // different from the attempt id generated by our click
               connectionSuccess: false,
               connectionMessage: 'something bad happened',
