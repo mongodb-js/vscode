@@ -17,17 +17,7 @@ import {
 } from '../vscode-styles';
 import { useAppSelector, useAppDispatch } from './store/hooks';
 import {
-  selectDisplayedDocuments,
-  selectCurrentPage,
-  selectItemsPerPage,
-  selectIsLoading,
-  selectTotalCountInCollection,
-  selectHasReceivedCount,
-  selectTotalPages,
-  selectStartItem,
-  selectEndItem,
-  selectGetDocumentsError,
-  selectGetTotalCountError,
+  selectDocumentQuery,
   refreshDocuments,
   fetchInitialDocuments,
   goToPreviousPage,
@@ -131,17 +121,19 @@ const countErrorStyles = css({
 
 const PreviewApp: React.FC = () => {
   const dispatch = useAppDispatch();
-  const displayedDocuments = useAppSelector(selectDisplayedDocuments);
-  const currentPage = useAppSelector(selectCurrentPage);
-  const itemsPerPage = useAppSelector(selectItemsPerPage);
-  const isLoading = useAppSelector(selectIsLoading);
-  const totalCountInCollection = useAppSelector(selectTotalCountInCollection);
-  const hasReceivedCount = useAppSelector(selectHasReceivedCount);
-  const totalPages = useAppSelector(selectTotalPages);
-  const startItem = useAppSelector(selectStartItem);
-  const endItem = useAppSelector(selectEndItem);
-  const getDocumentsError = useAppSelector(selectGetDocumentsError);
-  const getTotalCountError = useAppSelector(selectGetTotalCountError);
+
+  const {
+    displayedDocuments,
+    currentPage,
+    itemsPerPage,
+    isLoading,
+    totalCountInCollection,
+    hasReceivedCount,
+    totalPages,
+    startItem,
+    endItem,
+    errors: { getDocuments: getDocumentsError, getTotalCount: getTotalCountError },
+  } = useAppSelector(selectDocumentQuery);
 
   useEffect(() => {
     dispatch(adjustCurrentPage());

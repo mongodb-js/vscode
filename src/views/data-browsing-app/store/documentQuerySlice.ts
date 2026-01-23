@@ -26,9 +26,32 @@ export interface DocumentQueryState {
   hasReceivedCount: boolean;
   error: string | null;
   errors: ErrorsState;
+  totalDocuments: number;
+  totalPages: number;
+  startItem: number;
+  endItem: number;
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 10;
+
+const recalculatePaginationValues = (state: DocumentQueryState): void => {
+  state.totalDocuments =
+    state.totalCountInCollection !== null
+      ? state.totalCountInCollection
+      : state.displayedDocuments.length;
+  state.totalPages = Math.max(
+    1,
+    Math.ceil(state.totalDocuments / state.itemsPerPage),
+  );
+  state.startItem =
+    state.totalDocuments === 0
+      ? 0
+      : (state.currentPage - 1) * state.itemsPerPage + 1;
+  state.endItem = Math.min(
+    state.currentPage * state.itemsPerPage,
+    state.totalDocuments,
+  );
+};
 
 export const initialState: DocumentQueryState = {
   displayedDocuments: [],
@@ -42,29 +65,23 @@ export const initialState: DocumentQueryState = {
     getDocuments: null,
     getTotalCount: null,
   },
-};
-
-const calculateTotalPages = (state: DocumentQueryState): number => {
-  const totalDocuments =
-    state.totalCountInCollection !== null
-      ? state.totalCountInCollection
-      : state.displayedDocuments.length;
-  return Math.max(1, Math.ceil(totalDocuments / state.itemsPerPage));
+  totalDocuments: 0,
+  totalPages: 1,
+  startItem: 0,
+  endItem: 0,
 };
 
 const documentQuerySlice = createSlice({
   name: 'documentQuery',
   initialState,
   reducers: {
-    // ========================================
-    // UI Actions (dispatched from preview-page.tsx)
-    // ========================================
     refreshDocuments: (state) => {
       state.isLoading = true;
       state.currentPage = 1;
       state.error = null;
       state.errors.getDocuments = null;
       state.errors.getTotalCount = null;
+      recalculatePaginationValues(state);
       sendGetDocuments(0, state.itemsPerPage);
       sendGetTotalCount();
     },
@@ -82,18 +99,19 @@ const documentQuerySlice = createSlice({
         state.isLoading = true;
         state.error = null;
         state.errors.getDocuments = null;
+        recalculatePaginationValues(state);
         sendGetDocuments(skip, state.itemsPerPage);
       }
     },
     goToNextPage: (state) => {
-      const totalPages = calculateTotalPages(state);
-      if (state.currentPage < totalPages) {
+      if (state.currentPage < state.totalPages) {
         const newPage = state.currentPage + 1;
         const skip = (newPage - 1) * state.itemsPerPage;
         state.currentPage = newPage;
         state.isLoading = true;
         state.error = null;
         state.errors.getDocuments = null;
+        recalculatePaginationValues(state);
         sendGetDocuments(skip, state.itemsPerPage);
       }
     },
@@ -104,6 +122,7 @@ const documentQuerySlice = createSlice({
       state.isLoading = true;
       state.error = null;
       state.errors.getDocuments = null;
+      recalculatePaginationValues(state);
       sendGetDocuments(0, newItemsPerPage);
     },
     cancelRequest: (state) => {
@@ -111,9 +130,9 @@ const documentQuerySlice = createSlice({
       sendCancelRequest();
     },
     adjustCurrentPage: (state) => {
-      const totalPages = calculateTotalPages(state);
-      if (state.currentPage > totalPages && totalPages > 0) {
-        state.currentPage = totalPages;
+      if (state.currentPage > state.totalPages && state.totalPages > 0) {
+        state.currentPage = state.totalPages;
+        recalculatePaginationValues(state);
       }
     },
 
@@ -125,6 +144,7 @@ const documentQuerySlice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.errors.getDocuments = null;
+      recalculatePaginationValues(state);
     },
     handleDocumentError: (state, action: PayloadAction<string>) => {
       state.errors.getDocuments = action.payload;
@@ -137,6 +157,7 @@ const documentQuerySlice = createSlice({
       state.totalCountInCollection = action.payload;
       state.hasReceivedCount = true;
       state.errors.getTotalCount = null;
+      recalculatePaginationValues(state);
     },
     handleTotalCountError: (state, action: PayloadAction<string>) => {
       state.hasReceivedCount = true;
@@ -145,7 +166,6 @@ const documentQuerySlice = createSlice({
   },
 });
 
-// UI Actions - dispatched from preview-page.tsx
 export const {
   refreshDocuments,
   fetchInitialDocuments,
@@ -154,7 +174,6 @@ export const {
   changeItemsPerPage,
   cancelRequest,
   adjustCurrentPage,
-  // Message Handler Actions - dispatched from messageHandler.ts
   handleDocumentsLoaded,
   handleDocumentError,
   handleRequestCancelled,
@@ -162,71 +181,10 @@ export const {
   handleTotalCountError,
 } = documentQuerySlice.actions;
 
-type StateWithDocumentQuery = { documentQuery: DocumentQueryState };
+export type StateWithDocumentQuery = { documentQuery: DocumentQueryState };
 
-export const selectDisplayedDocuments = (
+export const selectDocumentQuery = (
   state: StateWithDocumentQuery,
-): PreviewDocument[] => state.documentQuery.displayedDocuments;
-
-export const selectCurrentPage = (state: StateWithDocumentQuery): number =>
-  state.documentQuery.currentPage;
-
-export const selectItemsPerPage = (state: StateWithDocumentQuery): number =>
-  state.documentQuery.itemsPerPage;
-
-export const selectIsLoading = (state: StateWithDocumentQuery): boolean =>
-  state.documentQuery.isLoading;
-
-export const selectTotalCountInCollection = (
-  state: StateWithDocumentQuery,
-): number | null => state.documentQuery.totalCountInCollection;
-
-export const selectHasReceivedCount = (
-  state: StateWithDocumentQuery,
-): boolean => state.documentQuery.hasReceivedCount;
-
-export const selectError = (state: StateWithDocumentQuery): string | null =>
-  state.documentQuery.error;
-
-export const selectErrors = (state: StateWithDocumentQuery): ErrorsState =>
-  state.documentQuery.errors;
-
-export const selectGetDocumentsError = (
-  state: StateWithDocumentQuery,
-): string | null => state.documentQuery.errors.getDocuments;
-
-export const selectGetTotalCountError = (
-  state: StateWithDocumentQuery,
-): string | null => state.documentQuery.errors.getTotalCount;
-
-// Derived selectors
-export const selectIsCountAvailable = (
-  state: StateWithDocumentQuery,
-): boolean => state.documentQuery.totalCountInCollection !== null;
-
-export const selectTotalDocuments = (state: StateWithDocumentQuery): number => {
-  const { totalCountInCollection, displayedDocuments } = state.documentQuery;
-  return totalCountInCollection !== null
-    ? totalCountInCollection
-    : displayedDocuments.length;
-};
-
-export const selectTotalPages = (state: StateWithDocumentQuery): number => {
-  const totalDocuments = selectTotalDocuments(state);
-  const itemsPerPage = state.documentQuery.itemsPerPage;
-  return Math.max(1, Math.ceil(totalDocuments / itemsPerPage));
-};
-
-export const selectStartItem = (state: StateWithDocumentQuery): number => {
-  const totalDocuments = selectTotalDocuments(state);
-  const { currentPage, itemsPerPage } = state.documentQuery;
-  return totalDocuments === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-};
-
-export const selectEndItem = (state: StateWithDocumentQuery): number => {
-  const totalDocuments = selectTotalDocuments(state);
-  const { currentPage, itemsPerPage } = state.documentQuery;
-  return Math.min(currentPage * itemsPerPage, totalDocuments);
-};
+): DocumentQueryState => state.documentQuery;
 
 export default documentQuerySlice.reducer;
