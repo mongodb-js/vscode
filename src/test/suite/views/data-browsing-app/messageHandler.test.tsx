@@ -67,9 +67,9 @@ describe('messageHandler test suite', function () {
           documents: [],
         });
 
-        expect(
-          store.getState().documentQuery.displayedDocuments,
-        ).to.deep.equal([]);
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          [],
+        );
       });
 
       it('should handle undefined documents', function () {
@@ -78,9 +78,9 @@ describe('messageHandler test suite', function () {
           isInitialLoad: true,
         } as any);
 
-        expect(
-          store.getState().documentQuery.displayedDocuments,
-        ).to.deep.equal([]);
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          [],
+        );
       });
 
       it('should clear getDocuments error on successful load', function () {
@@ -157,9 +157,9 @@ describe('messageHandler test suite', function () {
           totalCount: 100,
         });
 
-        expect(
-          store.getState().documentQuery.totalCountInCollection,
-        ).to.equal(100);
+        expect(store.getState().documentQuery.totalCountInCollection).to.equal(
+          100,
+        );
         expect(store.getState().documentQuery.hasReceivedCount).to.be.true;
       });
 
@@ -169,9 +169,9 @@ describe('messageHandler test suite', function () {
           totalCount: 0,
         });
 
-        expect(
-          store.getState().documentQuery.totalCountInCollection,
-        ).to.equal(0);
+        expect(store.getState().documentQuery.totalCountInCollection).to.equal(
+          0,
+        );
       });
 
       it('should clear getTotalCount error on successful count update', function () {
@@ -201,9 +201,8 @@ describe('messageHandler test suite', function () {
         });
 
         expect(store.getState().documentQuery.hasReceivedCount).to.be.true;
-        expect(
-          store.getState().documentQuery.totalCountInCollection,
-        ).to.be.null;
+        expect(store.getState().documentQuery.totalCountInCollection).to.be
+          .null;
       });
 
       it('should set getTotalCount error with provided message', function () {
@@ -254,4 +253,3 @@ describe('messageHandler test suite', function () {
     });
   });
 });
-

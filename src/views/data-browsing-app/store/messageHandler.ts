@@ -1,9 +1,5 @@
 import { store } from './index';
-import type {
-  MessageFromExtensionToWebview,
-  DocumentGetErrorMessage,
-  UpdateTotalCountErrorMessage,
-} from '../extension-app-message-constants';
+import type { MessageFromExtensionToWebview } from '../extension-app-message-constants';
 import { PreviewMessageType } from '../extension-app-message-constants';
 import {
   loadPage,
@@ -22,9 +18,7 @@ export const handleExtensionMessage = (
       store.dispatch(loadPage((message.documents as PreviewDocument[]) || []));
       break;
     case PreviewMessageType.getDocumentError: {
-      const errorMessage =
-        (message as DocumentGetErrorMessage).error ||
-        'Failed to fetch documents';
+      const errorMessage = message.error || 'Failed to fetch documents';
       store.dispatch(
         setRequestError({ type: 'getDocuments', message: errorMessage }),
       );
@@ -37,9 +31,7 @@ export const handleExtensionMessage = (
       store.dispatch(setTotalCountInCollection(message.totalCount));
       break;
     case PreviewMessageType.updateTotalCountError: {
-      const errorMessage =
-        (message as UpdateTotalCountErrorMessage).error ||
-        'Failed to fetch total count';
+      const errorMessage = message.error || 'Failed to fetch total count';
       store.dispatch(markCountReceived());
       store.dispatch(
         setRequestError({ type: 'getTotalCount', message: errorMessage }),
@@ -61,4 +53,3 @@ export const setupMessageHandler = (): (() => void) => {
     window.removeEventListener('message', handleMessage);
   };
 };
-
