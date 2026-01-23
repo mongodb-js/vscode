@@ -165,7 +165,7 @@ describe('documentQuerySlice', function () {
 
         it('should calculate correctly for middle pages', function () {
           // First set up state with total count
-          let state = reducer(initialState, totalCountReceived(100));
+          const state = reducer(initialState, totalCountReceived(100));
           // Simulate being on page 3 by loading docs (which sets currentPage via other actions)
           // For this test, we directly check the calculation with known values
           expect(state.totalDocuments).to.equal(100);

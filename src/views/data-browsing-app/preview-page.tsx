@@ -132,7 +132,10 @@ const PreviewApp: React.FC = () => {
     totalPages,
     startItem,
     endItem,
-    errors: { getDocuments: getDocumentsError, getTotalCount: getTotalCountError },
+    errors: {
+      getDocuments: getDocumentsError,
+      getTotalCount: getTotalCountError,
+    },
   } = useAppSelector(selectDocumentQuery);
 
   useEffect(() => {
