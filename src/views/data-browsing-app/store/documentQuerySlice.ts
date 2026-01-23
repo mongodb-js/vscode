@@ -75,7 +75,7 @@ const documentQuerySlice = createSlice({
   name: 'documentQuery',
   initialState,
   reducers: {
-    refreshDocuments: (state) => {
+    documentsRefreshRequested: (state) => {
       state.isLoading = true;
       state.currentPage = 1;
       state.error = null;
@@ -85,13 +85,13 @@ const documentQuerySlice = createSlice({
       sendGetDocuments(0, state.itemsPerPage);
       sendGetTotalCount();
     },
-    fetchInitialDocuments: (state) => {
+    initialDocumentsFetchRequested: (state) => {
       state.errors.getDocuments = null;
       state.errors.getTotalCount = null;
       sendGetDocuments(0, state.itemsPerPage);
       sendGetTotalCount();
     },
-    goToPreviousPage: (state) => {
+    previousPageRequested: (state) => {
       if (state.currentPage > 1) {
         const newPage = state.currentPage - 1;
         const skip = (newPage - 1) * state.itemsPerPage;
@@ -103,7 +103,7 @@ const documentQuerySlice = createSlice({
         sendGetDocuments(skip, state.itemsPerPage);
       }
     },
-    goToNextPage: (state) => {
+    nextPageRequested: (state) => {
       if (state.currentPage < state.totalPages) {
         const newPage = state.currentPage + 1;
         const skip = (newPage - 1) * state.itemsPerPage;
@@ -115,7 +115,7 @@ const documentQuerySlice = createSlice({
         sendGetDocuments(skip, state.itemsPerPage);
       }
     },
-    changeItemsPerPage: (state, action: PayloadAction<number>) => {
+    itemsPerPageChanged: (state, action: PayloadAction<number>) => {
       const newItemsPerPage = action.payload;
       state.itemsPerPage = newItemsPerPage;
       state.currentPage = 1;
@@ -125,11 +125,11 @@ const documentQuerySlice = createSlice({
       recalculatePaginationValues(state);
       sendGetDocuments(0, newItemsPerPage);
     },
-    cancelRequest: (state) => {
+    requestCancellationRequested: (state) => {
       state.isLoading = false;
       sendCancelRequest();
     },
-    adjustCurrentPage: (state) => {
+    currentPageAdjusted: (state) => {
       if (state.currentPage > state.totalPages && state.totalPages > 0) {
         state.currentPage = state.totalPages;
         recalculatePaginationValues(state);
@@ -137,29 +137,29 @@ const documentQuerySlice = createSlice({
     },
 
     // ========================================
-    // Message Handler Actions (dispatched from messageHandler.ts)
+    // Extension message response actions (dispatched from messageHandler.ts)
     // ========================================
-    handleDocumentsLoaded: (state, action: PayloadAction<PreviewDocument[]>) => {
+    documentsReceived: (state, action: PayloadAction<PreviewDocument[]>) => {
       state.displayedDocuments = action.payload;
       state.isLoading = false;
       state.error = null;
       state.errors.getDocuments = null;
       recalculatePaginationValues(state);
     },
-    handleDocumentError: (state, action: PayloadAction<string>) => {
+    documentsFetchFailed: (state, action: PayloadAction<string>) => {
       state.errors.getDocuments = action.payload;
       state.isLoading = false;
     },
-    handleRequestCancelled: (state) => {
+    requestCancelled: (state) => {
       state.isLoading = false;
     },
-    handleTotalCountReceived: (state, action: PayloadAction<number | null>) => {
+    totalCountReceived: (state, action: PayloadAction<number | null>) => {
       state.totalCountInCollection = action.payload;
       state.hasReceivedCount = true;
       state.errors.getTotalCount = null;
       recalculatePaginationValues(state);
     },
-    handleTotalCountError: (state, action: PayloadAction<string>) => {
+    totalCountFetchFailed: (state, action: PayloadAction<string>) => {
       state.hasReceivedCount = true;
       state.errors.getTotalCount = action.payload;
     },
@@ -167,18 +167,18 @@ const documentQuerySlice = createSlice({
 });
 
 export const {
-  refreshDocuments,
-  fetchInitialDocuments,
-  goToPreviousPage,
-  goToNextPage,
-  changeItemsPerPage,
-  cancelRequest,
-  adjustCurrentPage,
-  handleDocumentsLoaded,
-  handleDocumentError,
-  handleRequestCancelled,
-  handleTotalCountReceived,
-  handleTotalCountError,
+  documentsRefreshRequested,
+  initialDocumentsFetchRequested,
+  previousPageRequested,
+  nextPageRequested,
+  itemsPerPageChanged,
+  requestCancellationRequested,
+  currentPageAdjusted,
+  documentsReceived,
+  documentsFetchFailed,
+  requestCancelled,
+  totalCountReceived,
+  totalCountFetchFailed,
 } = documentQuerySlice.actions;
 
 export type StateWithDocumentQuery = { documentQuery: DocumentQueryState };

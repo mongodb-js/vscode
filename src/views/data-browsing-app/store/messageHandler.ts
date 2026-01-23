@@ -2,11 +2,11 @@ import type { MessageFromExtensionToWebview } from '../extension-app-message-con
 import { PreviewMessageType } from '../extension-app-message-constants';
 import type { AppDispatch } from './index';
 import {
-  handleDocumentsLoaded,
-  handleDocumentError,
-  handleRequestCancelled,
-  handleTotalCountReceived,
-  handleTotalCountError,
+  documentsReceived,
+  documentsFetchFailed,
+  requestCancelled,
+  totalCountReceived,
+  totalCountFetchFailed,
   type PreviewDocument,
 } from './documentQuerySlice';
 
@@ -17,23 +17,23 @@ export const handleExtensionMessage = (
   switch (message.command) {
     case PreviewMessageType.loadPage:
       dispatch(
-        handleDocumentsLoaded((message.documents as PreviewDocument[]) || []),
+        documentsReceived((message.documents as PreviewDocument[]) || []),
       );
       break;
     case PreviewMessageType.getDocumentError: {
       const errorMessage = message.error || 'Failed to fetch documents';
-      dispatch(handleDocumentError(errorMessage));
+      dispatch(documentsFetchFailed(errorMessage));
       break;
     }
     case PreviewMessageType.requestCancelled:
-      dispatch(handleRequestCancelled());
+      dispatch(requestCancelled());
       break;
     case PreviewMessageType.updateTotalCount:
-      dispatch(handleTotalCountReceived(message.totalCount));
+      dispatch(totalCountReceived(message.totalCount));
       break;
     case PreviewMessageType.updateTotalCountError: {
       const errorMessage = message.error || 'Failed to fetch total count';
-      dispatch(handleTotalCountError(errorMessage));
+      dispatch(totalCountFetchFailed(errorMessage));
       break;
     }
   }

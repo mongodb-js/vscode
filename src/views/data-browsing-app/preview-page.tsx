@@ -18,13 +18,13 @@ import {
 import { useAppSelector, useAppDispatch } from './store/hooks';
 import {
   selectDocumentQuery,
-  refreshDocuments,
-  fetchInitialDocuments,
-  goToPreviousPage,
-  goToNextPage,
-  changeItemsPerPage,
-  cancelRequest,
-  adjustCurrentPage,
+  documentsRefreshRequested,
+  initialDocumentsFetchRequested,
+  previousPageRequested,
+  nextPageRequested,
+  itemsPerPageChanged,
+  requestCancellationRequested,
+  currentPageAdjusted,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
 
@@ -136,19 +136,19 @@ const PreviewApp: React.FC = () => {
   } = useAppSelector(selectDocumentQuery);
 
   useEffect(() => {
-    dispatch(adjustCurrentPage());
+    dispatch(currentPageAdjusted());
   }, [dispatch, totalPages, currentPage]);
 
   useEffect(() => {
     const cleanup = setupMessageHandler(dispatch);
-    dispatch(fetchInitialDocuments());
+    dispatch(initialDocumentsFetchRequested());
     return cleanup;
   }, [dispatch]);
 
   const handleItemsPerPageChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const newItemsPerPage = parseInt(target.value, 10);
-    dispatch(changeItemsPerPage(newItemsPerPage));
+    dispatch(itemsPerPageChanged(newItemsPerPage));
   };
 
   return (
@@ -162,7 +162,7 @@ const PreviewApp: React.FC = () => {
           <VscodeButton
             aria-label="Refresh"
             title="Refresh"
-            onClick={() => dispatch(refreshDocuments())}
+            onClick={() => dispatch(documentsRefreshRequested())}
             disabled={isLoading}
             icon="refresh"
             secondary
@@ -214,7 +214,7 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Previous page"
               title="Previous page"
-              onClick={() => dispatch(goToPreviousPage())}
+              onClick={() => dispatch(previousPageRequested())}
               disabled={currentPage <= 1 || isLoading}
               iconOnly
               icon="chevron-left"
@@ -223,7 +223,7 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Next page"
               title="Next page"
-              onClick={() => dispatch(goToNextPage())}
+              onClick={() => dispatch(nextPageRequested())}
               disabled={currentPage >= totalPages || isLoading}
               iconOnly
               icon="chevron-right"
@@ -251,7 +251,7 @@ const PreviewApp: React.FC = () => {
               <VscodeButton
                 aria-label="Stop"
                 title="Stop current request"
-                onClick={() => dispatch(cancelRequest())}
+                onClick={() => dispatch(requestCancellationRequested())}
                 icon="stop-circle"
                 secondary
               >
