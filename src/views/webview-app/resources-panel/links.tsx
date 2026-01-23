@@ -10,6 +10,10 @@ import {
 import LINKS from '../../../utils/links';
 import { trackExtensionLinkClicked } from '../vscode-api';
 import { TELEMETRY_SCREEN_ID } from './panel';
+import {
+  VSCODE_SIDEBAR_BACKGROUND,
+  VSCODE_EDITOR_FOREGROUND,
+} from '../../vscode-styles';
 
 const ResourceLinks = [
   {
@@ -51,8 +55,8 @@ const linkStyles = css({
   justifyContent: 'space-between',
   alignItems: 'center',
   position: 'relative',
-  backgroundColor: 'var(--vscode-sideBar-background, rgba(50, 50, 50, 0.25))',
-  color: 'var(--vscode-editor-foreground)',
+  backgroundColor: VSCODE_SIDEBAR_BACKGROUND,
+  color: VSCODE_EDITOR_FOREGROUND,
   '&:hover': {
     color: palette.green.base,
   },

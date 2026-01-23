@@ -546,6 +546,9 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshDocumentList command should update the document count and call to refresh the explorer controller', async function () {
+      // Ensure we get DocumentListTreeItem (which has resetCache) instead of ShowPreviewTreeItem
+      setFeatureFlag('useEnhancedDataBrowsingExperience', false);
+
       let count = 9000;
       const testTreeItem = getTestCollectionTreeItem({
         dataService: {

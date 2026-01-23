@@ -20,8 +20,22 @@ export const getVSCodeApi = (): VSCodeApi => {
   return vscode;
 };
 
-export const sendGetDocuments = (): void => {
+export const sendGetDocuments = (skip: number, limit: number): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.getDocuments,
+    skip,
+    limit,
+  });
+};
+
+export const sendGetTotalCount = (): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.getTotalCount,
+  });
+};
+
+export const sendCancelRequest = (): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.cancelRequest,
   });
 };
