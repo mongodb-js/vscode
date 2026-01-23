@@ -31,7 +31,8 @@ describe('documentQuerySlice', function () {
       expect(result.isLoading).to.be.true;
       expect(result.totalCountInCollection).to.be.null;
       expect(result.hasReceivedCount).to.be.false;
-      expect(result.error).to.be.null;
+      expect(result.errors.getDocuments).to.be.null;
+      expect(result.errors.getTotalCount).to.be.null;
     });
   });
 
@@ -44,13 +45,16 @@ describe('documentQuerySlice', function () {
         expect(result.displayedDocuments).to.deep.equal(documents);
         expect(result.currentPage).to.equal(3);
         expect(result.isLoading).to.be.false;
-        expect(result.error).to.be.null;
+        expect(result.errors.getDocuments).to.be.null;
       });
 
       it('should clear any existing error', function () {
-        const state = { ...initialState, error: 'Previous error' };
+        const state = {
+          ...initialState,
+          errors: { ...initialState.errors, getDocuments: 'Previous error' },
+        };
         const result = reducer(state, documentsReceived([]));
-        expect(result.error).to.be.null;
+        expect(result.errors.getDocuments).to.be.null;
       });
     });
 
@@ -100,7 +104,7 @@ describe('documentQuerySlice', function () {
           isLoading: false,
           totalCountInCollection: 100,
           hasReceivedCount: true,
-          error: 'Test error',
+          errors: { getDocuments: 'Test error', getTotalCount: null },
         });
         const result = selectDocumentQuery(state);
         expect(result.displayedDocuments).to.deep.equal(docs);
@@ -109,7 +113,7 @@ describe('documentQuerySlice', function () {
         expect(result.isLoading).to.be.false;
         expect(result.totalCountInCollection).to.equal(100);
         expect(result.hasReceivedCount).to.be.true;
-        expect(result.error).to.equal('Test error');
+        expect(result.errors.getDocuments).to.equal('Test error');
       });
     });
 

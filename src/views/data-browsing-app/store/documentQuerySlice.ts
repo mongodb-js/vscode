@@ -24,7 +24,6 @@ export interface DocumentQueryState {
   isLoading: boolean;
   totalCountInCollection: number | null;
   hasReceivedCount: boolean;
-  error: string | null;
   errors: ErrorsState;
   totalDocuments: number;
   totalPages: number;
@@ -60,7 +59,6 @@ export const initialState: DocumentQueryState = {
   isLoading: true,
   totalCountInCollection: null,
   hasReceivedCount: false,
-  error: null,
   errors: {
     getDocuments: null,
     getTotalCount: null,
@@ -78,7 +76,6 @@ const documentQuerySlice = createSlice({
     documentsRefreshRequested: (state) => {
       state.isLoading = true;
       state.currentPage = 1;
-      state.error = null;
       state.errors.getDocuments = null;
       state.errors.getTotalCount = null;
       recalculatePaginationValues(state);
@@ -97,7 +94,6 @@ const documentQuerySlice = createSlice({
         const skip = (newPage - 1) * state.itemsPerPage;
         state.currentPage = newPage;
         state.isLoading = true;
-        state.error = null;
         state.errors.getDocuments = null;
         recalculatePaginationValues(state);
         sendGetDocuments(skip, state.itemsPerPage);
@@ -109,7 +105,6 @@ const documentQuerySlice = createSlice({
         const skip = (newPage - 1) * state.itemsPerPage;
         state.currentPage = newPage;
         state.isLoading = true;
-        state.error = null;
         state.errors.getDocuments = null;
         recalculatePaginationValues(state);
         sendGetDocuments(skip, state.itemsPerPage);
@@ -120,7 +115,6 @@ const documentQuerySlice = createSlice({
       state.itemsPerPage = newItemsPerPage;
       state.currentPage = 1;
       state.isLoading = true;
-      state.error = null;
       state.errors.getDocuments = null;
       recalculatePaginationValues(state);
       sendGetDocuments(0, newItemsPerPage);
@@ -142,7 +136,6 @@ const documentQuerySlice = createSlice({
     documentsReceived: (state, action: PayloadAction<PreviewDocument[]>) => {
       state.displayedDocuments = action.payload;
       state.isLoading = false;
-      state.error = null;
       state.errors.getDocuments = null;
       recalculatePaginationValues(state);
     },
