@@ -3,22 +3,44 @@ import sinon from 'sinon';
 
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
 import { getVSCodeApi } from '../../../../views/data-browsing-app/vscode-api';
-import { store } from '../../../../views/data-browsing-app/store';
+import { createStore } from '../../../../views/data-browsing-app/store';
 import {
-  resetState,
-  setCurrentPage,
-  setItemsPerPage,
-  setTotalCountInCollection,
+  initialState,
+  documentsRefreshRequested,
+  initialDocumentsFetchRequested,
+  previousPageRequested,
+  nextPageRequested,
+  itemsPerPageChanged,
+  requestCancellationRequested,
+  currentPageAdjusted,
+  type DocumentQueryState,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
-import {
-  refreshDocuments,
-  fetchInitialDocuments,
-  goToPreviousPage,
-  goToNextPage,
-  changeItemsPerPage,
-  cancelRequest,
-  adjustCurrentPage,
-} from '../../../../views/data-browsing-app/store/actions';
+
+const createTestState = (
+  overrides: Partial<DocumentQueryState> = {},
+): { documentQuery: DocumentQueryState } => {
+  const state = { ...initialState, ...overrides };
+
+  // Recalculate computed pagination values based on overrides
+  state.totalDocuments =
+    state.totalCountInCollection !== null
+      ? state.totalCountInCollection
+      : state.displayedDocuments.length;
+  state.totalPages = Math.max(
+    1,
+    Math.ceil(state.totalDocuments / state.itemsPerPage),
+  );
+  state.startItem =
+    state.totalDocuments === 0
+      ? 0
+      : (state.currentPage - 1) * state.itemsPerPage + 1;
+  state.endItem = Math.min(
+    state.currentPage * state.itemsPerPage,
+    state.totalDocuments,
+  );
+
+  return { documentQuery: state };
+};
 
 describe('actions test suite', function () {
   let postMessageStub: sinon.SinonStub;
@@ -29,12 +51,12 @@ describe('actions test suite', function () {
 
   afterEach(function () {
     sinon.restore();
-    store.dispatch(resetState());
   });
 
-  describe('refreshDocuments', function () {
+  describe('documentsRefreshRequested', function () {
     it('should dispatch startRefresh and send getDocuments with skip=0', function () {
-      refreshDocuments();
+      const store = createStore();
+      store.dispatch(documentsRefreshRequested());
 
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
@@ -46,9 +68,9 @@ describe('actions test suite', function () {
     });
 
     it('should use current itemsPerPage setting', function () {
-      store.dispatch(setItemsPerPage(25));
+      const store = createStore(createTestState({ itemsPerPage: 25 }));
 
-      refreshDocuments();
+      store.dispatch(documentsRefreshRequested());
 
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
@@ -58,9 +80,10 @@ describe('actions test suite', function () {
     });
   });
 
-  describe('fetchInitialDocuments', function () {
+  describe('initialDocumentsFetchRequested', function () {
     it('should send getDocuments with skip=0 and default itemsPerPage', function () {
-      fetchInitialDocuments();
+      const store = createStore();
+      store.dispatch(initialDocumentsFetchRequested());
 
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
@@ -70,9 +93,9 @@ describe('actions test suite', function () {
     });
 
     it('should use current itemsPerPage setting', function () {
-      store.dispatch(setItemsPerPage(50));
+      const store = createStore(createTestState({ itemsPerPage: 50 }));
 
-      fetchInitialDocuments();
+      store.dispatch(initialDocumentsFetchRequested());
 
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
@@ -82,9 +105,10 @@ describe('actions test suite', function () {
     });
   });
 
-  describe('goToPreviousPage', function () {
+  describe('previousPageRequested', function () {
     it('should not navigate when on first page', function () {
-      goToPreviousPage();
+      const store = createStore();
+      store.dispatch(previousPageRequested());
 
       // Should not send any message since we're on page 1
       expect(postMessageStub).to.not.have.been.called;
@@ -92,9 +116,9 @@ describe('actions test suite', function () {
     });
 
     it('should navigate to previous page when not on first page', function () {
-      store.dispatch(setCurrentPage(3));
+      const store = createStore(createTestState({ currentPage: 3 }));
 
-      goToPreviousPage();
+      store.dispatch(previousPageRequested());
 
       expect(store.getState().documentQuery.currentPage).to.equal(2);
       expect(store.getState().documentQuery.isLoading).to.be.true;
@@ -106,10 +130,11 @@ describe('actions test suite', function () {
     });
 
     it('should calculate correct skip with custom itemsPerPage', function () {
-      store.dispatch(setCurrentPage(3));
-      store.dispatch(setItemsPerPage(25));
+      const store = createStore(
+        createTestState({ currentPage: 3, itemsPerPage: 25 }),
+      );
 
-      goToPreviousPage();
+      store.dispatch(previousPageRequested());
 
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
@@ -119,13 +144,14 @@ describe('actions test suite', function () {
     });
   });
 
-  describe('goToNextPage', function () {
+  describe('nextPageRequested', function () {
     it('should not navigate when on last page', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 5
-      store.dispatch(setTotalCountInCollection(50));
-      store.dispatch(setCurrentPage(5));
+      const store = createStore(
+        createTestState({ totalCountInCollection: 50, currentPage: 5 }),
+      );
 
-      goToNextPage();
+      store.dispatch(nextPageRequested());
 
       expect(postMessageStub).to.not.have.been.called;
       expect(store.getState().documentQuery.currentPage).to.equal(5);
@@ -133,10 +159,11 @@ describe('actions test suite', function () {
 
     it('should navigate to next page when not on last page', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 2
-      store.dispatch(setTotalCountInCollection(50));
-      store.dispatch(setCurrentPage(2));
+      const store = createStore(
+        createTestState({ totalCountInCollection: 50, currentPage: 2 }),
+      );
 
-      goToNextPage();
+      store.dispatch(nextPageRequested());
 
       expect(store.getState().documentQuery.currentPage).to.equal(3);
       expect(store.getState().documentQuery.isLoading).to.be.true;
@@ -149,11 +176,15 @@ describe('actions test suite', function () {
 
     it('should calculate correct skip with custom itemsPerPage', function () {
       // Set up: 75 docs with 25 per page = 3 pages, on page 1
-      store.dispatch(setTotalCountInCollection(75));
-      store.dispatch(setCurrentPage(1));
-      store.dispatch(setItemsPerPage(25));
+      const store = createStore(
+        createTestState({
+          totalCountInCollection: 75,
+          currentPage: 1,
+          itemsPerPage: 25,
+        }),
+      );
 
-      goToNextPage();
+      store.dispatch(nextPageRequested());
 
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
@@ -163,11 +194,11 @@ describe('actions test suite', function () {
     });
   });
 
-  describe('changeItemsPerPage', function () {
+  describe('itemsPerPageChanged', function () {
     it('should set new itemsPerPage and reset to page 1', function () {
-      store.dispatch(setCurrentPage(3));
+      const store = createStore(createTestState({ currentPage: 3 }));
 
-      changeItemsPerPage(50);
+      store.dispatch(itemsPerPageChanged(50));
 
       expect(store.getState().documentQuery.itemsPerPage).to.equal(50);
       expect(store.getState().documentQuery.currentPage).to.equal(1);
@@ -175,7 +206,8 @@ describe('actions test suite', function () {
     });
 
     it('should send getDocuments with new limit and skip=0', function () {
-      changeItemsPerPage(25);
+      const store = createStore();
+      store.dispatch(itemsPerPageChanged(25));
 
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.getDocuments,
@@ -185,9 +217,10 @@ describe('actions test suite', function () {
     });
   });
 
-  describe('cancelRequest', function () {
+  describe('requestCancellationRequested', function () {
     it('should stop loading and send cancelRequest message', function () {
-      cancelRequest();
+      const store = createStore();
+      store.dispatch(requestCancellationRequested());
 
       expect(store.getState().documentQuery.isLoading).to.be.false;
       expect(postMessageStub).to.have.been.calledWithExactly({
@@ -196,37 +229,36 @@ describe('actions test suite', function () {
     });
   });
 
-  describe('adjustCurrentPage', function () {
+  describe('currentPageAdjusted', function () {
     it('should not change page when currentPage is within bounds', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 3
-      store.dispatch(setTotalCountInCollection(50));
-      store.dispatch(setCurrentPage(3));
+      const store = createStore(
+        createTestState({ totalCountInCollection: 50, currentPage: 3 }),
+      );
 
-      adjustCurrentPage();
+      store.dispatch(currentPageAdjusted());
 
       expect(store.getState().documentQuery.currentPage).to.equal(3);
     });
 
     it('should adjust page when currentPage exceeds totalPages', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 10
-      store.dispatch(setTotalCountInCollection(50));
-      store.dispatch(setCurrentPage(10));
+      const store = createStore(
+        createTestState({ totalCountInCollection: 50, currentPage: 10 }),
+      );
 
-      adjustCurrentPage();
+      store.dispatch(currentPageAdjusted());
 
       expect(store.getState().documentQuery.currentPage).to.equal(5);
     });
 
-    it('should not adjust when totalPages is 0', function () {
-      // Set up: 0 docs = 0 totalPages (but min 1), on page 3
-      // Note: selectTotalPages returns Math.max(1, ...) so this test needs adjustment
+    it('should adjust when currentPage exceeds calculated totalPages', function () {
+      // Set up: 0 docs = totalPages = max(1, ceil(0/10)) = 1, on page 3
       // When totalCount is null, totalPages is calculated from displayedDocuments
-      store.dispatch(setCurrentPage(3));
-      // Don't set totalCount - it remains null, so totalDocs = displayedDocs.length = 0
-      // totalPages = max(1, ceil(0/10)) = 1
       // Since currentPage (3) > totalPages (1) and totalPages > 0, it should adjust
+      const store = createStore(createTestState({ currentPage: 3 }));
 
-      adjustCurrentPage();
+      store.dispatch(currentPageAdjusted());
 
       expect(store.getState().documentQuery.currentPage).to.equal(1);
     });
