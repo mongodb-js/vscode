@@ -27,6 +27,7 @@ import {
   currentPageAdjusted,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
+import DocumentTreeView from './document-tree-view';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -265,9 +266,10 @@ const PreviewApp: React.FC = () => {
         ) : (
           <>
             {displayedDocuments.map((doc, index) => (
-              <pre key={`${currentPage}-${index}`}>
-                {JSON.stringify(doc, null, 2)}
-              </pre>
+              <DocumentTreeView
+                key={`${currentPage}-${index}`}
+                document={doc}
+              />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (
               <div className={emptyStateStyles}>No documents to display</div>

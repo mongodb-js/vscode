@@ -12,6 +12,17 @@ export const PreviewMessageType = {
   updateTotalCountError: 'UPDATE_TOTAL_COUNT_ERROR',
 } as const;
 
+export interface JsonTokenColors {
+  key: string;
+  string: string;
+  number: string;
+  boolean: string;
+  null: string;
+  type: string;
+  comment: string;
+  punctuation: string;
+}
+
 export type PreviewMessageType =
   (typeof PreviewMessageType)[keyof typeof PreviewMessageType];
 
