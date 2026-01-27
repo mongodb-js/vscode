@@ -7,6 +7,7 @@ import {
   requestCancelled,
   totalCountReceived,
   totalCountFetchFailed,
+  themeColorsReceived,
   type PreviewDocument,
 } from './documentQuerySlice';
 
@@ -36,6 +37,9 @@ export const handleExtensionMessage = (
       dispatch(totalCountFetchFailed(errorMessage));
       break;
     }
+    case PreviewMessageType.updateThemeColors:
+      dispatch(themeColorsReceived(message.themeColors));
+      break;
   }
 };
 

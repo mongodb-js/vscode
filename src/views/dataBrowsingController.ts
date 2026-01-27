@@ -10,6 +10,7 @@ import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
+import { getThemeTokenColors } from '../utils/themeColorReader';
 
 const log = createLogger('data browsing controller');
 
@@ -55,6 +56,7 @@ export default class DataBrowsingController {
   _connectionController: ConnectionController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
+  _themeChangedSubscription: vscode.Disposable;
 
   _panelAbortControllers: Map<vscode.WebviewPanel, PanelAbortControllers> =
     new Map();
@@ -68,9 +70,13 @@ export default class DataBrowsingController {
   }) {
     this._connectionController = connectionController;
     this._telemetryService = telemetryService;
+    this._themeChangedSubscription = vscode.window.onDidChangeActiveColorTheme(
+      this.onThemeChanged,
+    );
   }
 
   deactivate(): void {
+    this._themeChangedSubscription?.dispose();
     for (const controllers of this._panelAbortControllers.values()) {
       controllers.documents?.abort();
       controllers.totalCount?.abort();
@@ -260,6 +266,23 @@ export default class DataBrowsingController {
     );
   };
 
+  onThemeChanged = (): void => {
+    const themeColors = getThemeTokenColors();
+    for (const panel of this._activeWebviewPanels) {
+      void panel.webview
+        .postMessage({
+          command: PreviewMessageType.updateThemeColors,
+          themeColors,
+        })
+        .then(undefined, (error) => {
+          log.warn(
+            'Could not post theme colors to webview, most likely already disposed',
+            error,
+          );
+        });
+    }
+  };
+
   private async _getTotalCount(
     namespace: string,
     collectionType: string,
@@ -328,6 +351,13 @@ export default class DataBrowsingController {
       undefined,
       context.subscriptions,
     );
+
+    // Send theme colors on initial load
+    const themeColors = getThemeTokenColors();
+    void panel.webview.postMessage({
+      command: PreviewMessageType.updateThemeColors,
+      themeColors,
+    });
 
     return panel;
   }

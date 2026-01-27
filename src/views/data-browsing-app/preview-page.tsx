@@ -133,6 +133,7 @@ const PreviewApp: React.FC = () => {
     totalPages,
     startItem,
     endItem,
+    themeColors,
     errors: {
       getDocuments: getDocumentsError,
       getTotalCount: getTotalCountError,
@@ -269,6 +270,7 @@ const PreviewApp: React.FC = () => {
               <DocumentTreeView
                 key={`${currentPage}-${index}`}
                 document={doc}
+                themeColors={themeColors ?? undefined}
               />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (
