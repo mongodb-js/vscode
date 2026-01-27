@@ -13,10 +13,10 @@ import { Provider } from 'react-redux';
 import PreviewApp from '../../../../views/data-browsing-app/preview-page';
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
 import { getVSCodeApi } from '../../../../views/data-browsing-app/vscode-api';
-import { store } from '../../../../views/data-browsing-app/store';
-import { resetState } from '../../../../views/data-browsing-app/store/documentQuerySlice';
+import { createStore } from '../../../../views/data-browsing-app/store';
 
 function renderWithProvider(ui: React.ReactElement) {
+  const store = createStore();
   return render(<Provider store={store}>{ui}</Provider>);
 }
 
@@ -30,8 +30,6 @@ describe('PreviewApp test suite', function () {
   afterEach(function () {
     cleanup();
     sinon.restore();
-    // Reset Redux store state between tests
-    store.dispatch(resetState());
   });
 
   describe('Initial state', function () {
