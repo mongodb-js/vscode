@@ -3,6 +3,7 @@ export const PreviewMessageType = {
   getDocuments: 'GET_DOCUMENTS',
   getTotalCount: 'GET_TOTAL_COUNT',
   cancelRequest: 'CANCEL_REQUEST',
+  getThemeColors: 'GET_THEME_COLORS',
 
   // Messages from extension to webview
   loadPage: 'LOAD_PAGE',
@@ -46,6 +47,10 @@ export interface GetTotalCountMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.getTotalCount;
 }
 
+export interface GetThemeColorsMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.getThemeColors;
+}
+
 // Messages from extension to webview
 export interface LoadPageMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadPage;
@@ -79,7 +84,8 @@ export interface UpdateThemeColorsMessage extends BasicWebviewMessage {
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
   | GetTotalCountMessage
-  | CancelRequestMessage;
+  | CancelRequestMessage
+  | GetThemeColorsMessage;
 
 export type MessageFromExtensionToWebview =
   | LoadPageMessage

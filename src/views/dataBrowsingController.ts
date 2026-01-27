@@ -56,7 +56,7 @@ export default class DataBrowsingController {
   _connectionController: ConnectionController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
-  _themeChangedSubscription: vscode.Disposable;
+  _configChangedSubscription: vscode.Disposable;
 
   _panelAbortControllers: Map<vscode.WebviewPanel, PanelAbortControllers> =
     new Map();
@@ -70,13 +70,13 @@ export default class DataBrowsingController {
   }) {
     this._connectionController = connectionController;
     this._telemetryService = telemetryService;
-    this._themeChangedSubscription = vscode.window.onDidChangeActiveColorTheme(
-      this.onThemeChanged,
+    this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
+      this.onConfigurationChanged,
     );
   }
 
   deactivate(): void {
-    this._themeChangedSubscription?.dispose();
+    this._configChangedSubscription?.dispose();
     for (const controllers of this._panelAbortControllers.values()) {
       controllers.documents?.abort();
       controllers.totalCount?.abort();
@@ -94,7 +94,6 @@ export default class DataBrowsingController {
       this._panelAbortControllers.set(panel, controllers);
     }
 
-    // Abort existing controller for this request type if any
     controllers[requestType]?.abort();
 
     const abortController = new AbortController();
@@ -131,6 +130,9 @@ export default class DataBrowsingController {
       case PreviewMessageType.cancelRequest:
         this.handleCancelRequest(panel);
         return;
+      case PreviewMessageType.getThemeColors:
+        this._sendThemeColors(panel);
+        return;
       default:
         // no-op.
         return;
@@ -158,6 +160,8 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     const abortController = this._createAbortController(panel, 'documents');
     const { signal } = abortController;
+
+    this._sendThemeColors(panel);
 
     try {
       const documents = await this._fetchDocuments(
@@ -266,20 +270,11 @@ export default class DataBrowsingController {
     );
   };
 
-  onThemeChanged = (): void => {
-    const themeColors = getThemeTokenColors();
-    for (const panel of this._activeWebviewPanels) {
-      void panel.webview
-        .postMessage({
-          command: PreviewMessageType.updateThemeColors,
-          themeColors,
-        })
-        .then(undefined, (error) => {
-          log.warn(
-            'Could not post theme colors to webview, most likely already disposed',
-            error,
-          );
-        });
+  onConfigurationChanged = (event: vscode.ConfigurationChangeEvent): void => {
+    if (event.affectsConfiguration('workbench.colorTheme')) {
+      for (const panel of this._activeWebviewPanels) {
+        this._sendThemeColors(panel);
+      }
     }
   };
 
@@ -352,13 +347,14 @@ export default class DataBrowsingController {
       context.subscriptions,
     );
 
-    // Send theme colors on initial load
+    return panel;
+  }
+
+  private _sendThemeColors(panel: vscode.WebviewPanel): void {
     const themeColors = getThemeTokenColors();
     void panel.webview.postMessage({
       command: PreviewMessageType.updateThemeColors,
       themeColors,
     });
-
-    return panel;
   }
 }

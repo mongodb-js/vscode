@@ -28,6 +28,7 @@ import {
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
 import DocumentTreeView from './document-tree-view';
+import { sendGetThemeColors } from './vscode-api';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -146,6 +147,7 @@ const PreviewApp: React.FC = () => {
 
   useEffect(() => {
     const cleanup = setupMessageHandler(dispatch);
+    sendGetThemeColors();
     dispatch(initialDocumentsFetchRequested());
     return cleanup;
   }, [dispatch]);

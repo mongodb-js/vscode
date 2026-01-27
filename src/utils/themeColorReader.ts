@@ -38,14 +38,19 @@ const DEFAULT_LIGHT_COLORS: JsonTokenColors = {
 const SCOPE_MAPPINGS: Record<string, keyof JsonTokenColors> = {
   'meta.object-literal.key': 'key',
   'support.type.property-name': 'key',
-  'variable': 'key',
   'string': 'string',
   'string.quoted': 'string',
   'constant.numeric': 'number',
+  'constant.language.boolean': 'boolean',
+  'constant.language.null': 'null',
   'constant.language': 'boolean',
   'entity.name.type': 'type',
   'support.class': 'type',
   'comment': 'comment',
+  'punctuation.separator.dictionary': 'punctuation',
+  'punctuation.separator.mapping.key-value': 'punctuation',
+  'punctuation.definition.dictionary': 'punctuation',
+  'punctuation.definition.array': 'punctuation',
   'punctuation': 'punctuation',
 };
 
@@ -57,8 +62,6 @@ interface ThemeJson {
   include?: string;
 }
 
- * Find the theme JSON file for the given theme name
- */
 function findThemeFile(themeName: string): string | undefined {
   for (const ext of vscode.extensions.all) {
     const themes = ext.packageJSON?.contributes?.themes;
