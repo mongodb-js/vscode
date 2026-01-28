@@ -238,32 +238,40 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
     });
   }, []);
 
-  const renderExpandButton = (
-    isExpanded: boolean,
+  const getInteractiveRowProps = (
+    hasExpandable: boolean,
     itemKey: string,
-  ): JSX.Element => (
-    <button
-      type="button"
-      tabIndex={0}
-      className={expandButtonStyles}
-      aria-expanded={isExpanded}
-      aria-label={isExpanded ? 'Collapse' : 'Expand'}
-      onClick={(e): void => {
-        e.stopPropagation();
-        toggleExpanded(itemKey);
-      }}
-      onKeyDown={(e): void => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.stopPropagation();
-          toggleExpanded(itemKey);
-        }
-      }}
-    >
+  ): {
+    className: string;
+    props: Record<string, unknown>;
+  } => {
+    if (!hasExpandable) {
+      return { className: nodeRowStyles, props: {} };
+    }
+    const handleClick = (): void => toggleExpanded(itemKey);
+    return {
+      className: cx(nodeRowStyles, clickableRowStyles),
+      props: {
+        onClick: handleClick,
+        onKeyDown: (e: React.KeyboardEvent): void => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        },
+        role: 'button',
+        tabIndex: 0,
+      },
+    };
+  };
+
+  const renderExpandButton = (isExpanded: boolean): JSX.Element => (
+    <div className={expandButtonStyles} aria-hidden="true">
       <VscodeIcon
         name={isExpanded ? 'chevron-down' : 'chevron-right'}
         size={12}
       />
-    </button>
+    </div>
   );
 
   const renderArrayChildren = (
@@ -276,12 +284,16 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       const itemKey = `${parentKey}.${index}`;
       const hasExpandable = type === 'object' || type === 'array';
       const isExp = expandedKeys.has(itemKey);
+      const { className, props } = getInteractiveRowProps(
+        hasExpandable,
+        itemKey,
+      );
 
       return (
         <div key={index}>
-          <div className={nodeRowStyles}>
+          <div className={className} {...props}>
             <div className={caretStyles}>
-              {hasExpandable && renderExpandButton(isExp, itemKey)}
+              {hasExpandable && renderExpandButton(isExp)}
             </div>
             <div className={keyValueContainerStyles}>
               <span style={{ color: getValueColor(type) }}>
@@ -311,12 +323,16 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       const itemKey = `${parentKey}.${key}`;
       const hasExpandable = type === 'object' || type === 'array';
       const isExp = expandedKeys.has(itemKey);
+      const { className, props } = getInteractiveRowProps(
+        hasExpandable,
+        itemKey,
+      );
 
       return (
         <div key={key}>
-          <div className={nodeRowStyles}>
+          <div className={className} {...props}>
             <div className={caretStyles}>
-              {hasExpandable && renderExpandButton(isExp, itemKey)}
+              {hasExpandable && renderExpandButton(isExp)}
             </div>
             <div className={keyValueContainerStyles}>
               <span style={{ color: colors.key, fontWeight: 'bold' }}>
@@ -374,30 +390,16 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       !isIdField && (node.type === 'object' || node.type === 'array');
     const isExp = expandedKeys.has(node.key);
     const valueColor = getValueColor(isIdField ? 'string' : node.type);
-
-    const handleClick = hasExpandable
-      ? (): void => toggleExpanded(node.key)
-      : undefined;
-    const rowClassName = hasExpandable
-      ? cx(nodeRowStyles, clickableRowStyles)
-      : nodeRowStyles;
-
-    const interactiveProps = hasExpandable
-      ? {
-          onClick: handleClick,
-          onKeyDown: (e: React.KeyboardEvent): void => {
-            if (e.key === 'Enter' || e.key === ' ') handleClick?.();
-          },
-          role: 'button' as const,
-          tabIndex: 0,
-        }
-      : {};
+    const { className, props } = getInteractiveRowProps(
+      hasExpandable,
+      node.key,
+    );
 
     return (
       <div key={node.key}>
-        <div className={rowClassName} {...interactiveProps}>
+        <div className={className} {...props}>
           <div className={caretStyles}>
-            {hasExpandable && renderExpandButton(isExp, node.key)}
+            {hasExpandable && renderExpandButton(isExp)}
           </div>
           <div className={keyValueContainerStyles}>
             <span style={{ color: colors.key, fontWeight: 'bold' }}>
