@@ -36,9 +36,10 @@ const DEFAULT_LIGHT_COLORS: JsonTokenColors = {
 };
 
 const SCOPE_MAPPINGS: Record<string, keyof JsonTokenColors> = {
+  __proto__: null,
   'meta.object-literal.key': 'key',
   'support.type.property-name': 'key',
-  'string': 'string',
+  string: 'string',
   'string.quoted': 'string',
   'constant.numeric': 'number',
   'constant.language.boolean': 'boolean',
@@ -46,12 +47,12 @@ const SCOPE_MAPPINGS: Record<string, keyof JsonTokenColors> = {
   'constant.language': 'boolean',
   'entity.name.type': 'type',
   'support.class': 'type',
-  'comment': 'comment',
+  comment: 'comment',
   'punctuation.separator.dictionary': 'punctuation',
   'punctuation.separator.mapping.key-value': 'punctuation',
   'punctuation.definition.dictionary': 'punctuation',
   'punctuation.definition.array': 'punctuation',
-  'punctuation': 'punctuation',
+  punctuation: 'punctuation',
 };
 
 interface ThemeJson {
@@ -79,11 +80,16 @@ function findThemeFile(themeName: string): string | undefined {
   return undefined;
 }
 
-function parseThemeFile(themePath: string, colors: JsonTokenColors): JsonTokenColors {
+function parseThemeFile(
+  themePath: string,
+  colors: JsonTokenColors,
+): JsonTokenColors {
   try {
     const content = fs.readFileSync(themePath, 'utf8');
     // Strip single-line and block comments for JSONC support
-    const stripped = content.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    const stripped = content
+      .replace(/\/\/.*$/gm, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '');
     const theme: ThemeJson = JSON.parse(stripped);
 
     if (theme.include) {
@@ -98,7 +104,11 @@ function parseThemeFile(themePath: string, colors: JsonTokenColors): JsonTokenCo
       const foreground = token.settings?.foreground;
       if (!foreground) continue;
 
-      const scopes = Array.isArray(token.scope) ? token.scope : token.scope ? [token.scope] : [];
+      const scopes = Array.isArray(token.scope)
+        ? token.scope
+        : token.scope
+          ? [token.scope]
+          : [];
 
       for (const scope of scopes) {
         // Find matching color key for this scope
@@ -118,11 +128,17 @@ function parseThemeFile(themePath: string, colors: JsonTokenColors): JsonTokenCo
 }
 
 export function getThemeTokenColors(): JsonTokenColors {
-  const themeName = vscode.workspace.getConfiguration('workbench').get<string>('colorTheme');
+  const themeName = vscode.workspace
+    .getConfiguration('workbench')
+    .get<string>('colorTheme');
   const themeKind = vscode.window.activeColorTheme.kind;
-  const isLight = themeKind === vscode.ColorThemeKind.Light || themeKind === vscode.ColorThemeKind.HighContrastLight;
+  const isLight =
+    themeKind === vscode.ColorThemeKind.Light ||
+    themeKind === vscode.ColorThemeKind.HighContrastLight;
 
-  const colors: JsonTokenColors = isLight ? { ...DEFAULT_LIGHT_COLORS } : { ...DEFAULT_DARK_COLORS };
+  const colors: JsonTokenColors = isLight
+    ? { ...DEFAULT_LIGHT_COLORS }
+    : { ...DEFAULT_DARK_COLORS };
 
   if (!themeName) {
     return colors;

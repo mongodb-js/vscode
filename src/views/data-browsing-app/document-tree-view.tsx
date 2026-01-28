@@ -45,13 +45,13 @@ const cardStyles = css({
 const nodeRowStyles = css({
   display: 'flex',
   alignItems: 'center',
-  gap: 6,
-  minHeight: 22,
+  gap: spacing[100],
+  minHeight: spacing[400],
 });
 
 const caretStyles = css({
-  width: 16,
-  height: 16,
+  width: spacing[300],
+  height: spacing[300],
   flexShrink: 0,
   display: 'flex',
   alignItems: 'center',
