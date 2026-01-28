@@ -19,32 +19,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get VS Code Node.js version
-        id: get-vscode-node-version
-        shell: bash
-        run: |
-          # Fetch Node.js version from VS Code's .nvmrc, default to 22.20.0 if unavailable
-          NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/main/.nvmrc | tr -d '[:space:]')
-          if [ -z "$NODE_VERSION" ]; then
-            NODE_VERSION="22.21.1"
-          fi
-          echo "Using Node.js version for VS Code extension tests: $NODE_VERSION"
-          echo "vscode-node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ steps.get-vscode-node-version.outputs.vscode-node-version }}
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
 
       - name: Run Checks
         run: pnpm run check
