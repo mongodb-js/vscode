@@ -25,7 +25,7 @@ ls -lh "$VSIX_FILE"
 echo ""
 
 # Determine VS Code CLI command based on OS
-if [ "$RUNNER_OS" == "macOS" ]; then
+if [ "$RUNNER_OS" = "macOS" ]; then
   VSCODE_CLI="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
   if [ ! -f "$VSCODE_CLI" ]; then
     echo "Installing VS Code on macOS..."
@@ -41,7 +41,7 @@ if [ "$RUNNER_OS" == "macOS" ]; then
     fi
   fi
 
-elif [ "$RUNNER_OS" == "Windows" ]; then
+elif [ "$RUNNER_OS" = "Windows" ]; then
   if command -v code &> /dev/null; then
     VSCODE_CLI="code"
   else
