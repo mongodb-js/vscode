@@ -35,25 +35,27 @@ const DEFAULT_LIGHT_COLORS: JsonTokenColors = {
   punctuation: '#000000',
 };
 
-const SCOPE_MAPPINGS: Record<string, keyof JsonTokenColors> = {
-  __proto__: null,
-  'meta.object-literal.key': 'key',
-  'support.type.property-name': 'key',
-  string: 'string',
-  'string.quoted': 'string',
-  'constant.numeric': 'number',
-  'constant.language.boolean': 'boolean',
-  'constant.language.null': 'null',
-  'constant.language': 'boolean',
-  'entity.name.type': 'type',
-  'support.class': 'type',
-  comment: 'comment',
-  'punctuation.separator.dictionary': 'punctuation',
-  'punctuation.separator.mapping.key-value': 'punctuation',
-  'punctuation.definition.dictionary': 'punctuation',
-  'punctuation.definition.array': 'punctuation',
-  punctuation: 'punctuation',
-};
+const SCOPE_MAPPINGS: Record<string, keyof JsonTokenColors> = Object.assign(
+  Object.create(null),
+  {
+    'meta.object-literal.key': 'key',
+    'support.type.property-name': 'key',
+    string: 'string',
+    'string.quoted': 'string',
+    'constant.numeric': 'number',
+    'constant.language.boolean': 'boolean',
+    'constant.language.null': 'null',
+    'constant.language': 'boolean',
+    'entity.name.type': 'type',
+    'support.class': 'type',
+    comment: 'comment',
+    'punctuation.separator.dictionary': 'punctuation',
+    'punctuation.separator.mapping.key-value': 'punctuation',
+    'punctuation.definition.dictionary': 'punctuation',
+    'punctuation.definition.array': 'punctuation',
+    punctuation: 'punctuation',
+  },
+);
 
 interface ThemeJson {
   tokenColors?: Array<{
