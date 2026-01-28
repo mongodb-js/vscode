@@ -1,18 +1,26 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { VscodeIcon } from '@vscode-elements/react-elements';
 import { css, cx, spacing } from '@mongodb-js/compass-components';
 import type { JsonTokenColors } from './extension-app-message-constants';
 
-interface DocumentTreeViewProps {
-  document: Record<string, unknown>;
-  themeColors?: JsonTokenColors;
-}
+export type TreeNodeType =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'null'
+  | 'object'
+  | 'array';
 
-interface TreeNode {
+export interface TreeNode {
   key: string;
   value: unknown;
-  type: 'string' | 'number' | 'boolean' | 'null' | 'object' | 'array';
+  type: TreeNodeType;
   itemCount?: number;
+}
+
+export interface DocumentTreeViewProps {
+  document: Record<string, unknown>;
+  themeColors?: JsonTokenColors;
 }
 
 // Default color palette for syntax highlighting (VS Code Dark+ theme)
@@ -25,7 +33,100 @@ const DEFAULT_COLORS = {
   type: '#4EC9B0',
   comment: '#6A9955',
   punctuation: '#D4D4D4',
-};
+} as const;
+
+function isObjectId(value: unknown): boolean {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    return '$oid' in obj && typeof obj.$oid === 'string';
+  }
+  return false;
+}
+
+function formatObjectId(value: unknown): string {
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    if ('$oid' in obj && typeof obj.$oid === 'string') {
+      return `ObjectId('${obj.$oid}')`;
+    }
+  }
+  return String(value);
+}
+
+function getNodeType(value: unknown): TreeNodeType {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  if (isObjectId(value)) return 'string';
+  if (typeof value === 'object') return 'object';
+  if (typeof value === 'number') return 'number';
+  if (typeof value === 'boolean') return 'boolean';
+  return 'string';
+}
+
+function formatValue(
+  value: unknown,
+  type: TreeNodeType,
+  isExpanded = true
+): string {
+  switch (type) {
+    case 'null':
+      return 'null';
+    case 'boolean':
+    case 'number':
+      return String(value);
+    case 'array': {
+      const count = (value as unknown[]).length;
+      return isExpanded ? '[' : `Array [${count}]`;
+    }
+    case 'object': {
+      const count = Object.keys(value as Record<string, unknown>).length;
+      return isExpanded ? '{' : `Object (${count})`;
+    }
+    case 'string':
+    default: {
+      if (isObjectId(value)) return formatObjectId(value);
+      const strValue = String(value);
+      if (strValue.startsWith('"') || strValue.match(/^[A-Z][a-z]+\(/)) {
+        return strValue;
+      }
+      return `"${strValue}"`;
+    }
+  }
+}
+
+function formatIdValue(value: unknown): string {
+  if (typeof value === 'string') {
+    if (value.match(/^[A-Z][a-z]+\(/)) return value;
+    return `"${value}"`;
+  }
+  if (value && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    if ('$oid' in obj && typeof obj.$oid === 'string') {
+      return `ObjectId('${obj.$oid}')`;
+    }
+    return JSON.stringify(value);
+  }
+  return `"${String(value)}"`;
+}
+
+function getValueKind(value: unknown): 'array' | 'object' | 'primitive' {
+  if (Array.isArray(value)) return 'array';
+  if (value !== null && typeof value === 'object') return 'object';
+  return 'primitive';
+}
+
+function parseDocument(doc: Record<string, unknown>): TreeNode[] {
+  return Object.entries(doc).map(([key, value]) => {
+    const type = getNodeType(value);
+    let itemCount: number | undefined;
+    if (type === 'array') {
+      itemCount = (value as unknown[]).length;
+    } else if (type === 'object') {
+      itemCount = Object.keys(value as Record<string, unknown>).length;
+    }
+    return { key, value, type, itemCount };
+  });
+}
 
 const containerStyles = css({
   marginBottom: spacing[200],
@@ -89,6 +190,8 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
+  const nodes = useMemo(() => parseDocument(document), [document]);
+
   const colors = useMemo(
     () => ({
       key: themeColors?.key ?? DEFAULT_COLORS.key,
@@ -100,28 +203,30 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       array: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
       divider: themeColors?.punctuation ?? DEFAULT_COLORS.punctuation,
     }),
-    [themeColors],
+    [themeColors]
   );
 
-  const getValueColor = (type: TreeNode['type']): string => {
-    switch (type) {
-      case 'number':
-        return colors.number;
-      case 'boolean':
-      case 'null':
-        return colors.boolean;
-      case 'string':
-        return colors.string;
-      case 'object':
-        return colors.object;
-      case 'array':
-        return colors.object;
-      default:
-        return colors.string;
-    }
-  };
+  const getValueColor = useCallback(
+    (type: TreeNodeType): string => {
+      switch (type) {
+        case 'number':
+          return colors.number;
+        case 'boolean':
+        case 'null':
+          return colors.boolean;
+        case 'string':
+          return colors.string;
+        case 'object':
+        case 'array':
+          return colors.object;
+        default:
+          return colors.string;
+      }
+    },
+    [colors]
+  );
 
-  const toggleExpanded = (key: string): void => {
+  const toggleExpanded = useCallback((key: string): void => {
     setExpandedKeys((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(key)) {
@@ -131,77 +236,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       }
       return newSet;
     });
-  };
-
-  const isObjectId = (value: unknown): boolean => {
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      const obj = value as Record<string, unknown>;
-      return '$oid' in obj && typeof obj.$oid === 'string';
-    }
-    return false;
-  };
-
-  const formatObjectId = (value: unknown): string => {
-    if (value && typeof value === 'object') {
-      const obj = value as Record<string, unknown>;
-      if ('$oid' in obj && typeof obj.$oid === 'string') {
-        return `ObjectId('${obj.$oid}')`;
-      }
-    }
-    return String(value);
-  };
-
-  const getNodeType = (value: unknown): TreeNode['type'] => {
-    if (value === null) return 'null';
-    if (Array.isArray(value)) return 'array';
-    if (isObjectId(value)) return 'string';
-    if (typeof value === 'object') return 'object';
-    if (typeof value === 'number') return 'number';
-    if (typeof value === 'boolean') return 'boolean';
-    return 'string';
-  };
-
-  const formatValue = (
-    value: unknown,
-    type: TreeNode['type'],
-    isExpanded = true,
-  ): string => {
-    switch (type) {
-      case 'null':
-        return 'null';
-      case 'boolean':
-      case 'number':
-        return String(value);
-      case 'array': {
-        const count = (value as unknown[]).length;
-        return isExpanded ? '[' : `Array [${count}]`;
-      }
-      case 'object': {
-        const count = Object.keys(value as Record<string, unknown>).length;
-        return isExpanded ? '{' : `Object (${count})`;
-      }
-      case 'string':
-      default: {
-        if (isObjectId(value)) return formatObjectId(value);
-        const strValue = String(value);
-        if (strValue.startsWith('"') || strValue.match(/^[A-Z][a-z]+\(/)) {
-          return strValue;
-        }
-        return `"${strValue}"`;
-      }
-    }
-  };
-
-  const parseDocument = (doc: Record<string, unknown>): TreeNode[] => {
-    return Object.entries(doc).map(([key, value]) => {
-      const type = getNodeType(value);
-      let itemCount: number | undefined;
-      if (type === 'array') itemCount = (value as unknown[]).length;
-      else if (type === 'object')
-        itemCount = Object.keys(value as Record<string, unknown>).length;
-      return { key, value, type, itemCount };
-    });
-  };
+  }, []);
 
   const renderExpandButton = (
     isExpanded: boolean,
@@ -304,12 +339,6 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
     });
   };
 
-  const getValueKind = (value: unknown): 'array' | 'object' | 'primitive' => {
-    if (Array.isArray(value)) return 'array';
-    if (value !== null && typeof value === 'object') return 'object';
-    return 'primitive';
-  };
-
   const renderChildren = (value: unknown, parentKey: string): JSX.Element[] => {
     switch (getValueKind(value)) {
       case 'array':
@@ -338,21 +367,6 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       </div>
     </div>
   );
-
-  const formatIdValue = (value: unknown): string => {
-    if (typeof value === 'string') {
-      if (value.match(/^[A-Z][a-z]+\(/)) return value;
-      return `"${value}"`;
-    }
-    if (value && typeof value === 'object') {
-      const obj = value as Record<string, unknown>;
-      if ('$oid' in obj && typeof obj.$oid === 'string') {
-        return `ObjectId('${obj.$oid}')`;
-      }
-      return JSON.stringify(value);
-    }
-    return `"${String(value)}"`;
-  };
 
   const renderNode = (node: TreeNode, isLast = false): JSX.Element => {
     const isIdField = node.key === '_id';
@@ -409,8 +423,6 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       </div>
     );
   };
-
-  const nodes = parseDocument(document);
 
   return (
     <div className={containerStyles}>
