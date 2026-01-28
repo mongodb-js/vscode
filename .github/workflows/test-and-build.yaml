@@ -169,6 +169,14 @@ jobs:
             *.vsix
             *.vsix.sig
 
+  test-snyk:
+    name: Vulnerability Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
+
       - name: Run Snyk Test
         shell: bash
         env:
@@ -177,6 +185,7 @@ jobs:
           pnpm run snyk-test
 
       - name: Upload Snyk Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Snyk Report - ${{ github.run_id }}
@@ -185,7 +194,6 @@ jobs:
             .sbom/snyk-test-result.json
 
       - name: Generate Vulnerability Report (Fail on >= High)
-        continue-on-error: ${{ github.event_name == 'pull_request' }}
         shell: bash
         run: |
-          pnpm run generate-vulnerability-report > /dev/null
+          pnpm run generate-vulnerability-report
