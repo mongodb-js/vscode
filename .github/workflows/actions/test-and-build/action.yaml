@@ -85,6 +85,12 @@ runs:
       run: pnpm run check-vsix-size
       shell: bash
 
+    - name: Run VSIX Install Test
+      env:
+        RUNNER_OS: ${{ runner.os }}
+      run: pnpm run test-install
+      shell: bash
+
     - name: Sign .vsix
       if: runner.os == 'Linux'
       env:
