@@ -172,6 +172,7 @@ jobs:
   test-snyk:
     name: Vulnerability Report
     runs-on: ubuntu-latest
+    needs: [build-and-check]
 
     steps:
       - name: Checkout
