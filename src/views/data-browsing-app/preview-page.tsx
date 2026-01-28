@@ -25,10 +25,16 @@ import {
   itemsPerPageChanged,
   requestCancellationRequested,
   currentPageAdjusted,
+  viewerTypeChanged,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
-import DocumentTreeView from './document-tree-view';
-import { sendGetThemeColors } from './vscode-api';
+import DocumentTreeView, { type ViewerType } from './document-tree-view';
+
+const VIEWER_TYPE_OPTIONS: { value: ViewerType; label: string }[] = [
+  { value: 'monaco', label: 'Monaco' },
+  { value: 'syntax-highlighter', label: 'Syntax Highlighter' },
+  { value: 'custom', label: 'Custom' },
+];
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -134,7 +140,7 @@ const PreviewApp: React.FC = () => {
     totalPages,
     startItem,
     endItem,
-    themeColors,
+    viewerType,
     errors: {
       getDocuments: getDocumentsError,
       getTotalCount: getTotalCountError,
@@ -147,7 +153,6 @@ const PreviewApp: React.FC = () => {
 
   useEffect(() => {
     const cleanup = setupMessageHandler(dispatch);
-    sendGetThemeColors();
     dispatch(initialDocumentsFetchRequested());
     return cleanup;
   }, [dispatch]);
@@ -158,12 +163,30 @@ const PreviewApp: React.FC = () => {
     dispatch(itemsPerPageChanged(newItemsPerPage));
   };
 
+  const handleViewerTypeChange = (event: Event): void => {
+    const target = event.target as HTMLSelectElement;
+    dispatch(viewerTypeChanged(target.value as ViewerType));
+  };
+
   return (
     <div className={containerStyles}>
       {/* Toolbar */}
       <div className={toolbarStyles}>
-        {/* Left side - Insert Document */}
-        <div className={toolbarGroupStyles}></div>
+        {/* Left side - Viewer Type Toggle (dev only) */}
+        <div className={toolbarGroupStyles}>
+          <VscodeSingleSelect
+            className={fitContentSelectStyles}
+            aria-label="Viewer type"
+            value={viewerType}
+            onChange={handleViewerTypeChange}
+          >
+            {VIEWER_TYPE_OPTIONS.map((option) => (
+              <VscodeOption key={option.value} value={option.value}>
+                {option.label}
+              </VscodeOption>
+            ))}
+          </VscodeSingleSelect>
+        </div>
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
           <VscodeButton
@@ -272,7 +295,7 @@ const PreviewApp: React.FC = () => {
               <DocumentTreeView
                 key={`${currentPage}-${index}`}
                 document={doc}
-                themeColors={themeColors ?? undefined}
+                viewerType={viewerType}
               />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (

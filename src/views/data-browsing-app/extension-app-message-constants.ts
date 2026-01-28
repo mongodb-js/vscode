@@ -3,7 +3,6 @@ export const PreviewMessageType = {
   getDocuments: 'GET_DOCUMENTS',
   getTotalCount: 'GET_TOTAL_COUNT',
   cancelRequest: 'CANCEL_REQUEST',
-  getThemeColors: 'GET_THEME_COLORS',
 
   // Messages from extension to webview
   loadPage: 'LOAD_PAGE',
@@ -11,19 +10,7 @@ export const PreviewMessageType = {
   requestCancelled: 'REQUEST_CANCELLED',
   updateTotalCount: 'UPDATE_TOTAL_COUNT',
   updateTotalCountError: 'UPDATE_TOTAL_COUNT_ERROR',
-  updateThemeColors: 'UPDATE_THEME_COLORS',
 } as const;
-
-export interface JsonTokenColors {
-  key: string;
-  string: string;
-  number: string;
-  boolean: string;
-  null: string;
-  type: string;
-  comment: string;
-  punctuation: string;
-}
 
 export type PreviewMessageType =
   (typeof PreviewMessageType)[keyof typeof PreviewMessageType];
@@ -45,10 +32,6 @@ export interface CancelRequestMessage extends BasicWebviewMessage {
 
 export interface GetTotalCountMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.getTotalCount;
-}
-
-export interface GetThemeColorsMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.getThemeColors;
 }
 
 // Messages from extension to webview
@@ -76,21 +59,14 @@ export interface UpdateTotalCountErrorMessage extends BasicWebviewMessage {
   error?: string;
 }
 
-export interface UpdateThemeColorsMessage extends BasicWebviewMessage {
-  command: typeof PreviewMessageType.updateThemeColors;
-  themeColors: JsonTokenColors | null;
-}
-
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
   | GetTotalCountMessage
-  | CancelRequestMessage
-  | GetThemeColorsMessage;
+  | CancelRequestMessage;
 
 export type MessageFromExtensionToWebview =
   | LoadPageMessage
   | DocumentGetErrorMessage
   | RequestCancelledMessage
   | UpdateTotalCountMessage
-  | UpdateTotalCountErrorMessage
-  | UpdateThemeColorsMessage;
+  | UpdateTotalCountErrorMessage;

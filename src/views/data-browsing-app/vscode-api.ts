@@ -39,9 +39,3 @@ export const sendCancelRequest = (): void => {
     command: PreviewMessageType.cancelRequest,
   });
 };
-
-export const sendGetThemeColors = (): void => {
-  getVSCodeApi().postMessage({
-    command: PreviewMessageType.getThemeColors,
-  });
-};

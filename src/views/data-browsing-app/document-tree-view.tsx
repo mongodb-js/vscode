@@ -1,336 +1,170 @@
-import React, { useState, useMemo } from 'react';
-import { VscodeIcon } from '@vscode-elements/react-elements';
-import { css, cx, spacing } from '@mongodb-js/compass-components';
-import type { JsonTokenColors } from './extension-app-message-constants';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import Editor, { useMonaco } from '@monaco-editor/react';
+import type * as Monaco from 'monaco-editor';
+import type { editor } from 'monaco-editor';
+import { css, spacing } from '@mongodb-js/compass-components';
+import { SyntaxHighlighterViewer, CustomJsonViewer, type ViewerType } from './json-viewers';
 
 interface DocumentTreeViewProps {
   document: Record<string, unknown>;
-  themeColors?: JsonTokenColors;
+  viewerType?: ViewerType;
 }
 
-interface TreeNode {
-  key: string;
-  value: unknown;
-  type: 'string' | 'number' | 'boolean' | 'null' | 'object' | 'array';
-  itemCount?: number;
-}
-
-// Default color palette for syntax highlighting (VS Code Dark+ theme)
-const DEFAULT_COLORS = {
-  key: '#9CDCFE',
-  string: '#CE9178',
-  number: '#B5CEA8',
-  boolean: '#569CD6',
-  null: '#569CD6',
-  type: '#4EC9B0',
-  comment: '#6A9955',
-  punctuation: '#D4D4D4',
-};
+// Line height in pixels for Monaco editor
+const LINE_HEIGHT = 19;
+// Padding top and bottom for the editor
+const EDITOR_PADDING = 12;
+// Maximum height for the editor (prevents huge documents from taking over)
+const MAX_EDITOR_HEIGHT = 400;
 
 const containerStyles = css({
   marginBottom: spacing[200],
 });
 
 const cardStyles = css({
-  backgroundColor: 'var(--vscode-editor-background)',
-  border: '1px solid var(--vscode-panel-border, #3C3C3C)',
-  borderRadius: spacing[100],
-  padding: `${spacing[300]}px ${spacing[400]}px`,
+  backgroundColor: 'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
+  border: '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
+  borderRadius: '6px',
+  overflow: 'hidden',
+});
+
+/**
+ * Defines a Monaco theme that closely matches VS Code's Dark+ theme for JSON.
+ * Uses transparent background so the card container controls the surface color.
+ */
+function defineVsCodeLikeJsonTheme(monaco: typeof Monaco): void {
+  monaco.editor.defineTheme('vscodeLikeJson', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      // JSON token colors matching VS Code Dark+
+      { token: 'string.key.json', foreground: '9CDCFE' },
+      { token: 'string.value.json', foreground: 'CE9178' },
+      { token: 'number', foreground: 'B5CEA8' },
+      { token: 'keyword.json', foreground: '569CD6' },
+      { token: 'delimiter.bracket.json', foreground: 'D4D4D4' },
+      { token: 'delimiter.comma.json', foreground: 'D4D4D4' },
+      { token: 'delimiter.colon.json', foreground: 'D4D4D4' },
+    ],
+    colors: {
+      'editor.background': '#00000000',
+      'editorLineNumber.foreground': '#00000000',
+      'editorLineNumber.activeForeground': '#00000000',
+      'editor.lineHighlightBackground': '#00000000',
+      'editorGutter.background': '#00000000',
+      'scrollbar.shadow': '#00000000',
+    },
+  });
+}
+
+/**
+ * Monaco editor options for read-only JSON viewer mode.
+ * Configured to look like an embedded JSON block without editor chrome.
+ */
+const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
+  readOnly: true,
+  contextmenu: false,
+  minimap: { enabled: false },
+  lineNumbers: 'off',
+  glyphMargin: false,
+  folding: false,
+  renderLineHighlight: 'none',
+  overviewRulerLanes: 0,
+  overviewRulerBorder: false,
+  hideCursorInOverviewRuler: true,
+  scrollbar: {
+    vertical: 'hidden',
+    horizontal: 'hidden',
+    alwaysConsumeMouseWheel: false,
+  },
+  wordWrap: 'on',
+  scrollBeyondLastLine: false,
+  automaticLayout: true,
+  padding: { top: EDITOR_PADDING, bottom: EDITOR_PADDING },
+  cursorStyle: 'line',
+  occurrencesHighlight: 'off',
+  selectionHighlight: false,
+  renderValidationDecorations: 'off',
+  lineHeight: LINE_HEIGHT,
   fontFamily: 'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
-  fontSize: '12px',
-  lineHeight: '18px',
-});
+  fontSize: 13,
+  // Disable find widget (Ctrl+F)
+  find: {
+    addExtraSpaceOnTop: false,
+    autoFindInSelection: 'never',
+    seedSearchStringFromSelection: 'never',
+  },
+};
 
-const nodeRowStyles = css({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 6,
-  minHeight: 22,
-});
+const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({ document }) => {
+  const monaco = useMonaco();
 
-const caretStyles = css({
-  width: 16,
-  height: 16,
-  flexShrink: 0,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-});
-
-const expandButtonStyles = css({
-  margin: 0,
-  padding: 0,
-  border: 'none',
-  background: 'none',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  color: 'var(--vscode-foreground, #CCCCCC)',
-});
-
-const childrenContainerStyles = css({
-  paddingLeft: spacing[400],
-});
-
-const keyValueContainerStyles = css({
-  display: 'flex',
-  flexWrap: 'wrap',
-});
-
-const clickableRowStyles = css({
-  cursor: 'pointer',
-});
-
-const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({ document, themeColors }) => {
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
-
-  // Merge theme colors with defaults
-  const colors = useMemo(() => ({
-    key: themeColors?.key ?? DEFAULT_COLORS.key,
-    string: themeColors?.string ?? DEFAULT_COLORS.string,
-    number: themeColors?.number ?? DEFAULT_COLORS.number,
-    boolean: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
-    null: themeColors?.null ?? DEFAULT_COLORS.null,
-    // Object/Array labels should use the keyword/boolean color (blue), not type color (teal)
-    object: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
-    array: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
-    divider: themeColors?.punctuation ?? DEFAULT_COLORS.punctuation,
-  }), [themeColors]);
-
-  const getValueColor = (type: TreeNode['type']): string => {
-    switch (type) {
-      case 'number': return colors.number;
-      case 'boolean':
-      case 'null': return colors.boolean;
-      case 'string': return colors.string;
-      case 'object': return colors.object;
-      case 'array': return colors.object;
-      default: return colors.string;
+  useEffect(() => {
+    if (monaco) {
+      defineVsCodeLikeJsonTheme(monaco);
     }
-  };
+  }, [monaco]);
 
-  const toggleExpanded = (key: string): void => {
-    setExpandedKeys((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(key)) {
-        newSet.delete(key);
-      } else {
-        newSet.add(key);
+  const jsonValue = useMemo(() => {
+    return JSON.stringify(document, null, 2);
+  }, [document]);
+
+  // Calculate editor height based on content
+  const editorHeight = useMemo(() => {
+    const lineCount = jsonValue.split('\n').length;
+    const contentHeight = lineCount * LINE_HEIGHT + EDITOR_PADDING * 2;
+    return Math.min(contentHeight, MAX_EDITOR_HEIGHT);
+  }, [jsonValue]);
+
+  // Disable find widget when editor mounts
+  const handleEditorMount = useCallback((editorInstance: editor.IStandaloneCodeEditor) => {
+    // Disable the find widget command
+    editorInstance.addCommand(
+      monaco?.KeyMod.CtrlCmd! | monaco?.KeyCode.KeyF!,
+      () => {
+        // Do nothing - prevents find widget from opening
       }
-      return newSet;
-    });
-  };
-
-  const isObjectId = (value: unknown): boolean => {
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      const obj = value as Record<string, unknown>;
-      return '$oid' in obj && typeof obj.$oid === 'string';
-    }
-    return false;
-  };
-
-  const formatObjectId = (value: unknown): string => {
-    if (value && typeof value === 'object') {
-      const obj = value as Record<string, unknown>;
-      if ('$oid' in obj && typeof obj.$oid === 'string') {
-        return `ObjectId('${obj.$oid}')`;
-      }
-    }
-    return String(value);
-  };
-
-  const getNodeType = (value: unknown): TreeNode['type'] => {
-    if (value === null) return 'null';
-    if (Array.isArray(value)) return 'array';
-    if (isObjectId(value)) return 'string';
-    if (typeof value === 'object') return 'object';
-    if (typeof value === 'number') return 'number';
-    if (typeof value === 'boolean') return 'boolean';
-    return 'string';
-  };
-
-  const formatValue = (value: unknown, type: TreeNode['type'], isExpanded = true): string => {
-    if (type === 'null') return 'null';
-    if (type === 'boolean') return String(value);
-    if (type === 'number') return String(value);
-    if (type === 'array') {
-      const count = (value as unknown[]).length;
-      return isExpanded ? '[' : `Array [${count}]`;
-    }
-    if (type === 'object') {
-      const count = Object.keys(value as Record<string, unknown>).length;
-      return isExpanded ? '{' : `Object (${count})`;
-    }
-    if (isObjectId(value)) return formatObjectId(value);
-    const strValue = String(value);
-    if (strValue.startsWith('"') || strValue.match(/^[A-Z][a-z]+\(/)) return strValue;
-    return `"${strValue}"`;
-  };
-
-  const parseDocument = (doc: Record<string, unknown>): TreeNode[] => {
-    return Object.entries(doc).map(([key, value]) => {
-      const type = getNodeType(value);
-      let itemCount: number | undefined;
-      if (type === 'array') itemCount = (value as unknown[]).length;
-      else if (type === 'object') itemCount = Object.keys(value as Record<string, unknown>).length;
-      return { key, value, type, itemCount };
-    });
-  };
-
-  const renderExpandButton = (isExpanded: boolean, itemKey: string): JSX.Element => (
-    <button
-      role="button"
-      tabIndex={0}
-      className={expandButtonStyles}
-      aria-expanded={isExpanded}
-      aria-label={isExpanded ? 'Collapse' : 'Expand'}
-      onClick={(e): void => { e.stopPropagation(); toggleExpanded(itemKey); }}
-      onKeyDown={(e): void => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); toggleExpanded(itemKey); } }}
-    >
-      <VscodeIcon name={isExpanded ? 'chevron-down' : 'chevron-right'} size={12}/>
-    </button>
-  );
-
-  const renderChildren = (value: unknown, parentKey: string): JSX.Element[] => {
-    if (Array.isArray(value)) {
-      return value.map((item, index) => {
-        const type = getNodeType(item);
-        const isLast = index === value.length - 1;
-        const itemKey = `${parentKey}.${index}`;
-        const hasExpandable = type === 'object' || type === 'array';
-        const isExp = expandedKeys.has(itemKey);
-
-        return (
-          <div key={index}>
-            <div className={nodeRowStyles}>
-              <div className={caretStyles}>
-                {hasExpandable && renderExpandButton(isExp, itemKey)}
-              </div>
-              <div className={keyValueContainerStyles}>
-                <span style={{ color: getValueColor(type) }}>
-                  {formatValue(item, type, isExp)}
-                </span>
-                {!isLast && <span style={{ color: colors.divider }}>,</span>}
-              </div>
-            </div>
-            {hasExpandable && isExp && (
-              <div className={childrenContainerStyles}>
-                {renderChildren(item, itemKey)}
-              </div>
-            )}
-          </div>
-        );
-      });
-    } else if (typeof value === 'object' && value !== null) {
-      const entries = Object.entries(value as Record<string, unknown>);
-      return entries.map(([key, val], index) => {
-        const type = getNodeType(val);
-        const isLast = index === entries.length - 1;
-        const itemKey = `${parentKey}.${key}`;
-        const hasExpandable = type === 'object' || type === 'array';
-        const isExp = expandedKeys.has(itemKey);
-
-        return (
-          <div key={key}>
-            <div className={nodeRowStyles}>
-              <div className={caretStyles}>
-                {hasExpandable && renderExpandButton(isExp, itemKey)}
-              </div>
-              <div className={keyValueContainerStyles}>
-                <span style={{ color: colors.key, fontWeight: 'bold' }}>"{key}"</span>
-                <span style={{ color: colors.divider }}>:&nbsp;</span>
-                <span style={{ color: getValueColor(type) }}>
-                  {formatValue(val, type, isExp)}
-                </span>
-                {!isLast && <span style={{ color: colors.divider }}>,</span>}
-              </div>
-            </div>
-            {hasExpandable && isExp && (
-              <div className={childrenContainerStyles}>
-                {renderChildren(val, itemKey)}
-              </div>
-            )}
-          </div>
-        );
-      });
-    }
-    return [];
-  };
-
-  const renderClosingBracket = (nodeType: TreeNode['type'], isLast: boolean): JSX.Element => (
-    <div className={nodeRowStyles}>
-      <div className={caretStyles} />
-      <div className={keyValueContainerStyles}>
-        <span style={{ color: getValueColor(nodeType) }}>
-          {nodeType === 'array' ? ']' : '}'}
-        </span>
-        {!isLast && <span style={{ color: colors.divider }}>,</span>}
-      </div>
-    </div>
-  );
-
-  const formatIdValue = (value: unknown): string => {
-    if (typeof value === 'string') {
-      if (value.match(/^[A-Z][a-z]+\(/)) return value;
-      return `"${value}"`;
-    }
-    if (value && typeof value === 'object') {
-      const obj = value as Record<string, unknown>;
-      if ('$oid' in obj && typeof obj.$oid === 'string') {
-        return `ObjectId('${obj.$oid}')`;
-      }
-      return JSON.stringify(value);
-    }
-    return `"${String(value)}"`;
-  };
-
-  const renderNode = (node: TreeNode, isLast = false): JSX.Element => {
-    const isIdField = node.key === '_id';
-    const hasExpandable = !isIdField && (node.type === 'object' || node.type === 'array');
-    const isExp = expandedKeys.has(node.key);
-    const valueColor = getValueColor(isIdField ? 'string' : node.type);
-
-    const handleClick = hasExpandable ? (): void => toggleExpanded(node.key) : undefined;
-    const rowClassName = hasExpandable
-      ? cx(nodeRowStyles, clickableRowStyles)
-      : nodeRowStyles;
-
-    return (
-      <div key={node.key}>
-        <div className={rowClassName} onClick={handleClick}>
-          <div className={caretStyles}>
-            {hasExpandable && renderExpandButton(isExp, node.key)}
-          </div>
-          <div className={keyValueContainerStyles}>
-            <span style={{ color: colors.key, fontWeight: 'bold' }}>"{node.key}"</span>
-            <span style={{ color: colors.divider }}>:</span>
-            <span style={{ color: valueColor }}>
-              {isIdField ? formatIdValue(node.value) : formatValue(node.value, node.type, isExp)}
-            </span>
-            {!isExp && !isLast && <span style={{ color: colors.divider }}>,</span>}
-          </div>
-        </div>
-        {hasExpandable && isExp && (
-          <div className={childrenContainerStyles}>
-            {renderChildren(node.value, node.key)}
-          </div>
-        )}
-        {hasExpandable && isExp && renderClosingBracket(node.type, isLast)}
-      </div>
     );
-  };
+  }, [monaco]);
 
-  const nodes = parseDocument(document);
+  return (
+    <Editor
+      height={editorHeight}
+      defaultLanguage="json"
+      value={jsonValue}
+      theme="vscodeLikeJson"
+      options={viewerOptions}
+      loading={null}
+      onMount={handleEditorMount}
+    />
+  );
+};
+
+const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
+  document,
+  viewerType = 'monaco'
+}) => {
+  const renderViewer = (): React.ReactNode => {
+    switch (viewerType) {
+      case 'syntax-highlighter':
+        return <SyntaxHighlighterViewer document={document} />;
+      case 'custom':
+        return <CustomJsonViewer document={document} />;
+      case 'monaco':
+      default:
+        return <MonacoViewer document={document} />;
+    }
+  };
 
   return (
     <div className={containerStyles}>
       <div className={cardStyles}>
-        {nodes.map((node, index) => renderNode(node, index === nodes.length - 1))}
+        {renderViewer()}
       </div>
     </div>
   );
 };
 
 export default DocumentTreeView;
+export type { ViewerType };
 
