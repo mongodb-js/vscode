@@ -234,6 +234,41 @@ describe('messageHandler test suite', function () {
         );
       });
     });
+
+    describe('updateThemeColors', function () {
+      it('should set theme colors in store', function () {
+        const store = createStore();
+        const themeColors = {
+          key: '#ff0000',
+          string: '#00ff00',
+          number: '#0000ff',
+          boolean: '#ffff00',
+          null: '#ff00ff',
+          type: '#00ffff',
+          comment: '#888888',
+          punctuation: '#ffffff',
+        };
+
+        handleExtensionMessage(store.dispatch, {
+          command: PreviewMessageType.updateThemeColors,
+          themeColors,
+        });
+
+        expect(store.getState().documentQuery.themeColors).to.deep.equal(
+          themeColors,
+        );
+      });
+
+      it('should handle null theme colors', function () {
+        const store = createStore();
+        handleExtensionMessage(store.dispatch, {
+          command: PreviewMessageType.updateThemeColors,
+          themeColors: null,
+        });
+
+        expect(store.getState().documentQuery.themeColors).to.be.null;
+      });
+    });
   });
 
   describe('setupMessageHandler', function () {
