@@ -66,7 +66,7 @@ function getNodeType(value: unknown): TreeNodeType {
 function formatValue(
   value: unknown,
   type: TreeNodeType,
-  isExpanded = true
+  isExpanded = true,
 ): string {
   switch (type) {
     case 'null':
@@ -203,7 +203,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
       array: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
       divider: themeColors?.punctuation ?? DEFAULT_COLORS.punctuation,
     }),
-    [themeColors]
+    [themeColors],
   );
 
   const getValueColor = useCallback(
@@ -223,7 +223,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
           return colors.string;
       }
     },
-    [colors]
+    [colors],
   );
 
   const toggleExpanded = useCallback((key: string): void => {
