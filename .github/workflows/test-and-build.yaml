@@ -18,12 +18,7 @@ jobs:
     name: Build and Check
     if: github.event_name != 'pull_request' || (github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository)
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-      fail-fast: false
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -53,7 +48,6 @@ jobs:
           cache: pnpm
 
       - name: Install Deps Ubuntu
-        if: ${{ runner.os == 'Linux' }}
         run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
         shell: bash
 
@@ -88,7 +82,6 @@ jobs:
 
       - name: Run Checks
         run: pnpm run check
-        if: ${{ runner.os != 'Windows' }}
         shell: bash
 
       - name: Build .vsix
@@ -105,7 +98,7 @@ jobs:
       - name: Upload .vsix for tests
         uses: actions/upload-artifact@v4
         with:
-          name: vsix-${{ runner.os }}
+          name: vsix
           path: '*.vsix'
 
   test:
@@ -225,7 +218,7 @@ jobs:
       - name: Download .vsix
         uses: actions/download-artifact@v4
         with:
-          name: vsix-${{ runner.os }}
+          name: vsix
 
       - name: Run VSIX Install Test
         env:
@@ -237,12 +230,7 @@ jobs:
     name: Sign and Upload
     needs: [test, test-install]
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-      fail-fast: false
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -275,10 +263,9 @@ jobs:
       - name: Download .vsix
         uses: actions/download-artifact@v4
         with:
-          name: vsix-${{ runner.os }}
+          name: vsix
 
       - name: Sign .vsix
-        if: runner.os == 'Linux'
         env:
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
@@ -298,13 +285,12 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: VSIX built on ${{ runner.os }}
+          name: VSIX
           path: |
             *.vsix
             *.vsix.sig
 
       - name: Run Snyk Test
-        if: runner.os == 'Linux'
         shell: bash
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -312,7 +298,6 @@ jobs:
           pnpm run snyk-test
 
       - name: Upload Snyk Report
-        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: Snyk Report - ${{ github.run_id }}
@@ -321,7 +306,6 @@ jobs:
             .sbom/snyk-test-result.json
 
       - name: Generate Vulnerability Report (Fail on >= High)
-        if: runner.os == 'Linux'
         continue-on-error: ${{ github.event_name == 'pull_request' }}
         shell: bash
         run: |
