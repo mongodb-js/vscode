@@ -1173,6 +1173,18 @@
           "description": "The MongoDB shell to use.",
           "scope": "application"
         },
+        "mdb.defaultDocumentDisplayName": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The field to use for file names when displaying a document. This is an ordered array, if the field is not found, it falls back to using the next field.",
+          "default": [
+            "name",
+            "title",
+            "_id"
+          ]
+        },
         "mdb.showMongoDBConnectionExplorer": {
           "type": "boolean",
           "default": true,

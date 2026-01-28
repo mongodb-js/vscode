@@ -100,6 +100,7 @@ _Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https:
 | Setting | Description | Default |
 | - | - | - |
 | `mdb.shell` | The MongoDB shell to use ( `mongosh`  or the legacy  `mongo` ). | `mongosh` |
+| `mdb.defaultDocumentDisplayName` | The field to use for file names when displaying a document. This is an ordered array, if the field is not found, it falls back to using the next field. | ["name","title","_id"] |
 | `mdb.showMongoDBConnectionExplorer` | Show or hide the MongoDB Connection explorer. | `true` |
 | `mdb.showMongoDBPlaygrounds` | Show or hide the MongoDB Playgrounds explorer. | `true` |
 | `mdb.showMongoDBHelpExplorer` | Show or hide the MongoDB Help panel. | `true` |
