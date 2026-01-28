@@ -84,7 +84,8 @@ suite('DataBrowsingController Test Suite', function () {
     return stub
       .getCalls()
       .filter(
-        (call) => call.args[0]?.command !== PreviewMessageType.updateThemeColors,
+        (call) =>
+          call.args[0]?.command !== PreviewMessageType.updateThemeColors,
       ).length;
   }
 
