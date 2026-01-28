@@ -6,6 +6,7 @@ import {
   getVSCodeApi,
   sendCancelRequest,
   sendGetDocuments,
+  sendGetThemeColors,
 } from '../../../../views/data-browsing-app/vscode-api';
 
 describe('vscode-api test suite', function () {
@@ -58,6 +59,17 @@ describe('vscode-api test suite', function () {
         command: PreviewMessageType.getDocuments,
         skip: 0,
         limit: 10,
+      });
+    });
+  });
+
+  describe('sendGetThemeColors', function () {
+    it('should send message with getThemeColors command', function () {
+      sendGetThemeColors();
+
+      expect(postMessageStub).to.have.been.calledOnce;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getThemeColors,
       });
     });
   });

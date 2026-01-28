@@ -47,6 +47,13 @@ describe('PreviewApp test suite', function () {
       });
     });
 
+    it('should request theme colors on mount', function () {
+      renderWithProvider(<PreviewApp />);
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getThemeColors,
+      });
+    });
+
     it('should show Stop button when loading', function () {
       renderWithProvider(<PreviewApp />);
       const stopButton = screen.getByLabelText('Stop');
@@ -377,8 +384,10 @@ describe('PreviewApp test suite', function () {
         );
       });
 
-      // Should render the document content
-      expect(screen.getByText(/"_id":\s*"123"/)).to.exist;
+      // Should render the document content (tree view renders values in separate spans)
+      expect(screen.getByText('"123"')).to.exist;
+      expect(screen.getByText('"TestDocument"')).to.exist;
+      expect(screen.getByText('42')).to.exist;
     });
 
     it('should render multiple documents', function () {
@@ -398,9 +407,9 @@ describe('PreviewApp test suite', function () {
         );
       });
 
-      // Both documents should be rendered
-      expect(screen.getByText(/"_id":\s*"1"/)).to.exist;
-      expect(screen.getByText(/"_id":\s*"2"/)).to.exist;
+      // Both documents should be rendered (tree view renders values in separate spans)
+      expect(screen.getByText('"First"')).to.exist;
+      expect(screen.getByText('"Second"')).to.exist;
     });
   });
 
@@ -432,10 +441,10 @@ describe('PreviewApp test suite', function () {
         );
       });
 
-      // Should show the new document
-      expect(screen.getByText(/"_id":\s*"11"/)).to.exist;
+      // Should show the new document (tree view renders values in separate spans)
+      expect(screen.getByText('"SecondPage"')).to.exist;
       // Should not show the old document
-      expect(screen.queryByText(/"_id":\s*"1"/)).to.be.null;
+      expect(screen.queryByText('"FirstPage"')).to.be.null;
     });
   });
 });
