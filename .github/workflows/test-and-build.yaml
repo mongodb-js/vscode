@@ -21,44 +21,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Get VS Code Node.js version
-        id: get-vscode-node-version
-        shell: bash
-        run: |
-          # Fetch Node.js version from VS Code's .nvmrc, default to 22.20.0 if unavailable
-          NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/main/.nvmrc | tr -d '[:space:]')
-          if [ -z "$NODE_VERSION" ]; then
-            NODE_VERSION="22.21.1"
-          fi
-          echo "Using Node.js version for VS Code extension tests: $NODE_VERSION"
-          echo "vscode-node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ steps.get-vscode-node-version.outputs.vscode-node-version }}
-          cache: pnpm
-
-      - name: Install Deps Ubuntu
-        run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
-        shell: bash
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Run node-gyp bug workaround script
-        run: |
-          curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
-        shell: bash
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
 
       - name: Set SEGMENT_KEY
         env:
@@ -74,11 +38,6 @@ jobs:
             exit 1
           fi
         shell: bash
-
-      - name: Install Dependencies
-        shell: bash
-        run: |
-          pnpm install --frozen-lockfile
 
       - name: Run Checks
         run: pnpm run check
@@ -113,46 +72,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get VS Code Node.js version
-        id: get-vscode-node-version
-        shell: bash
-        run: |
-          NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/main/.nvmrc | tr -d '[:space:]')
-          if [ -z "$NODE_VERSION" ]; then
-            NODE_VERSION="22.21.1"
-          fi
-          echo "vscode-node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ steps.get-vscode-node-version.outputs.vscode-node-version }}
-          cache: pnpm
-
-      - name: Install Deps Ubuntu
-        if: ${{ runner.os == 'Linux' }}
-        run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
-        shell: bash
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Run node-gyp bug workaround script
-        run: |
-          curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
-        shell: bash
-
-      - name: Install Dependencies
-        shell: bash
-        run: |
-          pnpm install --frozen-lockfile
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
 
       - name: Run Tests
         env:
@@ -174,46 +95,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get VS Code Node.js version
-        id: get-vscode-node-version
-        shell: bash
-        run: |
-          NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/main/.nvmrc | tr -d '[:space:]')
-          if [ -z "$NODE_VERSION" ]; then
-            NODE_VERSION="22.21.1"
-          fi
-          echo "vscode-node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ steps.get-vscode-node-version.outputs.vscode-node-version }}
-          cache: pnpm
-
-      - name: Install Deps Ubuntu
-        if: ${{ runner.os == 'Linux' }}
-        run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
-        shell: bash
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Run node-gyp bug workaround script
-        run: |
-          curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
-        shell: bash
-
-      - name: Install Dependencies
-        shell: bash
-        run: |
-          pnpm install --frozen-lockfile
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
 
       - name: Download .vsix
         uses: actions/download-artifact@v4
@@ -233,32 +116,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get VS Code Node.js version
-        id: get-vscode-node-version
-        shell: bash
-        run: |
-          NODE_VERSION=$(curl -fsSL https://raw.githubusercontent.com/microsoft/vscode/main/.nvmrc | tr -d '[:space:]')
-          if [ -z "$NODE_VERSION" ]; then
-            NODE_VERSION="22.21.1"
-          fi
-          echo "vscode-node-version=$NODE_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ steps.get-vscode-node-version.outputs.vscode-node-version }}
-          cache: pnpm
-
-      - name: Install Dependencies
-        shell: bash
-        run: |
-          pnpm install --frozen-lockfile
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
 
       - name: Download .vsix
         uses: actions/download-artifact@v4
