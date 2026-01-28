@@ -166,22 +166,30 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
     type: TreeNode['type'],
     isExpanded = true,
   ): string => {
-    if (type === 'null') return 'null';
-    if (type === 'boolean') return String(value);
-    if (type === 'number') return String(value);
-    if (type === 'array') {
-      const count = (value as unknown[]).length;
-      return isExpanded ? '[' : `Array [${count}]`;
+    switch (type) {
+      case 'null':
+        return 'null';
+      case 'boolean':
+      case 'number':
+        return String(value);
+      case 'array': {
+        const count = (value as unknown[]).length;
+        return isExpanded ? '[' : `Array [${count}]`;
+      }
+      case 'object': {
+        const count = Object.keys(value as Record<string, unknown>).length;
+        return isExpanded ? '{' : `Object (${count})`;
+      }
+      case 'string':
+      default: {
+        if (isObjectId(value)) return formatObjectId(value);
+        const strValue = String(value);
+        if (strValue.startsWith('"') || strValue.match(/^[A-Z][a-z]+\(/)) {
+          return strValue;
+        }
+        return `"${strValue}"`;
+      }
     }
-    if (type === 'object') {
-      const count = Object.keys(value as Record<string, unknown>).length;
-      return isExpanded ? '{' : `Object (${count})`;
-    }
-    if (isObjectId(value)) return formatObjectId(value);
-    const strValue = String(value);
-    if (strValue.startsWith('"') || strValue.match(/^[A-Z][a-z]+\(/))
-      return strValue;
-    return `"${strValue}"`;
   };
 
   const parseDocument = (doc: Record<string, unknown>): TreeNode[] => {
@@ -223,72 +231,97 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
     </button>
   );
 
+  const renderArrayChildren = (
+    arr: unknown[],
+    parentKey: string,
+  ): JSX.Element[] => {
+    return arr.map((item, index) => {
+      const type = getNodeType(item);
+      const isLast = index === arr.length - 1;
+      const itemKey = `${parentKey}.${index}`;
+      const hasExpandable = type === 'object' || type === 'array';
+      const isExp = expandedKeys.has(itemKey);
+
+      return (
+        <div key={index}>
+          <div className={nodeRowStyles}>
+            <div className={caretStyles}>
+              {hasExpandable && renderExpandButton(isExp, itemKey)}
+            </div>
+            <div className={keyValueContainerStyles}>
+              <span style={{ color: getValueColor(type) }}>
+                {formatValue(item, type, isExp)}
+              </span>
+              {!isLast && <span style={{ color: colors.divider }}>,</span>}
+            </div>
+          </div>
+          {hasExpandable && isExp && (
+            <div className={childrenContainerStyles}>
+              {renderChildren(item, itemKey)}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
+
+  const renderObjectChildren = (
+    obj: Record<string, unknown>,
+    parentKey: string,
+  ): JSX.Element[] => {
+    const entries = Object.entries(obj);
+    return entries.map(([key, val], index) => {
+      const type = getNodeType(val);
+      const isLast = index === entries.length - 1;
+      const itemKey = `${parentKey}.${key}`;
+      const hasExpandable = type === 'object' || type === 'array';
+      const isExp = expandedKeys.has(itemKey);
+
+      return (
+        <div key={key}>
+          <div className={nodeRowStyles}>
+            <div className={caretStyles}>
+              {hasExpandable && renderExpandButton(isExp, itemKey)}
+            </div>
+            <div className={keyValueContainerStyles}>
+              <span style={{ color: colors.key, fontWeight: 'bold' }}>
+                &quot;{key}&quot;
+              </span>
+              <span style={{ color: colors.divider }}>:&nbsp;</span>
+              <span style={{ color: getValueColor(type) }}>
+                {formatValue(val, type, isExp)}
+              </span>
+              {!isLast && <span style={{ color: colors.divider }}>,</span>}
+            </div>
+          </div>
+          {hasExpandable && isExp && (
+            <div className={childrenContainerStyles}>
+              {renderChildren(val, itemKey)}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
+
+  const getValueKind = (value: unknown): 'array' | 'object' | 'primitive' => {
+    if (Array.isArray(value)) return 'array';
+    if (value !== null && typeof value === 'object') return 'object';
+    return 'primitive';
+  };
+
   const renderChildren = (value: unknown, parentKey: string): JSX.Element[] => {
-    if (Array.isArray(value)) {
-      return value.map((item, index) => {
-        const type = getNodeType(item);
-        const isLast = index === value.length - 1;
-        const itemKey = `${parentKey}.${index}`;
-        const hasExpandable = type === 'object' || type === 'array';
-        const isExp = expandedKeys.has(itemKey);
-
-        return (
-          <div key={index}>
-            <div className={nodeRowStyles}>
-              <div className={caretStyles}>
-                {hasExpandable && renderExpandButton(isExp, itemKey)}
-              </div>
-              <div className={keyValueContainerStyles}>
-                <span style={{ color: getValueColor(type) }}>
-                  {formatValue(item, type, isExp)}
-                </span>
-                {!isLast && <span style={{ color: colors.divider }}>,</span>}
-              </div>
-            </div>
-            {hasExpandable && isExp && (
-              <div className={childrenContainerStyles}>
-                {renderChildren(item, itemKey)}
-              </div>
-            )}
-          </div>
+    switch (getValueKind(value)) {
+      case 'array':
+        return renderArrayChildren(value as unknown[], parentKey);
+      case 'object':
+        return renderObjectChildren(
+          value as Record<string, unknown>,
+          parentKey,
         );
-      });
-    } else if (typeof value === 'object' && value !== null) {
-      const entries = Object.entries(value as Record<string, unknown>);
-      return entries.map(([key, val], index) => {
-        const type = getNodeType(val);
-        const isLast = index === entries.length - 1;
-        const itemKey = `${parentKey}.${key}`;
-        const hasExpandable = type === 'object' || type === 'array';
-        const isExp = expandedKeys.has(itemKey);
-
-        return (
-          <div key={key}>
-            <div className={nodeRowStyles}>
-              <div className={caretStyles}>
-                {hasExpandable && renderExpandButton(isExp, itemKey)}
-              </div>
-              <div className={keyValueContainerStyles}>
-                <span style={{ color: colors.key, fontWeight: 'bold' }}>
-                  &quot;{key}&quot;
-                </span>
-                <span style={{ color: colors.divider }}>:&nbsp;</span>
-                <span style={{ color: getValueColor(type) }}>
-                  {formatValue(val, type, isExp)}
-                </span>
-                {!isLast && <span style={{ color: colors.divider }}>,</span>}
-              </div>
-            </div>
-            {hasExpandable && isExp && (
-              <div className={childrenContainerStyles}>
-                {renderChildren(val, itemKey)}
-              </div>
-            )}
-          </div>
-        );
-      });
+      default:
+        return [];
     }
-    return [];
   };
 
   const renderClosingBracket = (
