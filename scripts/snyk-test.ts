@@ -76,7 +76,6 @@ async function main() {
     { cwd: rootPath },
   );
 
-
   if (error) {
     console.error('Snyk test failed. Check the report for details.');
     process.exit(1);
