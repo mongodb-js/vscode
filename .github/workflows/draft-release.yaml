@@ -48,18 +48,18 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_BUMP: ${{ github.event.inputs.versionBump }}
+          EXACT_VERSION: ${{ github.event.inputs.exactVersion }}
         run: |
           set -e
-
-          VERSION_BUMP=${{ github.event.inputs.versionBump }}
 
           if [[ "$VERSION_BUMP" == "major" || "$VERSION_BUMP" == "minor" || "$VERSION_BUMP" == "patch" ]]; then
             PREV_VERSION_TAG=$(gh api repos/:owner/:repo/releases --jq '. | map(select(.draft == false)) | .[0] | .tag_name')
             PREV_VERSION=$(pnpm exec semver --coerce ${PREV_VERSION_TAG})
 
-            NEXT_VERSION=$(pnpm exec semver -i $VERSION_BUMP $PREV_VERSION)
+            NEXT_VERSION=$(pnpm exec semver -i "$VERSION_BUMP" "$PREV_VERSION")
           else
-            NEXT_VERSION=${{ github.event.inputs.exactVersion }}
+            NEXT_VERSION="$EXACT_VERSION"
           fi
 
           # Remove the 'v' prefix from NEXT_VERSION if it exists
