@@ -35,6 +35,9 @@ const DEFAULT_COLORS = {
   punctuation: '#D4D4D4',
 } as const;
 
+// Maximum number of top-level fields to show initially
+const MAX_INITIAL_FIELDS = 25;
+
 function isObjectId(value: unknown): boolean {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     const obj = value as Record<string, unknown>;
@@ -134,8 +137,6 @@ const containerStyles = css({
 
 const cardStyles = css({
   backgroundColor: 'var(--vscode-editor-background)',
-  border: '1px solid var(--vscode-panel-border, #3C3C3C)',
-  borderRadius: spacing[100],
   padding: `${spacing[300]}px ${spacing[400]}px`,
   fontFamily:
     'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
@@ -191,13 +192,52 @@ const clickableRowStyles = css({
   cursor: 'pointer',
 });
 
+const showMoreButtonStyles = css({
+  color: 'var(--vscode-textLink-foreground, #3794ff)',
+  cursor: 'pointer',
+  background: 'none',
+  border: 'none',
+  padding: '8px 12px',
+  fontSize: '13px',
+  fontFamily: 'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  width: '100%',
+  '&:hover': {
+    textDecoration: 'underline',
+  },
+  '&::before': {
+    content: '"▸"',
+    display: 'inline-block',
+    transition: 'transform 0.2s',
+  },
+  '&[data-expanded="false"]::before': {
+    transform: 'rotate(90deg)',
+  },
+});
+
 const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
   document,
   themeColors,
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+  const [showAllFields, setShowAllFields] = useState(false);
 
   const nodes = useMemo(() => parseDocument(document), [document]);
+
+  // Count top-level fields
+  const totalFieldCount = useMemo(() => Object.keys(document).length, [document]);
+  const hasMoreFields = totalFieldCount > MAX_INITIAL_FIELDS;
+  const hiddenFieldCount = totalFieldCount - MAX_INITIAL_FIELDS;
+
+  // Determine which nodes to display (sliced or full)
+  const displayNodes = useMemo(() => {
+    if (!hasMoreFields || showAllFields) {
+      return nodes;
+    }
+    return nodes.slice(0, MAX_INITIAL_FIELDS);
+  }, [nodes, hasMoreFields, showAllFields]);
 
   const colors = useMemo(
     () => ({
@@ -434,13 +474,35 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
   };
 
   return (
-    <div className={containerStyles}>
-      <div className={cardStyles}>
-        {nodes.map((node, index) =>
-          renderNode(node, index === nodes.length - 1),
-        )}
+    <>
+      <div className={containerStyles}>
+        <div className={cardStyles}>
+          {displayNodes.map((node, index) =>
+            renderNode(node, index === displayNodes.length - 1),
+          )}
+        </div>
       </div>
-    </div>
+
+      {hasMoreFields && !showAllFields && (
+        <button
+          className={showMoreButtonStyles}
+          onClick={() => setShowAllFields(true)}
+          data-expanded="false"
+        >
+          Show {hiddenFieldCount} more field{hiddenFieldCount !== 1 ? 's' : ''}
+        </button>
+      )}
+
+      {hasMoreFields && showAllFields && (
+        <button
+          className={showMoreButtonStyles}
+          onClick={() => setShowAllFields(false)}
+          data-expanded="true"
+        >
+          Show less
+        </button>
+      )}
+    </>
   );
 };
 
