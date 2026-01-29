@@ -295,7 +295,7 @@ const PreviewApp: React.FC = () => {
             )}
           </div>
         ) : (
-          <CompassComponentsProvider>
+          <CompassComponentsProvider darkMode={true}>
             {displayedDocuments.map((doc, index) => (
               <DocumentTreeView
                 key={`${currentPage}-${index}`}
