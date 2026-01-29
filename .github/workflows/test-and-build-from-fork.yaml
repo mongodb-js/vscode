@@ -7,8 +7,42 @@ permissions:
   contents: read
 
 jobs:
-  test-and-build:
-    name: Test and Build
+  build-and-check:
+    name: Build and Check
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
+
+      - name: Run Checks
+        run: pnpm run check
+        shell: bash
+
+      - name: Build .vsix
+        env:
+          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
+        run: |
+          pnpm exec vsce package --githubBranch main
+        shell: bash
+
+      - name: Upload .vsix for tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: '*.vsix'
+
+  test:
+    name: Run Tests
+    needs: build-and-check
     if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
     strategy:
@@ -27,14 +61,41 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
 
-      - name: Run Checks
-        run: pnpm run check
-        # the glob here just fails
-        if: ${{ runner.os != 'Windows' }}
-
       - name: Run Tests
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
           MDB_IS_TEST: "true"
         run: pnpm run test
+
+  test-install:
+    name: Run Install Test
+    needs: build-and-check
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
+
+      - name: Download .vsix
+        uses: actions/download-artifact@v4
+        with:
+          name: vsix
+
+      - name: Run VSIX Install Test
+        env:
+          RUNNER_OS: ${{ runner.os }}
+        run: pnpm run test-install
+        shell: bash
