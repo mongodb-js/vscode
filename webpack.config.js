@@ -7,6 +7,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const DuplicatePackageCheckerPlugin = require('duplicate-package-checker-webpack-plugin');
 const { merge } = require('webpack-merge');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const { WebpackDependenciesPlugin } = require('@mongodb-js/sbom-tools');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -198,6 +199,14 @@ module.exports = (env, argv) => {
           exclude: /node_modules/,
           options: {},
         },
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
+        },
+        {
+          test: /\.ttf$/,
+          type: 'asset/resource',
+        },
       ],
     },
     plugins: [
@@ -218,6 +227,17 @@ module.exports = (env, argv) => {
             from: path.resolve(__dirname, 'node_modules/@vscode/codicons/dist'),
             to: 'codicons',
           },
+        ],
+      }),
+      // Bundle Monaco Editor assets locally (no CDN)
+      new MonacoWebpackPlugin({
+        languages: ['json'],
+        features: [
+          'coreCommands',
+          'find',
+          'bracketMatching',
+          'clipboard',
+          'folding',
         ],
       }),
     ],

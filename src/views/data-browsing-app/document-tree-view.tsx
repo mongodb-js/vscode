@@ -13,7 +13,7 @@ interface DocumentTreeViewProps {
 // Line height in pixels for Monaco editor
 const LINE_HEIGHT = 19;
 // Padding top and bottom for the editor
-const EDITOR_PADDING = 12;
+const EDITOR_PADDING = 0;
 // Maximum height for the editor (prevents huge documents from taking over)
 const MAX_EDITOR_HEIGHT = 400;
 
@@ -28,44 +28,44 @@ const cardStyles = css({
   overflow: 'hidden',
 });
 
-/**
- * Defines a Monaco theme that closely matches VS Code's Dark+ theme for JSON.
- * Uses transparent background so the card container controls the surface color.
- */
-function defineVsCodeLikeJsonTheme(monaco: typeof Monaco): void {
-  monaco.editor.defineTheme('vscodeLikeJson', {
-    base: 'vs-dark',
-    inherit: true,
-    rules: [
-      // JSON token colors matching VS Code Dark+
-      { token: 'string.key.json', foreground: '9CDCFE' },
-      { token: 'string.value.json', foreground: 'CE9178' },
-      { token: 'number', foreground: 'B5CEA8' },
-      { token: 'keyword.json', foreground: '569CD6' },
-      { token: 'delimiter.bracket.json', foreground: 'D4D4D4' },
-      { token: 'delimiter.comma.json', foreground: 'D4D4D4' },
-      { token: 'delimiter.colon.json', foreground: 'D4D4D4' },
-    ],
-    colors: {
-      'editor.background': '#00000000',
-      'editorLineNumber.foreground': '#00000000',
-      'editorLineNumber.activeForeground': '#00000000',
-      'editor.lineHighlightBackground': '#00000000',
-      'editorGutter.background': '#00000000',
-      'scrollbar.shadow': '#00000000',
-    },
-  });
-}
+const monacoWrapperStyles = css({
+  // Hide Monaco's internal textarea elements that appear as white boxes
+  '& .monaco-editor .native-edit-context': {
+    position: 'absolute',
+    top: '0 !important',
+    left: '0 !important',
+    width: '0 !important',
+    height: '0 !important',
+    overflow: 'hidden !important',
+    margin: '0 !important',
+    padding: '0 !important',
+    border: '0 !important',
+  },
 
-/**
- * Monaco editor options for read-only JSON viewer mode.
- * Configured to look like an embedded JSON block without editor chrome.
- */
+  '& .monaco-editor textarea.ime-text-area': {
+    position: 'absolute',
+    top: '0 !important',
+    left: '0 !important',
+    width: '1px !important',
+    height: '1px !important',
+    margin: '0 !important',
+    padding: '0 !important',
+    border: '0 !important',
+    outline: 'none !important',
+    boxShadow: 'none !important',
+    opacity: '0 !important',
+    background: 'transparent !important',
+    color: 'transparent !important',
+    lineHeight: '1px !important',
+    resize: 'none',
+  },
+});
+
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
   contextmenu: false,
   minimap: { enabled: false },
-  lineNumbers: 'off',
+  lineNumbers: 'on',
   glyphMargin: false,
   folding: false,
   renderLineHighlight: 'none',
@@ -99,12 +99,6 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
 const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({ document }) => {
   const monaco = useMonaco();
 
-  useEffect(() => {
-    if (monaco) {
-      defineVsCodeLikeJsonTheme(monaco);
-    }
-  }, [monaco]);
-
   const jsonValue = useMemo(() => {
     return JSON.stringify(document, null, 2);
   }, [document]);
@@ -128,15 +122,17 @@ const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({ documen
   }, [monaco]);
 
   return (
-    <Editor
-      height={editorHeight}
-      defaultLanguage="json"
-      value={jsonValue}
-      theme="vscodeLikeJson"
-      options={viewerOptions}
-      loading={null}
-      onMount={handleEditorMount}
-    />
+    <div className={monacoWrapperStyles}>
+      <Editor
+        height={editorHeight}
+        defaultLanguage="json"
+        value={jsonValue}
+        theme="vs-dark"
+        options={viewerOptions}
+        loading={null}
+        onMount={handleEditorMount}
+      />
+    </div>
   );
 };
 
