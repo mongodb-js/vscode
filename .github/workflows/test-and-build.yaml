@@ -202,4 +202,4 @@ jobs:
       - name: Generate Vulnerability Report (Fail on >= High)
         shell: bash
         run: |
-          pnpm run generate-vulnerability-report
+          pnpm run generate-vulnerability-report > /dev/null
