@@ -2,8 +2,13 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
-import { css, spacing } from '@mongodb-js/compass-components';
-import { SyntaxHighlighterViewer, CustomJsonViewer, type ViewerType } from './json-viewers';
+import { css, spacing, DocumentList } from '@mongodb-js/compass-components';
+import HadronDocument from 'hadron-document';
+import {
+  SyntaxHighlighterViewer,
+  CustomJsonViewer,
+  type ViewerType,
+} from './json-viewers';
 
 interface DocumentTreeViewProps {
   document: Record<string, unknown>;
@@ -22,8 +27,10 @@ const containerStyles = css({
 });
 
 const cardStyles = css({
-  backgroundColor: 'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
-  border: '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
+  backgroundColor:
+    'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
+  border:
+    '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
   borderRadius: '6px',
   overflow: 'hidden',
 });
@@ -86,7 +93,8 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   selectionHighlight: false,
   renderValidationDecorations: 'off',
   lineHeight: LINE_HEIGHT,
-  fontFamily: 'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
+  fontFamily:
+    'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
   fontSize: 13,
   // Disable find widget (Ctrl+F)
   find: {
@@ -96,7 +104,9 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   },
 };
 
-const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({ document }) => {
+const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({
+  document,
+}) => {
   const monaco = useMonaco();
 
   useEffect(() => {
@@ -117,15 +127,18 @@ const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({ documen
   }, [jsonValue]);
 
   // Disable find widget when editor mounts
-  const handleEditorMount = useCallback((editorInstance: editor.IStandaloneCodeEditor) => {
-    // Disable the find widget command
-    editorInstance.addCommand(
-      monaco?.KeyMod.CtrlCmd! | monaco?.KeyCode.KeyF!,
-      () => {
-        // Do nothing - prevents find widget from opening
-      }
-    );
-  }, [monaco]);
+  const handleEditorMount = useCallback(
+    (editorInstance: editor.IStandaloneCodeEditor) => {
+      // Disable the find widget command
+      editorInstance.addCommand(
+        monaco?.KeyMod.CtrlCmd! | monaco?.KeyCode.KeyF!,
+        () => {
+          // Do nothing - prevents find widget from opening
+        },
+      );
+    },
+    [monaco],
+  );
 
   return (
     <Editor
@@ -142,7 +155,7 @@ const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({ documen
 
 const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
   document,
-  viewerType = 'monaco'
+  viewerType = 'compass',
 }) => {
   const renderViewer = (): React.ReactNode => {
     switch (viewerType) {
@@ -150,6 +163,8 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
         return <SyntaxHighlighterViewer document={document} />;
       case 'custom':
         return <CustomJsonViewer document={document} />;
+      case 'compass':
+        return <DocumentList.Document value={new HadronDocument(document)} />;
       case 'monaco':
       default:
         return <MonacoViewer document={document} />;
@@ -158,13 +173,10 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
 
   return (
     <div className={containerStyles}>
-      <div className={cardStyles}>
-        {renderViewer()}
-      </div>
+      <div className={cardStyles}>{renderViewer()}</div>
     </div>
   );
 };
 
 export default DocumentTreeView;
 export type { ViewerType };
-

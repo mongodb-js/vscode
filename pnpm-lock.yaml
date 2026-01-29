@@ -75,6 +75,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
+      hadron-document:
+        specifier: ^8.10.9
+        version: 8.10.9(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -5406,14 +5409,17 @@ packages:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}
     engines: {node: '>=10'}
 
-  hadron-document@8.10.5:
-    resolution: {integrity: sha512-hXnBBi+9HLr/nY3Hedketfd1yPZdEHY6+vKbxetR8Sk11OcX9D4D3vEg4+5l0RUQ0lF6XMtTq9xwdhpxqD1VZQ==}
+  hadron-document@8.10.9:
+    resolution: {integrity: sha512-Q5ccJmZSNnCRQhy3fCq9yr6guW9zPszgRDTj6VUu8XTwQ8LuYhNk/DLLqSIbxpuWzzPQVc1JpnIS2wOc4TzD8A==}
 
   hadron-ipc@3.5.22:
     resolution: {integrity: sha512-ZH4SG9aR1XfDBU4XtBnmw4ZwKEciXEwdzUrJePpMwat88UJ6lfyV79GuLM1ghC3j/zWgdp1ytaad2ypqqLQO/w==}
 
   hadron-type-checker@7.4.23:
     resolution: {integrity: sha512-ks028PiDW/p1YnUdrQ52XBfSS9u/jry6u8F0VSzvzeKGRgI3j20qokON2stwcKKmeIxwOsIfiuykRenYuLuBug==}
+
+  hadron-type-checker@7.4.27:
+    resolution: {integrity: sha512-LvtiISBl7sFvzTn3qXAwMGsgEy9Dx0IBp2xpYzwPvBSfA+DGSDIIoozNkDwOpgAT6s0CfGD0TLvEYPzntg93Kw==}
 
   hard-rejection@2.1.0:
     resolution: {integrity: sha512-VIZB+ibDhx7ObhAe7OVtoEbuP4h/MuOTHJ+J8h/eBXotJYl0fBgR72xDFCKgIh22OJZIOVNxBMWuhAr10r8HdA==}
@@ -9987,17 +9993,9 @@ snapshots:
       react-dom: 17.0.2(react@18.3.1)
       tslib: 2.8.1
 
-  '@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@dnd-kit/accessibility': 3.1.1(react@18.3.1)
-      '@dnd-kit/utilities': 3.2.2(react@18.3.1)
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      tslib: 2.8.1
-
   '@dnd-kit/sortable@7.0.2(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@dnd-kit/core': 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@dnd-kit/core': 6.3.1(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@dnd-kit/utilities': 3.2.2(react@18.3.1)
       react: 18.3.1
       tslib: 2.8.1
@@ -10468,7 +10466,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/logo': 11.1.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
@@ -10481,7 +10479,7 @@ snapshots:
   '@leafygreen-ui/badge@10.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10494,7 +10492,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10506,7 +10504,7 @@ snapshots:
   '@leafygreen-ui/button@24.0.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -10521,7 +10519,7 @@ snapshots:
   '@leafygreen-ui/button@25.1.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -10536,7 +10534,7 @@ snapshots:
   '@leafygreen-ui/card@13.3.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -10550,7 +10548,7 @@ snapshots:
       '@leafygreen-ui/a11y': 3.0.5(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10567,7 +10565,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/inline-definition': 9.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10585,7 +10583,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/select': 17.0.2(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -10618,7 +10616,7 @@ snapshots:
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/input-option': 4.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/popover': 14.3.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -10638,7 +10636,7 @@ snapshots:
       '@leafygreen-ui/button': 24.0.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/modal': 18.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(prop-types@15.8.1)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
@@ -10657,7 +10655,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10674,7 +10672,7 @@ snapshots:
   '@leafygreen-ui/descendants@3.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -10688,7 +10686,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -10718,7 +10716,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
@@ -10732,7 +10730,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10749,7 +10747,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/popover': 14.3.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -10779,7 +10777,7 @@ snapshots:
       '@leafygreen-ui/a11y': 3.0.5(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -10802,7 +10800,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10816,7 +10814,7 @@ snapshots:
   '@leafygreen-ui/inline-definition@9.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10831,7 +10829,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/a11y': 3.0.5(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -10846,16 +10844,6 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       react-transition-group: 4.4.5(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
-    transitivePeerDependencies:
-      - react
-      - react-dom
-      - supports-color
-
-  '@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
-      react-transition-group: 4.4.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - react
       - react-dom
@@ -10879,7 +10867,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/button': 25.1.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/modal': 19.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(prop-types@15.8.1)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
@@ -10899,7 +10887,7 @@ snapshots:
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/input-option': 4.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -10921,7 +10909,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/portal': 7.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -10943,7 +10931,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/portal': 7.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -10966,7 +10954,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -10990,7 +10978,7 @@ snapshots:
       '@floating-ui/react': 0.26.28(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/portal': 7.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11016,7 +11004,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11028,7 +11016,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11061,7 +11049,7 @@ snapshots:
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/input-option': 4.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11081,7 +11069,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11101,7 +11089,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/input-option': 4.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/popover': 14.3.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -11126,7 +11114,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/input-option': 4.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/popover': 14.3.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -11149,7 +11137,7 @@ snapshots:
       '@leafygreen-ui/card': 13.3.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11165,7 +11153,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/menu': 33.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
@@ -11184,7 +11172,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11208,7 +11196,7 @@ snapshots:
       '@leafygreen-ui/descendants': 3.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11225,7 +11213,7 @@ snapshots:
       '@leafygreen-ui/form-field': 4.0.8(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11240,7 +11228,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/form-field': 3.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
       '@leafygreen-ui/typography': 21.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -11254,7 +11242,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/form-field': 4.0.8(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -11269,7 +11257,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/portal': 7.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -11288,7 +11276,7 @@ snapshots:
       '@leafygreen-ui/a11y': 3.0.5(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11323,7 +11311,7 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11340,7 +11328,7 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/popover': 14.3.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
@@ -11358,7 +11346,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11371,7 +11359,7 @@ snapshots:
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11406,11 +11394,11 @@ snapshots:
     dependencies:
       '@leafygreen-ui/avatar': 3.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
-      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - react
       - supports-color
@@ -11418,11 +11406,11 @@ snapshots:
   '@lg-chat/chat-window@4.1.6(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
-      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@lg-chat/title-bar': 4.2.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       react-keyed-flatten-children: 2.2.1(react@18.3.1)
     transitivePeerDependencies:
@@ -11440,7 +11428,7 @@ snapshots:
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/input-option': 4.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11448,7 +11436,7 @@ snapshots:
       '@leafygreen-ui/search-input': 6.1.2(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       lodash: 4.17.21
       react-keyed-flatten-children: 1.3.0(react@18.3.1)
       react-textarea-autosize: 8.5.9(@types/react@17.0.90)(react@18.3.1)
@@ -11465,18 +11453,11 @@ snapshots:
       - react
       - react-dom
 
-  '@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      use-resize-observer: 9.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-    transitivePeerDependencies:
-      - react
-      - react-dom
-
   '@lg-chat/lg-markdown@4.2.2(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@leafygreen-ui/code': 20.2.5(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
@@ -11495,14 +11476,14 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/popover': 14.3.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/text-area': 12.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - '@types/react'
       - react
@@ -11515,12 +11496,12 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - react
       - supports-color
@@ -11534,13 +11515,13 @@ snapshots:
       '@leafygreen-ui/hooks': 9.3.0(react@18.3.1)
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
       '@leafygreen-ui/tokens': 3.2.4(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@lg-chat/lg-markdown': 4.2.2(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@lg-chat/message-feedback': 7.1.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@types/react@17.0.90)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@lg-chat/message-rating': 5.0.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
@@ -11556,7 +11537,7 @@ snapshots:
       '@leafygreen-ui/card': 13.3.0(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/palette': 5.0.2
       '@leafygreen-ui/polymorphic': 3.1.0(react@18.3.1)
@@ -11572,12 +11553,12 @@ snapshots:
       '@leafygreen-ui/emotion': 5.1.0
       '@leafygreen-ui/icon': 14.7.1(react@18.3.1)
       '@leafygreen-ui/icon-button': 17.1.4(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@leafygreen-ui/leafygreen-provider': 5.0.4(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       '@leafygreen-ui/lib': 15.7.0(react@18.3.1)
       '@leafygreen-ui/tokens': 4.1.0(react@18.3.1)
       '@leafygreen-ui/typography': 22.2.3(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@lg-chat/avatar': 8.0.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@lg-chat/leafygreen-chat-provider@5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
-      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lg-chat/leafygreen-chat-provider': 5.1.0(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - react
       - supports-color
@@ -11817,7 +11798,7 @@ snapshots:
       '@react-aria/visually-hidden': 3.8.28(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
       bson: 6.10.4
       focus-trap-react: 9.0.2(prop-types@15.8.1)(react-dom@17.0.2(react@18.3.1))(react@18.3.1)
-      hadron-document: 8.10.5(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7)
+      hadron-document: 8.10.9(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7)
       hadron-type-checker: 7.4.23
       is-electron-renderer: 2.0.1
       lodash: 4.17.21
@@ -15668,11 +15649,11 @@ snapshots:
     dependencies:
       duplexer: 0.1.2
 
-  hadron-document@8.10.5(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7):
+  hadron-document@8.10.9(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7):
     dependencies:
       bson: 6.10.4
       eventemitter3: 4.0.7
-      hadron-type-checker: 7.4.23
+      hadron-type-checker: 7.4.27
       lodash: 4.17.21
       mongodb: 6.21.0(kerberos@2.1.0)(mongodb-client-encryption@6.5.0)(socks@2.8.7)
     transitivePeerDependencies:
@@ -15693,6 +15674,11 @@ snapshots:
       - supports-color
 
   hadron-type-checker@7.4.23:
+    dependencies:
+      bson: 6.10.4
+      lodash: 4.17.21
+
+  hadron-type-checker@7.4.27:
     dependencies:
       bson: 6.10.4
       lodash: 4.17.21
@@ -18151,15 +18137,6 @@ snapshots:
       react: 18.3.1
       react-dom: 17.0.2(react@18.3.1)
 
-  react-transition-group@4.4.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      '@babel/runtime': 7.28.4
-      dom-helpers: 5.2.1
-      loose-envify: 1.4.0
-      prop-types: 15.8.1
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-
   react-virtualized-auto-sizer@1.0.26(react-dom@17.0.2(react@18.3.1))(react@18.3.1):
     dependencies:
       react: 18.3.1
@@ -19460,12 +19437,6 @@ snapshots:
       '@juggle/resize-observer': 3.4.0
       react: 18.3.1
       react-dom: 17.0.2(react@18.3.1)
-
-  use-resize-observer@9.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
-    dependencies:
-      '@juggle/resize-observer': 3.4.0
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
 
   use-sync-external-store@1.6.0(react@18.3.1):
     dependencies:

@@ -6,7 +6,11 @@ import {
   VscodeProgressRing,
   VscodeSingleSelect,
 } from '@vscode-elements/react-elements';
-import { css, spacing } from '@mongodb-js/compass-components';
+import {
+  CompassComponentsProvider,
+  css,
+  spacing,
+} from '@mongodb-js/compass-components';
 import {
   VSCODE_PANEL_BORDER,
   VSCODE_EDITOR_BACKGROUND,
@@ -34,6 +38,7 @@ const VIEWER_TYPE_OPTIONS: { value: ViewerType; label: string }[] = [
   { value: 'monaco', label: 'Monaco' },
   { value: 'syntax-highlighter', label: 'Syntax Highlighter' },
   { value: 'custom', label: 'Custom' },
+  { value: 'compass', label: 'DocumentListView' },
 ];
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
@@ -290,7 +295,7 @@ const PreviewApp: React.FC = () => {
             )}
           </div>
         ) : (
-          <>
+          <CompassComponentsProvider>
             {displayedDocuments.map((doc, index) => (
               <DocumentTreeView
                 key={`${currentPage}-${index}`}
@@ -301,7 +306,7 @@ const PreviewApp: React.FC = () => {
             {displayedDocuments.length === 0 && !getDocumentsError && (
               <div className={emptyStateStyles}>No documents to display</div>
             )}
-          </>
+          </CompassComponentsProvider>
         )}
       </div>
     </div>

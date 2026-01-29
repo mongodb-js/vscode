@@ -1460,6 +1460,7 @@
     "bson": "^6.10.4",
     "debug": "^4.3.7",
     "dotenv": "^16.4.5",
+    "hadron-document": "^8.10.9",
     "lodash": "^4.17.21",
     "micromatch": "^4.0.8",
     "mongodb": "^6.20.0",

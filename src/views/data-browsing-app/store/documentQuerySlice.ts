@@ -69,7 +69,7 @@ export const initialState: DocumentQueryState = {
   totalPages: 1,
   startItem: 0,
   endItem: 0,
-  viewerType: 'monaco',
+  viewerType: 'compass',
 };
 
 const documentQuerySlice = createSlice({
