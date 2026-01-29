@@ -180,6 +180,13 @@ const keyValueContainerStyles = css({
   flexWrap: 'wrap',
 });
 
+const valueStyles = css({
+  maxWidth: '70ch',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
 const clickableRowStyles = css({
   cursor: 'pointer',
 });
@@ -406,7 +413,7 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
               &quot;{node.key}&quot;
             </span>
             <span style={{ color: colors.divider }}>:</span>
-            <span style={{ color: valueColor }}>
+            <span className={valueStyles} style={{ color: valueColor }}>
               {isIdField
                 ? formatIdValue(node.value)
                 : formatValue(node.value, node.type, isExp)}
