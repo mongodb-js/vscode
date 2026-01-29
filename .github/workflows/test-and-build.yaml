@@ -170,7 +170,7 @@ jobs:
             *.vsix.sig
 
   test-snyk:
-    name: Vulnerability Report
+    name: Run Snyk
     runs-on: ubuntu-latest
     needs: [build-and-check]
 
