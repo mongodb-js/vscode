@@ -6,6 +6,7 @@ import {
   sendCancelRequest,
 } from '../vscode-api';
 import type { ViewerType } from '../json-viewers';
+import { JsonTokenColors } from '../../../utils/themeColorReader';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -31,6 +32,7 @@ export interface DocumentQueryState {
   startItem: number;
   endItem: number;
   viewerType: ViewerType;
+  themeColors: JsonTokenColors | null;
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -70,6 +72,7 @@ export const initialState: DocumentQueryState = {
   startItem: 0,
   endItem: 0,
   viewerType: 'monaco',
+  themeColors: null,
 };
 
 const documentQuerySlice = createSlice({
@@ -162,6 +165,12 @@ const documentQuerySlice = createSlice({
     viewerTypeChanged: (state, action: PayloadAction<ViewerType>) => {
       state.viewerType = action.payload;
     },
+    themeColorsReceived: (
+      state,
+      action: PayloadAction<JsonTokenColors | null>,
+    ) => {
+      state.themeColors = action.payload;
+    },
   },
 });
 
@@ -179,6 +188,7 @@ export const {
   totalCountReceived,
   totalCountFetchFailed,
   viewerTypeChanged,
+  themeColorsReceived,
 } = documentQuerySlice.actions;
 
 export type StateWithDocumentQuery = { documentQuery: DocumentQueryState };

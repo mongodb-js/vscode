@@ -10,6 +10,7 @@ import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
+import { getThemeTokenColors } from '../utils/themeColorReader';
 
 const log = createLogger('data browsing controller');
 
@@ -55,6 +56,7 @@ export default class DataBrowsingController {
   _connectionController: ConnectionController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
+  _configChangedSubscription: vscode.Disposable;
 
   _panelAbortControllers: Map<vscode.WebviewPanel, PanelAbortControllers> =
     new Map();
@@ -68,9 +70,13 @@ export default class DataBrowsingController {
   }) {
     this._connectionController = connectionController;
     this._telemetryService = telemetryService;
+    this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
+      this.onConfigurationChanged,
+    );
   }
 
   deactivate(): void {
+    this._configChangedSubscription?.dispose();
     for (const controllers of this._panelAbortControllers.values()) {
       controllers.documents?.abort();
       controllers.totalCount?.abort();
@@ -124,6 +130,9 @@ export default class DataBrowsingController {
       case PreviewMessageType.cancelRequest:
         this.handleCancelRequest(panel);
         return;
+      case PreviewMessageType.getThemeColors:
+        this._sendThemeColors(panel);
+        return;
       default:
         // no-op.
         return;
@@ -151,6 +160,8 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     const abortController = this._createAbortController(panel, 'documents');
     const { signal } = abortController;
+
+    this._sendThemeColors(panel);
 
     try {
       const documents = await this._fetchDocuments(
@@ -259,6 +270,14 @@ export default class DataBrowsingController {
     );
   };
 
+  onConfigurationChanged = (event: vscode.ConfigurationChangeEvent): void => {
+    if (event.affectsConfiguration('workbench.colorTheme')) {
+      for (const panel of this._activeWebviewPanels) {
+        this._sendThemeColors(panel);
+      }
+    }
+  };
+
   private async _getTotalCount(
     namespace: string,
     collectionType: string,
@@ -329,5 +348,13 @@ export default class DataBrowsingController {
     );
 
     return panel;
+  }
+
+  private _sendThemeColors(panel: vscode.WebviewPanel): void {
+    const themeColors = getThemeTokenColors();
+    void panel.webview.postMessage({
+      command: PreviewMessageType.updateThemeColors,
+      themeColors,
+    });
   }
 }

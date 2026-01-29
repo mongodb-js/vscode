@@ -4,10 +4,12 @@ import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
 import { css, spacing } from '@mongodb-js/compass-components';
 import { SyntaxHighlighterViewer, CustomJsonViewer, type ViewerType } from './json-viewers';
+import { JsonTokenColors } from '../../utils/themeColorReader';
 
 interface DocumentTreeViewProps {
   document: Record<string, unknown>;
   viewerType?: ViewerType;
+  themeColors?: JsonTokenColors;
 }
 
 // Line height in pixels for Monaco editor
@@ -353,14 +355,15 @@ const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({ documen
 
 const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
   document,
-  viewerType = 'monaco'
+  viewerType = 'monaco',
+  themeColors,
 }) => {
   const renderViewer = (): React.ReactNode => {
     switch (viewerType) {
       case 'syntax-highlighter':
         return <SyntaxHighlighterViewer document={document} />;
       case 'custom':
-        return <CustomJsonViewer document={document} />;
+        return <CustomJsonViewer document={document} themeColors={themeColors} />;
       case 'monaco':
       default:
         return <MonacoViewer document={document} />;

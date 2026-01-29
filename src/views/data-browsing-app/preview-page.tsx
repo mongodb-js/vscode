@@ -29,6 +29,7 @@ import {
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
 import DocumentTreeView, { type ViewerType } from './document-tree-view';
+import { sendGetThemeColors } from './vscode-api';
 
 const VIEWER_TYPE_OPTIONS: { value: ViewerType; label: string }[] = [
   { value: 'monaco', label: 'Monaco' },
@@ -141,6 +142,7 @@ const PreviewApp: React.FC = () => {
     startItem,
     endItem,
     viewerType,
+    themeColors,
     errors: {
       getDocuments: getDocumentsError,
       getTotalCount: getTotalCountError,
@@ -153,6 +155,7 @@ const PreviewApp: React.FC = () => {
 
   useEffect(() => {
     const cleanup = setupMessageHandler(dispatch);
+    sendGetThemeColors();
     dispatch(initialDocumentsFetchRequested());
     return cleanup;
   }, [dispatch]);
@@ -296,6 +299,7 @@ const PreviewApp: React.FC = () => {
                 key={`${currentPage}-${index}`}
                 document={doc}
                 viewerType={viewerType}
+                themeColors={themeColors ?? undefined}
               />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (
