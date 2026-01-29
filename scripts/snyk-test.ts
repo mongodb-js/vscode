@@ -5,13 +5,17 @@ const os = require('os');
 const { promisify } = require('util');
 const execFile = promisify(childProcess.execFile);
 
-async function snykTest(cwd) {
+async function snykTest(cwd): Promise<{
+  error?: Error;
+  results: Record<string, unknown>;
+}> {
   const tmpPath = path.join(os.tmpdir(), 'tempfile-' + Date.now());
 
   try {
     console.info(`testing ${cwd} ...`);
     await fs.mkdir(path.join(cwd, `node_modules`), { recursive: true });
 
+    let error: Error | undefined = undefined;
     try {
       await execFile(
         'pnpm',
@@ -27,14 +31,15 @@ async function snykTest(cwd) {
         { cwd, stdio: 'ignore' },
       );
     } catch (err) {
-      throw new Error(
-        `Snyk test failed to produce results for ${cwd}. Check the report for details.`,
-      );
+      error = err;
     }
 
     const res = JSON.parse(await fs.readFile(tmpPath));
     console.info(`Testing ${cwd} completed.`);
-    return res;
+    return {
+      error,
+      results: res,
+    };
   } finally {
     try {
       await fs.rm(tmpPath);
@@ -47,7 +52,7 @@ async function snykTest(cwd) {
 async function main() {
   const rootPath = path.resolve(__dirname, '..');
   await fs.mkdir(path.join(rootPath, `.sbom`), { recursive: true });
-  const results = await snykTest(rootPath);
+  const { results, error } = await snykTest(rootPath);
 
   if (!results) {
     console.error('Snyk test failed to produce results');
@@ -70,6 +75,12 @@ async function main() {
     ],
     { cwd: rootPath },
   );
+
+
+  if (error) {
+    console.error('Snyk test failed. Check the report for details.');
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {
