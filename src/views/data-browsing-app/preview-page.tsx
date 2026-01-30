@@ -6,11 +6,7 @@ import {
   VscodeProgressRing,
   VscodeSingleSelect,
 } from '@vscode-elements/react-elements';
-import {
-  CompassComponentsProvider,
-  css,
-  spacing,
-} from '@mongodb-js/compass-components';
+import { css, spacing } from '@mongodb-js/compass-components';
 import {
   VSCODE_PANEL_BORDER,
   VSCODE_EDITOR_BACKGROUND,
@@ -295,18 +291,17 @@ const PreviewApp: React.FC = () => {
             )}
           </div>
         ) : (
-          <CompassComponentsProvider darkMode={true}>
-            {displayedDocuments.map((doc, index) => (
+          <>
+            {
               <DocumentTreeView
-                key={`${currentPage}-${index}`}
-                document={doc}
+                documents={displayedDocuments}
                 viewerType={viewerType}
               />
-            ))}
+            }
             {displayedDocuments.length === 0 && !getDocumentsError && (
               <div className={emptyStateStyles}>No documents to display</div>
             )}
-          </CompassComponentsProvider>
+          </>
         )}
       </div>
     </div>

@@ -11,7 +11,7 @@ import {
 } from './json-viewers';
 
 interface DocumentTreeViewProps {
-  document: Record<string, unknown>;
+  documents: Record<string, unknown>[];
   viewerType?: ViewerType;
 }
 
@@ -22,9 +22,7 @@ const EDITOR_PADDING = 12;
 // Maximum height for the editor (prevents huge documents from taking over)
 const MAX_EDITOR_HEIGHT = 400;
 
-const containerStyles = css({
-  marginBottom: spacing[200],
-});
+const cardListStyles = css({});
 
 const cardStyles = css({
   backgroundColor:
@@ -33,6 +31,7 @@ const cardStyles = css({
     '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
   borderRadius: '6px',
   overflow: 'hidden',
+  marginBottom: spacing[200],
 });
 
 /**
@@ -153,18 +152,26 @@ const MonacoViewer: React.FC<{ document: Record<string, unknown> }> = ({
   );
 };
 
+const CompassDocumentTreeView: React.FC<{
+  document: Record<string, unknown>;
+}> = ({ document }) => {
+  const hadronDoc = useMemo(() => new HadronDocument(document), [document]);
+
+  return <DocumentList.Document value={hadronDoc} />;
+};
+
 const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
-  document,
+  documents,
   viewerType = 'compass',
 }) => {
-  const renderViewer = (): React.ReactNode => {
+  const renderViewer = (document): React.ReactNode => {
     switch (viewerType) {
       case 'syntax-highlighter':
         return <SyntaxHighlighterViewer document={document} />;
       case 'custom':
         return <CustomJsonViewer document={document} />;
       case 'compass':
-        return <DocumentList.Document value={new HadronDocument(document)} />;
+        return <CompassDocumentTreeView document={document} />;
       case 'monaco':
       default:
         return <MonacoViewer document={document} />;
@@ -172,8 +179,10 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
   };
 
   return (
-    <div className={containerStyles}>
-      <div className={cardStyles}>{renderViewer()}</div>
+    <div className={cardListStyles}>
+      {documents.map((doc) => {
+        return <div className={cardStyles}>{renderViewer(doc)}</div>;
+      })}
     </div>
   );
 };
