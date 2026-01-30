@@ -18,20 +18,12 @@ const MAX_EDITOR_HEIGHT = Infinity;
 const monacoWrapperStyles = css({
   paddingLeft: "10px",
 
-  // Aggressively hide ALL left margin/gutter elements
-  '& .monaco-editor .margin': {
+  // Hide line numbers and glyph margin, but keep folding controls visible
+  '& .monaco-editor .line-numbers': {
     display: 'none !important',
   },
 
   '& .monaco-editor .glyph-margin': {
-    display: 'none !important',
-  },
-
-  '& .monaco-editor .margin-view-overlays': {
-    display: 'none !important',
-  },
-
-  '& .monaco-editor .line-numbers': {
     display: 'none !important',
   },
 
@@ -107,10 +99,13 @@ const showMoreButtonStyles = css({
 
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
+  domReadOnly: false, // Allow DOM interactions like copy
   contextmenu: false,
   minimap: { enabled: false },
   glyphMargin: false,
-  folding: false,
+  folding: true,
+  foldingStrategy: 'indentation',
+  showFoldingControls: 'always',
   lineDecorationsWidth: 0,
   lineNumbersMinChars: 0,
   renderLineHighlight: 'none',
