@@ -71,18 +71,9 @@ jobs:
           pnpm version "${NEXT_VERSION}" --no-git-tag-version
           RELEASE_TAG="v${NEXT_VERSION}"
           echo "release_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
-          echo "RELEASE_TAG=${RELEASE_TAG}" >> "$GITHUB_ENV"
 
-      - name: Validate release tag
-        shell: bash
-        run: |
-          if [ -z "${{ steps.set-version.outputs.release_tag }}" ]; then
-            echo "RELEASE_TAG is not set or is empty"
-            exit 1
-          fi
-
-          if git rev-parse "${{ steps.set-version.outputs.release_tag }}" >/dev/null 2>&1; then
-            echo "Error: Tag ${{ steps.set-version.outputs.release_tag }} already existing"
+          if git rev-parse "${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "Error: Tag ${RELEASE_TAG} already existing"
             echo "If you are trying to re-create a draft release with this version, please delete the release and the tag first."
             echo "If this version has already been release consider using a different one."
             exit 1
@@ -274,9 +265,10 @@ jobs:
           pnpm run generate-vulnerability-report > /dev/null
 
       - name: Create Draft Release
+        env:
+          RELEASE_TAG: ${{ needs.prepare-version.outputs.release_tag }}
         run: |
           set -e
-          RELEASE_TAG="${{ needs.prepare-version.outputs.release_tag }}"
           echo Creating draft release for: "${RELEASE_TAG}"
           ls *.vsix
           ls *.vsix.sig
