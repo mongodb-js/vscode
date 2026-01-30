@@ -32,6 +32,10 @@ const cardStyles = css({
   borderRadius: '6px',
   overflow: 'hidden',
   marginBottom: spacing[200],
+  padding: spacing[400],
+  button: {
+    color: 'var(--vscode-editor-foreground, var(--vscode-foreground))',
+  },
 });
 
 /**
@@ -160,6 +164,8 @@ const CompassDocumentTreeView: React.FC<{
   return <DocumentList.Document value={hadronDoc} />;
 };
 
+const listItemStyles = css({});
+
 const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
   documents,
   viewerType = 'compass',
@@ -180,8 +186,12 @@ const DocumentTreeView: React.FC<DocumentTreeViewProps> = ({
 
   return (
     <div className={cardListStyles}>
-      {documents.map((doc) => {
-        return <div className={cardStyles}>{renderViewer(doc)}</div>;
+      {documents.map((doc, index) => {
+        return (
+          <div key={`doc-${index}`} className={cardStyles}>
+            {renderViewer(doc)}
+          </div>
+        );
       })}
     </div>
   );
