@@ -9,7 +9,10 @@ import { getDisplayNameForDocument } from '../utils/documentName';
 
 export const DOCUMENT_ITEM = 'documentTreeItem';
 
-function _getDocumentName(document: Document, documentIndexInTree: number) {
+function _getDocumentName(
+  document: Document,
+  documentIndexInTree: number,
+): string {
   const name = getDisplayNameForDocument(document);
 
   if (name && name.length > 0) {

@@ -2,7 +2,9 @@ import * as vscode from 'vscode';
 import { toJSString } from 'mongodb-query-parser';
 import type { Document } from 'bson';
 
-export function getDisplayNameForDocument(document: Document) {
+export function getDisplayNameForDocument(
+  document: Document,
+): string | undefined {
   // We use the array of display names from the user's settings
   // for pulling the name from the document. When the setting isn't
   // defined, we fallback to using the _id field.
@@ -10,7 +12,7 @@ export function getDisplayNameForDocument(document: Document) {
     .getConfiguration('mdb')
     .get('defaultDocumentDisplayName');
 
-  let namedFieldValue;
+  let namedFieldValue: string | undefined = undefined;
 
   if (
     defaultDisplayNameConfiguration &&
@@ -35,6 +37,9 @@ export function getDisplayNameForDocument(document: Document) {
     }
   }
 
+  // document._id could be undefined, all of the fields in the
+  // defaultDisplayNameConfiguration could be missing and toJSString() could
+  // also return undefined.
   const documentName =
     namedFieldValue || document._id === undefined
       ? namedFieldValue
