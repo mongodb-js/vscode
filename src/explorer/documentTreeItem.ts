@@ -5,8 +5,24 @@ import type { DataService } from 'mongodb-data-service';
 import { toJSString } from 'mongodb-query-parser';
 
 import formatError from '../utils/formatError';
+import { getDisplayNameForDocument } from '../utils/documentName';
 
 export const DOCUMENT_ITEM = 'documentTreeItem';
+
+function _getDocumentName(
+  document: Document,
+  documentIndexInTree: number,
+): string {
+  const name = getDisplayNameForDocument(document);
+
+  if (name && name.length > 0) {
+    return name;
+  }
+
+  // A document can not have a `_id` when it is in a view. In this instance
+  // we just show the document's index in the tree.
+  return `Document ${documentIndexInTree + 1}`;
+}
 
 export default class DocumentTreeItem
   extends vscode.TreeItem
@@ -34,12 +50,8 @@ export default class DocumentTreeItem
     dataService: DataService;
     resetDocumentListCache: () => Promise<void>;
   }) {
-    // A document can not have a `_id` when it is in a view. In this instance
-    // we just show the document's index in the tree.
     super(
-      document._id
-        ? JSON.stringify(document._id)
-        : `Document ${documentIndexInTree + 1}`,
+      _getDocumentName(document, documentIndexInTree),
       vscode.TreeItemCollapsibleState.None,
     );
 
