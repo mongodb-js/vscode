@@ -153,7 +153,7 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   minimap: { enabled: false },
   glyphMargin: false,
   folding: true,
-  foldingStrategy: 'indentation',
+  foldingStrategy: 'auto',
   showFoldingControls: 'always',
   lineDecorationsWidth: 0,
   lineNumbersMinChars: 0,
@@ -341,6 +341,47 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
           'editorGutter.background': '#00000000',
         },
       });
+
+      // Register custom folding range provider to exclude root object
+      const disposable = monaco.languages.registerFoldingRangeProvider('typescript', {
+        provideFoldingRanges: (model) => {
+          const ranges: Monaco.languages.FoldingRange[] = [];
+          const lines = model.getLinesContent();
+
+          // Stack to track opening braces/brackets and their line numbers
+          const stack: { char: string; line: number }[] = [];
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+
+            for (let j = 0; j < line.length; j++) {
+              const char = line[j];
+
+              if (char === '{' || char === '[') {
+                stack.push({ char, line: i + 1 }); // Monaco uses 1-based line numbers
+              } else if (char === '}' || char === ']') {
+                if (stack.length > 0) {
+                  const opening = stack.pop()!;
+                  // Only add folding range if it's not the root object (line 1)
+                  if (opening.line !== 1) {
+                    ranges.push({
+                      start: opening.line,
+                      end: i + 1,
+                      kind: monaco.languages.FoldingRangeKind.Region,
+                    });
+                  }
+                }
+              }
+            }
+          }
+
+          return ranges;
+        },
+      });
+
+      return () => {
+        disposable.dispose();
+      };
     }
   }, [monaco, colors]);
 
@@ -390,6 +431,31 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
 
       setContextMenu({ x, y });
     });
+
+    // Disable folding for line 1 by hiding the folding widget
+    const hideLine1FoldingWidget = () => {
+      const editorDom = editorInstance.getDomNode();
+      if (editorDom) {
+        // Find all folding widgets
+        const foldingWidgets = editorDom.querySelectorAll('.cldr');
+        // Hide the first one (line 1)
+        if (foldingWidgets.length > 0) {
+          (foldingWidgets[0] as HTMLElement).style.display = 'none';
+        }
+      }
+    };
+
+    // Initial hide
+    setTimeout(hideLine1FoldingWidget, 100);
+
+    // Re-hide on content changes (in case editor re-renders)
+    const disposable = editorInstance.onDidChangeModelContent(() => {
+      setTimeout(hideLine1FoldingWidget, 50);
+    });
+
+    return () => {
+      disposable.dispose();
+    };
   }, [monaco]);
 
   // Close context menu when clicking outside
