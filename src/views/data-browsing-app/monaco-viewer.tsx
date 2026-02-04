@@ -85,16 +85,28 @@ const monacoWrapperStyles = css({
     resize: 'none',
   },
 
-  // Style for expand indicators (🔍 emoji)
+  // Style for expand indicators (⋯ character)
   '& .monaco-editor .expand-indicator': {
     cursor: 'pointer !important',
-    opacity: '0.7 !important',
-    transition: 'opacity 0.2s ease !important',
+    position: 'relative',
+    color: 'transparent !important', // Hide the original character
+    transition: 'all 0.2s ease !important',
   },
 
-  '& .monaco-editor .expand-indicator:hover': {
+  // Add the ⋯ back with correct styling using ::before
+  '& .monaco-editor .expand-indicator::before': {
+    content: '"⋯"',
+    position: 'absolute',
+    left: 0,
+    color: 'var(--vscode-textLink-foreground, #3794ff) !important',
+    fontWeight: 'bold !important',
+    opacity: 0.8,
+    transition: 'all 0.2s ease',
+  },
+
+  '& .monaco-editor .expand-indicator:hover::before': {
     opacity: '1 !important',
-    transform: 'scale(1.2) !important',
+    transform: 'scale(1.3) !important',
   },
 });
 
@@ -307,12 +319,7 @@ function formatJsonWithUnquotedKeys(
       return `\`${indentedLines.join('\n')}\``;
     }
 
-    const formattedString = `"${obj}"`;
-    // Add expand icon if this string is truncated
-    if (truncationMap && currentPath && truncationMap.has(currentPath)) {
-      return `${formattedString} 🔍`;
-    }
-    return formattedString;
+    return `"${obj}"`;
   }
 
   if (typeof obj === 'number' || typeof obj === 'boolean') {
@@ -483,8 +490,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     setEditorHeight(calculateHeight());
   }, [jsonValue, calculateHeight]);
 
-  // Add decorations to make 🔍 indicators clickable
-  const addExpandIndicatorDecorations = useCallback(() => {
+  // Add decorations to highlight truncated strings
+  const addTruncatedStringDecorations = useCallback(() => {
     if (!editorRef.current || !monaco) return;
 
     const model = editorRef.current.getModel();
@@ -495,12 +502,14 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     const lines = text.split('\n');
 
     lines.forEach((line, index) => {
-      // Look for the 🔍 emoji after a closing quote
-      const match = line.match(/" 🔍/);
-      if (match && match.index !== undefined) {
+      // Look for strings ending with "..."
+      const regex = /"[^"]*\.\.\."/g;
+      let match;
+
+      while ((match = regex.exec(line)) !== null) {
         const lineNumber = index + 1;
-        const startColumn = match.index + 3; // Position after quote and space
-        const endColumn = startColumn + 2; // Length of emoji (counts as 2 in Monaco)
+        const startColumn = match.index + 1; // Start of string content (after opening quote)
+        const endColumn = match.index + match[0].length + 1; // End of string (after closing quote)
 
         decorations.push({
           range: {
@@ -510,8 +519,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
             endColumn: endColumn,
           },
           options: {
-            inlineClassName: 'expand-indicator',
-            hoverMessage: { value: 'Click to expand full value' },
+            inlineClassName: 'truncated-string',
+            hoverMessage: { value: 'Double-click to expand full value' },
           },
         });
       }
@@ -528,7 +537,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     // Set initial height after editor is mounted
     setTimeout(() => {
       setEditorHeight(calculateHeight());
-      addExpandIndicatorDecorations();
+      addTruncatedStringDecorations();
     }, 0);
 
     // Disable the find widget command
@@ -560,7 +569,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     const disposable = editorInstance.onDidChangeModelContent(() => {
       hideLine1FoldingWidget();
       // Update decorations when content changes
-      setTimeout(() => addExpandIndicatorDecorations(), 0);
+      setTimeout(() => addTruncatedStringDecorations(), 0);
     });
 
     editorInstance.getAction("editor.foldLevel1")?.run();
@@ -600,13 +609,13 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       const position = e.target.position;
       const lineContent = model.getLineContent(position.lineNumber);
 
-      // Check if the click is on or near the 🔍 emoji
+      // Check if the click is on or near the ⋯ character
       const clickColumn = position.column;
       const beforeClick = lineContent.substring(0, clickColumn + 2);
       const afterClick = lineContent.substring(clickColumn - 3);
 
-      // Check if we clicked on the emoji (it appears after " )
-      if (beforeClick.includes('" 🔍') || afterClick.startsWith('🔍')) {
+      // Check if we clicked on the ellipsis (it appears after " )
+      if (beforeClick.includes('" ⋯') || afterClick.startsWith('⋯')) {
         // Find the path for this truncated value
         const fullText = model.getValue();
         const pathAtPosition = findPathAtPosition(fullText, position.lineNumber, position.column);
@@ -628,7 +637,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
 
     // Store disposables for cleanup
     (editorInstance as any).__foldDisposables = [d1, d2, disposable, d3, d4];
-  }, [monaco, calculateHeight, addExpandIndicatorDecorations]);
+  }, [monaco, calculateHeight, addTruncatedStringDecorations]);
 
   // Cleanup effect to dispose event listeners when component unmounts
   useEffect(() => {
