@@ -85,16 +85,16 @@ const monacoWrapperStyles = css({
     resize: 'none',
   },
 
-  // Style for expand indicators
+  // Style for expand indicators (🔍 emoji)
   '& .monaco-editor .expand-indicator': {
-    color: 'var(--vscode-textLink-foreground, #3794ff) !important',
     cursor: 'pointer !important',
-    textDecoration: 'underline !important',
-    fontWeight: 'bold !important',
+    opacity: '0.7 !important',
+    transition: 'opacity 0.2s ease !important',
   },
 
   '& .monaco-editor .expand-indicator:hover': {
-    color: 'var(--vscode-textLink-activeForeground, #4daafc) !important',
+    opacity: '1 !important',
+    transform: 'scale(1.2) !important',
   },
 });
 
@@ -199,10 +199,7 @@ function sliceDocumentFields(obj: Record<string, unknown>, maxFields: number): R
 
 /**
  * Recursively truncate long string values in an object
- * @param obj - The object to truncate
- * @param truncationMap - Map to store truncated values with their paths
- * @param expandedPaths - Set of paths that should not be truncated
- * @param currentPath - Current path in the object tree
+ * Returns both the truncated object and metadata about truncations
  */
 function truncateLongValues(
   obj: any,
@@ -213,7 +210,7 @@ function truncateLongValues(
   if (typeof obj === 'string') {
     if (obj.length > MAX_VALUE_LENGTH && !expandedPaths.has(currentPath)) {
       truncationMap.set(currentPath, obj);
-      return obj.substring(0, MAX_VALUE_LENGTH) + '... [+]';
+      return obj.substring(0, MAX_VALUE_LENGTH) + '...';
     }
     return obj;
   }
@@ -276,8 +273,17 @@ function findPathAtPosition(text: string, lineNumber: number, column: number): s
 
 /**
  * Format JSON with unquoted keys (similar to JavaScript object notation)
+ * @param obj - The object to format
+ * @param indent - Current indentation level
+ * @param truncationMap - Map of truncated values
+ * @param currentPath - Current path in the object tree
  */
-function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
+function formatJsonWithUnquotedKeys(
+  obj: any,
+  indent = 0,
+  truncationMap?: Map<string, string>,
+  currentPath: string = ''
+): string {
   const indentStr = '  '.repeat(indent);
   const nextIndentStr = '  '.repeat(indent + 1);
 
@@ -300,7 +306,13 @@ function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
       });
       return `\`${indentedLines.join('\n')}\``;
     }
-    return `"${obj}"`;
+
+    const formattedString = `"${obj}"`;
+    // Add expand icon if this string is truncated
+    if (truncationMap && currentPath && truncationMap.has(currentPath)) {
+      return `${formattedString} 🔍`;
+    }
+    return formattedString;
   }
 
   if (typeof obj === 'number' || typeof obj === 'boolean') {
@@ -311,7 +323,10 @@ function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
     if (obj.length === 0) {
       return '[]';
     }
-    const items = obj.map(item => `${nextIndentStr}${formatJsonWithUnquotedKeys(item, indent + 1)}`);
+    const items = obj.map((item, index) => {
+      const itemPath = `${currentPath}[${index}]`;
+      return `${nextIndentStr}${formatJsonWithUnquotedKeys(item, indent + 1, truncationMap, itemPath)}`;
+    });
     return `[\n${items.join(',\n')}\n${indentStr}]`;
   }
 
@@ -321,7 +336,8 @@ function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
       return '{}';
     }
     const items = keys.map(key => {
-      const value = formatJsonWithUnquotedKeys(obj[key], indent + 1);
+      const newPath = currentPath ? `${currentPath}.${key}` : key;
+      const value = formatJsonWithUnquotedKeys(obj[key], indent + 1, truncationMap, newPath);
       return `${nextIndentStr}${key}: ${value}`;
     });
 
@@ -445,7 +461,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       truncationMapRef.current,
       expandedPaths
     );
-    return formatJsonWithUnquotedKeys(truncatedDocument, 0);
+    return formatJsonWithUnquotedKeys(truncatedDocument, 0, truncationMapRef.current);
   }, [displayDocument, expandedPaths]);
 
   // Calculate initial editor height based on content
@@ -467,7 +483,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     setEditorHeight(calculateHeight());
   }, [jsonValue, calculateHeight]);
 
-  // Add decorations to make [+] indicators clickable
+  // Add decorations to make 🔍 indicators clickable
   const addExpandIndicatorDecorations = useCallback(() => {
     if (!editorRef.current || !monaco) return;
 
@@ -479,11 +495,12 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     const lines = text.split('\n');
 
     lines.forEach((line, index) => {
-      const match = line.match(/\.\.\. \[\+\]/);
+      // Look for the 🔍 emoji after a closing quote
+      const match = line.match(/" 🔍/);
       if (match && match.index !== undefined) {
         const lineNumber = index + 1;
-        const startColumn = match.index + 5; // Position of [+]
-        const endColumn = startColumn + 3; // Length of [+]
+        const startColumn = match.index + 3; // Position after quote and space
+        const endColumn = startColumn + 2; // Length of emoji (counts as 2 in Monaco)
 
         decorations.push({
           range: {
@@ -583,14 +600,14 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       const position = e.target.position;
       const lineContent = model.getLineContent(position.lineNumber);
 
-      // Check if the click is on a "[+]" indicator
+      // Check if the click is on or near the 🔍 emoji
       const clickColumn = position.column;
-      const beforeClick = lineContent.substring(0, clickColumn);
-      const afterClick = lineContent.substring(clickColumn - 1);
+      const beforeClick = lineContent.substring(0, clickColumn + 2);
+      const afterClick = lineContent.substring(clickColumn - 3);
 
-      if (afterClick.startsWith('[+]') || beforeClick.endsWith('... [+')) {
+      // Check if we clicked on the emoji (it appears after " )
+      if (beforeClick.includes('" 🔍') || afterClick.startsWith('🔍')) {
         // Find the path for this truncated value
-        // We need to parse the JSON structure to find the path
         const fullText = model.getValue();
         const pathAtPosition = findPathAtPosition(fullText, position.lineNumber, position.column);
 
