@@ -111,33 +111,6 @@ const showMoreButtonStyles = css({
   },
 });
 
-const contextMenuStyles = css({
-  position: 'fixed',
-  backgroundColor: 'var(--vscode-menu-background, #252526)',
-  border: '1px solid var(--vscode-menu-border, #454545)',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-  borderRadius: '4px',
-  padding: '4px 0',
-  minWidth: '150px',
-  zIndex: 10000,
-});
-
-const contextMenuItemStyles = css({
-  padding: '6px 12px',
-  cursor: 'pointer',
-  fontSize: '13px',
-  color: 'var(--vscode-menu-foreground, #cccccc)',
-  backgroundColor: 'transparent',
-  border: 'none',
-  width: '100%',
-  textAlign: 'left',
-  display: 'block',
-  '&:hover': {
-    backgroundColor: 'var(--vscode-menu-selectionBackground, #094771)',
-    color: 'var(--vscode-menu-selectionForeground, #ffffff)',
-  },
-});
-
 const cardStyles = css({
   backgroundColor: 'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
   border: '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
@@ -298,7 +271,6 @@ function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
 const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) => {
   const monaco = useMonaco();
   const [showAllFields, setShowAllFields] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Merge theme colors with defaults
   const colors = useMemo(
@@ -420,17 +392,6 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       }
     );
     editorInstance.getAction('editor.foldLevel2')?.run();
-    // Listen for context menu events (right-click)
-    editorInstance.onContextMenu((e) => {
-      e.event.preventDefault();
-      e.event.stopPropagation();
-
-      // Get the mouse position relative to the viewport
-      const x = e.event.posx;
-      const y = e.event.posy;
-
-      setContextMenu({ x, y });
-    });
 
     // Disable folding for line 1 by hiding the folding widget
     const hideLine1FoldingWidget = () => {
@@ -446,31 +407,17 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     };
 
     // Initial hide
-    setTimeout(hideLine1FoldingWidget, 100);
+    hideLine1FoldingWidget();
 
     // Re-hide on content changes (in case editor re-renders)
     const disposable = editorInstance.onDidChangeModelContent(() => {
-      setTimeout(hideLine1FoldingWidget, 50);
+      hideLine1FoldingWidget();
     });
 
     return () => {
       disposable.dispose();
     };
   }, [monaco]);
-
-  // Close context menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setContextMenu(null);
-    };
-
-    if (contextMenu) {
-      window.document.addEventListener('click', handleClickOutside);
-      return () => {
-        window.document.removeEventListener('click', handleClickOutside);
-      };
-    }
-  }, [contextMenu]);
 
   return (
     <div className={cardStyles}>
@@ -506,49 +453,6 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
         >
           Show less
         </button>
-      )}
-
-      {/* Custom context menu */}
-      {contextMenu && (
-        <div
-          className={contextMenuStyles}
-          style={{
-            left: `${contextMenu.x}px`,
-            top: `${contextMenu.y}px`,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            className={contextMenuItemStyles}
-            onClick={() => {
-              // Add your custom action here
-              console.log('Copy action');
-              setContextMenu(null);
-            }}
-          >
-            Copy
-          </button>
-          <button
-            className={contextMenuItemStyles}
-            onClick={() => {
-              // Add your custom action here
-              console.log('Select All action');
-              setContextMenu(null);
-            }}
-          >
-            Select All
-          </button>
-          <button
-            className={contextMenuItemStyles}
-            onClick={() => {
-              // Add your custom action here
-              console.log('Custom Action');
-              setContextMenu(null);
-            }}
-          >
-            Custom Action
-          </button>
-        </div>
       )}
     </div>
   );
