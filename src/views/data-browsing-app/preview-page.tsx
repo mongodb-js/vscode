@@ -29,6 +29,7 @@ import {
 import { setupMessageHandler } from './store/messageHandler';
 import DocumentTreeView from './document-tree-view';
 import { sendGetThemeColors } from './vscode-api';
+import MonacoViewer from './monaco-viewer';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -269,7 +270,7 @@ const PreviewApp: React.FC = () => {
         ) : (
           <>
             {displayedDocuments.map((doc, index) => (
-              <DocumentTreeView
+              <MonacoViewer
                 key={`${currentPage}-${index}`}
                 document={doc}
                 themeColors={themeColors ?? undefined}
