@@ -601,21 +601,19 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       setEditorHeight(calculateHeight());
     });
 
-    // Handle clicks on truncated strings to expand them
+    // Handle double-clicks on truncated strings to expand them
     const d4 = editorInstance.onMouseDown((e) => {
       const model = editorInstance.getModel();
       if (!model || !e.target.position) return;
 
+      // Only handle double-clicks
+      if (e.event.detail !== 2) return;
+
       const position = e.target.position;
       const lineContent = model.getLineContent(position.lineNumber);
 
-      // Check if the click is on or near the ⋯ character
-      const clickColumn = position.column;
-      const beforeClick = lineContent.substring(0, clickColumn + 2);
-      const afterClick = lineContent.substring(clickColumn - 3);
-
-      // Check if we clicked on the ellipsis (it appears after " )
-      if (beforeClick.includes('" ⋯') || afterClick.startsWith('⋯')) {
+      // Check if we double-clicked on a truncated string (ends with ...")
+      if (lineContent.includes('..."')) {
         // Find the path for this truncated value
         const fullText = model.getValue();
         const pathAtPosition = findPathAtPosition(fullText, position.lineNumber, position.column);
