@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
-import { css } from '@mongodb-js/compass-components';
+import { css, spacing } from '@mongodb-js/compass-components';
 import type { JsonTokenColors } from './extension-app-message-constants';
 
 interface MonacoViewerProps {
@@ -138,6 +138,14 @@ const contextMenuItemStyles = css({
   },
 });
 
+const cardStyles = css({
+  backgroundColor: 'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
+  border: '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
+  borderRadius: '6px',
+  overflow: 'hidden',
+  marginBottom: spacing[200],
+});
+
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
   domReadOnly: false, // Allow DOM interactions like copy
@@ -246,6 +254,10 @@ function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
   }
 
   if (typeof obj === 'string') {
+    // Use backticks for multi-line strings, quotes for single-line
+    if (obj.includes('\n') || obj.includes('\r')) {
+      return `\`${obj}\``;
+    }
     return `"${obj}"`;
   }
 
@@ -297,15 +309,51 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     [themeColors],
   );
 
-  // Define custom theme when Monaco is ready
+  // Define custom language and theme when Monaco is ready
   useEffect(() => {
     if (monaco) {
+      // Register custom language for MongoDB documents
+      monaco.languages.register({ id: 'mongodb-document' });
+
+      // Define tokenizer for the custom language
+      monaco.languages.setMonarchTokensProvider('mongodb-document', {
+        tokenizer: {
+          root: [
+            // Object keys (unquoted identifiers followed by colon)
+            [/[a-zA-Z_$][\w$]*(?=\s*:)/, 'key'],
+            // Template strings (backticks) - for multi-line strings
+            [/`/, { token: 'string', next: '@templateString' }],
+            // Regular strings (quotes) - single line
+            [/"(?:[^"\\]|\\.)*"/, 'string'],
+            // Numbers
+            [/\d+(\.\d+)?/, 'number'],
+            // Booleans and null
+            [/\b(true|false|null|undefined)\b/, 'keyword'],
+            // Delimiters
+            [/[{}[\](),:.]/, 'delimiter'],
+            // Whitespace
+            [/\s+/, 'white'],
+          ],
+          templateString: [
+            // End of template string
+            [/`/, { token: 'string', next: '@pop' }],
+            // Escaped characters
+            [/\\./, 'string.escape'],
+            // String content (including newlines)
+            [/[^\\`]+/, 'string'],
+          ],
+        },
+      });
+
+      // Define custom theme
       monaco.editor.defineTheme('noGutterTheme', {
         base: 'vs-dark',
         inherit: true,
         rules: [
           { token: 'key', foreground: colors.key.replace('#', '') },
           { token: 'string', foreground: colors.string.replace('#', '') },
+          { token: 'string.quote', foreground: colors.string.replace('#', '') },
+          { token: 'string.escape', foreground: colors.string.replace('#', '') },
           { token: 'number', foreground: colors.number.replace('#', '') },
           { token: 'keyword', foreground: colors.boolean.replace('#', '') },
           { token: 'type', foreground: colors.type.replace('#', '') },
@@ -383,12 +431,12 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
   }, [contextMenu]);
 
   return (
-    <>
+    <div className={cardStyles}>
       <div className={monacoWrapperStyles}>
         {
           <Editor
             height={editorHeight}
-            defaultLanguage="typescript"
+            defaultLanguage="mongodb-document"
             value={jsonValue}
             theme="noGutterTheme"
             options={viewerOptions}
@@ -460,7 +508,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
