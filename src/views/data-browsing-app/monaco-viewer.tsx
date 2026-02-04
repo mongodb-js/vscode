@@ -84,6 +84,18 @@ const monacoWrapperStyles = css({
     lineHeight: '1px !important',
     resize: 'none',
   },
+
+  // Style for expand indicators
+  '& .monaco-editor .expand-indicator': {
+    color: 'var(--vscode-textLink-foreground, #3794ff) !important',
+    cursor: 'pointer !important',
+    textDecoration: 'underline !important',
+    fontWeight: 'bold !important',
+  },
+
+  '& .monaco-editor .expand-indicator:hover': {
+    color: 'var(--vscode-textLink-activeForeground, #4daafc) !important',
+  },
 });
 
 const showMoreButtonStyles = css({
@@ -187,28 +199,79 @@ function sliceDocumentFields(obj: Record<string, unknown>, maxFields: number): R
 
 /**
  * Recursively truncate long string values in an object
+ * @param obj - The object to truncate
+ * @param truncationMap - Map to store truncated values with their paths
+ * @param expandedPaths - Set of paths that should not be truncated
+ * @param currentPath - Current path in the object tree
  */
-function truncateLongValues(obj: any): any {
+function truncateLongValues(
+  obj: any,
+  truncationMap: Map<string, string>,
+  expandedPaths: Set<string>,
+  currentPath: string = ''
+): any {
   if (typeof obj === 'string') {
-    if (obj.length > MAX_VALUE_LENGTH) {
-      return obj.substring(0, MAX_VALUE_LENGTH) + '...';
+    if (obj.length > MAX_VALUE_LENGTH && !expandedPaths.has(currentPath)) {
+      truncationMap.set(currentPath, obj);
+      return obj.substring(0, MAX_VALUE_LENGTH) + '... [+]';
     }
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => truncateLongValues(item));
+    return obj.map((item, index) =>
+      truncateLongValues(item, truncationMap, expandedPaths, `${currentPath}[${index}]`)
+    );
   }
 
   if (obj !== null && typeof obj === 'object') {
     const result: Record<string, any> = {};
     for (const [key, value] of Object.entries(obj)) {
-      result[key] = truncateLongValues(value);
+      const newPath = currentPath ? `${currentPath}.${key}` : key;
+      result[key] = truncateLongValues(value, truncationMap, expandedPaths, newPath);
     }
     return result;
   }
 
   return obj;
+}
+
+/**
+ * Find the JSON path at a specific position in the formatted text
+ * This is a simplified implementation that looks for the key on the current line
+ */
+function findPathAtPosition(text: string, lineNumber: number, column: number): string | null {
+  const lines = text.split('\n');
+  if (lineNumber < 1 || lineNumber > lines.length) return null;
+
+  const currentLine = lines[lineNumber - 1];
+
+  // Try to extract the key from the current line (format: "key: value")
+  const keyMatch = currentLine.match(/^\s*(\w+):/);
+  if (!keyMatch) return null;
+
+  const key = keyMatch[1];
+
+  // Build the path by looking at parent objects
+  const path: string[] = [];
+  let currentIndent = currentLine.search(/\S/);
+
+  // Look backwards to find parent keys
+  for (let i = lineNumber - 2; i >= 0; i--) {
+    const line = lines[i];
+    const lineIndent = line.search(/\S/);
+
+    if (lineIndent < currentIndent) {
+      const parentKeyMatch = line.match(/^\s*(\w+):/);
+      if (parentKeyMatch) {
+        path.unshift(parentKeyMatch[1]);
+        currentIndent = lineIndent;
+      }
+    }
+  }
+
+  path.push(key);
+  return path.join('.');
 }
 
 /**
@@ -273,6 +336,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
   const [showAllFields, setShowAllFields] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [editorHeight, setEditorHeight] = useState<number>(0);
+  const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
+  const truncationMapRef = useRef<Map<string, string>>(new Map());
 
   // Merge theme colors with defaults
   const colors = useMemo(
@@ -373,9 +438,15 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
   }, [document, hasMoreFields, showAllFields]);
 
   const jsonValue = useMemo(() => {
-    const truncatedDocument = truncateLongValues(displayDocument);
+    // Clear and rebuild truncation map
+    truncationMapRef.current.clear();
+    const truncatedDocument = truncateLongValues(
+      displayDocument,
+      truncationMapRef.current,
+      expandedPaths
+    );
     return formatJsonWithUnquotedKeys(truncatedDocument, 0);
-  }, [displayDocument]);
+  }, [displayDocument, expandedPaths]);
 
   // Calculate initial editor height based on content
   const calculateHeight = useCallback(() => {
@@ -396,6 +467,42 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     setEditorHeight(calculateHeight());
   }, [jsonValue, calculateHeight]);
 
+  // Add decorations to make [+] indicators clickable
+  const addExpandIndicatorDecorations = useCallback(() => {
+    if (!editorRef.current || !monaco) return;
+
+    const model = editorRef.current.getModel();
+    if (!model) return;
+
+    const decorations: editor.IModelDeltaDecoration[] = [];
+    const text = model.getValue();
+    const lines = text.split('\n');
+
+    lines.forEach((line, index) => {
+      const match = line.match(/\.\.\. \[\+\]/);
+      if (match && match.index !== undefined) {
+        const lineNumber = index + 1;
+        const startColumn = match.index + 5; // Position of [+]
+        const endColumn = startColumn + 3; // Length of [+]
+
+        decorations.push({
+          range: {
+            startLineNumber: lineNumber,
+            startColumn: startColumn,
+            endLineNumber: lineNumber,
+            endColumn: endColumn,
+          },
+          options: {
+            inlineClassName: 'expand-indicator',
+            hoverMessage: { value: 'Click to expand full value' },
+          },
+        });
+      }
+    });
+
+    editorRef.current.createDecorationsCollection(decorations);
+  }, [monaco]);
+
   // Disable find widget when editor mounts
   const handleEditorMount = useCallback((editorInstance: editor.IStandaloneCodeEditor) => {
     // Store editor instance for cleanup
@@ -404,6 +511,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     // Set initial height after editor is mounted
     setTimeout(() => {
       setEditorHeight(calculateHeight());
+      addExpandIndicatorDecorations();
     }, 0);
 
     // Disable the find widget command
@@ -434,6 +542,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     // Re-hide on content changes (in case editor re-renders)
     const disposable = editorInstance.onDidChangeModelContent(() => {
       hideLine1FoldingWidget();
+      // Update decorations when content changes
+      setTimeout(() => addExpandIndicatorDecorations(), 0);
     });
 
     editorInstance.getAction("editor.foldLevel1")?.run();
@@ -465,9 +575,43 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       setEditorHeight(calculateHeight());
     });
 
+    // Handle clicks on truncated strings to expand them
+    const d4 = editorInstance.onMouseDown((e) => {
+      const model = editorInstance.getModel();
+      if (!model || !e.target.position) return;
+
+      const position = e.target.position;
+      const lineContent = model.getLineContent(position.lineNumber);
+
+      // Check if the click is on a "[+]" indicator
+      const clickColumn = position.column;
+      const beforeClick = lineContent.substring(0, clickColumn);
+      const afterClick = lineContent.substring(clickColumn - 1);
+
+      if (afterClick.startsWith('[+]') || beforeClick.endsWith('... [+')) {
+        // Find the path for this truncated value
+        // We need to parse the JSON structure to find the path
+        const fullText = model.getValue();
+        const pathAtPosition = findPathAtPosition(fullText, position.lineNumber, position.column);
+
+        if (pathAtPosition && truncationMapRef.current.has(pathAtPosition)) {
+          // Toggle expansion
+          setExpandedPaths(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(pathAtPosition)) {
+              newSet.delete(pathAtPosition);
+            } else {
+              newSet.add(pathAtPosition);
+            }
+            return newSet;
+          });
+        }
+      }
+    });
+
     // Store disposables for cleanup
-    (editorInstance as any).__foldDisposables = [d1, d2, disposable, d3];
-  }, [monaco, calculateHeight]);
+    (editorInstance as any).__foldDisposables = [d1, d2, disposable, d3, d4];
+  }, [monaco, calculateHeight, addExpandIndicatorDecorations]);
 
   // Cleanup effect to dispose event listeners when component unmounts
   useEffect(() => {
