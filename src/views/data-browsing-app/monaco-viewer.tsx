@@ -272,6 +272,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
   const monaco = useMonaco();
   const [showAllFields, setShowAllFields] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const [editorHeight, setEditorHeight] = useState<number>(0);
 
   // Merge theme colors with defaults
   const colors = useMemo(
@@ -376,17 +377,34 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     return formatJsonWithUnquotedKeys(truncatedDocument, 0);
   }, [displayDocument]);
 
-  // Calculate editor height based on content
-  const editorHeight = useMemo(() => {
-    const lineCount = jsonValue.split('\n').length;
-    const contentHeight = lineCount * LINE_HEIGHT + EDITOR_PADDING * 2;
+  // Calculate initial editor height based on content
+  const calculateHeight = useCallback(() => {
+    if (!editorRef.current) {
+      // Initial height calculation before editor is mounted
+      const lineCount = jsonValue.split('\n').length;
+      const contentHeight = lineCount * LINE_HEIGHT + EDITOR_PADDING * 2;
+      return Math.min(contentHeight, MAX_EDITOR_HEIGHT);
+    }
+
+    // Calculate height based on actual content height from Monaco's layout
+    const contentHeight = editorRef.current.getContentHeight();
     return Math.min(contentHeight, MAX_EDITOR_HEIGHT);
   }, [jsonValue]);
+
+  // Update height when jsonValue changes
+  useEffect(() => {
+    setEditorHeight(calculateHeight());
+  }, [jsonValue, calculateHeight]);
 
   // Disable find widget when editor mounts
   const handleEditorMount = useCallback((editorInstance: editor.IStandaloneCodeEditor) => {
     // Store editor instance for cleanup
     editorRef.current = editorInstance;
+
+    // Set initial height after editor is mounted
+    setTimeout(() => {
+      setEditorHeight(calculateHeight());
+    }, 0);
 
     // Disable the find widget command
     editorInstance.addCommand(
@@ -441,9 +459,15 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       setTimeout(runFold, 0);
     });
 
+    // Listen for layout changes (including folding/unfolding) to update height
+    const d3 = editorInstance.onDidContentSizeChange(() => {
+      // Recalculate height when content size changes (e.g., folding/unfolding)
+      setEditorHeight(calculateHeight());
+    });
+
     // Store disposables for cleanup
-    (editorInstance as any).__foldDisposables = [d1, d2, disposable];
-  }, [monaco]);
+    (editorInstance as any).__foldDisposables = [d1, d2, disposable, d3];
+  }, [monaco, calculateHeight]);
 
   // Cleanup effect to dispose event listeners when component unmounts
   useEffect(() => {
