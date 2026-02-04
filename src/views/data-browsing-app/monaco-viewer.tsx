@@ -256,7 +256,13 @@ function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
   if (typeof obj === 'string') {
     // Use backticks for multi-line strings, quotes for single-line
     if (obj.includes('\n') || obj.includes('\r')) {
-      return `\`${obj}\``;
+      // For multi-line strings, indent each line properly
+      const lines = obj.split('\n');
+      const indentedLines = lines.map((line, i) => {
+        if (i === 0) return line;
+        return nextIndentStr + line;
+      });
+      return `\`${indentedLines.join('\n')}\``;
     }
     return `"${obj}"`;
   }
@@ -309,48 +315,18 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     [themeColors],
   );
 
-  // Define custom language and theme when Monaco is ready
+  // Define custom theme when Monaco is ready
   useEffect(() => {
     if (monaco) {
-      // Register custom language for MongoDB documents
-      monaco.languages.register({ id: 'mongodb-document' });
-
-      // Define tokenizer for the custom language
-      monaco.languages.setMonarchTokensProvider('mongodb-document', {
-        tokenizer: {
-          root: [
-            // Object keys (unquoted identifiers followed by colon)
-            [/[a-zA-Z_$][\w$]*(?=\s*:)/, 'key'],
-            // Template strings (backticks) - for multi-line strings
-            [/`/, { token: 'string', next: '@templateString' }],
-            // Regular strings (quotes) - single line
-            [/"(?:[^"\\]|\\.)*"/, 'string'],
-            // Numbers
-            [/\d+(\.\d+)?/, 'number'],
-            // Booleans and null
-            [/\b(true|false|null|undefined)\b/, 'keyword'],
-            // Delimiters
-            [/[{}[\](),:.]/, 'delimiter'],
-            // Whitespace
-            [/\s+/, 'white'],
-          ],
-          templateString: [
-            // End of template string
-            [/`/, { token: 'string', next: '@pop' }],
-            // Escaped characters
-            [/\\./, 'string.escape'],
-            // String content (including newlines)
-            [/[^\\`]+/, 'string'],
-          ],
-        },
-      });
-
-      // Define custom theme
+      // Define custom theme based on TypeScript
       monaco.editor.defineTheme('noGutterTheme', {
         base: 'vs-dark',
         inherit: true,
         rules: [
-          { token: 'key', foreground: colors.key.replace('#', '') },
+          // TypeScript/JavaScript token mappings
+          { token: 'identifier', foreground: colors.key.replace('#', '') },
+          { token: 'variable', foreground: colors.key.replace('#', '') },
+          { token: 'variable.name', foreground: colors.key.replace('#', '') },
           { token: 'string', foreground: colors.string.replace('#', '') },
           { token: 'string.quote', foreground: colors.string.replace('#', '') },
           { token: 'string.escape', foreground: colors.string.replace('#', '') },
@@ -436,7 +412,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
         {
           <Editor
             height={editorHeight}
-            defaultLanguage="mongodb-document"
+            defaultLanguage="typescript"
             value={jsonValue}
             theme="noGutterTheme"
             options={viewerOptions}

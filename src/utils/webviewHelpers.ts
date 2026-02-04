@@ -65,9 +65,9 @@ export const getWebviewHtml = ({
     <head>
       <meta charset="UTF-8">
       <meta http-equiv="Content-Security-Policy" content="default-src 'none';
-          script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https:;
-          style-src vscode-resource: 'self' 'unsafe-inline';
-          font-src vscode-resource: 'self' data:;
+          script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https: https://cdn.jsdelivr.net;
+          style-src vscode-resource: 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+          font-src vscode-resource: 'self' data: https://cdn.jsdelivr.net;
           img-src vscode-resource: 'self'"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
@@ -79,7 +79,7 @@ export const getWebviewHtml = ({
       ${additionalHeadContent.replace(/\$\{nonce\}/g, nonce)}
       <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
     </body>
-  </html>`;
+  </html><!-- bust-cache: ${Math.random()} -->`;
 };
 
 export interface CreateWebviewPanelOptions {
