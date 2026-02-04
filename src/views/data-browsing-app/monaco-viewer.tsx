@@ -341,47 +341,6 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
           'editorGutter.background': '#00000000',
         },
       });
-
-      // Register custom folding range provider to exclude root object
-      const disposable = monaco.languages.registerFoldingRangeProvider('typescript', {
-        provideFoldingRanges: (model) => {
-          const ranges: Monaco.languages.FoldingRange[] = [];
-          const lines = model.getLinesContent();
-
-          // Stack to track opening braces/brackets and their line numbers
-          const stack: { char: string; line: number }[] = [];
-
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-
-            for (let j = 0; j < line.length; j++) {
-              const char = line[j];
-
-              if (char === '{' || char === '[') {
-                stack.push({ char, line: i + 1 }); // Monaco uses 1-based line numbers
-              } else if (char === '}' || char === ']') {
-                if (stack.length > 0) {
-                  const opening = stack.pop()!;
-                  // Only add folding range if it's not the root object (line 1)
-                  if (opening.line !== 1) {
-                    ranges.push({
-                      start: opening.line,
-                      end: i + 1,
-                      kind: monaco.languages.FoldingRangeKind.Region,
-                    });
-                  }
-                }
-              }
-            }
-          }
-
-          return ranges;
-        },
-      });
-
-      return () => {
-        disposable.dispose();
-      };
     }
   }, [monaco, colors]);
 
