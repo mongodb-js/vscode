@@ -26,8 +26,8 @@ const DEFAULT_COLORS = {
 const LINE_HEIGHT = 19;
 // Padding top and bottom for the editor
 const EDITOR_PADDING = 0;
-// Maximum height for the editor (prevents huge documents from taking over)
-const MAX_EDITOR_HEIGHT = Infinity;
+// Maximum number of top-level fields to show initially (in terms of height)
+const MAX_INITIAL_FIELDS = 25;
 
 const monacoWrapperStyles = css({
   paddingLeft: "10px",
@@ -143,7 +143,8 @@ const cardStyles = css({
   marginBottom: spacing[200],
 });
 
-const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
+// Base viewer options - will be modified per instance for scrollbar settings
+const getViewerOptions = (enableScrolling: boolean): Monaco.editor.IStandaloneEditorConstructionOptions => ({
   readOnly: true,
   domReadOnly: false, // Allow DOM interactions like copy
   contextmenu: false,
@@ -159,9 +160,10 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   overviewRulerBorder: false,
   hideCursorInOverviewRuler: true,
   scrollbar: {
-    vertical: 'hidden',
+    vertical: enableScrolling ? 'auto' : 'hidden',
     horizontal: 'hidden',
     alwaysConsumeMouseWheel: false,
+    handleMouseWheel: enableScrolling,
   },
   wordWrap: 'off',
   scrollBeyondLastLine: false,
@@ -188,26 +190,10 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
     autoFindInSelection: 'never',
     seedSearchStringFromSelection: 'never',
   },
-
-};
+});
 
 // Maximum length for string values before truncation
 const MAX_VALUE_LENGTH = 70;
-// Maximum number of top-level fields to show initially
-const MAX_INITIAL_FIELDS = 25;
-
-/**
- * Slice document to only include the first N top-level fields
- */
-function sliceDocumentFields(obj: Record<string, unknown>, maxFields: number): Record<string, unknown> {
-  const entries = Object.entries(obj);
-  if (entries.length <= maxFields) {
-    return obj;
-  }
-
-  const slicedEntries = entries.slice(0, maxFields);
-  return Object.fromEntries(slicedEntries);
-}
 
 /**
  * Recursively truncate long string values in an object
@@ -356,11 +342,13 @@ function formatJsonWithUnquotedKeys(
 
 const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) => {
   const monaco = useMonaco();
-  const [showAllFields, setShowAllFields] = useState(false);
+  const [showAllContent, setShowAllContent] = useState(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [editorHeight, setEditorHeight] = useState<number>(0);
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(new Set());
   const truncationMapRef = useRef<Map<string, string>>(new Map());
+  const fullContentHeightRef = useRef<number>(0);
+  const showAllContentRef = useRef<boolean>(false);
 
   // Merge theme colors with defaults
   const colors = useMemo(
@@ -447,43 +435,49 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     }
   }, [monaco, colors]);
 
-  // Count top-level fields
-  const totalFieldCount = useMemo(() => Object.keys(document).length, [document]);
-  const hasMoreFields = totalFieldCount > MAX_INITIAL_FIELDS;
-  const hiddenFieldCount = totalFieldCount - MAX_INITIAL_FIELDS;
-
-  // Determine which document to display (sliced or full)
-  const displayDocument = useMemo(() => {
-    if (!hasMoreFields || showAllFields) {
-      return document;
-    }
-    return sliceDocumentFields(document, MAX_INITIAL_FIELDS);
-  }, [document, hasMoreFields, showAllFields]);
-
+  // Always render the full document
   const jsonValue = useMemo(() => {
     // Clear and rebuild truncation map
     truncationMapRef.current.clear();
     const truncatedDocument = truncateLongValues(
-      displayDocument,
+      document,
       truncationMapRef.current,
       expandedPaths
     );
     return formatJsonWithUnquotedKeys(truncatedDocument, 0, truncationMapRef.current);
-  }, [displayDocument, expandedPaths]);
+  }, [document, expandedPaths]);
 
   // Calculate initial editor height based on content
   const calculateHeight = useCallback(() => {
+    const limitedHeight = (MAX_INITIAL_FIELDS + 2) * LINE_HEIGHT; // +2 for opening/closing braces
+
     if (!editorRef.current) {
       // Initial height calculation before editor is mounted
       const lineCount = jsonValue.split('\n').length;
       const contentHeight = lineCount * LINE_HEIGHT + EDITOR_PADDING * 2;
-      return Math.min(contentHeight, MAX_EDITOR_HEIGHT);
+
+      // Store full content height for later
+      fullContentHeightRef.current = contentHeight;
+
+      // If not showing all content, use the limited height (don't let it shrink)
+      if (!showAllContent) {
+        return limitedHeight;
+      }
+
+      return contentHeight;
     }
 
     // Calculate height based on actual content height from Monaco's layout
     const contentHeight = editorRef.current.getContentHeight();
-    return Math.min(contentHeight, MAX_EDITOR_HEIGHT);
-  }, [jsonValue]);
+    fullContentHeightRef.current = contentHeight;
+
+    // If not showing all content, use the limited height (don't let it shrink when folding)
+    if (!showAllContent) {
+      return limitedHeight;
+    }
+
+    return contentHeight;
+  }, [jsonValue, showAllContent]);
 
   // Update height when jsonValue changes
   useEffect(() => {
@@ -596,9 +590,14 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     });
 
     // Listen for layout changes (including folding/unfolding) to update height
+    // Only update height when showing all content, otherwise keep it fixed
     const d3 = editorInstance.onDidContentSizeChange(() => {
-      // Recalculate height when content size changes (e.g., folding/unfolding)
-      setEditorHeight(calculateHeight());
+      // Only recalculate height when showing all content
+      // When content is limited, we want to keep the fixed height
+      if (showAllContentRef.current) {
+        const contentHeight = editorInstance.getContentHeight();
+        setEditorHeight(contentHeight);
+      }
     });
 
     // Handle double-clicks on truncated strings to expand them
@@ -637,6 +636,14 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     (editorInstance as any).__foldDisposables = [d1, d2, disposable, d3, d4];
   }, [monaco, calculateHeight, addTruncatedStringDecorations]);
 
+  // Update ref when showAllContent changes
+  useEffect(() => {
+    showAllContentRef.current = showAllContent;
+    if (editorRef.current) {
+      setEditorHeight(calculateHeight());
+    }
+  }, [showAllContent, calculateHeight]);
+
   // Cleanup effect to dispose event listeners when component unmounts
   useEffect(() => {
     return () => {
@@ -647,10 +654,18 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     };
   }, []);
 
+  // Determine if we need to show the "Show more" button
+  // This happens when the full content height exceeds the limited height
+  const totalFieldCount = useMemo(() => Object.keys(document).length, [document]);
+  const needsShowMore = totalFieldCount > MAX_INITIAL_FIELDS;
+  const hiddenFieldCount = Math.max(0, totalFieldCount - MAX_INITIAL_FIELDS);
+
+  // Calculate viewer options based on whether we're showing all content
+  const viewerOptions = useMemo(() => getViewerOptions(showAllContent), [showAllContent]);
+
   return (
     <div className={cardStyles}>
       <div className={monacoWrapperStyles}>
-        {
           <Editor
             height={editorHeight}
             defaultLanguage="typescript"
@@ -660,23 +675,22 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
             loading={null}
             onMount={handleEditorMount}
           />
-        }
       </div>
 
-      {hasMoreFields && !showAllFields && (
+      {needsShowMore && !showAllContent && (
         <button
           className={showMoreButtonStyles}
-          onClick={() => setShowAllFields(true)}
+          onClick={() => setShowAllContent(true)}
           data-expanded="false"
         >
           Show {hiddenFieldCount} more field{hiddenFieldCount !== 1 ? 's' : ''}
         </button>
       )}
 
-      {hasMoreFields && showAllFields && (
+      {needsShowMore && showAllContent && (
         <button
           className={showMoreButtonStyles}
-          onClick={() => setShowAllFields(false)}
+          onClick={() => setShowAllContent(false)}
           data-expanded="true"
         >
           Show less
