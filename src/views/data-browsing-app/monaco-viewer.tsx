@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
@@ -271,6 +271,7 @@ function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
 const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) => {
   const monaco = useMonaco();
   const [showAllFields, setShowAllFields] = useState(false);
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   // Merge theme colors with defaults
   const colors = useMemo(
@@ -384,6 +385,9 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
 
   // Disable find widget when editor mounts
   const handleEditorMount = useCallback((editorInstance: editor.IStandaloneCodeEditor) => {
+    // Store editor instance for cleanup
+    editorRef.current = editorInstance;
+
     // Disable the find widget command
     editorInstance.addCommand(
       monaco?.KeyMod.CtrlCmd! | monaco?.KeyCode.KeyF!,
@@ -414,10 +418,42 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       hideLine1FoldingWidget();
     });
 
-    return () => {
-      disposable.dispose();
+    editorInstance.getAction("editor.foldLevel1")?.run();
+    const runFold = () => {
+      editorInstance.getAction("editor.foldLevel1")?.run();
     };
+
+    // 1) Next frame (lets layout happen)
+    requestAnimationFrame(runFold);
+
+    // 2) After Monaco computes folding ranges (often needs another tick)
+    setTimeout(runFold, 0);
+
+    // 3) If the model changes (common with @monaco-editor/react), fold again
+    const d1 = editorInstance.onDidChangeModel(() => {
+      requestAnimationFrame(runFold);
+      setTimeout(runFold, 0);
+    });
+
+    // If you're updating `value`, folding ranges can change after content update
+    const d2 = editorInstance.onDidChangeModelContent(() => {
+      // light debounce: fold after updates settle
+      setTimeout(runFold, 0);
+    });
+
+    // Store disposables for cleanup
+    (editorInstance as any).__foldDisposables = [d1, d2, disposable];
   }, [monaco]);
+
+  // Cleanup effect to dispose event listeners when component unmounts
+  useEffect(() => {
+    return () => {
+      const disposables = (editorRef.current as any)?.__foldDisposables;
+      if (disposables) {
+        disposables.forEach((d: any) => d.dispose());
+      }
+    };
+  }, []);
 
   return (
     <div className={cardStyles}>
