@@ -27,7 +27,6 @@ import {
   currentPageAdjusted,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
-import DocumentTreeView from './document-tree-view';
 import { sendGetThemeColors } from './vscode-api';
 import MonacoViewer from './monaco-viewer';
 
