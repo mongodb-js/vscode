@@ -10,6 +10,7 @@ import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
 import { css, spacing } from '@mongodb-js/compass-components';
 import type { JsonTokenColors } from './extension-app-message-constants';
+import { toJSString } from 'mongodb-query-parser'
 
 // Configure Monaco Editor loader to use local files instead of CDN
 declare global {
@@ -42,15 +43,7 @@ const DEFAULT_COLORS = {
   punctuation: '#D4D4D4',
 } as const;
 
-const LINE_HEIGHT = 19;
-const EDITOR_PADDING = 0;
 
-/**
- * Format JSON with unquoted keys (similar to JavaScript object notation)
- */
-function formatJsonWithUnquotedKeys(obj: any): string {
-  return JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:');
-}
 
 const monacoWrapperStyles = css({
   // Hide Monaco's internal textarea elements that appear as white boxes
@@ -126,10 +119,9 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   occurrencesHighlight: 'off',
   selectionHighlight: false,
   renderValidationDecorations: 'off',
-  lineHeight: LINE_HEIGHT,
   fontFamily:
     'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
-  fontSize: 13,
+  fontSize: 12,
   renderLineHighlightOnlyWhenFocus: false,
   renderWhitespace: 'none',
   guides: {
@@ -201,14 +193,15 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [monaco, colors]);
 
   const jsonValue = useMemo(() => {
-    return formatJsonWithUnquotedKeys(document);
+    return toJSString(document) ?? '';
   }, [document]);
 
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
+      // Estimate height before editor is mounted
       const lineCount = jsonValue.split('\n').length;
-      const contentHeight = lineCount * LINE_HEIGHT + EDITOR_PADDING * 2;
-      return contentHeight;
+      const defaultLineHeight = 19;
+      return lineCount * defaultLineHeight;
     }
 
     const contentHeight = editorRef.current.getContentHeight();
