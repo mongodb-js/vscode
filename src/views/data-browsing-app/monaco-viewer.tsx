@@ -45,6 +45,13 @@ const DEFAULT_COLORS = {
 const LINE_HEIGHT = 19;
 const EDITOR_PADDING = 0;
 
+/**
+ * Format JSON with unquoted keys (similar to JavaScript object notation)
+ */
+function formatJsonWithUnquotedKeys(obj: any): string {
+  return JSON.stringify(obj, null, 2).replace(/"([^"]+)":/g, '$1:');
+}
+
 const monacoWrapperStyles = css({
   // Hide Monaco's internal textarea elements that appear as white boxes
   '& .monaco-editor .native-edit-context': {
@@ -136,67 +143,7 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   },
 };
 
-/**
- * Format JSON with unquoted keys (similar to JavaScript object notation)
- * @param obj - The object to format
- * @param indent - Current indentation level
- */
-function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
-  const indentStr = '  '.repeat(indent);
-  const nextIndentStr = '  '.repeat(indent + 1);
 
-  if (obj === null) {
-    return 'null';
-  }
-
-  if (obj === undefined) {
-    return 'undefined';
-  }
-
-  if (typeof obj === 'string') {
-    // Use backticks for multi-line strings, quotes for single-line
-    if (obj.includes('\n') || obj.includes('\r')) {
-      // For multi-line strings, indent each line properly
-      const lines = obj.split('\n');
-      const indentedLines = lines.map((line, i) => {
-        if (i === 0) return line;
-        return nextIndentStr + line;
-      });
-      return `\`${indentedLines.join('\n')}\``;
-    }
-
-    return `"${obj}"`;
-  }
-
-  if (typeof obj === 'number' || typeof obj === 'boolean') {
-    return String(obj);
-  }
-
-  if (Array.isArray(obj)) {
-    if (obj.length === 0) {
-      return '[]';
-    }
-    const items = obj.map((item) => {
-      return `${nextIndentStr}${formatJsonWithUnquotedKeys(item, indent + 1)}`;
-    });
-    return `[\n${items.join(',\n')}\n${indentStr}]`;
-  }
-
-  if (typeof obj === 'object') {
-    const keys = Object.keys(obj);
-    if (keys.length === 0) {
-      return '{}';
-    }
-    const items = keys.map((key) => {
-      const value = formatJsonWithUnquotedKeys(obj[key], indent + 1);
-      return `${nextIndentStr}${key}: ${value}`;
-    });
-
-    return `{\n${items.join(',\n')}\n${indentStr}}`;
-  }
-
-  return String(obj);
-}
 
 const MonacoViewer: React.FC<MonacoViewerProps> = ({
   document,
@@ -256,7 +203,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [monaco, colors]);
 
   const jsonValue = useMemo(() => {
-    return formatJsonWithUnquotedKeys(document, 0);
+    return formatJsonWithUnquotedKeys(document);
   }, [document]);
 
   const calculateHeight = useCallback(() => {
