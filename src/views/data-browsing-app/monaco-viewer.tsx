@@ -76,6 +76,11 @@ const monacoWrapperStyles = css({
     lineHeight: '1px !important',
     resize: 'none',
   },
+
+  // Move find widget left to prevent tooltip cutoff at the right edge
+  '& .monaco-editor .find-widget': {
+    right: '50px !important',
+  },
 });
 
 const cardStyles = css({
@@ -84,12 +89,10 @@ const cardStyles = css({
   border:
     '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
   borderRadius: '6px',
-  overflow: 'hidden',
   marginBottom: spacing[200],
   padding: spacing[300],
 });
 
-// Monaco editor options
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
   domReadOnly: false,
@@ -275,16 +278,13 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     (editorInstance: editor.IStandaloneCodeEditor) => {
       setEditorHeight(calculateHeight());
 
-       // Fold all levels except the outermost object
+      // Fold all levels except the outermost object
       const runFold = () => {
         editorInstance.getAction('editor.foldLevel2')?.run();
       };
 
       // Run fold multiple times to ensure it works after Monaco computes folding ranges
-      runFold();
       requestAnimationFrame(runFold);
-      setTimeout(runFold, 0);
-      setTimeout(runFold, 100);
 
       // Listen for layout changes (including folding/unfolding) to update height
       const disposable = editorInstance.onDidContentSizeChange(() => {
