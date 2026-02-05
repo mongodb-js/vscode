@@ -169,7 +169,9 @@ const PreviewApp: React.FC = () => {
           <VscodeButton
             aria-label="Refresh"
             title="Refresh"
-            onClick={() => dispatch(documentsRefreshRequested())}
+            onClick={(): void => {
+              dispatch(documentsRefreshRequested());
+            }}
             disabled={isLoading}
             icon="refresh"
             secondary
@@ -221,7 +223,9 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Previous page"
               title="Previous page"
-              onClick={() => dispatch(previousPageRequested())}
+              onClick={(): void => {
+                dispatch(previousPageRequested());
+              }}
               disabled={currentPage <= 1 || isLoading}
               iconOnly
               icon="chevron-left"
@@ -230,7 +234,9 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Next page"
               title="Next page"
-              onClick={() => dispatch(nextPageRequested())}
+              onClick={(): void => {
+                dispatch(nextPageRequested());
+              }}
               disabled={currentPage >= totalPages || isLoading}
               iconOnly
               icon="chevron-right"
@@ -258,7 +264,9 @@ const PreviewApp: React.FC = () => {
               <VscodeButton
                 aria-label="Stop"
                 title="Stop current request"
-                onClick={() => dispatch(requestCancellationRequested())}
+                onClick={(): void => {
+                  dispatch(requestCancellationRequested());
+                }}
                 icon="stop-circle"
                 secondary
               >

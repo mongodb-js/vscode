@@ -143,8 +143,6 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   },
 };
 
-
-
 const MonacoViewer: React.FC<MonacoViewerProps> = ({
   document,
   themeColors,
@@ -223,11 +221,12 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
   const handleEditorMount = useCallback(
     (editorInstance: editor.IStandaloneCodeEditor) => {
+      editorRef.current = editorInstance;
       setEditorHeight(calculateHeight());
 
       // Fold all levels except the outermost object
-      const runFold = () => {
-        editorInstance.getAction('editor.foldLevel2')?.run();
+      const runFold = (): void => {
+        void editorInstance.getAction('editor.foldLevel2')?.run();
       };
 
       // Run fold multiple times to ensure it works after Monaco computes folding ranges
@@ -242,7 +241,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       // Store disposables for cleanup
       (editorInstance as any).__foldDisposables = [disposable];
     },
-    [monaco, calculateHeight],
+    [calculateHeight],
   );
 
   // Cleanup effect to dispose event listeners when component unmounts
@@ -256,7 +255,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, []);
 
   return (
-    <div className={cardStyles}>
+    <div className={cardStyles} data-testid="monaco-viewer-container">
       <div className={monacoWrapperStyles}>
         <Editor
           height={editorHeight}
