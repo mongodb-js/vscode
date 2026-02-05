@@ -436,17 +436,18 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     }
   }, [monaco, colors]);
 
-  // Always render the full document
+  // Always render the full document with all strings initially truncated
   const jsonValue = useMemo(() => {
     // Clear and rebuild truncation map
     truncationMapRef.current.clear();
+    // Pass empty set for expandedPaths since we handle expansion in-place via Monaco edits
     const truncatedDocument = truncateLongValues(
       document,
       truncationMapRef.current,
-      expandedPaths
+      new Set() // Always start with all strings truncated
     );
     return formatJsonWithUnquotedKeys(truncatedDocument, 0, truncationMapRef.current);
-  }, [document, expandedPaths]);
+  }, [document]); // Removed expandedPaths dependency - we edit in-place now!
 
   // Calculate initial editor height based on content
   const calculateHeight = useCallback(() => {
@@ -607,10 +608,46 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
         const pathAtPosition = findPathAtPosition(fullText, position.lineNumber, position.column);
 
         if (pathAtPosition && truncationMapRef.current.has(pathAtPosition)) {
-          // Toggle expansion
+          // Get the full value from the truncation map
+          const fullValue = truncationMapRef.current.get(pathAtPosition)!;
+
+          // Find the truncated string in the line
+          const truncatedMatch = lineContent.match(/"[^"]*\.\.\."/);
+          if (!truncatedMatch) return;
+
+          const truncatedString = truncatedMatch[0];
+          const startColumn = lineContent.indexOf(truncatedString) + 1;
+          const endColumn = startColumn + truncatedString.length;
+
+          // Check if this path is currently expanded
+          const isCurrentlyExpanded = expandedPaths.has(pathAtPosition);
+
+          // Determine the new value to display
+          const newValue = isCurrentlyExpanded
+            ? `"${fullValue.substring(0, MAX_VALUE_LENGTH)}..."` // Collapse: show truncated
+            : `"${fullValue}"`; // Expand: show full value
+
+          // Apply the edit directly to the model (preserves folding state!)
+          model.pushEditOperations(
+            [],
+            [
+              {
+                range: {
+                  startLineNumber: position.lineNumber,
+                  startColumn: startColumn,
+                  endLineNumber: position.lineNumber,
+                  endColumn: endColumn,
+                },
+                text: newValue,
+              },
+            ],
+            () => null
+          );
+
+          // Update the expandedPaths state to track the toggle
           setExpandedPaths(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(pathAtPosition)) {
+            if (isCurrentlyExpanded) {
               newSet.delete(pathAtPosition);
             } else {
               newSet.add(pathAtPosition);
