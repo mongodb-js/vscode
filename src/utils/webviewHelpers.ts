@@ -38,6 +38,7 @@ export interface WebviewHtmlOptions {
   title?: string;
   additionalHeadContent?: string;
   codiconStylesheetUri?: string;
+  monacoEditorBaseUri?: string;
 }
 
 export const getWebviewHtml = ({
@@ -47,6 +48,7 @@ export const getWebviewHtml = ({
   title = 'MongoDB',
   additionalHeadContent = '',
   codiconStylesheetUri,
+  monacoEditorBaseUri,
 }: WebviewHtmlOptions): string => {
   const nonce = getNonce();
   const scriptUri = getWebviewUri(
@@ -60,18 +62,23 @@ export const getWebviewHtml = ({
     ? `<link id="vscode-codicon-stylesheet" rel="stylesheet" href="${codiconStylesheetUri}" nonce="${nonce}">`
     : '';
 
+  const monacoScript = monacoEditorBaseUri
+    ? `<script nonce="${nonce}">window.MONACO_EDITOR_BASE_URI = '${monacoEditorBaseUri}';</script>`
+    : '';
+
   return `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta http-equiv="Content-Security-Policy" content="default-src 'none';
-          script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https: https://cdn.jsdelivr.net;
-          style-src vscode-resource: 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
-          font-src vscode-resource: 'self' data: https://cdn.jsdelivr.net;
+          script-src 'nonce-${nonce}' vscode-resource: 'self' 'unsafe-inline' https:;
+          style-src vscode-resource: 'self' 'unsafe-inline';
+          font-src vscode-resource: 'self' data:;
           img-src vscode-resource: 'self'"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
       ${codiconLink}
+      ${monacoScript}
     </head>
     <body>
       <div id="root"></div>

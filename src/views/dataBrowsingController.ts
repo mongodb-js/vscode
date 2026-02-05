@@ -20,16 +20,22 @@ const getCodiconsDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'codicons');
 };
 
+const getMonacoEditorDistPath = (extensionPath: string): string => {
+  return path.join(extensionPath, 'dist', 'monaco-editor');
+};
+
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
   namespace,
   codiconStylesheetUri,
+  monacoEditorBaseUri,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
   namespace: string;
   codiconStylesheetUri: string;
+  monacoEditorBaseUri: string;
 }): string => {
   return getWebviewHtml({
     extensionPath,
@@ -37,6 +43,7 @@ export const getDataBrowsingContent = ({
     webviewType: 'dataBrowser',
     title: namespace,
     codiconStylesheetUri,
+    monacoEditorBaseUri,
   });
 };
 
@@ -330,6 +337,14 @@ export default class DataBrowsingController {
     );
     const codiconStylesheetUri = codiconCssUri.toString();
 
+    // Generate the Monaco Editor base URI for the webview
+    // Monaco Editor files are copied to dist/monaco-editor during webpack build
+    const monacoEditorDistPath = getMonacoEditorDistPath(extensionPath);
+    const monacoEditorBaseUriObj = panel.webview.asWebviewUri(
+      vscode.Uri.file(monacoEditorDistPath),
+    );
+    const monacoEditorBaseUri = monacoEditorBaseUriObj.toString();
+
     panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
     this._activeWebviewPanels.push(panel);
 
@@ -338,6 +353,7 @@ export default class DataBrowsingController {
       webview: panel.webview,
       namespace: options.namespace,
       codiconStylesheetUri,
+      monacoEditorBaseUri,
     });
 
     panel.webview.onDidReceiveMessage(

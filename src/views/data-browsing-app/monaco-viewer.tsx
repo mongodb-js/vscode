@@ -1,9 +1,26 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Editor, { useMonaco } from '@monaco-editor/react';
+import Editor, { useMonaco, loader } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
 import { css, spacing } from '@mongodb-js/compass-components';
 import type { JsonTokenColors } from './extension-app-message-constants';
+
+// Configure Monaco Editor loader to use local files instead of CDN
+// The MONACO_EDITOR_BASE_URI is set by the extension in the webview HTML
+declare global {
+  interface Window {
+    MONACO_EDITOR_BASE_URI?: string;
+  }
+}
+
+// Configure the loader before any editor is created
+if (typeof window !== 'undefined' && window.MONACO_EDITOR_BASE_URI) {
+  loader.config({
+    paths: {
+      vs: `${window.MONACO_EDITOR_BASE_URI}/vs`,
+    },
+  });
+}
 
 interface MonacoViewerProps {
   document: Record<string, unknown>;
@@ -28,8 +45,6 @@ const LINE_HEIGHT = 19;
 const EDITOR_PADDING = 0;
 
 const monacoWrapperStyles = css({
-  paddingLeft: "10px",
-
   // Hide line numbers and glyph margin, but keep folding controls visible
   '& .monaco-editor .line-numbers': {
     display: 'none !important',
@@ -90,10 +105,11 @@ const cardStyles = css({
   borderRadius: '6px',
   overflow: 'hidden',
   marginBottom: spacing[200],
+  padding: spacing[300],
 });
 
-// Base viewer options - will be modified per instance for scrollbar settings
-const getViewerOptions = (enableScrolling: boolean): Monaco.editor.IStandaloneEditorConstructionOptions => ({
+// Monaco editor options
+const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
   domReadOnly: false, // Allow DOM interactions like copy
   contextmenu: false,
@@ -109,12 +125,12 @@ const getViewerOptions = (enableScrolling: boolean): Monaco.editor.IStandaloneEd
   overviewRulerBorder: false,
   hideCursorInOverviewRuler: true,
   scrollbar: {
-    vertical: enableScrolling ? 'auto' : 'hidden',
+    vertical: 'auto',
     horizontal: 'hidden',
     alwaysConsumeMouseWheel: false,
-    handleMouseWheel: enableScrolling,
+    handleMouseWheel: true,
   },
-  wordWrap: 'off',
+  wordWrap: 'on',
   scrollBeyondLastLine: false,
   automaticLayout: true,
   padding: { top: EDITOR_PADDING, bottom: EDITOR_PADDING },
@@ -138,7 +154,7 @@ const getViewerOptions = (enableScrolling: boolean): Monaco.editor.IStandaloneEd
     autoFindInSelection: 'never',
     seedSearchStringFromSelection: 'never',
   },
-});
+};
 
 /**
  * Format JSON with unquoted keys (similar to JavaScript object notation)
@@ -331,9 +347,6 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       }
     };
   }, []);
-
-  // Calculate viewer options - always enable scrolling
-  const viewerOptions = useMemo(() => getViewerOptions(true), []);
 
   return (
     <div className={cardStyles}>
