@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Editor, { useMonaco, loader } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
@@ -6,14 +12,12 @@ import { css, spacing } from '@mongodb-js/compass-components';
 import type { JsonTokenColors } from './extension-app-message-constants';
 
 // Configure Monaco Editor loader to use local files instead of CDN
-// The MONACO_EDITOR_BASE_URI is set by the extension in the webview HTML
 declare global {
   interface Window {
     MONACO_EDITOR_BASE_URI?: string;
   }
 }
 
-// Configure the loader before any editor is created
 if (typeof window !== 'undefined' && window.MONACO_EDITOR_BASE_URI) {
   loader.config({
     paths: {
@@ -27,7 +31,6 @@ interface MonacoViewerProps {
   themeColors?: JsonTokenColors;
 }
 
-// Default color palette for syntax highlighting (VS Code Dark+ theme)
 const DEFAULT_COLORS = {
   key: '#9CDCFE',
   string: '#CE9178',
@@ -39,34 +42,10 @@ const DEFAULT_COLORS = {
   punctuation: '#D4D4D4',
 } as const;
 
-// Line height in pixels for Monaco editor
 const LINE_HEIGHT = 19;
-// Padding top and bottom for the editor
 const EDITOR_PADDING = 0;
 
 const monacoWrapperStyles = css({
-  // Hide line numbers and glyph margin, but keep folding controls visible
-  '& .monaco-editor .line-numbers': {
-    display: 'none !important',
-  },
-
-  '& .monaco-editor .glyph-margin': {
-    display: 'none !important',
-  },
-
-  // Remove any borders on the editor
-  '& .monaco-editor': {
-    border: 'none !important',
-  },
-
-  '& .monaco-editor .overflow-guard': {
-    border: 'none !important',
-  },
-
-  '& .monaco-editor .monaco-scrollable-element': {
-    border: 'none !important',
-    boxShadow: 'none !important',
-  },
   // Hide Monaco's internal textarea elements that appear as white boxes
   '& .monaco-editor .native-edit-context': {
     position: 'absolute',
@@ -100,8 +79,10 @@ const monacoWrapperStyles = css({
 });
 
 const cardStyles = css({
-  backgroundColor: 'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
-  border: '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
+  backgroundColor:
+    'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
+  border:
+    '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
   borderRadius: '6px',
   overflow: 'hidden',
   marginBottom: spacing[200],
@@ -111,17 +92,14 @@ const cardStyles = css({
 // Monaco editor options
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
-  domReadOnly: false, // Allow DOM interactions like copy
+  domReadOnly: false,
   contextmenu: false,
   minimap: { enabled: false },
   glyphMargin: false,
   folding: true,
   foldingStrategy: 'auto',
   showFoldingControls: 'always',
-  lineDecorationsWidth: 0,
-  lineNumbersMinChars: 0,
-  renderLineHighlight: 'none',
-  overviewRulerLanes: 0,
+  lineDecorationsWidth: 4,
   overviewRulerBorder: false,
   hideCursorInOverviewRuler: true,
   scrollbar: {
@@ -133,14 +111,14 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   wordWrap: 'on',
   scrollBeyondLastLine: false,
   automaticLayout: true,
-  padding: { top: EDITOR_PADDING, bottom: EDITOR_PADDING },
   lineNumbers: 'off',
   cursorStyle: 'line',
   occurrencesHighlight: 'off',
   selectionHighlight: false,
   renderValidationDecorations: 'off',
   lineHeight: LINE_HEIGHT,
-  fontFamily: 'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
+  fontFamily:
+    'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
   fontSize: 13,
   renderLineHighlightOnlyWhenFocus: false,
   renderWhitespace: 'none',
@@ -148,7 +126,6 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
     indentation: false,
     highlightActiveIndentation: false,
   },
-  // Disable find widget (Ctrl+F)
   find: {
     addExtraSpaceOnTop: false,
     autoFindInSelection: 'never',
@@ -161,10 +138,7 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
  * @param obj - The object to format
  * @param indent - Current indentation level
  */
-function formatJsonWithUnquotedKeys(
-  obj: any,
-  indent = 0
-): string {
+function formatJsonWithUnquotedKeys(obj: any, indent = 0): string {
   const indentStr = '  '.repeat(indent);
   const nextIndentStr = '  '.repeat(indent + 1);
 
@@ -210,7 +184,7 @@ function formatJsonWithUnquotedKeys(
     if (keys.length === 0) {
       return '{}';
     }
-    const items = keys.map(key => {
+    const items = keys.map((key) => {
       const value = formatJsonWithUnquotedKeys(obj[key], indent + 1);
       return `${nextIndentStr}${key}: ${value}`;
     });
@@ -221,46 +195,54 @@ function formatJsonWithUnquotedKeys(
   return String(obj);
 }
 
-const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) => {
+const MonacoViewer: React.FC<MonacoViewerProps> = ({
+  document,
+  themeColors,
+}) => {
   const monaco = useMonaco();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [editorHeight, setEditorHeight] = useState<number>(0);
 
-  // Merge theme colors with defaults
+  // Monaco expects colors without the # prefix, so strip it here once
   const colors = useMemo(
     () => ({
-      key: themeColors?.key ?? DEFAULT_COLORS.key,
-      string: themeColors?.string ?? DEFAULT_COLORS.string,
-      number: themeColors?.number ?? DEFAULT_COLORS.number,
-      boolean: themeColors?.boolean ?? DEFAULT_COLORS.boolean,
-      null: themeColors?.null ?? DEFAULT_COLORS.null,
-      type: themeColors?.type ?? DEFAULT_COLORS.type,
-      comment: themeColors?.comment ?? DEFAULT_COLORS.comment,
-      punctuation: themeColors?.punctuation ?? DEFAULT_COLORS.punctuation,
+      key: (themeColors?.key ?? DEFAULT_COLORS.key).replace('#', ''),
+      string: (themeColors?.string ?? DEFAULT_COLORS.string).replace('#', ''),
+      number: (themeColors?.number ?? DEFAULT_COLORS.number).replace('#', ''),
+      boolean: (themeColors?.boolean ?? DEFAULT_COLORS.boolean).replace(
+        '#',
+        '',
+      ),
+      null: (themeColors?.null ?? DEFAULT_COLORS.null).replace('#', ''),
+      type: (themeColors?.type ?? DEFAULT_COLORS.type).replace('#', ''),
+      comment: (themeColors?.comment ?? DEFAULT_COLORS.comment).replace(
+        '#',
+        '',
+      ),
+      punctuation: (
+        themeColors?.punctuation ?? DEFAULT_COLORS.punctuation
+      ).replace('#', ''),
     }),
     [themeColors],
   );
 
-  // Define custom theme when Monaco is ready
   useEffect(() => {
     if (monaco) {
-      // Define custom theme based on TypeScript
-      monaco.editor.defineTheme('noGutterTheme', {
+      monaco.editor.defineTheme('currentVSCodeTheme', {
         base: 'vs-dark',
         inherit: true,
         rules: [
-          // TypeScript/JavaScript token mappings
-          { token: 'identifier', foreground: colors.key.replace('#', '') },
-          { token: 'variable', foreground: colors.key.replace('#', '') },
-          { token: 'variable.name', foreground: colors.key.replace('#', '') },
-          { token: 'string', foreground: colors.string.replace('#', '') },
-          { token: 'string.quote', foreground: colors.string.replace('#', '') },
-          { token: 'string.escape', foreground: colors.string.replace('#', '') },
-          { token: 'number', foreground: colors.number.replace('#', '') },
-          { token: 'keyword', foreground: colors.boolean.replace('#', '') },
-          { token: 'type', foreground: colors.type.replace('#', '') },
-          { token: 'comment', foreground: colors.comment.replace('#', '') },
-          { token: 'delimiter', foreground: colors.punctuation.replace('#', '') },
+          { token: 'identifier', foreground: colors.key },
+          { token: 'variable', foreground: colors.key },
+          { token: 'variable.name', foreground: colors.key },
+          { token: 'string', foreground: colors.string },
+          { token: 'string.quote', foreground: colors.string },
+          { token: 'string.escape', foreground: colors.string },
+          { token: 'number', foreground: colors.number },
+          { token: 'keyword', foreground: colors.boolean },
+          { token: 'type', foreground: colors.type },
+          { token: 'comment', foreground: colors.comment },
+          { token: 'delimiter', foreground: colors.punctuation },
         ],
         colors: {
           'editor.background': '#00000000',
@@ -270,73 +252,51 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     }
   }, [monaco, colors]);
 
-  // Render the full document
   const jsonValue = useMemo(() => {
     return formatJsonWithUnquotedKeys(document, 0);
   }, [document]);
 
-  // Calculate initial editor height based on content
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
-      // Initial height calculation before editor is mounted
       const lineCount = jsonValue.split('\n').length;
       const contentHeight = lineCount * LINE_HEIGHT + EDITOR_PADDING * 2;
       return contentHeight;
     }
 
-    // Calculate height based on actual content height from Monaco's layout
     const contentHeight = editorRef.current.getContentHeight();
     return contentHeight;
   }, [jsonValue]);
 
-  // Update height when jsonValue changes
   useEffect(() => {
     setEditorHeight(calculateHeight());
   }, [jsonValue, calculateHeight]);
 
-
-
-  // Disable find widget when editor mounts
-  const handleEditorMount = useCallback((editorInstance: editor.IStandaloneCodeEditor) => {
-    // Store editor instance for cleanup
-    editorRef.current = editorInstance;
-
-    // Set initial height after editor is mounted
-    setTimeout(() => {
+  const handleEditorMount = useCallback(
+    (editorInstance: editor.IStandaloneCodeEditor) => {
       setEditorHeight(calculateHeight());
-    }, 0);
 
-    // Disable the find widget command
-    editorInstance.addCommand(
-      monaco?.KeyMod.CtrlCmd! | monaco?.KeyCode.KeyF!,
-      () => {
-        // Do nothing - prevents find widget from opening
-      }
-    );
-    editorInstance.getAction('editor.foldLevel2')?.run();
+       // Fold all levels except the outermost object
+      const runFold = () => {
+        editorInstance.getAction('editor.foldLevel2')?.run();
+      };
 
-    editorInstance.getAction("editor.foldLevel1")?.run();
-    const runFold = () => {
-      editorInstance.getAction("editor.foldLevel1")?.run();
-    };
+      // Run fold multiple times to ensure it works after Monaco computes folding ranges
+      runFold();
+      requestAnimationFrame(runFold);
+      setTimeout(runFold, 0);
+      setTimeout(runFold, 100);
 
-    // 1) Next frame (lets layout happen)
-    requestAnimationFrame(runFold);
+      // Listen for layout changes (including folding/unfolding) to update height
+      const disposable = editorInstance.onDidContentSizeChange(() => {
+        const contentHeight = editorInstance.getContentHeight();
+        setEditorHeight(contentHeight);
+      });
 
-    // 2) After Monaco computes folding ranges (often needs another tick)
-    setTimeout(runFold, 0);
-
-    // Listen for layout changes (including folding/unfolding) to update height
-    const disposable = editorInstance.onDidContentSizeChange(() => {
-      const contentHeight = editorInstance.getContentHeight();
-      setEditorHeight(contentHeight);
-    });
-
-    // Store disposables for cleanup
-    (editorInstance as any).__foldDisposables = [disposable];
-  }, [monaco, calculateHeight]);
-
-
+      // Store disposables for cleanup
+      (editorInstance as any).__foldDisposables = [disposable];
+    },
+    [monaco, calculateHeight],
+  );
 
   // Cleanup effect to dispose event listeners when component unmounts
   useEffect(() => {
@@ -351,19 +311,18 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
   return (
     <div className={cardStyles}>
       <div className={monacoWrapperStyles}>
-          <Editor
-            height={editorHeight}
-            defaultLanguage="typescript"
-            value={jsonValue}
-            theme="noGutterTheme"
-            options={viewerOptions}
-            loading={null}
-            onMount={handleEditorMount}
-          />
+        <Editor
+          height={editorHeight}
+          defaultLanguage="typescript"
+          value={jsonValue}
+          theme="currentVSCodeTheme"
+          options={viewerOptions}
+          loading={null}
+          onMount={handleEditorMount}
+        />
       </div>
     </div>
   );
 };
 
 export default MonacoViewer;
-
