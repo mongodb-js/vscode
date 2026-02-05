@@ -349,6 +349,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
   const truncationMapRef = useRef<Map<string, string>>(new Map());
   const fullContentHeightRef = useRef<number>(0);
   const showAllContentRef = useRef<boolean>(false);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   // Merge theme colors with defaults
   const colors = useMemo(
@@ -577,18 +578,6 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     // 2) After Monaco computes folding ranges (often needs another tick)
     setTimeout(runFold, 0);
 
-    // 3) If the model changes (common with @monaco-editor/react), fold again
-    const d1 = editorInstance.onDidChangeModel(() => {
-      requestAnimationFrame(runFold);
-      setTimeout(runFold, 0);
-    });
-
-    // If you're updating `value`, folding ranges can change after content update
-    const d2 = editorInstance.onDidChangeModelContent(() => {
-      // light debounce: fold after updates settle
-      setTimeout(runFold, 0);
-    });
-
     // Listen for layout changes (including folding/unfolding) to update height
     // Only update height when showing all content, otherwise keep it fixed
     const d3 = editorInstance.onDidContentSizeChange(() => {
@@ -633,7 +622,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
     });
 
     // Store disposables for cleanup
-    (editorInstance as any).__foldDisposables = [d1, d2, disposable, d3, d4];
+    (editorInstance as any).__foldDisposables = [disposable, d3, d4];
   }, [monaco, calculateHeight, addTruncatedStringDecorations]);
 
   // Update ref when showAllContent changes
@@ -643,6 +632,39 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
       setEditorHeight(calculateHeight());
     }
   }, [showAllContent, calculateHeight]);
+
+  // Handle "Show less" click with scroll anchoring
+  const handleShowLessClick = useCallback(() => {
+    if (!buttonRef.current) {
+      setShowAllContent(false);
+      return;
+    }
+
+    // Capture the button's position relative to the viewport before collapse
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const buttonTopBeforeCollapse = buttonRect.top;
+
+    // Collapse the content
+    setShowAllContent(false);
+
+    // After the height change, adjust scroll to keep button in same viewport position
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!buttonRef.current) return;
+
+        const buttonRect = buttonRef.current.getBoundingClientRect();
+        const buttonTopAfterCollapse = buttonRect.top;
+        const scrollAdjustment = buttonTopAfterCollapse - buttonTopBeforeCollapse;
+
+        if (scrollAdjustment !== 0) {
+          window.scrollBy({
+            top: scrollAdjustment,
+            behavior: 'auto',
+          });
+        }
+      });
+    });
+  }, []);
 
   // Cleanup effect to dispose event listeners when component unmounts
   useEffect(() => {
@@ -679,6 +701,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
 
       {needsShowMore && !showAllContent && (
         <button
+          ref={buttonRef}
           className={showMoreButtonStyles}
           onClick={() => setShowAllContent(true)}
           data-expanded="false"
@@ -689,8 +712,9 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({ document, themeColors }) =>
 
       {needsShowMore && showAllContent && (
         <button
+          ref={buttonRef}
           className={showMoreButtonStyles}
-          onClick={() => setShowAllContent(false)}
+          onClick={handleShowLessClick}
           data-expanded="true"
         >
           Show less
