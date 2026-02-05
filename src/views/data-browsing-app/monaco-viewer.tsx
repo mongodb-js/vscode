@@ -10,7 +10,7 @@ import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
 import { css, spacing } from '@mongodb-js/compass-components';
 import type { JsonTokenColors } from './extension-app-message-constants';
-import { toJSString } from 'mongodb-query-parser'
+import { toJSString } from 'mongodb-query-parser';
 
 // Configure Monaco Editor loader to use local files instead of CDN
 declare global {
@@ -42,8 +42,6 @@ const DEFAULT_COLORS = {
   comment: '#6A9955',
   punctuation: '#D4D4D4',
 } as const;
-
-
 
 const monacoWrapperStyles = css({
   // Hide Monaco's internal textarea elements that appear as white boxes
