@@ -86,7 +86,7 @@ export const getWebviewHtml = ({
       ${additionalHeadContent.replace(/\$\{nonce\}/g, nonce)}
       <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
     </body>
-  </html><!-- bust-cache: ${Math.random()} -->`;
+  </html>`;
 };
 
 export interface CreateWebviewPanelOptions {
