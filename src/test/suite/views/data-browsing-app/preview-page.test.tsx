@@ -156,7 +156,7 @@ describe('PreviewApp test suite', function () {
           new MessageEvent('message', {
             data: {
               command: PreviewMessageType.loadPage,
-              documents: [{ _id: { $oid: '123' }, name: 'Test' }],
+              documents: [{ _id: '123', name: 'Test' }],
             },
           }),
         );

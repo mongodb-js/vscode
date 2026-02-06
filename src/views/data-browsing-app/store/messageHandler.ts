@@ -1,6 +1,7 @@
 import type { MessageFromExtensionToWebview } from '../extension-app-message-constants';
 import { PreviewMessageType } from '../extension-app-message-constants';
 import type { AppDispatch } from './index';
+import type { PreviewDocument } from './documentQuerySlice';
 import {
   documentsReceived,
   documentsFetchFailed,
@@ -8,8 +9,8 @@ import {
   totalCountReceived,
   totalCountFetchFailed,
   themeColorsReceived,
-  type PreviewDocument,
 } from './documentQuerySlice';
+import { EJSON } from 'bson';
 
 export const handleExtensionMessage = (
   dispatch: AppDispatch,
@@ -18,7 +19,13 @@ export const handleExtensionMessage = (
   switch (message.command) {
     case PreviewMessageType.loadPage:
       dispatch(
-        documentsReceived((message.documents as PreviewDocument[]) || []),
+        documentsReceived(
+          message.documents
+            ? (EJSON.deserialize(message.documents, {
+                relaxed: false,
+              }) as PreviewDocument[])
+            : [],
+        ),
       );
       break;
     case PreviewMessageType.getDocumentError: {

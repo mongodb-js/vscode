@@ -190,25 +190,25 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     }
   }, [monaco, colors]);
 
-  const jsonValue = useMemo(() => {
+  const documentString = useMemo(() => {
     return toJSString(document) ?? '';
   }, [document]);
 
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
       // Estimate height before editor is mounted
-      const lineCount = jsonValue.split('\n').length;
+      const lineCount = documentString.split('\n').length;
       const defaultLineHeight = 19;
       return lineCount * defaultLineHeight;
     }
 
     const contentHeight = editorRef.current.getContentHeight();
     return contentHeight;
-  }, [jsonValue]);
+  }, [documentString]);
 
   useEffect(() => {
     setEditorHeight(calculateHeight());
-  }, [jsonValue, calculateHeight]);
+  }, [documentString, calculateHeight]);
 
   const handleEditorMount = useCallback(
     (editorInstance: editor.IStandaloneCodeEditor) => {
@@ -251,7 +251,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         <Editor
           height={editorHeight}
           defaultLanguage="typescript"
-          value={jsonValue}
+          value={documentString}
           theme="currentVSCodeTheme"
           options={viewerOptions}
           loading={null}

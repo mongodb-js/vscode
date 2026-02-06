@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import type { Document } from 'bson';
+import { EJSON, type Document } from 'bson';
 import path from 'path';
-
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { PreviewMessageType } from './data-browsing-app/extension-app-message-constants';
@@ -184,7 +183,7 @@ export default class DataBrowsingController {
 
       void panel.webview.postMessage({
         command: PreviewMessageType.loadPage,
-        documents,
+        documents: EJSON.serialize(documents, { relaxed: false }),
       });
     } catch (error) {
       if (signal.aborted) {
@@ -243,9 +242,11 @@ export default class DataBrowsingController {
       throw new Error('No active database connection');
     }
 
-    const findOptions: { limit: number; skip?: number } = {
-      limit: limit ?? DEFAULT_DOCUMENTS_LIMIT,
-    };
+    const findOptions: { limit: number; skip?: number; promoteValues: false } =
+      {
+        limit: limit ?? DEFAULT_DOCUMENTS_LIMIT,
+        promoteValues: false,
+      };
 
     if (skip !== undefined && skip > 0) {
       findOptions.skip = skip;
