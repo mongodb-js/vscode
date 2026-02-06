@@ -92,7 +92,7 @@ describe('MonacoViewer test suite', function () {
     it('should render a simple document', function () {
       const document = { _id: '123', name: 'Test' };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       const container = screen.getByTestId('monaco-viewer-container');
       expect(container).to.exist;
@@ -101,7 +101,7 @@ describe('MonacoViewer test suite', function () {
     it('should format document with unquoted keys', async function () {
       const document = { _id: '123', name: 'TestDocument', value: 42 };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -123,7 +123,7 @@ describe('MonacoViewer test suite', function () {
         inStock: true,
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -146,7 +146,7 @@ describe('MonacoViewer test suite', function () {
         },
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -167,7 +167,7 @@ describe('MonacoViewer test suite', function () {
         tags: ['mongodb', 'database', 'nosql'],
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -201,7 +201,7 @@ describe('MonacoViewer test suite', function () {
         punctuation: '#D4D4D4',
       };
 
-      render(<MonacoViewer document={document} themeColors={themeColors} />);
+      render(<MonacoViewer document={document} themeColors={themeColors} themeKind="vs-dark" />);
 
       const container = screen.getByTestId('monaco-viewer-container');
       expect(container).to.exist;
@@ -212,7 +212,7 @@ describe('MonacoViewer test suite', function () {
     it('should handle empty object', function () {
       const document = {};
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       const container = screen.getByTestId('monaco-viewer-container');
       expect(container).to.exist;
@@ -224,7 +224,7 @@ describe('MonacoViewer test suite', function () {
         value: null,
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -242,7 +242,7 @@ describe('MonacoViewer test suite', function () {
         value: undefined,
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -259,7 +259,7 @@ describe('MonacoViewer test suite', function () {
         message: 'Hello "World" with \'quotes\'',
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -282,7 +282,7 @@ describe('MonacoViewer test suite', function () {
         },
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       await waitFor(() => {
         const editorMock = screen.queryByTestId('monaco-editor-mock');
@@ -302,7 +302,7 @@ describe('MonacoViewer test suite', function () {
         items: Array.from({ length: 100 }, (_, i) => i),
       };
 
-      render(<MonacoViewer document={document} />);
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
       const container = screen.getByTestId('monaco-viewer-container');
       expect(container).to.exist;

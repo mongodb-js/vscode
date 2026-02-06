@@ -252,11 +252,13 @@ describe('messageHandler test suite', function () {
         handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateThemeColors,
           themeColors,
+          themeKind: 'vs-dark',
         });
 
         expect(store.getState().documentQuery.themeColors).to.deep.equal(
           themeColors,
         );
+        expect(store.getState().documentQuery.themeKind).to.equal('vs-dark');
       });
 
       it('should handle null theme colors', function () {
@@ -264,9 +266,11 @@ describe('messageHandler test suite', function () {
         handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.updateThemeColors,
           themeColors: null,
+          themeKind: 'vs',
         });
 
         expect(store.getState().documentQuery.themeColors).to.be.null;
+        expect(store.getState().documentQuery.themeKind).to.equal('vs');
       });
     });
   });

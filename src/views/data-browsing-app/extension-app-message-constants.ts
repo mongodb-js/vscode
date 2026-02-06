@@ -25,6 +25,8 @@ export interface TokenColors {
   punctuation: string;
 }
 
+export type MonacoBaseTheme = 'vs' | 'vs-dark' | 'hc-black' | 'hc-light';
+
 export type PreviewMessageType =
   (typeof PreviewMessageType)[keyof typeof PreviewMessageType];
 
@@ -79,6 +81,7 @@ export interface UpdateTotalCountErrorMessage extends BasicWebviewMessage {
 export interface UpdateThemeColorsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.updateThemeColors;
   themeColors: TokenColors | null;
+  themeKind: MonacoBaseTheme;
 }
 
 export type MessageFromWebviewToExtension =

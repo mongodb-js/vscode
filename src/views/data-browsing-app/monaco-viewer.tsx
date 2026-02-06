@@ -9,7 +9,7 @@ import Editor, { useMonaco, loader } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
 import { css, spacing } from '@mongodb-js/compass-components';
-import type { TokenColors } from './extension-app-message-constants';
+import type { TokenColors, MonacoBaseTheme } from './extension-app-message-constants';
 import { toJSString } from 'mongodb-query-parser';
 import { EJSON } from 'bson';
 
@@ -31,19 +31,8 @@ if (typeof window !== 'undefined' && window.MONACO_EDITOR_BASE_URI) {
 interface MonacoViewerProps {
   document: Record<string, unknown>;
   themeColors?: TokenColors;
+  themeKind: MonacoBaseTheme;
 }
-
-const DEFAULT_COLORS = {
-  key: '#9CDCFE',
-  string: '#CE9178',
-  number: '#B5CEA8',
-  boolean: '#569CD6',
-  null: '#569CD6',
-  type: '#4EC9B0',
-  comment: '#6A9955',
-  punctuation: '#D4D4D4',
-} as const;
-
 const monacoWrapperStyles = css({
   // Hide Monaco's internal textarea elements that appear as white boxes
   '& .monaco-editor .native-edit-context': {
@@ -138,59 +127,56 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
 const MonacoViewer: React.FC<MonacoViewerProps> = ({
   document,
   themeColors,
+  themeKind,
 }) => {
   const monaco = useMonaco();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [editorHeight, setEditorHeight] = useState<number>(0);
 
   // Monaco expects colors without the # prefix, so strip it here once
-  const colors = useMemo(
-    () => ({
-      key: (themeColors?.key ?? DEFAULT_COLORS.key).replace('#', ''),
-      string: (themeColors?.string ?? DEFAULT_COLORS.string).replace('#', ''),
-      number: (themeColors?.number ?? DEFAULT_COLORS.number).replace('#', ''),
-      boolean: (themeColors?.boolean ?? DEFAULT_COLORS.boolean).replace(
-        '#',
-        '',
-      ),
-      null: (themeColors?.null ?? DEFAULT_COLORS.null).replace('#', ''),
-      type: (themeColors?.type ?? DEFAULT_COLORS.type).replace('#', ''),
-      comment: (themeColors?.comment ?? DEFAULT_COLORS.comment).replace(
-        '#',
-        '',
-      ),
-      punctuation: (
-        themeColors?.punctuation ?? DEFAULT_COLORS.punctuation
-      ).replace('#', ''),
-    }),
-    [themeColors],
-  );
+  const colors = useMemo(() => {
+    if (!themeColors) return null;
+    return {
+      key: themeColors.key.replace('#', ''),
+      string: themeColors.string.replace('#', ''),
+      number: themeColors.number.replace('#', ''),
+      boolean: themeColors.boolean.replace('#', ''),
+      null: themeColors.null.replace('#', ''),
+      type: themeColors.type.replace('#', ''),
+      comment: themeColors.comment.replace('#', ''),
+      punctuation: themeColors.punctuation.replace('#', ''),
+    };
+  }, [themeColors]);
 
   useEffect(() => {
+    console.log(colors)
+    console.log(themeKind)
     if (monaco) {
       monaco.editor.defineTheme('currentVSCodeTheme', {
-        base: 'vs-dark',
+        base: themeKind,
         inherit: true,
-        rules: [
-          { token: 'identifier', foreground: colors.key },
-          { token: 'variable', foreground: colors.key },
-          { token: 'variable.name', foreground: colors.key },
-          { token: 'string', foreground: colors.string },
-          { token: 'string.quote', foreground: colors.string },
-          { token: 'string.escape', foreground: colors.string },
-          { token: 'number', foreground: colors.number },
-          { token: 'keyword', foreground: colors.punctuation },
-          { token: 'type', foreground: colors.type },
-          { token: 'comment', foreground: colors.comment },
-          { token: 'delimiter', foreground: colors.punctuation },
-        ],
+        rules: colors
+          ? [
+              { token: 'identifier', foreground: colors.key },
+              { token: 'variable', foreground: colors.key },
+              { token: 'variable.name', foreground: colors.key },
+              { token: 'string', foreground: colors.string },
+              { token: 'string.quote', foreground: colors.string },
+              { token: 'string.escape', foreground: colors.string },
+              { token: 'number', foreground: colors.number },
+              { token: 'keyword', foreground: colors.punctuation },
+              { token: 'type', foreground: colors.type },
+              { token: 'comment', foreground: colors.comment },
+              { token: 'delimiter', foreground: colors.punctuation },
+            ]
+          : [],
         colors: {
           'editor.background': '#00000000',
           'editorGutter.background': '#00000000',
         },
       });
     }
-  }, [monaco, colors]);
+  }, [monaco, colors, themeKind]);
 
   const documentString = useMemo(() => {
     const deserialized = EJSON.deserialize(document, { relaxed: false });

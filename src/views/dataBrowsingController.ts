@@ -9,7 +9,7 @@ import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
-import { getThemeTokenColors } from '../utils/themeColorReader';
+import { getThemeTokenColors, getMonacoBaseTheme } from '../utils/themeColorReader';
 
 const log = createLogger('data browsing controller');
 
@@ -369,9 +369,11 @@ export default class DataBrowsingController {
 
   private _sendThemeColors(panel: vscode.WebviewPanel): void {
     const themeColors = getThemeTokenColors();
+    const themeKind = getMonacoBaseTheme();
     void panel.webview.postMessage({
       command: PreviewMessageType.updateThemeColors,
       themeColors,
+      themeKind,
     });
   }
 }

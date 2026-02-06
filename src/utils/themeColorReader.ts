@@ -156,6 +156,23 @@ function parseThemeFileRecursive(
   }
 }
 
+export type MonacoBaseTheme = 'vs' | 'vs-dark' | 'hc-black' | 'hc-light';
+
+export function getMonacoBaseTheme(): MonacoBaseTheme {
+  const kind = vscode.window.activeColorTheme.kind;
+  switch (kind) {
+    case vscode.ColorThemeKind.Light:
+      return 'vs';
+    case vscode.ColorThemeKind.HighContrastLight:
+      return 'hc-light';
+    case vscode.ColorThemeKind.HighContrast:
+      return 'hc-black';
+    case vscode.ColorThemeKind.Dark:
+    default:
+      return 'vs-dark';
+  }
+}
+
 export function getThemeTokenColors(): TokenColors {
   const themeName = vscode.workspace
     .getConfiguration('workbench')

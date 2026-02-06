@@ -42,7 +42,10 @@ export const handleExtensionMessage = (
       break;
     }
     case PreviewMessageType.updateThemeColors:
-      dispatch(themeColorsReceived(message.themeColors));
+      dispatch(themeColorsReceived({
+        themeColors: message.themeColors,
+        themeKind: message.themeKind,
+      }));
       break;
   }
 };

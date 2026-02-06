@@ -135,6 +135,7 @@ const PreviewApp: React.FC = () => {
     startItem,
     endItem,
     themeColors,
+    themeKind,
     errors: {
       getDocuments: getDocumentsError,
       getTotalCount: getTotalCountError,
@@ -281,6 +282,7 @@ const PreviewApp: React.FC = () => {
                 key={`${currentPage}-${index}`}
                 document={doc}
                 themeColors={themeColors ?? undefined}
+                themeKind={themeKind}
               />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (

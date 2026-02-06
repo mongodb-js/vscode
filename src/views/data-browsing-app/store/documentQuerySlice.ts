@@ -5,7 +5,7 @@ import {
   sendGetTotalCount,
   sendCancelRequest,
 } from '../vscode-api';
-import type { TokenColors } from '../extension-app-message-constants';
+import type { TokenColors, MonacoBaseTheme } from '../extension-app-message-constants';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -31,6 +31,7 @@ export interface DocumentQueryState {
   startItem: number;
   endItem: number;
   themeColors: TokenColors | null;
+  themeKind: MonacoBaseTheme;
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -70,6 +71,7 @@ export const initialState: DocumentQueryState = {
   startItem: 0,
   endItem: 0,
   themeColors: null,
+  themeKind: 'vs-dark',
 };
 
 const documentQuerySlice = createSlice({
@@ -161,9 +163,10 @@ const documentQuerySlice = createSlice({
     },
     themeColorsReceived: (
       state,
-      action: PayloadAction<TokenColors | null>,
+      action: PayloadAction<{ themeColors: TokenColors | null; themeKind: MonacoBaseTheme }>,
     ) => {
-      state.themeColors = action.payload;
+      state.themeColors = action.payload.themeColors;
+      state.themeKind = action.payload.themeKind;
     },
   },
 });
