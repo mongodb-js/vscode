@@ -7,37 +7,15 @@ import { createLogger } from '../logging';
 const log = createLogger('theme color reader');
 
 export interface TokenColors {
-  key: string;
-  string: string;
-  number: string;
-  boolean: string;
-  null: string;
-  type: string;
-  comment: string;
-  punctuation: string;
+  key?: string;
+  string?: string;
+  number?: string;
+  boolean?: string;
+  null?: string;
+  type?: string;
+  comment?: string;
+  punctuation?: string;
 }
-
-const DEFAULT_DARK_COLORS: TokenColors = {
-  key: '#9CDCFE',
-  string: '#CE9178',
-  number: '#B5CEA8',
-  boolean: '#569CD6',
-  null: '#569CD6',
-  type: '#4EC9B0',
-  comment: '#6A9955',
-  punctuation: '#D4D4D4',
-};
-
-const DEFAULT_LIGHT_COLORS: TokenColors = {
-  key: '#001080',
-  string: '#A31515',
-  number: '#098658',
-  boolean: '#0000FF',
-  null: '#0000FF',
-  type: '#267F99',
-  comment: '#008000',
-  punctuation: '#000000',
-};
 
 const SCOPE_MAPPINGS: Record<string, keyof TokenColors> = Object.assign(
   Object.create(null),
@@ -61,7 +39,7 @@ const SCOPE_MAPPINGS: Record<string, keyof TokenColors> = Object.assign(
   },
 );
 
-interface ThemeJson {
+export interface ThemeJson {
   tokenColors?: Array<{
     scope?: string | string[];
     settings?: { foreground?: string };
@@ -86,7 +64,8 @@ function findThemeFile(themeName: string): string | undefined {
   return undefined;
 }
 
-function extractTokenOverrides(theme: ThemeJson): Partial<TokenColors> {
+/** @internal Exported for testing. */
+export function extractTokenOverrides(theme: ThemeJson): Partial<TokenColors> {
   const overrides: Partial<TokenColors> = {};
 
   for (const token of theme.tokenColors ?? []) {
@@ -101,7 +80,7 @@ function extractTokenOverrides(theme: ThemeJson): Partial<TokenColors> {
 
     for (const scope of scopes) {
       for (const [pattern, colorKey] of Object.entries(SCOPE_MAPPINGS)) {
-        if (scope === pattern || scope.startsWith(pattern + '.')) {
+        if (scope === pattern || pattern.startsWith(scope + '.')) {
           overrides[colorKey] = foreground;
           break;
         }
@@ -112,10 +91,39 @@ function extractTokenOverrides(theme: ThemeJson): Partial<TokenColors> {
   return overrides;
 }
 
-function parseThemeFile(
+export const MAX_INCLUDE_DEPTH = 10;
+
+/** @internal Exported for testing. */
+export function parseThemeFile(
   themePath: string,
   defaults: TokenColors,
 ): TokenColors {
+  return parseThemeFileRecursive(themePath, defaults, new Set(), 0);
+}
+
+function parseThemeFileRecursive(
+  themePath: string,
+  defaults: TokenColors,
+  visited: Set<string>,
+  depth: number,
+): TokenColors {
+  const normalizedPath = path.resolve(themePath);
+
+  if (visited.has(normalizedPath)) {
+    log.error('Circular include detected in theme files', normalizedPath);
+    return { ...defaults };
+  }
+
+  if (depth >= MAX_INCLUDE_DEPTH) {
+    log.error(
+      'Maximum include depth exceeded when resolving theme',
+      normalizedPath,
+    );
+    return { ...defaults };
+  }
+
+  visited.add(normalizedPath);
+
   try {
     const content = fs.readFileSync(themePath, 'utf8');
     const theme: ThemeJson = JSON5.parse(content);
@@ -123,9 +131,21 @@ function parseThemeFile(
     const parentColors = theme.include
       ? (() => {
           const parentPath = path.join(path.dirname(themePath), theme.include);
-          return fs.existsSync(parentPath)
-            ? parseThemeFile(parentPath, defaults)
-            : defaults;
+          if (!fs.existsSync(parentPath)) {
+            log.error(
+              'Included theme file not found',
+              parentPath,
+              'referenced from',
+              themePath,
+            );
+            return defaults;
+          }
+          return parseThemeFileRecursive(
+            parentPath,
+            defaults,
+            visited,
+            depth + 1,
+          );
         })()
       : defaults;
 
@@ -140,14 +160,7 @@ export function getThemeTokenColors(): TokenColors {
   const themeName = vscode.workspace
     .getConfiguration('workbench')
     .get<string>('colorTheme');
-  const themeKind = vscode.window.activeColorTheme.kind;
-  const isLight =
-    themeKind === vscode.ColorThemeKind.Light ||
-    themeKind === vscode.ColorThemeKind.HighContrastLight;
-
-  const colors: TokenColors = isLight
-    ? { ...DEFAULT_LIGHT_COLORS }
-    : { ...DEFAULT_DARK_COLORS };
+  const colors: TokenColors = {}
 
   if (!themeName) {
     log.error('Failed to read theme name from workbench settings');
