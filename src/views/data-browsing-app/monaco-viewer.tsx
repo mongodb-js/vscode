@@ -115,6 +115,7 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   lineNumbers: 'off',
   cursorStyle: 'line',
   occurrencesHighlight: 'off',
+  roundedSelection: false,
   selectionHighlight: false,
   renderValidationDecorations: 'off',
   fontFamily:
@@ -177,7 +178,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           { token: 'string.quote', foreground: colors.string },
           { token: 'string.escape', foreground: colors.string },
           { token: 'number', foreground: colors.number },
-          { token: 'keyword', foreground: colors.boolean },
+          { token: 'keyword', foreground: colors.punctuation },
           { token: 'type', foreground: colors.type },
           { token: 'comment', foreground: colors.comment },
           { token: 'delimiter', foreground: colors.punctuation },
@@ -211,7 +212,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [documentString, calculateHeight]);
 
   const handleEditorMount = useCallback(
-    (editorInstance: editor.IStandaloneCodeEditor) => {
+    (editorInstance: editor.IStandaloneCodeEditor, monacoInstance: Parameters<NonNullable<React.ComponentProps<typeof Editor>['onMount']>>[1]) => {
       editorRef.current = editorInstance;
       setEditorHeight(calculateHeight());
 
@@ -220,17 +221,30 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         void editorInstance.getAction('editor.foldLevel2')?.run();
       };
 
-      // Run fold multiple times to ensure it works after Monaco computes folding ranges
       requestAnimationFrame(runFold);
 
-      // Listen for layout changes (including folding/unfolding) to update height
+      // VS Code webviews intercept Ctrl+C before it reaches the embedded Monaco editor,
+      const copyKeybinding = editorInstance.addAction({
+        id: 'custom-copy-to-clipboard',
+        label: 'Copy',
+        keybindings: [
+          monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyC,
+        ],
+        run: (ed) => {
+          const selection = ed.getSelection();
+          if (selection && !selection.isEmpty()) {
+            const selectedText = ed.getModel()?.getValueInRange(selection) ?? '';
+            void navigator.clipboard.writeText(selectedText);
+          }
+        },
+      });
+
       const disposable = editorInstance.onDidContentSizeChange(() => {
         const contentHeight = editorInstance.getContentHeight();
         setEditorHeight(contentHeight);
       });
 
-      // Store disposables for cleanup
-      (editorInstance as any).__foldDisposables = [disposable];
+      (editorInstance as any).__foldDisposables = [disposable, copyKeybinding];
     },
     [calculateHeight],
   );
