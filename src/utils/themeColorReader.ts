@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import JSON5 from 'json5';
+import { createLogger } from '../logging';
 
-export interface JsonTokenColors {
+const log = createLogger('theme color reader');
+
+export interface TokenColors {
   key: string;
   string: string;
   number: string;
@@ -13,7 +17,7 @@ export interface JsonTokenColors {
   punctuation: string;
 }
 
-const DEFAULT_DARK_COLORS: JsonTokenColors = {
+const DEFAULT_DARK_COLORS: TokenColors = {
   key: '#9CDCFE',
   string: '#CE9178',
   number: '#B5CEA8',
@@ -24,7 +28,7 @@ const DEFAULT_DARK_COLORS: JsonTokenColors = {
   punctuation: '#D4D4D4',
 };
 
-const DEFAULT_LIGHT_COLORS: JsonTokenColors = {
+const DEFAULT_LIGHT_COLORS: TokenColors = {
   key: '#001080',
   string: '#A31515',
   number: '#098658',
@@ -35,7 +39,7 @@ const DEFAULT_LIGHT_COLORS: JsonTokenColors = {
   punctuation: '#000000',
 };
 
-const SCOPE_MAPPINGS: Record<string, keyof JsonTokenColors> = Object.assign(
+const SCOPE_MAPPINGS: Record<string, keyof TokenColors> = Object.assign(
   Object.create(null),
   {
     'meta.object-literal.key': 'key',
@@ -82,54 +86,57 @@ function findThemeFile(themeName: string): string | undefined {
   return undefined;
 }
 
-function parseThemeFile(
-  themePath: string,
-  colors: JsonTokenColors,
-): JsonTokenColors {
-  try {
-    const content = fs.readFileSync(themePath, 'utf8');
-    // Strip single-line and block comments for JSONC support
-    const stripped = content
-      .replace(/\/\/.*$/gm, '')
-      .replace(/\/\*[\s\S]*?\*\//g, '');
-    const theme: ThemeJson = JSON.parse(stripped);
+function extractTokenOverrides(theme: ThemeJson): Partial<TokenColors> {
+  const overrides: Partial<TokenColors> = {};
 
-    if (theme.include) {
-      const parentPath = path.join(path.dirname(themePath), theme.include);
-      if (fs.existsSync(parentPath)) {
-        parseThemeFile(parentPath, colors);
-      }
-    }
+  for (const token of theme.tokenColors ?? []) {
+    const foreground = token.settings?.foreground;
+    if (!foreground) continue;
 
-    // Extract colors from tokenColors
-    for (const token of theme.tokenColors ?? []) {
-      const foreground = token.settings?.foreground;
-      if (!foreground) continue;
+    const scopes = Array.isArray(token.scope)
+      ? token.scope
+      : token.scope
+        ? [token.scope]
+        : [];
 
-      const scopes = Array.isArray(token.scope)
-        ? token.scope
-        : token.scope
-          ? [token.scope]
-          : [];
-
-      for (const scope of scopes) {
-        // Find matching color key for this scope
-        for (const [pattern, colorKey] of Object.entries(SCOPE_MAPPINGS)) {
-          if (scope === pattern || scope.startsWith(pattern + '.')) {
-            colors[colorKey] = foreground;
-            break;
-          }
+    for (const scope of scopes) {
+      for (const [pattern, colorKey] of Object.entries(SCOPE_MAPPINGS)) {
+        if (scope === pattern || scope.startsWith(pattern + '.')) {
+          overrides[colorKey] = foreground;
+          break;
         }
       }
     }
+  }
 
-    return colors;
-  } catch {
-    return colors;
+  return overrides;
+}
+
+function parseThemeFile(
+  themePath: string,
+  defaults: TokenColors,
+): TokenColors {
+  try {
+    const content = fs.readFileSync(themePath, 'utf8');
+    const theme: ThemeJson = JSON5.parse(content);
+
+    const parentColors = theme.include
+      ? (() => {
+          const parentPath = path.join(path.dirname(themePath), theme.include);
+          return fs.existsSync(parentPath)
+            ? parseThemeFile(parentPath, defaults)
+            : defaults;
+        })()
+      : defaults;
+
+    return { ...parentColors, ...extractTokenOverrides(theme) };
+  } catch (error) {
+    log.error('Failed to read theme file', themePath, error);
+    return { ...defaults };
   }
 }
 
-export function getThemeTokenColors(): JsonTokenColors {
+export function getThemeTokenColors(): TokenColors {
   const themeName = vscode.workspace
     .getConfiguration('workbench')
     .get<string>('colorTheme');
@@ -138,16 +145,18 @@ export function getThemeTokenColors(): JsonTokenColors {
     themeKind === vscode.ColorThemeKind.Light ||
     themeKind === vscode.ColorThemeKind.HighContrastLight;
 
-  const colors: JsonTokenColors = isLight
+  const colors: TokenColors = isLight
     ? { ...DEFAULT_LIGHT_COLORS }
     : { ...DEFAULT_DARK_COLORS };
 
   if (!themeName) {
+    log.error('Failed to read theme name from workbench settings');
     return colors;
   }
 
   const themePath = findThemeFile(themeName);
   if (!themePath) {
+    log.error('Failed to find theme file for theme', themeName);
     return colors;
   }
 

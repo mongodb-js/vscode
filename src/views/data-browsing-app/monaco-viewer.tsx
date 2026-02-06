@@ -9,8 +9,9 @@ import Editor, { useMonaco, loader } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
 import { css, spacing } from '@mongodb-js/compass-components';
-import type { JsonTokenColors } from './extension-app-message-constants';
+import type { TokenColors } from './extension-app-message-constants';
 import { toJSString } from 'mongodb-query-parser';
+import { EJSON } from 'bson';
 
 // Configure Monaco Editor loader to use local files instead of CDN
 declare global {
@@ -29,7 +30,7 @@ if (typeof window !== 'undefined' && window.MONACO_EDITOR_BASE_URI) {
 
 interface MonacoViewerProps {
   document: Record<string, unknown>;
-  themeColors?: JsonTokenColors;
+  themeColors?: TokenColors;
 }
 
 const DEFAULT_COLORS = {
@@ -192,7 +193,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [monaco, colors]);
 
   const documentString = useMemo(() => {
-    return toJSString(document) ?? '';
+    const deserialized = EJSON.deserialize(document, { relaxed: false });
+    return toJSString(deserialized) ?? '';
   }, [document]);
 
   const calculateHeight = useCallback(() => {

@@ -10,7 +10,6 @@ import {
   totalCountFetchFailed,
   themeColorsReceived,
 } from './documentQuerySlice';
-import { EJSON } from 'bson';
 
 export const handleExtensionMessage = (
   dispatch: AppDispatch,
@@ -21,9 +20,7 @@ export const handleExtensionMessage = (
       dispatch(
         documentsReceived(
           message.documents
-            ? (EJSON.deserialize(message.documents, {
-                relaxed: false,
-              }) as PreviewDocument[])
+            ? (message.documents as PreviewDocument[])
             : [],
         ),
       );

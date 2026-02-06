@@ -5,7 +5,7 @@ import {
   sendGetTotalCount,
   sendCancelRequest,
 } from '../vscode-api';
-import type { JsonTokenColors } from '../extension-app-message-constants';
+import type { TokenColors } from '../extension-app-message-constants';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -30,7 +30,7 @@ export interface DocumentQueryState {
   totalPages: number;
   startItem: number;
   endItem: number;
-  themeColors: JsonTokenColors | null;
+  themeColors: TokenColors | null;
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 10;
@@ -161,7 +161,7 @@ const documentQuerySlice = createSlice({
     },
     themeColorsReceived: (
       state,
-      action: PayloadAction<JsonTokenColors | null>,
+      action: PayloadAction<TokenColors | null>,
     ) => {
       state.themeColors = action.payload;
     },

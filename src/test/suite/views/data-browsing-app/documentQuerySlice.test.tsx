@@ -10,7 +10,7 @@ import reducer, {
   type DocumentQueryState,
   type PreviewDocument,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
-import type { JsonTokenColors } from '../../../../views/data-browsing-app/extension-app-message-constants';
+import type { TokenColors } from '../../../../views/data-browsing-app/extension-app-message-constants';
 
 describe('documentQuerySlice', function () {
   const createState = (
@@ -96,7 +96,7 @@ describe('documentQuerySlice', function () {
 
     describe('themeColorsReceived', function () {
       it('should set theme colors', function () {
-        const themeColors: JsonTokenColors = {
+        const themeColors: TokenColors = {
           key: '#ff0000',
           string: '#00ff00',
           number: '#0000ff',

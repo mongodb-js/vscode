@@ -14,7 +14,7 @@ export const PreviewMessageType = {
   updateThemeColors: 'UPDATE_THEME_COLORS',
 } as const;
 
-export interface JsonTokenColors {
+export interface TokenColors {
   key: string;
   string: string;
   number: string;
@@ -78,7 +78,7 @@ export interface UpdateTotalCountErrorMessage extends BasicWebviewMessage {
 
 export interface UpdateThemeColorsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.updateThemeColors;
-  themeColors: JsonTokenColors | null;
+  themeColors: TokenColors | null;
 }
 
 export type MessageFromWebviewToExtension =
