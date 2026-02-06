@@ -201,7 +201,13 @@ describe('MonacoViewer test suite', function () {
         punctuation: '#D4D4D4',
       };
 
-      render(<MonacoViewer document={document} themeColors={themeColors} themeKind="vs-dark" />);
+      render(
+        <MonacoViewer
+          document={document}
+          themeColors={themeColors}
+          themeKind="vs-dark"
+        />,
+      );
 
       const container = screen.getByTestId('monaco-viewer-container');
       expect(container).to.exist;

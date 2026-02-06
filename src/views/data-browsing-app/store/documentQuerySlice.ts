@@ -5,7 +5,10 @@ import {
   sendGetTotalCount,
   sendCancelRequest,
 } from '../vscode-api';
-import type { TokenColors, MonacoBaseTheme } from '../extension-app-message-constants';
+import type {
+  TokenColors,
+  MonacoBaseTheme,
+} from '../extension-app-message-constants';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -163,7 +166,10 @@ const documentQuerySlice = createSlice({
     },
     themeColorsReceived: (
       state,
-      action: PayloadAction<{ themeColors: TokenColors | null; themeKind: MonacoBaseTheme }>,
+      action: PayloadAction<{
+        themeColors: TokenColors | null;
+        themeKind: MonacoBaseTheme;
+      }>,
     ) => {
       state.themeColors = action.payload.themeColors;
       state.themeKind = action.payload.themeKind;

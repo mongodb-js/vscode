@@ -9,7 +9,10 @@ import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
-import { getThemeTokenColors, getMonacoBaseTheme } from '../utils/themeColorReader';
+import {
+  getThemeTokenColors,
+  getMonacoBaseTheme,
+} from '../utils/themeColorReader';
 
 const log = createLogger('data browsing controller');
 

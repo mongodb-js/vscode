@@ -9,7 +9,10 @@ import Editor, { useMonaco, loader } from '@monaco-editor/react';
 import type * as Monaco from 'monaco-editor';
 import type { editor } from 'monaco-editor';
 import { css, spacing } from '@mongodb-js/compass-components';
-import type { TokenColors, MonacoBaseTheme } from './extension-app-message-constants';
+import type {
+  TokenColors,
+  MonacoBaseTheme,
+} from './extension-app-message-constants';
 import { toJSString } from 'mongodb-query-parser';
 import { EJSON } from 'bson';
 
@@ -149,8 +152,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [themeColors]);
 
   useEffect(() => {
-    console.log(colors)
-    console.log(themeKind)
+    console.log(colors);
+    console.log(themeKind);
     if (monaco) {
       monaco.editor.defineTheme('currentVSCodeTheme', {
         base: themeKind,
@@ -200,7 +203,12 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [documentString, calculateHeight]);
 
   const handleEditorMount = useCallback(
-    (editorInstance: editor.IStandaloneCodeEditor, monacoInstance: Parameters<NonNullable<React.ComponentProps<typeof Editor>['onMount']>>[1]) => {
+    (
+      editorInstance: editor.IStandaloneCodeEditor,
+      monacoInstance: Parameters<
+        NonNullable<React.ComponentProps<typeof Editor>['onMount']>
+      >[1],
+    ) => {
       editorRef.current = editorInstance;
       setEditorHeight(calculateHeight());
 
@@ -221,7 +229,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         run: (ed) => {
           const selection = ed.getSelection();
           if (selection && !selection.isEmpty()) {
-            const selectedText = ed.getModel()?.getValueInRange(selection) ?? '';
+            const selectedText =
+              ed.getModel()?.getValueInRange(selection) ?? '';
             void navigator.clipboard.writeText(selectedText);
           }
         },

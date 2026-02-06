@@ -106,7 +106,10 @@ describe('documentQuerySlice', function () {
           comment: '#888888',
           punctuation: '#ffffff',
         };
-        const result = reducer(initialState, themeColorsReceived({ themeColors, themeKind: 'vs-dark' }));
+        const result = reducer(
+          initialState,
+          themeColorsReceived({ themeColors, themeKind: 'vs-dark' }),
+        );
         expect(result.themeColors).to.deep.equal(themeColors);
         expect(result.themeKind).to.equal('vs-dark');
       });
@@ -125,7 +128,10 @@ describe('documentQuerySlice', function () {
             punctuation: '#ffffff',
           },
         };
-        const result = reducer(stateWithColors, themeColorsReceived({ themeColors: null, themeKind: 'vs' }));
+        const result = reducer(
+          stateWithColors,
+          themeColorsReceived({ themeColors: null, themeKind: 'vs' }),
+        );
         expect(result.themeColors).to.be.null;
         expect(result.themeKind).to.equal('vs');
       });

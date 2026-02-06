@@ -19,9 +19,7 @@ export const handleExtensionMessage = (
     case PreviewMessageType.loadPage:
       dispatch(
         documentsReceived(
-          message.documents
-            ? (message.documents as PreviewDocument[])
-            : [],
+          message.documents ? (message.documents as PreviewDocument[]) : [],
         ),
       );
       break;
@@ -42,10 +40,12 @@ export const handleExtensionMessage = (
       break;
     }
     case PreviewMessageType.updateThemeColors:
-      dispatch(themeColorsReceived({
-        themeColors: message.themeColors,
-        themeKind: message.themeKind,
-      }));
+      dispatch(
+        themeColorsReceived({
+          themeColors: message.themeColors,
+          themeKind: message.themeKind,
+        }),
+      );
       break;
   }
 };

@@ -177,7 +177,7 @@ export function getThemeTokenColors(): TokenColors {
   const themeName = vscode.workspace
     .getConfiguration('workbench')
     .get<string>('colorTheme');
-  const colors: TokenColors = {}
+  const colors: TokenColors = {};
 
   if (!themeName) {
     log.error('Failed to read theme name from workbench settings');

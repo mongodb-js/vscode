@@ -6,13 +6,27 @@
 import Module from 'module';
 
 const noopChannel = {
-  trace: () => { /* no-op */ },
-  debug: () => { /* no-op */ },
-  info: () => { /* no-op */ },
-  warn: () => { /* no-op */ },
-  error: () => { /* no-op */ },
-  appendLine: () => { /* no-op */ },
-  dispose: () => { /* no-op */ },
+  trace: () => {
+    /* no-op */
+  },
+  debug: () => {
+    /* no-op */
+  },
+  info: () => {
+    /* no-op */
+  },
+  warn: () => {
+    /* no-op */
+  },
+  error: () => {
+    /* no-op */
+  },
+  appendLine: () => {
+    /* no-op */
+  },
+  dispose: () => {
+    /* no-op */
+  },
 };
 
 const vscodeMock = {
@@ -55,4 +69,3 @@ const fakeModule = new Module('vscode');
 fakeModule.exports = vscodeMock;
 (fakeModule as any).loaded = true;
 require.cache['vscode'] = fakeModule;
-

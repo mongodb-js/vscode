@@ -38,9 +38,7 @@ suite('themeColorReader', function () {
     test('should match parent scope to child pattern', function () {
       // Theme scope "string" should match pattern "string.quoted"
       const theme: ThemeJson = {
-        tokenColors: [
-          { scope: 'string', settings: { foreground: '#CE9178' } },
-        ],
+        tokenColors: [{ scope: 'string', settings: { foreground: '#CE9178' } }],
       };
       const result = extractTokenOverrides(theme);
       expect(result.string).to.equal('#CE9178');
@@ -116,11 +114,20 @@ suite('themeColorReader', function () {
     test('should extract all supported token color types', function () {
       const theme: ThemeJson = {
         tokenColors: [
-          { scope: 'support.type.property-name', settings: { foreground: '#9CDCFE' } },
+          {
+            scope: 'support.type.property-name',
+            settings: { foreground: '#9CDCFE' },
+          },
           { scope: 'string', settings: { foreground: '#CE9178' } },
           { scope: 'constant.numeric', settings: { foreground: '#B5CEA8' } },
-          { scope: 'constant.language.boolean', settings: { foreground: '#569CD6' } },
-          { scope: 'constant.language.null', settings: { foreground: '#569CD6' } },
+          {
+            scope: 'constant.language.boolean',
+            settings: { foreground: '#569CD6' },
+          },
+          {
+            scope: 'constant.language.null',
+            settings: { foreground: '#569CD6' },
+          },
           { scope: 'entity.name.type', settings: { foreground: '#4EC9B0' } },
           { scope: 'comment', settings: { foreground: '#6A9955' } },
           { scope: 'punctuation', settings: { foreground: '#D4D4D4' } },
@@ -203,9 +210,7 @@ suite('themeColorReader', function () {
       });
       writeThemeFile(tempDir, 'parent.json', {
         include: './grandparent.json',
-        tokenColors: [
-          { scope: 'string', settings: { foreground: '#444444' } },
-        ],
+        tokenColors: [{ scope: 'string', settings: { foreground: '#444444' } }],
       });
       const childPath = writeThemeFile(tempDir, 'child.json', {
         include: './parent.json',
@@ -214,9 +219,9 @@ suite('themeColorReader', function () {
         ],
       });
       const result = parseThemeFile(childPath, {});
-      expect(result.comment).to.equal('#555555');  // child
-      expect(result.string).to.equal('#444444');   // parent
-      expect(result.number).to.equal('#333333');   // grandparent
+      expect(result.comment).to.equal('#555555'); // child
+      expect(result.string).to.equal('#444444'); // parent
+      expect(result.number).to.equal('#333333'); // grandparent
     });
 
     test('should handle circular includes without crashing', function () {
@@ -228,9 +233,7 @@ suite('themeColorReader', function () {
       });
       writeThemeFile(tempDir, 'b.json', {
         include: './a.json',
-        tokenColors: [
-          { scope: 'string', settings: { foreground: '#BBBBBB' } },
-        ],
+        tokenColors: [{ scope: 'string', settings: { foreground: '#BBBBBB' } }],
       });
       const aPath = path.join(tempDir, 'a.json');
       // Should not throw or hang
@@ -268,7 +271,10 @@ suite('themeColorReader', function () {
         writeThemeFile(tempDir, `${i}.json`, {
           ...(include ? { include } : {}),
           tokenColors: [
-            { scope: 'comment', settings: { foreground: `#${String(i).padStart(6, '0')}` } },
+            {
+              scope: 'comment',
+              settings: { foreground: `#${String(i).padStart(6, '0')}` },
+            },
           ],
         });
       }
@@ -306,4 +312,3 @@ suite('themeColorReader', function () {
     });
   });
 });
-
