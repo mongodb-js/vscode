@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/explicit-function-return-type */
 /**
  * Minimal mock of the `vscode` module so that themeColorReader.ts and logging.ts
  * can be loaded outside the VS Code extension host (e.g. with mocha + ts-node).
@@ -5,13 +6,13 @@
 import Module from 'module';
 
 const noopChannel = {
-  trace: () => {},
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  appendLine: () => {},
-  dispose: () => {},
+  trace: () => { /* no-op */ },
+  debug: () => { /* no-op */ },
+  info: () => { /* no-op */ },
+  warn: () => { /* no-op */ },
+  error: () => { /* no-op */ },
+  appendLine: () => { /* no-op */ },
+  dispose: () => { /* no-op */ },
 };
 
 const vscodeMock = {
