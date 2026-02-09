@@ -156,8 +156,6 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [themeColors]);
 
   useEffect(() => {
-    console.log(colors);
-    console.log(themeKind);
     if (monaco) {
       monaco.editor.defineTheme('currentVSCodeTheme', {
         base: themeKind,
