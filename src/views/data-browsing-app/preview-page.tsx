@@ -27,6 +27,8 @@ import {
   currentPageAdjusted,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
+import { sendGetThemeColors } from './vscode-api';
+import MonacoViewer from './monaco-viewer';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
@@ -132,6 +134,8 @@ const PreviewApp: React.FC = () => {
     totalPages,
     startItem,
     endItem,
+    themeColors,
+    themeKind,
     errors: {
       getDocuments: getDocumentsError,
       getTotalCount: getTotalCountError,
@@ -144,6 +148,7 @@ const PreviewApp: React.FC = () => {
 
   useEffect(() => {
     const cleanup = setupMessageHandler(dispatch);
+    sendGetThemeColors();
     dispatch(initialDocumentsFetchRequested());
     return cleanup;
   }, [dispatch]);
@@ -165,7 +170,9 @@ const PreviewApp: React.FC = () => {
           <VscodeButton
             aria-label="Refresh"
             title="Refresh"
-            onClick={() => dispatch(documentsRefreshRequested())}
+            onClick={(): void => {
+              dispatch(documentsRefreshRequested());
+            }}
             disabled={isLoading}
             icon="refresh"
             secondary
@@ -217,7 +224,9 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Previous page"
               title="Previous page"
-              onClick={() => dispatch(previousPageRequested())}
+              onClick={(): void => {
+                dispatch(previousPageRequested());
+              }}
               disabled={currentPage <= 1 || isLoading}
               iconOnly
               icon="chevron-left"
@@ -226,7 +235,9 @@ const PreviewApp: React.FC = () => {
             <VscodeButton
               aria-label="Next page"
               title="Next page"
-              onClick={() => dispatch(nextPageRequested())}
+              onClick={(): void => {
+                dispatch(nextPageRequested());
+              }}
               disabled={currentPage >= totalPages || isLoading}
               iconOnly
               icon="chevron-right"
@@ -254,7 +265,9 @@ const PreviewApp: React.FC = () => {
               <VscodeButton
                 aria-label="Stop"
                 title="Stop current request"
-                onClick={() => dispatch(requestCancellationRequested())}
+                onClick={(): void => {
+                  dispatch(requestCancellationRequested());
+                }}
                 icon="stop-circle"
                 secondary
               >
@@ -265,9 +278,12 @@ const PreviewApp: React.FC = () => {
         ) : (
           <>
             {displayedDocuments.map((doc, index) => (
-              <pre key={`${currentPage}-${index}`}>
-                {JSON.stringify(doc, null, 2)}
-              </pre>
+              <MonacoViewer
+                key={`${currentPage}-${index}`}
+                document={doc}
+                themeColors={themeColors ?? undefined}
+                themeKind={themeKind}
+              />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (
               <div className={emptyStateStyles}>No documents to display</div>

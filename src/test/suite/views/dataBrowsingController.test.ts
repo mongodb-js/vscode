@@ -65,6 +65,30 @@ suite('DataBrowsingController Test Suite', function () {
     sandbox.restore();
   });
 
+  // Helper to find a postMessage call by command type
+  function findMessageByCommand(
+    stub: SinonStub,
+    command: string,
+  ): unknown | undefined {
+    const calls = stub.getCalls();
+    for (const call of calls) {
+      if (call.args[0]?.command === command) {
+        return call.args[0];
+      }
+    }
+    return undefined;
+  }
+
+  // Helper to count calls excluding theme colors messages
+  function countNonThemeColorCalls(stub: SinonStub): number {
+    return stub
+      .getCalls()
+      .filter(
+        (call) =>
+          call.args[0]?.command !== PreviewMessageType.updateThemeColors,
+      ).length;
+  }
+
   suite('AbortController management', function () {
     test('creates a new AbortController for each request type', async function () {
       const options = createMockOptions();
@@ -250,8 +274,8 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      // postMessage should not be called because request was aborted
-      expect(postMessageStub.called).to.be.false;
+      // No loadPage or error message should be posted (only theme colors is allowed)
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(0);
     });
 
     test('does not throw when error occurs on aborted request', async function () {
@@ -269,8 +293,8 @@ suite('DataBrowsingController Test Suite', function () {
       // Should not throw
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      // postMessage should not be called because request was aborted
-      expect(postMessageStub.called).to.be.false;
+      // No loadPage or error message should be posted (only theme colors is allowed)
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(0);
     });
   });
 
@@ -293,9 +317,13 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       expect(mockDataService.find.calledOnce).to.be.true;
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.loadPage);
+      // Theme colors + loadPage = 2 messages
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      const message = findMessageByCommand(
+        postMessageStub,
+        PreviewMessageType.loadPage,
+      ) as { command: string; documents: unknown[] };
+      expect(message).to.not.be.undefined;
       expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
     });
 
@@ -304,9 +332,13 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.loadPage);
+      // Theme colors + loadPage = 2 messages
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      const message = findMessageByCommand(
+        postMessageStub,
+        PreviewMessageType.loadPage,
+      );
+      expect(message).to.not.be.undefined;
     });
 
     test('does not call aggregate in handleGetDocuments', async function () {
@@ -327,9 +359,13 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.getDocumentError);
+      // Theme colors + error = 2 messages
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      const message = findMessageByCommand(
+        postMessageStub,
+        PreviewMessageType.getDocumentError,
+      ) as { command: string; error: string };
+      expect(message).to.not.be.undefined;
       expect(message.error).to.equal('Connection timeout');
     });
   });
@@ -343,8 +379,11 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.getDocumentError);
+      const message = findMessageByCommand(
+        postMessageStub,
+        PreviewMessageType.getDocumentError,
+      ) as { command: string; error: string };
+      expect(message).to.not.be.undefined;
       expect(message.error).to.equal('No active database connection');
     });
 
@@ -356,8 +395,11 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.getDocumentError);
+      const message = findMessageByCommand(
+        postMessageStub,
+        PreviewMessageType.getDocumentError,
+      ) as { command: string; error: string };
+      expect(message).to.not.be.undefined;
       expect(message.error).to.equal('No active database connection');
     });
   });
@@ -427,9 +469,13 @@ suite('DataBrowsingController Test Suite', function () {
       const findOptions = mockDataService.find.firstCall.args[2];
       expect(findOptions.skip).to.equal(10);
       expect(findOptions.limit).to.equal(10);
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.loadPage);
+      // Theme colors + loadPage = 2 messages
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      const message = findMessageByCommand(
+        postMessageStub,
+        PreviewMessageType.loadPage,
+      ) as { command: string; documents: unknown[] };
+      expect(message).to.not.be.undefined;
       expect(message.documents).to.deep.equal([
         { _id: '11', name: 'doc11' },
         { _id: '12', name: 'doc12' },
@@ -455,9 +501,13 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      expect(postMessageStub.calledOnce).to.be.true;
-      const message = postMessageStub.firstCall.args[0];
-      expect(message.command).to.equal(PreviewMessageType.getDocumentError);
+      // Theme colors + error = 2 messages
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      const message = findMessageByCommand(
+        postMessageStub,
+        PreviewMessageType.getDocumentError,
+      ) as { command: string; error: string };
+      expect(message).to.not.be.undefined;
       expect(message.error).to.equal('Connection failed');
     });
 
@@ -472,7 +522,8 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      expect(postMessageStub.called).to.be.false;
+      // No loadPage or error message should be posted (only theme colors is allowed)
+      expect(countNonThemeColorCalls(postMessageStub)).to.equal(0);
     });
   });
 

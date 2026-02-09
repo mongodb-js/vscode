@@ -5,10 +5,12 @@ import reducer, {
   requestCancelled,
   totalCountReceived,
   totalCountFetchFailed,
+  themeColorsReceived,
   selectDocumentQuery,
   type DocumentQueryState,
   type PreviewDocument,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
+import type { TokenColors } from '../../../../views/data-browsing-app/extension-app-message-constants';
 
 describe('documentQuerySlice', function () {
   const createState = (
@@ -89,6 +91,49 @@ describe('documentQuerySlice', function () {
         expect(result.hasReceivedCount).to.be.true;
         expect(result.totalCountInCollection).to.be.null;
         expect(result.errors.getTotalCount).to.equal('Count failed');
+      });
+    });
+
+    describe('themeColorsReceived', function () {
+      it('should set theme colors', function () {
+        const themeColors: TokenColors = {
+          key: '#ff0000',
+          string: '#00ff00',
+          number: '#0000ff',
+          boolean: '#ffff00',
+          null: '#ff00ff',
+          type: '#00ffff',
+          comment: '#888888',
+          punctuation: '#ffffff',
+        };
+        const result = reducer(
+          initialState,
+          themeColorsReceived({ themeColors, themeKind: 'vs-dark' }),
+        );
+        expect(result.themeColors).to.deep.equal(themeColors);
+        expect(result.themeKind).to.equal('vs-dark');
+      });
+
+      it('should handle null theme colors', function () {
+        const stateWithColors = {
+          ...initialState,
+          themeColors: {
+            key: '#ff0000',
+            string: '#00ff00',
+            number: '#0000ff',
+            boolean: '#ffff00',
+            null: '#ff00ff',
+            type: '#00ffff',
+            comment: '#888888',
+            punctuation: '#ffffff',
+          },
+        };
+        const result = reducer(
+          stateWithColors,
+          themeColorsReceived({ themeColors: null, themeKind: 'vs' }),
+        );
+        expect(result.themeColors).to.be.null;
+        expect(result.themeKind).to.equal('vs');
       });
     });
   });
