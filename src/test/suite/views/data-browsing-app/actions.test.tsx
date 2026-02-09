@@ -242,9 +242,7 @@ describe('actions test suite', function () {
     });
 
     it('should send getDocuments without sort field when set to null (default)', function () {
-      const store = createStore(
-        createTestState({ sort: { _id: 1 } }),
-      );
+      const store = createStore(createTestState({ sort: { _id: 1 } }));
       store.dispatch(sortChanged(null));
 
       expect(store.getState().documentQuery.sort).to.be.null;
@@ -275,9 +273,7 @@ describe('actions test suite', function () {
     });
 
     it('should preserve sort when refreshing', function () {
-      const store = createStore(
-        createTestState({ sort: { _id: -1 } }),
-      );
+      const store = createStore(createTestState({ sort: { _id: -1 } }));
 
       store.dispatch(documentsRefreshRequested());
 
