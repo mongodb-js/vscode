@@ -11,6 +11,7 @@ import {
   previousPageRequested,
   nextPageRequested,
   itemsPerPageChanged,
+  sortChanged,
   requestCancellationRequested,
   currentPageAdjusted,
   type DocumentQueryState,
@@ -213,6 +214,78 @@ describe('actions test suite', function () {
         command: PreviewMessageType.getDocuments,
         skip: 0,
         limit: 25,
+      });
+    });
+  });
+
+  describe('sortChanged', function () {
+    it('should set sort and reset to page 1', function () {
+      const store = createStore(createTestState({ currentPage: 3 }));
+
+      store.dispatch(sortChanged({ _id: 1 }));
+
+      expect(store.getState().documentQuery.sort).to.deep.equal({ _id: 1 });
+      expect(store.getState().documentQuery.currentPage).to.equal(1);
+      expect(store.getState().documentQuery.isLoading).to.be.true;
+    });
+
+    it('should send getDocuments with sort and skip=0', function () {
+      const store = createStore();
+      store.dispatch(sortChanged({ _id: -1 }));
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: -1 },
+      });
+    });
+
+    it('should send getDocuments without sort field when set to null (natural)', function () {
+      const store = createStore(
+        createTestState({ sort: { _id: 1 } }),
+      );
+      store.dispatch(sortChanged(null));
+
+      expect(store.getState().documentQuery.sort).to.be.null;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+      });
+    });
+
+    it('should preserve sort when navigating pages', function () {
+      const store = createStore(
+        createTestState({
+          sort: { _id: 1 },
+          totalCountInCollection: 50,
+          currentPage: 1,
+        }),
+      );
+
+      store.dispatch(nextPageRequested());
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 10,
+        limit: 10,
+        sort: { _id: 1 },
+      });
+    });
+
+    it('should preserve sort when refreshing', function () {
+      const store = createStore(
+        createTestState({ sort: { _id: -1 } }),
+      );
+
+      store.dispatch(documentsRefreshRequested());
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: -1 },
       });
     });
   });

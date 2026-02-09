@@ -23,14 +23,28 @@ import {
   previousPageRequested,
   nextPageRequested,
   itemsPerPageChanged,
+  sortChanged,
   requestCancellationRequested,
   currentPageAdjusted,
 } from './store/documentQuerySlice';
+import type { DocumentSort } from './extension-app-message-constants';
 import { setupMessageHandler } from './store/messageHandler';
 import { sendGetThemeColors } from './vscode-api';
 import MonacoViewer from './monaco-viewer';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
+interface SortOption {
+  label: string;
+  value: string;
+  sort: DocumentSort | null;
+}
+
+const SORT_OPTIONS: SortOption[] = [
+  { label: 'Natural', value: 'natural', sort: null },
+  { label: '_id: 1', value: '_id_asc', sort: { _id: 1 } },
+  { label: '_id: -1', value: '_id_desc', sort: { _id: -1 } },
+];
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -128,6 +142,7 @@ const PreviewApp: React.FC = () => {
     displayedDocuments,
     currentPage,
     itemsPerPage,
+    sort,
     isLoading,
     totalCountInCollection,
     hasReceivedCount,
@@ -159,6 +174,21 @@ const PreviewApp: React.FC = () => {
     dispatch(itemsPerPageChanged(newItemsPerPage));
   };
 
+  const currentSortValue =
+    SORT_OPTIONS.find(
+      (opt) => JSON.stringify(opt.sort) === JSON.stringify(sort),
+    )?.value ?? 'natural';
+
+  const handleSortChange = (event: Event): void => {
+    const target = event.target as HTMLSelectElement;
+    const selectedOption = SORT_OPTIONS.find(
+      (opt) => opt.value === target.value,
+    );
+    if (selectedOption) {
+      dispatch(sortChanged(selectedOption.sort));
+    }
+  };
+
   return (
     <div className={containerStyles}>
       {/* Toolbar */}
@@ -179,6 +209,20 @@ const PreviewApp: React.FC = () => {
           >
             Refresh
           </VscodeButton>
+
+          {/* Sort */}
+          <VscodeSingleSelect
+            className={fitContentSelectStyles}
+            aria-label="Sort"
+            value={currentSortValue}
+            onChange={handleSortChange}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <VscodeOption key={option.value} value={option.value}>
+                {option.label}
+              </VscodeOption>
+            ))}
+          </VscodeSingleSelect>
 
           {/* Items per page */}
           <VscodeSingleSelect

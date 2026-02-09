@@ -1,5 +1,5 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, current } from '@reduxjs/toolkit';
 import {
   sendGetDocuments,
   sendGetTotalCount,
@@ -8,6 +8,7 @@ import {
 import type {
   TokenColors,
   MonacoBaseTheme,
+  DocumentSort,
 } from '../extension-app-message-constants';
 
 export interface PreviewDocument {
@@ -25,6 +26,7 @@ export interface DocumentQueryState {
   displayedDocuments: PreviewDocument[];
   currentPage: number;
   itemsPerPage: number;
+  sort: DocumentSort | null;
   isLoading: boolean;
   totalCountInCollection: number | null;
   hasReceivedCount: boolean;
@@ -62,6 +64,7 @@ export const initialState: DocumentQueryState = {
   displayedDocuments: [],
   currentPage: 1,
   itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+  sort: null,
   isLoading: true,
   totalCountInCollection: null,
   hasReceivedCount: false,
@@ -87,13 +90,13 @@ const documentQuerySlice = createSlice({
       state.errors.getDocuments = null;
       state.errors.getTotalCount = null;
       recalculatePaginationValues(state);
-      sendGetDocuments(0, state.itemsPerPage);
+      sendGetDocuments(0, state.itemsPerPage, current(state).sort);
       sendGetTotalCount();
     },
     initialDocumentsFetchRequested: (state) => {
       state.errors.getDocuments = null;
       state.errors.getTotalCount = null;
-      sendGetDocuments(0, state.itemsPerPage);
+      sendGetDocuments(0, state.itemsPerPage, current(state).sort);
       sendGetTotalCount();
     },
     previousPageRequested: (state) => {
@@ -104,7 +107,7 @@ const documentQuerySlice = createSlice({
         state.isLoading = true;
         state.errors.getDocuments = null;
         recalculatePaginationValues(state);
-        sendGetDocuments(skip, state.itemsPerPage);
+        sendGetDocuments(skip, state.itemsPerPage, current(state).sort);
       }
     },
     nextPageRequested: (state) => {
@@ -115,7 +118,7 @@ const documentQuerySlice = createSlice({
         state.isLoading = true;
         state.errors.getDocuments = null;
         recalculatePaginationValues(state);
-        sendGetDocuments(skip, state.itemsPerPage);
+        sendGetDocuments(skip, state.itemsPerPage, current(state).sort);
       }
     },
     itemsPerPageChanged: (state, action: PayloadAction<number>) => {
@@ -125,7 +128,15 @@ const documentQuerySlice = createSlice({
       state.isLoading = true;
       state.errors.getDocuments = null;
       recalculatePaginationValues(state);
-      sendGetDocuments(0, newItemsPerPage);
+      sendGetDocuments(0, newItemsPerPage, current(state).sort);
+    },
+    sortChanged: (state, action: PayloadAction<DocumentSort | null>) => {
+      state.sort = action.payload;
+      state.currentPage = 1;
+      state.isLoading = true;
+      state.errors.getDocuments = null;
+      recalculatePaginationValues(state);
+      sendGetDocuments(0, state.itemsPerPage, action.payload);
     },
     requestCancellationRequested: (state) => {
       state.isLoading = false;
@@ -183,6 +194,7 @@ export const {
   previousPageRequested,
   nextPageRequested,
   itemsPerPageChanged,
+  sortChanged,
   requestCancellationRequested,
   currentPageAdjusted,
   documentsReceived,

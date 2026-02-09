@@ -61,6 +61,29 @@ describe('vscode-api test suite', function () {
         limit: 10,
       });
     });
+
+    it('should send message with sort when sort is provided', function () {
+      sendGetDocuments(0, 10, { _id: 1 });
+
+      expect(postMessageStub).to.have.been.calledOnce;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: 1 },
+      });
+    });
+
+    it('should not include sort field when sort is null', function () {
+      sendGetDocuments(0, 10, null);
+
+      expect(postMessageStub).to.have.been.calledOnce;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+      });
+    });
   });
 
   describe('sendGetThemeColors', function () {
