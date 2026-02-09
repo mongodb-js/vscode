@@ -144,16 +144,17 @@ suite('themeColorReader', function () {
       expect(result.punctuation).to.equal('#D4D4D4');
     });
 
-    test('should match parent scope "constant.language" to first matching pattern', function () {
+    test('should match parent scope "constant.language" to all child patterns', function () {
       const theme: ThemeJson = {
         tokenColors: [
           { scope: 'constant.language', settings: { foreground: '#569CD6' } },
         ],
       };
       const result = extractTokenOverrides(theme);
-      // "constant.language" matches the first matching SCOPE_MAPPINGS entry
-      // (constant.language.boolean) and then breaks — only boolean is set.
+      // "constant.language" is a parent of both "constant.language.boolean"
+      // and "constant.language.null", so both should be set.
       expect(result.boolean).to.equal('#569CD6');
+      expect(result.null).to.equal('#569CD6');
     });
   });
 

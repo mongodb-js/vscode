@@ -136,18 +136,22 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [editorHeight, setEditorHeight] = useState<number>(0);
 
-  // Monaco expects colors without the # prefix, so strip it here once
+  // Monaco expects colors without the # prefix, so strip it here once.
+  // Individual color properties may be undefined when the active VS Code
+  // theme does not define the corresponding token scopes.
   const colors = useMemo(() => {
     if (!themeColors) return null;
+    const strip = (c: string | undefined): string | undefined =>
+      c?.replace('#', '');
     return {
-      key: themeColors.key.replace('#', ''),
-      string: themeColors.string.replace('#', ''),
-      number: themeColors.number.replace('#', ''),
-      boolean: themeColors.boolean.replace('#', ''),
-      null: themeColors.null.replace('#', ''),
-      type: themeColors.type.replace('#', ''),
-      comment: themeColors.comment.replace('#', ''),
-      punctuation: themeColors.punctuation.replace('#', ''),
+      key: strip(themeColors.key),
+      string: strip(themeColors.string),
+      number: strip(themeColors.number),
+      boolean: strip(themeColors.boolean),
+      null: strip(themeColors.null),
+      type: strip(themeColors.type),
+      comment: strip(themeColors.comment),
+      punctuation: strip(themeColors.punctuation),
     };
   }, [themeColors]);
 

@@ -15,14 +15,14 @@ export const PreviewMessageType = {
 } as const;
 
 export interface TokenColors {
-  key: string;
-  string: string;
-  number: string;
-  boolean: string;
-  null: string;
-  type: string;
-  comment: string;
-  punctuation: string;
+  key?: string;
+  string?: string;
+  number?: string;
+  boolean?: string;
+  null?: string;
+  type?: string;
+  comment?: string;
+  punctuation?: string;
 }
 
 export type MonacoBaseTheme = 'vs' | 'vs-dark' | 'hc-black' | 'hc-light';

@@ -82,7 +82,6 @@ export function extractTokenOverrides(theme: ThemeJson): Partial<TokenColors> {
       for (const [pattern, colorKey] of Object.entries(SCOPE_MAPPINGS)) {
         if (scope === pattern || pattern.startsWith(scope + '.')) {
           overrides[colorKey] = foreground;
-          break;
         }
       }
     }
