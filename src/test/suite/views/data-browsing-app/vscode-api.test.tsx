@@ -8,6 +8,7 @@ import {
   sendGetDocuments,
   sendGetThemeColors,
 } from '../../../../views/data-browsing-app/vscode-api';
+import { SORT_OPTIONS } from '../../../../views/data-browsing-app/store/documentQuerySlice';
 
 describe('vscode-api test suite', function () {
   let postMessageStub: sinon.SinonStub;
@@ -63,7 +64,8 @@ describe('vscode-api test suite', function () {
     });
 
     it('should send message with sort when sort is provided', function () {
-      sendGetDocuments(0, 10, { _id: 1 });
+      const sortOption = SORT_OPTIONS[1]; // _id: 1
+      sendGetDocuments(0, 10, sortOption);
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({
