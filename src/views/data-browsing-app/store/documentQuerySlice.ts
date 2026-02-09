@@ -15,6 +15,18 @@ export interface PreviewDocument {
   [key: string]: unknown;
 }
 
+export interface SortOption {
+  label: string;
+  value: string;
+  sort: DocumentSort | null;
+}
+
+export const SORT_OPTIONS: SortOption[] = [
+  { label: 'Default', value: 'default', sort: null },
+  { label: '_id: 1', value: '_id_asc', sort: { _id: 1 } },
+  { label: '_id: -1', value: '_id_desc', sort: { _id: -1 } },
+];
+
 export type ErrorType = 'getDocuments' | 'getTotalCount';
 
 export interface ErrorsState {
@@ -26,7 +38,7 @@ export interface DocumentQueryState {
   displayedDocuments: PreviewDocument[];
   currentPage: number;
   itemsPerPage: number;
-  sort: DocumentSort | null;
+  sort: SortOption | null;
   isLoading: boolean;
   totalCountInCollection: number | null;
   hasReceivedCount: boolean;
@@ -130,7 +142,7 @@ const documentQuerySlice = createSlice({
       recalculatePaginationValues(state);
       sendGetDocuments(0, newItemsPerPage, current(state).sort);
     },
-    sortChanged: (state, action: PayloadAction<DocumentSort | null>) => {
+    sortChanged: (state, action: PayloadAction<SortOption | null>) => {
       state.sort = action.payload;
       state.currentPage = 1;
       state.isLoading = true;

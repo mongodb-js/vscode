@@ -26,25 +26,13 @@ import {
   sortChanged,
   requestCancellationRequested,
   currentPageAdjusted,
+  SORT_OPTIONS,
 } from './store/documentQuerySlice';
-import type { DocumentSort } from './extension-app-message-constants';
 import { setupMessageHandler } from './store/messageHandler';
 import { sendGetThemeColors } from './vscode-api';
 import MonacoViewer from './monaco-viewer';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
-
-interface SortOption {
-  label: string;
-  value: string;
-  sort: DocumentSort | null;
-}
-
-const SORT_OPTIONS: SortOption[] = [
-  { label: 'Default', value: 'default', sort: null },
-  { label: '_id: 1', value: '_id_asc', sort: { _id: 1 } },
-  { label: '_id: -1', value: '_id_desc', sort: { _id: -1 } },
-];
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -179,18 +167,13 @@ const PreviewApp: React.FC = () => {
     dispatch(itemsPerPageChanged(newItemsPerPage));
   };
 
-  const currentSortValue =
-    SORT_OPTIONS.find(
-      (opt) => JSON.stringify(opt.sort) === JSON.stringify(sort),
-    )?.value ?? 'default';
-
   const handleSortChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const selectedOption = SORT_OPTIONS.find(
       (opt) => opt.value === target.value,
     );
     if (selectedOption) {
-      dispatch(sortChanged(selectedOption.sort));
+      dispatch(sortChanged(selectedOption));
     }
   };
 
@@ -220,7 +203,7 @@ const PreviewApp: React.FC = () => {
           <VscodeSingleSelect
             className={sortSelectStyles}
             aria-label="Sort"
-            value={currentSortValue}
+            value={sort?.value ?? 'default'}
             onChange={handleSortChange}
           >
             {SORT_OPTIONS.map((option) => (
