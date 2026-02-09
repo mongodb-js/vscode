@@ -7,7 +7,6 @@ import reducer, {
   totalCountFetchFailed,
   themeColorsReceived,
   selectDocumentQuery,
-  SORT_OPTIONS,
   type DocumentQueryState,
   type PreviewDocument,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
