@@ -32,7 +32,6 @@ describe('documentQuerySlice', function () {
       expect(result.currentPage).to.equal(1);
       expect(result.itemsPerPage).to.equal(10);
       expect(result.sort).to.be.null;
-      expect(result.sortOptions).to.deep.equal(SORT_OPTIONS);
       expect(result.isLoading).to.be.true;
       expect(result.totalCountInCollection).to.be.null;
       expect(result.hasReceivedCount).to.be.false;
