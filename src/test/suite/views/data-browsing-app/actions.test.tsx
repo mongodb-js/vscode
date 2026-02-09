@@ -241,7 +241,7 @@ describe('actions test suite', function () {
       });
     });
 
-    it('should send getDocuments without sort field when set to null (natural)', function () {
+    it('should send getDocuments without sort field when set to null (default)', function () {
       const store = createStore(
         createTestState({ sort: { _id: 1 } }),
       );

@@ -41,7 +41,7 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { label: 'Natural', value: 'natural', sort: null },
+  { label: 'Default', value: 'default', sort: null },
   { label: '_id: 1', value: '_id_asc', sort: { _id: 1 } },
   { label: '_id: -1', value: '_id_desc', sort: { _id: -1 } },
 ];
@@ -95,6 +95,11 @@ const paginationArrowsStyles = css({
 const fitContentSelectStyles = css({
   width: 'auto',
   minWidth: 'unset',
+});
+
+const sortSelectStyles = css({
+  width: 'auto',
+  minWidth: '140px',
 });
 
 const loadingOverlayStyles = css({
@@ -177,7 +182,7 @@ const PreviewApp: React.FC = () => {
   const currentSortValue =
     SORT_OPTIONS.find(
       (opt) => JSON.stringify(opt.sort) === JSON.stringify(sort),
-    )?.value ?? 'natural';
+    )?.value ?? 'default';
 
   const handleSortChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
@@ -211,8 +216,9 @@ const PreviewApp: React.FC = () => {
           </VscodeButton>
 
           {/* Sort */}
+          <span>Sort</span>
           <VscodeSingleSelect
-            className={fitContentSelectStyles}
+            className={sortSelectStyles}
             aria-label="Sort"
             value={currentSortValue}
             onChange={handleSortChange}
