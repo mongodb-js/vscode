@@ -789,7 +789,6 @@ suite('DataBrowsingController Test Suite', function () {
     };
 
     const doc = { _id: '123', name: 'Test' };
-    const serialized = EJSON.serialize([doc], { relaxed: false });
 
     // Note: handleCloneDocument expects a serialized single document (not array)
     const singleSerialized = EJSON.serialize(doc, { relaxed: false });
@@ -814,9 +813,6 @@ suite('DataBrowsingController Test Suite', function () {
     sandbox
       .stub(vscode.workspace, 'getConfiguration')
       .returns({ get: () => true } as any);
-    const showInfoStub = sandbox
-      .stub(vscode.window, 'showInformationMessage')
-      .resolves('Yes' as any);
 
     // stub deleteOne on data service
     (mockDataService as any).deleteOne = sandbox
