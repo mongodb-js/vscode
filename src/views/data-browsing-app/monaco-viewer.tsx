@@ -328,14 +328,16 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   return (
     <div className={cardStyles} data-testid="monaco-viewer-container">
       <div className="action-bar">
-        <button
-          className={actionButtonStyles}
-          onClick={handleEdit}
-          title="Edit"
-          aria-label="Edit"
-        >
-          <i className="codicon codicon-edit" />
-        </button>
+        {document.id && (
+          <button
+            className={actionButtonStyles}
+            onClick={handleEdit}
+            title="Edit"
+            aria-label="Edit"
+          >
+            <i className="codicon codicon-edit" />
+          </button>
+        )}
         <button
           className={actionButtonStyles}
           onClick={handleCopy}
@@ -344,22 +346,26 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         >
           <i className="codicon codicon-copy" />
         </button>
-        <button
-          className={actionButtonStyles}
-          onClick={handleClone}
-          title="Clone"
-          aria-label="Clone"
-        >
-          <i className="codicon codicon-files" />
-        </button>
-        <button
-          className={actionButtonStyles}
-          onClick={handleDelete}
-          title="Delete"
-          aria-label="Delete"
-        >
-          <i className="codicon codicon-trash" />
-        </button>
+        {document.id && (
+          <button
+            className={actionButtonStyles}
+            onClick={handleClone}
+            title="Clone"
+            aria-label="Clone"
+          >
+            <i className="codicon codicon-files" />
+          </button>
+        )}
+        {document.id && (
+          <button
+            className={actionButtonStyles}
+            onClick={handleDelete}
+            title="Delete"
+            aria-label="Delete"
+          >
+            <i className="codicon codicon-trash" />
+          </button>
+        )}
       </div>
       <div className={monacoWrapperStyles}>
         <Editor
