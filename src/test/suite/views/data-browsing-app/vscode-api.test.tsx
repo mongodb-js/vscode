@@ -42,7 +42,7 @@ describe('vscode-api test suite', function () {
 
   describe('sendGetDocuments', function () {
     it('should send message with getDocuments command and pagination params', function () {
-      sendGetDocuments(10, 25);
+      sendGetDocuments({ skip: 10, limit: 25 });
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({
@@ -53,7 +53,7 @@ describe('vscode-api test suite', function () {
     });
 
     it('should send message with getDocuments command with zero skip', function () {
-      sendGetDocuments(0, 10);
+      sendGetDocuments({ skip: 0, limit: 10 });
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({
@@ -65,7 +65,7 @@ describe('vscode-api test suite', function () {
 
     it('should send message with sort when sort is provided', function () {
       const sortOption = SORT_OPTIONS[1]; // _id: 1
-      sendGetDocuments(0, 10, sortOption);
+      sendGetDocuments({ skip: 0, limit: 10, sort: sortOption });
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({
@@ -77,7 +77,7 @@ describe('vscode-api test suite', function () {
     });
 
     it('should not include sort field when sort is null', function () {
-      sendGetDocuments(0, 10, null);
+      sendGetDocuments({ skip: 0, limit: 10, sort: null });
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({

@@ -21,11 +21,15 @@ export const getVSCodeApi = (): VSCodeApi => {
   return vscode;
 };
 
-export const sendGetDocuments = (
-  skip: number,
-  limit: number,
-  sort?: SortOption | null,
-): void => {
+export const sendGetDocuments = ({
+  skip,
+  limit,
+  sort,
+}: {
+  skip: number;
+  limit: number;
+  sort?: SortOption | null;
+}): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.getDocuments,
     skip,

@@ -44,6 +44,23 @@ const createTestState = (
   return { documentQuery: state };
 };
 
+/**
+ * Helper function to find a sort option by its sort field value.
+ * Makes tests more readable than using array indices.
+ */
+const findSortOption = (
+  sortField: '_id',
+  sortDirection: 1 | -1,
+): (typeof SORT_OPTIONS)[number] => {
+  const option = SORT_OPTIONS.find(
+    (opt) => opt.sort?.[sortField] === sortDirection,
+  );
+  if (!option) {
+    throw new Error(`Sort option not found for ${sortField}: ${sortDirection}`);
+  }
+  return option;
+};
+
 describe('actions test suite', function () {
   let postMessageStub: sinon.SinonStub;
 
@@ -222,7 +239,7 @@ describe('actions test suite', function () {
   describe('sortChanged', function () {
     it('should set sort and reset to page 1', function () {
       const store = createStore(createTestState({ currentPage: 3 }));
-      const sortOption = SORT_OPTIONS[1]; // _id: 1
+      const sortOption = findSortOption('_id', 1);
 
       store.dispatch(sortChanged(sortOption));
 
@@ -233,7 +250,7 @@ describe('actions test suite', function () {
 
     it('should send getDocuments with sort and skip=0', function () {
       const store = createStore();
-      const sortOption = SORT_OPTIONS[2]; // _id: -1
+      const sortOption = findSortOption('_id', -1);
 
       store.dispatch(sortChanged(sortOption));
 
@@ -246,7 +263,7 @@ describe('actions test suite', function () {
     });
 
     it('should send getDocuments without sort field when set to null (default)', function () {
-      const sortOption = SORT_OPTIONS[1]; // _id: 1
+      const sortOption = findSortOption('_id', 1);
       const store = createStore(createTestState({ sort: sortOption }));
       store.dispatch(sortChanged(null));
 
@@ -259,7 +276,7 @@ describe('actions test suite', function () {
     });
 
     it('should preserve sort when navigating pages', function () {
-      const sortOption = SORT_OPTIONS[1]; // _id: 1
+      const sortOption = findSortOption('_id', 1);
       const store = createStore(
         createTestState({
           sort: sortOption,
@@ -279,7 +296,7 @@ describe('actions test suite', function () {
     });
 
     it('should preserve sort when refreshing', function () {
-      const sortOption = SORT_OPTIONS[2]; // _id: -1
+      const sortOption = findSortOption('_id', -1);
       const store = createStore(createTestState({ sort: sortOption }));
 
       store.dispatch(documentsRefreshRequested());
