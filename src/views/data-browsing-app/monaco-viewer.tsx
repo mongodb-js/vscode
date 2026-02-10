@@ -328,7 +328,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   return (
     <div className={cardStyles} data-testid="monaco-viewer-container">
       <div className="action-bar">
-        {document.id && (
+        {document._id && (
           <button
             className={actionButtonStyles}
             onClick={handleEdit}
@@ -346,7 +346,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         >
           <i className="codicon codicon-copy" />
         </button>
-        {document.id && (
+        {document._id && (
           <button
             className={actionButtonStyles}
             onClick={handleClone}
@@ -356,7 +356,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             <i className="codicon codicon-files" />
           </button>
         )}
-        {document.id && (
+        {document._id && (
           <button
             className={actionButtonStyles}
             onClick={handleDelete}

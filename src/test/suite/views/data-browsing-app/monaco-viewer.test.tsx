@@ -1,9 +1,16 @@
 import React from 'react';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  cleanup,
+  waitFor,
+  fireEvent,
+} from '@testing-library/react';
 
 import MonacoViewer from '../../../../views/data-browsing-app/monaco-viewer';
+import * as vscodeApi from '../../../../views/data-browsing-app/vscode-api';
 
 // Mock the Monaco Editor component
 let mockEditorValue = '';
@@ -312,6 +319,174 @@ describe('MonacoViewer test suite', function () {
 
       const container = screen.getByTestId('monaco-viewer-container');
       expect(container).to.exist;
+    });
+  });
+
+  describe('Action bar', function () {
+    let sendEditDocumentStub: sinon.SinonStub;
+    let sendCloneDocumentStub: sinon.SinonStub;
+    let sendDeleteDocumentStub: sinon.SinonStub;
+    let clipboardWriteTextStub: sinon.SinonStub;
+
+    beforeEach(function () {
+      sendEditDocumentStub = sinon.stub(vscodeApi, 'sendEditDocument');
+      sendCloneDocumentStub = sinon.stub(vscodeApi, 'sendCloneDocument');
+      sendDeleteDocumentStub = sinon.stub(vscodeApi, 'sendDeleteDocument');
+
+      if (!navigator.clipboard) {
+        (navigator as any).clipboard = {
+          writeText: async (): Promise<void> => {
+            return Promise.resolve();
+          },
+        };
+      } else if (!navigator.clipboard.writeText) {
+        (navigator.clipboard as any).writeText = async (): Promise<void> => {
+          return Promise.resolve();
+        };
+      }
+      clipboardWriteTextStub = sinon.stub(navigator.clipboard, 'writeText');
+    });
+
+    afterEach(function () {
+      sendEditDocumentStub.restore();
+      sendCloneDocumentStub.restore();
+      sendDeleteDocumentStub.restore();
+      clipboardWriteTextStub.restore();
+    });
+
+    it('should render all action buttons when document has _id', function () {
+      const document = { _id: '123', name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const editButton = screen.queryByTitle('Edit');
+      const copyButton = screen.queryByTitle('Copy');
+      const cloneButton = screen.queryByTitle('Clone');
+      const deleteButton = screen.queryByTitle('Delete');
+
+      expect(editButton).to.exist;
+      expect(copyButton).to.exist;
+      expect(cloneButton).to.exist;
+      expect(deleteButton).to.exist;
+    });
+
+    it('should only render copy button when document has no _id', function () {
+      const document = { name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const editButton = screen.queryByTitle('Edit');
+      const copyButton = screen.queryByTitle('Copy');
+      const cloneButton = screen.queryByTitle('Clone');
+      const deleteButton = screen.queryByTitle('Delete');
+
+      expect(editButton).to.not.exist;
+      expect(copyButton).to.exist;
+      expect(cloneButton).to.not.exist;
+      expect(deleteButton).to.not.exist;
+    });
+
+    it('should call sendEditDocument when edit button is clicked', function () {
+      const document = { _id: '123', name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const editButton = screen.getByTitle('Edit');
+      fireEvent.click(editButton);
+
+      expect(sendEditDocumentStub.calledOnce).to.be.true;
+      expect(sendEditDocumentStub.calledWith('123')).to.be.true;
+    });
+
+    it('should call clipboard.writeText when copy button is clicked', async function () {
+      const document = { _id: '123', name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const copyButton = screen.getByTitle('Copy');
+      fireEvent.click(copyButton);
+
+      await waitFor(() => {
+        expect(clipboardWriteTextStub.calledOnce).to.be.true;
+        const calledWith = clipboardWriteTextStub.firstCall.args[0];
+        expect(calledWith).to.be.a('string');
+        expect(calledWith).to.include('_id:');
+        expect(calledWith).to.include('123');
+      });
+    });
+
+    it('should call sendCloneDocument when clone button is clicked', function () {
+      const document = { _id: '123', name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const cloneButton = screen.getByTitle('Clone');
+      fireEvent.click(cloneButton);
+
+      expect(sendCloneDocumentStub.calledOnce).to.be.true;
+      expect(sendCloneDocumentStub.calledWith(document)).to.be.true;
+    });
+
+    it('should call sendDeleteDocument when delete button is clicked', function () {
+      const document = { _id: '123', name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const deleteButton = screen.getByTitle('Delete');
+      fireEvent.click(deleteButton);
+
+      expect(sendDeleteDocumentStub.calledOnce).to.be.true;
+      expect(sendDeleteDocumentStub.calledWith('123')).to.be.true;
+    });
+
+    it('should handle ObjectId _id correctly', function () {
+      const document = {
+        _id: { $oid: '507f1f77bcf86cd799439011' },
+        name: 'Test',
+      };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const editButton = screen.getByTitle('Edit');
+      fireEvent.click(editButton);
+
+      expect(sendEditDocumentStub.calledOnce).to.be.true;
+      expect(sendEditDocumentStub.firstCall.args[0]).to.deep.equal({
+        $oid: '507f1f77bcf86cd799439011',
+      });
+    });
+
+    it('should handle numeric _id correctly', function () {
+      const document = { _id: 42, name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const deleteButton = screen.getByTitle('Delete');
+      fireEvent.click(deleteButton);
+
+      expect(sendDeleteDocumentStub.calledOnce).to.be.true;
+      expect(sendDeleteDocumentStub.calledWith(42)).to.be.true;
+    });
+
+    it('should have correct codicon icons for each button', function () {
+      const document = { _id: '123', name: 'Test' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      const editButton = screen.getByTitle('Edit');
+      const copyButton = screen.getByTitle('Copy');
+      const cloneButton = screen.getByTitle('Clone');
+      const deleteButton = screen.getByTitle('Delete');
+
+      const editIcon = editButton.querySelector('.codicon-edit');
+      const copyIcon = copyButton.querySelector('.codicon-copy');
+      const cloneIcon = cloneButton.querySelector('.codicon-files');
+      const deleteIcon = deleteButton.querySelector('.codicon-trash');
+
+      expect(editIcon).to.exist;
+      expect(copyIcon).to.exist;
+      expect(cloneIcon).to.exist;
+      expect(deleteIcon).to.exist;
     });
   });
 });
