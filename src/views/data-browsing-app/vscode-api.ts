@@ -45,3 +45,24 @@ export const sendGetThemeColors = (): void => {
     command: PreviewMessageType.getThemeColors,
   });
 };
+
+export const sendEditDocument = (documentId: any): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.editDocument,
+    documentId,
+  });
+};
+
+export const sendCloneDocument = (document: Record<string, unknown>): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.cloneDocument,
+    document,
+  });
+};
+
+export const sendDeleteDocument = (documentId: any): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.deleteDocument,
+    documentId,
+  });
+};

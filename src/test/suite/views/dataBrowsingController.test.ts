@@ -55,6 +55,9 @@ suite('DataBrowsingController Test Suite', function () {
     };
     testController = new DataBrowsingController({
       connectionController: mockConnectionController as any,
+      editorsController: {} as any,
+      playgroundController: {} as any,
+      explorerController: {} as any,
       telemetryService: {} as any,
     });
     mockPanel = createMockPanel();

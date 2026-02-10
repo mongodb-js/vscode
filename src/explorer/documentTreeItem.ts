@@ -57,7 +57,7 @@ export default class DocumentTreeItem
 
     const documentLabel = document._id
       ? JSON.stringify(document._id)
-      : `Document ${documentIndexInTree + 1}`;
+      : `"Document ${documentIndexInTree + 1}"`;
 
     this.dataService = dataService;
     this.document = document;
@@ -112,9 +112,11 @@ export default class DocumentTreeItem
 
     if (shouldConfirmDeleteDocument === true) {
       const confirmationResult = await vscode.window.showInformationMessage(
-        `Are you sure you wish to drop this document${this.tooltip ? ` "${this.tooltip}"` : ''}?  This confirmation can be disabled in the extension settings.`,
+        `Are you sure you wish to drop this document${this.tooltip ? ` ${this.tooltip}` : ''}?`,
         {
           modal: true,
+          detail:
+            'This confirmation can be disabled in the extension settings.',
         },
         'Yes',
       );

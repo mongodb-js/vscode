@@ -3,6 +3,7 @@ export const DocumentSource = {
   playground: 'playground',
   collectionview: 'collectionview',
   codelens: 'codelens',
+  databrowser: 'databrowser',
 } as const;
 
 export type DocumentSource =

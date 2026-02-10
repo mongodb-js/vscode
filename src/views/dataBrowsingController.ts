@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { EJSON, type Document } from 'bson';
 import path from 'path';
+import { toJSString } from 'mongodb-query-parser';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import { PreviewMessageType } from './data-browsing-app/extension-app-message-constants';
@@ -13,6 +14,11 @@ import {
   getThemeTokenColors,
   getMonacoBaseTheme,
 } from '../utils/themeColorReader';
+import type EditorsController from '../editors/editorsController';
+import type PlaygroundController from '../editors/playgroundController';
+import { DocumentSource } from '../documentSource';
+import { getDocumentViewAndEditFormat } from '../editors/types';
+import type ExplorerController from '../explorer/explorerController';
 
 const log = createLogger('data browsing controller');
 
@@ -63,6 +69,9 @@ interface PanelAbortControllers {
 
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
+  _editorsController: EditorsController;
+  _playgroundController: PlaygroundController;
+  _explorerController: ExplorerController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
   _configChangedSubscription: vscode.Disposable;
@@ -72,12 +81,21 @@ export default class DataBrowsingController {
 
   constructor({
     connectionController,
+    editorsController,
+    playgroundController,
+    explorerController,
     telemetryService,
   }: {
     connectionController: ConnectionController;
+    editorsController: EditorsController;
+    playgroundController: PlaygroundController;
+    explorerController: ExplorerController;
     telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
+    this._editorsController = editorsController;
+    this._playgroundController = playgroundController;
+    this._explorerController = explorerController;
     this._telemetryService = telemetryService;
     this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
       this.onConfigurationChanged,
@@ -141,6 +159,27 @@ export default class DataBrowsingController {
         return;
       case PreviewMessageType.getThemeColors:
         this._sendThemeColors(panel);
+        return;
+      case PreviewMessageType.editDocument:
+        await this.handleEditDocument(
+          panel,
+          options,
+          EJSON.deserialize(message.documentId, { relaxed: false }),
+        );
+        return;
+      case PreviewMessageType.cloneDocument:
+        await this.handleCloneDocument(
+          panel,
+          options,
+          EJSON.deserialize(message.document, { relaxed: false }),
+        );
+        return;
+      case PreviewMessageType.deleteDocument:
+        await this.handleDeleteDocument(
+          panel,
+          options,
+          EJSON.deserialize(message.documentId, { relaxed: false }),
+        );
         return;
       default:
         // no-op.
@@ -231,6 +270,115 @@ export default class DataBrowsingController {
         command: PreviewMessageType.updateTotalCountError,
         error: formatError(error).message,
       });
+    }
+  };
+
+  handleEditDocument = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+    documentId: any,
+  ): Promise<void> => {
+    try {
+      await this._editorsController.openMongoDBDocument({
+        source: DocumentSource.databrowser,
+        documentId,
+        namespace: options.namespace,
+        format: getDocumentViewAndEditFormat(),
+        connectionId: this._connectionController.getActiveConnectionId(),
+        line: 1,
+      });
+    } catch (error) {
+      log.error('Error opening document for editing', error);
+      void vscode.window.showErrorMessage(
+        `Failed to open document: ${formatError(error).message}`,
+      );
+    }
+  };
+
+  handleCloneDocument = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+    document: Record<string, unknown>,
+  ): Promise<void> => {
+    try {
+      const deserialized = EJSON.deserialize(document, { relaxed: false });
+      const documentContents = toJSString(deserialized) ?? '';
+
+      const [databaseName, collectionName] = options.namespace.split(/\.(.*)/s);
+
+      await this._playgroundController.createPlaygroundForCloneDocument(
+        documentContents,
+        databaseName,
+        collectionName,
+      );
+    } catch (error) {
+      log.error('Error cloning document', error);
+      void vscode.window.showErrorMessage(
+        `Failed to clone document: ${formatError(error).message}`,
+      );
+    }
+  };
+
+  handleDeleteDocument = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+    documentId: any,
+  ): Promise<void> => {
+    try {
+      const shouldConfirmDeleteDocument = vscode.workspace
+        .getConfiguration('mdb')
+        .get('confirmDeleteDocument');
+
+      if (shouldConfirmDeleteDocument === true) {
+        const documentIdString = JSON.stringify(
+          EJSON.deserialize(documentId, { relaxed: false }),
+        );
+        const confirmationResult = await vscode.window.showInformationMessage(
+          `Are you sure you wish to drop this document${documentIdString ? ` ${documentIdString}` : ''}?`,
+          {
+            modal: true,
+            detail:
+              'This confirmation can be disabled in the extension settings.',
+          },
+          'Yes',
+        );
+
+        if (confirmationResult !== 'Yes') {
+          return;
+        }
+      }
+
+      const dataService = this._connectionController.getActiveDataService();
+      if (!dataService) {
+        throw new Error('No active database connection');
+      }
+
+      const deleteResult = await dataService.deleteOne(
+        options.namespace,
+        { _id: documentId },
+        {},
+      );
+
+      if (deleteResult.deletedCount !== 1) {
+        throw new Error('document not found');
+      }
+
+      void vscode.window.showInformationMessage(
+        'Document successfully deleted.',
+      );
+
+      // Refresh the explorer view
+      this._explorerController.refresh();
+
+      // Notify the webview that the document was deleted
+      void panel.webview.postMessage({
+        command: PreviewMessageType.documentDeleted,
+      });
+    } catch (error) {
+      log.error('Error deleting document', error);
+      void vscode.window.showErrorMessage(
+        `Failed to delete document: ${formatError(error).message}`,
+      );
     }
   };
 
