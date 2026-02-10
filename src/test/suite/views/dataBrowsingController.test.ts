@@ -810,9 +810,12 @@ suite('DataBrowsingController Test Suite', function () {
     const options = createMockOptions();
 
     // stub confirm setting
+    const getStub = sandbox.stub();
+    getStub.withArgs('confirmDeleteDocument').returns(false);
+
     sandbox
       .stub(vscode.workspace, 'getConfiguration')
-      .returns({ get: () => true } as any);
+      .returns({ get: getStub } as any);
 
     // stub deleteOne on data service
     (mockDataService as any).deleteOne = sandbox
@@ -829,6 +832,8 @@ suite('DataBrowsingController Test Suite', function () {
     };
 
     await testController.handleDeleteDocument(mockPanel, options, 'del-id');
+
+    expect(getStub.calledWith('confirmDeleteDocument')).to.be.true;
 
     expect((mockDataService as any).deleteOne.calledOnce).to.be.true;
     const deleteArgs = (mockDataService as any).deleteOne.firstCall.args;
