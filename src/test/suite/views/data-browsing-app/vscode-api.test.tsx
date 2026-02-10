@@ -8,6 +8,7 @@ import {
   sendGetDocuments,
   sendGetThemeColors,
 } from '../../../../views/data-browsing-app/vscode-api';
+import { SORT_OPTIONS } from '../../../../views/data-browsing-app/store/documentQuerySlice';
 
 describe('vscode-api test suite', function () {
   let postMessageStub: sinon.SinonStub;
@@ -41,7 +42,7 @@ describe('vscode-api test suite', function () {
 
   describe('sendGetDocuments', function () {
     it('should send message with getDocuments command and pagination params', function () {
-      sendGetDocuments(10, 25);
+      sendGetDocuments({ skip: 10, limit: 25 });
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({
@@ -52,7 +53,31 @@ describe('vscode-api test suite', function () {
     });
 
     it('should send message with getDocuments command with zero skip', function () {
-      sendGetDocuments(0, 10);
+      sendGetDocuments({ skip: 0, limit: 10 });
+
+      expect(postMessageStub).to.have.been.calledOnce;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+      });
+    });
+
+    it('should send message with sort when sort is provided', function () {
+      const sortOption = SORT_OPTIONS[1]; // _id: 1
+      sendGetDocuments({ skip: 0, limit: 10, sort: sortOption });
+
+      expect(postMessageStub).to.have.been.calledOnce;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: 1 },
+      });
+    });
+
+    it('should not include sort field when sort is null', function () {
+      sendGetDocuments({ skip: 0, limit: 10, sort: null });
 
       expect(postMessageStub).to.have.been.calledOnce;
       expect(postMessageStub).to.have.been.calledWithExactly({

@@ -23,8 +23,10 @@ import {
   previousPageRequested,
   nextPageRequested,
   itemsPerPageChanged,
+  sortChanged,
   requestCancellationRequested,
   currentPageAdjusted,
+  SORT_OPTIONS,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
 import { sendGetThemeColors } from './vscode-api';
@@ -83,6 +85,11 @@ const fitContentSelectStyles = css({
   minWidth: 'unset',
 });
 
+const sortSelectStyles = css({
+  width: 'auto',
+  minWidth: '140px',
+});
+
 const loadingOverlayStyles = css({
   display: 'flex',
   alignItems: 'center',
@@ -128,6 +135,7 @@ const PreviewApp: React.FC = () => {
     displayedDocuments,
     currentPage,
     itemsPerPage,
+    sort,
     isLoading,
     totalCountInCollection,
     hasReceivedCount,
@@ -159,6 +167,16 @@ const PreviewApp: React.FC = () => {
     dispatch(itemsPerPageChanged(newItemsPerPage));
   };
 
+  const handleSortChange = (event: Event): void => {
+    const target = event.target as HTMLSelectElement;
+    const selectedOption = SORT_OPTIONS.find(
+      (opt) => opt.value === target.value,
+    );
+    if (selectedOption) {
+      dispatch(sortChanged(selectedOption));
+    }
+  };
+
   return (
     <div className={containerStyles}>
       {/* Toolbar */}
@@ -179,6 +197,21 @@ const PreviewApp: React.FC = () => {
           >
             Refresh
           </VscodeButton>
+
+          {/* Sort */}
+          <span>Sort</span>
+          <VscodeSingleSelect
+            className={sortSelectStyles}
+            aria-label="Sort"
+            value={sort?.value ?? 'default'}
+            onChange={handleSortChange}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <VscodeOption key={option.value} value={option.value}>
+                {option.label}
+              </VscodeOption>
+            ))}
+          </VscodeSingleSelect>
 
           {/* Items per page */}
           <VscodeSingleSelect
