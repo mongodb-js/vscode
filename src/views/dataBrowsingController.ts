@@ -328,7 +328,7 @@ export default class DataBrowsingController {
 
       if (shouldConfirmDeleteDocument === true) {
         const documentIdString = JSON.stringify(
-          EJSON.deserialize(documentId, { relaxed: false }),
+          EJSON.serialize(documentId, { relaxed: false }),
         );
         const confirmationResult = await vscode.window.showInformationMessage(
           `Are you sure you wish to drop this document${documentIdString ? ` ${documentIdString}` : ''}?`,
