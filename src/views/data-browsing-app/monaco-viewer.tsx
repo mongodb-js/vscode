@@ -99,12 +99,14 @@ const cardStyles = css({
 
     opacity: 0,
     transition: 'opacity 0.2s',
-    pointerEvents: 'none',
   },
 
   '&:hover .action-bar': {
     opacity: 1,
-    pointerEvents: 'auto',
+  },
+
+  '&:focus-within .action-bar': {
+    opacity: 1,
   },
 });
 
