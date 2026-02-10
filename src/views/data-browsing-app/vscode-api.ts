@@ -1,3 +1,4 @@
+import { EJSON } from 'bson';
 import {
   PreviewMessageType,
   type MessageFromWebviewToExtension,
@@ -56,7 +57,7 @@ export const sendEditDocument = (documentId: any): void => {
 export const sendCloneDocument = (document: Record<string, unknown>): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.cloneDocument,
-    document,
+    document: EJSON.serialize(document, { relaxed: false }),
   });
 };
 

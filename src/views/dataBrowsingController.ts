@@ -168,11 +168,7 @@ export default class DataBrowsingController {
         );
         return;
       case PreviewMessageType.cloneDocument:
-        await this.handleCloneDocument(
-          panel,
-          options,
-          EJSON.deserialize(message.document, { relaxed: false }),
-        );
+        await this.handleCloneDocument(panel, options, message.document);
         return;
       case PreviewMessageType.deleteDocument:
         await this.handleDeleteDocument(
@@ -302,6 +298,7 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     try {
       const deserialized = EJSON.deserialize(document, { relaxed: false });
+      delete deserialized._id;
       const documentContents = toJSString(deserialized) ?? '';
 
       const [databaseName, collectionName] = options.namespace.split(/\.(.*)/s);
