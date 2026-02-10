@@ -1,5 +1,5 @@
 import sinon, { type SinonSandbox, type SinonStub } from 'sinon';
-import type * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import { expect } from 'chai';
 import { beforeEach, afterEach } from 'mocha';
 
@@ -7,6 +7,7 @@ import DataBrowsingController from '../../../views/dataBrowsingController';
 import { PreviewMessageType } from '../../../views/data-browsing-app/extension-app-message-constants';
 import type { DataBrowsingOptions } from '../../../views/dataBrowsingController';
 import { CollectionType } from '../../../explorer/documentUtils';
+import { EJSON } from 'bson';
 
 suite('DataBrowsingController Test Suite', function () {
   const sandbox: SinonSandbox = sinon.createSandbox();
@@ -755,5 +756,114 @@ suite('DataBrowsingController Test Suite', function () {
       expect(handleGetTotalCountSpy.calledOnce).to.be.true;
       expect(handleGetTotalCountSpy.calledWith(mockPanel, options)).to.be.true;
     });
+  });
+
+  test('handleEditDocument calls editorsController.openMongoDBDocument', async function () {
+    const options = createMockOptions();
+
+    (testController as any)._connectionController = {
+      getActiveConnectionId: sandbox.stub().returns('conn-id'),
+    };
+
+    const openSpy = sandbox.stub().resolves(true);
+    // attach editors controller
+    (testController as any)._editorsController = {
+      openMongoDBDocument: openSpy,
+    };
+
+    await testController.handleEditDocument(mockPanel, options, 'my-id');
+
+    expect(openSpy.calledOnce).to.be.true;
+    const arg = openSpy.firstCall.args[0];
+    expect(arg.documentId).to.equal('my-id');
+    expect(arg.namespace).to.equal(options.namespace);
+    expect(arg.source).to.equal('databrowser');
+  });
+
+  test('handleCloneDocument creates playground without _id', async function () {
+    const options = createMockOptions();
+
+    const createPlaygroundStub = sandbox.stub().resolves(true);
+    (testController as any)._playgroundController = {
+      createPlaygroundForCloneDocument: createPlaygroundStub,
+    };
+
+    const doc = { _id: '123', name: 'Test' };
+    const serialized = EJSON.serialize([doc], { relaxed: false });
+
+    // Note: handleCloneDocument expects a serialized single document (not array)
+    const singleSerialized = EJSON.serialize(doc, { relaxed: false });
+
+    await testController.handleCloneDocument(
+      mockPanel,
+      options,
+      singleSerialized,
+    );
+
+    expect(createPlaygroundStub.calledOnce).to.be.true;
+    const calledWith = createPlaygroundStub.firstCall.args;
+    // first arg is document contents string, second is database name, third is collection name
+    expect(calledWith[1]).to.equal('test');
+    expect(calledWith[2]).to.equal('collection');
+  });
+
+  test('handleDeleteDocument deletes and notifies webview when confirmed', async function () {
+    const options = createMockOptions();
+
+    // stub confirm setting
+    sandbox
+      .stub(vscode.workspace, 'getConfiguration')
+      .returns({ get: () => true } as any);
+    const showInfoStub = sandbox
+      .stub(vscode.window, 'showInformationMessage')
+      .resolves('Yes' as any);
+
+    // stub deleteOne on data service
+    (mockDataService as any).deleteOne = sandbox
+      .stub()
+      .resolves({ deletedCount: 1 });
+    // attach explorer controller
+    (testController as any)._explorerController = { refresh: sandbox.stub() };
+
+    // make sure we use the mock data service
+    (testController as any)._connectionController = {
+      getActiveDataService: () => {
+        return mockDataService;
+      },
+    };
+
+    await testController.handleDeleteDocument(mockPanel, options, 'del-id');
+
+    expect((mockDataService as any).deleteOne.calledOnce).to.be.true;
+    const deleteArgs = (mockDataService as any).deleteOne.firstCall.args;
+    expect(deleteArgs[0]).to.equal(options.namespace);
+    expect(deleteArgs[1]).to.deep.equal({ _id: 'del-id' });
+
+    // explorer refresh called
+    expect((testController as any)._explorerController.refresh.calledOnce).to.be
+      .true;
+
+    // webview notified
+    const msg = postMessageStub
+      .getCalls()
+      .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
+    expect(msg).to.not.be.undefined;
+  });
+
+  test('handleDeleteDocument cancels when user declines', async function () {
+    const options = createMockOptions();
+
+    sandbox
+      .stub(vscode.workspace, 'getConfiguration')
+      .returns({ get: () => true } as any);
+    sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+
+    (mockDataService as any).deleteOne = sandbox
+      .stub()
+      .resolves({ deletedCount: 1 });
+
+    await testController.handleDeleteDocument(mockPanel, options, 'del-id');
+
+    expect((mockDataService as any).deleteOne.called).to.be.false;
   });
 });
