@@ -296,10 +296,10 @@ describe('messageHandler test suite', function () {
         // Trigger documentDeleted message
         handleExtensionMessage(store.dispatch, {
           command: PreviewMessageType.documentDeleted,
-          documentId: '1',
-        } as any);
+        });
 
         // State should be set to loading and refresh API functions called
+        expect(store.getState().documentQuery.isLoading).to.be.true;
         expect(store.getState().documentQuery.isLoading).to.be.true;
         expect(sendGetDocumentsStub.calledOnce).to.be.true;
         expect(sendGetTotalCountStub.calledOnce).to.be.true;
