@@ -123,7 +123,6 @@ jobs:
           RUNNER_OS: ${{ runner.os }}
         run: pnpm run test-install
         shell: bash
-
   test-snyk:
     name: Run Snyk
     runs-on: ubuntu-latest
@@ -145,6 +144,8 @@ jobs:
           pnpm run snyk-test
 
       - name: Upload Snyk Report
+        # Always upload the Snyk report, even if the test fails
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Snyk Report - ${{ github.run_id }}
