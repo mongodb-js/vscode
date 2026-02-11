@@ -14,9 +14,22 @@ import PreviewApp from '../../../../views/data-browsing-app/preview-page';
 import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
 import { getVSCodeApi } from '../../../../views/data-browsing-app/vscode-api';
 import { createStore } from '../../../../views/data-browsing-app/store';
+import {
+  initialState,
+  SORT_OPTIONS,
+} from '../../../../views/data-browsing-app/store/documentQuerySlice';
 
-function renderWithProvider(ui: React.ReactElement): ReturnType<typeof render> {
-  const store = createStore();
+function renderWithProvider(
+  ui: React.ReactElement,
+  preloadedSort?: (typeof SORT_OPTIONS)[number] | null,
+): ReturnType<typeof render> {
+  const storeState =
+    preloadedSort !== undefined
+      ? {
+          documentQuery: { ...initialState, sort: preloadedSort },
+        }
+      : undefined;
+  const store = createStore(storeState);
   return render(<Provider store={store}>{ui}</Provider>);
 }
 
@@ -60,6 +73,28 @@ describe('PreviewApp test suite', function () {
       expect(stopButton).to.exist;
       // The button should be present with Stop text
       expect(stopButton.textContent).to.include('Stop');
+    });
+
+    it('should include sort in initial document request when default sort is configured', function () {
+      const descSortOption = SORT_OPTIONS.find(
+        (opt) => opt.value === '_id_desc',
+      );
+      renderWithProvider(<PreviewApp />, descSortOption);
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: -1 },
+      });
+    });
+
+    it('should not include sort in initial document request when no default sort', function () {
+      renderWithProvider(<PreviewApp />, null);
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+      });
     });
   });
 

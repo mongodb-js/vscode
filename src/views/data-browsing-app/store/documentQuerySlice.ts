@@ -88,7 +88,7 @@ const recalculatePaginationValues = (state: DocumentQueryState): void => {
   );
 };
 
-const getInitialSort = (): SortOption | null => {
+export const getInitialSort = (): SortOption | null => {
   if (typeof window !== 'undefined' && window.DEFAULT_SORT_ORDER) {
     const key = window.DEFAULT_SORT_ORDER as SortValueKey;
     return SORT_OPTIONS.find((opt) => opt.value === key) ?? null;

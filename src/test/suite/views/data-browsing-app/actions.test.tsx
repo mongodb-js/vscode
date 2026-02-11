@@ -122,6 +122,32 @@ describe('actions test suite', function () {
         limit: 50,
       });
     });
+
+    it('should include sort when store has a pre-configured default sort', function () {
+      const sortOption = findSortOption('_id', -1);
+      const store = createStore(createTestState({ sort: sortOption }));
+
+      store.dispatch(initialDocumentsFetchRequested());
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: -1 },
+      });
+    });
+
+    it('should not include sort field when store has no default sort', function () {
+      const store = createStore(createTestState({ sort: null }));
+
+      store.dispatch(initialDocumentsFetchRequested());
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+      });
+    });
   });
 
   describe('previousPageRequested', function () {
