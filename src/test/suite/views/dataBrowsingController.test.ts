@@ -863,6 +863,9 @@ suite('DataBrowsingController Test Suite', function () {
       .stub(vscode.workspace, 'getConfiguration')
       .returns({ get: getStub } as any);
 
+    // stub executeCommand
+    const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
+
     // stub deleteOne on data service
     (mockDataService as any).deleteOne = sandbox
       .stub()
@@ -891,6 +894,9 @@ suite('DataBrowsingController Test Suite', function () {
       .getCalls()
       .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
     expect(msg).to.not.be.undefined;
+
+    // refresh command called
+    expect(executeCommandStub.calledWith('mdbRefreshCollection')).to.be.true;
   });
 
   test('handleDeleteDocument cancels when user declines', async function () {
