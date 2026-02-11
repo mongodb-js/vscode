@@ -10,7 +10,14 @@ import {
   type TokenColors,
   type MonacoBaseTheme,
   type DocumentSort,
+  type SortValueKey,
 } from '../extension-app-message-constants';
+
+declare global {
+  interface Window {
+    DEFAULT_SORT_ORDER?: string;
+  }
+}
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -81,11 +88,19 @@ const recalculatePaginationValues = (state: DocumentQueryState): void => {
   );
 };
 
+const getInitialSort = (): SortOption | null => {
+  if (typeof window !== 'undefined' && window.DEFAULT_SORT_ORDER) {
+    const key = window.DEFAULT_SORT_ORDER as SortValueKey;
+    return SORT_OPTIONS.find((opt) => opt.value === key) ?? null;
+  }
+  return null;
+};
+
 export const initialState: DocumentQueryState = {
   displayedDocuments: [],
   currentPage: 1,
   itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-  sort: null,
+  sort: getInitialSort(),
   isLoading: true,
   totalCountInCollection: null,
   hasReceivedCount: false,

@@ -69,9 +69,12 @@ export const getDataBrowsingContent = ({
     .asWebviewUri(vscode.Uri.file(monacoEditorDistPath))
     .toString();
 
+  const defaultSortOrder = getDefaultSortOrder();
+
   const additionalHeadContent = `
     <link id="vscode-codicon-stylesheet" rel="stylesheet" href="${codiconStylesheetUri}" nonce="\${nonce}">
-    <script nonce="\${nonce}">window.MONACO_EDITOR_BASE_URI = '${monacoEditorBaseUri}';</script>`;
+    <script nonce="\${nonce}">window.MONACO_EDITOR_BASE_URI = '${monacoEditorBaseUri}';</script>
+    <script nonce="\${nonce}">window.DEFAULT_SORT_ORDER = '${defaultSortOrder}';</script>`;
 
   return getWebviewHtml({
     extensionPath,
