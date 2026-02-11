@@ -11,6 +11,7 @@ import {
   sendCloneDocument,
   sendDeleteDocument,
 } from '../../../../views/data-browsing-app/vscode-api';
+import { EJSON } from 'bson';
 
 describe('vscode-api test suite', function () {
   let postMessageStub: sinon.SinonStub;
@@ -114,7 +115,10 @@ describe('vscode-api test suite', function () {
 
   describe('sendCloneDocument', function () {
     it('should send message with cloneDocument command and serialized document', function () {
-      const document = { _id: '123', name: 'Test', value: 42 };
+      const document = EJSON.serialize(
+        { _id: '123', name: 'Test', value: 42 },
+        { relaxed: false },
+      );
       sendCloneDocument(document);
 
       expect(postMessageStub).to.have.been.calledOnce;
