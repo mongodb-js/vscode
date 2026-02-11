@@ -48,6 +48,44 @@ jobs:
         run: pnpm run check
         shell: bash
 
+  build-vsix:
+    name: Build VSIX
+    needs: build-and-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
+
+      - name: Set SEGMENT_KEY
+        env:
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
+        run: |
+          echo "SEGMENT_KEY=${SEGMENT_KEY}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build .vsix
+        env:
+          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
+        run: |
+          pnpm exec vsce package --githubBranch main
+        shell: bash
+
+      - name: Check .vsix filesize
+        run: pnpm run check-vsix-size
+        shell: bash
+
+      - name: Upload .vsix
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: '*.vsix'
+
   test:
     name: Run Tests
     needs: build-and-check
@@ -78,7 +116,7 @@ jobs:
 
   test-install:
     name: Run Install Test
-    needs: build-and-check
+    needs: build-vsix
 
     strategy:
       matrix:
@@ -96,23 +134,10 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
 
-      - name: Set SEGMENT_KEY
-        env:
-          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
-        run: |
-          echo "SEGMENT_KEY=${SEGMENT_KEY}" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Build .vsix
-        env:
-          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
-        run: |
-          pnpm exec vsce package --githubBranch main
-        shell: bash
-
-      - name: Check .vsix filesize
-        run: pnpm run check-vsix-size
-        shell: bash
+      - name: Download .vsix
+        uses: actions/download-artifact@v4
+        with:
+          name: vsix
 
       - name: Run VSIX Install Test
         env:
