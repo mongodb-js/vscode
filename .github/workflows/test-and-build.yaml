@@ -123,52 +123,6 @@ jobs:
           RUNNER_OS: ${{ runner.os }}
         run: pnpm run test-install
         shell: bash
-
-  finalize:
-    name: Sign and Upload
-    needs: [test, test-install]
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node environment
-        uses: ./.github/workflows/actions/setup-node-environment
-
-      - name: Download .vsix
-        uses: actions/download-artifact@v4
-        with:
-          name: vsix
-
-      - name: Sign .vsix
-        env:
-          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-          GARASIGN_PASSWORD: ${{ secrets.GARASIGN_PASSWORD }}
-          GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
-        run: |
-          set -e
-          FILE_TO_SIGN=$(find . -maxdepth 1 -name '*.vsix' -print -quit)
-          if [ -z "$FILE_TO_SIGN" ]; then
-            echo "Error: No .vsix file found in the current directory." >&2
-            exit 1
-          fi
-          node scripts/sign-vsix.js "${FILE_TO_SIGN}"
-          ls *.vsix.sig
-        shell: bash
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: VSIX
-          path: |
-            *.vsix
-            *.vsix.sig
-
   test-snyk:
     name: Run Snyk
     runs-on: ubuntu-latest
