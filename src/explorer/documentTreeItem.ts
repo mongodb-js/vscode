@@ -112,9 +112,11 @@ export default class DocumentTreeItem
 
     if (shouldConfirmDeleteDocument === true) {
       const confirmationResult = await vscode.window.showInformationMessage(
-        `Are you sure you wish to drop this document${this.tooltip ? ` "${this.tooltip}"` : ''}?  This confirmation can be disabled in the extension settings.`,
+        `Are you sure you wish to drop this document${this.tooltip ? ` ${this.tooltip}` : ''}?`,
         {
           modal: true,
+          detail:
+            'This confirmation can be disabled in the extension settings.',
         },
         'Yes',
       );

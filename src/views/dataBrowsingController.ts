@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { EJSON, type Document } from 'bson';
 import path from 'path';
+import { toJSString } from 'mongodb-query-parser';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import {
@@ -16,6 +17,10 @@ import {
   getThemeTokenColors,
   getMonacoBaseTheme,
 } from '../utils/themeColorReader';
+import type EditorsController from '../editors/editorsController';
+import type PlaygroundController from '../editors/playgroundController';
+import { DocumentSource } from '../documentSource';
+import { getDocumentViewAndEditFormat } from '../editors/types';
 
 const log = createLogger('data browsing controller');
 
@@ -32,13 +37,15 @@ const getMonacoEditorDistPath = (extensionPath: string): string => {
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
-  namespace,
+  databaseName,
+  collectionName,
   codiconStylesheetUri,
   monacoEditorBaseUri,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
-  namespace: string;
+  databaseName: string;
+  collectionName: string;
   codiconStylesheetUri: string;
   monacoEditorBaseUri: string;
 }): string => {
@@ -46,14 +53,15 @@ export const getDataBrowsingContent = ({
     extensionPath,
     webview,
     webviewType: 'dataBrowser',
-    title: namespace,
+    title: `${databaseName}.${collectionName}`,
     codiconStylesheetUri,
     monacoEditorBaseUri,
   });
 };
 
 export interface DataBrowsingOptions {
-  namespace: string;
+  databaseName: string;
+  collectionName: string;
   collectionType: string;
 }
 
@@ -66,6 +74,8 @@ interface PanelAbortControllers {
 
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
+  _editorsController: EditorsController;
+  _playgroundController: PlaygroundController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
   _configChangedSubscription: vscode.Disposable;
@@ -75,12 +85,18 @@ export default class DataBrowsingController {
 
   constructor({
     connectionController,
+    editorsController,
+    playgroundController,
     telemetryService,
   }: {
     connectionController: ConnectionController;
+    editorsController: EditorsController;
+    playgroundController: PlaygroundController;
     telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
+    this._editorsController = editorsController;
+    this._playgroundController = playgroundController;
     this._telemetryService = telemetryService;
     this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
       this.onConfigurationChanged,
@@ -146,6 +162,22 @@ export default class DataBrowsingController {
       case PreviewMessageType.getThemeColors:
         this._sendThemeColors(panel);
         return;
+      case PreviewMessageType.editDocument:
+        await this.handleEditDocument(
+          options,
+          EJSON.deserialize(message.documentId, { relaxed: false }),
+        );
+        return;
+      case PreviewMessageType.cloneDocument:
+        await this.handleCloneDocument(options, message.document);
+        return;
+      case PreviewMessageType.deleteDocument:
+        await this.handleDeleteDocument(
+          panel,
+          options,
+          EJSON.deserialize(message.documentId, { relaxed: false }),
+        );
+        return;
       default:
         // no-op.
         return;
@@ -179,7 +211,8 @@ export default class DataBrowsingController {
 
     try {
       const documents = await this._fetchDocuments(
-        options.namespace,
+        options.databaseName,
+        options.collectionName,
         signal,
         skip,
         limit,
@@ -215,7 +248,8 @@ export default class DataBrowsingController {
 
     try {
       const totalCount = await this._getTotalCount(
-        options.namespace,
+        options.databaseName,
+        options.collectionName,
         options.collectionType,
         signal,
       );
@@ -240,8 +274,115 @@ export default class DataBrowsingController {
     }
   };
 
+  handleEditDocument = async (
+    options: DataBrowsingOptions,
+    documentId: any,
+  ): Promise<void> => {
+    try {
+      await this._editorsController.openMongoDBDocument({
+        source: DocumentSource.databrowser,
+        documentId,
+        namespace: `${options.databaseName}.${options.collectionName}`,
+        format: getDocumentViewAndEditFormat(),
+        connectionId: this._connectionController.getActiveConnectionId(),
+        line: 1,
+      });
+    } catch (error) {
+      log.error('Error opening document for editing', error);
+      void vscode.window.showErrorMessage(
+        `Failed to open document: ${formatError(error).message}`,
+      );
+    }
+  };
+
+  handleCloneDocument = async (
+    options: DataBrowsingOptions,
+    document: Record<string, unknown>,
+  ): Promise<void> => {
+    try {
+      const deserialized = EJSON.deserialize(document, { relaxed: false });
+      delete deserialized._id;
+      const documentContents = toJSString(deserialized) ?? '';
+
+      await this._playgroundController.createPlaygroundForCloneDocument(
+        documentContents,
+        options.databaseName,
+        options.collectionName,
+      );
+    } catch (error) {
+      log.error('Error cloning document', error);
+      void vscode.window.showErrorMessage(
+        `Failed to clone document: ${formatError(error).message}`,
+      );
+    }
+  };
+
+  handleDeleteDocument = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+    documentId: any,
+  ): Promise<void> => {
+    try {
+      const shouldConfirmDeleteDocument = vscode.workspace
+        .getConfiguration('mdb')
+        .get('confirmDeleteDocument');
+
+      if (shouldConfirmDeleteDocument === true) {
+        const documentIdString = JSON.stringify(
+          EJSON.serialize(documentId, { relaxed: false }),
+        );
+        const confirmationResult = await vscode.window.showInformationMessage(
+          `Are you sure you wish to drop this document${documentIdString ? ` ${documentIdString}` : ''}?`,
+          {
+            modal: true,
+            detail:
+              'This confirmation can be disabled in the extension settings.',
+          },
+          'Yes',
+        );
+
+        if (confirmationResult !== 'Yes') {
+          return;
+        }
+      }
+
+      const dataService = this._connectionController.getActiveDataService();
+      if (!dataService) {
+        throw new Error('No active database connection');
+      }
+
+      const deleteResult = await dataService.deleteOne(
+        `${options.databaseName}.${options.collectionName}`,
+        { _id: documentId },
+        {},
+      );
+
+      if (deleteResult.deletedCount !== 1) {
+        throw new Error('document not found');
+      }
+
+      void vscode.window.showInformationMessage(
+        'Document successfully deleted.',
+      );
+
+      // Notify the tree view in the sidebar to refresh
+      await vscode.commands.executeCommand('mdbRefreshCollection');
+
+      // Notify the webview that the document was deleted
+      void panel.webview.postMessage({
+        command: PreviewMessageType.documentDeleted,
+      });
+    } catch (error) {
+      log.error('Error deleting document', error);
+      void vscode.window.showErrorMessage(
+        `Failed to delete document: ${formatError(error).message}`,
+      );
+    }
+  };
+
   private async _fetchDocuments(
-    namespace: string,
+    databaseName: string,
+    collectionName: string,
     signal?: AbortSignal,
     skip?: number,
     limit?: number,
@@ -272,7 +413,12 @@ export default class DataBrowsingController {
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
-    return dataService.find(namespace, {}, findOptions, executionOptions);
+    return dataService.find(
+      `${databaseName}.${collectionName}`,
+      {},
+      findOptions,
+      executionOptions,
+    );
   }
 
   onReceivedWebviewMessage = async (
@@ -305,7 +451,8 @@ export default class DataBrowsingController {
   };
 
   private async _getTotalCount(
-    namespace: string,
+    databaseName: string,
+    collectionName: string,
     collectionType: string,
     signal: AbortSignal,
   ): Promise<number | null> {
@@ -325,7 +472,7 @@ export default class DataBrowsingController {
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
     const result = await dataService.aggregate(
-      namespace,
+      `${databaseName}.${collectionName}`,
       stages,
       {},
       executionOptions,
@@ -338,12 +485,15 @@ export default class DataBrowsingController {
     context: vscode.ExtensionContext,
     options: DataBrowsingOptions,
   ): vscode.WebviewPanel {
-    log.info('Opening data browser...', options.namespace);
+    log.info(
+      'Opening data browser...',
+      `${options.databaseName}.${options.collectionName}`,
+    );
     const extensionPath = context.extensionPath;
 
     const panel = createWebviewPanel({
       viewType: 'mongodbDataBrowser',
-      title: options.namespace,
+      title: `${options.databaseName}.${options.collectionName}`,
       extensionPath,
       iconName: 'leaf.svg',
     });
@@ -370,7 +520,8 @@ export default class DataBrowsingController {
     panel.webview.html = getDataBrowsingContent({
       extensionPath,
       webview: panel.webview,
-      namespace: options.namespace,
+      databaseName: options.databaseName,
+      collectionName: options.collectionName,
       codiconStylesheetUri,
       monacoEditorBaseUri,
     });

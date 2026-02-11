@@ -7,6 +7,7 @@ import {
   handleExtensionMessage,
   setupMessageHandler,
 } from '../../../../views/data-browsing-app/store/messageHandler';
+import * as vscodeApi from '../../../../views/data-browsing-app/vscode-api';
 
 describe('messageHandler test suite', function () {
   afterEach(function () {
@@ -271,6 +272,37 @@ describe('messageHandler test suite', function () {
 
         expect(store.getState().documentQuery.themeColors).to.be.null;
         expect(store.getState().documentQuery.themeKind).to.equal('vs');
+      });
+    });
+
+    describe('documentDeleted', function () {
+      it('should request a refresh when documentDeleted message received', function () {
+        const store = createStore();
+
+        // Ensure we start with a non-loading state
+        handleExtensionMessage(store.dispatch, {
+          command: PreviewMessageType.loadPage,
+          documents: [{ _id: '1', name: 'Test' }],
+        });
+        expect(store.getState().documentQuery.isLoading).to.be.false;
+
+        // Stub the API calls that documentsRefreshRequested triggers
+        const sendGetDocumentsStub = sinon.stub(vscodeApi, 'sendGetDocuments');
+        const sendGetTotalCountStub = sinon.stub(
+          vscodeApi,
+          'sendGetTotalCount',
+        );
+
+        // Trigger documentDeleted message
+        handleExtensionMessage(store.dispatch, {
+          command: PreviewMessageType.documentDeleted,
+        });
+
+        // State should be set to loading and refresh API functions called
+        expect(store.getState().documentQuery.isLoading).to.be.true;
+        expect(store.getState().documentQuery.isLoading).to.be.true;
+        expect(sendGetDocumentsStub.calledOnce).to.be.true;
+        expect(sendGetTotalCountStub.calledOnce).to.be.true;
       });
     });
   });
