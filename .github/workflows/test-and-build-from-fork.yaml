@@ -26,14 +26,6 @@ jobs:
         run: pnpm run check
         shell: bash
 
-      - name: Build .vsix
-        env:
-          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
-          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
-        run: |
-          pnpm exec vsce package --githubBranch main
-        shell: bash
-
   test:
     name: Run Tests
     needs: build-and-check
