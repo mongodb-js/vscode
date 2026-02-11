@@ -174,6 +174,10 @@ const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
     autoFindInSelection: 'never',
     seedSearchStringFromSelection: 'never',
   },
+  quickSuggestions: false,
+  suggestOnTriggerCharacters: false,
+  parameterHints: { enabled: false },
+  hover: { enabled: false },
 };
 
 const MonacoViewer: React.FC<MonacoViewerProps> = ({
@@ -232,6 +236,18 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       },
     });
     monaco.editor.setTheme('currentVSCodeTheme');
+
+    // Configure TypeScript to disable semantic diagnostics
+    // This prevents it from treating object keys as DOM/TypeScript identifiers
+    monaco.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: false,
+    });
+    monaco.typescript.typescriptDefaults.setCompilerOptions({
+      target: monaco.typescript.ScriptTarget.Latest,
+      allowNonTsExtensions: true,
+      noLib: true,
+    });
   }, [monaco, colors, themeKind]);
 
   const documentString = useMemo(() => {
