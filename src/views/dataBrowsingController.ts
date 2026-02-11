@@ -21,7 +21,6 @@ import type EditorsController from '../editors/editorsController';
 import type PlaygroundController from '../editors/playgroundController';
 import { DocumentSource } from '../documentSource';
 import { getDocumentViewAndEditFormat } from '../editors/types';
-import type ExplorerController from '../explorer/explorerController';
 
 const log = createLogger('data browsing controller');
 
@@ -77,7 +76,6 @@ export default class DataBrowsingController {
   _connectionController: ConnectionController;
   _editorsController: EditorsController;
   _playgroundController: PlaygroundController;
-  _explorerController: ExplorerController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
   _configChangedSubscription: vscode.Disposable;
@@ -89,19 +87,16 @@ export default class DataBrowsingController {
     connectionController,
     editorsController,
     playgroundController,
-    explorerController,
     telemetryService,
   }: {
     connectionController: ConnectionController;
     editorsController: EditorsController;
     playgroundController: PlaygroundController;
-    explorerController: ExplorerController;
     telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
     this._editorsController = editorsController;
     this._playgroundController = playgroundController;
-    this._explorerController = explorerController;
     this._telemetryService = telemetryService;
     this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
       this.onConfigurationChanged,
@@ -369,9 +364,6 @@ export default class DataBrowsingController {
       void vscode.window.showInformationMessage(
         'Document successfully deleted.',
       );
-
-      // Refresh the explorer view
-      this._explorerController.refresh();
 
       // Notify the webview that the document was deleted
       void panel.webview.postMessage({
