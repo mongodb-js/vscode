@@ -40,7 +40,8 @@ suite('DataBrowsingController Test Suite', function () {
     overrides?: Partial<DataBrowsingOptions>,
   ): DataBrowsingOptions {
     return {
-      namespace: 'test.collection',
+      databaseName: 'test',
+      collectionName: 'collection',
       collectionType: CollectionType.collection,
       ...overrides,
     };
@@ -776,7 +777,9 @@ suite('DataBrowsingController Test Suite', function () {
     expect(openSpy.calledOnce).to.be.true;
     const arg = openSpy.firstCall.args[0];
     expect(arg.documentId).to.equal('my-id');
-    expect(arg.namespace).to.equal(options.namespace);
+    expect(arg.namespace).to.equal(
+      `${options.databaseName}.${options.collectionName}`,
+    );
     expect(arg.source).to.equal('databrowser');
   });
 
@@ -833,7 +836,9 @@ suite('DataBrowsingController Test Suite', function () {
 
     expect((mockDataService as any).deleteOne.calledOnce).to.be.true;
     const deleteArgs = (mockDataService as any).deleteOne.firstCall.args;
-    expect(deleteArgs[0]).to.equal(options.namespace);
+    expect(deleteArgs[0]).to.equal(
+      `${options.databaseName}.${options.collectionName}`,
+    );
     expect(deleteArgs[1]).to.deep.equal({ _id: 'del-id' });
 
     // explorer refresh called

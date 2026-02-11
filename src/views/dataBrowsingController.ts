@@ -35,13 +35,15 @@ const getMonacoEditorDistPath = (extensionPath: string): string => {
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
-  namespace,
+  databaseName,
+  collectionName,
   codiconStylesheetUri,
   monacoEditorBaseUri,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
-  namespace: string;
+  databaseName: string;
+  collectionName: string;
   codiconStylesheetUri: string;
   monacoEditorBaseUri: string;
 }): string => {
@@ -49,14 +51,15 @@ export const getDataBrowsingContent = ({
     extensionPath,
     webview,
     webviewType: 'dataBrowser',
-    title: namespace,
+    title: `${databaseName}.${collectionName}`,
     codiconStylesheetUri,
     monacoEditorBaseUri,
   });
 };
 
 export interface DataBrowsingOptions {
-  namespace: string;
+  databaseName: string;
+  collectionName: string;
   collectionType: string;
 }
 
@@ -208,7 +211,8 @@ export default class DataBrowsingController {
 
     try {
       const documents = await this._fetchDocuments(
-        options.namespace,
+        options.databaseName,
+        options.collectionName,
         signal,
         skip,
         limit,
@@ -243,7 +247,8 @@ export default class DataBrowsingController {
 
     try {
       const totalCount = await this._getTotalCount(
-        options.namespace,
+        options.databaseName,
+        options.collectionName,
         options.collectionType,
         signal,
       );
@@ -276,7 +281,7 @@ export default class DataBrowsingController {
       await this._editorsController.openMongoDBDocument({
         source: DocumentSource.databrowser,
         documentId,
-        namespace: options.namespace,
+        namespace: `${options.databaseName}.${options.collectionName}`,
         format: getDocumentViewAndEditFormat(),
         connectionId: this._connectionController.getActiveConnectionId(),
         line: 1,
@@ -298,12 +303,10 @@ export default class DataBrowsingController {
       delete deserialized._id;
       const documentContents = toJSString(deserialized) ?? '';
 
-      const [databaseName, collectionName] = options.namespace.split(/\.(.*)/s);
-
       await this._playgroundController.createPlaygroundForCloneDocument(
         documentContents,
-        databaseName,
-        collectionName,
+        options.databaseName,
+        options.collectionName,
       );
     } catch (error) {
       log.error('Error cloning document', error);
@@ -348,7 +351,7 @@ export default class DataBrowsingController {
       }
 
       const deleteResult = await dataService.deleteOne(
-        options.namespace,
+        `${options.databaseName}.${options.collectionName}`,
         { _id: documentId },
         {},
       );
@@ -377,7 +380,8 @@ export default class DataBrowsingController {
   };
 
   private async _fetchDocuments(
-    namespace: string,
+    databaseName: string,
+    collectionName: string,
     signal?: AbortSignal,
     skip?: number,
     limit?: number,
@@ -399,7 +403,12 @@ export default class DataBrowsingController {
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
-    return dataService.find(namespace, {}, findOptions, executionOptions);
+    return dataService.find(
+      `${databaseName}.${collectionName}`,
+      {},
+      findOptions,
+      executionOptions,
+    );
   }
 
   onReceivedWebviewMessage = async (
@@ -432,7 +441,8 @@ export default class DataBrowsingController {
   };
 
   private async _getTotalCount(
-    namespace: string,
+    databaseName: string,
+    collectionName: string,
     collectionType: string,
     signal: AbortSignal,
   ): Promise<number | null> {
@@ -452,7 +462,7 @@ export default class DataBrowsingController {
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
     const result = await dataService.aggregate(
-      namespace,
+      `${databaseName}.${collectionName}`,
       stages,
       {},
       executionOptions,
@@ -465,12 +475,15 @@ export default class DataBrowsingController {
     context: vscode.ExtensionContext,
     options: DataBrowsingOptions,
   ): vscode.WebviewPanel {
-    log.info('Opening data browser...', options.namespace);
+    log.info(
+      'Opening data browser...',
+      `${options.databaseName}.${options.collectionName}`,
+    );
     const extensionPath = context.extensionPath;
 
     const panel = createWebviewPanel({
       viewType: 'mongodbDataBrowser',
-      title: options.namespace,
+      title: `${options.databaseName}.${options.collectionName}`,
       extensionPath,
       iconName: 'leaf.svg',
     });
@@ -497,7 +510,8 @@ export default class DataBrowsingController {
     panel.webview.html = getDataBrowsingContent({
       extensionPath,
       webview: panel.webview,
-      namespace: options.namespace,
+      databaseName: options.databaseName,
+      collectionName: options.collectionName,
       codiconStylesheetUri,
       monacoEditorBaseUri,
     });

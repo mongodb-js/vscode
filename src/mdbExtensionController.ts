@@ -863,7 +863,8 @@ export default class MDBExtensionController implements vscode.Disposable {
       ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
       (element: ShowPreviewTreeItem): Promise<boolean> => {
         this._dataBrowsingController.openDataBrowser(this._context, {
-          namespace: element.namespace,
+          databaseName: element.databaseName,
+          collectionName: element.collectionName,
           collectionType: element.type,
         });
 
