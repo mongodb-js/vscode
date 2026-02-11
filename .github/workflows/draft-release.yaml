@@ -199,9 +199,44 @@ jobs:
         run: pnpm run test-install
         shell: bash
 
+  test-snyk:
+    name: Snyk Test
+    needs: build-and-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
+
+      - name: Run Snyk Test
+        shell: bash
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          pnpm run snyk-test
+
+      - name: Upload Snyk Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Snyk Report - ${{ github.run_id }}
+          path: |
+            .sbom/snyk-test-result.html
+            .sbom/snyk-test-result.json
+
+      - name: Generate Vulnerability Report (Fail on >= High)
+        shell: bash
+        run: |
+          pnpm run generate-vulnerability-report > /dev/null
+
   create-draft-release:
     name: Create Draft Release
-    needs: [prepare-version, test, test-install]
+    needs: [prepare-version, test, test-install, snyk-test]
 
     runs-on: ubuntu-latest
 
@@ -243,26 +278,6 @@ jobs:
           path: |
             *.vsix
             *.vsix.sig
-
-      - name: Run Snyk Test
-        shell: bash
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          pnpm run snyk-test
-
-      - name: Upload Snyk Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: Snyk Report - ${{ github.run_id }}
-          path: |
-            .sbom/snyk-test-result.html
-            .sbom/snyk-test-result.json
-
-      - name: Generate Vulnerability Report (Fail on >= High)
-        shell: bash
-        run: |
-          pnpm run generate-vulnerability-report > /dev/null
 
       - name: Create Draft Release
         env:

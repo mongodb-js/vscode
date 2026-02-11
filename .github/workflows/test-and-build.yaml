@@ -123,38 +123,3 @@ jobs:
           RUNNER_OS: ${{ runner.os }}
         run: pnpm run test-install
         shell: bash
-  test-snyk:
-    name: Run Snyk
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node environment
-        uses: ./.github/workflows/actions/setup-node-environment
-
-      - name: Run Snyk Test
-        shell: bash
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          pnpm run snyk-test
-
-      - name: Upload Snyk Report
-        # Always upload the Snyk report, even if the test fails
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Snyk Report - ${{ github.run_id }}
-          path: |
-            .sbom/snyk-test-result.html
-            .sbom/snyk-test-result.json
-
-      - name: Generate Vulnerability Report (Fail on >= High)
-        continue-on-error: ${{ github.event_name == 'pull_request' }}
-        shell: bash
-        run: |
-          pnpm run generate-vulnerability-report > /dev/null
