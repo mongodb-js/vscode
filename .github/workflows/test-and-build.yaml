@@ -49,7 +49,7 @@ jobs:
         shell: bash
 
   build-vsix:
-    name: Build VSIX
+    name: Build Extension
     needs: build-and-check
     runs-on: ubuntu-latest
 

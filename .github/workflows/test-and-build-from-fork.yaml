@@ -27,7 +27,7 @@ jobs:
         shell: bash
 
   build-vsix:
-    name: Build VSIX
+    name: Build Extension
     needs: build-and-check
     if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
