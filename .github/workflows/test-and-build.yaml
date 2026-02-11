@@ -55,16 +55,6 @@ jobs:
           pnpm exec vsce package --githubBranch main
         shell: bash
 
-      - name: Check .vsix filesize
-        run: pnpm run check-vsix-size
-        shell: bash
-
-      - name: Upload .vsix for tests
-        uses: actions/upload-artifact@v4
-        with:
-          name: vsix
-          path: '*.vsix'
-
   test:
     name: Run Tests
     needs: build-and-check
@@ -113,10 +103,23 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
 
-      - name: Download .vsix
-        uses: actions/download-artifact@v4
-        with:
-          name: vsix
+      - name: Set SEGMENT_KEY
+        env:
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
+        run: |
+          echo "SEGMENT_KEY=${SEGMENT_KEY}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build .vsix
+        env:
+          NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
+        run: |
+          pnpm exec vsce package --githubBranch main
+        shell: bash
+
+      - name: Check .vsix filesize
+        run: pnpm run check-vsix-size
+        shell: bash
 
       - name: Run VSIX Install Test
         env:
