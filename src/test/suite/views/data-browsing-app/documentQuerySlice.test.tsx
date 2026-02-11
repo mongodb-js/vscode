@@ -146,45 +146,45 @@ describe('documentQuerySlice', function () {
 
   describe('getInitialSort', function () {
     afterEach(function () {
-      delete window.DEFAULT_SORT_ORDER;
+      delete window.MDB_VSCODE_OPTIONS;
     });
 
-    it('should return null when window.DEFAULT_SORT_ORDER is undefined', function () {
-      delete window.DEFAULT_SORT_ORDER;
+    it('should return null when window.MDB_VSCODE_OPTIONS is undefined', function () {
+      delete window.MDB_VSCODE_OPTIONS;
       expect(getInitialSort()).to.be.null;
     });
 
-    it('should return the _id_desc SortOption when DEFAULT_SORT_ORDER is "_id_desc"', function () {
-      window.DEFAULT_SORT_ORDER = '_id_desc';
+    it('should return the _id_desc SortOption when defaultSortOrder is "_id_desc"', function () {
+      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: '_id_desc' };
       const result = getInitialSort();
       expect(result).to.not.be.null;
       expect(result?.value).to.equal('_id_desc');
       expect(result?.sort).to.deep.equal({ _id: -1 });
     });
 
-    it('should return the _id_asc SortOption when DEFAULT_SORT_ORDER is "_id_asc"', function () {
-      window.DEFAULT_SORT_ORDER = '_id_asc';
+    it('should return the _id_asc SortOption when defaultSortOrder is "_id_asc"', function () {
+      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: '_id_asc' };
       const result = getInitialSort();
       expect(result).to.not.be.null;
       expect(result?.value).to.equal('_id_asc');
       expect(result?.sort).to.deep.equal({ _id: 1 });
     });
 
-    it('should return the Default SortOption when DEFAULT_SORT_ORDER is "default"', function () {
-      window.DEFAULT_SORT_ORDER = 'default';
+    it('should return the Default SortOption when defaultSortOrder is "default"', function () {
+      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: 'default' };
       const result = getInitialSort();
       expect(result).to.not.be.null;
       expect(result?.value).to.equal('default');
       expect(result?.sort).to.be.null;
     });
 
-    it('should return null for an invalid DEFAULT_SORT_ORDER value', function () {
-      window.DEFAULT_SORT_ORDER = 'invalid_sort_key';
+    it('should return null for an invalid defaultSortOrder value', function () {
+      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: 'invalid_sort_key' };
       expect(getInitialSort()).to.be.null;
     });
 
-    it('should return null when DEFAULT_SORT_ORDER is an empty string', function () {
-      window.DEFAULT_SORT_ORDER = '';
+    it('should return null when defaultSortOrder is an empty string', function () {
+      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: '' };
       expect(getInitialSort()).to.be.null;
     });
   });
