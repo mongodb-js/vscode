@@ -79,7 +79,6 @@ export const getDataBrowsingContent = ({
     webviewType: 'dataBrowser',
     title: `${databaseName}.${collectionName}`,
     additionalHeadContent,
-    title: `${databaseName}.${collectionName}`,
   });
 };
 
@@ -553,5 +552,4 @@ export default class DataBrowsingController {
       themeKind,
     });
   }
-
 }

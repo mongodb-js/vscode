@@ -141,7 +141,6 @@ describe('documentQuerySlice', function () {
         expect(result.themeKind).to.equal('vs');
       });
     });
-
   });
 
   describe('SORT_VALUE_MAP', function () {
@@ -171,18 +170,15 @@ describe('documentQuerySlice', function () {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const packageJson = require('../../../../../package.json');
       const configEnum: string[] =
-        packageJson.contributes.configuration.properties[
-          'mdb.defaultSortOrder'
-        ].enum;
+        packageJson.contributes.configuration.properties['mdb.defaultSortOrder']
+          .enum;
       expect(Object.keys(SORT_VALUE_MAP)).to.deep.equal(configEnum);
     });
   });
 
   describe('SORT_OPTIONS derived from SORT_VALUE_MAP', function () {
     it('should have an option for every key in SORT_VALUE_MAP', function () {
-      expect(SORT_OPTIONS).to.have.lengthOf(
-        Object.keys(SORT_VALUE_MAP).length,
-      );
+      expect(SORT_OPTIONS).to.have.lengthOf(Object.keys(SORT_VALUE_MAP).length);
     });
 
     it('should have value fields matching SORT_VALUE_MAP keys', function () {

@@ -23,6 +23,7 @@ export interface SortOption {
 }
 
 const SORT_LABELS: Record<string, string> = {
+  __proto__: null,
   default: 'Default',
   _id_asc: '_id: 1',
   _id_desc: '_id: -1',

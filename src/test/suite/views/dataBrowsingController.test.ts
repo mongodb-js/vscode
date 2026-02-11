@@ -83,8 +83,6 @@ suite('DataBrowsingController Test Suite', function () {
     return undefined;
   }
 
-
-
   suite('AbortController management', function () {
     test('creates a new AbortController for each request type', async function () {
       const options = createMockOptions();
