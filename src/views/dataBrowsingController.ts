@@ -162,13 +162,12 @@ export default class DataBrowsingController {
         return;
       case PreviewMessageType.editDocument:
         await this.handleEditDocument(
-          panel,
           options,
           EJSON.deserialize(message.documentId, { relaxed: false }),
         );
         return;
       case PreviewMessageType.cloneDocument:
-        await this.handleCloneDocument(panel, options, message.document);
+        await this.handleCloneDocument(options, message.document);
         return;
       case PreviewMessageType.deleteDocument:
         await this.handleDeleteDocument(
@@ -270,7 +269,6 @@ export default class DataBrowsingController {
   };
 
   handleEditDocument = async (
-    panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
     documentId: any,
   ): Promise<void> => {
@@ -292,7 +290,6 @@ export default class DataBrowsingController {
   };
 
   handleCloneDocument = async (
-    panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
     document: Record<string, unknown>,
   ): Promise<void> => {

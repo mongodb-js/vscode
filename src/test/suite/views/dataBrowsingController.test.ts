@@ -771,7 +771,7 @@ suite('DataBrowsingController Test Suite', function () {
       openMongoDBDocument: openSpy,
     };
 
-    await testController.handleEditDocument(mockPanel, options, 'my-id');
+    await testController.handleEditDocument(options, 'my-id');
 
     expect(openSpy.calledOnce).to.be.true;
     const arg = openSpy.firstCall.args[0];
@@ -793,11 +793,7 @@ suite('DataBrowsingController Test Suite', function () {
     // Note: handleCloneDocument expects a serialized single document (not array)
     const singleSerialized = EJSON.serialize(doc, { relaxed: false });
 
-    await testController.handleCloneDocument(
-      mockPanel,
-      options,
-      singleSerialized,
-    );
+    await testController.handleCloneDocument(options, singleSerialized);
 
     expect(createPlaygroundStub.calledOnce).to.be.true;
     const calledWith = createPlaygroundStub.firstCall.args;
