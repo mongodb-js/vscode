@@ -146,16 +146,16 @@ describe('documentQuerySlice', function () {
 
   describe('getInitialSort', function () {
     afterEach(function () {
-      delete window.MDB_VSCODE_OPTIONS;
+      delete window.MDB_DATA_BROWSING_OPTIONS;
     });
 
-    it('should return null when window.MDB_VSCODE_OPTIONS is undefined', function () {
-      delete window.MDB_VSCODE_OPTIONS;
+    it('should return null when window.MDB_DATA_BROWSING_OPTIONS is undefined', function () {
+      delete window.MDB_DATA_BROWSING_OPTIONS;
       expect(getInitialSort()).to.be.null;
     });
 
     it('should return the _id_desc SortOption when defaultSortOrder is "_id_desc"', function () {
-      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: '_id_desc' };
+      window.MDB_DATA_BROWSING_OPTIONS = { defaultSortOrder: '_id_desc' };
       const result = getInitialSort();
       expect(result).to.not.be.null;
       expect(result?.value).to.equal('_id_desc');
@@ -163,7 +163,7 @@ describe('documentQuerySlice', function () {
     });
 
     it('should return the _id_asc SortOption when defaultSortOrder is "_id_asc"', function () {
-      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: '_id_asc' };
+      window.MDB_DATA_BROWSING_OPTIONS = { defaultSortOrder: '_id_asc' };
       const result = getInitialSort();
       expect(result).to.not.be.null;
       expect(result?.value).to.equal('_id_asc');
@@ -171,7 +171,7 @@ describe('documentQuerySlice', function () {
     });
 
     it('should return the Default SortOption when defaultSortOrder is "default"', function () {
-      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: 'default' };
+      window.MDB_DATA_BROWSING_OPTIONS = { defaultSortOrder: 'default' };
       const result = getInitialSort();
       expect(result).to.not.be.null;
       expect(result?.value).to.equal('default');
@@ -179,12 +179,14 @@ describe('documentQuerySlice', function () {
     });
 
     it('should return null for an invalid defaultSortOrder value', function () {
-      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: 'invalid_sort_key' };
+      window.MDB_DATA_BROWSING_OPTIONS = {
+        defaultSortOrder: 'invalid_sort_key',
+      };
       expect(getInitialSort()).to.be.null;
     });
 
     it('should return null when defaultSortOrder is an empty string', function () {
-      window.MDB_VSCODE_OPTIONS = { defaultSortOrder: '' };
+      window.MDB_DATA_BROWSING_OPTIONS = { defaultSortOrder: '' };
       expect(getInitialSort()).to.be.null;
     });
   });

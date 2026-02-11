@@ -12,11 +12,16 @@ export const CONNECTION_STATUS = {
 export type ConnectionStatus =
   (typeof CONNECTION_STATUS)[keyof typeof CONNECTION_STATUS];
 
-export const VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID =
-  'VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID';
+export interface WebviewVscodeOptions {
+  segmentAnonymousId?: string;
+  showOidcDeviceAuthFlow?: boolean;
+}
 
-export const VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID =
-  'VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID';
+declare global {
+  interface Window {
+    MDB_WEBVIEW_OPTIONS?: WebviewVscodeOptions;
+  }
+}
 
 export const MessageType = {
   connect: 'CONNECT',

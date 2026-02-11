@@ -85,9 +85,10 @@ const recalculatePaginationValues = (state: DocumentQueryState): void => {
 export const getInitialSort = (): SortOption | null => {
   if (
     typeof window !== 'undefined' &&
-    window.MDB_VSCODE_OPTIONS?.defaultSortOrder
+    window.MDB_DATA_BROWSING_OPTIONS?.defaultSortOrder
   ) {
-    const key = window.MDB_VSCODE_OPTIONS.defaultSortOrder as SortValueKey;
+    const key = window.MDB_DATA_BROWSING_OPTIONS
+      .defaultSortOrder as SortValueKey;
     return SORT_OPTIONS.find((opt) => opt.value === key) ?? null;
   }
   return null;

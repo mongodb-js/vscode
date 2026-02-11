@@ -1,11 +1,11 @@
-export interface MdbVscodeOptions {
+export interface DataBrowsingVscodeOptions {
   monacoEditorBaseUri?: string;
   defaultSortOrder?: string;
 }
 
 declare global {
   interface Window {
-    MDB_VSCODE_OPTIONS?: MdbVscodeOptions;
+    MDB_DATA_BROWSING_OPTIONS?: DataBrowsingVscodeOptions;
   }
 }
 

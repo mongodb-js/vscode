@@ -24,11 +24,11 @@ import {
 // Configure Monaco Editor loader to use local files instead of CDN
 if (
   typeof window !== 'undefined' &&
-  window.MDB_VSCODE_OPTIONS?.monacoEditorBaseUri
+  window.MDB_DATA_BROWSING_OPTIONS?.monacoEditorBaseUri
 ) {
   loader.config({
     paths: {
-      vs: `${window.MDB_VSCODE_OPTIONS.monacoEditorBaseUri}/vs`,
+      vs: `${window.MDB_DATA_BROWSING_OPTIONS.monacoEditorBaseUri}/vs`,
     },
   });
 }
