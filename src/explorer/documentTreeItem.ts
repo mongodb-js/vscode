@@ -57,7 +57,7 @@ export default class DocumentTreeItem
 
     const documentLabel = document._id
       ? JSON.stringify(document._id)
-      : `"Document ${documentIndexInTree + 1}"`;
+      : `Document ${documentIndexInTree + 1}`;
 
     this.dataService = dataService;
     this.document = document;
