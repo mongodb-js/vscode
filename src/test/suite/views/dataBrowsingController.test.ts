@@ -867,8 +867,6 @@ suite('DataBrowsingController Test Suite', function () {
     (mockDataService as any).deleteOne = sandbox
       .stub()
       .resolves({ deletedCount: 1 });
-    // attach explorer controller
-    (testController as any)._explorerController = { refresh: sandbox.stub() };
 
     // make sure we use the mock data service
     (testController as any)._connectionController = {
@@ -887,10 +885,6 @@ suite('DataBrowsingController Test Suite', function () {
       `${options.databaseName}.${options.collectionName}`,
     );
     expect(deleteArgs[1]).to.deep.equal({ _id: 'del-id' });
-
-    // explorer refresh called
-    expect((testController as any)._explorerController.refresh.calledOnce).to.be
-      .true;
 
     // webview notified
     const msg = postMessageStub
