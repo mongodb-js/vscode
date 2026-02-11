@@ -7,10 +7,14 @@ import reducer, {
   totalCountFetchFailed,
   themeColorsReceived,
   selectDocumentQuery,
+  SORT_OPTIONS,
   type DocumentQueryState,
   type PreviewDocument,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
-import type { TokenColors } from '../../../../views/data-browsing-app/extension-app-message-constants';
+import {
+  SORT_VALUE_MAP,
+  type TokenColors,
+} from '../../../../views/data-browsing-app/extension-app-message-constants';
 
 describe('documentQuerySlice', function () {
   const createState = (
@@ -136,6 +140,65 @@ describe('documentQuerySlice', function () {
         expect(result.themeColors).to.be.null;
         expect(result.themeKind).to.equal('vs');
       });
+    });
+
+  });
+
+  describe('SORT_VALUE_MAP', function () {
+    it('should have exactly three keys', function () {
+      expect(Object.keys(SORT_VALUE_MAP)).to.have.lengthOf(3);
+    });
+
+    it('should have the expected keys', function () {
+      expect(SORT_VALUE_MAP).to.have.property('default');
+      expect(SORT_VALUE_MAP).to.have.property('_id_asc');
+      expect(SORT_VALUE_MAP).to.have.property('_id_desc');
+    });
+
+    it('should map default to undefined', function () {
+      expect(SORT_VALUE_MAP.default).to.be.undefined;
+    });
+
+    it('should map _id_asc to { _id: 1 }', function () {
+      expect(SORT_VALUE_MAP._id_asc).to.deep.equal({ _id: 1 });
+    });
+
+    it('should map _id_desc to { _id: -1 }', function () {
+      expect(SORT_VALUE_MAP._id_desc).to.deep.equal({ _id: -1 });
+    });
+  });
+
+  describe('SORT_OPTIONS derived from SORT_VALUE_MAP', function () {
+    it('should have an option for every key in SORT_VALUE_MAP', function () {
+      expect(SORT_OPTIONS).to.have.lengthOf(
+        Object.keys(SORT_VALUE_MAP).length,
+      );
+    });
+
+    it('should have value fields matching SORT_VALUE_MAP keys', function () {
+      const values = SORT_OPTIONS.map((opt) => opt.value);
+      expect(values).to.include.members(Object.keys(SORT_VALUE_MAP));
+    });
+
+    it('should have the correct labels', function () {
+      const defaultOpt = SORT_OPTIONS.find((o) => o.value === 'default');
+      const ascOpt = SORT_OPTIONS.find((o) => o.value === '_id_asc');
+      const descOpt = SORT_OPTIONS.find((o) => o.value === '_id_desc');
+      expect(defaultOpt?.label).to.equal('Default');
+      expect(ascOpt?.label).to.equal('_id: 1');
+      expect(descOpt?.label).to.equal('_id: -1');
+    });
+
+    it('should map sort values consistently with SORT_VALUE_MAP (undefined → null)', function () {
+      for (const option of SORT_OPTIONS) {
+        const mapValue =
+          SORT_VALUE_MAP[option.value as keyof typeof SORT_VALUE_MAP];
+        if (mapValue === undefined) {
+          expect(option.sort).to.be.null;
+        } else {
+          expect(option.sort).to.deep.equal(mapValue);
+        }
+      }
     });
   });
 

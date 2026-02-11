@@ -273,6 +273,7 @@ describe('messageHandler test suite', function () {
         expect(store.getState().documentQuery.themeKind).to.equal('vs');
       });
     });
+
   });
 
   describe('setupMessageHandler', function () {
