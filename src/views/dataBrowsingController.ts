@@ -366,7 +366,7 @@ export default class DataBrowsingController {
       );
 
       // Notify the tree view in the sidebar to refresh
-      vscode.commands.executeCommand('mdbRefreshCollection');
+      await vscode.commands.executeCommand('mdbRefreshCollection');
 
       // Notify the webview that the document was deleted
       void panel.webview.postMessage({
