@@ -13,12 +13,6 @@ import {
   type SortValueKey,
 } from '../extension-app-message-constants';
 
-declare global {
-  interface Window {
-    DEFAULT_SORT_ORDER?: string;
-  }
-}
-
 export interface PreviewDocument {
   [key: string]: unknown;
 }
@@ -89,8 +83,11 @@ const recalculatePaginationValues = (state: DocumentQueryState): void => {
 };
 
 export const getInitialSort = (): SortOption | null => {
-  if (typeof window !== 'undefined' && window.DEFAULT_SORT_ORDER) {
-    const key = window.DEFAULT_SORT_ORDER as SortValueKey;
+  if (
+    typeof window !== 'undefined' &&
+    window.MDB_VSCODE_OPTIONS?.defaultSortOrder
+  ) {
+    const key = window.MDB_VSCODE_OPTIONS.defaultSortOrder as SortValueKey;
     return SORT_OPTIONS.find((opt) => opt.value === key) ?? null;
   }
   return null;

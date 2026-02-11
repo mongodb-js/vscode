@@ -1,3 +1,14 @@
+export interface MdbVscodeOptions {
+  monacoEditorBaseUri?: string;
+  defaultSortOrder?: string;
+}
+
+declare global {
+  interface Window {
+    MDB_VSCODE_OPTIONS?: MdbVscodeOptions;
+  }
+}
+
 export const PreviewMessageType = {
   // Messages from webview to extension
   getDocuments: 'GET_DOCUMENTS',
