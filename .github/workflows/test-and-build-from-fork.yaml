@@ -26,6 +26,21 @@ jobs:
         run: pnpm run check
         shell: bash
 
+  build-vsix:
+    name: Build VSIX
+    needs: build-and-check
+    if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
+
       - name: Build .vsix
         env:
           NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
@@ -34,7 +49,11 @@ jobs:
           pnpm exec vsce package --githubBranch main
         shell: bash
 
-      - name: Upload .vsix for tests
+      - name: Check .vsix filesize
+        run: pnpm run check-vsix-size
+        shell: bash
+
+      - name: Upload .vsix
         uses: actions/upload-artifact@v4
         with:
           name: vsix
@@ -70,7 +89,7 @@ jobs:
 
   test-install:
     name: Run Install Test
-    needs: build-and-check
+    needs: build-vsix
     if: github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.head.repo.full_name != github.repository
 
     strategy:
