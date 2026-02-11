@@ -29,11 +29,11 @@ export interface SortOption {
   sort: DocumentSort | null;
 }
 
-const SORT_LABELS: Record<string, string> = {
+const SORT_LABELS: Record<string, string> = Object.assign(Object.create(null), {
   default: 'Default',
   _id_asc: '_id: 1',
   _id_desc: '_id: -1',
-};
+});
 
 export const SORT_OPTIONS: SortOption[] = Object.entries(SORT_VALUE_MAP).map(
   ([key, sort]) => ({
