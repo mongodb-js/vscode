@@ -164,12 +164,21 @@ module.exports = (env, argv) => {
     },
   });
 
-  const webviewConfig = merge(baseConfig(), {
+  const webviewBase = baseConfig();
+  // Remove library config for browser bundle
+  delete webviewBase.output.library;
+
+  const webviewConfig = {
+    ...webviewBase,
     target: 'web',
     entry: {
       webviewApp: './src/views/webview-app/index.tsx',
     },
+    output: {
+      ...webviewBase.output,
+    },
     resolve: {
+      ...webviewBase.resolve,
       extensions: ['.js', '.ts', '.tsx', '.json'],
       // This is here to deal with some node.js code brought in by
       // @leafygreen/logo via @emotion/server:
@@ -201,6 +210,7 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
+      ...webviewBase.plugins,
       // This plugin has been added to avoid Out of memory crashes of webpack on
       // our Github runners. It does so by moving the type checking to a
       // separate process.
@@ -232,7 +242,7 @@ module.exports = (env, argv) => {
       // don't use this pattern, if you have a monorepo with linked packages.
       ignored: /node_modules/,
     },
-  });
+  };
 
   return [
     extensionConfig,
