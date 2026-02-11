@@ -9,6 +9,7 @@ import {
   totalCountReceived,
   totalCountFetchFailed,
   themeColorsReceived,
+  documentsRefreshRequested,
 } from './documentQuerySlice';
 
 export const handleExtensionMessage = (
@@ -46,6 +47,10 @@ export const handleExtensionMessage = (
           themeKind: message.themeKind,
         }),
       );
+      break;
+    case PreviewMessageType.documentDeleted:
+      // Refresh the documents after a delete
+      dispatch(documentsRefreshRequested());
       break;
   }
 };

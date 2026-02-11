@@ -4,6 +4,9 @@ export const PreviewMessageType = {
   getTotalCount: 'GET_TOTAL_COUNT',
   cancelRequest: 'CANCEL_REQUEST',
   getThemeColors: 'GET_THEME_COLORS',
+  editDocument: 'EDIT_DOCUMENT',
+  cloneDocument: 'CLONE_DOCUMENT',
+  deleteDocument: 'DELETE_DOCUMENT',
 
   // Messages from extension to webview
   loadPage: 'LOAD_PAGE',
@@ -12,6 +15,7 @@ export const PreviewMessageType = {
   updateTotalCount: 'UPDATE_TOTAL_COUNT',
   updateTotalCountError: 'UPDATE_TOTAL_COUNT_ERROR',
   updateThemeColors: 'UPDATE_THEME_COLORS',
+  documentDeleted: 'DOCUMENT_DELETED',
 } as const;
 
 export interface TokenColors {
@@ -64,6 +68,21 @@ export interface GetThemeColorsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.getThemeColors;
 }
 
+export interface EditDocumentMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.editDocument;
+  documentId: any;
+}
+
+export interface CloneDocumentMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.cloneDocument;
+  document: Record<string, unknown>;
+}
+
+export interface DeleteDocumentMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.deleteDocument;
+  documentId: any;
+}
+
 // Messages from extension to webview
 export interface LoadPageMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadPage;
@@ -95,11 +114,18 @@ export interface UpdateThemeColorsMessage extends BasicWebviewMessage {
   themeKind: MonacoBaseTheme;
 }
 
+export interface DocumentDeletedMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.documentDeleted;
+}
+
 export type MessageFromWebviewToExtension =
   | GetDocumentsMessage
   | GetTotalCountMessage
   | CancelRequestMessage
-  | GetThemeColorsMessage;
+  | GetThemeColorsMessage
+  | EditDocumentMessage
+  | CloneDocumentMessage
+  | DeleteDocumentMessage;
 
 export type MessageFromExtensionToWebview =
   | LoadPageMessage
@@ -107,4 +133,5 @@ export type MessageFromExtensionToWebview =
   | RequestCancelledMessage
   | UpdateTotalCountMessage
   | UpdateTotalCountErrorMessage
-  | UpdateThemeColorsMessage;
+  | UpdateThemeColorsMessage
+  | DocumentDeletedMessage;
