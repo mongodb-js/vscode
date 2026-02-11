@@ -164,18 +164,21 @@ module.exports = (env, argv) => {
     },
   });
 
+  const webviewBase = baseConfig();
+
   const webviewConfig = {
-    ...baseConfig(),
+    ...webviewBase,
     target: 'web',
     entry: {
       webviewApp: './src/views/webview-app/index.tsx',
     },
     output: {
-      ...baseConfig().output,
-      library: undefined, // Remove library config for browser bundle
+      ...webviewBase.output,
+      // Remove library config for browser bundle
+      library: undefined,
     },
     resolve: {
-      ...baseConfig().resolve,
+      ...webviewBase.resolve,
       extensions: ['.js', '.ts', '.tsx', '.json'],
       // This is here to deal with some node.js code brought in by
       // @leafygreen/logo via @emotion/server:
@@ -207,7 +210,7 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
-      ...baseConfig().plugins,
+      ...webviewBase.plugins,
       // This plugin has been added to avoid Out of memory crashes of webpack on
       // our Github runners. It does so by moving the type checking to a
       // separate process.
