@@ -39,10 +39,13 @@ interface BasicWebviewMessage {
   command: string;
 }
 
+export type DocumentSort = Record<string, 1 | -1>;
+
 export interface GetDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.getDocuments;
   skip: number;
   limit: number;
+  sort?: DocumentSort;
 }
 
 export interface CancelRequestMessage extends BasicWebviewMessage {

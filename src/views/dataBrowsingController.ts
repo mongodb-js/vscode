@@ -4,7 +4,10 @@ import path from 'path';
 import { toJSString } from 'mongodb-query-parser';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { PreviewMessageType } from './data-browsing-app/extension-app-message-constants';
+import {
+  PreviewMessageType,
+  type DocumentSort,
+} from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
@@ -152,6 +155,7 @@ export default class DataBrowsingController {
           options,
           message.skip,
           message.limit,
+          message.sort,
         );
         return;
       case PreviewMessageType.getTotalCount:
@@ -203,6 +207,7 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
     skip: number,
     limit: number,
+    sort?: DocumentSort,
   ): Promise<void> => {
     const abortController = this._createAbortController(panel, 'documents');
     const { signal } = abortController;
@@ -216,6 +221,7 @@ export default class DataBrowsingController {
         signal,
         skip,
         limit,
+        sort,
       );
 
       if (signal.aborted) {
@@ -385,20 +391,29 @@ export default class DataBrowsingController {
     signal?: AbortSignal,
     skip?: number,
     limit?: number,
+    sort?: DocumentSort,
   ): Promise<Document[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       throw new Error('No active database connection');
     }
 
-    const findOptions: { limit: number; skip?: number; promoteValues: false } =
-      {
-        limit: limit ?? DEFAULT_DOCUMENTS_LIMIT,
-        promoteValues: false,
-      };
+    const findOptions: {
+      limit: number;
+      skip?: number;
+      sort?: DocumentSort;
+      promoteValues: false;
+    } = {
+      limit: limit ?? DEFAULT_DOCUMENTS_LIMIT,
+      promoteValues: false,
+    };
 
     if (skip !== undefined && skip > 0) {
       findOptions.skip = skip;
+    }
+
+    if (sort) {
+      findOptions.sort = sort;
     }
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;

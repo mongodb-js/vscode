@@ -446,6 +446,32 @@ suite('DataBrowsingController Test Suite', function () {
         .true;
     });
 
+    test('calls handleGetDocuments with sort when getDocuments message includes sort', async function () {
+      const options = createMockOptions();
+      const handleGetDocumentsSpy = sandbox.spy(
+        testController,
+        'handleGetDocuments',
+      );
+
+      await testController.handleWebviewMessage(
+        {
+          command: PreviewMessageType.getDocuments,
+          skip: 0,
+          limit: 10,
+          sort: { _id: -1 },
+        },
+        mockPanel,
+        options,
+      );
+
+      expect(handleGetDocumentsSpy.calledOnce).to.be.true;
+      expect(
+        handleGetDocumentsSpy.calledWith(mockPanel, options, 0, 10, {
+          _id: -1,
+        }),
+      ).to.be.true;
+    });
+
     test('does nothing for unknown message commands', async function () {
       const options = createMockOptions();
 
@@ -496,6 +522,28 @@ suite('DataBrowsingController Test Suite', function () {
       expect(findOptions.limit).to.equal(25);
       // skip should not be set when 0
       expect(findOptions.skip).to.be.undefined;
+    });
+
+    test('passes sort to find call when sort is provided', async function () {
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options, 0, 10, {
+        _id: -1,
+      });
+
+      expect(mockDataService.find.calledOnce).to.be.true;
+      const findOptions = mockDataService.find.firstCall.args[2];
+      expect(findOptions.sort).to.deep.equal({ _id: -1 });
+    });
+
+    test('does not include sort in find options when sort is not provided', async function () {
+      const options = createMockOptions();
+
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
+
+      expect(mockDataService.find.calledOnce).to.be.true;
+      const findOptions = mockDataService.find.firstCall.args[2];
+      expect(findOptions.sort).to.be.undefined;
     });
 
     test('posts getDocumentError message on fetch failure', async function () {
