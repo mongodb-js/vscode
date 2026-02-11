@@ -156,31 +156,33 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [themeColors]);
 
   useEffect(() => {
-    if (monaco) {
-      monaco.editor.defineTheme('currentVSCodeTheme', {
-        base: themeKind,
-        inherit: true,
-        rules: colors
-          ? ([
-              { token: 'identifier', foreground: colors.key },
-              { token: 'variable', foreground: colors.key },
-              { token: 'variable.name', foreground: colors.key },
-              { token: 'string', foreground: colors.string },
-              { token: 'string.quote', foreground: colors.string },
-              { token: 'string.escape', foreground: colors.string },
-              { token: 'number', foreground: colors.number },
-              { token: 'keyword', foreground: colors.punctuation },
-              { token: 'type', foreground: colors.type },
-              { token: 'comment', foreground: colors.comment },
-              { token: 'delimiter', foreground: colors.punctuation },
-            ].filter((r) => r.foreground !== null) as editor.ITokenThemeRule[])
-          : [],
-        colors: {
-          'editor.background': '#00000000',
-          'editorGutter.background': '#00000000',
-        },
-      });
+    if (!monaco) {
+      return;
     }
+    monaco.editor.defineTheme('currentVSCodeTheme', {
+      base: themeKind,
+      inherit: true,
+      rules: colors
+        ? ([
+            { token: 'identifier', foreground: colors.key },
+            { token: 'variable', foreground: colors.key },
+            { token: 'variable.name', foreground: colors.key },
+            { token: 'string', foreground: colors.string },
+            { token: 'string.quote', foreground: colors.string },
+            { token: 'string.escape', foreground: colors.string },
+            { token: 'number', foreground: colors.number },
+            { token: 'keyword', foreground: colors.punctuation },
+            { token: 'type', foreground: colors.type },
+            { token: 'comment', foreground: colors.comment },
+            { token: 'delimiter', foreground: colors.punctuation },
+          ].filter((r) => r.foreground !== null) as editor.ITokenThemeRule[])
+        : [],
+      colors: {
+        'editor.background': '#00000000',
+        'editorGutter.background': '#00000000',
+      },
+    });
+    monaco.editor.setTheme('currentVSCodeTheme');
   }, [monaco, colors, themeKind]);
 
   const documentString = useMemo(() => {
