@@ -11,8 +11,10 @@ import {
   previousPageRequested,
   nextPageRequested,
   itemsPerPageChanged,
+  sortChanged,
   requestCancellationRequested,
   currentPageAdjusted,
+  SORT_OPTIONS,
   type DocumentQueryState,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
 
@@ -40,6 +42,23 @@ const createTestState = (
   );
 
   return { documentQuery: state };
+};
+
+/**
+ * Helper function to find a sort option by its sort field value.
+ * Makes tests more readable than using array indices.
+ */
+const findSortOption = (
+  sortField: '_id',
+  sortDirection: 1 | -1,
+): (typeof SORT_OPTIONS)[number] => {
+  const option = SORT_OPTIONS.find(
+    (opt) => opt.sort?.[sortField] === sortDirection,
+  );
+  if (!option) {
+    throw new Error(`Sort option not found for ${sortField}: ${sortDirection}`);
+  }
+  return option;
 };
 
 describe('actions test suite', function () {
@@ -213,6 +232,80 @@ describe('actions test suite', function () {
         command: PreviewMessageType.getDocuments,
         skip: 0,
         limit: 25,
+      });
+    });
+  });
+
+  describe('sortChanged', function () {
+    it('should set sort and reset to page 1', function () {
+      const store = createStore(createTestState({ currentPage: 3 }));
+      const sortOption = findSortOption('_id', 1);
+
+      store.dispatch(sortChanged(sortOption));
+
+      expect(store.getState().documentQuery.sort).to.deep.equal(sortOption);
+      expect(store.getState().documentQuery.currentPage).to.equal(1);
+      expect(store.getState().documentQuery.isLoading).to.be.true;
+    });
+
+    it('should send getDocuments with sort and skip=0', function () {
+      const store = createStore();
+      const sortOption = findSortOption('_id', -1);
+
+      store.dispatch(sortChanged(sortOption));
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: -1 },
+      });
+    });
+
+    it('should send getDocuments without sort field when set to null (default)', function () {
+      const sortOption = findSortOption('_id', 1);
+      const store = createStore(createTestState({ sort: sortOption }));
+      store.dispatch(sortChanged(null));
+
+      expect(store.getState().documentQuery.sort).to.be.null;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+      });
+    });
+
+    it('should preserve sort when navigating pages', function () {
+      const sortOption = findSortOption('_id', 1);
+      const store = createStore(
+        createTestState({
+          sort: sortOption,
+          totalCountInCollection: 50,
+          currentPage: 1,
+        }),
+      );
+
+      store.dispatch(nextPageRequested());
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 10,
+        limit: 10,
+        sort: { _id: 1 },
+      });
+    });
+
+    it('should preserve sort when refreshing', function () {
+      const sortOption = findSortOption('_id', -1);
+      const store = createStore(createTestState({ sort: sortOption }));
+
+      store.dispatch(documentsRefreshRequested());
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.getDocuments,
+        skip: 0,
+        limit: 10,
+        sort: { _id: -1 },
       });
     });
   });

@@ -102,7 +102,7 @@ suite('DocumentListTreeItem Test Suite', function () {
     const documents = await testDocumentListTreeItem.getChildren();
 
     assert.strictEqual(documents.length, 11);
-    assert.strictEqual(documents[1].label, `"${mockDocuments[1]._id}"`);
+    assert.strictEqual(documents[1].label, `${mockDocuments[1]._id}`);
   });
 
   test('it should show a show more item when there are more documents to show', async function () {
@@ -129,7 +129,7 @@ suite('DocumentListTreeItem Test Suite', function () {
 
     const documents = await testDocumentListTreeItem.getChildren();
     assert.strictEqual(documents.length, 21);
-    assert.strictEqual(documents[19].label, `"${mockDocuments[19]._id}"`);
+    assert.strictEqual(documents[19].label, `${mockDocuments[19]._id}`);
     assert.strictEqual(documents[20].label, 'Show more...');
   });
 

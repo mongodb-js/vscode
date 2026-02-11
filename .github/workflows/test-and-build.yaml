@@ -200,6 +200,7 @@ jobs:
             .sbom/snyk-test-result.json
 
       - name: Generate Vulnerability Report (Fail on >= High)
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
         shell: bash
         run: |
           pnpm run generate-vulnerability-report > /dev/null

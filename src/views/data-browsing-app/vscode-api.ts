@@ -2,6 +2,7 @@ import {
   PreviewMessageType,
   type MessageFromWebviewToExtension,
 } from './extension-app-message-constants';
+import type { SortOption } from './store/documentQuerySlice';
 
 interface VSCodeApi {
   postMessage: (message: MessageFromWebviewToExtension) => void;
@@ -20,11 +21,20 @@ export const getVSCodeApi = (): VSCodeApi => {
   return vscode;
 };
 
-export const sendGetDocuments = (skip: number, limit: number): void => {
+export const sendGetDocuments = ({
+  skip,
+  limit,
+  sort,
+}: {
+  skip: number;
+  limit: number;
+  sort?: SortOption | null;
+}): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.getDocuments,
     skip,
     limit,
+    ...(sort?.sort ? { sort: sort.sort } : {}),
   });
 };
 
@@ -37,5 +47,11 @@ export const sendGetTotalCount = (): void => {
 export const sendCancelRequest = (): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.cancelRequest,
+  });
+};
+
+export const sendGetThemeColors = (): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.getThemeColors,
   });
 };

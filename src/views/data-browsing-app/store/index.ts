@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import documentQueryReducer, {
   type DocumentQueryState,
 } from './documentQuerySlice';
@@ -7,7 +7,9 @@ export type RootState = {
   documentQuery: DocumentQueryState;
 };
 
-export const createStore = (preloadedState?: Partial<RootState>) =>
+export const createStore = (
+  preloadedState?: Partial<RootState>,
+): EnhancedStore<RootState> =>
   configureStore({
     reducer: {
       documentQuery: documentQueryReducer,

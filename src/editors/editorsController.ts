@@ -43,26 +43,9 @@ import { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import type { QueryWithCopilotCodeLensProvider } from './queryWithCopilotCodeLensProvider';
 import { getEJSON } from '../utils/ejson';
+import { getFileDisplayNameForDocument } from '../utils/documentName';
 
 const log = createLogger('editors controller');
-
-export function getFileDisplayNameForDocument(
-  documentId: any,
-  namespace: string,
-): string {
-  let displayName = `${namespace}:${EJSON.stringify(documentId)}`;
-
-  // Encode special file uri characters to ensure VSCode handles
-  // it correctly in a uri while avoiding collisions.
-  displayName = displayName.replace(/[\\/%]/gi, function (c) {
-    return `%${c.charCodeAt(0).toString(16)}`;
-  });
-
-  displayName =
-    displayName.length > 200 ? displayName.substring(0, 200) : displayName;
-
-  return displayName;
-}
 
 export function getViewCollectionDocumentsUri({
   editFormat,
@@ -242,7 +225,7 @@ export default class EditorsController {
       const documentSourceUriQuery = `${URI_IDENTIFIER}=${data.source}`;
 
       const fileTitle = encodeURIComponent(
-        getFileDisplayNameForDocument(data.documentId, data.namespace),
+        getFileDisplayNameForDocument(mdbDocument, data.namespace),
       );
       const fileName =
         data.format === 'ejson'

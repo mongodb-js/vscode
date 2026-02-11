@@ -1,15 +1,21 @@
 import * as vscode from 'vscode';
-import type { Document } from 'bson';
+import { EJSON, type Document } from 'bson';
 import path from 'path';
-
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { PreviewMessageType } from './data-browsing-app/extension-app-message-constants';
+import {
+  PreviewMessageType,
+  type DocumentSort,
+} from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
+import {
+  getThemeTokenColors,
+  getMonacoBaseTheme,
+} from '../utils/themeColorReader';
 
 const log = createLogger('data browsing controller');
 
@@ -19,16 +25,22 @@ const getCodiconsDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'codicons');
 };
 
+const getMonacoEditorDistPath = (extensionPath: string): string => {
+  return path.join(extensionPath, 'dist', 'monaco-editor');
+};
+
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
   namespace,
   codiconStylesheetUri,
+  monacoEditorBaseUri,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
   namespace: string;
   codiconStylesheetUri: string;
+  monacoEditorBaseUri: string;
 }): string => {
   return getWebviewHtml({
     extensionPath,
@@ -36,6 +48,7 @@ export const getDataBrowsingContent = ({
     webviewType: 'dataBrowser',
     title: namespace,
     codiconStylesheetUri,
+    monacoEditorBaseUri,
   });
 };
 
@@ -55,6 +68,7 @@ export default class DataBrowsingController {
   _connectionController: ConnectionController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
+  _configChangedSubscription: vscode.Disposable;
 
   _panelAbortControllers: Map<vscode.WebviewPanel, PanelAbortControllers> =
     new Map();
@@ -68,9 +82,13 @@ export default class DataBrowsingController {
   }) {
     this._connectionController = connectionController;
     this._telemetryService = telemetryService;
+    this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
+      this.onConfigurationChanged,
+    );
   }
 
   deactivate(): void {
+    this._configChangedSubscription?.dispose();
     for (const controllers of this._panelAbortControllers.values()) {
       controllers.documents?.abort();
       controllers.totalCount?.abort();
@@ -88,7 +106,6 @@ export default class DataBrowsingController {
       this._panelAbortControllers.set(panel, controllers);
     }
 
-    // Abort existing controller for this request type if any
     controllers[requestType]?.abort();
 
     const abortController = new AbortController();
@@ -117,6 +134,7 @@ export default class DataBrowsingController {
           options,
           message.skip,
           message.limit,
+          message.sort,
         );
         return;
       case PreviewMessageType.getTotalCount:
@@ -124,6 +142,9 @@ export default class DataBrowsingController {
         return;
       case PreviewMessageType.cancelRequest:
         this.handleCancelRequest(panel);
+        return;
+      case PreviewMessageType.getThemeColors:
+        this._sendThemeColors(panel);
         return;
       default:
         // no-op.
@@ -149,9 +170,12 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
     skip: number,
     limit: number,
+    sort?: DocumentSort,
   ): Promise<void> => {
     const abortController = this._createAbortController(panel, 'documents');
     const { signal } = abortController;
+
+    this._sendThemeColors(panel);
 
     try {
       const documents = await this._fetchDocuments(
@@ -159,6 +183,7 @@ export default class DataBrowsingController {
         signal,
         skip,
         limit,
+        sort,
       );
 
       if (signal.aborted) {
@@ -167,7 +192,7 @@ export default class DataBrowsingController {
 
       void panel.webview.postMessage({
         command: PreviewMessageType.loadPage,
-        documents,
+        documents: EJSON.serialize(documents, { relaxed: false }),
       });
     } catch (error) {
       if (signal.aborted) {
@@ -220,18 +245,29 @@ export default class DataBrowsingController {
     signal?: AbortSignal,
     skip?: number,
     limit?: number,
+    sort?: DocumentSort,
   ): Promise<Document[]> {
     const dataService = this._connectionController.getActiveDataService();
     if (!dataService) {
       throw new Error('No active database connection');
     }
 
-    const findOptions: { limit: number; skip?: number } = {
+    const findOptions: {
+      limit: number;
+      skip?: number;
+      sort?: DocumentSort;
+      promoteValues: false;
+    } = {
       limit: limit ?? DEFAULT_DOCUMENTS_LIMIT,
+      promoteValues: false,
     };
 
     if (skip !== undefined && skip > 0) {
       findOptions.skip = skip;
+    }
+
+    if (sort) {
+      findOptions.sort = sort;
     }
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
@@ -258,6 +294,14 @@ export default class DataBrowsingController {
     this._activeWebviewPanels = this._activeWebviewPanels.filter(
       (panel) => panel !== disposedPanel,
     );
+  };
+
+  onConfigurationChanged = (event: vscode.ConfigurationChangeEvent): void => {
+    if (event.affectsConfiguration('workbench.colorTheme')) {
+      for (const panel of this._activeWebviewPanels) {
+        this._sendThemeColors(panel);
+      }
+    }
   };
 
   private async _getTotalCount(
@@ -312,6 +356,14 @@ export default class DataBrowsingController {
     );
     const codiconStylesheetUri = codiconCssUri.toString();
 
+    // Generate the Monaco Editor base URI for the webview
+    // Monaco Editor files are copied to dist/monaco-editor during webpack build
+    const monacoEditorDistPath = getMonacoEditorDistPath(extensionPath);
+    const monacoEditorBaseUriObj = panel.webview.asWebviewUri(
+      vscode.Uri.file(monacoEditorDistPath),
+    );
+    const monacoEditorBaseUri = monacoEditorBaseUriObj.toString();
+
     panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
     this._activeWebviewPanels.push(panel);
 
@@ -320,6 +372,7 @@ export default class DataBrowsingController {
       webview: panel.webview,
       namespace: options.namespace,
       codiconStylesheetUri,
+      monacoEditorBaseUri,
     });
 
     panel.webview.onDidReceiveMessage(
@@ -330,5 +383,15 @@ export default class DataBrowsingController {
     );
 
     return panel;
+  }
+
+  private _sendThemeColors(panel: vscode.WebviewPanel): void {
+    const themeColors = getThemeTokenColors();
+    const themeKind = getMonacoBaseTheme();
+    void panel.webview.postMessage({
+      command: PreviewMessageType.updateThemeColors,
+      themeColors,
+      themeKind,
+    });
   }
 }

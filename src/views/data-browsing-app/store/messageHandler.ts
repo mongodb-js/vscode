@@ -1,13 +1,14 @@
 import type { MessageFromExtensionToWebview } from '../extension-app-message-constants';
 import { PreviewMessageType } from '../extension-app-message-constants';
 import type { AppDispatch } from './index';
+import type { PreviewDocument } from './documentQuerySlice';
 import {
   documentsReceived,
   documentsFetchFailed,
   requestCancelled,
   totalCountReceived,
   totalCountFetchFailed,
-  type PreviewDocument,
+  themeColorsReceived,
 } from './documentQuerySlice';
 
 export const handleExtensionMessage = (
@@ -17,7 +18,9 @@ export const handleExtensionMessage = (
   switch (message.command) {
     case PreviewMessageType.loadPage:
       dispatch(
-        documentsReceived((message.documents as PreviewDocument[]) || []),
+        documentsReceived(
+          message.documents ? (message.documents as PreviewDocument[]) : [],
+        ),
       );
       break;
     case PreviewMessageType.getDocumentError: {
@@ -36,6 +39,14 @@ export const handleExtensionMessage = (
       dispatch(totalCountFetchFailed(errorMessage));
       break;
     }
+    case PreviewMessageType.updateThemeColors:
+      dispatch(
+        themeColorsReceived({
+          themeColors: message.themeColors,
+          themeKind: message.themeKind,
+        }),
+      );
+      break;
   }
 };
 

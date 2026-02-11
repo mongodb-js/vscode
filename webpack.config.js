@@ -218,6 +218,11 @@ module.exports = (env, argv) => {
             from: path.resolve(__dirname, 'node_modules/@vscode/codicons/dist'),
             to: 'codicons',
           },
+          // Copy Monaco Editor files for offline support
+          {
+            from: path.resolve(__dirname, 'node_modules/monaco-editor/min/vs'),
+            to: 'monaco-editor/vs',
+          },
         ],
       }),
     ],
