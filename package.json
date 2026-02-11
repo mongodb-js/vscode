@@ -53,6 +53,7 @@
     "watch:extension-bundles": "webpack --mode development --watch",
     "pretest": "pnpm run compile",
     "test": "pnpm run test-webview && pnpm run test-extension",
+    "test-ci": "pnpm run test-webview && pnpm run test-extension",
     "test-extension": "cross-env MDB_IS_TEST=true NODE_OPTIONS=--no-force-async-hooks-checks xvfb-maybe node ./out/test/runTest.js",
     "test-webview": "mocha -r ts-node/register --exit --grep=\"${MOCHA_GREP}\" --file ./src/test/setup-webview.ts src/test/suite/views/**/*.test.tsx",
     "test-install": "bash ./scripts/test-vsix-install.sh",

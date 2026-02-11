@@ -26,6 +26,19 @@ jobs:
         run: pnpm run check
         shell: bash
 
+      - name: Compile
+        run: pnpm run compile
+        shell: bash
+
+      - name: Upload compiled output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            ./dist
+            ./out
+          retention-days: 1
+
   build-vsix:
     name: Build Extension
     needs: build-and-check
@@ -40,6 +53,11 @@ jobs:
 
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
+
+      - name: Download compiled output
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
 
       - name: Build .vsix
         env:
@@ -80,12 +98,17 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
 
+      - name: Download compiled output
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
       - name: Run Tests
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_DEV }}
           MDB_IS_TEST: "true"
-        run: pnpm run test
+        run: pnpm run test-ci
 
   test-install:
     name: Run Install Test
