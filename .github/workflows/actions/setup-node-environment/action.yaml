@@ -36,12 +36,12 @@ runs:
       with:
         path: |
           node_modules
-        key: ${{ runner.os }}-deps-${{ steps.get-vscode-node-version.outputs.vscode-node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+        key: deps-${{ steps.get-vscode-node-version.outputs.vscode-node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-deps-${{ steps.get-vscode-node-version.outputs.vscode-node-version }}-
+          deps-${{ steps.get-vscode-node-version.outputs.vscode-node-version }}-
 
     - name: Install Deps Ubuntu
-      if: ${{ runner.os == 'Linux' }} && steps.cache-node-modules.outputs.cache-hit != 'true'
+      if: ${{ runner.os == 'Linux' && steps.cache-node-modules.outputs.cache-hit != 'true' }}
       run: sudo apt-get update -y && sudo apt-get -y install libkrb5-dev libsecret-1-dev net-tools libstdc++6 gnome-keyring
       shell: bash
 
