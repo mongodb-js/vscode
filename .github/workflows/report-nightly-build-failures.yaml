@@ -19,13 +19,16 @@ jobs:
     steps:
       - name: Check trigger type
         id: trigger_type
+        env:
+          TRIGGER_TYPE: ${{ github.event.inputs.trigger_type }}
         run: |
-          TRIGGER_TYPE=${{github.event.inputs.trigger_type}}
           echo "trigger_type=${TRIGGER_TYPE}" >> $GITHUB_OUTPUT
 
       - name: Report trigger type
+        env:
+          TRIGGER_TYPE: ${{ steps.trigger_type.outputs.trigger_type }}
         run: |
-          echo "Trigger type: ${{steps.trigger_type.outputs.trigger_type}}"
+          echo "Trigger type: ${TRIGGER_TYPE}"
 
       - name: Fail if nightly build failed
         if: ${{ github.event.workflow_run.conclusion == 'failure' && steps.trigger_type.outputs.trigger_type == 'scheduled'}}
