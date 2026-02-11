@@ -66,7 +66,7 @@
     "check-vsix-size": "node ./scripts/check-vsix-size.ts",
     "release-draft": "node ./scripts/release-draft.js",
     "reformat": "eslint . --fix && prettier --write .",
-    "snyk-test": "node scripts/snyk-test.js",
+    "snyk-test": "node scripts/snyk-test.ts",
     "generate-icon-font": "node ./scripts/generate-icon-font.ts",
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
