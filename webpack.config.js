@@ -165,6 +165,8 @@ module.exports = (env, argv) => {
   });
 
   const webviewBase = baseConfig();
+  // Remove library config for browser bundle
+  delete webviewBase.output.library;
 
   const webviewConfig = {
     ...webviewBase,
@@ -174,8 +176,6 @@ module.exports = (env, argv) => {
     },
     output: {
       ...webviewBase.output,
-      // Remove library config for browser bundle
-      library: undefined,
     },
     resolve: {
       ...webviewBase.resolve,
