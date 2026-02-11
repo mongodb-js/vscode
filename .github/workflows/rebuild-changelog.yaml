@@ -89,5 +89,6 @@ jobs:
       - name: Merge PR
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
-          gh pr merge ${{steps.cpr.outputs.pull-request-number}} --squash --delete-branch --auto
+          gh pr merge "$PR_NUMBER" --squash --delete-branch --auto
