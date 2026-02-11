@@ -5,10 +5,11 @@ import {
   sendGetTotalCount,
   sendCancelRequest,
 } from '../vscode-api';
-import type {
-  TokenColors,
-  MonacoBaseTheme,
-  DocumentSort,
+import {
+  SORT_VALUE_MAP,
+  type TokenColors,
+  type MonacoBaseTheme,
+  type DocumentSort,
 } from '../extension-app-message-constants';
 
 export interface PreviewDocument {
@@ -21,11 +22,19 @@ export interface SortOption {
   sort: DocumentSort | null;
 }
 
-export const SORT_OPTIONS: SortOption[] = [
-  { label: 'Default', value: 'default', sort: null },
-  { label: '_id: 1', value: '_id_asc', sort: { _id: 1 } },
-  { label: '_id: -1', value: '_id_desc', sort: { _id: -1 } },
-];
+const SORT_LABELS: Record<string, string> = {
+  default: 'Default',
+  _id_asc: '_id: 1',
+  _id_desc: '_id: -1',
+};
+
+export const SORT_OPTIONS: SortOption[] = Object.entries(SORT_VALUE_MAP).map(
+  ([key, sort]) => ({
+    label: SORT_LABELS[key],
+    value: key,
+    sort: sort ?? null,
+  }),
+);
 
 export type ErrorType = 'getDocuments' | 'getTotalCount';
 

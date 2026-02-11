@@ -37,8 +37,6 @@ export interface WebviewHtmlOptions {
   webviewType: WebviewType;
   title?: string;
   additionalHeadContent?: string;
-  codiconStylesheetUri?: string;
-  monacoEditorBaseUri?: string;
 }
 
 export const getWebviewHtml = ({
@@ -47,8 +45,6 @@ export const getWebviewHtml = ({
   webviewType,
   title = 'MongoDB',
   additionalHeadContent = '',
-  codiconStylesheetUri,
-  monacoEditorBaseUri,
 }: WebviewHtmlOptions): string => {
   const nonce = getNonce();
   const scriptUri = getWebviewUri(
@@ -57,14 +53,6 @@ export const getWebviewHtml = ({
     'dist',
     'webviewApp.js',
   );
-
-  const codiconLink = codiconStylesheetUri
-    ? `<link id="vscode-codicon-stylesheet" rel="stylesheet" href="${codiconStylesheetUri}" nonce="${nonce}">`
-    : '';
-
-  const monacoScript = monacoEditorBaseUri
-    ? `<script nonce="${nonce}">window.MONACO_EDITOR_BASE_URI = '${monacoEditorBaseUri}';</script>`
-    : '';
 
   return `<!DOCTYPE html>
   <html lang="en">
@@ -77,8 +65,6 @@ export const getWebviewHtml = ({
           img-src vscode-resource: 'self'"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
-      ${codiconLink}
-      ${monacoScript}
     </head>
     <body>
       <div id="root"></div>
