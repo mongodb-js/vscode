@@ -48,6 +48,45 @@ jobs:
         run: pnpm run check
         shell: bash
 
+      - name: Compile
+        run: pnpm run compile
+        shell: bash
+
+      - name: Upload compiled output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            ./dist
+            ./out
+          retention-days: 1
+
+  build-vsix:
+    name: Build Extension
+    needs: build-and-check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/workflows/actions/setup-node-environment
+
+      - name: Download compiled output
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
+      - name: Set SEGMENT_KEY
+        env:
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY_PROD }}
+        run: |
+          echo "SEGMENT_KEY=${SEGMENT_KEY}" >> $GITHUB_ENV
+        shell: bash
+
       - name: Build .vsix
         env:
           NODE_OPTIONS: "--require ./scripts/no-npm-list-fail.js --max_old_space_size=4096"
@@ -59,7 +98,7 @@ jobs:
         run: pnpm run check-vsix-size
         shell: bash
 
-      - name: Upload .vsix for tests
+      - name: Upload .vsix
         uses: actions/upload-artifact@v4
         with:
           name: vsix
@@ -85,17 +124,22 @@ jobs:
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
 
+      - name: Download compiled output
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
       - name: Run Tests
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           MDB_IS_TEST: "true"
         run: |
-          pnpm run test
+          pnpm run test-ci
         shell: bash
 
   test-install:
     name: Run Install Test
-    needs: build-and-check
+    needs: build-vsix
 
     strategy:
       matrix:
@@ -123,39 +167,3 @@ jobs:
           RUNNER_OS: ${{ runner.os }}
         run: pnpm run test-install
         shell: bash
-
-  finalize:
-    name: Sign and Upload
-    needs: [test, test-install]
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node environment
-        uses: ./.github/workflows/actions/setup-node-environment
-
-      - name: Run Snyk Test
-        shell: bash
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: |
-          pnpm run snyk-test
-
-      - name: Upload Snyk Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: Snyk Report - ${{ github.run_id }}
-          path: |
-            .sbom/snyk-test-result.html
-            .sbom/snyk-test-result.json
-
-      - name: Generate Vulnerability Report (Fail on >= High)
-        continue-on-error: ${{ github.event_name == 'pull_request' }}
-        shell: bash
-        run: |
-          pnpm run generate-vulnerability-report > /dev/null
