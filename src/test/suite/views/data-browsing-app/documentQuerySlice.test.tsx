@@ -166,6 +166,16 @@ describe('documentQuerySlice', function () {
     it('should map _id_desc to { _id: -1 }', function () {
       expect(SORT_VALUE_MAP._id_desc).to.deep.equal({ _id: -1 });
     });
+
+    it('should have keys matching the mdb.defaultSortOrder enum in package.json', function () {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const packageJson = require('../../../../../package.json');
+      const configEnum: string[] =
+        packageJson.contributes.configuration.properties[
+          'mdb.defaultSortOrder'
+        ].enum;
+      expect(Object.keys(SORT_VALUE_MAP)).to.deep.equal(configEnum);
+    });
   });
 
   describe('SORT_OPTIONS derived from SORT_VALUE_MAP', function () {

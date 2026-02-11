@@ -1228,6 +1228,21 @@
           "default": 10,
           "description": "The number of documents to fetch when viewing documents from a collection."
         },
+        "mdb.defaultSortOrder": {
+          "type": "string",
+          "enum": [
+            "default",
+            "_id_asc",
+            "_id_desc"
+          ],
+          "enumDescriptions": [
+            "No explicit sort order (database default)",
+            "Sort by _id ascending (_id: 1)",
+            "Sort by _id descending (_id: -1)"
+          ],
+          "default": "default",
+          "description": "The default sort order when browsing documents in a collection."
+        },
         "mdb.documentViewAndEditFormat": {
           "type": "string",
           "enum": [
