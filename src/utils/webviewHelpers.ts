@@ -75,8 +75,8 @@ export const getWebviewHtml = ({
           style-src vscode-resource: 'self' 'unsafe-inline';
           font-src vscode-resource: 'self' data:;
           img-src vscode-resource: 'self';
-          connect-src https:;
-          worker-src blob:;"/>
+          connect-src 'self' https:;
+          worker-src 'self' blob:;"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title}</title>
       ${codiconLink}
