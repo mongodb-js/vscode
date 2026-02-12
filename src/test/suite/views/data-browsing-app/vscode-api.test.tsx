@@ -11,6 +11,7 @@ import {
   sendEditDocument,
   sendCloneDocument,
   sendDeleteDocument,
+  sendInsertDocument,
 } from '../../../../views/data-browsing-app/vscode-api';
 import { SORT_OPTIONS } from '../../../../views/data-browsing-app/store/documentQuerySlice';
 
@@ -204,6 +205,17 @@ describe('vscode-api test suite', function () {
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.deleteDocument,
         documentId,
+      });
+    });
+  });
+
+  describe('sendInsertDocument', function () {
+    it('should send message with insertDocument command', function () {
+      sendInsertDocument();
+
+      expect(postMessageStub).to.have.been.calledOnce;
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.insertDocument,
       });
     });
   });

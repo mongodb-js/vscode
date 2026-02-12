@@ -900,4 +900,62 @@ suite('DataBrowsingController Test Suite', function () {
 
     expect((mockDataService as any).deleteOne.called).to.be.false;
   });
+
+  test('handleInsertDocument calls playgroundController.createPlaygroundForInsertDocument', async function () {
+    const options = createMockOptions();
+
+    const createPlaygroundStub = sandbox.stub().resolves(true);
+    (testController as any)._playgroundController = {
+      createPlaygroundForInsertDocument: createPlaygroundStub,
+    };
+
+    await testController.handleInsertDocument(options);
+
+    expect(createPlaygroundStub.calledOnce).to.be.true;
+    const calledWith = createPlaygroundStub.firstCall.args;
+    expect(calledWith[0]).to.equal('test');
+    expect(calledWith[1]).to.equal('collection');
+  });
+
+  test('handleInsertDocument shows error message on failure', async function () {
+    const options = createMockOptions();
+
+    const createPlaygroundStub = sandbox
+      .stub()
+      .rejects(new Error('Playground error'));
+    (testController as any)._playgroundController = {
+      createPlaygroundForInsertDocument: createPlaygroundStub,
+    };
+
+    const showErrorStub = sandbox
+      .stub(vscode.window, 'showErrorMessage')
+      .resolves();
+
+    await testController.handleInsertDocument(options);
+
+    expect(createPlaygroundStub.calledOnce).to.be.true;
+    expect(showErrorStub.calledOnce).to.be.true;
+    expect(showErrorStub.firstCall.args[0]).to.include(
+      'Failed to open insert document playground',
+    );
+  });
+
+  suite('handleWebviewMessage for insertDocument', function () {
+    test('calls handleInsertDocument when insertDocument message received', async function () {
+      const options = createMockOptions();
+      const handleInsertDocumentSpy = sandbox.spy(
+        testController,
+        'handleInsertDocument',
+      );
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.insertDocument },
+        mockPanel,
+        options,
+      );
+
+      expect(handleInsertDocumentSpy.calledOnce).to.be.true;
+      expect(handleInsertDocumentSpy.calledWith(options)).to.be.true;
+    });
+  });
 });

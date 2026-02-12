@@ -485,6 +485,46 @@ describe('PreviewApp test suite', function () {
     });
   });
 
+  describe('Insert Document button', function () {
+    it('should render Insert Document button', function () {
+      renderWithProvider(<PreviewApp />);
+      const insertButton = screen.getByLabelText('Insert Document');
+      expect(insertButton).to.exist;
+      expect(insertButton.textContent).to.include('Insert Document');
+    });
+
+    it('should render Insert Document button as a vscode-button element', function () {
+      renderWithProvider(<PreviewApp />);
+      const insertButton = screen.getByLabelText('Insert Document');
+      expect(insertButton.tagName.toLowerCase()).to.equal('vscode-button');
+    });
+
+    it('should send insertDocument message when clicked', function () {
+      renderWithProvider(<PreviewApp />);
+
+      // Complete loading so button is enabled
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadPage,
+              documents: [{ _id: '1', name: 'Doc1' }],
+            },
+          }),
+        );
+      });
+
+      postMessageStub.resetHistory();
+
+      const insertButton = screen.getByLabelText('Insert Document');
+      fireEvent.click(insertButton);
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.insertDocument,
+      });
+    });
+  });
+
   describe('loadPage message handling', function () {
     it('should update documents when loadPage message is received', function () {
       renderWithProvider(<PreviewApp />);
