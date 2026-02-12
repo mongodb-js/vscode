@@ -128,6 +128,12 @@ const countErrorStyles = css({
   cursor: 'help',
 });
 
+const insertDocumentButtonStyles = css({
+  '&::part(base)': {
+    paddingLeft: spacing[200],
+  },
+});
+
 const PreviewApp: React.FC = () => {
   const dispatch = useAppDispatch();
 
@@ -184,6 +190,7 @@ const PreviewApp: React.FC = () => {
         {/* Left side - Insert Document */}
         <div className={toolbarGroupStyles}>
           <VscodeButton
+            className={insertDocumentButtonStyles}
             aria-label="Insert Document"
             title="Insert Document"
             onClick={(): void => {
