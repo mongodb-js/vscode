@@ -203,6 +203,9 @@ export default class DataBrowsingController {
           EJSON.deserialize(message.documentId, { relaxed: false }),
         );
         return;
+      case PreviewMessageType.insertDocument:
+        await this.handleInsertDocument(options);
+        return;
       default:
         // no-op.
         return;
@@ -340,6 +343,22 @@ export default class DataBrowsingController {
       log.error('Error cloning document', error);
       void vscode.window.showErrorMessage(
         `Failed to clone document: ${formatError(error).message}`,
+      );
+    }
+  };
+
+  handleInsertDocument = async (
+    options: DataBrowsingOptions,
+  ): Promise<void> => {
+    try {
+      await this._playgroundController.createPlaygroundForInsertDocument(
+        options.databaseName,
+        options.collectionName,
+      );
+    } catch (error) {
+      log.error('Error opening insert document playground', error);
+      void vscode.window.showErrorMessage(
+        `Failed to open insert document playground: ${formatError(error).message}`,
       );
     }
   };

@@ -29,7 +29,7 @@ import {
   SORT_OPTIONS,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
-import { sendGetThemeColors } from './vscode-api';
+import { sendGetThemeColors, sendInsertDocument } from './vscode-api';
 import MonacoViewer from './monaco-viewer';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
@@ -182,7 +182,20 @@ const PreviewApp: React.FC = () => {
       {/* Toolbar */}
       <div className={toolbarStyles}>
         {/* Left side - Insert Document */}
-        <div className={toolbarGroupStyles}></div>
+        <div className={toolbarGroupStyles}>
+          <VscodeButton
+            aria-label="Insert Document"
+            title="Insert Document"
+            onClick={(): void => {
+              sendInsertDocument();
+            }}
+            disabled={isLoading}
+            icon="add"
+            secondary
+          >
+            Insert Document
+          </VscodeButton>
+        </div>
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
           <VscodeButton
