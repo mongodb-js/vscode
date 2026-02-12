@@ -8,8 +8,6 @@ import {
   spacing,
   useDarkMode,
 } from '@mongodb-js/compass-components';
-import { VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID } from './extension-app-message-constants';
-
 const modalContentStyles = css({
   // Override LeafyGreen width to accommodate the strict connection-form size.
   width: `${spacing[6] * 12}px !important`,
@@ -94,7 +92,9 @@ const ConnectionForm: React.FunctionComponent<
           protectConnectionStrings={false}
           forceConnectionOptions={[]}
           showKerberosPasswordField={false}
-          showOIDCDeviceAuthFlow={window[VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID]}
+          showOIDCDeviceAuthFlow={
+            window.MDB_WEBVIEW_OPTIONS?.showOidcDeviceAuthFlow
+          }
           enableOidc
           enableDebugUseCsfleSchemaMap={false}
           protectConnectionStringsForNewConnections={false}

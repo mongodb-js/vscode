@@ -6,11 +6,7 @@ import { ConnectionType } from '../connectionController';
 import { createLogger } from '../logging';
 import ExtensionCommand from '../commands';
 import type { MessageFromWebviewToExtension } from './webview-app/extension-app-message-constants';
-import {
-  MessageType,
-  VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID,
-  VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID,
-} from './webview-app/extension-app-message-constants';
+import { MessageType } from './webview-app/extension-app-message-constants';
 import { openLink } from '../utils/linkHelper';
 import type { StorageController } from '../storage';
 import type { TelemetryService } from '../telemetry';
@@ -41,10 +37,7 @@ export const getWebviewContent = ({
 
   const additionalHeadContent = `
       ${getFeatureFlagsScript('${nonce}')}
-      ${telemetryUserId ? `<script nonce="\${nonce}">window['${VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID}'] = '${telemetryUserId}';</script>` : ''}
-      <script nonce="\${nonce}">window['${VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID}'] = ${
-        showOIDCDeviceAuthFlow ? 'true' : 'false'
-      };</script>`;
+      <script nonce="\${nonce}">window.MDB_WEBVIEW_OPTIONS = ${JSON.stringify({ segmentAnonymousId: telemetryUserId || undefined, showOidcDeviceAuthFlow: !!showOIDCDeviceAuthFlow })};</script>`;
 
   return getWebviewHtml({
     extensionPath,

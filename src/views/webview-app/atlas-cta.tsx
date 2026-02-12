@@ -11,7 +11,6 @@ import {
 import LINKS from '../../utils/links';
 import AtlasLogo from './atlas-logo';
 import { openTrustedLink, trackExtensionLinkClicked } from './vscode-api';
-import { VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID } from './extension-app-message-constants';
 
 const ctaContainerStyles = css({
   display: 'flex',
@@ -55,7 +54,8 @@ const AtlasCta: React.FC = () => {
   const isDarkMode = useDarkMode();
 
   const handleAtlasCTAClicked = (): void => {
-    const telemetryUserId = window[VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID];
+    const telemetryUserId =
+      window.MDB_WEBVIEW_OPTIONS?.segmentAnonymousId ?? '';
     const atlasLink = LINKS.createAtlasCluster(telemetryUserId);
     openTrustedLink(atlasLink);
     trackExtensionLinkClicked('overviewPage', 'freeClusterCTA');

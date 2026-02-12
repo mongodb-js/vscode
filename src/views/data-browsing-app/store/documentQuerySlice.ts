@@ -5,10 +5,12 @@ import {
   sendGetTotalCount,
   sendCancelRequest,
 } from '../vscode-api';
-import type {
-  TokenColors,
-  MonacoBaseTheme,
-  DocumentSort,
+import {
+  SORT_VALUE_MAP,
+  type TokenColors,
+  type MonacoBaseTheme,
+  type DocumentSort,
+  type SortValueKey,
 } from '../extension-app-message-constants';
 
 export interface PreviewDocument {
@@ -21,11 +23,19 @@ export interface SortOption {
   sort: DocumentSort | null;
 }
 
-export const SORT_OPTIONS: SortOption[] = [
-  { label: 'Default', value: 'default', sort: null },
-  { label: '_id: 1', value: '_id_asc', sort: { _id: 1 } },
-  { label: '_id: -1', value: '_id_desc', sort: { _id: -1 } },
-];
+const SORT_LABELS: Record<string, string> = Object.assign(Object.create(null), {
+  default: 'Default',
+  _id_asc: '_id: 1',
+  _id_desc: '_id: -1',
+});
+
+export const SORT_OPTIONS: SortOption[] = Object.entries(SORT_VALUE_MAP).map(
+  ([key, sort]) => ({
+    label: SORT_LABELS[key],
+    value: key,
+    sort: sort ?? null,
+  }),
+);
 
 export type ErrorType = 'getDocuments' | 'getTotalCount';
 
@@ -72,11 +82,23 @@ const recalculatePaginationValues = (state: DocumentQueryState): void => {
   );
 };
 
+export const getInitialSort = (): SortOption | null => {
+  if (
+    typeof window !== 'undefined' &&
+    window.MDB_DATA_BROWSING_OPTIONS?.defaultSortOrder
+  ) {
+    const key = window.MDB_DATA_BROWSING_OPTIONS
+      .defaultSortOrder as SortValueKey;
+    return SORT_OPTIONS.find((opt) => opt.value === key) ?? null;
+  }
+  return null;
+};
+
 export const initialState: DocumentQueryState = {
   displayedDocuments: [],
   currentPage: 1,
   itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
-  sort: null,
+  sort: getInitialSort(),
   isLoading: true,
   totalCountInCollection: null,
   hasReceivedCount: false,

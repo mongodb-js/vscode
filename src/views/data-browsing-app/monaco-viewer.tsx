@@ -22,16 +22,13 @@ import {
 } from './vscode-api';
 
 // Configure Monaco Editor loader to use local files instead of CDN
-declare global {
-  interface Window {
-    MONACO_EDITOR_BASE_URI?: string;
-  }
-}
-
-if (typeof window !== 'undefined' && window.MONACO_EDITOR_BASE_URI) {
+if (
+  typeof window !== 'undefined' &&
+  window.MDB_DATA_BROWSING_OPTIONS?.monacoEditorBaseUri
+) {
   loader.config({
     paths: {
-      vs: `${window.MONACO_EDITOR_BASE_URI}/vs`,
+      vs: `${window.MDB_DATA_BROWSING_OPTIONS.monacoEditorBaseUri}/vs`,
     },
   });
 }

@@ -1,3 +1,14 @@
+export interface DataBrowsingVscodeOptions {
+  monacoEditorBaseUri?: string;
+  defaultSortOrder?: string;
+}
+
+declare global {
+  interface Window {
+    MDB_DATA_BROWSING_OPTIONS?: DataBrowsingVscodeOptions;
+  }
+}
+
 export const PreviewMessageType = {
   // Messages from webview to extension
   getDocuments: 'GET_DOCUMENTS',
@@ -40,6 +51,14 @@ interface BasicWebviewMessage {
 }
 
 export type DocumentSort = Record<string, 1 | -1>;
+
+export const SORT_VALUE_MAP = {
+  default: undefined,
+  _id_asc: { _id: 1 } as DocumentSort,
+  _id_desc: { _id: -1 } as DocumentSort,
+} as const;
+
+export type SortValueKey = keyof typeof SORT_VALUE_MAP;
 
 export interface GetDocumentsMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.getDocuments;

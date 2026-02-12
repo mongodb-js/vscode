@@ -6,7 +6,9 @@ import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
 import {
   PreviewMessageType,
+  SORT_VALUE_MAP,
   type DocumentSort,
+  type SortValueKey,
 } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
@@ -34,28 +36,51 @@ const getMonacoEditorDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'monaco-editor');
 };
 
+export function getDefaultSortOrder(): SortValueKey {
+  return (
+    vscode.workspace
+      .getConfiguration('mdb')
+      .get<SortValueKey>('defaultSortOrder') ?? 'default'
+  );
+}
+
+function getDefaultDocumentSort(): DocumentSort | undefined {
+  return SORT_VALUE_MAP[getDefaultSortOrder()];
+}
+
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
   databaseName,
   collectionName,
-  codiconStylesheetUri,
-  monacoEditorBaseUri,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
   databaseName: string;
   collectionName: string;
-  codiconStylesheetUri: string;
-  monacoEditorBaseUri: string;
 }): string => {
+  const codiconsDistPath = getCodiconsDistPath(extensionPath);
+  const codiconStylesheetUri = webview
+    .asWebviewUri(vscode.Uri.file(path.join(codiconsDistPath, 'codicon.css')))
+    .toString();
+
+  const monacoEditorDistPath = getMonacoEditorDistPath(extensionPath);
+  const monacoEditorBaseUri = webview
+    .asWebviewUri(vscode.Uri.file(monacoEditorDistPath))
+    .toString();
+
+  const defaultSortOrder = getDefaultSortOrder();
+
+  const additionalHeadContent = `
+    <link id="vscode-codicon-stylesheet" rel="stylesheet" href="${codiconStylesheetUri}" nonce="\${nonce}">
+    <script nonce="\${nonce}">window.MDB_DATA_BROWSING_OPTIONS = ${JSON.stringify({ monacoEditorBaseUri, defaultSortOrder })};</script>`;
+
   return getWebviewHtml({
     extensionPath,
     webview,
     webviewType: 'dataBrowser',
     title: `${databaseName}.${collectionName}`,
-    codiconStylesheetUri,
-    monacoEditorBaseUri,
+    additionalHeadContent,
   });
 };
 
@@ -207,7 +232,9 @@ export default class DataBrowsingController {
     const abortController = this._createAbortController(panel, 'documents');
     const { signal } = abortController;
 
-    this._sendThemeColors(panel);
+    // When no explicit sort is provided by the webview, apply the
+    // user's configured default sort order from extension settings.
+    const effectiveSort = sort ?? getDefaultDocumentSort();
 
     try {
       const documents = await this._fetchDocuments(
@@ -216,7 +243,7 @@ export default class DataBrowsingController {
         signal,
         skip,
         limit,
-        sort,
+        effectiveSort,
       );
 
       if (signal.aborted) {
@@ -498,22 +525,6 @@ export default class DataBrowsingController {
       iconName: 'leaf.svg',
     });
 
-    // Generate the codicon stylesheet URI for the webview
-    // Codicons are copied to dist/codicons during webpack build
-    const codiconsDistPath = getCodiconsDistPath(extensionPath);
-    const codiconCssUri = panel.webview.asWebviewUri(
-      vscode.Uri.file(path.join(codiconsDistPath, 'codicon.css')),
-    );
-    const codiconStylesheetUri = codiconCssUri.toString();
-
-    // Generate the Monaco Editor base URI for the webview
-    // Monaco Editor files are copied to dist/monaco-editor during webpack build
-    const monacoEditorDistPath = getMonacoEditorDistPath(extensionPath);
-    const monacoEditorBaseUriObj = panel.webview.asWebviewUri(
-      vscode.Uri.file(monacoEditorDistPath),
-    );
-    const monacoEditorBaseUri = monacoEditorBaseUriObj.toString();
-
     panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
     this._activeWebviewPanels.push(panel);
 
@@ -522,8 +533,6 @@ export default class DataBrowsingController {
       webview: panel.webview,
       databaseName: options.databaseName,
       collectionName: options.collectionName,
-      codiconStylesheetUri,
-      monacoEditorBaseUri,
     });
 
     panel.webview.onDidReceiveMessage(

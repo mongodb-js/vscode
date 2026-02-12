@@ -83,16 +83,6 @@ suite('DataBrowsingController Test Suite', function () {
     return undefined;
   }
 
-  // Helper to count calls excluding theme colors messages
-  function countNonThemeColorCalls(stub: SinonStub): number {
-    return stub
-      .getCalls()
-      .filter(
-        (call) =>
-          call.args[0]?.command !== PreviewMessageType.updateThemeColors,
-      ).length;
-  }
-
   suite('AbortController management', function () {
     test('creates a new AbortController for each request type', async function () {
       const options = createMockOptions();
@@ -278,8 +268,8 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      // No loadPage or error message should be posted (only theme colors is allowed)
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(0);
+      // No messages should be posted
+      expect(postMessageStub.callCount).to.equal(0);
     });
 
     test('does not throw when error occurs on aborted request', async function () {
@@ -297,8 +287,8 @@ suite('DataBrowsingController Test Suite', function () {
       // Should not throw
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      // No loadPage or error message should be posted (only theme colors is allowed)
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(0);
+      // No messages should be posted
+      expect(postMessageStub.callCount).to.equal(0);
     });
   });
 
@@ -321,8 +311,7 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
       expect(mockDataService.find.calledOnce).to.be.true;
-      // Theme colors + loadPage = 2 messages
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      expect(postMessageStub.callCount).to.equal(1);
       const message = findMessageByCommand(
         postMessageStub,
         PreviewMessageType.loadPage,
@@ -336,8 +325,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      // Theme colors + loadPage = 2 messages
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      expect(postMessageStub.callCount).to.equal(1);
       const message = findMessageByCommand(
         postMessageStub,
         PreviewMessageType.loadPage,
@@ -363,8 +351,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      // Theme colors + error = 2 messages
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      expect(postMessageStub.callCount).to.equal(1);
       const message = findMessageByCommand(
         postMessageStub,
         PreviewMessageType.getDocumentError,
@@ -499,8 +486,7 @@ suite('DataBrowsingController Test Suite', function () {
       const findOptions = mockDataService.find.firstCall.args[2];
       expect(findOptions.skip).to.equal(10);
       expect(findOptions.limit).to.equal(10);
-      // Theme colors + loadPage = 2 messages
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      expect(postMessageStub.callCount).to.equal(1);
       const message = findMessageByCommand(
         postMessageStub,
         PreviewMessageType.loadPage,
@@ -553,8 +539,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      // Theme colors + error = 2 messages
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(1);
+      expect(postMessageStub.callCount).to.equal(1);
       const message = findMessageByCommand(
         postMessageStub,
         PreviewMessageType.getDocumentError,
@@ -574,8 +559,8 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      // No loadPage or error message should be posted (only theme colors is allowed)
-      expect(countNonThemeColorCalls(postMessageStub)).to.equal(0);
+      // No messages should be posted
+      expect(postMessageStub.callCount).to.equal(0);
     });
   });
 

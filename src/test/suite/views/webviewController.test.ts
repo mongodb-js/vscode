@@ -133,7 +133,7 @@ suite('Webview Test Suite', function () {
     });
 
     expect(htmlString).to.include(
-      ">window['VSCODE_EXTENSION_SEGMENT_ANONYMOUS_ID'] = 'MOCK_ANONYMOUS_ID';",
+      '>window.MDB_WEBVIEW_OPTIONS = {"segmentAnonymousId":"MOCK_ANONYMOUS_ID"',
     );
   });
 
@@ -149,9 +149,7 @@ suite('Webview Test Suite', function () {
       } as unknown as vscode.Webview,
     });
 
-    expect(htmlString).to.include(
-      ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = false;",
-    );
+    expect(htmlString).to.include('"showOidcDeviceAuthFlow":false};</script>');
   });
 
   suite('when oidc device auth flow setting is enabled', function () {
@@ -191,9 +189,7 @@ suite('Webview Test Suite', function () {
         } as unknown as vscode.Webview,
       });
 
-      expect(htmlString).to.include(
-        ">window['VSCODE_EXTENSION_OIDC_DEVICE_AUTH_ID'] = true;",
-      );
+      expect(htmlString).to.include('"showOidcDeviceAuthFlow":true};</script>');
     });
   });
 
