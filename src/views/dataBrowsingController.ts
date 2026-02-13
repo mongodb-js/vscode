@@ -27,6 +27,7 @@ import { getDocumentViewAndEditFormat } from '../editors/types';
 const log = createLogger('data browsing controller');
 
 const DEFAULT_DOCUMENTS_LIMIT = 10;
+const LARGE_COLLECTION_THRESHOLD = 1;//1_000_000;
 
 const getCodiconsDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'codicons');
@@ -390,15 +391,53 @@ export default class DataBrowsingController {
         throw new Error('No active database connection');
       }
 
-      const deleteResult = await dataService.deleteMany(
-        `${options.databaseName}.${options.collectionName}`,
-        {},
-        {},
-      );
+      const namespace = `${options.databaseName}.${options.collectionName}`;
 
-      void vscode.window.showInformationMessage(
-        `${deleteResult.deletedCount} document(s) successfully deleted.`,
-      );
+      // Check if the collection is large and offer a faster alternative.
+      let useDropAndRecreate = false;
+      try {
+        const estimatedCount = await dataService.estimatedCount(namespace);
+        if (estimatedCount > LARGE_COLLECTION_THRESHOLD) {
+          const methodChoice = await vscode.window.showInformationMessage(
+            'This collection has more than 1 million documents. Would you like to drop and recreate the collection for faster execution?',
+            {
+              modal: true,
+              detail:
+                'Dropping a collection will remove all indexes and validation rules.',
+            },
+            'Use deleteMany',
+            'Drop and recreate',
+          );
+
+          if (!methodChoice) {
+            return;
+          }
+
+          useDropAndRecreate = methodChoice === 'Drop and recreate';
+        }
+      } catch (error) {
+        // If we can't get the count, fall through to deleteMany.
+        log.error('Error getting estimated count', error);
+      }
+
+      if (useDropAndRecreate) {
+        await dataService.dropCollection(namespace);
+        await dataService.createCollection(namespace, {});
+
+        void vscode.window.showInformationMessage(
+          'Collection successfully dropped and recreated.',
+        );
+      } else {
+        const deleteResult = await dataService.deleteMany(
+          namespace,
+          {},
+          {},
+        );
+
+        void vscode.window.showInformationMessage(
+          `${deleteResult.deletedCount} document(s) successfully deleted.`,
+        );
+      }
 
       // Notify the tree view in the sidebar to refresh
       await vscode.commands.executeCommand('mdbRefreshCollection');
