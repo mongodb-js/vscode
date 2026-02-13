@@ -428,11 +428,7 @@ export default class DataBrowsingController {
           'Collection successfully dropped and recreated.',
         );
       } else {
-        const deleteResult = await dataService.deleteMany(
-          namespace,
-          {},
-          {},
-        );
+        const deleteResult = await dataService.deleteMany(namespace, {}, {});
 
         void vscode.window.showInformationMessage(
           `${deleteResult.deletedCount} document(s) successfully deleted.`,
