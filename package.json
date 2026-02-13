@@ -1599,7 +1599,8 @@
       "kerberos": "^7.0.0",
       "bson": "^7.2.0",
       "@mongodb-js/devtools-connect": "^3.14.9",
-      "mongodb-client-encryption": "^7.0.0"
+      "mongodb-client-encryption": "^7.0.0",
+      "@mongosh/service-provider-node-driver": "^5.0.0"
     }
   }
 }
