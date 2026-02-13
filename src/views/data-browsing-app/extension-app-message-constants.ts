@@ -18,6 +18,7 @@ export const PreviewMessageType = {
   editDocument: 'EDIT_DOCUMENT',
   cloneDocument: 'CLONE_DOCUMENT',
   deleteDocument: 'DELETE_DOCUMENT',
+  insertDocument: 'INSERT_DOCUMENT',
 
   // Messages from extension to webview
   loadPage: 'LOAD_PAGE',
@@ -94,6 +95,10 @@ export interface DeleteDocumentMessage extends BasicWebviewMessage {
   documentId: any;
 }
 
+export interface InsertDocumentMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.insertDocument;
+}
+
 // Messages from extension to webview
 export interface LoadPageMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.loadPage;
@@ -136,7 +141,8 @@ export type MessageFromWebviewToExtension =
   | GetThemeColorsMessage
   | EditDocumentMessage
   | CloneDocumentMessage
-  | DeleteDocumentMessage;
+  | DeleteDocumentMessage
+  | InsertDocumentMessage;
 
 export type MessageFromExtensionToWebview =
   | LoadPageMessage
