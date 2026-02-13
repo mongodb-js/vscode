@@ -273,12 +273,8 @@ const PreviewApp: React.FC = () => {
             disabled={isLoading}
             ref={bulkActionsSelectRef}
           >
-            <VscodeOption value="__placeholder__">
-              Bulk Actions
-            </VscodeOption>
-            <VscodeOption value="deleteAll">
-              Delete All Documents
-            </VscodeOption>
+            <VscodeOption value="__placeholder__">Bulk Actions</VscodeOption>
+            <VscodeOption value="deleteAll">Delete All Documents</VscodeOption>
           </VscodeSingleSelect>
         </div>
         {/* Right side - Actions */}
