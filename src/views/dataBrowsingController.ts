@@ -373,7 +373,7 @@ export default class DataBrowsingController {
   ): Promise<void> => {
     try {
       const confirmationResult = await vscode.window.showInformationMessage(
-        `Are you sure you wish to delete all documents in ${options.databaseName}.${options.collectionName}?`,
+        `Are you sure you wish to delete all documents in ${options.databaseName}.${options.collectionName} collection?`,
         {
           modal: true,
           detail:
