@@ -77,6 +77,12 @@ export const sendDeleteDocument = (documentId: any): void => {
   });
 };
 
+export const sendDeleteAllDocuments = (): void => {
+  getVSCodeApi().postMessage({
+    command: PreviewMessageType.deleteAllDocuments,
+  });
+};
+
 export const sendInsertDocument = (): void => {
   getVSCodeApi().postMessage({
     command: PreviewMessageType.insertDocument,
