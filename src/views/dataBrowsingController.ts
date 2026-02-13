@@ -27,7 +27,7 @@ import { getDocumentViewAndEditFormat } from '../editors/types';
 const log = createLogger('data browsing controller');
 
 const DEFAULT_DOCUMENTS_LIMIT = 10;
-const LARGE_COLLECTION_THRESHOLD = 1;//1_000_000;
+const LARGE_COLLECTION_THRESHOLD = 1_000_000;
 
 const getCodiconsDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'codicons');
