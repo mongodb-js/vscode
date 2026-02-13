@@ -27,6 +27,7 @@ import { getDocumentViewAndEditFormat } from '../editors/types';
 const log = createLogger('data browsing controller');
 
 const DEFAULT_DOCUMENTS_LIMIT = 10;
+const LARGE_COLLECTION_THRESHOLD = 1_000_000;
 
 const getCodiconsDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'codicons');
@@ -203,6 +204,9 @@ export default class DataBrowsingController {
           EJSON.deserialize(message.documentId, { relaxed: false }),
         );
         return;
+      case PreviewMessageType.deleteAllDocuments:
+        await this.handleDeleteAllDocuments(panel, options);
+        return;
       case PreviewMessageType.insertDocument:
         await this.handleInsertDocument(options);
         return;
@@ -359,6 +363,89 @@ export default class DataBrowsingController {
       log.error('Error opening insert document playground', error);
       void vscode.window.showErrorMessage(
         `Failed to open insert document playground: ${formatError(error).message}`,
+      );
+    }
+  };
+
+  handleDeleteAllDocuments = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+  ): Promise<void> => {
+    try {
+      const confirmationResult = await vscode.window.showInformationMessage(
+        `Are you sure you wish to delete all documents in ${options.databaseName}.${options.collectionName} collection?`,
+        {
+          modal: true,
+          detail:
+            'All documents present in this collection will be deleted. This action cannot be undone.',
+        },
+        'Yes',
+      );
+
+      if (confirmationResult !== 'Yes') {
+        return;
+      }
+
+      const dataService = this._connectionController.getActiveDataService();
+      if (!dataService) {
+        throw new Error('No active database connection');
+      }
+
+      const namespace = `${options.databaseName}.${options.collectionName}`;
+
+      // Check if the collection is large and offer a faster alternative.
+      let useDropAndRecreate = false;
+      try {
+        const estimatedCount = await dataService.estimatedCount(namespace);
+        if (estimatedCount > LARGE_COLLECTION_THRESHOLD) {
+          const methodChoice = await vscode.window.showInformationMessage(
+            'This collection has more than 1 million documents. Would you like to drop and recreate the collection for faster execution?',
+            {
+              modal: true,
+              detail:
+                'Dropping a collection will remove all indexes and validation rules.',
+            },
+            'Use deleteMany',
+            'Drop and recreate',
+          );
+
+          if (!methodChoice) {
+            return;
+          }
+
+          useDropAndRecreate = methodChoice === 'Drop and recreate';
+        }
+      } catch (error) {
+        // If we can't get the count, fall through to deleteMany.
+        log.error('Error getting estimated count', error);
+      }
+
+      if (useDropAndRecreate) {
+        await dataService.dropCollection(namespace);
+        await dataService.createCollection(namespace, {});
+
+        void vscode.window.showInformationMessage(
+          'Collection successfully dropped and recreated.',
+        );
+      } else {
+        const deleteResult = await dataService.deleteMany(namespace, {}, {});
+
+        void vscode.window.showInformationMessage(
+          `${deleteResult.deletedCount} document(s) successfully deleted.`,
+        );
+      }
+
+      // Notify the tree view in the sidebar to refresh
+      await vscode.commands.executeCommand('mdbRefreshCollection');
+
+      // Notify the webview that documents were deleted so it refreshes
+      void panel.webview.postMessage({
+        command: PreviewMessageType.documentDeleted,
+      });
+    } catch (error) {
+      log.error('Error deleting all documents', error);
+      void vscode.window.showErrorMessage(
+        `Failed to delete all documents: ${formatError(error).message}`,
       );
     }
   };
