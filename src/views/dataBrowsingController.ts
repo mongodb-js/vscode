@@ -430,7 +430,7 @@ export default class DataBrowsingController {
         ]);
 
         // Build createCollection options from validation rules if present.
-        const createOptions: Record<string, unknown> = {};
+        const createOptions: Record<string, unknown> = Object.create(null);
         if (collectionInfo?.validation) {
           const { validator, validationAction, validationLevel } =
             collectionInfo.validation;

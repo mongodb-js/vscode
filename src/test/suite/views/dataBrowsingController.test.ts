@@ -1057,8 +1057,8 @@ suite('DataBrowsingController Test Suite', function () {
       ).to.equal('test.collection');
 
       // createCollection should include validation options
-      const createCollectionOptions =
-        (mockDataService as any).createCollection.firstCall.args[1];
+      const createCollectionOptions = (mockDataService as any).createCollection
+        .firstCall.args[1];
       expect(createCollectionOptions.validator).to.deep.equal({
         $jsonSchema: { required: ['name'] },
       });
