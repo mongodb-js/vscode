@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { IndexDirection } from 'mongodb';
 import { EJSON, type Document } from 'bson';
 import path from 'path';
 import { toJSString } from 'mongodb-query-parser';
@@ -399,11 +400,9 @@ export default class DataBrowsingController {
         const estimatedCount = await dataService.estimatedCount(namespace);
         if (estimatedCount > LARGE_COLLECTION_THRESHOLD) {
           const methodChoice = await vscode.window.showInformationMessage(
-            'This collection has more than 1 million documents. Would you like to drop and recreate the collection for faster execution?',
+            `This collection has more than ${LARGE_COLLECTION_THRESHOLD.toLocaleString()} documents. Would you like to drop and recreate the collection for faster execution?`,
             {
               modal: true,
-              detail:
-                'Dropping a collection will remove all indexes and validation rules.',
             },
             'Use deleteMany',
             'Drop and recreate',
@@ -421,8 +420,47 @@ export default class DataBrowsingController {
       }
 
       if (useDropAndRecreate) {
+        // Save indexes and collection options before dropping so we can restore them.
+        const [existingIndexes, collectionInfo] = await Promise.all([
+          dataService.indexes(namespace, {}),
+          dataService.collectionInfo(
+            options.databaseName,
+            options.collectionName,
+          ),
+        ]);
+
+        // Build createCollection options from validation rules if present.
+        const createOptions: Record<string, unknown> = {};
+        if (collectionInfo?.validation) {
+          const { validator, validationAction, validationLevel } =
+            collectionInfo.validation;
+          if (validator && Object.keys(validator).length > 0) {
+            createOptions.validator = validator;
+          }
+          if (validationAction) {
+            createOptions.validationAction = validationAction;
+          }
+          if (validationLevel) {
+            createOptions.validationLevel = validationLevel;
+          }
+        }
+
         await dataService.dropCollection(namespace);
-        await dataService.createCollection(namespace, {});
+        await dataService.createCollection(namespace, createOptions);
+
+        // Recreate non-default indexes (skip the built-in _id index).
+        const indexesToRecreate = existingIndexes.filter(
+          (idx) => idx.name !== '_id_',
+        );
+        await Promise.all(
+          indexesToRecreate.map((idx) => {
+            return dataService.createIndex(
+              namespace,
+              idx.key as { [key: string]: IndexDirection },
+              { name: idx.name, ...idx.extra },
+            );
+          }),
+        );
 
         void vscode.window.showInformationMessage(
           'Collection successfully dropped and recreated.',

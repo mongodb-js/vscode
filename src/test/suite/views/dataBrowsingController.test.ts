@@ -910,12 +910,16 @@ suite('DataBrowsingController Test Suite', function () {
       deletedCount?: number;
       confirmResult?: string | undefined;
       methodChoiceResult?: string | undefined;
+      indexes?: any[];
+      collectionInfo?: any;
     }) {
       const {
         estimatedCount = 100,
         deletedCount = 100,
         confirmResult = 'Yes',
         methodChoiceResult,
+        indexes = [{ name: '_id_', key: { _id: 1 }, extra: {} }],
+        collectionInfo = null,
       } = overrides ?? {};
 
       // showInformationMessage is called multiple times:
@@ -938,6 +942,11 @@ suite('DataBrowsingController Test Suite', function () {
         .resolves({ deletedCount });
       (mockDataService as any).dropCollection = sandbox.stub().resolves(true);
       (mockDataService as any).createCollection = sandbox.stub().resolves({});
+      (mockDataService as any).indexes = sandbox.stub().resolves(indexes);
+      (mockDataService as any).collectionInfo = sandbox
+        .stub()
+        .resolves(collectionInfo);
+      (mockDataService as any).createIndex = sandbox.stub().resolves('ok');
 
       (testController as any)._connectionController = {
         getActiveDataService: () => mockDataService,
@@ -1008,11 +1017,31 @@ suite('DataBrowsingController Test Suite', function () {
       );
     });
 
-    test('drops and recreates collection when user chooses that option for large collection', async function () {
+    test('drops and recreates collection preserving indexes and validation rules', async function () {
       const options = createMockOptions();
       setupDeleteAllMocks({
         estimatedCount: 2_000_000,
         methodChoiceResult: 'Drop and recreate',
+        indexes: [
+          { name: '_id_', key: { _id: 1 }, extra: {} },
+          {
+            name: 'email_1',
+            key: { email: 1 },
+            extra: { unique: true },
+          },
+          {
+            name: 'location_2dsphere',
+            key: { location: '2dsphere' },
+            extra: { sparse: true },
+          },
+        ],
+        collectionInfo: {
+          validation: {
+            validator: { $jsonSchema: { required: ['name'] } },
+            validationAction: 'error',
+            validationLevel: 'strict',
+          },
+        },
       });
 
       await testController.handleDeleteAllDocuments(mockPanel, options);
@@ -1026,6 +1055,30 @@ suite('DataBrowsingController Test Suite', function () {
       expect(
         (mockDataService as any).createCollection.firstCall.args[0],
       ).to.equal('test.collection');
+
+      // createCollection should include validation options
+      const createCollectionOptions =
+        (mockDataService as any).createCollection.firstCall.args[1];
+      expect(createCollectionOptions.validator).to.deep.equal({
+        $jsonSchema: { required: ['name'] },
+      });
+      expect(createCollectionOptions.validationAction).to.equal('error');
+      expect(createCollectionOptions.validationLevel).to.equal('strict');
+
+      // Non-default indexes should be recreated (skip _id_)
+      expect((mockDataService as any).createIndex.callCount).to.equal(2);
+      expect(
+        (mockDataService as any).createIndex.firstCall.args[1],
+      ).to.deep.equal({ email: 1 });
+      expect(
+        (mockDataService as any).createIndex.firstCall.args[2],
+      ).to.deep.include({ name: 'email_1', unique: true });
+      expect(
+        (mockDataService as any).createIndex.secondCall.args[1],
+      ).to.deep.equal({ location: '2dsphere' });
+      expect(
+        (mockDataService as any).createIndex.secondCall.args[2],
+      ).to.deep.include({ name: 'location_2dsphere', sparse: true });
 
       // deleteMany should NOT be called
       expect((mockDataService as any).deleteMany.called).to.be.false;
