@@ -192,6 +192,9 @@ const PreviewApp: React.FC = () => {
       const style = document.createElement('style');
       style.id = 'bulk-actions-custom-styles';
       style.textContent = [
+        // Make the select face subtle (transparent bg) so it doesn't match the button
+        '.select-face { background-color: transparent !important; }',
+        '.select-face:hover { background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31)) !important; }',
         // Hide the placeholder "Bulk Actions" option from the dropdown list
         '.options li.option:first-child { display: none; }',
         // Widen the dropdown to fit description text
