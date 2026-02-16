@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React from 'react';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import {
@@ -20,7 +20,6 @@ import {
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
 import BulkActionsSelect, {
   type BulkAction,
-  type BulkActionsSelectHandle,
 } from '../../../../views/data-browsing-app/bulk-actions-select';
 
 function renderWithProvider(
@@ -530,18 +529,13 @@ describe('PreviewApp test suite', function () {
   });
 
   describe('Bulk Actions', function () {
-    // NOTE: These tests use BulkActionsSelect in isolation rather than testing
-    // through PreviewApp because @lit/react's Node.js build doesn't attach event
-    // listeners via useLayoutEffect. The component works correctly in real browsers.
-    // For full end-to-end testing, use browser-based integration tests.
-
-    it('should render Bulk Actions dropdown', function () {
+    it('should render Bulk Actions button', function () {
       renderWithProvider(<PreviewApp />);
-      const bulkActionsSelect = screen.getByLabelText('Bulk Actions');
-      expect(bulkActionsSelect).to.exist;
+      const bulkActionsButton = screen.getByLabelText('Bulk Actions');
+      expect(bulkActionsButton).to.exist;
     });
 
-    it('should send deleteAllDocuments message when Delete All Documents is selected', function () {
+    it('should call onAction when a menu item is clicked', function () {
       const actions: BulkAction[] = [
         {
           value: 'deleteAll',
@@ -552,39 +546,23 @@ describe('PreviewApp test suite', function () {
       ];
 
       const onActionStub = sinon.stub();
-      const ref = createRef<BulkActionsSelectHandle>();
 
       render(
-        <BulkActionsSelect
-          actions={actions}
-          onAction={onActionStub}
-          ref={ref}
-        />,
+        <BulkActionsSelect actions={actions} onAction={onActionStub} />,
       );
 
-      const bulkActionsSelect = screen.getByLabelText('Bulk Actions');
+      // Click the button to open the menu
+      const button = screen.getByLabelText('Bulk Actions');
+      fireEvent.click(button);
 
-      // Stub the value property to return 'deleteAll' when read
-      Object.defineProperty(bulkActionsSelect, 'value', {
-        writable: true,
-        configurable: true,
-        value: 'deleteAll',
-      });
-
-      // Create a mock change event
-      const changeEvent = new Event('change', { bubbles: true });
-      Object.defineProperty(changeEvent, 'target', {
-        value: bulkActionsSelect,
-        enumerable: true,
-      });
-
-      // Call the handler directly (JSDOM workaround - @lit/react doesn't attach listeners in Node.js mode)
-      ref.current?._testOnlyHandleChange(changeEvent);
+      // Click the menu item
+      const menuItem = screen.getByRole('menuitem');
+      fireEvent.click(menuItem);
 
       expect(onActionStub).to.have.been.calledOnceWithExactly('deleteAll');
     });
 
-    it('should reset to placeholder after an action is selected', function () {
+    it('should close the menu after an action is selected', function () {
       const actions: BulkAction[] = [
         {
           value: 'deleteAll',
@@ -595,39 +573,49 @@ describe('PreviewApp test suite', function () {
       ];
 
       const onActionStub = sinon.stub();
-      const ref = createRef<BulkActionsSelectHandle>();
 
       render(
-        <BulkActionsSelect
-          actions={actions}
-          onAction={onActionStub}
-          ref={ref}
-        />,
+        <BulkActionsSelect actions={actions} onAction={onActionStub} />,
       );
 
-      const bulkActionsSelect = screen.getByLabelText('Bulk Actions');
+      // Click the button to open the menu
+      const button = screen.getByLabelText('Bulk Actions');
+      fireEvent.click(button);
 
-      // Track what the handler writes back to target.value
-      let lastSetValue: string | undefined;
-      Object.defineProperty(bulkActionsSelect, 'value', {
-        get: () => lastSetValue ?? 'deleteAll',
-        set: (v: string) => {
-          lastSetValue = v;
+      // Menu should be visible
+      expect(screen.getByRole('menu')).to.exist;
+
+      // Click the menu item
+      const menuItem = screen.getByRole('menuitem');
+      fireEvent.click(menuItem);
+
+      // Menu should be closed
+      expect(screen.queryByRole('menu')).to.be.null;
+    });
+
+    it('should show title and description in menu items', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description:
+            'All documents present in this collection will be deleted.',
         },
-        configurable: true,
-      });
+      ];
 
-      // Create a mock change event
-      const changeEvent = new Event('change', { bubbles: true });
-      Object.defineProperty(changeEvent, 'target', {
-        value: bulkActionsSelect,
-        enumerable: true,
-      });
+      render(
+        <BulkActionsSelect actions={actions} onAction={sinon.stub()} />,
+      );
 
-      // Call the handler directly (JSDOM workaround)
-      ref.current?._testOnlyHandleChange(changeEvent);
+      // Open the menu
+      fireEvent.click(screen.getByLabelText('Bulk Actions'));
 
-      expect(lastSetValue).to.equal('__placeholder__');
+      expect(screen.getByText('Delete All Documents')).to.exist;
+      expect(
+        screen.getByText(
+          'All documents present in this collection will be deleted.',
+        ),
+      ).to.exist;
     });
   });
 
