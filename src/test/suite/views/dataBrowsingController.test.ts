@@ -916,11 +916,14 @@ suite('DataBrowsingController Test Suite', function () {
       const {
         estimatedCount = 100,
         deletedCount = 100,
-        confirmResult = 'Yes',
         methodChoiceResult,
         indexes = [{ name: '_id_', key: { _id: 1 }, extra: {} }],
         collectionInfo = null,
       } = overrides ?? {};
+      const confirmResult =
+        overrides && 'confirmResult' in overrides
+          ? overrides.confirmResult
+          : 'Yes';
 
       // showInformationMessage is called multiple times:
       // 1st call: initial confirmation
