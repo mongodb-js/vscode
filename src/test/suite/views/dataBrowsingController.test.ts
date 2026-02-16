@@ -906,59 +906,32 @@ suite('DataBrowsingController Test Suite', function () {
     let executeCommandStub: SinonStub;
 
     function setupDeleteAllMocks(overrides?: {
-      estimatedCount?: number;
       deletedCount?: number;
       confirmResult?: string | undefined;
-      methodChoiceResult?: string | undefined;
-      indexes?: any[];
-      collectionInfo?: any;
     }) {
-      const {
-        estimatedCount = 100,
-        deletedCount = 100,
-        methodChoiceResult,
-        indexes = [{ name: '_id_', key: { _id: 1 }, extra: {} }],
-        collectionInfo = null,
-      } = overrides ?? {};
+      const { deletedCount = 100 } = overrides ?? {};
       const confirmResult =
         overrides && 'confirmResult' in overrides
           ? overrides.confirmResult
           : 'Yes';
 
-      // showInformationMessage is called multiple times:
-      // 1st call: initial confirmation
-      // 2nd call (if large): method choice
-      // 3rd call: success message
       showInfoStub = sandbox.stub(vscode.window, 'showInformationMessage');
       showInfoStub.onFirstCall().resolves(confirmResult as any);
-      if (methodChoiceResult !== undefined) {
-        showInfoStub.onSecondCall().resolves(methodChoiceResult as any);
-      }
 
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
 
-      (mockDataService as any).estimatedCount = sandbox
-        .stub()
-        .resolves(estimatedCount);
       (mockDataService as any).deleteMany = sandbox
         .stub()
         .resolves({ deletedCount });
-      (mockDataService as any).dropCollection = sandbox.stub().resolves(true);
-      (mockDataService as any).createCollection = sandbox.stub().resolves({});
-      (mockDataService as any).indexes = sandbox.stub().resolves(indexes);
-      (mockDataService as any).collectionInfo = sandbox
-        .stub()
-        .resolves(collectionInfo);
-      (mockDataService as any).createIndex = sandbox.stub().resolves('ok');
 
       (testController as any)._connectionController = {
         getActiveDataService: () => mockDataService,
       };
     }
 
-    test('uses deleteMany for small collections and notifies webview', async function () {
+    test('uses deleteMany and notifies webview', async function () {
       const options = createMockOptions();
-      setupDeleteAllMocks({ estimatedCount: 500, deletedCount: 500 });
+      setupDeleteAllMocks({ deletedCount: 500 });
 
       await testController.handleDeleteAllDocuments(mockPanel, options);
 
@@ -967,9 +940,6 @@ suite('DataBrowsingController Test Suite', function () {
       expect((mockDataService as any).deleteMany.firstCall.args[0]).to.equal(
         'test.collection',
       );
-
-      // dropCollection should NOT be called
-      expect((mockDataService as any).dropCollection.called).to.be.false;
 
       // Should show success message with count
       const successCall = showInfoStub
@@ -996,7 +966,6 @@ suite('DataBrowsingController Test Suite', function () {
       await testController.handleDeleteAllDocuments(mockPanel, options);
 
       expect((mockDataService as any).deleteMany.called).to.be.false;
-      expect((mockDataService as any).dropCollection.called).to.be.false;
       expect(postMessageStub.called).to.be.false;
     });
 
@@ -1020,144 +989,9 @@ suite('DataBrowsingController Test Suite', function () {
       );
     });
 
-    test('drops and recreates collection preserving indexes and validation rules', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({
-        estimatedCount: 2_000_000,
-        methodChoiceResult: 'Drop and recreate',
-        indexes: [
-          { name: '_id_', key: { _id: 1 }, extra: {} },
-          {
-            name: 'email_1',
-            key: { email: 1 },
-            extra: { unique: true },
-          },
-          {
-            name: 'location_2dsphere',
-            key: { location: '2dsphere' },
-            extra: { sparse: true },
-          },
-        ],
-        collectionInfo: {
-          validation: {
-            validator: { $jsonSchema: { required: ['name'] } },
-            validationAction: 'error',
-            validationLevel: 'strict',
-          },
-        },
-      });
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      // dropCollection and createCollection should be called
-      expect((mockDataService as any).dropCollection.calledOnce).to.be.true;
-      expect(
-        (mockDataService as any).dropCollection.firstCall.args[0],
-      ).to.equal('test.collection');
-      expect((mockDataService as any).createCollection.calledOnce).to.be.true;
-      expect(
-        (mockDataService as any).createCollection.firstCall.args[0],
-      ).to.equal('test.collection');
-
-      // createCollection should include validation options
-      const createCollectionOptions = (mockDataService as any).createCollection
-        .firstCall.args[1];
-      expect(createCollectionOptions.validator).to.deep.equal({
-        $jsonSchema: { required: ['name'] },
-      });
-      expect(createCollectionOptions.validationAction).to.equal('error');
-      expect(createCollectionOptions.validationLevel).to.equal('strict');
-
-      // Non-default indexes should be recreated (skip _id_)
-      expect((mockDataService as any).createIndex.callCount).to.equal(2);
-      expect(
-        (mockDataService as any).createIndex.firstCall.args[1],
-      ).to.deep.equal({ email: 1 });
-      expect(
-        (mockDataService as any).createIndex.firstCall.args[2],
-      ).to.deep.include({ name: 'email_1', unique: true });
-      expect(
-        (mockDataService as any).createIndex.secondCall.args[1],
-      ).to.deep.equal({ location: '2dsphere' });
-      expect(
-        (mockDataService as any).createIndex.secondCall.args[2],
-      ).to.deep.include({ name: 'location_2dsphere', sparse: true });
-
-      // deleteMany should NOT be called
-      expect((mockDataService as any).deleteMany.called).to.be.false;
-
-      // Should show drop success message
-      const successCall = showInfoStub
-        .getCalls()
-        .find(
-          (c) =>
-            typeof c.args[0] === 'string' &&
-            c.args[0].includes('dropped and recreated'),
-        );
-      expect(successCall).to.not.be.undefined;
-
-      // Should notify webview
-      const msg = postMessageStub
-        .getCalls()
-        .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
-      expect(msg).to.not.be.undefined;
-
-      // Should refresh tree
-      expect(executeCommandStub.calledWith('mdbRefreshCollection')).to.be.true;
-    });
-
-    test('uses deleteMany when user chooses that option for large collection', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({
-        estimatedCount: 2_000_000,
-        deletedCount: 2_000_000,
-        methodChoiceResult: 'Use deleteMany',
-      });
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      // deleteMany should be called
-      expect((mockDataService as any).deleteMany.calledOnce).to.be.true;
-
-      // dropCollection should NOT be called
-      expect((mockDataService as any).dropCollection.called).to.be.false;
-    });
-
-    test('does nothing when user dismisses method choice for large collection', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({
-        estimatedCount: 2_000_000,
-        methodChoiceResult: undefined,
-      });
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      expect((mockDataService as any).deleteMany.called).to.be.false;
-      expect((mockDataService as any).dropCollection.called).to.be.false;
-      expect(postMessageStub.called).to.be.false;
-    });
-
-    test('falls back to deleteMany when estimatedCount fails', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({ deletedCount: 50 });
-
-      // Override estimatedCount to throw
-      (mockDataService as any).estimatedCount = sandbox
-        .stub()
-        .rejects(new Error('Count failed'));
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      // Should still use deleteMany
-      expect((mockDataService as any).deleteMany.calledOnce).to.be.true;
-
-      // dropCollection should NOT be called
-      expect((mockDataService as any).dropCollection.called).to.be.false;
-    });
-
     test('shows error message when deleteMany fails', async function () {
       const options = createMockOptions();
-      setupDeleteAllMocks({ estimatedCount: 100 });
+      setupDeleteAllMocks();
 
       (mockDataService as any).deleteMany = sandbox
         .stub()
@@ -1171,43 +1005,6 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(showErrorStub.calledOnce).to.be.true;
       expect(showErrorStub.firstCall.args[0]).to.include('Delete failed');
-    });
-
-    test('shows error message when dropCollection fails', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({
-        estimatedCount: 2_000_000,
-        methodChoiceResult: 'Drop and recreate',
-      });
-
-      (mockDataService as any).dropCollection = sandbox
-        .stub()
-        .rejects(new Error('Drop failed'));
-
-      const showErrorStub = sandbox
-        .stub(vscode.window, 'showErrorMessage')
-        .resolves();
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      expect(showErrorStub.calledOnce).to.be.true;
-      expect(showErrorStub.firstCall.args[0]).to.include('Drop failed');
-    });
-
-    test('does not show method choice prompt for collections at exactly 1 million', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({
-        estimatedCount: 1_000_000,
-        deletedCount: 1_000_000,
-      });
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      // estimatedCount is exactly 1M (not > 1M), so no second prompt
-      // showInformationMessage: 1st = confirmation, 2nd = success message
-      // The method choice prompt should NOT have been shown
-      expect((mockDataService as any).deleteMany.calledOnce).to.be.true;
-      expect((mockDataService as any).dropCollection.called).to.be.false;
     });
   });
 

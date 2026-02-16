@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import type { IndexDirection } from 'mongodb';
 import { EJSON, type Document } from 'bson';
 import path from 'path';
 import { toJSString } from 'mongodb-query-parser';
@@ -28,7 +27,6 @@ import { getDocumentViewAndEditFormat } from '../editors/types';
 const log = createLogger('data browsing controller');
 
 const DEFAULT_DOCUMENTS_LIMIT = 10;
-const LARGE_COLLECTION_THRESHOLD = 1_000_000;
 
 const getCodiconsDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'codicons');
@@ -394,84 +392,11 @@ export default class DataBrowsingController {
 
       const namespace = `${options.databaseName}.${options.collectionName}`;
 
-      // Check if the collection is large and offer a faster alternative.
-      let useDropAndRecreate = false;
-      try {
-        const estimatedCount = await dataService.estimatedCount(namespace);
-        if (estimatedCount > LARGE_COLLECTION_THRESHOLD) {
-          const methodChoice = await vscode.window.showInformationMessage(
-            `This collection has more than ${LARGE_COLLECTION_THRESHOLD.toLocaleString()} documents. Would you like to drop and recreate the collection for faster execution?`,
-            {
-              modal: true,
-            },
-            'Use deleteMany',
-            'Drop and recreate',
-          );
+      const deleteResult = await dataService.deleteMany(namespace, {}, {});
 
-          if (!methodChoice) {
-            return;
-          }
-
-          useDropAndRecreate = methodChoice === 'Drop and recreate';
-        }
-      } catch (error) {
-        // If we can't get the count, fall through to deleteMany.
-        log.error('Error getting estimated count', error);
-      }
-
-      if (useDropAndRecreate) {
-        // Save indexes and collection options before dropping so we can restore them.
-        const [existingIndexes, collectionInfo] = await Promise.all([
-          dataService.indexes(namespace, {}),
-          dataService.collectionInfo(
-            options.databaseName,
-            options.collectionName,
-          ),
-        ]);
-
-        // Build createCollection options from validation rules if present.
-        const createOptions: Record<string, unknown> = Object.create(null);
-        if (collectionInfo?.validation) {
-          const { validator, validationAction, validationLevel } =
-            collectionInfo.validation;
-          if (validator && Object.keys(validator).length > 0) {
-            createOptions.validator = validator;
-          }
-          if (validationAction) {
-            createOptions.validationAction = validationAction;
-          }
-          if (validationLevel) {
-            createOptions.validationLevel = validationLevel;
-          }
-        }
-
-        await dataService.dropCollection(namespace);
-        await dataService.createCollection(namespace, createOptions);
-
-        // Recreate non-default indexes (skip the built-in _id index).
-        const indexesToRecreate = existingIndexes.filter(
-          (idx) => idx.name !== '_id_',
-        );
-        await Promise.all(
-          indexesToRecreate.map((idx) => {
-            return dataService.createIndex(
-              namespace,
-              idx.key as { [key: string]: IndexDirection },
-              { name: idx.name, ...idx.extra },
-            );
-          }),
-        );
-
-        void vscode.window.showInformationMessage(
-          'Collection successfully dropped and recreated.',
-        );
-      } else {
-        const deleteResult = await dataService.deleteMany(namespace, {}, {});
-
-        void vscode.window.showInformationMessage(
-          `${deleteResult.deletedCount} document(s) successfully deleted.`,
-        );
-      }
+      void vscode.window.showInformationMessage(
+        `${deleteResult.deletedCount} document(s) successfully deleted.`,
+      );
 
       // Notify the tree view in the sidebar to refresh
       await vscode.commands.executeCommand('mdbRefreshCollection');
