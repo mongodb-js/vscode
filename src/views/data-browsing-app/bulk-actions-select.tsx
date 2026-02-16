@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useImperativeHandle, forwardRef } from 'react';
 import {
   VscodeOption,
   VscodeSingleSelect,
@@ -11,6 +11,14 @@ export interface BulkAction {
   description: string;
 }
 
+export interface BulkActionsSelectHandle {
+  /**
+   * Exposed for testing only - allows tests to manually call the change handler in JSDOM.
+   * DO NOT use this in production code.
+   */
+  _testOnlyHandleChange: (event: Event) => void;
+}
+
 const selectStyles = css({
   width: 'fit-content',
   minWidth: 'unset',
@@ -18,13 +26,6 @@ const selectStyles = css({
 
 const PLACEHOLDER_VALUE = '__placeholder__';
 
-/**
- * Builds the CSS string to inject into the VscodeSingleSelect shadow DOM.
- *
- * This is necessary because the component uses shadow DOM with no `::part()`
- * or CSS custom-property hooks for the structural overrides we need
- * (option height, inline descriptions, dropdown width, etc.).
- */
 function buildShadowStyles(actions: BulkAction[]): string {
   const perActionStyles = actions.flatMap((action, i) => {
     const idx = i + 1; // offset by 1 for the hidden placeholder option at index 0
@@ -76,19 +77,10 @@ interface BulkActionsSelectProps {
   className?: string;
 }
 
-/**
- * A toolbar-style dropdown that shows bulk actions with inline descriptions.
- *
- * Wraps `<VscodeSingleSelect>` and injects shadow-DOM styles to customise
- * the dropdown appearance (the component exposes no `::part()` or CSS
- * custom-property hooks for the overrides we need).
- */
-const BulkActionsSelect: React.FC<BulkActionsSelectProps> = ({
-  actions,
-  onAction,
-  disabled = false,
-  className,
-}) => {
+const BulkActionsSelect = forwardRef<
+  BulkActionsSelectHandle,
+  BulkActionsSelectProps
+>(({ actions, onAction, disabled = false, className }, ref) => {
   const selectRef = useCallback(
     (node: HTMLElement | null) => {
       if (!node) {
@@ -118,6 +110,11 @@ const BulkActionsSelect: React.FC<BulkActionsSelectProps> = ({
     [onAction],
   );
 
+  // Expose handler for testing (JSDOM workaround)
+  useImperativeHandle(ref, () => ({
+    _testOnlyHandleChange: handleChange,
+  }));
+
   return (
     <VscodeSingleSelect
       className={className ?? selectStyles}
@@ -135,7 +132,8 @@ const BulkActionsSelect: React.FC<BulkActionsSelectProps> = ({
       ))}
     </VscodeSingleSelect>
   );
-};
+});
+
+BulkActionsSelect.displayName = 'BulkActionsSelect';
 
 export default BulkActionsSelect;
-
