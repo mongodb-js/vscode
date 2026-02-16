@@ -38,6 +38,20 @@ import MonacoViewer from './monaco-viewer';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
+interface BulkAction {
+  value: string;
+  label: string;
+  description: string;
+}
+
+const BULK_ACTIONS: BulkAction[] = [
+  {
+    value: 'deleteAll',
+    label: 'Delete All Documents',
+    description: 'All documents present in this collection will be deleted.',
+  },
+];
+
 const containerStyles = css({
   minHeight: '100vh',
   display: 'flex',
@@ -191,6 +205,30 @@ const PreviewApp: React.FC = () => {
     if (sr && !sr.querySelector('#bulk-actions-custom-styles')) {
       const style = document.createElement('style');
       style.id = 'bulk-actions-custom-styles';
+
+      // Generate per-action styles (index 0 is the hidden placeholder, actions start at 1)
+      const actionOptionStyles = BULK_ACTIONS.flatMap((action, i) => {
+        const idx = i + 1; // offset by 1 for the placeholder
+        return [
+          `.options li.option[data-index="${idx}"] {`,
+          '  height: auto !important;',
+          '  white-space: normal !important;',
+          '  overflow: visible !important;',
+          '  padding: 4px 8px !important;',
+          '  line-height: 20px !important;',
+          '}',
+          `.options li.option[data-index="${idx}"]::after {`,
+          `  content: "${action.description}";`,
+          '  display: block;',
+          '  font-size: 12px;',
+          '  opacity: 0.7;',
+          '  white-space: normal;',
+          '  line-height: 1.4;',
+          '  margin-top: 2px;',
+          '}',
+        ];
+      });
+
       style.textContent = [
         // Make the select face subtle (transparent bg) so it doesn't match the button
         '.select-face { background-color: transparent !important; }',
@@ -203,27 +241,11 @@ const PreviewApp: React.FC = () => {
         '.description { display: none !important; }',
         // Let the scrollable container size to its content instead of a fixed height
         '.scrollable { height: auto !important; max-height: 220px !important; }',
-        // Make the action option tall enough to show the subtitle
-        '.options li.option[data-index="1"] {',
-        '  height: auto !important;',
-        '  white-space: normal !important;',
-        '  overflow: visible !important;',
-        '  padding: 4px 8px !important;',
-        '  line-height: 20px !important;',
-        '}',
         // Override active state to only show on hover (prevent persistent highlight)
         '.option.active { background-color: transparent !important; color: var(--vscode-foreground, #cccccc) !important; outline: none !important; }',
         '.option.active:hover { background-color: var(--vscode-list-hoverBackground, #2a2d2e) !important; color: var(--vscode-list-hoverForeground, #ffffff) !important; }',
-        // Add description as an always-visible subtitle via ::after
-        '.options li.option[data-index="1"]::after {',
-        '  content: "All documents present in this collection will be deleted.";',
-        '  display: block;',
-        '  font-size: 12px;',
-        '  opacity: 0.7;',
-        '  white-space: normal;',
-        '  line-height: 1.4;',
-        '  margin-top: 2px;',
-        '}',
+        // Per-action option styles (height + description subtitle)
+        ...actionOptionStyles,
       ].join('\n');
       sr.appendChild(style);
     }
@@ -232,8 +254,12 @@ const PreviewApp: React.FC = () => {
   const handleBulkActionChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const value = target.value;
-    if (value === 'deleteAll') {
-      sendDeleteAllDocuments();
+    switch (value) {
+      case 'deleteAll':
+        sendDeleteAllDocuments();
+        break;
+      default:
+        break;
     }
     // Reset back to the placeholder so the select always shows "Bulk Actions"
     target.value = '__placeholder__';
@@ -277,7 +303,11 @@ const PreviewApp: React.FC = () => {
             ref={bulkActionsSelectRef}
           >
             <VscodeOption value="__placeholder__">Bulk Actions</VscodeOption>
-            <VscodeOption value="deleteAll">Delete All Documents</VscodeOption>
+            {BULK_ACTIONS.map((action) => (
+              <VscodeOption key={action.value} value={action.value}>
+                {action.label}
+              </VscodeOption>
+            ))}
           </VscodeSingleSelect>
         </div>
         {/* Right side - Actions */}
