@@ -525,6 +525,76 @@ describe('PreviewApp test suite', function () {
     });
   });
 
+  describe('Bulk Actions', function () {
+    // Helper to complete initial loading
+    function completeInitialLoading(): void {
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadPage,
+              documents: [{ _id: '1', name: 'Doc1' }],
+            },
+          }),
+        );
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.updateTotalCount,
+              totalCount: 1,
+            },
+          }),
+        );
+      });
+    }
+
+    it('should render Bulk Actions dropdown', function () {
+      renderWithProvider(<PreviewApp />);
+      const bulkActionsSelect = screen.getByLabelText('Bulk Actions');
+      expect(bulkActionsSelect).to.exist;
+    });
+
+    it('should send deleteAllDocuments message when Delete All Documents is selected', function () {
+      renderWithProvider(<PreviewApp />);
+      completeInitialLoading();
+
+      postMessageStub.resetHistory();
+
+      const bulkActionsSelect = screen.getByLabelText('Bulk Actions');
+      // Stub the value property to bypass Lit's setter (which calls
+      // ElementInternals.setFormValue, unsupported in JSDOM)
+      Object.defineProperty(bulkActionsSelect, 'value', {
+        get: () => 'deleteAll',
+        set: () => {},
+        configurable: true,
+      });
+      fireEvent.change(bulkActionsSelect);
+
+      expect(postMessageStub).to.have.been.calledWithExactly({
+        command: PreviewMessageType.deleteAllDocuments,
+      });
+    });
+
+    it('should reset to placeholder after an action is selected', function () {
+      renderWithProvider(<PreviewApp />);
+      completeInitialLoading();
+
+      const bulkActionsSelect = screen.getByLabelText('Bulk Actions');
+      // Track what handleBulkActionChange writes back to target.value
+      let lastSetValue: string | undefined;
+      Object.defineProperty(bulkActionsSelect, 'value', {
+        get: () => lastSetValue ?? 'deleteAll',
+        set: (v: string) => {
+          lastSetValue = v;
+        },
+        configurable: true,
+      });
+      fireEvent.change(bulkActionsSelect);
+
+      expect(lastSetValue).to.equal('__placeholder__');
+    });
+  });
+
   describe('loadPage message handling', function () {
     it('should update documents when loadPage message is received', function () {
       renderWithProvider(<PreviewApp />);

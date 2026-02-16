@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   VscodeButton,
   VscodeLabel,
@@ -35,14 +35,11 @@ import {
   sendDeleteAllDocuments,
 } from './vscode-api';
 import MonacoViewer from './monaco-viewer';
+import BulkActionsSelect, {
+  type BulkAction,
+} from './bulk-actions-select';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
-
-interface BulkAction {
-  value: string;
-  label: string;
-  description: string;
-}
 
 const BULK_ACTIONS: BulkAction[] = [
   {
@@ -152,10 +149,7 @@ const insertDocumentButtonStyles = css({
   },
 });
 
-const bulkActionsSelectStyles = css({
-  width: 'fit-content',
-  minWidth: 'unset',
-});
+
 
 const PreviewApp: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -196,73 +190,14 @@ const PreviewApp: React.FC = () => {
     dispatch(itemsPerPageChanged(newItemsPerPage));
   };
 
-  // Ref to inject shadow DOM styles that customize the bulk actions dropdown
-  const bulkActionsSelectRef = useCallback((node: HTMLElement | null) => {
-    if (!node) {
-      return;
-    }
-    const sr = node.shadowRoot;
-    if (sr && !sr.querySelector('#bulk-actions-custom-styles')) {
-      const style = document.createElement('style');
-      style.id = 'bulk-actions-custom-styles';
-
-      // Generate per-action styles (index 0 is the hidden placeholder, actions start at 1)
-      const actionOptionStyles = BULK_ACTIONS.flatMap((action, i) => {
-        const idx = i + 1; // offset by 1 for the placeholder
-        return [
-          `.options li.option[data-index="${idx}"] {`,
-          '  height: auto !important;',
-          '  white-space: normal !important;',
-          '  overflow: visible !important;',
-          '  padding: 4px 8px !important;',
-          '  line-height: 20px !important;',
-          '}',
-          `.options li.option[data-index="${idx}"]::after {`,
-          `  content: "${action.description}";`,
-          '  display: block;',
-          '  font-size: 12px;',
-          '  opacity: 0.7;',
-          '  white-space: normal;',
-          '  line-height: 1.4;',
-          '  margin-top: 2px;',
-          '}',
-        ];
-      });
-
-      style.textContent = [
-        // Make the select face subtle (transparent bg) so it doesn't match the button
-        '.select-face { background-color: transparent !important; }',
-        '.select-face:hover { background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31)) !important; }',
-        // Hide the placeholder "Bulk Actions" option from the dropdown list
-        '.options li.option:first-child { display: none; }',
-        // Widen the dropdown to fit description text
-        '.dropdown { min-width: 320px !important; }',
-        // Hide the default hover-only description area
-        '.description { display: none !important; }',
-        // Let the scrollable container size to its content instead of a fixed height
-        '.scrollable { height: auto !important; max-height: 220px !important; }',
-        // Override active state to only show on hover (prevent persistent highlight)
-        '.option.active { background-color: transparent !important; color: var(--vscode-foreground, #cccccc) !important; outline: none !important; }',
-        '.option.active:hover { background-color: var(--vscode-list-hoverBackground, #2a2d2e) !important; color: var(--vscode-list-hoverForeground, #ffffff) !important; }',
-        // Per-action option styles (height + description subtitle)
-        ...actionOptionStyles,
-      ].join('\n');
-      sr.appendChild(style);
-    }
-  }, []);
-
-  const handleBulkActionChange = (event: Event): void => {
-    const target = event.target as HTMLSelectElement;
-    const value = target.value;
-    switch (value) {
+  const handleBulkAction = (actionValue: string): void => {
+    switch (actionValue) {
       case 'deleteAll':
         sendDeleteAllDocuments();
         break;
       default:
         break;
     }
-    // Reset back to the placeholder so the select always shows "Bulk Actions"
-    target.value = '__placeholder__';
   };
 
   const handleSortChange = (event: Event): void => {
@@ -294,21 +229,11 @@ const PreviewApp: React.FC = () => {
           >
             Insert Document
           </VscodeButton>
-          <VscodeSingleSelect
-            className={bulkActionsSelectStyles}
-            aria-label="Bulk Actions"
-            value="__placeholder__"
-            onChange={handleBulkActionChange}
+          <BulkActionsSelect
+            actions={BULK_ACTIONS}
+            onAction={handleBulkAction}
             disabled={isLoading}
-            ref={bulkActionsSelectRef}
-          >
-            <VscodeOption value="__placeholder__">Bulk Actions</VscodeOption>
-            {BULK_ACTIONS.map((action) => (
-              <VscodeOption key={action.value} value={action.value}>
-                {action.label}
-              </VscodeOption>
-            ))}
-          </VscodeSingleSelect>
+          />
         </div>
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
