@@ -29,16 +29,23 @@ const menuStyles = css({
 });
 
 const menuItemStyles = css({
+  display: 'block',
+  width: '100%',
   padding: '6px 10px',
   cursor: 'pointer',
   color: 'var(--vscode-menu-foreground, var(--vscode-foreground, #cccccc))',
+  backgroundColor: 'transparent',
+  border: 'none',
+  textAlign: 'left',
+  font: 'inherit',
   '&:hover': {
     backgroundColor:
-      'var(--vscode-menu-selectionBackground, var(--vscode-list-hoverBackground, #2a2d2e))',
+      'var(--vscode-list-hoverBackground, #2a2d2e)',
     color:
-      'var(--vscode-menu-selectionForeground, var(--vscode-list-hoverForeground, #ffffff))',
+      'var(--vscode-list-hoverForeground, var(--vscode-menu-foreground, #ffffff))',
   },
 });
+
 
 const menuItemLabelStyles = css({
   fontSize: '13px',
@@ -116,16 +123,17 @@ const BulkActionsSelect: React.FC<BulkActionsSelectProps> = ({
       {isOpen && (
         <ul className={menuStyles} role="menu" aria-label="Bulk Actions">
           {actions.map((action) => (
-            <li
-              key={action.value}
-              className={menuItemStyles}
-              role="menuitem"
-              onClick={(): void => handleItemClick(action.value)}
-            >
-              <div className={menuItemLabelStyles}>{action.label}</div>
-              <div className={menuItemDescriptionStyles}>
-                {action.description}
-              </div>
+            <li key={action.value} role="none">
+              <button
+                className={menuItemStyles}
+                role="menuitem"
+                onClick={(): void => handleItemClick(action.value)}
+              >
+                <div className={menuItemLabelStyles}>{action.label}</div>
+                <div className={menuItemDescriptionStyles}>
+                  {action.description}
+                </div>
+              </button>
             </li>
           ))}
         </ul>
