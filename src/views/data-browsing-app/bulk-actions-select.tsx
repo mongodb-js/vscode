@@ -108,7 +108,7 @@ const BulkActionsSelect: React.FC<BulkActionsSelectProps> = ({
         title="Bulk Actions"
         onClick={handleToggle}
         disabled={disabled}
-        icon="ellipsis"
+        icon-after="chevron-down"
         secondary
       >
         Bulk Actions
