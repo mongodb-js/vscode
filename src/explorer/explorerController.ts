@@ -68,6 +68,27 @@ export default class ExplorerController {
     throw new Error('No tree to refresh.');
   }
 
+  /**
+   * Resets the cached data for a specific collection (so the document
+   * count is re-fetched) and then refreshes the tree view. Can we called from a webview.
+   */
+  public refreshCollection(
+    databaseName: string,
+    collectionName: string,
+  ): boolean {
+    const connectionId =
+      this._connectionController.getActiveConnectionId() ?? '';
+    if (this._treeController) {
+      this._treeController.resetCollectionCache(
+        connectionId,
+        databaseName,
+        collectionName,
+      );
+    }
+
+    return this.refresh();
+  }
+
   // Exposed for testing.
   public getConnectionsTreeView():
     | vscode.TreeView<vscode.TreeItem>

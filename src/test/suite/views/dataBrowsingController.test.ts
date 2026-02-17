@@ -21,6 +21,10 @@ suite('DataBrowsingController Test Suite', function () {
   let mockConnectionController: {
     getActiveDataService: SinonStub;
   };
+  let mockExplorerController: {
+    refresh: SinonStub;
+    refreshCollection: SinonStub;
+  };
 
   function createMockPanel(): vscode.WebviewPanel {
     postMessageStub = sandbox.stub().resolves(true);
@@ -55,10 +59,15 @@ suite('DataBrowsingController Test Suite', function () {
     mockConnectionController = {
       getActiveDataService: sandbox.stub().returns(mockDataService),
     };
+    mockExplorerController = {
+      refresh: sandbox.stub().returns(true),
+      refreshCollection: sandbox.stub().returns(true),
+    };
     testController = new DataBrowsingController({
       connectionController: mockConnectionController as any,
       editorsController: {} as any,
       playgroundController: {} as any,
+      explorerController: mockExplorerController as any,
       telemetryService: {} as any,
     });
     mockPanel = createMockPanel();
@@ -848,9 +857,6 @@ suite('DataBrowsingController Test Suite', function () {
       .stub(vscode.workspace, 'getConfiguration')
       .returns({ get: getStub } as any);
 
-    // stub executeCommand
-    const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
-
     // stub deleteOne on data service
     (mockDataService as any).deleteOne = sandbox
       .stub()
@@ -880,8 +886,11 @@ suite('DataBrowsingController Test Suite', function () {
       .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
     expect(msg).to.not.be.undefined;
 
-    // refresh command called
-    expect(executeCommandStub.calledWith('mdbRefreshCollection')).to.be.true;
+    // explorer tree refreshed with correct namespace
+    expect(mockExplorerController.refreshCollection.calledOnce).to.be.true;
+    expect(
+      mockExplorerController.refreshCollection.calledWith('test', 'collection'),
+    ).to.be.true;
   });
 
   test('handleDeleteDocument cancels when user declines', async function () {
@@ -903,7 +912,6 @@ suite('DataBrowsingController Test Suite', function () {
 
   suite('handleDeleteAllDocuments', function () {
     let showInfoStub: SinonStub;
-    let executeCommandStub: SinonStub;
 
     function setupDeleteAllMocks(overrides?: {
       deletedCount?: number;
@@ -917,8 +925,6 @@ suite('DataBrowsingController Test Suite', function () {
 
       showInfoStub = sandbox.stub(vscode.window, 'showInformationMessage');
       showInfoStub.onFirstCall().resolves(confirmResult as any);
-
-      executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
 
       (mockDataService as any).deleteMany = sandbox
         .stub()
@@ -955,8 +961,14 @@ suite('DataBrowsingController Test Suite', function () {
         .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
       expect(msg).to.not.be.undefined;
 
-      // Should refresh tree
-      expect(executeCommandStub.calledWith('mdbRefreshCollection')).to.be.true;
+      // Should refresh tree with correct namespace
+      expect(mockExplorerController.refreshCollection.called).to.be.true;
+      expect(
+        mockExplorerController.refreshCollection.calledWith(
+          'test',
+          'collection',
+        ),
+      ).to.be.true;
     });
 
     test('does nothing when user cancels initial confirmation', async function () {
