@@ -35,7 +35,7 @@ import {
   sendDeleteAllDocuments,
 } from './vscode-api';
 import MonacoViewer from './monaco-viewer';
-import BulkActionsSelect, { type BulkAction } from './bulk-actions-select';
+import { BulkActionsSelect, type BulkAction } from './bulk-actions-select';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 

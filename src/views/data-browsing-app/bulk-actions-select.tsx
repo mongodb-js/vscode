@@ -141,6 +141,4 @@ const BulkActionsSelect: React.FC<BulkActionsSelectProps> = ({
   );
 };
 
-BulkActionsSelect.displayName = 'BulkActionsSelect';
-
-export default BulkActionsSelect;
+export { BulkActionsSelect };

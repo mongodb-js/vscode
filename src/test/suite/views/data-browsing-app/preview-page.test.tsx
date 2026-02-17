@@ -18,7 +18,8 @@ import {
   initialState,
   SORT_OPTIONS,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
-import BulkActionsSelect, {
+import {
+  BulkActionsSelect,
   type BulkAction,
 } from '../../../../views/data-browsing-app/bulk-actions-select';
 
