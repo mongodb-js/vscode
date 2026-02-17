@@ -29,10 +29,23 @@ import {
   SORT_OPTIONS,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
-import { sendGetThemeColors, sendInsertDocument } from './vscode-api';
+import {
+  sendGetThemeColors,
+  sendInsertDocument,
+  sendDeleteAllDocuments,
+} from './vscode-api';
 import MonacoViewer from './monaco-viewer';
+import { BulkActionsSelect, type BulkAction } from './bulk-actions-select';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
+const BULK_ACTIONS: BulkAction[] = [
+  {
+    value: 'deleteAll',
+    label: 'Delete All Documents',
+    description: 'All documents present in this collection will be deleted.',
+  },
+];
 
 const containerStyles = css({
   minHeight: '100vh',
@@ -173,6 +186,16 @@ const PreviewApp: React.FC = () => {
     dispatch(itemsPerPageChanged(newItemsPerPage));
   };
 
+  const handleBulkAction = (actionValue: string): void => {
+    switch (actionValue) {
+      case 'deleteAll':
+        sendDeleteAllDocuments();
+        break;
+      default:
+        break;
+    }
+  };
+
   const handleSortChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
     const selectedOption = SORT_OPTIONS.find(
@@ -202,6 +225,11 @@ const PreviewApp: React.FC = () => {
           >
             Insert Document
           </VscodeButton>
+          <BulkActionsSelect
+            actions={BULK_ACTIONS}
+            onAction={handleBulkAction}
+            disabled={isLoading}
+          />
         </div>
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>

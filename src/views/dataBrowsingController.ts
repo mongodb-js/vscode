@@ -203,6 +203,9 @@ export default class DataBrowsingController {
           EJSON.deserialize(message.documentId, { relaxed: false }),
         );
         return;
+      case PreviewMessageType.deleteAllDocuments:
+        await this.handleDeleteAllDocuments(panel, options);
+        return;
       case PreviewMessageType.insertDocument:
         await this.handleInsertDocument(options);
         return;
@@ -359,6 +362,53 @@ export default class DataBrowsingController {
       log.error('Error opening insert document playground', error);
       void vscode.window.showErrorMessage(
         `Failed to open insert document playground: ${formatError(error).message}`,
+      );
+    }
+  };
+
+  handleDeleteAllDocuments = async (
+    panel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+  ): Promise<void> => {
+    try {
+      const confirmationResult = await vscode.window.showInformationMessage(
+        `Are you sure you wish to delete all documents in ${options.databaseName}.${options.collectionName} collection?`,
+        {
+          modal: true,
+          detail:
+            'All documents present in this collection will be deleted. This action cannot be undone.',
+        },
+        'Yes',
+      );
+
+      if (confirmationResult !== 'Yes') {
+        return;
+      }
+
+      const dataService = this._connectionController.getActiveDataService();
+      if (!dataService) {
+        throw new Error('No active database connection');
+      }
+
+      const namespace = `${options.databaseName}.${options.collectionName}`;
+
+      const deleteResult = await dataService.deleteMany(namespace, {}, {});
+
+      void vscode.window.showInformationMessage(
+        `${deleteResult.deletedCount} document(s) successfully deleted.`,
+      );
+
+      // Notify the tree view in the sidebar to refresh
+      await vscode.commands.executeCommand('mdbRefreshCollection');
+
+      // Notify the webview that documents were deleted so it refreshes
+      void panel.webview.postMessage({
+        command: PreviewMessageType.documentDeleted,
+      });
+    } catch (error) {
+      log.error('Error deleting all documents', error);
+      void vscode.window.showErrorMessage(
+        `Failed to delete all documents: ${formatError(error).message}`,
       );
     }
   };

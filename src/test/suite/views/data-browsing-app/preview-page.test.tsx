@@ -18,6 +18,10 @@ import {
   initialState,
   SORT_OPTIONS,
 } from '../../../../views/data-browsing-app/store/documentQuerySlice';
+import {
+  BulkActionsSelect,
+  type BulkAction,
+} from '../../../../views/data-browsing-app/bulk-actions-select';
 
 function renderWithProvider(
   ui: React.ReactElement,
@@ -522,6 +526,187 @@ describe('PreviewApp test suite', function () {
       expect(postMessageStub).to.have.been.calledWithExactly({
         command: PreviewMessageType.insertDocument,
       });
+    });
+  });
+
+  describe('Bulk Actions', function () {
+    it('should render Bulk Actions button', function () {
+      renderWithProvider(<PreviewApp />);
+      const bulkActionsButton = screen.getByLabelText('Bulk Actions');
+      expect(bulkActionsButton).to.exist;
+    });
+
+    it('should call onAction when a menu item is clicked', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description:
+            'All documents present in this collection will be deleted.',
+        },
+      ];
+
+      const onActionStub = sinon.stub();
+
+      render(<BulkActionsSelect actions={actions} onAction={onActionStub} />);
+
+      // Click the button to open the menu
+      const button = screen.getByLabelText('Bulk Actions');
+      fireEvent.click(button);
+
+      // Click the menu item
+      const menuItem = screen.getByRole('menuitem');
+      fireEvent.click(menuItem);
+
+      expect(onActionStub).to.have.been.calledOnceWithExactly('deleteAll');
+    });
+
+    it('should close the menu after an action is selected', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description:
+            'All documents present in this collection will be deleted.',
+        },
+      ];
+
+      const onActionStub = sinon.stub();
+
+      render(<BulkActionsSelect actions={actions} onAction={onActionStub} />);
+
+      // Click the button to open the menu
+      const button = screen.getByLabelText('Bulk Actions');
+      fireEvent.click(button);
+
+      // Menu should be visible
+      expect(screen.getByRole('menu')).to.exist;
+
+      // Click the menu item
+      const menuItem = screen.getByRole('menuitem');
+      fireEvent.click(menuItem);
+
+      // Menu should be closed
+      expect(screen.queryByRole('menu')).to.be.null;
+    });
+
+    it('should show title and description in menu items', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description:
+            'All documents present in this collection will be deleted.',
+        },
+      ];
+
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
+
+      // Open the menu
+      fireEvent.click(screen.getByLabelText('Bulk Actions'));
+
+      expect(screen.getByText('Delete All Documents')).to.exist;
+      expect(
+        screen.getByText(
+          'All documents present in this collection will be deleted.',
+        ),
+      ).to.exist;
+    });
+
+    it('should not open the menu when disabled', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description:
+            'All documents present in this collection will be deleted.',
+        },
+      ];
+
+      render(
+        <BulkActionsSelect
+          actions={actions}
+          onAction={sinon.stub()}
+          disabled
+        />,
+      );
+
+      // Click the button
+      fireEvent.click(screen.getByLabelText('Bulk Actions'));
+
+      // Menu should not appear
+      expect(screen.queryByRole('menu')).to.be.null;
+    });
+
+    it('should toggle the menu open and closed on button clicks', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description:
+            'All documents present in this collection will be deleted.',
+        },
+      ];
+
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
+
+      const button = screen.getByLabelText('Bulk Actions');
+
+      // First click opens the menu
+      fireEvent.click(button);
+      expect(screen.getByRole('menu')).to.exist;
+
+      // Second click closes the menu
+      fireEvent.click(button);
+      expect(screen.queryByRole('menu')).to.be.null;
+    });
+
+    it('should close the menu when clicking outside', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description:
+            'All documents present in this collection will be deleted.',
+        },
+      ];
+
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
+
+      // Open the menu
+      fireEvent.click(screen.getByLabelText('Bulk Actions'));
+      expect(screen.getByRole('menu')).to.exist;
+
+      // Click outside the component
+      fireEvent.mouseDown(document.body);
+
+      // Menu should be closed
+      expect(screen.queryByRole('menu')).to.be.null;
+    });
+
+    it('should render multiple menu items', function () {
+      const actions: BulkAction[] = [
+        {
+          value: 'deleteAll',
+          label: 'Delete All Documents',
+          description: 'Deletes all documents.',
+        },
+        {
+          value: 'exportAll',
+          label: 'Export All Documents',
+          description: 'Exports all documents.',
+        },
+      ];
+
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
+
+      // Open the menu
+      fireEvent.click(screen.getByLabelText('Bulk Actions'));
+
+      const menuItems = screen.getAllByRole('menuitem');
+      expect(menuItems).to.have.lengthOf(2);
+      expect(screen.getByText('Delete All Documents')).to.exist;
+      expect(screen.getByText('Export All Documents')).to.exist;
     });
   });
 

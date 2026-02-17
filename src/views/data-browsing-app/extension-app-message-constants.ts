@@ -18,6 +18,7 @@ export const PreviewMessageType = {
   editDocument: 'EDIT_DOCUMENT',
   cloneDocument: 'CLONE_DOCUMENT',
   deleteDocument: 'DELETE_DOCUMENT',
+  deleteAllDocuments: 'DELETE_ALL_DOCUMENTS',
   insertDocument: 'INSERT_DOCUMENT',
 
   // Messages from extension to webview
@@ -95,6 +96,10 @@ export interface DeleteDocumentMessage extends BasicWebviewMessage {
   documentId: any;
 }
 
+export interface DeleteAllDocumentsMessage extends BasicWebviewMessage {
+  command: typeof PreviewMessageType.deleteAllDocuments;
+}
+
 export interface InsertDocumentMessage extends BasicWebviewMessage {
   command: typeof PreviewMessageType.insertDocument;
 }
@@ -142,6 +147,7 @@ export type MessageFromWebviewToExtension =
   | EditDocumentMessage
   | CloneDocumentMessage
   | DeleteDocumentMessage
+  | DeleteAllDocumentsMessage
   | InsertDocumentMessage;
 
 export type MessageFromExtensionToWebview =
