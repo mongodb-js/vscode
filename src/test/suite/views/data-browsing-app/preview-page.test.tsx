@@ -547,9 +547,7 @@ describe('PreviewApp test suite', function () {
 
       const onActionStub = sinon.stub();
 
-      render(
-        <BulkActionsSelect actions={actions} onAction={onActionStub} />,
-      );
+      render(<BulkActionsSelect actions={actions} onAction={onActionStub} />);
 
       // Click the button to open the menu
       const button = screen.getByLabelText('Bulk Actions');
@@ -574,9 +572,7 @@ describe('PreviewApp test suite', function () {
 
       const onActionStub = sinon.stub();
 
-      render(
-        <BulkActionsSelect actions={actions} onAction={onActionStub} />,
-      );
+      render(<BulkActionsSelect actions={actions} onAction={onActionStub} />);
 
       // Click the button to open the menu
       const button = screen.getByLabelText('Bulk Actions');
@@ -603,9 +599,7 @@ describe('PreviewApp test suite', function () {
         },
       ];
 
-      render(
-        <BulkActionsSelect actions={actions} onAction={sinon.stub()} />,
-      );
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
 
       // Open the menu
       fireEvent.click(screen.getByLabelText('Bulk Actions'));
@@ -653,9 +647,7 @@ describe('PreviewApp test suite', function () {
         },
       ];
 
-      render(
-        <BulkActionsSelect actions={actions} onAction={sinon.stub()} />,
-      );
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
 
       const button = screen.getByLabelText('Bulk Actions');
 
@@ -678,9 +670,7 @@ describe('PreviewApp test suite', function () {
         },
       ];
 
-      render(
-        <BulkActionsSelect actions={actions} onAction={sinon.stub()} />,
-      );
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
 
       // Open the menu
       fireEvent.click(screen.getByLabelText('Bulk Actions'));
@@ -707,9 +697,7 @@ describe('PreviewApp test suite', function () {
         },
       ];
 
-      render(
-        <BulkActionsSelect actions={actions} onAction={sinon.stub()} />,
-      );
+      render(<BulkActionsSelect actions={actions} onAction={sinon.stub()} />);
 
       // Open the menu
       fireEvent.click(screen.getByLabelText('Bulk Actions'));

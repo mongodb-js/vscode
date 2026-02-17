@@ -22,7 +22,8 @@ const menuStyles = css({
   marginTop: '2px',
   padding: '4px 0',
   backgroundColor: 'var(--vscode-menu-background, #252526)',
-  border: '1px solid var(--vscode-menu-border, var(--vscode-widget-border, #454545))',
+  border:
+    '1px solid var(--vscode-menu-border, var(--vscode-widget-border, #454545))',
   borderRadius: '4px',
   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.36)',
   listStyle: 'none',
@@ -39,13 +40,11 @@ const menuItemStyles = css({
   textAlign: 'left',
   font: 'inherit',
   '&:hover': {
-    backgroundColor:
-      'var(--vscode-list-hoverBackground, #2a2d2e)',
+    backgroundColor: 'var(--vscode-list-hoverBackground, #2a2d2e)',
     color:
       'var(--vscode-list-hoverForeground, var(--vscode-menu-foreground, #ffffff))',
   },
 });
-
 
 const menuItemLabelStyles = css({
   fontSize: '13px',
