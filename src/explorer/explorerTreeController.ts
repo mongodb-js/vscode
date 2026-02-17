@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
+import type DatabaseTreeItem from './databaseTreeItem';
 import { createLogger } from '../logging';
 import { DOCUMENT_ITEM } from './documentTreeItem';
 import { DOCUMENT_LIST_ITEM } from './documentListTreeItem';
@@ -155,6 +156,35 @@ export default class ExplorerTreeController
 
     return true;
   };
+
+  /**
+   * Finds the CollectionTreeItem for the given namespace in the active
+   * connection's cache and resets it so the document count is re-fetched
+   * on the next render.
+   */
+  resetCollectionCache(
+    connectionId: string,
+    databaseName: string,
+    collectionName: string,
+  ): void {
+    const connectionItem = this._connectionTreeItems[connectionId];
+    if (!connectionItem) {
+      return;
+    }
+
+    const dbChildren = connectionItem.getChildrenCache();
+    const dbItem = dbChildren[databaseName] as DatabaseTreeItem | undefined;
+    if (!dbItem || !('getChildrenCache' in dbItem)) {
+      return;
+    }
+
+    const collectionItem = dbItem.getChildrenCache()[collectionName];
+    if (!collectionItem) {
+      return;
+    }
+
+    collectionItem.resetCache();
+  }
 
   private _onTreeItemUpdate(): void {
     this._onDidChangeTreeData.fire(null);
