@@ -152,6 +152,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
   ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+  ExtensionCommand.mdbDeleteAllDocumentsFromTreeView,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -921,6 +922,62 @@ export default class MDBExtensionController implements vscode.Disposable {
           documentsListTreeItem.databaseName,
           documentsListTreeItem.collectionName,
         );
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbDeleteAllDocumentsFromTreeView,
+      async (
+        element: ShowPreviewTreeItem | CollectionTreeItem,
+      ): Promise<boolean> => {
+        const { databaseName, collectionName } = element;
+        const namespace = `${databaseName}.${collectionName}`;
+
+        const confirmationResult = await vscode.window.showInformationMessage(
+          `Are you sure you wish to delete all documents in ${namespace} collection?`,
+          {
+            modal: true,
+            detail:
+              'All documents present in this collection will be deleted. This action cannot be undone.',
+          },
+          'Yes',
+        );
+
+        if (confirmationResult !== 'Yes') {
+          return false;
+        }
+
+        const dataService =
+          this._connectionController.getActiveDataService();
+        if (!dataService) {
+          void vscode.window.showErrorMessage(
+            'No active database connection.',
+          );
+          return false;
+        }
+
+        try {
+          const deleteResult = await dataService.deleteMany(
+            namespace,
+            {},
+            {},
+          );
+
+          void vscode.window.showInformationMessage(
+            `${deleteResult.deletedCount} document(s) successfully deleted.`,
+          );
+
+          this._explorerController.refreshCollection(
+            databaseName,
+            collectionName,
+          );
+
+          return true;
+        } catch (error) {
+          void vscode.window.showErrorMessage(
+            `Failed to delete all documents: ${formatError(error).message}`,
+          );
+          return false;
+        }
       },
     );
     this.registerCommand(
