@@ -3,6 +3,7 @@ import { EJSON, type Document } from 'bson';
 import path from 'path';
 import { toJSString } from 'mongodb-query-parser';
 import type ConnectionController from '../connectionController';
+import ExtensionCommand from '../commands';
 import { createLogger } from '../logging';
 import {
   PreviewMessageType,
@@ -375,50 +376,16 @@ export default class DataBrowsingController {
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
-    try {
-      const confirmationResult = await vscode.window.showInformationMessage(
-        `Are you sure you wish to delete all documents in ${options.databaseName}.${options.collectionName} collection?`,
-        {
-          modal: true,
-          detail:
-            'All documents present in this collection will be deleted. This action cannot be undone.',
-        },
-        'Yes',
-      );
+    const deleted = await vscode.commands.executeCommand<boolean>(
+      ExtensionCommand.mdbDeleteAllDocumentsFromTreeView,
+      options,
+    );
 
-      if (confirmationResult !== 'Yes') {
-        return;
-      }
-
-      const dataService = this._connectionController.getActiveDataService();
-      if (!dataService) {
-        throw new Error('No active database connection');
-      }
-
-      const namespace = `${options.databaseName}.${options.collectionName}`;
-
-      const deleteResult = await dataService.deleteMany(namespace, {}, {});
-
-      void vscode.window.showInformationMessage(
-        `${deleteResult.deletedCount} document(s) successfully deleted.`,
-      );
-
-      // Refresh the tree view in the sidebar (reset collection cache so
-      // the document count is re-fetched).
-      this._explorerController.refreshCollection(
-        options.databaseName,
-        options.collectionName,
-      );
-
-      // Notify the webview that documents were deleted so it refreshes
+    if (deleted) {
+      // Notify the webview that documents were deleted so it refreshes.
       void panel.webview.postMessage({
         command: PreviewMessageType.documentDeleted,
       });
-    } catch (error) {
-      log.error('Error deleting all documents', error);
-      void vscode.window.showErrorMessage(
-        `Failed to delete all documents: ${formatError(error).message}`,
-      );
     }
   };
 
