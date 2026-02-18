@@ -911,112 +911,19 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('handleDeleteAllDocuments', function () {
-    let showInfoStub: SinonStub;
-
-    function setupDeleteAllMocks(overrides?: {
-      deletedCount?: number;
-      confirmResult?: string | undefined;
-    }) {
-      const { deletedCount = 100 } = overrides ?? {};
-      const confirmResult =
-        overrides && 'confirmResult' in overrides
-          ? overrides.confirmResult
-          : 'Yes';
-
-      showInfoStub = sandbox.stub(vscode.window, 'showInformationMessage');
-      showInfoStub.onFirstCall().resolves(confirmResult as any);
-
-      (mockDataService as any).deleteMany = sandbox
-        .stub()
-        .resolves({ deletedCount });
-
-      (testController as any)._connectionController = {
-        getActiveDataService: () => mockDataService,
-      };
-    }
-
-    test('uses deleteMany and notifies webview', async function () {
+    test('delegates to mdb.deleteAllDocumentsFromTreeView command', async function () {
       const options = createMockOptions();
-      setupDeleteAllMocks({ deletedCount: 500 });
+      const executeCommandStub = sandbox
+        .stub(vscode.commands, 'executeCommand')
+        .resolves(true);
 
       await testController.handleDeleteAllDocuments(mockPanel, options);
 
-      // deleteMany should be called
-      expect((mockDataService as any).deleteMany.calledOnce).to.be.true;
-      expect((mockDataService as any).deleteMany.firstCall.args[0]).to.equal(
-        'test.collection',
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.firstCall.args[0]).to.equal(
+        'mdb.deleteAllDocumentsFromTreeView',
       );
-
-      // Should show success message with count
-      const successCall = showInfoStub
-        .getCalls()
-        .find(
-          (c) => typeof c.args[0] === 'string' && c.args[0].includes('500'),
-        );
-      expect(successCall).to.not.be.undefined;
-
-      // Should notify webview
-      const msg = postMessageStub
-        .getCalls()
-        .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
-      expect(msg).to.not.be.undefined;
-
-      // Should refresh tree with correct namespace
-      expect(mockExplorerController.refreshCollection.called).to.be.true;
-      expect(
-        mockExplorerController.refreshCollection.calledWith(
-          'test',
-          'collection',
-        ),
-      ).to.be.true;
-    });
-
-    test('does nothing when user cancels initial confirmation', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({ confirmResult: undefined });
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      expect((mockDataService as any).deleteMany.called).to.be.false;
-      expect(postMessageStub.called).to.be.false;
-    });
-
-    test('shows error when no active data service', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks();
-
-      (testController as any)._connectionController = {
-        getActiveDataService: () => null,
-      };
-
-      const showErrorStub = sandbox
-        .stub(vscode.window, 'showErrorMessage')
-        .resolves();
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      expect(showErrorStub.calledOnce).to.be.true;
-      expect(showErrorStub.firstCall.args[0]).to.include(
-        'No active database connection',
-      );
-    });
-
-    test('shows error message when deleteMany fails', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks();
-
-      (mockDataService as any).deleteMany = sandbox
-        .stub()
-        .rejects(new Error('Delete failed'));
-
-      const showErrorStub = sandbox
-        .stub(vscode.window, 'showErrorMessage')
-        .resolves();
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      expect(showErrorStub.calledOnce).to.be.true;
-      expect(showErrorStub.firstCall.args[0]).to.include('Delete failed');
+      expect(executeCommandStub.firstCall.args[1]).to.deep.equal(options);
     });
   });
 
@@ -1028,10 +935,8 @@ suite('DataBrowsingController Test Suite', function () {
         'handleDeleteAllDocuments',
       );
 
-      // Stub showInformationMessage to cancel so we don't need full mock setup
-      sandbox
-        .stub(vscode.window, 'showInformationMessage')
-        .resolves(undefined as any);
+      // Stub executeCommand since handleDeleteAllDocuments now delegates to the command
+      sandbox.stub(vscode.commands, 'executeCommand').resolves(true);
 
       await testController.handleWebviewMessage(
         { command: PreviewMessageType.deleteAllDocuments },
@@ -1041,6 +946,70 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(handleDeleteAllSpy.calledOnce).to.be.true;
       expect(handleDeleteAllSpy.calledWith(mockPanel, options)).to.be.true;
+    });
+  });
+
+  suite('notifyDocumentsChanged', function () {
+    test('sends documentDeleted message to panels matching the namespace', function () {
+      const matchingPostMessage = sandbox.stub().resolves(true);
+      const matchingPanel = {
+        title: 'testDb.testCol',
+        webview: { postMessage: matchingPostMessage },
+      } as unknown as vscode.WebviewPanel;
+
+      (testController as any)._activeWebviewPanels = [matchingPanel];
+
+      testController.notifyDocumentsChanged('testDb', 'testCol');
+
+      expect(matchingPostMessage.calledOnce).to.be.true;
+      expect(matchingPostMessage.firstCall.args[0]).to.deep.equal({
+        command: PreviewMessageType.documentDeleted,
+      });
+    });
+
+    test('does not send message to panels with non-matching title', function () {
+      const otherPostMessage = sandbox.stub().resolves(true);
+      const otherPanel = {
+        title: 'otherDb.otherCol',
+        webview: { postMessage: otherPostMessage },
+      } as unknown as vscode.WebviewPanel;
+
+      (testController as any)._activeWebviewPanels = [otherPanel];
+
+      testController.notifyDocumentsChanged('testDb', 'testCol');
+
+      expect(otherPostMessage.called).to.be.false;
+    });
+
+    test('sends message only to matching panels when multiple are open', function () {
+      const matchingPostMessage = sandbox.stub().resolves(true);
+      const otherPostMessage = sandbox.stub().resolves(true);
+
+      const matchingPanel = {
+        title: 'myDb.myCol',
+        webview: { postMessage: matchingPostMessage },
+      } as unknown as vscode.WebviewPanel;
+      const otherPanel = {
+        title: 'myDb.otherCol',
+        webview: { postMessage: otherPostMessage },
+      } as unknown as vscode.WebviewPanel;
+
+      (testController as any)._activeWebviewPanels = [
+        matchingPanel,
+        otherPanel,
+      ];
+
+      testController.notifyDocumentsChanged('myDb', 'myCol');
+
+      expect(matchingPostMessage.calledOnce).to.be.true;
+      expect(otherPostMessage.called).to.be.false;
+    });
+
+    test('handles empty active panels gracefully', function () {
+      (testController as any)._activeWebviewPanels = [];
+
+      // Should not throw
+      testController.notifyDocumentsChanged('testDb', 'testCol');
     });
   });
 
