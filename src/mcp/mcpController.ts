@@ -373,7 +373,9 @@ ${jsonConfig}`,
 
     return new vscode.McpHttpServerDefinition(
       'MongoDB MCP Server',
-      vscode.Uri.parse(`${this.server.runner.serverAddress}/mcp`),
+      vscode.Uri.parse(
+        `${String(this.server.runner['mcpServer'].serverAddress)}/mcp`,
+      ),
       this.server.headers,
     );
   }
@@ -408,11 +410,11 @@ ${jsonConfig}`,
 
       const connectParams: MCPConnectParams | undefined =
         connectionId && mongoClientOptions
-          ? {
+          ? ({
               connectionId: connectionId,
               connectionString: mongoClientOptions.url,
               connectOptions: mongoClientOptions.options,
-            }
+            } as MCPConnectParams)
           : undefined;
       await connectionManager.updateConnection(connectParams);
     } catch (error) {
