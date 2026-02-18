@@ -373,20 +373,13 @@ export default class DataBrowsingController {
   };
 
   handleDeleteAllDocuments = async (
-    panel: vscode.WebviewPanel,
+    _panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
-    const deleted = await vscode.commands.executeCommand<boolean>(
+    await vscode.commands.executeCommand<boolean>(
       ExtensionCommand.mdbDeleteAllDocumentsFromTreeView,
       options,
     );
-
-    if (deleted) {
-      // Notify the webview that documents were deleted so it refreshes.
-      void panel.webview.postMessage({
-        command: PreviewMessageType.documentDeleted,
-      });
-    }
   };
 
   handleDeleteDocument = async (
@@ -517,6 +510,20 @@ export default class DataBrowsingController {
       (panel) => panel !== disposedPanel,
     );
   };
+
+  notifyDocumentsChanged(
+    databaseName: string,
+    collectionName: string,
+  ): void {
+    const namespace = `${databaseName}.${collectionName}`;
+    for (const panel of this._activeWebviewPanels) {
+      if (panel.title === namespace) {
+        void panel.webview.postMessage({
+          command: PreviewMessageType.documentDeleted,
+        });
+      }
+    }
+  }
 
   onConfigurationChanged = (event: vscode.ConfigurationChangeEvent): void => {
     if (event.affectsConfiguration('workbench.colorTheme')) {

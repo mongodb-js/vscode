@@ -905,7 +905,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbRefreshDocumentList,
-      async (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
+      async (
+        documentsListTreeItem: DocumentListTreeItem | ShowPreviewTreeItem,
+      ): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
         this._explorerController.refresh();
         await this._languageServerController.resetCache({ fields: true });
@@ -967,6 +969,11 @@ export default class MDBExtensionController implements vscode.Disposable {
           );
 
           this._explorerController.refreshCollection(
+            databaseName,
+            collectionName,
+          );
+
+          this._dataBrowsingController.notifyDocumentsChanged(
             databaseName,
             collectionName,
           );
