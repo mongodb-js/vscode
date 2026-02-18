@@ -511,10 +511,7 @@ export default class DataBrowsingController {
     );
   };
 
-  notifyDocumentsChanged(
-    databaseName: string,
-    collectionName: string,
-  ): void {
+  notifyDocumentsChanged(databaseName: string, collectionName: string): void {
     const namespace = `${databaseName}.${collectionName}`;
     for (const panel of this._activeWebviewPanels) {
       if (panel.title === namespace) {

@@ -948,21 +948,14 @@ export default class MDBExtensionController implements vscode.Disposable {
           return false;
         }
 
-        const dataService =
-          this._connectionController.getActiveDataService();
+        const dataService = this._connectionController.getActiveDataService();
         if (!dataService) {
-          void vscode.window.showErrorMessage(
-            'No active database connection.',
-          );
+          void vscode.window.showErrorMessage('No active database connection.');
           return false;
         }
 
         try {
-          const deleteResult = await dataService.deleteMany(
-            namespace,
-            {},
-            {},
-          );
+          const deleteResult = await dataService.deleteMany(namespace, {}, {});
 
           void vscode.window.showInformationMessage(
             `${deleteResult.deletedCount} document(s) successfully deleted.`,
