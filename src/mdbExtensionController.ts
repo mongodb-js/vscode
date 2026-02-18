@@ -24,7 +24,10 @@ import {
   HelpExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
-import { type ExportToLanguageResult } from './types/playgroundType';
+import {
+  PlaygroundRunCursorResult,
+  type ExportToLanguageResult,
+} from './types/playgroundType';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
 import { LanguageServerController } from './language';
@@ -157,6 +160,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbInsertDocumentFromDataBrowser,
   ExtensionCommand.mdbCloneDocumentFromDataBrowser,
   ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+  ExtensionCommand.mdbOpenDataBrowserFromPlayground,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -886,6 +890,31 @@ export default class MDBExtensionController implements vscode.Disposable {
           collectionName: element.collectionName,
           collectionType: element.type,
         });
+
+        return Promise.resolve(true);
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+      ({ result }: { result: PlaygroundRunCursorResult }): Promise<boolean> => {
+        const { method, args } = result.constructionOptions.options;
+        if (method === 'find' || method === 'aggregate') {
+          // For these the first two args happen to be databvaseName and collectionName
+          const [databaseName, collectionName] =
+            result.constructionOptions.options.args;
+
+          this._dataBrowsingController.openDataBrowser(this._context, {
+            databaseName,
+            collectionName,
+            collectionType: 'unknown', // TODO: figure this out or remove it
+            query: result.constructionOptions,
+          });
+        } else {
+          // we check this before calling this command, but we add this check here just in case
+          throw new Error(
+            `Only find and aggregate supported becase we need a database and collection. Received method ${method}.`,
+          );
+        }
 
         return Promise.resolve(true);
       },

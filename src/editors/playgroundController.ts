@@ -44,6 +44,7 @@ import {
   PlaygroundExecutedTelemetryEvent,
   PlaygroundSavedTelemetryEvent,
 } from '../telemetry';
+import { ExtensionCommand } from '../commands';
 
 const log = createLogger('playground controller');
 
@@ -472,6 +473,23 @@ export default class PlaygroundController {
     }
   }
 
+  async _openResult(result: PlaygroundRunResult): Promise<void> {
+    if (result.constructionOptions) {
+      const { method } = result.constructionOptions.options;
+      if (method === 'find' || method === 'aggregate') {
+        // open find or aggregate cursor results in the data browser
+        vscode.commands.executeCommand(
+          ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+          { result },
+        );
+        return;
+      }
+    }
+
+    // as a fallback, show results that aren't find or aggregate cursors in the result pane
+    this._openInResultPane(result);
+  }
+
   _refreshResultAsVirtualDocument(): void {
     this._playgroundResultProvider.refresh();
   }
@@ -530,7 +548,7 @@ export default class PlaygroundController {
       return false;
     }
 
-    await this._openInResultPane(evaluateResponse.result);
+    await this._openResult(evaluateResponse.result);
 
     return true;
   }
@@ -605,7 +623,7 @@ export default class PlaygroundController {
     }
 
     this._playgroundResult = evaluateResponse.result;
-    await this._openInResultPane(this._playgroundResult);
+    await this._openResult(this._playgroundResult);
 
     return true;
   }

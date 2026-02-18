@@ -25,8 +25,8 @@ const createTestState = (
 
   // Recalculate computed pagination values based on overrides
   state.totalDocuments =
-    state.totalCountInCollection !== null
-      ? state.totalCountInCollection
+    state.totalCountForQuery !== null
+      ? state.totalCountForQuery
       : state.displayedDocuments.length;
   state.totalPages = Math.max(
     1,
@@ -193,7 +193,7 @@ describe('actions test suite', function () {
     it('should not navigate when on last page', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 5
       const store = createStore(
-        createTestState({ totalCountInCollection: 50, currentPage: 5 }),
+        createTestState({ totalCountForQuery: 50, currentPage: 5 }),
       );
 
       store.dispatch(nextPageRequested());
@@ -205,7 +205,7 @@ describe('actions test suite', function () {
     it('should navigate to next page when not on last page', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 2
       const store = createStore(
-        createTestState({ totalCountInCollection: 50, currentPage: 2 }),
+        createTestState({ totalCountForQuery: 50, currentPage: 2 }),
       );
 
       store.dispatch(nextPageRequested());
@@ -223,7 +223,7 @@ describe('actions test suite', function () {
       // Set up: 75 docs with 25 per page = 3 pages, on page 1
       const store = createStore(
         createTestState({
-          totalCountInCollection: 75,
+          totalCountForQuery: 75,
           currentPage: 1,
           itemsPerPage: 25,
         }),
@@ -306,7 +306,7 @@ describe('actions test suite', function () {
       const store = createStore(
         createTestState({
           sort: sortOption,
-          totalCountInCollection: 50,
+          totalCountForQuery: 50,
           currentPage: 1,
         }),
       );
@@ -352,7 +352,7 @@ describe('actions test suite', function () {
     it('should not change page when currentPage is within bounds', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 3
       const store = createStore(
-        createTestState({ totalCountInCollection: 50, currentPage: 3 }),
+        createTestState({ totalCountForQuery: 50, currentPage: 3 }),
       );
 
       store.dispatch(currentPageAdjusted());
@@ -363,7 +363,7 @@ describe('actions test suite', function () {
     it('should adjust page when currentPage exceeds totalPages', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 10
       const store = createStore(
-        createTestState({ totalCountInCollection: 50, currentPage: 10 }),
+        createTestState({ totalCountForQuery: 50, currentPage: 10 }),
       );
 
       store.dispatch(currentPageAdjusted());

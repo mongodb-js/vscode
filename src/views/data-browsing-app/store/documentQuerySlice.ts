@@ -1,4 +1,4 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
+import type { Draft, PayloadAction } from '@reduxjs/toolkit';
 import { createSlice, current } from '@reduxjs/toolkit';
 import {
   sendGetDocuments,
@@ -12,6 +12,7 @@ import {
   type DocumentSort,
   type SortValueKey,
 } from '../extension-app-message-constants';
+import { ServiceProvider } from '@mongosh/service-provider-core';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -44,42 +45,108 @@ export interface ErrorsState {
   getTotalCount: string | null;
 }
 
-export interface DocumentQueryState {
+// for now we won't do much with this. It really just separates "cursor queries"
+// from basic queries where we browse a collection
+export type ServiceProviderQuery = {
+  options:
+    | {
+        method: 'find';
+        // database, collection, filter, findOptions, dbOptions
+        args: Parameters<ServiceProvider['find']>;
+      }
+    | {
+        method: 'aggregate';
+        // database, collection, pipeline, aggregateOptions, dbOptions
+        args: Parameters<ServiceProvider['aggregate']>;
+      }
+    | {
+        method: 'aggregateDb';
+        // database, pipeline, aggregateOptions, dbOptions
+        args: Parameters<ServiceProvider['aggregateDb']>;
+      }
+    | {
+        method: 'runCursorCommand';
+        // database, spec, runCursorCommandOptions, dbOptions
+        args: Parameters<ServiceProvider['runCursorCommand']>;
+      };
+  chains: {
+    method: 'string';
+    args: any[];
+  }[];
+};
+
+export type DocumentQueryState = {
   displayedDocuments: PreviewDocument[];
   currentPage: number;
+  totalCountForQuery: number | null;
+
   itemsPerPage: number;
+
+  // for now we will only display controls like bulk delete and the total count
+  // for basic queries (ie. query === null)
   sort: SortOption | null;
-  isLoading: boolean;
-  totalCountInCollection: number | null;
-  hasReceivedCount: boolean;
-  errors: ErrorsState;
-  totalDocuments: number;
-  totalPages: number;
+  query: ServiceProviderQuery | null;
+
+  // TODO: these are derived values, why are we storing them?
+  totalPages: number | null;
   startItem: number;
   endItem: number;
+  // until we get totalCountForQuery this is just displayedDocuments.length
+  totalDocuments: number;
+
+  isLoading: boolean;
+  hasReceivedCount: boolean;
+  errors: ErrorsState;
   themeColors: TokenColors | null;
   themeKind: MonacoBaseTheme;
-}
+};
 
 const DEFAULT_ITEMS_PER_PAGE = 10;
 
-const recalculatePaginationValues = (state: DocumentQueryState): void => {
-  state.totalDocuments =
-    state.totalCountInCollection !== null
-      ? state.totalCountInCollection
-      : state.displayedDocuments.length;
-  state.totalPages = Math.max(
-    1,
-    Math.ceil(state.totalDocuments / state.itemsPerPage),
-  );
-  state.startItem =
-    state.totalDocuments === 0
-      ? 0
-      : (state.currentPage - 1) * state.itemsPerPage + 1;
-  state.endItem = Math.min(
-    state.currentPage * state.itemsPerPage,
-    state.totalDocuments,
-  );
+export const isBasicQuery = (
+  state: any,
+): state is DocumentQueryState & { query: null } => {
+  return state.query === null;
+};
+
+export const isCursorQuery = (
+  state: any,
+): state is DocumentQueryState & { query: ServiceProviderQuery } => {
+  return state.query !== null;
+};
+
+const recalculatePaginationValues = (
+  state: Draft<DocumentQueryState>,
+): void => {
+  if (isBasicQuery(state)) {
+    state.totalDocuments =
+      state.totalCountForQuery !== null
+        ? state.totalCountForQuery
+        : state.displayedDocuments.length;
+    state.totalPages = Math.max(
+      1,
+      Math.ceil(state.totalDocuments / state.itemsPerPage),
+    );
+    state.startItem =
+      state.totalDocuments === 0
+        ? 0
+        : (state.currentPage - 1) * state.itemsPerPage + 1;
+    state.endItem = Math.min(
+      state.currentPage * state.itemsPerPage,
+      state.totalDocuments,
+    );
+  } else {
+    // for non-basic queries we won't have pagination controls beyond
+    // next/previous page and amount per page
+    // state.totalDocuments will remain null
+    // state.totalPages will remain null
+    state.startItem = (state.currentPage - 1) * state.itemsPerPage + 1;
+    state.totalPages = null;
+    state.endItem = Math.min(
+      state.currentPage * state.itemsPerPage,
+      state.startItem + state.displayedDocuments.length - 1,
+    );
+  }
 };
 
 export const getInitialSort = (): SortOption | null => {
@@ -94,13 +161,26 @@ export const getInitialSort = (): SortOption | null => {
   return null;
 };
 
+export const getInitialQuery = (): ServiceProviderQuery | null => {
+  if (
+    typeof window !== 'undefined' &&
+    window.MDB_DATA_BROWSING_OPTIONS?.query
+  ) {
+    const queryString = window.MDB_DATA_BROWSING_OPTIONS.query;
+    return JSON.parse(queryString) as ServiceProviderQuery;
+  }
+  return null;
+};
+
 export const initialState: DocumentQueryState = {
   displayedDocuments: [],
   currentPage: 1,
   itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
+
   sort: getInitialSort(),
+  query: getInitialQuery(),
   isLoading: true,
-  totalCountInCollection: null,
+  totalCountForQuery: null,
   hasReceivedCount: false,
   errors: {
     getDocuments: null,
@@ -160,7 +240,7 @@ const documentQuerySlice = createSlice({
       }
     },
     nextPageRequested: (state) => {
-      if (state.currentPage < state.totalPages) {
+      if (state.totalPages === null || state.currentPage < state.totalPages) {
         const newPage = state.currentPage + 1;
         const skip = (newPage - 1) * state.itemsPerPage;
         state.currentPage = newPage;
@@ -207,7 +287,11 @@ const documentQuerySlice = createSlice({
       sendCancelRequest();
     },
     currentPageAdjusted: (state) => {
-      if (state.currentPage > state.totalPages && state.totalPages > 0) {
+      if (
+        state.totalPages !== null &&
+        state.currentPage > state.totalPages &&
+        state.totalPages > 0
+      ) {
         state.currentPage = state.totalPages;
         recalculatePaginationValues(state);
       }
@@ -230,7 +314,7 @@ const documentQuerySlice = createSlice({
       state.isLoading = false;
     },
     totalCountReceived: (state, action: PayloadAction<number | null>) => {
-      state.totalCountInCollection = action.payload;
+      state.totalCountForQuery = action.payload;
       state.hasReceivedCount = true;
       state.errors.getTotalCount = null;
       recalculatePaginationValues(state);

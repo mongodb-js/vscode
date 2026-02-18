@@ -37,7 +37,7 @@ describe('documentQuerySlice', function () {
       expect(result.itemsPerPage).to.equal(10);
       expect(result.sort).to.be.null;
       expect(result.isLoading).to.be.true;
-      expect(result.totalCountInCollection).to.be.null;
+      expect(result.totalCountForQuery).to.be.null;
       expect(result.hasReceivedCount).to.be.false;
       expect(result.errors.getDocuments).to.be.null;
       expect(result.errors.getTotalCount).to.be.null;
@@ -76,14 +76,14 @@ describe('documentQuerySlice', function () {
     describe('totalCountReceived', function () {
       it('should set total count and mark as received', function () {
         const result = reducer(initialState, totalCountReceived(100));
-        expect(result.totalCountInCollection).to.equal(100);
+        expect(result.totalCountForQuery).to.equal(100);
         expect(result.hasReceivedCount).to.be.true;
       });
 
       it('should handle null count', function () {
-        const state = { ...initialState, totalCountInCollection: 50 };
+        const state = { ...initialState, totalCountForQuery: 50 };
         const result = reducer(state, totalCountReceived(null));
-        expect(result.totalCountInCollection).to.be.null;
+        expect(result.totalCountForQuery).to.be.null;
         expect(result.hasReceivedCount).to.be.true;
       });
     });
@@ -95,7 +95,7 @@ describe('documentQuerySlice', function () {
           totalCountFetchFailed('Count failed'),
         );
         expect(result.hasReceivedCount).to.be.true;
-        expect(result.totalCountInCollection).to.be.null;
+        expect(result.totalCountForQuery).to.be.null;
         expect(result.errors.getTotalCount).to.equal('Count failed');
       });
     });
@@ -265,7 +265,7 @@ describe('documentQuerySlice', function () {
           currentPage: 3,
           itemsPerPage: 25,
           isLoading: false,
-          totalCountInCollection: 100,
+          totalCountForQuery: 100,
           hasReceivedCount: true,
           errors: { getDocuments: 'Test error', getTotalCount: null },
         });
@@ -274,7 +274,7 @@ describe('documentQuerySlice', function () {
         expect(result.currentPage).to.equal(3);
         expect(result.itemsPerPage).to.equal(25);
         expect(result.isLoading).to.be.false;
-        expect(result.totalCountInCollection).to.equal(100);
+        expect(result.totalCountForQuery).to.equal(100);
         expect(result.hasReceivedCount).to.be.true;
         expect(result.errors.getDocuments).to.equal('Test error');
       });
@@ -303,12 +303,12 @@ describe('documentQuerySlice', function () {
       });
 
       describe('totalCountReceived recalculates computed values', function () {
-        it('should use totalCountInCollection for totalDocuments', function () {
+        it('should use totalCountForQuery for totalDocuments', function () {
           const result = reducer(initialState, totalCountReceived(100));
           expect(result.totalDocuments).to.equal(100);
         });
 
-        it('should calculate totalPages from totalCountInCollection', function () {
+        it('should calculate totalPages from totalCountForQuery', function () {
           const result = reducer(initialState, totalCountReceived(55));
           expect(result.totalPages).to.equal(6); // 55 / 10 = 6 pages
         });
