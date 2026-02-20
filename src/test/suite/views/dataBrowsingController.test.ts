@@ -859,6 +859,11 @@ suite('DataBrowsingController Test Suite', function () {
       .stub(vscode.workspace, 'getConfiguration')
       .returns({ get: getStub } as any);
 
+    // stub deleteOne on data service
+    (mockDataService as any).deleteOne = sandbox
+      .stub()
+      .resolves({ deletedCount: 1 });
+
     const executeCommandStub = sandbox
       .stub(vscode.commands, 'executeCommand')
       .resolves(true);
