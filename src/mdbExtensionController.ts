@@ -58,6 +58,7 @@ import {
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
+import type { DocumentViewAndEditFormat } from './editors/types';
 import { getDocumentViewAndEditFormat } from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
 import DataBrowsingController from './views/dataBrowsingController';
@@ -152,6 +153,10 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
   ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+  ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
+  ExtensionCommand.mdbInsertDocumentFromDataBrowser,
+  ExtensionCommand.mdbCloneDocumentFromDataBrowser,
+  ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -264,9 +269,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
     this._dataBrowsingController = new DataBrowsingController({
       connectionController: this._connectionController,
-      editorsController: this._editorsController,
-      playgroundController: this._playgroundController,
-      explorerController: this._explorerController,
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
@@ -664,6 +666,23 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
+      ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+      async ({
+        databaseName,
+        collectionName,
+      }: {
+        databaseName: string;
+        collectionName: string;
+      }): Promise<boolean> => {
+        this._explorerController.refreshCollection(
+          databaseName,
+          collectionName,
+        );
+
+        return Promise.resolve(true);
+      },
+    );
+    this.registerCommand(
       ExtensionCommand.mdbEditPresetConnections,
       async (element: ConnectionTreeItem | undefined) => {
         await this._connectionController.openPresetConnectionsSettings(element);
@@ -872,6 +891,30 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
+      ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
+      async ({
+        documentId,
+        namespace,
+        format,
+        connectionId,
+      }: {
+        documentId: any;
+        namespace: string;
+        format: DocumentViewAndEditFormat;
+        connectionId: string | null;
+      }): Promise<boolean> => {
+        await this._editorsController.openMongoDBDocument({
+          source: DocumentSource.databrowser,
+          documentId,
+          namespace,
+          format,
+          connectionId,
+          line: 1,
+        });
+        return true;
+      },
+    );
+    this.registerCommand(
       ExtensionCommand.mdbRefreshCollection,
       async (collectionTreeItem: CollectionTreeItem): Promise<boolean> => {
         collectionTreeItem.resetCache();
@@ -920,6 +963,21 @@ export default class MDBExtensionController implements vscode.Disposable {
         return this._playgroundController.createPlaygroundForInsertDocument(
           documentsListTreeItem.databaseName,
           documentsListTreeItem.collectionName,
+        );
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbInsertDocumentFromDataBrowser,
+      async ({
+        databaseName,
+        collectionName,
+      }: {
+        databaseName: string;
+        collectionName: string;
+      }): Promise<boolean> => {
+        return this._playgroundController.createPlaygroundForInsertDocument(
+          databaseName,
+          collectionName,
         );
       },
     );
@@ -1000,6 +1058,24 @@ export default class MDBExtensionController implements vscode.Disposable {
         const [databaseName, collectionName] =
           documentTreeItem.namespace.split(/\.(.*)/s);
 
+        return this._playgroundController.createPlaygroundForCloneDocument(
+          documentContents,
+          databaseName,
+          collectionName,
+        );
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbCloneDocumentFromDataBrowser,
+      async ({
+        documentContents,
+        databaseName,
+        collectionName,
+      }: {
+        documentContents: string;
+        databaseName: string;
+        collectionName: string;
+      }): Promise<boolean> => {
         return this._playgroundController.createPlaygroundForCloneDocument(
           documentContents,
           databaseName,
