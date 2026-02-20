@@ -22,8 +22,8 @@ import {
 import type EditorsController from '../editors/editorsController';
 import type PlaygroundController from '../editors/playgroundController';
 import type ExplorerController from '../explorer/explorerController';
-import { DocumentSource } from '../documentSource';
 import { getDocumentViewAndEditFormat } from '../editors/types';
+import ExtensionCommand from '../commands';
 
 const log = createLogger('data browsing controller');
 
@@ -100,7 +100,6 @@ interface PanelAbortControllers {
 
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
-  _editorsController: EditorsController;
   _playgroundController: PlaygroundController;
   _explorerController: ExplorerController;
   _telemetryService: TelemetryService;
@@ -112,19 +111,16 @@ export default class DataBrowsingController {
 
   constructor({
     connectionController,
-    editorsController,
     playgroundController,
     explorerController,
     telemetryService,
   }: {
     connectionController: ConnectionController;
-    editorsController: EditorsController;
     playgroundController: PlaygroundController;
     explorerController: ExplorerController;
     telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
-    this._editorsController = editorsController;
     this._playgroundController = playgroundController;
     this._explorerController = explorerController;
     this._telemetryService = telemetryService;
@@ -317,14 +313,15 @@ export default class DataBrowsingController {
     documentId: any,
   ): Promise<void> => {
     try {
-      await this._editorsController.openMongoDBDocument({
-        source: DocumentSource.databrowser,
-        documentId,
-        namespace: `${options.databaseName}.${options.collectionName}`,
-        format: getDocumentViewAndEditFormat(),
-        connectionId: this._connectionController.getActiveConnectionId(),
-        line: 1,
-      });
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
+        {
+          documentId,
+          namespace: `${options.databaseName}.${options.collectionName}`,
+          format: getDocumentViewAndEditFormat(),
+          connectionId: this._connectionController.getActiveConnectionId(),
+        },
+      );
     } catch (error) {
       log.error('Error opening document for editing', error);
       void vscode.window.showErrorMessage(

@@ -58,7 +58,10 @@ import {
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
-import { getDocumentViewAndEditFormat } from './editors/types';
+import {
+  DocumentViewAndEditFormat,
+  getDocumentViewAndEditFormat,
+} from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
 import DataBrowsingController from './views/dataBrowsingController';
 
@@ -152,6 +155,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
   ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+  ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -264,7 +268,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
     this._dataBrowsingController = new DataBrowsingController({
       connectionController: this._connectionController,
-      editorsController: this._editorsController,
       playgroundController: this._playgroundController,
       explorerController: this._explorerController,
       telemetryService: this._telemetryService,
@@ -869,6 +872,30 @@ export default class MDBExtensionController implements vscode.Disposable {
         });
 
         return Promise.resolve(true);
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
+      async ({
+        documentId,
+        namespace,
+        format,
+        connectionId,
+      }: {
+        documentId: any;
+        namespace: string;
+        format: DocumentViewAndEditFormat;
+        connectionId: string | null;
+      }): Promise<boolean> => {
+        await this._editorsController.openMongoDBDocument({
+          source: DocumentSource.databrowser,
+          documentId,
+          namespace,
+          format,
+          connectionId,
+          line: 1,
+        });
+        return true;
       },
     );
     this.registerCommand(
