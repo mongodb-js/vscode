@@ -58,10 +58,8 @@ import {
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
-import {
-  DocumentViewAndEditFormat,
-  getDocumentViewAndEditFormat,
-} from './editors/types';
+import type { DocumentViewAndEditFormat } from './editors/types';
+import { getDocumentViewAndEditFormat } from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
 import DataBrowsingController from './views/dataBrowsingController';
 
@@ -681,7 +679,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           collectionName,
         );
 
-        return true;
+        return Promise.resolve(true);
       },
     );
     this.registerCommand(

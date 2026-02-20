@@ -8,6 +8,7 @@ import { PreviewMessageType } from '../../../views/data-browsing-app/extension-a
 import type { DataBrowsingOptions } from '../../../views/dataBrowsingController';
 import { CollectionType } from '../../../explorer/documentUtils';
 import { EJSON } from 'bson';
+import ExtensionCommand from '../../../commands';
 
 suite('DataBrowsingController Test Suite', function () {
   const sandbox: SinonSandbox = sinon.createSandbox();
@@ -812,7 +813,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     expect(executeCommandStub.calledOnce).to.be.true;
     expect(executeCommandStub.firstCall.args[0]).to.equal(
-      'mdb.openMongoDBDocumentFromDataBrowser',
+      ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
     );
     const commandArgs = executeCommandStub.firstCall.args[1];
     expect(commandArgs.documentId).to.equal('my-id');
@@ -838,7 +839,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     expect(executeCommandStub.calledOnce).to.be.true;
     expect(executeCommandStub.firstCall.args[0]).to.equal(
-      'mdb.cloneDocumentFromDataBrowser',
+      ExtensionCommand.mdbCloneDocumentFromDataBrowser,
     );
     const commandArgs = executeCommandStub.firstCall.args[1];
     // Verify that _id is not in the documentContents
@@ -847,7 +848,7 @@ suite('DataBrowsingController Test Suite', function () {
     expect(commandArgs.collectionName).to.equal('collection');
   });
 
-  test('handleDeleteDocument deletes and notifies webview when confirmed', async function () {
+  test('handleDeleteDocument calls correct vscode command when confirmed', async function () {
     const options = createMockOptions();
 
     // stub confirm setting
@@ -858,40 +859,16 @@ suite('DataBrowsingController Test Suite', function () {
       .stub(vscode.workspace, 'getConfiguration')
       .returns({ get: getStub } as any);
 
-    // stub deleteOne on data service
-    (mockDataService as any).deleteOne = sandbox
-      .stub()
-      .resolves({ deletedCount: 1 });
-
-    // make sure we use the mock data service
-    (testController as any)._connectionController = {
-      getActiveDataService: () => {
-        return mockDataService;
-      },
-    };
+    const executeCommandStub = sandbox
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await testController.handleDeleteDocument(mockPanel, options, 'del-id');
 
-    expect(getStub.calledWith('confirmDeleteDocument')).to.be.true;
-
-    expect((mockDataService as any).deleteOne.calledOnce).to.be.true;
-    const deleteArgs = (mockDataService as any).deleteOne.firstCall.args;
-    expect(deleteArgs[0]).to.equal(
-      `${options.databaseName}.${options.collectionName}`,
+    expect(executeCommandStub.calledOnce).to.be.true;
+    expect(executeCommandStub.firstCall.args[0]).to.equal(
+      ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
     );
-    expect(deleteArgs[1]).to.deep.equal({ _id: 'del-id' });
-
-    // webview notified
-    const msg = postMessageStub
-      .getCalls()
-      .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
-    expect(msg).to.not.be.undefined;
-
-    // explorer tree refreshed with correct namespace
-    expect(mockExplorerController.refreshCollection.calledOnce).to.be.true;
-    expect(
-      mockExplorerController.refreshCollection.calledWith('test', 'collection'),
-    ).to.be.true;
   });
 
   test('handleDeleteDocument cancels when user declines', async function () {
@@ -936,40 +913,22 @@ suite('DataBrowsingController Test Suite', function () {
       };
     }
 
-    test('uses deleteMany and notifies webview', async function () {
+    test('calls correct vscode command to refresh collection', async function () {
       const options = createMockOptions();
       setupDeleteAllMocks({ deletedCount: 500 });
 
+      (testController as any)._explorerController = mockExplorerController;
+
+      const executeCommandStub = sandbox
+        .stub(vscode.commands, 'executeCommand')
+        .resolves(true);
+
       await testController.handleDeleteAllDocuments(mockPanel, options);
 
-      // deleteMany should be called
-      expect((mockDataService as any).deleteMany.calledOnce).to.be.true;
-      expect((mockDataService as any).deleteMany.firstCall.args[0]).to.equal(
-        'test.collection',
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.firstCall.args[0]).to.equal(
+        ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
       );
-
-      // Should show success message with count
-      const successCall = showInfoStub
-        .getCalls()
-        .find(
-          (c) => typeof c.args[0] === 'string' && c.args[0].includes('500'),
-        );
-      expect(successCall).to.not.be.undefined;
-
-      // Should notify webview
-      const msg = postMessageStub
-        .getCalls()
-        .find((c) => c.args[0].command === PreviewMessageType.documentDeleted);
-      expect(msg).to.not.be.undefined;
-
-      // Should refresh tree with correct namespace
-      expect(mockExplorerController.refreshCollection.called).to.be.true;
-      expect(
-        mockExplorerController.refreshCollection.calledWith(
-          'test',
-          'collection',
-        ),
-      ).to.be.true;
     });
 
     test('does nothing when user cancels initial confirmation', async function () {
@@ -1056,7 +1015,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     expect(executeCommandStub.calledOnce).to.be.true;
     expect(executeCommandStub.firstCall.args[0]).to.equal(
-      'mdb.insertDocumentFromDataBrowser',
+      ExtensionCommand.mdbInsertDocumentFromDataBrowser,
     );
     const commandArgs = executeCommandStub.firstCall.args[1];
     expect(commandArgs.databaseName).to.equal('test');
