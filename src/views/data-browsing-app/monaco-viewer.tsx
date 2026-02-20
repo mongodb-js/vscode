@@ -116,7 +116,7 @@ function findPathAtPosition(text: string, lineNumber: number): string | null {
 }
 
 /**
- * After toJSString formatting, append … to lines whose values were truncated.
+ * After toJSString formatting, append ⋯ to lines whose values were truncated.
  * We detect truncated strings by looking for values ending with `..."` or `...'`
  * that correspond to paths in the truncation map.
  */
@@ -132,8 +132,8 @@ function addExpandIndicators(
     if (line.match(/\.\.\.("|')(\s*,?\s*)$/)) {
       const path = findPathAtPosition(formattedText, index + 1);
       if (path && truncationMap.has(path)) {
-        // Insert … before the trailing comma (if any)
-        return line.replace(/(\.\.\.("|'))(\s*,?\s*)$/, '$1 …$3');
+        // Insert ⋯ before the trailing comma (if any)
+        return line.replace(/(\.\.\.("|'))(\s*,?\s*)$/, '$1 ⋯$3');
       }
     }
     return line;
@@ -393,7 +393,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     setEditorHeight(calculateHeight());
   }, [documentString, calculateHeight]);
 
-  // Add decorations to make … indicators clickable
+  // Add decorations to make ⋯ indicators clickable
   const addExpandIndicatorDecorations = useCallback(() => {
     if (!editorRef.current || !monaco) return;
 
@@ -405,8 +405,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     const lines = text.split('\n');
 
     lines.forEach((line, index) => {
-      // Look for the … glyph after a closing quote
-      const match = line.match(/" …/);
+      // Look for the ⋯ glyph after a closing quote
+      const match = line.match(/" ⋯/);
       if (match && match.index !== undefined) {
         const lineNumber = index + 1;
         const startColumn = match.index + 3; // Position after quote and space
@@ -486,13 +486,13 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         const position = e.target.position;
         const lineContent = model.getLineContent(position.lineNumber);
 
-        // Check if the click is on or near the … glyph
+        // Check if the click is on or near the ⋯ glyph
         const clickColumn = position.column;
         const beforeClick = lineContent.substring(0, clickColumn + 2);
         const afterClick = lineContent.substring(clickColumn - 3);
 
         // Check if we clicked on the glyph (it appears after " )
-        if (beforeClick.includes('" …') || afterClick.startsWith('…')) {
+        if (beforeClick.includes('" ⋯') || afterClick.startsWith('⋯')) {
           // Find the path for this truncated value
           const fullText = model.getValue();
           const pathAtPosition = findPathAtPosition(
@@ -517,7 +517,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             // Edit just this one line in the model instead of replacing
             // the entire editor value (which would destroy fold state).
             const newLine = lineContent.replace(
-              `${formattedTruncated} …`,
+              `${formattedTruncated} ⋯`,
               formattedFull
             );
 
