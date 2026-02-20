@@ -158,6 +158,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
   ExtensionCommand.mdbInsertDocumentFromDataBrowser,
   ExtensionCommand.mdbCloneDocumentFromDataBrowser,
+  ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -270,7 +271,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
     this._dataBrowsingController = new DataBrowsingController({
       connectionController: this._connectionController,
-      explorerController: this._explorerController,
       telemetryService: this._telemetryService,
     });
     this._editorsController.registerProviders();
@@ -663,6 +663,23 @@ export default class MDBExtensionController implements vscode.Disposable {
           fields: true,
           streamProcessors: true,
         });
+
+        return true;
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+      async ({
+        databaseName,
+        collectionName,
+      }: {
+        databaseName: string;
+        collectionName: string;
+      }): Promise<boolean> => {
+        this._explorerController.refreshCollection(
+          databaseName,
+          collectionName,
+        );
 
         return true;
       },

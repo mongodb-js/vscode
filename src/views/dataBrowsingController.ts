@@ -19,7 +19,6 @@ import {
   getThemeTokenColors,
   getMonacoBaseTheme,
 } from '../utils/themeColorReader';
-import type ExplorerController from '../explorer/explorerController';
 import { getDocumentViewAndEditFormat } from '../editors/types';
 import ExtensionCommand from '../commands';
 
@@ -98,7 +97,6 @@ interface PanelAbortControllers {
 
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
-  _explorerController: ExplorerController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
   _configChangedSubscription: vscode.Disposable;
@@ -108,15 +106,12 @@ export default class DataBrowsingController {
 
   constructor({
     connectionController,
-    explorerController,
     telemetryService,
   }: {
     connectionController: ConnectionController;
-    explorerController: ExplorerController;
     telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
-    this._explorerController = explorerController;
     this._telemetryService = telemetryService;
     this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
       this.onConfigurationChanged,
@@ -402,9 +397,12 @@ export default class DataBrowsingController {
 
       // Refresh the tree view in the sidebar (reset collection cache so
       // the document count is re-fetched).
-      this._explorerController.refreshCollection(
-        options.databaseName,
-        options.collectionName,
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+        {
+          databaseName: options.databaseName,
+          collectionName: options.collectionName,
+        },
       );
 
       // Notify the webview that documents were deleted so it refreshes
@@ -469,9 +467,12 @@ export default class DataBrowsingController {
 
       // Refresh the tree view in the sidebar (reset collection cache so
       // the document count is re-fetched).
-      this._explorerController.refreshCollection(
-        options.databaseName,
-        options.collectionName,
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+        {
+          databaseName: options.databaseName,
+          collectionName: options.collectionName,
+        },
       );
 
       // Notify the webview that the document was deleted
