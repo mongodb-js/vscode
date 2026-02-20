@@ -79,6 +79,8 @@ export const ExtensionCommand = {
   mdbOpenCollectionPreviewFromTreeView: 'mdb.openCollectionPreviewFromTreeView',
   mdbOpenMongodbDocumentFromDataBrowser:
     'mdb.openMongoDBDocumentFromDataBrowser',
+  mdbInsertDocumentFromDataBrowser: 'mdb.insertDocumentFromDataBrowser',
+  mdbCloneDocumentFromDataBrowser: 'mdb.cloneDocumentFromDataBrowser',
 
   // Chat participant.
   openParticipantCodeInPlayground: 'mdb.openParticipantCodeInPlayground',

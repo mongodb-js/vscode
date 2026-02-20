@@ -19,8 +19,6 @@ import {
   getThemeTokenColors,
   getMonacoBaseTheme,
 } from '../utils/themeColorReader';
-import type EditorsController from '../editors/editorsController';
-import type PlaygroundController from '../editors/playgroundController';
 import type ExplorerController from '../explorer/explorerController';
 import { getDocumentViewAndEditFormat } from '../editors/types';
 import ExtensionCommand from '../commands';
@@ -100,7 +98,6 @@ interface PanelAbortControllers {
 
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
-  _playgroundController: PlaygroundController;
   _explorerController: ExplorerController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
@@ -111,17 +108,14 @@ export default class DataBrowsingController {
 
   constructor({
     connectionController,
-    playgroundController,
     explorerController,
     telemetryService,
   }: {
     connectionController: ConnectionController;
-    playgroundController: PlaygroundController;
     explorerController: ExplorerController;
     telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
-    this._playgroundController = playgroundController;
     this._explorerController = explorerController;
     this._telemetryService = telemetryService;
     this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
@@ -339,10 +333,13 @@ export default class DataBrowsingController {
       delete deserialized._id;
       const documentContents = toJSString(deserialized) ?? '';
 
-      await this._playgroundController.createPlaygroundForCloneDocument(
-        documentContents,
-        options.databaseName,
-        options.collectionName,
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbCloneDocumentFromDataBrowser,
+        {
+          documentContents,
+          databaseName: options.databaseName,
+          collectionName: options.collectionName,
+        },
       );
     } catch (error) {
       log.error('Error cloning document', error);
@@ -356,9 +353,12 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
   ): Promise<void> => {
     try {
-      await this._playgroundController.createPlaygroundForInsertDocument(
-        options.databaseName,
-        options.collectionName,
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbInsertDocumentFromDataBrowser,
+        {
+          databaseName: options.databaseName,
+          collectionName: options.collectionName,
+        },
       );
     } catch (error) {
       log.error('Error opening insert document playground', error);

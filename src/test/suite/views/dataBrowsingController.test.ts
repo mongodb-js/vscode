@@ -65,7 +65,6 @@ suite('DataBrowsingController Test Suite', function () {
     };
     testController = new DataBrowsingController({
       connectionController: mockConnectionController as any,
-      playgroundController: {} as any,
       explorerController: mockExplorerController as any,
       telemetryService: {} as any,
     });
@@ -799,37 +798,37 @@ suite('DataBrowsingController Test Suite', function () {
     });
   });
 
-  test('handleEditDocument calls editorsController.openMongoDBDocument', async function () {
+  test('handleEditDocument calls relevant vscode command', async function () {
     const options = createMockOptions();
 
     (testController as any)._connectionController = {
       getActiveConnectionId: sandbox.stub().returns('conn-id'),
     };
 
-    const openSpy = sandbox.stub().resolves(true);
-    // attach editors controller
-    (testController as any)._editorsController = {
-      openMongoDBDocument: openSpy,
-    };
+    const executeCommandStub = sandbox
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await testController.handleEditDocument(options, 'my-id');
 
-    expect(openSpy.calledOnce).to.be.true;
-    const arg = openSpy.firstCall.args[0];
-    expect(arg.documentId).to.equal('my-id');
-    expect(arg.namespace).to.equal(
+    expect(executeCommandStub.calledOnce).to.be.true;
+    expect(executeCommandStub.firstCall.args[0]).to.equal(
+      'mdb.openMongoDBDocumentFromDataBrowser',
+    );
+    const commandArgs = executeCommandStub.firstCall.args[1];
+    expect(commandArgs.documentId).to.equal('my-id');
+    expect(commandArgs.namespace).to.equal(
       `${options.databaseName}.${options.collectionName}`,
     );
-    expect(arg.source).to.equal('databrowser');
+    expect(commandArgs.connectionId).to.equal('conn-id');
   });
 
   test('handleCloneDocument creates playground without _id', async function () {
     const options = createMockOptions();
 
-    const createPlaygroundStub = sandbox.stub().resolves(true);
-    (testController as any)._playgroundController = {
-      createPlaygroundForCloneDocument: createPlaygroundStub,
-    };
+    const executeCommandStub = sandbox
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     const doc = { _id: '123', name: 'Test' };
 
@@ -838,11 +837,15 @@ suite('DataBrowsingController Test Suite', function () {
 
     await testController.handleCloneDocument(options, singleSerialized);
 
-    expect(createPlaygroundStub.calledOnce).to.be.true;
-    const calledWith = createPlaygroundStub.firstCall.args;
-    // first arg is document contents string, second is database name, third is collection name
-    expect(calledWith[1]).to.equal('test');
-    expect(calledWith[2]).to.equal('collection');
+    expect(executeCommandStub.calledOnce).to.be.true;
+    expect(executeCommandStub.firstCall.args[0]).to.equal(
+      'mdb.cloneDocumentFromDataBrowser',
+    );
+    const commandArgs = executeCommandStub.firstCall.args[1];
+    // Verify that _id is not in the documentContents
+    expect(commandArgs.documentContents).to.not.include('_id');
+    expect(commandArgs.databaseName).to.equal('test');
+    expect(commandArgs.collectionName).to.equal('collection');
   });
 
   test('handleDeleteDocument deletes and notifies webview when confirmed', async function () {
@@ -1043,31 +1046,30 @@ suite('DataBrowsingController Test Suite', function () {
     });
   });
 
-  test('handleInsertDocument calls playgroundController.createPlaygroundForInsertDocument', async function () {
+  test('handleInsertDocument calls relevant vscode command', async function () {
     const options = createMockOptions();
 
-    const createPlaygroundStub = sandbox.stub().resolves(true);
-    (testController as any)._playgroundController = {
-      createPlaygroundForInsertDocument: createPlaygroundStub,
-    };
+    const executeCommandStub = sandbox
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await testController.handleInsertDocument(options);
 
-    expect(createPlaygroundStub.calledOnce).to.be.true;
-    const calledWith = createPlaygroundStub.firstCall.args;
-    expect(calledWith[0]).to.equal('test');
-    expect(calledWith[1]).to.equal('collection');
+    expect(executeCommandStub.calledOnce).to.be.true;
+    expect(executeCommandStub.firstCall.args[0]).to.equal(
+      'mdb.insertDocumentFromDataBrowser',
+    );
+    const commandArgs = executeCommandStub.firstCall.args[1];
+    expect(commandArgs.databaseName).to.equal('test');
+    expect(commandArgs.collectionName).to.equal('collection');
   });
 
   test('handleInsertDocument shows error message on failure', async function () {
     const options = createMockOptions();
 
-    const createPlaygroundStub = sandbox
-      .stub()
+    sandbox
+      .stub(vscode.commands, 'executeCommand')
       .rejects(new Error('Playground error'));
-    (testController as any)._playgroundController = {
-      createPlaygroundForInsertDocument: createPlaygroundStub,
-    };
 
     const showErrorStub = sandbox
       .stub(vscode.window, 'showErrorMessage')
@@ -1075,7 +1077,6 @@ suite('DataBrowsingController Test Suite', function () {
 
     await testController.handleInsertDocument(options);
 
-    expect(createPlaygroundStub.calledOnce).to.be.true;
     expect(showErrorStub.calledOnce).to.be.true;
     expect(showErrorStub.firstCall.args[0]).to.include(
       'Failed to open insert document playground',

@@ -156,6 +156,8 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
   ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
   ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
+  ExtensionCommand.mdbInsertDocumentFromDataBrowser,
+  ExtensionCommand.mdbCloneDocumentFromDataBrowser,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -268,7 +270,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     });
     this._dataBrowsingController = new DataBrowsingController({
       connectionController: this._connectionController,
-      playgroundController: this._playgroundController,
       explorerController: this._explorerController,
       telemetryService: this._telemetryService,
     });
@@ -951,6 +952,21 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
+      ExtensionCommand.mdbInsertDocumentFromDataBrowser,
+      async ({
+        databaseName,
+        collectionName,
+      }: {
+        databaseName: string;
+        collectionName: string;
+      }): Promise<boolean> => {
+        return this._playgroundController.createPlaygroundForInsertDocument(
+          databaseName,
+          collectionName,
+        );
+      },
+    );
+    this.registerCommand(
       ExtensionCommand.mdbRefreshSchema,
       async (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {
         schemaTreeItem.resetCache();
@@ -1027,6 +1043,24 @@ export default class MDBExtensionController implements vscode.Disposable {
         const [databaseName, collectionName] =
           documentTreeItem.namespace.split(/\.(.*)/s);
 
+        return this._playgroundController.createPlaygroundForCloneDocument(
+          documentContents,
+          databaseName,
+          collectionName,
+        );
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbCloneDocumentFromDataBrowser,
+      async ({
+        documentContents,
+        databaseName,
+        collectionName,
+      }: {
+        documentContents: string;
+        databaseName: string;
+        collectionName: string;
+      }): Promise<boolean> => {
         return this._playgroundController.createPlaygroundForCloneDocument(
           documentContents,
           databaseName,
