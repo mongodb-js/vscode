@@ -116,9 +116,7 @@ function findPathAtPosition(text: string, lineNumber: number): string | null {
 }
 
 /**
- * After toJSString formatting, append ⋯ to lines whose values were truncated.
- * We detect truncated strings by looking for values ending with `..."` or `...'`
- * that correspond to paths in the truncation map.
+ * Append ⋯ to truncated string lines in the formatted text.
  */
 function addExpandIndicators(
   formattedText: string,
@@ -128,11 +126,9 @@ function addExpandIndicators(
 
   const lines = formattedText.split('\n');
   const result = lines.map((line, index) => {
-    // Check if this line contains a truncated string (ends with ...")
     if (line.match(/\.\.\.("|')(\s*,?\s*)$/)) {
       const path = findPathAtPosition(formattedText, index + 1);
       if (path && truncationMap.has(path)) {
-        // Insert ⋯ before the trailing comma (if any)
         return line.replace(/(\.\.\.("|'))(\s*,?\s*)$/, '$1 ⋯$3');
       }
     }
@@ -178,17 +174,6 @@ const monacoWrapperStyles = css({
     right: '50px !important',
   },
 
-  // Style for expand indicators (… glyph)
-  '& .monaco-editor .expand-indicator': {
-    cursor: 'pointer !important',
-    opacity: '0.7 !important',
-    transition: 'opacity 0.2s ease !important',
-  },
-
-  '& .monaco-editor .expand-indicator:hover': {
-    opacity: '1 !important',
-    transform: 'scale(1.2) !important',
-  },
 });
 
 const cardStyles = css({
@@ -302,6 +287,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   const [editorHeight, setEditorHeight] = useState<number>(0);
   const expandedPathsRef = useRef<Set<string>>(new Set());
   const truncationMapRef = useRef<Map<string, string>>(new Map());
+  const observerRef = useRef<MutationObserver | null>(null);
 
   // Monaco expects colors without the # prefix, so strip it here once.
   // Individual color properties may be undefined when the active VS Code
@@ -393,42 +379,21 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     setEditorHeight(calculateHeight());
   }, [documentString, calculateHeight]);
 
-  // Add decorations to make ⋯ indicators clickable
-  const addExpandIndicatorDecorations = useCallback(() => {
-    if (!editorRef.current || !monaco) return;
-
-    const model = editorRef.current.getModel();
-    if (!model) return;
-
-    const decorations: editor.IModelDeltaDecoration[] = [];
-    const text = model.getValue();
-    const lines = text.split('\n');
-
-    lines.forEach((line, index) => {
-      // Look for the ⋯ glyph after a closing quote
-      const match = line.match(/" ⋯/);
-      if (match && match.index !== undefined) {
-        const lineNumber = index + 1;
-        const startColumn = match.index + 3; // Position after quote and space
-        const endColumn = startColumn + 2; // Length of emoji (counts as 2 in Monaco)
-
-        decorations.push({
-          range: {
-            startLineNumber: lineNumber,
-            startColumn: startColumn,
-            endLineNumber: lineNumber,
-            endColumn: endColumn,
-          },
-          options: {
-            inlineClassName: 'expand-indicator',
-            hoverMessage: { value: 'Click to expand full value' },
-          },
-        });
+  // Apply gray color and pointer cursor to ⋯ characters in the editor DOM.
+  // Monaco's tokenizer assigns its own color classes to text spans, and
+  // CSS class-based overrides cannot reliably beat them. Setting inline
+  // styles directly on the spans is the only approach that works.
+  const styleExpandIndicators = useCallback(() => {
+    const dom = editorRef.current?.getDomNode();
+    if (!dom) return;
+    dom.querySelectorAll('.view-lines span').forEach((span) => {
+      const el = span as HTMLElement;
+      if (el.textContent?.includes('⋯')) {
+        el.style.setProperty('color', '#888', 'important');
+        el.style.setProperty('cursor', 'pointer');
       }
     });
-
-    editorRef.current.createDecorationsCollection(decorations);
-  }, [monaco]);
+  }, []);
 
   const handleEditorMount = useCallback(
     (
@@ -441,7 +406,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
       setTimeout(() => {
         setEditorHeight(calculateHeight());
-        addExpandIndicatorDecorations();
+        styleExpandIndicators();
       }, 0);
 
       // Fold all levels except the outermost object
@@ -469,31 +434,39 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       });
 
       const d1 = editorInstance.onDidContentSizeChange(() => {
-        const contentHeight = editorInstance.getContentHeight();
-        setEditorHeight(contentHeight);
+        setEditorHeight(editorInstance.getContentHeight());
       });
 
-      // Update decorations when content changes
-      const d2 = editorInstance.onDidChangeModelContent(() => {
-        setTimeout(() => addExpandIndicatorDecorations(), 0);
-      });
+      // Use a MutationObserver on .view-lines to re-style ⋯ spans whenever
+      // Monaco re-renders them (content edits, fold/unfold, re-tokenization).
+      // This is more reliable than timing-based approaches because Monaco's
+      // async tokenizer can re-create spans across multiple frames.
+      const viewLines = editorInstance.getDomNode()?.querySelector('.view-lines');
+      if (viewLines) {
+        let styleTimeout: ReturnType<typeof setTimeout> | undefined;
+        observerRef.current = new MutationObserver(() => {
+          clearTimeout(styleTimeout);
+          styleTimeout = setTimeout(styleExpandIndicators, 0);
+        });
+        observerRef.current.observe(viewLines, {
+          childList: true,
+          subtree: true,
+        });
+      }
 
-      // Handle clicks on truncated strings to expand them
+      // Handle clicks on ⋯ to expand truncated values
       const d3 = editorInstance.onMouseDown((e) => {
         const model = editorInstance.getModel();
         if (!model || !e.target.position) return;
 
         const position = e.target.position;
         const lineContent = model.getLineContent(position.lineNumber);
+        const ellipsisIndex = lineContent.indexOf('⋯');
+        const clickedOnEllipsis =
+          ellipsisIndex !== -1 &&
+          Math.abs(position.column - (ellipsisIndex + 1)) <= 3;
 
-        // Check if the click is on or near the ⋯ glyph
-        const clickColumn = position.column;
-        const beforeClick = lineContent.substring(0, clickColumn + 2);
-        const afterClick = lineContent.substring(clickColumn - 3);
-
-        // Check if we clicked on the glyph (it appears after " )
-        if (beforeClick.includes('" ⋯') || afterClick.startsWith('⋯')) {
-          // Find the path for this truncated value
+        if (clickedOnEllipsis) {
           const fullText = model.getValue();
           const pathAtPosition = findPathAtPosition(
             fullText,
@@ -509,13 +482,10 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             const truncatedValue =
               fullValue.substring(0, MAX_VALUE_LENGTH) + '...';
 
-            // Use toJSString to format both values — it handles quoting and
-            // escaping consistently with how the original text was produced.
             const formattedFull = toJSString(fullValue) ?? '';
             const formattedTruncated = toJSString(truncatedValue) ?? '';
 
-            // Edit just this one line in the model instead of replacing
-            // the entire editor value (which would destroy fold state).
+            const lineContent = model.getLineContent(position.lineNumber);
             const newLine = lineContent.replace(
               `${formattedTruncated} ⋯`,
               formattedFull
@@ -536,14 +506,13 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
             expandedPathsRef.current.add(pathAtPosition);
             truncationMapRef.current.delete(pathAtPosition);
-            addExpandIndicatorDecorations();
           }
         }
       });
 
-      (editorInstance as any).__foldDisposables = [d1, d2, d3, copyKeybinding];
+      (editorInstance as any).__foldDisposables = [d1, d3, copyKeybinding];
     },
-    [calculateHeight, addExpandIndicatorDecorations],
+    [calculateHeight, styleExpandIndicators],
   );
 
   // Cleanup effect to dispose event listeners when component unmounts
@@ -553,6 +522,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       if (disposables) {
         disposables.forEach((d: any) => d.dispose());
       }
+      observerRef.current?.disconnect();
     };
   }, []);
 
