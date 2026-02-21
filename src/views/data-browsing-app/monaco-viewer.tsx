@@ -107,6 +107,32 @@ const cardStyles = css({
   },
 });
 
+const showMoreButtonStyles = css({
+  color: 'var(--vscode-textLink-foreground, #3794ff)',
+  cursor: 'pointer',
+  background: 'none',
+  border: 'none',
+  padding: '8px 12px',
+  fontSize: '13px',
+  fontFamily:
+    'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  width: '100%',
+  '&:hover': {
+    textDecoration: 'underline',
+  },
+  '&::before': {
+    content: '"▸"',
+    display: 'inline-block',
+    transition: 'transform 0.2s',
+  },
+  '&[data-expanded="false"]::before': {
+    transform: 'rotate(90deg)',
+  },
+});
+
 const actionButtonStyles = css({
   background: 'var(--vscode-button-background)',
   border: '1px solid var(--vscode-button-border, transparent)',
@@ -129,6 +155,48 @@ const actionButtonStyles = css({
     background: 'var(--vscode-button-background)',
   },
 });
+
+// Maximum number of top-level fields to show initially
+const MAX_INITIAL_FIELDS = 25;
+
+/**
+ * Find the 1-based line number in a formatted JS string where the
+ * (maxFields + 1)-th top-level field begins.  Returns `null` when
+ * all fields fit within the limit.
+ */
+function findCollapseLineNumber(
+  text: string,
+  maxFields: number,
+): number | null {
+  const lines = text.split('\n');
+  let depth = 0;
+  let fieldCount = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const prevDepth = depth;
+
+    for (const char of lines[i]) {
+      if (char === '{' || char === '[') depth++;
+      else if (char === '}' || char === ']') depth--;
+    }
+
+    const trimmed = lines[i].trim();
+    // A line at depth 1 that isn't a closing brace/bracket starts a top-level field
+    if (
+      prevDepth === 1 &&
+      trimmed &&
+      !trimmed.startsWith('}') &&
+      !trimmed.startsWith(']')
+    ) {
+      fieldCount++;
+      if (fieldCount > maxFields) {
+        return i + 1; // 1-based
+      }
+    }
+  }
+
+  return null;
+}
 
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
@@ -185,6 +253,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   const monaco = useMonaco();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [editorHeight, setEditorHeight] = useState<number>(0);
+  const [showAllFields, setShowAllFields] = useState(false);
+  const [collapsedHeight, setCollapsedHeight] = useState<number | null>(null);
 
   // Monaco expects colors without the # prefix, so strip it here once.
   // Individual color properties may be undefined when the active VS Code
@@ -252,6 +322,15 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     return toJSString(deserialized) ?? '';
   }, [document]);
 
+  // Find the line where field MAX_INITIAL_FIELDS+1 starts
+  const collapseAtLine = useMemo(
+    () => findCollapseLineNumber(documentString, MAX_INITIAL_FIELDS),
+    [documentString],
+  );
+  const hasMoreFields = collapseAtLine !== null;
+  const hiddenFieldCount =
+    Object.keys(document).length - MAX_INITIAL_FIELDS;
+
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
       // Estimate height before editor is mounted
@@ -268,6 +347,13 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     setEditorHeight(calculateHeight());
   }, [documentString, calculateHeight]);
 
+  // Recompute the pixel height at which we clip when collapsed.
+  const updateCollapsedHeight = useCallback(() => {
+    if (!editorRef.current || collapseAtLine === null) return;
+    const top = editorRef.current.getTopForLineNumber(collapseAtLine);
+    setCollapsedHeight(top);
+  }, [collapseAtLine]);
+
   const handleEditorMount = useCallback(
     (
       editorInstance: editor.IStandaloneCodeEditor,
@@ -283,7 +369,10 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         void editorInstance.getAction('editor.foldLevel2')?.run();
       };
 
-      requestAnimationFrame(runFold);
+      requestAnimationFrame(() => {
+        runFold();
+        updateCollapsedHeight();
+      });
 
       // VS Code webviews intercept Ctrl+C before it reaches the embedded Monaco editor,
       const copyKeybinding = editorInstance.addAction({
@@ -305,11 +394,12 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       const disposable = editorInstance.onDidContentSizeChange(() => {
         const contentHeight = editorInstance.getContentHeight();
         setEditorHeight(contentHeight);
+        updateCollapsedHeight();
       });
 
       (editorInstance as any).__foldDisposables = [disposable, copyKeybinding];
     },
-    [calculateHeight],
+    [calculateHeight, updateCollapsedHeight],
   );
 
   // Cleanup effect to dispose event listeners when component unmounts
@@ -384,17 +474,49 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           </button>
         )}
       </div>
-      <div className={monacoWrapperStyles}>
-        <Editor
-          height={editorHeight}
-          defaultLanguage="typescript"
-          value={documentString}
-          theme="currentVSCodeTheme"
-          options={viewerOptions}
-          loading={null}
-          onMount={handleEditorMount}
-        />
+      <div
+        style={{
+          maxHeight:
+            hasMoreFields && !showAllFields && collapsedHeight != null
+              ? collapsedHeight
+              : undefined,
+          overflow:
+            hasMoreFields && !showAllFields ? 'hidden' : undefined,
+        }}
+      >
+        <div className={monacoWrapperStyles}>
+          <Editor
+            height={editorHeight}
+            defaultLanguage="typescript"
+            value={documentString}
+            theme="currentVSCodeTheme"
+            options={viewerOptions}
+            loading={null}
+            onMount={handleEditorMount}
+          />
+        </div>
       </div>
+
+      {hasMoreFields && !showAllFields && (
+        <button
+          className={showMoreButtonStyles}
+          onClick={() => setShowAllFields(true)}
+          data-expanded="false"
+        >
+          Show {hiddenFieldCount} more field
+          {hiddenFieldCount !== 1 ? 's' : ''}
+        </button>
+      )}
+
+      {hasMoreFields && showAllFields && (
+        <button
+          className={showMoreButtonStyles}
+          onClick={() => setShowAllFields(false)}
+          data-expanded="true"
+        >
+          Show less
+        </button>
+      )}
     </div>
   );
 };
