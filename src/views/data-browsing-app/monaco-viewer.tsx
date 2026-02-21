@@ -342,6 +342,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     monaco.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: false,
+      noSuggestionDiagnostics: true,
     });
     monaco.typescript.typescriptDefaults.setCompilerOptions({
       target: monaco.typescript.ScriptTarget.Latest,
@@ -388,7 +389,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     if (!dom) return;
     dom.querySelectorAll('.view-lines span').forEach((span) => {
       const el = span as HTMLElement;
-      if (el.textContent?.includes('⋯')) {
+      if (el.children.length === 0 && el.textContent?.includes('⋯')) {
         el.style.setProperty('color', '#888', 'important');
         el.style.setProperty('cursor', 'pointer');
       }
