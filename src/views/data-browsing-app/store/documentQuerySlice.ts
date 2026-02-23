@@ -82,8 +82,8 @@ export type DocumentQueryState = {
 
   itemsPerPage: number;
 
-  // for now we will only display controls like bulk delete and the total count
-  // for basic queries (ie. query === null)
+  // for now we will only display controls like bulk delete, sort and the total
+  // count for basic queries (ie. query === null)
   sort: SortOption | null;
   query: ServiceProviderQuery | null;
 
@@ -92,7 +92,7 @@ export type DocumentQueryState = {
   startItem: number;
   endItem: number;
   // until we get totalCountForQuery this is just displayedDocuments.length
-  totalDocuments: number;
+  totalDocuments: number | null;
 
   isLoading: boolean;
   hasReceivedCount: boolean;
@@ -107,12 +107,6 @@ export const isBasicQuery = (
   state: any,
 ): state is DocumentQueryState & { query: null } => {
   return state.query === null;
-};
-
-export const isCursorQuery = (
-  state: any,
-): state is DocumentQueryState & { query: ServiceProviderQuery } => {
-  return state.query !== null;
 };
 
 const recalculatePaginationValues = (
@@ -138,10 +132,9 @@ const recalculatePaginationValues = (
   } else {
     // for non-basic queries we won't have pagination controls beyond
     // next/previous page and amount per page
-    // state.totalDocuments will remain null
-    // state.totalPages will remain null
-    state.startItem = (state.currentPage - 1) * state.itemsPerPage + 1;
+    state.totalDocuments = null;
     state.totalPages = null;
+    state.startItem = (state.currentPage - 1) * state.itemsPerPage + 1;
     state.endItem = Math.min(
       state.currentPage * state.itemsPerPage,
       state.startItem + state.displayedDocuments.length - 1,
@@ -186,8 +179,8 @@ export const initialState: DocumentQueryState = {
     getDocuments: null,
     getTotalCount: null,
   },
-  totalDocuments: 0,
-  totalPages: 1,
+  totalDocuments: null,
+  totalPages: null,
   startItem: 0,
   endItem: 0,
   themeColors: null,

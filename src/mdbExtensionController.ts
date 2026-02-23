@@ -897,7 +897,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       ExtensionCommand.mdbOpenDataBrowserFromPlayground,
       ({ result }: { result: PlaygroundRunCursorResult }): Promise<boolean> => {
-        const { method, args } = result.constructionOptions.options;
+        const { method } = result.constructionOptions.options;
         if (method === 'find' || method === 'aggregate') {
           // For these the first two args happen to be databvaseName and collectionName
           const [databaseName, collectionName] =

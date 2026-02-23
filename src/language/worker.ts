@@ -119,16 +119,6 @@ export const execute = async ({
     // Evaluate a playground content.
     const evaluationResult = await runtime.evaluate(codeToEvaluate);
     const { source, type, printable, constructionOptions } = evaluationResult;
-    parentPort?.postMessage({
-      name: ServerCommand.showConsoleOutput,
-      payload: [
-        {
-          codeToEvaluate,
-          filePath,
-          evaluationResult: util.inspect(evaluationResult, { depth: null }),
-        },
-      ],
-    });
     const namespace =
       source && source.namespace
         ? `${source.namespace.db}.${source.namespace.collection}`

@@ -478,7 +478,10 @@ export default class PlaygroundController {
       const { method } = result.constructionOptions.options;
       if (method === 'find' || method === 'aggregate') {
         // open find or aggregate cursor results in the data browser
-        vscode.commands.executeCommand(
+        // Note: We leave out aggregateDb and runCursorCommand for now because
+        // those don't have an associated collectionName and that's a bit
+        // removed from how data browser currently works.
+        await vscode.commands.executeCommand(
           ExtensionCommand.mdbOpenDataBrowserFromPlayground,
           { result },
         );
@@ -487,7 +490,7 @@ export default class PlaygroundController {
     }
 
     // as a fallback, show results that aren't find or aggregate cursors in the result pane
-    this._openInResultPane(result);
+    await this._openInResultPane(result);
   }
 
   _refreshResultAsVirtualDocument(): void {

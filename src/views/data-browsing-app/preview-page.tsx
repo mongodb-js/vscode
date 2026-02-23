@@ -37,7 +37,6 @@ import {
 } from './vscode-api';
 import MonacoViewer from './monaco-viewer';
 import { BulkActionsSelect, type BulkAction } from './bulk-actions-select';
-import { is } from '@babel/types';
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
