@@ -108,9 +108,9 @@ const cardStyles = css({
 });
 
 const actionButtonStyles = css({
-  background: 'var(--vscode-button-background)',
+  background: 'var(--vscode-button-secondaryBackground)',
   border: '1px solid var(--vscode-button-border, transparent)',
-  color: 'var(--vscode-button-foreground)',
+  color: 'var(--vscode-button-secondaryForeground)',
   borderRadius: '4px',
   padding: `${spacing[100]}px ${spacing[200]}px`,
   cursor: 'pointer',
@@ -122,11 +122,11 @@ const actionButtonStyles = css({
   minHeight: '24px',
 
   '&:hover': {
-    background: 'var(--vscode-button-hoverBackground)',
+    background: 'var(--vscode-button-secondaryHoverBackground)',
   },
 
   '&:active': {
-    background: 'var(--vscode-button-background)',
+    background: 'var(--vscode-button-secondaryBackground)',
   },
 });
 
