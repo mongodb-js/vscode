@@ -695,6 +695,74 @@ export class DeepLinkTelemetryEvent implements TelemetryEventBase {
   }
 }
 
+/** Reported when the data browser webview is opened */
+export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
+  type = 'Data Browser Opened';
+  properties: {
+    /** The type of the collection being browsed - e.g. 'collection', 'view', 'timeseries' */
+    collection_type: string;
+  };
+
+  constructor(collectionType: string) {
+    this.properties = { collection_type: collectionType };
+  }
+}
+
+/** Reported when documents are fetched/loaded in the data browser */
+export class DataBrowserDocumentsFetchedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Documents Fetched';
+  properties = {};
+}
+
+/** Reported when a document is opened for editing from the data browser */
+export class DataBrowserDocumentEditedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Edited';
+  properties = {};
+}
+
+/** Reported when a document is cloned from the data browser */
+export class DataBrowserDocumentClonedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Cloned';
+  properties = {};
+}
+
+/** Reported when a new document is inserted from the data browser */
+export class DataBrowserDocumentInsertedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Inserted';
+  properties = {};
+}
+
+/** Reported when one or more documents are deleted from the data browser */
+export class DataBrowserDocumentDeletedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Deleted';
+  properties: {
+    /** Whether all documents in the collection were deleted */
+    delete_all: boolean;
+  };
+
+  constructor(deleteAll: boolean) {
+    this.properties = { delete_all: deleteAll };
+  }
+}
+
+/** Reported when the collection is refreshed in the data browser */
+export class DataBrowserCollectionRefreshedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Collection Refreshed';
+  properties = {};
+}
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent
@@ -720,4 +788,11 @@ export type TelemetryEvent =
   | PresetConnectionEditedTelemetryEvent
   | SidePanelOpenedTelemetryEvent
   | TreeItemExpandedTelemetryEvent
-  | DeepLinkTelemetryEvent;
+  | DeepLinkTelemetryEvent
+  | DataBrowserOpenedTelemetryEvent
+  | DataBrowserDocumentsFetchedTelemetryEvent
+  | DataBrowserDocumentEditedTelemetryEvent
+  | DataBrowserDocumentClonedTelemetryEvent
+  | DataBrowserDocumentInsertedTelemetryEvent
+  | DataBrowserDocumentDeletedTelemetryEvent
+  | DataBrowserCollectionRefreshedTelemetryEvent;

@@ -11,6 +11,15 @@ import {
   type SortValueKey,
 } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
+import {
+  DataBrowserOpenedTelemetryEvent,
+  DataBrowserDocumentsFetchedTelemetryEvent,
+  DataBrowserDocumentEditedTelemetryEvent,
+  DataBrowserDocumentClonedTelemetryEvent,
+  DataBrowserDocumentInsertedTelemetryEvent,
+  DataBrowserDocumentDeletedTelemetryEvent,
+  DataBrowserCollectionRefreshedTelemetryEvent,
+} from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
 import type { MessageFromWebviewToExtension } from './data-browsing-app/extension-app-message-constants';
 import { CollectionType } from '../explorer/documentUtils';
@@ -246,6 +255,10 @@ export default class DataBrowsingController {
         return;
       }
 
+      this._telemetryService.track(
+        new DataBrowserDocumentsFetchedTelemetryEvent(),
+      );
+
       void panel.webview.postMessage({
         command: PreviewMessageType.loadPage,
         documents: EJSON.serialize(documents, { relaxed: false }),
@@ -302,6 +315,10 @@ export default class DataBrowsingController {
     documentId: any,
   ): Promise<void> => {
     try {
+      this._telemetryService.track(
+        new DataBrowserDocumentEditedTelemetryEvent(),
+      );
+
       await vscode.commands.executeCommand(
         ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
         {
@@ -324,6 +341,10 @@ export default class DataBrowsingController {
     document: Record<string, unknown>,
   ): Promise<void> => {
     try {
+      this._telemetryService.track(
+        new DataBrowserDocumentClonedTelemetryEvent(),
+      );
+
       const deserialized = EJSON.deserialize(document, { relaxed: false });
       delete deserialized._id;
       const documentContents = toJSString(deserialized) ?? '';
@@ -348,6 +369,10 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
   ): Promise<void> => {
     try {
+      this._telemetryService.track(
+        new DataBrowserDocumentInsertedTelemetryEvent(),
+      );
+
       await vscode.commands.executeCommand(
         ExtensionCommand.mdbInsertDocumentFromDataBrowser,
         {
@@ -391,6 +416,10 @@ export default class DataBrowsingController {
 
       const deleteResult = await dataService.deleteMany(namespace, {}, {});
 
+      this._telemetryService.track(
+        new DataBrowserDocumentDeletedTelemetryEvent(true),
+      );
+
       void vscode.window.showInformationMessage(
         `${deleteResult.deletedCount} document(s) successfully deleted.`,
       );
@@ -403,6 +432,10 @@ export default class DataBrowsingController {
           databaseName: options.databaseName,
           collectionName: options.collectionName,
         },
+      );
+
+      this._telemetryService.track(
+        new DataBrowserCollectionRefreshedTelemetryEvent(),
       );
 
       // Notify the webview that documents were deleted so it refreshes
@@ -461,6 +494,10 @@ export default class DataBrowsingController {
         throw new Error('document not found');
       }
 
+      this._telemetryService.track(
+        new DataBrowserDocumentDeletedTelemetryEvent(false),
+      );
+
       void vscode.window.showInformationMessage(
         'Document successfully deleted.',
       );
@@ -473,6 +510,10 @@ export default class DataBrowsingController {
           databaseName: options.databaseName,
           collectionName: options.collectionName,
         },
+      );
+
+      this._telemetryService.track(
+        new DataBrowserCollectionRefreshedTelemetryEvent(),
       );
 
       // Notify the webview that the document was deleted
@@ -595,6 +636,10 @@ export default class DataBrowsingController {
     log.info(
       'Opening data browser...',
       `${options.databaseName}.${options.collectionName}`,
+    );
+
+    this._telemetryService.track(
+      new DataBrowserOpenedTelemetryEvent(options.collectionType),
     );
     const extensionPath = context.extensionPath;
 
