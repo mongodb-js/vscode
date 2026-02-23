@@ -136,9 +136,12 @@ const actionButtonStyles = css({
     top: 'calc(100% + 4px)',
     left: '50%',
     transform: 'translateX(-50%)',
-    background: 'var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background))',
-    color: 'var(--vscode-editorHoverWidget-foreground, var(--vscode-editor-foreground))',
-    border: '1px solid var(--vscode-editorHoverWidget-border, var(--vscode-editorWidget-border))',
+    background:
+      'var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background))',
+    color:
+      'var(--vscode-editorHoverWidget-foreground, var(--vscode-editor-foreground))',
+    border:
+      '1px solid var(--vscode-editorHoverWidget-border, var(--vscode-editorWidget-border))',
     borderRadius: '4px',
     padding: `${spacing[100]}px ${spacing[200]}px`,
     fontSize: '12px',
