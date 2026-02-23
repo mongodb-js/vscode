@@ -410,11 +410,11 @@ ${jsonConfig}`,
 
       const connectParams: MCPConnectParams | undefined =
         connectionId && mongoClientOptions
-          ? ({
+          ? {
               connectionId: connectionId,
               connectionString: mongoClientOptions.url,
               connectOptions: mongoClientOptions.options,
-            } as MCPConnectParams)
+            }
           : undefined;
       await connectionManager.updateConnection(connectParams);
     } catch (error) {
