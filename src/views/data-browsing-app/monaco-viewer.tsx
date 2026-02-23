@@ -108,6 +108,7 @@ const cardStyles = css({
 });
 
 const actionButtonStyles = css({
+  position: 'relative',
   background: 'var(--vscode-button-secondaryBackground)',
   border: '1px solid var(--vscode-button-border, transparent)',
   color: 'var(--vscode-button-secondaryForeground)',
@@ -127,6 +128,28 @@ const actionButtonStyles = css({
 
   '&:active': {
     background: 'var(--vscode-button-secondaryBackground)',
+  },
+
+  '&::after': {
+    content: 'attr(data-tooltip)',
+    position: 'absolute',
+    top: 'calc(100% + 4px)',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background))',
+    color: 'var(--vscode-editorHoverWidget-foreground, var(--vscode-editor-foreground))',
+    border: '1px solid var(--vscode-editorHoverWidget-border, var(--vscode-editorWidget-border))',
+    borderRadius: '4px',
+    padding: `${spacing[100]}px ${spacing[200]}px`,
+    fontSize: '12px',
+    whiteSpace: 'nowrap',
+    pointerEvents: 'none',
+    opacity: 0,
+    transition: 'opacity 0.15s',
+  },
+
+  '&:hover::after': {
+    opacity: 1,
   },
 });
 
@@ -349,8 +372,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           <button
             className={actionButtonStyles}
             onClick={handleEdit}
-            title="Edit"
-            aria-label="Edit"
+            data-tooltip="Edit Document"
+            aria-label="Edit Document"
           >
             <i className="codicon codicon-edit" />
           </button>
@@ -358,8 +381,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         <button
           className={actionButtonStyles}
           onClick={handleCopy}
-          title="Copy"
-          aria-label="Copy"
+          data-tooltip="Copy Document"
+          aria-label="Copy Document"
         >
           <i className="codicon codicon-copy" />
         </button>
@@ -367,8 +390,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           <button
             className={actionButtonStyles}
             onClick={handleClone}
-            title="Clone"
-            aria-label="Clone"
+            data-tooltip="Clone Document"
+            aria-label="Clone Document"
           >
             <i className="codicon codicon-files" />
           </button>
@@ -377,8 +400,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           <button
             className={actionButtonStyles}
             onClick={handleDelete}
-            title="Delete"
-            aria-label="Delete"
+            data-tooltip="Delete Document"
+            aria-label="Delete Document"
           >
             <i className="codicon codicon-trash" />
           </button>
