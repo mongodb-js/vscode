@@ -10,9 +10,11 @@ overrides:
   mongodb: ^7.1.0
   kerberos: ^7.0.0
   bson: ^7.2.0
-  '@mongodb-js/devtools-connect': ^3.14.9
+  '@mongodb-js/devtools-connect': ^3.14.11
   mongodb-client-encryption: ^7.0.0
-  '@mongosh/service-provider-node-driver': ^5.0.0
+  '@mongosh/service-provider-node-driver': ^5.0.2
+  '@mongodb-js/oidc-plugin': ^2.0.8
+  '@mongodb-js/devtools-proxy-support': ^0.7.5
 
 importers:
 
@@ -35,10 +37,10 @@ importers:
         version: 1.59.2(@aws-sdk/credential-providers@3.989.0)(@types/react@17.0.90)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)
       '@mongodb-js/connection-form':
         specifier: ^1.52.3
-        version: 1.74.1(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(@types/react@17.0.90)(bson@7.2.0)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)
+        version: 1.74.1(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(@types/react@17.0.90)(bson@7.2.0)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)
       '@mongodb-js/connection-info':
         specifier: ^0.21.0
-        version: 0.21.5(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+        version: 0.21.5(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       '@mongodb-js/device-id':
         specifier: ^0.3.2
         version: 0.3.3
@@ -49,17 +51,17 @@ importers:
         specifier: ^1.1.4
         version: 1.4.0(bson@7.2.0)
       '@mongosh/browser-runtime-electron':
-        specifier: ^3.24.0
-        version: 3.26.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))(socks@2.8.7)
+        specifier: ^5.1.1
+        version: 5.1.1(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))(socks@2.8.7)(zod@3.25.76)
       '@mongosh/i18n':
-        specifier: ^2.16.0
-        version: 2.19.0
+        specifier: ^2.20.2
+        version: 2.20.2
       '@mongosh/service-provider-node-driver':
-        specifier: ^5.0.0
-        version: 5.0.0(mongodb-log-writer@2.4.4(bson@7.2.0))
+        specifier: ^5.0.2
+        version: 5.0.2(mongodb-log-writer@2.4.4(bson@7.2.0))
       '@mongosh/shell-api':
-        specifier: ^3.23.0
-        version: 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+        specifier: ^5.1.0
+        version: 5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
       '@reduxjs/toolkit':
         specifier: ^2.11.2
         version: 2.11.2(react-redux@9.2.0(@types/react@17.0.90)(react@18.3.1)(redux@5.0.1))(react@18.3.1)
@@ -107,7 +109,7 @@ importers:
         version: 7.0.1
       mongodb-data-service:
         specifier: ^22.37.2
-        version: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
+        version: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
       mongodb-log-writer:
         specifier: ^2.4.1
         version: 2.4.4(bson@7.2.0)
@@ -170,8 +172,8 @@ importers:
         specifier: ^0.11.5
         version: 0.11.5
       '@mongodb-js/oidc-plugin':
-        specifier: ^2.0.5
-        version: 2.0.5
+        specifier: ^2.0.8
+        version: 2.0.8
       '@mongodb-js/prettier-config-devtools':
         specifier: ^1.0.2
         version: 1.0.2(prettier@3.6.2)
@@ -2568,10 +2570,10 @@ packages:
   '@mongodb-js/device-id@0.3.3':
     resolution: {integrity: sha512-y2SIriQec/HvIzFI1QCJAmjedShwbgmgUWkh3+qPgT2OyRKWE0yB7Lii/jANCtUNqqwBcUsMHY9/mPnuu5wfPQ==}
 
-  '@mongodb-js/devtools-connect@3.14.9':
-    resolution: {integrity: sha512-sGNbsaKAre9ccM6jH/yDgUGQY/pHcwzxGUlC1gBucHqyHf3MwKHGqc1vWPMruDo04QbrwMZggFJhP+3ViX8dNA==}
+  '@mongodb-js/devtools-connect@3.14.11':
+    resolution: {integrity: sha512-pXKYvO4cQM/iYDBttiw8gi07dtXFqZK56AS/gy6gx0XVFujuycExwUtvE6rNMuURD9rrLOFem90nOMUSCoeVRA==}
     peerDependencies:
-      '@mongodb-js/oidc-plugin': ^2.0.0
+      '@mongodb-js/oidc-plugin': ^2.0.8
       mongodb: ^7.1.0
       mongodb-log-writer: ^2.5.6
 
@@ -2589,9 +2591,6 @@ packages:
   '@mongodb-js/eslint-plugin-devtools@0.3.2':
     resolution: {integrity: sha512-wvRoFR+F/TNCEDnyib0pkssJTuVrES64/7hv76GtPdpG9+guF8lf+H1tcXQQcmIPDvOvL3XZPP3Lwf1gJjIz8A==}
 
-  '@mongodb-js/mongodb-constants@0.10.4':
-    resolution: {integrity: sha512-fz7AjwBfN6iwb3Luo9N7qOKifUHJd38nS6tWRtkLDeMesbK7GyrD8ngI85RlJMTeZQCzDEx+XGfth02tD4pNXg==}
-
   '@mongodb-js/mongodb-constants@0.16.1':
     resolution: {integrity: sha512-dm9low2Fp0fSftUYFslTMNpXQuoVm1qOH9vpswQBn5GmtlW11VdaK1EKFI33BR/kusNq6bQhqeqtRiNdTNTD5w==}
     peerDependencies:
@@ -2602,11 +2601,16 @@ packages:
     peerDependencies:
       bson: ^7.2.0
 
+  '@mongodb-js/mongodb-constants@0.20.1':
+    resolution: {integrity: sha512-zes9Ays51BkF/OP9ATFbHbLw5UWKv7V0NnPfDDj/TMgdjPMQvnf0yqu1Bwb7VIr1cSBAM9vLXgcVeh3iEPkXpw==}
+    peerDependencies:
+      bson: ^7.2.0
+
   '@mongodb-js/mongodb-downloader@0.5.0':
     resolution: {integrity: sha512-N0ijRRNygm1xTQ3IhAMFcnZNhhF1CTwzFHqMk+tttm6LKD576t7j6olfuqSf8vFQ+tVpO6Z1JWOcquTKrpwOlQ==}
 
-  '@mongodb-js/mongodb-ts-autocomplete@0.4.10':
-    resolution: {integrity: sha512-VxcFvERFiYn12kxW2PDVJLbhny4KHGjkF5gc+1lJTnx/TmnxqWE6dzhHKzs+E/rjO5Uo3kFozN7u9az29xIkQQ==}
+  '@mongodb-js/mongodb-ts-autocomplete@0.6.5':
+    resolution: {integrity: sha512-ijnvfCD9EI8sQx3tXbJcXacgLh6iuxAHGzxCrncmFpF2dPvVj0cT195Fjc96K6Nqv+qaevVhCxFy3F1CdVyERg==}
 
   '@mongodb-js/oidc-http-server-pages@1.2.6':
     resolution: {integrity: sha512-z7ETHla5yCwtF18txA8l6G9WVskRNjDQRfM/D/6I6JdjnKaR1Dtsy9lH/LwyDn3O+z3RzPErGtU3mWRjVGWS5g==}
@@ -2614,10 +2618,6 @@ packages:
   '@mongodb-js/oidc-mock-provider@0.11.5':
     resolution: {integrity: sha512-gzSfBK9CXVCv4KIlGv9eXtKR2Zw+/tuUxLrr0z+rlbITuOfL/lDcWKGpcTC2b6StSkNCsLHsuqJLS/xa16V1AQ==}
     hasBin: true
-
-  '@mongodb-js/oidc-plugin@2.0.5':
-    resolution: {integrity: sha512-hCtqStgSaas7W+1ueCI6gJFNuM4scPpHe1S85+AOoFw6Q23HdhK7qdCBk2+IUkvdKmfRzOBtNglIFrlukhbmMg==}
-    engines: {node: '>= 20.19.2'}
 
   '@mongodb-js/oidc-plugin@2.0.8':
     resolution: {integrity: sha512-UHmw5kppOZjOefxZuPcsWNtA3P7PbsjNYaKYz4tbWy6mlH0wkgdf55A3bHuW3SZmvL7ZhpuYTz+gTq2xCr7NVA==}
@@ -2647,12 +2647,8 @@ packages:
     resolution: {integrity: sha512-JDz2fLKsjMiSNUxKrCpGptsgu7DzsXfu4gnUQ3RhUaBS1d4YbLrt6HejpckAiHIAa+niBpZAeiUsoop0IihWsw==}
     engines: {node: '>=0.10.0'}
 
-  '@mongodb-js/ts-autocomplete@0.4.8':
-    resolution: {integrity: sha512-HSmBF/Z8DsOvJHIQdS0jFesyIdL8yIeR5ureaeeRYob7I5WFOLrbXkr8N6m63dVR7emFxEDyp/l+jDdzADkaeg==}
-
-  '@mongosh/arg-parser@3.22.0':
-    resolution: {integrity: sha512-VoQ3lzkMLF76rCZXONGto4zC0RQ74NG2hDXtR/oZGZjdpngR+E9anVGJjT7TymqcFRbXtqvR/Kau9F6a9zctEQ==}
-    engines: {node: '>=14.15.1'}
+  '@mongodb-js/ts-autocomplete@0.5.6':
+    resolution: {integrity: sha512-ZiwpD2JvkKU4nliLmDfqBlgnhIvZrBL9m89vtut3NreoJKtkowshBXR6TSsGeBOy/A2S+fUeSJ5eOHH1dh/1iA==}
 
   '@mongosh/arg-parser@3.23.0':
     resolution: {integrity: sha512-V9lr8LEHI9XKEgBEqPAVDi+CNdl6MNBSJ8A5LAk+vfBM+bdhhtSrANIqUhuEzyV4yNyEqNfYFtqLLhjZd7/doA==}
@@ -2660,21 +2656,27 @@ packages:
     peerDependencies:
       zod: ^3.25.76
 
-  '@mongosh/async-rewriter2@2.4.10':
-    resolution: {integrity: sha512-nWZGKZu+oYX1csk+kLdUawz75EniWdogS/w05MS+GiHF3d0cbSNE059d73GW8yDzZ5kl4sEMThNYs9zmF9kM7Q==}
+  '@mongosh/arg-parser@5.0.2':
+    resolution: {integrity: sha512-fOEGy6vOka2XX2V4EO4BKHomZPXDi4g6lqLb9ck+kLiOb1nxlUYLOhpTA5Vd5SPiJk48AVYjG5ICzcZsTdqovg==}
+    engines: {node: '>=14.15.1'}
+    peerDependencies:
+      zod: ^3.25.76
+
+  '@mongosh/async-rewriter2@2.4.15':
+    resolution: {integrity: sha512-J8DcehSHbfkZGXMtYVgBu071l0LA7WGkmj1+EeYQevk2RVsuVQXliW9w14VLhekPZ23o80Mqb+X0DypNuJHnsA==}
     engines: {node: '>=14.15.1'}
     hasBin: true
 
-  '@mongosh/autocomplete@3.26.2':
-    resolution: {integrity: sha512-5ubvgBGKhblDuE9bCvixaaohaRLmGlkunwhWjmtBccfwyTBsFfYmxd9pkqzWXCOg1ctFOHiue6xs34njYoaenQ==}
+  '@mongosh/autocomplete@5.1.0':
+    resolution: {integrity: sha512-VnWUCdhg3QkR8M5qV0oOeEiBHlU7Z3G89gv/6cPxP8i+c46qIBEmxLoyvcPF3a2KKYt5Obe2IhW1U+BsLR7n0A==}
     engines: {node: '>=14.15.1'}
 
-  '@mongosh/browser-runtime-core@3.26.2':
-    resolution: {integrity: sha512-gc2LqxNZaMqqfFAvceev5L+sVm59WS78TmFXxMU2Fc3vO4CSuXpvxuCgosoNn0dhlB9u5ePHeAuzkVELNx+k/Q==}
+  '@mongosh/browser-runtime-core@5.1.1':
+    resolution: {integrity: sha512-AUHMh6oyK2yrv2vMV5X7Awy1GKFKQUtR+2u25hylZdGgKx/jUnwlrkPYBGCuzLL+JenGcbv8TisizKcPh1rixQ==}
     engines: {node: '>=14.15.1'}
 
-  '@mongosh/browser-runtime-electron@3.26.2':
-    resolution: {integrity: sha512-JLPjeOrCooSPCt848AJC3JNRsUPIk0W+wcf44bMOkQaGR3Kx/bLAHACB+Zhz9cK7vaz/WTIVBoY/bfrCiU4+Lw==}
+  '@mongosh/browser-runtime-electron@5.1.1':
+    resolution: {integrity: sha512-YwtYQmXkRdF0w/0w23eqE8VBM1qQd4KfrHbFMxs94z2dIDFYqhvy+PE/fSNsGQI5fwhB1bTMqkQMbbCC+IiCSA==}
     engines: {node: '>=14.15.1'}
 
   '@mongosh/errors@2.4.4':
@@ -2689,32 +2691,24 @@ packages:
     resolution: {integrity: sha512-Z3CDoh+EbHTLad5g/qpd1ti+PoCeq3KcbtNLg1RnQkcwC+4AqoOZt3X2JXY+s616vDLPUxpfoHqZsZqToq6lIA==}
     engines: {node: '>=14.15.1'}
 
-  '@mongosh/history@2.4.9':
-    resolution: {integrity: sha512-wk3KBfFlUcJgq1R1jjEPrVV5cH6lsclnuCkJJHDDIINlvpJqzEA9PHd+sy+UGMlX/TsmK+v7OSn+qCJAI0P/nw==}
-    engines: {node: '>=14.15.1'}
-
-  '@mongosh/i18n@2.19.0':
-    resolution: {integrity: sha512-evi+Ep+osBn2CSRX0KWxgthlIMly2qyi+5H2/+wmkQH/oJIobN0EXVz/pzrsLudjehCil/gLlF7Q/TbjTgB3QA==}
-    engines: {node: '>=14.15.1'}
-
-  '@mongosh/i18n@2.20.0':
-    resolution: {integrity: sha512-g0zuKuZ5JhS/ASDizZlqLDzy1yqeMbs5tg40TxMl/55rM2EOPV1MSlfBZg7X0tyxUOATy1sLHWsUquzQSFjVjQ==}
+  '@mongosh/i18n@2.20.2':
+    resolution: {integrity: sha512-hkDxSEBK2a8DyMg8+5J3GmO0kuuebYWLa+oWq/V9Ghgq3l81nkkGFmCuu90goR4ZE9dCnNAqC/qtsuSUnvuGaA==}
     engines: {node: '>=14.15.1'}
 
   '@mongosh/service-provider-core@3.6.3':
     resolution: {integrity: sha512-5bjne1GBSSsaz4LozSPK5LTcpOKeBky4qzvaKLfG7/0Ck7nsECu0ZEJsi45BqD9RnILB8wRFUXNWIp2WvA74Fg==}
     engines: {node: '>=14.15.1'}
 
-  '@mongosh/service-provider-core@5.0.0':
-    resolution: {integrity: sha512-fDPyW/gsvEkpP47UFGrJpkGR2VEZRLxbdZrTQpfrs7tVBIT8IUIYywU3fgZOrCZ+yuRtE00uz+jzqBL2dxFfhw==}
+  '@mongosh/service-provider-core@5.0.1':
+    resolution: {integrity: sha512-10wETnZY92/Ah6HanZRkZJ4PHYDrwNVofLmiEG4jxIbGlAoB/4SJmQKa11j0NfIQnmDq+4+eGHrzJh+p4QF9Tg==}
     engines: {node: '>=14.15.1'}
 
-  '@mongosh/service-provider-node-driver@5.0.0':
-    resolution: {integrity: sha512-7nAsEG8olArVx5weItMsiN9wTwjCf3k5rA5U8qIomZ/8p0JeIBNCqIs8Jucrc0u3UN/R+5CBkXfhA6UyEJUA5w==}
+  '@mongosh/service-provider-node-driver@5.0.2':
+    resolution: {integrity: sha512-vwU3EDE4NAdBhWr4nnRyrBNoG8dt3tACBIki2z8ekVekx/JD1s/6uk7k069FamgLIvTE2vjpUr7yhmXYwu4EMA==}
     engines: {node: '>=14.15.1'}
 
-  '@mongosh/shell-api@3.26.2':
-    resolution: {integrity: sha512-3LngMkKZXedjFNV3UDWRnE1EvHrKl6PnQ2fIteRLW12bxTiUrMWv+41j9qYDkcIiIgJV9lHOEvsLqEEJkAdz9Q==}
+  '@mongosh/shell-api@5.1.0':
+    resolution: {integrity: sha512-jXSwP33gYpbmqnpNeuFazB/1Z6q1sUQLwBf8nkjUQ0RDmn5ANGgLJIvR2ahDQ0jwMi2WbHbyqDd7dTnoUkOz2g==}
     engines: {node: '>=14.15.1'}
 
   '@mongosh/shell-bson@1.0.4':
@@ -2723,22 +2717,18 @@ packages:
     peerDependencies:
       bson: ^7.2.0
 
-  '@mongosh/shell-bson@3.0.0':
-    resolution: {integrity: sha512-YHdVvZ/V0wDfMRCfjuOhU8jurWqFYkmhA0n/SvkKH41KqwLCnvBtXt2jbGp66QZAdSZiKWUscK+X9OVFK2ucfg==}
+  '@mongosh/shell-bson@3.0.1':
+    resolution: {integrity: sha512-MdIP7lP+ikY+E7ezZbZlVD0zoeLZyJHXXshRScNcXZFnHbpOCG/xXHaO8BVdH+BKx/FySOEZ6wcw35ntwdOyoQ==}
     engines: {node: '>=14.15.1'}
     peerDependencies:
       bson: ^7.2.0
 
-  '@mongosh/shell-evaluator@3.26.2':
-    resolution: {integrity: sha512-RhuwM+tZwtgr3EXfxv3L4DTXwoRQ5cxIc0h0CI902pO9wTRyaGFrWOYqvIg98+GXWpo8bAqbMABmeVa0+R3Qpg==}
+  '@mongosh/shell-evaluator@5.1.0':
+    resolution: {integrity: sha512-q4SJPkni2wM00Fx05gqlWHjJpLdj6nY1ePtPwRQUnhbInHXB6zIOZLOJ3vs15JeWAyK699A+YTaIlph0B2Uh7A==}
     engines: {node: '>=14.15.1'}
 
-  '@mongosh/types@3.14.0':
-    resolution: {integrity: sha512-Kdu++j+agOPYS0FYRLjRwQqX0YxjhwN48+HAr8wVe9vJHw09MUFKBg4r/MNWNNF1M602oyXybxSz2jqTiiKqqA==}
-    engines: {node: '>=14.15.1'}
-
-  '@mongosh/types@5.0.0':
-    resolution: {integrity: sha512-bUzLZ5zp0mL6PkV0jgHaxHX7m6NXIxxlXAbIgxnMjKDmGLFFr7GJXOSb5e4wfPu7o/yRfMHVZDLdh7V30nU4Hw==}
+  '@mongosh/types@5.0.1':
+    resolution: {integrity: sha512-AogP2g1vjuFvA/8nh118L5Ye+2hLmgX3chRiWC2mAIcmhG0XkKBbJd7uIFgdKwr3QK9wp9+S/Y8Q+j39nkv5mA==}
     engines: {node: '>=14.15.1'}
 
   '@napi-rs/canvas-android-arm64@0.1.82':
@@ -6916,6 +6906,10 @@ packages:
 
   mongodb-schema@12.6.3:
     resolution: {integrity: sha512-JiAZtM9GVMTLJYJpEnAPq0/ulH9U7qBR48Bx0mOiStVGFkY3mpIlgEGOl5tVRLEvCxDKqnvtdfSSX7pWFRLlzA==}
+    hasBin: true
+
+  mongodb-schema@12.7.0:
+    resolution: {integrity: sha512-TPfop6c2AAQJP1QhQwi/uJnuPEeLhMvN9ouJAZ6M9mouH6fCr0WOHLJWx5Z0dSeXJIVy//WTXxZB6yiol1bGEA==}
     hasBin: true
 
   mongodb@7.1.0:
@@ -12539,17 +12533,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mongodb-js/connection-form@1.74.1(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(@types/react@17.0.90)(bson@7.2.0)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)':
+  '@mongodb-js/connection-form@1.74.1(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(@types/react@17.0.90)(bson@7.2.0)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)':
     dependencies:
       '@mongodb-js/compass-components': 1.59.2(@aws-sdk/credential-providers@3.989.0)(@types/react@17.0.90)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)
       '@mongodb-js/compass-editor': 0.61.1(@aws-sdk/credential-providers@3.989.0)(@types/react@17.0.90)(bson@7.2.0)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)
-      '@mongodb-js/connection-info': 0.23.0(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongodb-js/connection-info': 0.23.0(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       '@mongodb-js/shell-bson-parser': 1.4.0(bson@7.2.0)
       lodash: 4.17.21
       mongodb: 7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       mongodb-build-info: 1.8.2
       mongodb-connection-string-url: 3.0.2
-      mongodb-data-service: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
+      mongodb-data-service: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
       mongodb-query-parser: 4.6.0(bson@7.2.0)
       react: 18.3.1
     transitivePeerDependencies:
@@ -12567,12 +12561,12 @@ snapshots:
       - socks
       - supports-color
 
-  '@mongodb-js/connection-info@0.21.5(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongodb-js/connection-info@0.21.5(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
     dependencies:
       lodash: 4.17.21
       mongodb: 7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       mongodb-connection-string-url: 3.0.2
-      mongodb-data-service: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
+      mongodb-data-service: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/oidc-plugin'
@@ -12584,12 +12578,12 @@ snapshots:
       - socks
       - supports-color
 
-  '@mongodb-js/connection-info@0.23.0(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongodb-js/connection-info@0.23.0(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
     dependencies:
       lodash: 4.17.21
       mongodb: 7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       mongodb-connection-string-url: 3.0.2
-      mongodb-data-service: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
+      mongodb-data-service: 22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7)
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/oidc-plugin'
@@ -12603,25 +12597,7 @@ snapshots:
 
   '@mongodb-js/device-id@0.3.3': {}
 
-  '@mongodb-js/devtools-connect@3.14.9(@mongodb-js/oidc-plugin@2.0.5)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
-    dependencies:
-      '@mongodb-js/devtools-proxy-support': 0.7.5
-      '@mongodb-js/oidc-http-server-pages': 1.2.6
-      '@mongodb-js/oidc-plugin': 2.0.5
-      lodash.merge: 4.6.2
-      mongodb: 7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      mongodb-connection-string-url: 7.0.1
-      mongodb-log-writer: 2.4.4(bson@7.2.0)
-      socks: 2.8.7
-    optionalDependencies:
-      kerberos: 7.0.0
-      mongodb-client-encryption: 7.0.0
-      os-dns-native: 2.0.1
-      resolve-mongodb-srv: 1.1.5
-    transitivePeerDependencies:
-      - supports-color
-
-  '@mongodb-js/devtools-connect@3.14.9(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
+  '@mongodb-js/devtools-connect@3.14.11(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
     dependencies:
       '@mongodb-js/devtools-proxy-support': 0.7.5
       '@mongodb-js/oidc-http-server-pages': 1.2.6
@@ -12699,16 +12675,17 @@ snapshots:
 
   '@mongodb-js/eslint-plugin-devtools@0.3.2': {}
 
-  '@mongodb-js/mongodb-constants@0.10.4':
-    dependencies:
-      semver: 7.7.3
-
   '@mongodb-js/mongodb-constants@0.16.1(bson@7.2.0)':
     dependencies:
       bson: 7.2.0
       semver: 7.7.3
 
   '@mongodb-js/mongodb-constants@0.17.1(bson@7.2.0)':
+    dependencies:
+      bson: 7.2.0
+      semver: 7.7.3
+
+  '@mongodb-js/mongodb-constants@0.20.1(bson@7.2.0)':
     dependencies:
       bson: 7.2.0
       semver: 7.7.3
@@ -12724,10 +12701,10 @@ snapshots:
       - encoding
       - supports-color
 
-  '@mongodb-js/mongodb-ts-autocomplete@0.4.10(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongodb-js/mongodb-ts-autocomplete@0.6.5(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)':
     dependencies:
-      '@mongodb-js/ts-autocomplete': 0.4.8
-      '@mongosh/shell-api': 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongodb-js/ts-autocomplete': 0.5.6
+      '@mongosh/shell-api': 5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.17.21
       mongodb-schema: 12.6.3(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
@@ -12743,21 +12720,13 @@ snapshots:
       - snappy
       - socks
       - supports-color
+      - zod
 
   '@mongodb-js/oidc-http-server-pages@1.2.6': {}
 
   '@mongodb-js/oidc-mock-provider@0.11.5':
     dependencies:
       yargs: 17.7.2
-
-  '@mongodb-js/oidc-plugin@2.0.5':
-    dependencies:
-      express: 5.1.0
-      node-fetch: 3.3.2
-      open: 10.2.0
-      openid-client: 6.8.1
-    transitivePeerDependencies:
-      - supports-color
 
   '@mongodb-js/oidc-plugin@2.0.8':
     dependencies:
@@ -12809,7 +12778,7 @@ snapshots:
     dependencies:
       ip-address: 9.0.5
 
-  '@mongodb-js/ts-autocomplete@0.4.8':
+  '@mongodb-js/ts-autocomplete@0.5.6':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.17.21
@@ -12817,21 +12786,23 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mongosh/arg-parser@3.22.0':
-    dependencies:
-      '@mongosh/errors': 2.4.4
-      '@mongosh/i18n': 2.19.0
-      mongodb-connection-string-url: 3.0.2
-
   '@mongosh/arg-parser@3.23.0(zod@3.25.76)':
     dependencies:
       '@mongosh/errors': 2.4.5
-      '@mongosh/i18n': 2.20.0
+      '@mongosh/i18n': 2.20.2
       mongodb-connection-string-url: 3.0.2
       yargs-parser: 20.2.9
       zod: 3.25.76
 
-  '@mongosh/async-rewriter2@2.4.10':
+  '@mongosh/arg-parser@5.0.2(zod@3.25.76)':
+    dependencies:
+      '@mongosh/errors': 2.4.6
+      '@mongosh/i18n': 2.20.2
+      mongodb-connection-string-url: 7.0.1
+      yargs-parser: 20.2.9
+      zod: 3.25.76
+
+  '@mongosh/async-rewriter2@2.4.15':
     dependencies:
       '@babel/core': 7.28.5
       '@babel/plugin-transform-destructuring': 7.28.5(@babel/core@7.28.5)
@@ -12841,11 +12812,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mongosh/autocomplete@3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongosh/autocomplete@5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)':
     dependencies:
-      '@mongodb-js/mongodb-constants': 0.10.4
-      '@mongodb-js/mongodb-ts-autocomplete': 0.4.10(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/shell-api': 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongodb-js/mongodb-constants': 0.20.1(bson@7.2.0)
+      '@mongodb-js/mongodb-ts-autocomplete': 0.6.5(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
+      '@mongosh/shell-api': 5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
       semver: 7.7.3
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
@@ -12857,13 +12828,14 @@ snapshots:
       - snappy
       - socks
       - supports-color
+      - zod
 
-  '@mongosh/browser-runtime-core@3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongosh/browser-runtime-core@5.1.1(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)':
     dependencies:
-      '@mongosh/autocomplete': 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/service-provider-core': 3.6.3(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/shell-api': 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/shell-evaluator': 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongosh/autocomplete': 5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
+      '@mongosh/service-provider-core': 5.0.1(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongosh/shell-api': 5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
+      '@mongosh/shell-evaluator': 5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/zstd'
@@ -12874,12 +12846,13 @@ snapshots:
       - snappy
       - socks
       - supports-color
+      - zod
 
-  '@mongosh/browser-runtime-electron@3.26.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))(socks@2.8.7)':
+  '@mongosh/browser-runtime-electron@5.1.1(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))(socks@2.8.7)(zod@3.25.76)':
     dependencies:
-      '@mongosh/browser-runtime-core': 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/service-provider-core': 3.6.3(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/types': 3.14.0(@mongodb-js/oidc-plugin@2.0.5)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
+      '@mongosh/browser-runtime-core': 5.1.1(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
+      '@mongosh/service-provider-core': 5.0.1(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongosh/types': 5.0.1(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/oidc-plugin'
@@ -12893,6 +12866,7 @@ snapshots:
       - snappy
       - socks
       - supports-color
+      - zod
 
   '@mongosh/errors@2.4.4': {}
 
@@ -12900,18 +12874,9 @@ snapshots:
 
   '@mongosh/errors@2.4.6': {}
 
-  '@mongosh/history@2.4.9':
+  '@mongosh/i18n@2.20.2':
     dependencies:
-      mongodb-connection-string-url: 3.0.2
-      mongodb-redact: 1.3.0
-
-  '@mongosh/i18n@2.19.0':
-    dependencies:
-      '@mongosh/errors': 2.4.4
-
-  '@mongosh/i18n@2.20.0':
-    dependencies:
-      '@mongosh/errors': 2.4.5
+      '@mongosh/errors': 2.4.6
 
   '@mongosh/service-provider-core@3.6.3(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
     dependencies:
@@ -12931,10 +12896,10 @@ snapshots:
       - socks
       - supports-color
 
-  '@mongosh/service-provider-core@5.0.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongosh/service-provider-core@5.0.1(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
     dependencies:
       '@mongosh/errors': 2.4.6
-      '@mongosh/shell-bson': 3.0.0(bson@7.2.0)
+      '@mongosh/shell-bson': 3.0.1(bson@7.2.0)
       bson: 7.2.0
       mongodb: 7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       mongodb-build-info: 1.9.6
@@ -12949,14 +12914,14 @@ snapshots:
       - socks
       - supports-color
 
-  '@mongosh/service-provider-node-driver@5.0.0(mongodb-log-writer@2.4.4(bson@7.2.0))':
+  '@mongosh/service-provider-node-driver@5.0.2(mongodb-log-writer@2.4.4(bson@7.2.0))':
     dependencies:
       '@aws-sdk/credential-providers': 3.989.0
-      '@mongodb-js/devtools-connect': 3.14.9(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
+      '@mongodb-js/devtools-connect': 3.14.11(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
       '@mongodb-js/oidc-plugin': 2.0.8
       '@mongosh/errors': 2.4.6
-      '@mongosh/service-provider-core': 5.0.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/types': 5.0.0(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
+      '@mongosh/service-provider-core': 5.0.1(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongosh/types': 5.0.1(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
       gcp-metadata: 7.0.1
       mongodb: 7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       mongodb-build-info: 1.9.6
@@ -12972,18 +12937,15 @@ snapshots:
       - snappy
       - supports-color
 
-  '@mongosh/shell-api@3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongosh/shell-api@5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)':
     dependencies:
-      '@babel/core': 7.28.5
-      '@babel/types': 7.28.5
-      '@mongosh/arg-parser': 3.22.0
-      '@mongosh/errors': 2.4.4
-      '@mongosh/history': 2.4.9
-      '@mongosh/i18n': 2.19.0
-      '@mongosh/service-provider-core': 3.6.3(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      '@mongosh/shell-bson': 1.0.4(bson@7.2.0)
+      '@mongosh/arg-parser': 5.0.2(zod@3.25.76)
+      '@mongosh/errors': 2.4.6
+      '@mongosh/i18n': 2.20.2
+      '@mongosh/service-provider-core': 5.0.1(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongosh/shell-bson': 3.0.1(bson@7.2.0)
       mongodb-redact: 1.3.0
-      mongodb-schema: 12.6.3(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      mongodb-schema: 12.7.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/zstd'
@@ -12994,22 +12956,23 @@ snapshots:
       - snappy
       - socks
       - supports-color
+      - zod
 
   '@mongosh/shell-bson@1.0.4(bson@7.2.0)':
-    dependencies:
-      '@mongosh/errors': 2.4.4
-      bson: 7.2.0
-
-  '@mongosh/shell-bson@3.0.0(bson@7.2.0)':
     dependencies:
       '@mongosh/errors': 2.4.6
       bson: 7.2.0
 
-  '@mongosh/shell-evaluator@3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+  '@mongosh/shell-bson@3.0.1(bson@7.2.0)':
     dependencies:
-      '@mongosh/async-rewriter2': 2.4.10
-      '@mongosh/history': 2.4.9
-      '@mongosh/shell-api': 3.26.2(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongosh/errors': 2.4.6
+      bson: 7.2.0
+
+  '@mongosh/shell-evaluator@5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)':
+    dependencies:
+      '@mongosh/async-rewriter2': 2.4.15
+      '@mongosh/shell-api': 5.1.0(@aws-sdk/credential-providers@3.989.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@3.25.76)
+      mongodb-redact: 1.3.0
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/zstd'
@@ -13020,19 +12983,11 @@ snapshots:
       - snappy
       - socks
       - supports-color
+      - zod
 
-  '@mongosh/types@3.14.0(@mongodb-js/oidc-plugin@2.0.5)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
+  '@mongosh/types@5.0.1(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
     dependencies:
-      '@mongodb-js/devtools-connect': 3.14.9(@mongodb-js/oidc-plugin@2.0.5)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
-    transitivePeerDependencies:
-      - '@mongodb-js/oidc-plugin'
-      - mongodb
-      - mongodb-log-writer
-      - supports-color
-
-  '@mongosh/types@5.0.0(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
-    dependencies:
-      '@mongodb-js/devtools-connect': 3.14.9(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
+      '@mongodb-js/devtools-connect': 3.14.11(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
     transitivePeerDependencies:
       - '@mongodb-js/oidc-plugin'
       - mongodb
@@ -17933,10 +17888,10 @@ snapshots:
       '@types/whatwg-url': 13.0.0
       whatwg-url: 14.2.0
 
-  mongodb-data-service@22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.5)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7):
+  mongodb-data-service@22.37.2(@aws-sdk/credential-providers@3.989.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(socks@2.8.7):
     dependencies:
       '@mongodb-js/compass-utils': 0.9.27
-      '@mongodb-js/devtools-connect': 3.14.9(@mongodb-js/oidc-plugin@2.0.5)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
+      '@mongodb-js/devtools-connect': 3.14.11(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.4.4(bson@7.2.0))(mongodb@7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
       '@mongodb-js/devtools-proxy-support': 0.7.5
       bson: 7.2.0
       debug: 4.4.3(supports-color@8.1.1)
@@ -17980,7 +17935,7 @@ snapshots:
       '@mongodb-js/device-id': 0.3.3
       '@mongodb-js/devtools-proxy-support': 0.7.5
       '@mongosh/arg-parser': 3.23.0(zod@3.25.76)
-      '@mongosh/service-provider-node-driver': 5.0.0(mongodb-log-writer@2.4.4(bson@7.2.0))
+      '@mongosh/service-provider-node-driver': 5.0.2(mongodb-log-writer@2.4.4(bson@7.2.0))
       ai: 6.0.85(zod@3.25.76)
       bson: 7.2.0
       express: 5.2.1
@@ -18245,6 +18200,28 @@ snapshots:
       - supports-color
 
   mongodb-schema@12.6.3(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7):
+    dependencies:
+      reservoir: 0.1.2
+    optionalDependencies:
+      bson: 7.2.0
+      cli-table: 0.3.11
+      js-yaml: 4.1.1
+      mongodb: 7.1.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      mongodb-ns: 3.0.3
+      numeral: 2.0.6
+      progress: 2.0.3
+      stats-lite: 2.2.0
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - socks
+
+  mongodb-schema@12.7.0(@aws-sdk/credential-providers@3.989.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7):
     dependencies:
       reservoir: 0.1.2
     optionalDependencies:
@@ -18542,7 +18519,7 @@ snapshots:
 
   openid-client@6.8.1:
     dependencies:
-      jose: 6.1.2
+      jose: 6.1.3
       oauth4webapi: 3.8.3
 
   optionator@0.9.4:
