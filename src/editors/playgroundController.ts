@@ -45,6 +45,7 @@ import {
   PlaygroundSavedTelemetryEvent,
 } from '../telemetry';
 import { ExtensionCommand } from '../commands';
+import { getFeatureFlag } from '../featureFlags';
 
 const log = createLogger('playground controller');
 
@@ -474,7 +475,10 @@ export default class PlaygroundController {
   }
 
   async _openResult(result: PlaygroundRunResult): Promise<void> {
-    if (result.constructionOptions) {
+    const useEnhancedDataBrowsing = getFeatureFlag(
+      'useEnhancedDataBrowsingExperience',
+    );
+    if (useEnhancedDataBrowsing && result.constructionOptions) {
       const { method } = result.constructionOptions.options;
       if (method === 'find' || method === 'aggregate') {
         // open find or aggregate cursor results in the data browser
