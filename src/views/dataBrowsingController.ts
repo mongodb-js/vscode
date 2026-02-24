@@ -25,13 +25,7 @@ import {
   CursorConstructionOptionsWithChains,
   CursorChainOptions,
 } from '@mongosh/shell-api';
-import type {
-  AggregateOptions,
-  Db,
-  DbOptions,
-  FindOptions,
-  Sort,
-} from 'mongodb';
+import type { AggregateOptions, DbOptions, FindOptions } from 'mongodb';
 import { EventEmitter } from 'events';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
@@ -133,43 +127,19 @@ export function parseConstructionOptionsForAggregate(
     options: { method: 'aggregate' };
   },
 ): ParsedQuery {
-  let limit: number | null = null;
-  let skip: number | null = null;
-
   const [, , pipeline, aggregateOptions, dbOptions] = query.options.args;
-  for (const stage of pipeline) {
-    if (stage.$limit) {
-      limit = stage.$limit;
-    }
-    if (stage.$skip) {
-      skip = stage.$skip;
-    }
-  }
-  const filteredPipeline = pipeline.filter((stage: any) => {
-    return !('$limit' in stage) && !('$skip' in stage);
-  });
-
-  if (query.chains) {
-    for (const chain of query.chains) {
-      if (chain.method === 'skip') {
-        skip = chain.args[0];
-      }
-    }
-  }
-
-  const filteredChains = (query.chains ?? []).filter(
-    (chain) => !['skip'].includes(chain.method),
-  );
 
   return {
-    limit,
-    skip,
+    // Aggregation pipelines can have multiple limit or skip stages, so we don't
+    // try to parse them out. Our code can safely append more.
+    limit: null,
+    skip: null,
     aggregate: {
-      pipeline: filteredPipeline,
+      pipeline,
       aggregateOptions: aggregateOptions ?? {},
       dbOptions: dbOptions ?? {},
     },
-    chains: filteredChains,
+    chains: query.chains ?? [],
   };
 }
 
@@ -708,7 +678,7 @@ export default class DataBrowsingController {
     if (!connectionOptions) {
       throw new Error('No connection options found');
     }
-    // TODO: connect only once and reuse the connection for subsequent requests instead of reconnecting on every time
+    // TODO: connect only once and reuse the connection for subsequent requests instead of reconnecting every time
     const serviceProvider = await NodeDriverServiceProvider.connect(
       connectionOptions.url,
       connectionOptions.options,
@@ -746,6 +716,9 @@ export default class DataBrowsingController {
       findOptions.limit = limit;
     }
 
+    // Sort is only for a collection's documents list. It should be null if this
+    // relates back to a find cursor so that we use the playground's sort
+    // instead of overriding it.
     if (sort) {
       findOptions.sort = sort;
     }
@@ -780,14 +753,50 @@ export default class DataBrowsingController {
     collectionName,
     limit,
     skip,
-    sort,
     signal,
     parsedQuery,
   }: FetchDocumentsParams & {
     parsedQuery: ParsedQuery & { aggregate: AggregateQuery };
   }): Promise<Document[]> {
-    // TODO
-    return Promise.resolve([]);
+    const connectionOptions =
+      this._connectionController.getMongoClientConnectionOptions();
+    if (!connectionOptions) {
+      throw new Error('No connection options found');
+    }
+    // TODO: connect only once and reuse the connection for subsequent requests instead of reconnecting every time
+    const serviceProvider = await NodeDriverServiceProvider.connect(
+      connectionOptions.url,
+      connectionOptions.options,
+    );
+
+    const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+    try {
+      const pipeline = [
+        ...parsedQuery.aggregate.pipeline,
+        { $skip: skip },
+        { $limit: limit },
+      ];
+
+      let cursor = serviceProvider.aggregate(
+        databaseName,
+        collectionName,
+        pipeline,
+        parsedQuery.aggregate.aggregateOptions,
+        {
+          ...parsedQuery.aggregate.dbOptions,
+          ...executionOptions,
+        },
+      );
+
+      for (const chain of parsedQuery.chains) {
+        cursor = cursor[chain.method](...chain.args);
+      }
+
+      return await cursor.toArray();
+    } finally {
+      await serviceProvider.close();
+    }
   }
 
   private async _fetchDocuments(
