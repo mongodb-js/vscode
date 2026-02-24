@@ -143,6 +143,15 @@ export function parseConstructionOptionsForAggregate(
   };
 }
 
+function getWebViewTitle(
+  databaseName: string,
+  collectionName: string,
+  hasQuery: boolean,
+): string {
+  const namespace = `${databaseName}.${collectionName}`;
+  return hasQuery ? `Playground Result: ${namespace}` : namespace;
+}
+
 export function parseConstructionOptions(
   query?: CursorConstructionOptionsWithChains,
 ): ParsedQuery {
@@ -203,7 +212,7 @@ export const getDataBrowsingContent = ({
     extensionPath,
     webview,
     webviewType: 'dataBrowser',
-    title: `${databaseName}.${collectionName}`,
+    title: getWebViewTitle(databaseName, collectionName, !!query),
     additionalHeadContent,
   });
 };
@@ -905,7 +914,11 @@ export default class DataBrowsingController {
 
     const panel = createWebviewPanel({
       viewType: 'mongodbDataBrowser',
-      title: `${options.databaseName}.${options.collectionName}`,
+      title: getWebViewTitle(
+        options.databaseName,
+        options.collectionName,
+        !!options.query,
+      ),
       extensionPath,
       iconName: 'leaf.svg',
     });
