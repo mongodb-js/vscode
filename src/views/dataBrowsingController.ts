@@ -919,6 +919,7 @@ export default class DataBrowsingController {
         options.collectionName,
         !!options.query,
       ),
+      column: options.query ? vscode.ViewColumn.Beside : undefined,
       extensionPath,
       iconName: 'leaf.svg',
     });
