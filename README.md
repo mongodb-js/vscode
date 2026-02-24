@@ -117,8 +117,8 @@ _Note: To use the MongoDB Participant, you must have the [GitHub Copilot](https:
 | `mdb.connectionSaving.`  `defaultConnectionSavingLocation` | When the setting that hides the option to choose where to save new connections is checked, this setting sets if and where new connections are saved. | `Global` |
 | `mdb.useDefaultTemplateForPlayground` | Choose whether to use the default template for playground files or to start with an empty playground editor. | `true` |
 | `mdb.uniqueObjectIdPerCursor` | The default behavior is to generate a single ObjectId and insert it on all cursors. Set to true to generate a unique ObjectId per cursor instead. | `false` |
-| `mdb.sendTelemetry` | Opt-in and opt-out for diagnostic and telemetry collection.  | `true`  |
-| `mdb.useSampleDocsInCopilot` | Enable sending sample field values with the VSCode copilot chat @MongoDB participant /query command.  | `false`  |
+| `mdb.sendTelemetry` | Opt-in and opt-out for diagnostic and telemetry collection. | `true` |
+| `mdb.useSampleDocsInCopilot` | Enable sending sample field values with the VSCode copilot chat @MongoDB participant /query command. | `false` |
 
 ## Additional Settings
 
