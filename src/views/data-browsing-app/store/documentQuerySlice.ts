@@ -70,7 +70,7 @@ export type ServiceProviderQuery = {
         args: Parameters<ServiceProvider['runCursorCommand']>;
       };
   chains: {
-    method: 'string';
+    method: string;
     args: any[];
   }[];
 };
