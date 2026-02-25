@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import * as vscode from 'vscode';
 import { EJSON, type Document } from 'bson';
 import path from 'path';
@@ -85,14 +86,17 @@ export function parseConstructionOptionsForFind(
   let skip: number | null = null;
 
   const [, , filter, findOptions, dbOptions] = query.options.args;
-  if (findOptions) {
-    if (findOptions.limit) {
-      limit = findOptions.limit;
-      delete findOptions.limit;
+
+  // work off a copy because we might delete things
+  const filteredFindOptions = findOptions ? _.cloneDeep(findOptions) : {};
+  if (filteredFindOptions) {
+    if (filteredFindOptions.limit) {
+      limit = filteredFindOptions.limit;
+      delete filteredFindOptions.limit;
     }
-    if (findOptions.skip) {
-      skip = findOptions.skip;
-      delete findOptions.skip;
+    if (filteredFindOptions.skip) {
+      skip = filteredFindOptions.skip;
+      delete filteredFindOptions.skip;
     }
   }
 
@@ -115,7 +119,7 @@ export function parseConstructionOptionsForFind(
     skip,
     find: {
       filter: filter ?? {},
-      findOptions: findOptions ?? {},
+      findOptions: filteredFindOptions,
       dbOptions: dbOptions ?? {},
     },
     chains: filteredChains,
