@@ -57,6 +57,13 @@ export default class ShowPreviewTreeItem extends vscode.TreeItem {
     this.iconPath = getIconPath();
     this.tooltip = getTooltip(type, cachedDocumentCount);
   }
+
+  async resetCache(): Promise<void> {
+    this.cacheIsUpToDate = false;
+    const docCount = await this.refreshDocumentCount();
+    this._documentCount = docCount;
+    this.description = formatDocCount(docCount);
+  }
 }
 
 function getIconPath(): { light: vscode.Uri; dark: vscode.Uri } {
