@@ -177,26 +177,26 @@ export default class PlaygroundController {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       const filePath = workspaceFolder?.uri.fsPath || os.homedir();
 
-      // Find a unique playground number by checking if an untitled document
-      // with the same URI already exists. This avoids relying on isPlayground()
-      // which can fail for untitled URIs, causing the same file to be reused.
-      let playgroundNumber = 1;
-      let documentUri: vscode.Uri;
-      do {
-        const fileName = path.join(
-          filePath,
-          `playground-${playgroundNumber}.mongodb.js`,
-        );
-        documentUri = vscode.Uri.from({
-          path: fileName,
-          scheme: 'untitled',
-        });
-        playgroundNumber++;
-      } while (
-        vscode.workspace.textDocuments.some(
-          (doc) => doc.uri.toString() === documentUri.toString(),
-        )
+      // We count open untitled playground files to use this number as part of a new playground path.
+      const numberUntitledPlaygrounds = vscode.workspace.textDocuments.filter(
+        (doc) => isPlayground(doc.uri),
+      ).length;
+
+      // We need a secondary `mongodb` extension otherwise VSCode will
+      // suggest playground-1.js name when saving playground to the disk.
+      // Users can open playgrounds from the disk
+      // and we need a way to distinguish this files from regular JS files.
+      const fileName = path.join(
+        filePath,
+        `playground-${numberUntitledPlaygrounds + 1}.mongodb.js`,
       );
+
+      // Does not create a physical file, it only creates a URI from specified component parts.
+      // An untitled file URI: untitled:/extensionPath/playground-1.mongodb.js
+      const documentUri = vscode.Uri.from({
+        path: fileName,
+        scheme: 'untitled',
+      });
 
       // Fill in initial content.
       const edit = new vscode.WorkspaceEdit();
