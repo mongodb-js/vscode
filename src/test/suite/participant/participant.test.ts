@@ -28,6 +28,7 @@ import {
 } from '../../../storage/storageController';
 import type { LoadedConnection } from '../../../storage/connectionStorage';
 import { ChatMetadataStore } from '../../../participant/chatMetadata';
+import type { DocsStreamResult } from '../../../participant/docsChatbotAIService';
 import { getFullRange } from '../suggestTestHelpers';
 import { isPlayground } from '../../../utils/playground';
 import { Prompts } from '../../../participant/prompts';
@@ -1580,26 +1581,26 @@ Schema:
       });
 
       suite('docs command', function () {
-        const initialFetch = global.fetch;
-        let fetchStub: sinon.SinonStub;
-
         beforeEach(function () {
           sendRequestStub.resolves({
             text: ['connection info'],
           });
         });
 
-        afterEach(function () {
-          global.fetch = initialFetch;
-        });
-
         suite('includes the history of previous requests', function () {
-          let addMessageStub: sinon.SinonStub;
+          let streamMessageStub: sinon.SinonStub;
           beforeEach(function () {
-            addMessageStub = sinon.stub(
-              testParticipantController._docsChatbotAIService,
-              'addMessage',
-            );
+            streamMessageStub = sinon
+              .stub(
+                testParticipantController._docsChatbotAIService,
+                'streamMessage',
+              )
+              .returns({
+                textStream: (async function* () {
+                  yield '';
+                })(),
+                sources: Promise.resolve([]),
+              } satisfies DocsStreamResult);
           });
 
           test('since the beginning', async function () {
@@ -1621,16 +1622,16 @@ Schema:
 
             await invokeChatHandler(chatRequestMock);
 
-            expect(addMessageStub.calledOnce).is.true;
-            expect(addMessageStub.getCall(0).firstArg.message).equal(
-              [
-                'query request 2',
-                'query response 2',
-                'schema request',
-                'schema response',
-                'docs request',
-              ].join('\n\n'),
-            );
+            expect(streamMessageStub.calledOnce).is.true;
+            expect(
+              streamMessageStub.getCall(0).firstArg.messages,
+            ).to.deep.equal([
+              { role: 'user', content: 'query request 2' },
+              { role: 'assistant', content: 'query response 2' },
+              { role: 'user', content: 'schema request' },
+              { role: 'assistant', content: 'schema response' },
+              { role: 'user', content: 'docs request' },
+            ]);
           });
 
           test('since the last docs request or response', async function () {
@@ -1652,12 +1653,14 @@ Schema:
 
             await invokeChatHandler(chatRequestMock);
 
-            expect(addMessageStub.calledOnce).is.true;
-            expect(addMessageStub.getCall(0).firstArg.message).equals(
-              ['schema request', 'schema response', 'docs request'].join(
-                '\n\n',
-              ),
-            );
+            expect(streamMessageStub.calledOnce).is.true;
+            expect(
+              streamMessageStub.getCall(0).firstArg.messages,
+            ).to.deep.equal([
+              { role: 'user', content: 'schema request' },
+              { role: 'assistant', content: 'schema response' },
+              { role: 'user', content: 'docs request' },
+            ]);
 
             chatContextStub = {
               history: [
@@ -1669,21 +1672,23 @@ Schema:
 
             await invokeChatHandler(chatRequestMock);
 
-            expect(addMessageStub.getCall(1).firstArg.message).equals(
-              'docs request',
-            );
+            expect(
+              streamMessageStub.getCall(1).firstArg.messages,
+            ).to.deep.equal([{ role: 'user', content: 'docs request' }]);
           });
         });
 
         test('shows a message and docs link on empty prompt', async function () {
-          fetchStub = sinon.stub().resolves();
-          global.fetch = fetchStub;
+          const streamMessageStub = sinon.stub(
+            testParticipantController._docsChatbotAIService,
+            'streamMessage',
+          );
           const chatRequestMock = createChatRequestMock({
             prompt: '',
             command: 'docs',
           });
           const res = await invokeChatHandler(chatRequestMock);
-          expect(fetchStub).to.not.have.been.called;
+          expect(streamMessageStub).to.not.have.been.called;
           expect(sendRequestStub).to.have.not.been.called;
           expect(res?.metadata.intent).to.equal('emptyRequest');
           const defaultEmptyMsg = chatStreamStub.markdown.getCall(0).args[0];
@@ -1695,23 +1700,23 @@ Schema:
         });
 
         test('uses docs chatbot result if available', async function () {
-          fetchStub = sinon.stub().resolves({
-            status: 200,
-            ok: true,
-            json: () =>
-              Promise.resolve({
-                _id: '650b4b260f975ef031016c8a',
-                content:
-                  'To connect to MongoDB using mongosh, you can follow these steps',
-              }),
-          });
-          global.fetch = fetchStub;
+          sinon
+            .stub(
+              testParticipantController._docsChatbotAIService,
+              'streamMessage',
+            )
+            .returns({
+              textStream: (async function* () {
+                yield 'To connect to MongoDB using mongosh, you can follow these steps';
+              })(),
+              sources: Promise.resolve([]),
+            } satisfies DocsStreamResult);
+
           const chatRequestMock = createChatRequestMock({
             prompt: 'how to connect to mongodb',
             command: 'docs',
           });
           await invokeChatHandler(chatRequestMock);
-          expect(fetchStub).to.have.been.called;
           expect(sendRequestStub).to.have.not.been.called;
 
           assertCommandTelemetry('docs', chatRequestMock, {
@@ -1726,13 +1731,13 @@ Schema:
         });
 
         test('falls back to the copilot model when docs chatbot result is not available', async function () {
-          fetchStub = sinon.stub().resolves({
-            status: 500,
-            ok: false,
-            statusText: 'Internal Server Error',
-            json: () => Promise.reject(new Error('invalid json')),
-          });
-          global.fetch = fetchStub;
+          sinon
+            .stub(
+              testParticipantController._docsChatbotAIService,
+              'streamMessage',
+            )
+            .throws(new Error('Docs chatbot unavailable'));
+
           const chatRequestMock = createChatRequestMock({
             prompt: 'how to connect to mongodb',
             command: 'docs',
