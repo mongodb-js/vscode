@@ -78,6 +78,11 @@ export const ExtensionCommand = {
 
   // Commands for the data browsing upgrade.
   mdbOpenCollectionPreviewFromTreeView: 'mdb.openCollectionPreviewFromTreeView',
+  mdbOpenMongodbDocumentFromDataBrowser:
+    'mdb.openMongoDBDocumentFromDataBrowser',
+  mdbInsertDocumentFromDataBrowser: 'mdb.insertDocumentFromDataBrowser',
+  mdbCloneDocumentFromDataBrowser: 'mdb.cloneDocumentFromDataBrowser',
+  mdbRefreshCollectionFromDataBrowser: 'mdb.refreshCollectionFromDataBrowser',
 
   // Chat participant.
   openParticipantCodeInPlayground: 'mdb.openParticipantCodeInPlayground',

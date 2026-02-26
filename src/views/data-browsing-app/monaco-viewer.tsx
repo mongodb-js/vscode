@@ -91,8 +91,14 @@ const cardStyles = css({
     top: spacing[200],
     right: spacing[200],
     display: 'flex',
-    gap: spacing[100],
+    gap: 0,
     zIndex: 1000,
+    backgroundColor:
+      'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
+    border:
+      '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
+    borderRadius: '6px',
+    padding: `${spacing[100]}px`,
 
     opacity: 0,
     transition: 'opacity 0.2s',
@@ -108,9 +114,10 @@ const cardStyles = css({
 });
 
 const actionButtonStyles = css({
-  background: 'var(--vscode-button-background)',
-  border: '1px solid var(--vscode-button-border, transparent)',
-  color: 'var(--vscode-button-foreground)',
+  position: 'relative',
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--vscode-foreground)',
   borderRadius: '4px',
   padding: `${spacing[100]}px ${spacing[200]}px`,
   cursor: 'pointer',
@@ -122,11 +129,38 @@ const actionButtonStyles = css({
   minHeight: '24px',
 
   '&:hover': {
-    background: 'var(--vscode-button-hoverBackground)',
+    background:
+      'var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1))',
   },
 
   '&:active': {
-    background: 'var(--vscode-button-background)',
+    background:
+      'var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.07))',
+  },
+
+  '&::after': {
+    content: 'attr(data-tooltip)',
+    position: 'absolute',
+    top: 'calc(100% + 12px)',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background:
+      'var(--vscode-editorHoverWidget-background, var(--vscode-editorWidget-background))',
+    color:
+      'var(--vscode-editorHoverWidget-foreground, var(--vscode-editor-foreground))',
+    border:
+      '1px solid var(--vscode-editorHoverWidget-border, var(--vscode-editorWidget-border))',
+    borderRadius: '4px',
+    padding: `${spacing[100]}px ${spacing[200]}px`,
+    fontSize: '12px',
+    whiteSpace: 'nowrap',
+    pointerEvents: 'none',
+    opacity: 0,
+    transition: 'opacity 0.15s',
+  },
+
+  '&:hover::after': {
+    opacity: 1,
   },
 });
 
@@ -349,8 +383,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           <button
             className={actionButtonStyles}
             onClick={handleEdit}
-            title="Edit"
-            aria-label="Edit"
+            data-tooltip="Edit Document"
+            aria-label="Edit Document"
           >
             <i className="codicon codicon-edit" />
           </button>
@@ -358,8 +392,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         <button
           className={actionButtonStyles}
           onClick={handleCopy}
-          title="Copy"
-          aria-label="Copy"
+          data-tooltip="Copy Document"
+          aria-label="Copy Document"
         >
           <i className="codicon codicon-copy" />
         </button>
@@ -367,8 +401,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           <button
             className={actionButtonStyles}
             onClick={handleClone}
-            title="Clone"
-            aria-label="Clone"
+            data-tooltip="Clone Document"
+            aria-label="Clone Document"
           >
             <i className="codicon codicon-files" />
           </button>
@@ -377,8 +411,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           <button
             className={actionButtonStyles}
             onClick={handleDelete}
-            title="Delete"
-            aria-label="Delete"
+            data-tooltip="Delete Document"
+            aria-label="Delete Document"
           >
             <i className="codicon codicon-trash" />
           </button>

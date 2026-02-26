@@ -20,10 +20,6 @@ import {
   getThemeTokenColors,
   getMonacoBaseTheme,
 } from '../utils/themeColorReader';
-import type EditorsController from '../editors/editorsController';
-import type PlaygroundController from '../editors/playgroundController';
-import type ExplorerController from '../explorer/explorerController';
-import { DocumentSource } from '../documentSource';
 import { getDocumentViewAndEditFormat } from '../editors/types';
 
 const log = createLogger('data browsing controller');
@@ -101,9 +97,6 @@ interface PanelAbortControllers {
 
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
-  _editorsController: EditorsController;
-  _playgroundController: PlaygroundController;
-  _explorerController: ExplorerController;
   _telemetryService: TelemetryService;
   _activeWebviewPanels: vscode.WebviewPanel[] = [];
   _configChangedSubscription: vscode.Disposable;
@@ -113,21 +106,12 @@ export default class DataBrowsingController {
 
   constructor({
     connectionController,
-    editorsController,
-    playgroundController,
-    explorerController,
     telemetryService,
   }: {
     connectionController: ConnectionController;
-    editorsController: EditorsController;
-    playgroundController: PlaygroundController;
-    explorerController: ExplorerController;
     telemetryService: TelemetryService;
   }) {
     this._connectionController = connectionController;
-    this._editorsController = editorsController;
-    this._playgroundController = playgroundController;
-    this._explorerController = explorerController;
     this._telemetryService = telemetryService;
     this._configChangedSubscription = vscode.workspace.onDidChangeConfiguration(
       this.onConfigurationChanged,
@@ -318,14 +302,15 @@ export default class DataBrowsingController {
     documentId: any,
   ): Promise<void> => {
     try {
-      await this._editorsController.openMongoDBDocument({
-        source: DocumentSource.databrowser,
-        documentId,
-        namespace: `${options.databaseName}.${options.collectionName}`,
-        format: getDocumentViewAndEditFormat(),
-        connectionId: this._connectionController.getActiveConnectionId(),
-        line: 1,
-      });
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
+        {
+          documentId,
+          namespace: `${options.databaseName}.${options.collectionName}`,
+          format: getDocumentViewAndEditFormat(),
+          connectionId: this._connectionController.getActiveConnectionId(),
+        },
+      );
     } catch (error) {
       log.error('Error opening document for editing', error);
       void vscode.window.showErrorMessage(
@@ -343,10 +328,13 @@ export default class DataBrowsingController {
       delete deserialized._id;
       const documentContents = toJSString(deserialized) ?? '';
 
-      await this._playgroundController.createPlaygroundForCloneDocument(
-        documentContents,
-        options.databaseName,
-        options.collectionName,
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbCloneDocumentFromDataBrowser,
+        {
+          documentContents,
+          databaseName: options.databaseName,
+          collectionName: options.collectionName,
+        },
       );
     } catch (error) {
       log.error('Error cloning document', error);
@@ -360,9 +348,12 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
   ): Promise<void> => {
     try {
-      await this._playgroundController.createPlaygroundForInsertDocument(
-        options.databaseName,
-        options.collectionName,
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbInsertDocumentFromDataBrowser,
+        {
+          databaseName: options.databaseName,
+          collectionName: options.collectionName,
+        },
       );
     } catch (error) {
       log.error('Error opening insert document playground', error);
@@ -432,9 +423,12 @@ export default class DataBrowsingController {
 
       // Refresh the tree view in the sidebar (reset collection cache so
       // the document count is re-fetched).
-      this._explorerController.refreshCollection(
-        options.databaseName,
-        options.collectionName,
+      await vscode.commands.executeCommand(
+        ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+        {
+          databaseName: options.databaseName,
+          collectionName: options.collectionName,
+        },
       );
 
       // Notify the webview that the document was deleted
