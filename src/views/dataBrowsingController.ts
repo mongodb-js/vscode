@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import * as vscode from 'vscode';
 import { EJSON, type Document } from 'bson';
 import path from 'path';
@@ -21,6 +22,13 @@ import {
 } from '../utils/themeColorReader';
 import { getDocumentViewAndEditFormat } from '../editors/types';
 import ExtensionCommand from '../commands';
+import type {
+  CursorConstructionOptionsWithChains,
+  CursorChainOptions,
+} from '@mongosh/shell-api';
+import type { AggregateOptions, DbOptions, FindOptions } from 'mongodb';
+import type { EventEmitter } from 'events';
+import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
 const log = createLogger('data browsing controller');
 
@@ -46,16 +54,147 @@ function getDefaultDocumentSort(): DocumentSort | undefined {
   return SORT_VALUE_MAP[getDefaultSortOrder()];
 }
 
+type FindQuery = {
+  filter: Document;
+  findOptions: FindOptions & EventEmitter.Abortable;
+  dbOptions: DbOptions;
+};
+
+type AggregateQuery = {
+  pipeline: Document[];
+  aggregateOptions: AggregateOptions & EventEmitter.Abortable;
+  dbOptions: DbOptions;
+};
+
+export type ParsedQuery = {
+  limit: number | null;
+  skip: number | null;
+  chains: CursorChainOptions[];
+} & (
+  | {
+      find: FindQuery;
+    }
+  | {
+      aggregate: AggregateQuery;
+    }
+);
+
+export function parseConstructionOptionsForFind(
+  query: CursorConstructionOptionsWithChains & { options: { method: 'find' } },
+): ParsedQuery {
+  let limit: number | null = null;
+  let skip: number | null = null;
+
+  const [, , filter, findOptions, dbOptions] = query.options.args;
+
+  // work off a copy because we might delete things
+  const filteredFindOptions = findOptions ? _.cloneDeep(findOptions) : {};
+  if (filteredFindOptions) {
+    if (filteredFindOptions.limit) {
+      limit = filteredFindOptions.limit;
+      delete filteredFindOptions.limit;
+    }
+    if (filteredFindOptions.skip) {
+      skip = filteredFindOptions.skip;
+      delete filteredFindOptions.skip;
+    }
+  }
+
+  if (query.chains) {
+    for (const chain of query.chains) {
+      if (chain.method === 'limit') {
+        limit = chain.args[0];
+      } else if (chain.method === 'skip') {
+        skip = chain.args[0];
+      }
+    }
+  }
+
+  const filteredChains = (query.chains ?? []).filter(
+    (chain) => !['limit', 'skip'].includes(chain.method),
+  );
+
+  return {
+    limit,
+    skip,
+    find: {
+      filter: filter ?? {},
+      findOptions: filteredFindOptions,
+      dbOptions: dbOptions ?? {},
+    },
+    chains: filteredChains,
+  };
+}
+
+export function parseConstructionOptionsForAggregate(
+  query: CursorConstructionOptionsWithChains & {
+    options: { method: 'aggregate' };
+  },
+): ParsedQuery {
+  const [, , pipeline, aggregateOptions, dbOptions] = query.options.args;
+
+  return {
+    // Aggregation pipelines can have multiple limit or skip stages, so we don't
+    // try to parse them out. Our code can safely append more.
+    limit: null,
+    skip: null,
+    aggregate: {
+      pipeline,
+      aggregateOptions: aggregateOptions ?? {},
+      dbOptions: dbOptions ?? {},
+    },
+    chains: query.chains ?? [],
+  };
+}
+
+function getWebViewTitle(
+  databaseName: string,
+  collectionName: string,
+  hasQuery: boolean,
+): string {
+  const namespace = `${databaseName}.${collectionName}`;
+  return hasQuery ? `Playground Result: ${namespace}` : namespace;
+}
+
+export function parseConstructionOptions(
+  query?: CursorConstructionOptionsWithChains,
+): ParsedQuery {
+  if (query) {
+    if (isFindQuery(query)) {
+      return parseConstructionOptionsForFind(query);
+    }
+    if (isAggregateQuery(query)) {
+      return parseConstructionOptionsForAggregate(query);
+    }
+
+    throw new Error(
+      'Only find and aggregate queries are supported in data browsing for now',
+    );
+  }
+  return {
+    limit: null,
+    skip: null,
+    find: {
+      filter: {},
+      findOptions: {},
+      dbOptions: {},
+    },
+    chains: [],
+  };
+}
+
 export const getDataBrowsingContent = ({
   extensionPath,
   webview,
   databaseName,
   collectionName,
+  query,
 }: {
   extensionPath: string;
   webview: vscode.Webview;
   databaseName: string;
   collectionName: string;
+  query?: string;
 }): string => {
   const codiconsDistPath = getCodiconsDistPath(extensionPath);
   const codiconStylesheetUri = webview
@@ -71,13 +210,13 @@ export const getDataBrowsingContent = ({
 
   const additionalHeadContent = `
     <link id="vscode-codicon-stylesheet" rel="stylesheet" href="${codiconStylesheetUri}" nonce="\${nonce}">
-    <script nonce="\${nonce}">window.MDB_DATA_BROWSING_OPTIONS = ${JSON.stringify({ monacoEditorBaseUri, defaultSortOrder })};</script>`;
+    <script nonce="\${nonce}">window.MDB_DATA_BROWSING_OPTIONS = ${JSON.stringify({ monacoEditorBaseUri, defaultSortOrder, query })};</script>`;
 
   return getWebviewHtml({
     extensionPath,
     webview,
     webviewType: 'dataBrowser',
-    title: `${databaseName}.${collectionName}`,
+    title: getWebViewTitle(databaseName, collectionName, !!query),
     additionalHeadContent,
   });
 };
@@ -86,6 +225,7 @@ export interface DataBrowsingOptions {
   databaseName: string;
   collectionName: string;
   collectionType: string;
+  query?: CursorConstructionOptionsWithChains;
 }
 
 type RequestType = 'documents' | 'totalCount';
@@ -94,6 +234,44 @@ interface PanelAbortControllers {
   documents?: AbortController;
   totalCount?: AbortController;
 }
+
+type FetchDocumentsParams = {
+  databaseName: string;
+  collectionName: string;
+  signal: AbortSignal;
+  skip: number;
+  limit: number;
+  sort?: DocumentSort;
+  query?: CursorConstructionOptionsWithChains;
+};
+
+const isFindQuery = (
+  query: CursorConstructionOptionsWithChains,
+): query is CursorConstructionOptionsWithChains & {
+  options: { method: 'find' };
+} => {
+  return query.options.method === 'find';
+};
+
+const isAggregateQuery = (
+  query: CursorConstructionOptionsWithChains,
+): query is CursorConstructionOptionsWithChains & {
+  options: { method: 'aggregate' };
+} => {
+  return query.options.method === 'aggregate';
+};
+
+const isFindParsedQuery = (
+  query: ParsedQuery,
+): query is ParsedQuery & { find: FindQuery } => {
+  return (query as any).find !== undefined;
+};
+
+const isAggregateParsedQuery = (
+  query: ParsedQuery,
+): query is ParsedQuery & { aggregate: AggregateQuery } => {
+  return (query as any).aggregate !== undefined;
+};
 
 export default class DataBrowsingController {
   _connectionController: ConnectionController;
@@ -233,14 +411,15 @@ export default class DataBrowsingController {
     const effectiveSort = sort ?? getDefaultDocumentSort();
 
     try {
-      const documents = await this._fetchDocuments(
-        options.databaseName,
-        options.collectionName,
+      const documents = await this._fetchDocuments({
+        databaseName: options.databaseName,
+        collectionName: options.collectionName,
+        query: options.query,
         signal,
         skip,
         limit,
-        effectiveSort,
-      );
+        sort: effectiveSort,
+      });
 
       if (signal.aborted) {
         return;
@@ -270,12 +449,13 @@ export default class DataBrowsingController {
     const { signal } = abortController;
 
     try {
-      const totalCount = await this._getTotalCount(
-        options.databaseName,
-        options.collectionName,
-        options.collectionType,
+      const totalCount = await this._getTotalCount({
+        databaseName: options.databaseName,
+        collectionName: options.collectionName,
+        collectionType: options.collectionType,
+        query: options.query,
         signal,
-      );
+      });
 
       if (signal.aborted) {
         return;
@@ -367,6 +547,14 @@ export default class DataBrowsingController {
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
+    if (options.query) {
+      log.error('Delete all documents with a query is not supported');
+      void vscode.window.showErrorMessage(
+        `Delete all documents with a query is not supported.`,
+      );
+      return;
+    }
+
     try {
       const confirmationResult = await vscode.window.showInformationMessage(
         `Are you sure you wish to delete all documents in ${options.databaseName}.${options.collectionName} collection?`,
@@ -487,18 +675,27 @@ export default class DataBrowsingController {
     }
   };
 
-  private async _fetchDocuments(
-    databaseName: string,
-    collectionName: string,
-    signal?: AbortSignal,
-    skip?: number,
-    limit?: number,
-    sort?: DocumentSort,
-  ): Promise<Document[]> {
-    const dataService = this._connectionController.getActiveDataService();
-    if (!dataService) {
-      throw new Error('No active database connection');
+  private async _fetchDocumentsForFind({
+    databaseName,
+    collectionName,
+    limit,
+    skip,
+    sort,
+    signal,
+    parsedQuery,
+  }: FetchDocumentsParams & {
+    parsedQuery: ParsedQuery & { find: FindQuery };
+  }): Promise<Document[]> {
+    const connectionOptions =
+      this._connectionController.getMongoClientConnectionOptions();
+    if (!connectionOptions) {
+      throw new Error('No connection options found');
     }
+    // TODO: connect only once and reuse the connection for subsequent requests instead of reconnecting every time
+    const serviceProvider = await NodeDriverServiceProvider.connect(
+      connectionOptions.url,
+      connectionOptions.options,
+    );
 
     const findOptions: {
       limit: number;
@@ -506,25 +703,136 @@ export default class DataBrowsingController {
       sort?: DocumentSort;
       promoteValues: false;
     } = {
-      limit: limit ?? DEFAULT_DOCUMENTS_LIMIT,
+      limit: DEFAULT_DOCUMENTS_LIMIT,
       promoteValues: false,
     };
 
+    if (parsedQuery.skip) {
+      // if the parsed query has a skip, we honor that so that the first page only starts after that skip value
+      findOptions.skip = parsedQuery.skip;
+    }
     if (skip !== undefined && skip > 0) {
-      findOptions.skip = skip;
+      // we add the skip from the pagination onto the parsed query skip if it is exists
+      findOptions.skip = (findOptions.skip ?? 0) + skip;
     }
 
+    if (parsedQuery.limit) {
+      // if the parsed query has a limit we want to honor that so that we don't go past it
+      const remaining = parsedQuery.limit - (findOptions.skip ?? 0);
+      if (remaining < 1) {
+        // TODO: log
+        return [];
+      }
+      findOptions.limit = limit ? Math.min(remaining, limit) : remaining;
+    } else if (limit) {
+      // otherwise we only have to take the limit from the pagination into account
+      findOptions.limit = limit;
+    }
+
+    // Sort is only for a collection's documents list. It should be null if this
+    // relates back to a find cursor so that we use the playground's sort
+    // instead of overriding it.
     if (sort) {
       findOptions.sort = sort;
     }
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
-    return dataService.find(
-      `${databaseName}.${collectionName}`,
-      {},
-      findOptions,
-      executionOptions,
+    try {
+      let cursor = serviceProvider.find(
+        databaseName,
+        collectionName,
+        parsedQuery.find.filter,
+        {
+          ...parsedQuery.find.findOptions,
+          ...findOptions,
+        },
+        {
+          ...parsedQuery.find.dbOptions,
+          ...executionOptions,
+        },
+      );
+      for (const chain of parsedQuery.chains) {
+        cursor = cursor[chain.method](...chain.args);
+      }
+      return await cursor.toArray();
+    } finally {
+      await serviceProvider.close();
+    }
+  }
+
+  private async _fetchDocumentsForAggregate({
+    databaseName,
+    collectionName,
+    limit,
+    skip,
+    signal,
+    parsedQuery,
+  }: FetchDocumentsParams & {
+    parsedQuery: ParsedQuery & { aggregate: AggregateQuery };
+  }): Promise<Document[]> {
+    const connectionOptions =
+      this._connectionController.getMongoClientConnectionOptions();
+    if (!connectionOptions) {
+      throw new Error('No connection options found');
+    }
+    // TODO: connect only once and reuse the connection for subsequent requests instead of reconnecting every time
+    const serviceProvider = await NodeDriverServiceProvider.connect(
+      connectionOptions.url,
+      connectionOptions.options,
+    );
+
+    const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+    try {
+      const pipeline = [
+        ...parsedQuery.aggregate.pipeline,
+        { $skip: skip },
+        { $limit: limit },
+      ];
+
+      let cursor = serviceProvider.aggregate(
+        databaseName,
+        collectionName,
+        pipeline,
+        parsedQuery.aggregate.aggregateOptions,
+        {
+          ...parsedQuery.aggregate.dbOptions,
+          ...executionOptions,
+        },
+      );
+
+      for (const chain of parsedQuery.chains) {
+        cursor = cursor[chain.method](...chain.args);
+      }
+
+      return await cursor.toArray();
+    } finally {
+      await serviceProvider.close();
+    }
+  }
+
+  private async _fetchDocuments(
+    options: FetchDocumentsParams,
+  ): Promise<Document[]> {
+    const parsedQuery = parseConstructionOptions(options.query);
+
+    if (isFindParsedQuery(parsedQuery)) {
+      return this._fetchDocumentsForFind({
+        ...options,
+        parsedQuery,
+      });
+    }
+
+    if (isAggregateParsedQuery(parsedQuery)) {
+      return this._fetchDocumentsForAggregate({
+        ...options,
+        parsedQuery,
+      });
+    }
+
+    throw new Error(
+      'Only find and aggregate queries are supported in data browsing for now',
     );
   }
 
@@ -557,13 +865,23 @@ export default class DataBrowsingController {
     }
   };
 
-  private async _getTotalCount(
-    databaseName: string,
-    collectionName: string,
-    collectionType: string,
-    signal: AbortSignal,
-  ): Promise<number | null> {
+  private async _getTotalCount({
+    databaseName,
+    collectionName,
+    query,
+    collectionType,
+    signal,
+  }: {
+    databaseName: string;
+    collectionName: string;
+    query?: CursorConstructionOptionsWithChains;
+    collectionType: string;
+    signal: AbortSignal;
+  }): Promise<number | null> {
+    // for now don't support total count for cursor queries, probably never
+    // support it for views and time-series collections
     if (
+      query ||
       collectionType === CollectionType.view ||
       collectionType === CollectionType.timeseries
     ) {
@@ -600,7 +918,12 @@ export default class DataBrowsingController {
 
     const panel = createWebviewPanel({
       viewType: 'mongodbDataBrowser',
-      title: `${options.databaseName}.${options.collectionName}`,
+      title: getWebViewTitle(
+        options.databaseName,
+        options.collectionName,
+        !!options.query,
+      ),
+      column: options.query ? vscode.ViewColumn.Beside : undefined,
       extensionPath,
       iconName: 'leaf.svg',
     });
@@ -613,6 +936,7 @@ export default class DataBrowsingController {
       webview: panel.webview,
       databaseName: options.databaseName,
       collectionName: options.collectionName,
+      query: JSON.stringify(options.query),
     });
 
     panel.webview.onDidReceiveMessage(

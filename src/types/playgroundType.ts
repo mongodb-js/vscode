@@ -2,12 +2,18 @@ import type * as vscode from 'vscode';
 import type { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
 import type { DocumentViewAndEditFormat } from '../editors/types';
+import type { CursorConstructionOptionsWithChains } from '@mongosh/shell-api';
 
 export type PlaygroundRunResult = {
   content: any;
   language?: string;
   namespace?: string;
   type?: string;
+  constructionOptions?: CursorConstructionOptionsWithChains;
+};
+
+export type PlaygroundRunCursorResult = PlaygroundRunResult & {
+  constructionOptions: CursorConstructionOptionsWithChains;
 };
 
 export type ExportToLanguageResult = {
