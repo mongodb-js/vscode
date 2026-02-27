@@ -1606,9 +1606,10 @@ export default class ParticipantController {
 
     const messages = [
       ...history.map((message: vscode.LanguageModelChatMessage) => ({
-        role: (message.role === vscode.LanguageModelChatMessageRole.User
-          ? 'user'
-          : 'assistant') as 'user' | 'assistant',
+        role:
+          message.role === vscode.LanguageModelChatMessageRole.User
+            ? 'user'
+            : 'assistant',
         content: getContent(message),
       })),
       { role: 'user' as const, content: prompt },
@@ -2002,7 +2003,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     }
   }
 
-  async handleUserFeedback(feedback: vscode.ChatResultFeedback): Promise<void> {
+  handleUserFeedback(feedback: vscode.ChatResultFeedback): void {
     // unhelpfulReason is available in insider builds and is accessed through
     // https://github.com/microsoft/vscode/blob/main/src/vscode-dts/vscode.proposed.chatParticipantAdditions.d.ts
     // Since this is a proposed API, we can't depend on it being available, which is why

@@ -29,7 +29,9 @@ export class DocsChatbotAIService {
       MONGODB_DOCS_CHATBOT_BASE_URI;
   }
 
-  private _createModel() {
+  private _createModel(): ReturnType<
+    ReturnType<typeof createOpenAI>['responses']
+  > {
     const openai = createOpenAI({
       baseURL: `${this._serverBaseUri}/api/${MONGODB_DOCS_CHATBOT_API_VERSION}`,
       apiKey: '',

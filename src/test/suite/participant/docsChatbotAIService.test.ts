@@ -22,9 +22,9 @@ suite('DocsChatbotAIService Test Suite', function () {
     const streamMessageStub = sinon
       .stub(docsChatbotAIService, 'streamMessage')
       .returns({
-        textStream: (async function* () {
+        textStream: (function* (): Generator<string> {
           yield 'To connect to MongoDB using mongosh, you can follow these steps';
-        })(),
+        })() as any,
         sources: Promise.resolve([]),
       } satisfies DocsStreamResult);
 

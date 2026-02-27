@@ -1596,9 +1596,9 @@ Schema:
                 'streamMessage',
               )
               .returns({
-                textStream: (async function* () {
+                textStream: (function* (): Generator<string> {
                   yield '';
-                })(),
+                })() as any,
                 sources: Promise.resolve([]),
               } satisfies DocsStreamResult);
           });
@@ -1706,9 +1706,9 @@ Schema:
               'streamMessage',
             )
             .returns({
-              textStream: (async function* () {
+              textStream: (function* (): Generator<string> {
                 yield 'To connect to MongoDB using mongosh, you can follow these steps';
-              })(),
+              })() as any,
               sources: Promise.resolve([]),
             } satisfies DocsStreamResult);
 
@@ -2687,8 +2687,8 @@ Schema:
   });
 
   suite('telemetry', function () {
-    test('reports positive user feedback', async function () {
-      await testParticipantController.handleUserFeedback({
+    test('reports positive user feedback', function () {
+      testParticipantController.handleUserFeedback({
         kind: vscode.ChatResultFeedbackKind.Helpful,
         result: {
           metadata: {
@@ -2715,8 +2715,8 @@ Schema:
         .and.not.include('1234-5678-9012-3456');
     });
 
-    test('reports negative user feedback', async function () {
-      await testParticipantController.handleUserFeedback({
+    test('reports negative user feedback', function () {
+      testParticipantController.handleUserFeedback({
         kind: vscode.ChatResultFeedbackKind.Unhelpful,
         result: {
           metadata: {
