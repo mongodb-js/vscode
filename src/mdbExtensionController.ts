@@ -24,10 +24,8 @@ import {
   HelpExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
-import {
-  PlaygroundRunCursorResult,
-  type ExportToLanguageResult,
-} from './types/playgroundType';
+import type { PlaygroundRunCursorResult } from './types/playgroundType';
+import { type ExportToLanguageResult } from './types/playgroundType';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
 import { LanguageServerController } from './language';

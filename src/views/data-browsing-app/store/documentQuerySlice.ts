@@ -12,7 +12,7 @@ import {
   type DocumentSort,
   type SortValueKey,
 } from '../extension-app-message-constants';
-import { ServiceProvider } from '@mongosh/service-provider-core';
+import type { ServiceProvider } from '@mongosh/service-provider-core';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -217,7 +217,7 @@ const documentQuerySlice = createSlice({
       sendGetTotalCount();
     },
     previousPageRequested: (state) => {
-      if (state.currentPage > 1) {
+      if (!state.isLoading && state.currentPage > 1) {
         const newPage = state.currentPage - 1;
         const skip = (newPage - 1) * state.itemsPerPage;
         state.currentPage = newPage;
@@ -233,7 +233,10 @@ const documentQuerySlice = createSlice({
       }
     },
     nextPageRequested: (state) => {
-      if (state.totalPages === null || state.currentPage < state.totalPages) {
+      if (
+        !state.isLoading &&
+        (state.totalPages === null || state.currentPage < state.totalPages)
+      ) {
         const newPage = state.currentPage + 1;
         const skip = (newPage - 1) * state.itemsPerPage;
         state.currentPage = newPage;

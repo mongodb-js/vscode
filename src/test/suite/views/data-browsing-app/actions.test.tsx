@@ -161,7 +161,9 @@ describe('actions test suite', function () {
     });
 
     it('should navigate to previous page when not on first page', function () {
-      const store = createStore(createTestState({ currentPage: 3 }));
+      const store = createStore(
+        createTestState({ currentPage: 3, isLoading: false }),
+      );
 
       store.dispatch(previousPageRequested());
 
@@ -176,7 +178,7 @@ describe('actions test suite', function () {
 
     it('should calculate correct skip with custom itemsPerPage', function () {
       const store = createStore(
-        createTestState({ currentPage: 3, itemsPerPage: 25 }),
+        createTestState({ currentPage: 3, itemsPerPage: 25, isLoading: false }),
       );
 
       store.dispatch(previousPageRequested());
@@ -205,7 +207,11 @@ describe('actions test suite', function () {
     it('should navigate to next page when not on last page', function () {
       // Set up: 50 docs with 10 per page = 5 pages, on page 2
       const store = createStore(
-        createTestState({ totalCountForQuery: 50, currentPage: 2 }),
+        createTestState({
+          totalCountForQuery: 50,
+          currentPage: 2,
+          isLoading: false,
+        }),
       );
 
       store.dispatch(nextPageRequested());
@@ -226,6 +232,7 @@ describe('actions test suite', function () {
           totalCountForQuery: 75,
           currentPage: 1,
           itemsPerPage: 25,
+          isLoading: false,
         }),
       );
 
@@ -308,6 +315,7 @@ describe('actions test suite', function () {
           sort: sortOption,
           totalCountForQuery: 50,
           currentPage: 1,
+          isLoading: false,
         }),
       );
 

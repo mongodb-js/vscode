@@ -322,7 +322,7 @@ const PreviewApp: React.FC = () => {
               onClick={(): void => {
                 dispatch(previousPageRequested());
               }}
-              disabled={currentPage <= 1 || isLoading}
+              disabled={(totalPages !== null && currentPage <= 1) || isLoading}
               iconOnly
               icon="chevron-left"
               secondary

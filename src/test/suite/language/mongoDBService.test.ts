@@ -2714,6 +2714,7 @@ suite('MongoDBService Test Suite', function () {
                 type: 'Document',
                 content: { name: 'Test2', number: { $numberInt: '2' } },
                 language: 'json',
+                constructionOptions: undefined,
               },
             };
 
@@ -3020,6 +3021,7 @@ suite('MongoDBService Test Suite', function () {
             type: 'number',
             content: 42,
             language: 'plaintext',
+            constructionOptions: undefined,
           },
         };
         expect(result).to.deep.equal(expectedResult);
@@ -3058,6 +3060,7 @@ suite('MongoDBService Test Suite', function () {
             type: 'number',
             content: 3,
             language: 'plaintext',
+            constructionOptions: undefined,
           },
         };
 

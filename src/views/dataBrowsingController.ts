@@ -22,12 +22,12 @@ import {
 } from '../utils/themeColorReader';
 import { getDocumentViewAndEditFormat } from '../editors/types';
 import ExtensionCommand from '../commands';
-import {
+import type {
   CursorConstructionOptionsWithChains,
   CursorChainOptions,
 } from '@mongosh/shell-api';
 import type { AggregateOptions, DbOptions, FindOptions } from 'mongodb';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
 const log = createLogger('data browsing controller');
