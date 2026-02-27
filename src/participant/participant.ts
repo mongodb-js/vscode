@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getSimplifiedSchema, parseSchema } from 'mongodb-schema';
 import type { Document } from 'bson';
+import type { ModelMessage } from 'ai';
 import type { Reference } from './docsChatbotAIService';
 import util from 'util';
 
@@ -1604,12 +1605,12 @@ export default class ParticipantController {
       context: context,
     });
 
-    const messages = [
+    const messages: ModelMessage[] = [
       ...history.map((message: vscode.LanguageModelChatMessage) => ({
         role:
           message.role === vscode.LanguageModelChatMessageRole.User
-            ? 'user'
-            : 'assistant',
+            ? ('user' as const)
+            : ('assistant' as const),
         content: getContent(message),
       })),
       { role: 'user' as const, content: prompt },
