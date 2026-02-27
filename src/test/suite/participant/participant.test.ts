@@ -1748,16 +1748,16 @@ Schema:
           // Expect the error to be reported through the telemetry service
           expect(
             telemetryTrackStub.getCalls(),
-          ).to.have.length.greaterThanOrEqual(2);
+          ).to.have.length.greaterThanOrEqual(3);
 
-          const firstTelemetryEvent = telemetryTrackStub.firstCall
+          const failedTelemetryEvent = telemetryTrackStub.secondCall
             .args[0] as ParticipantResponseFailedTelemetryEvent;
-          expect(firstTelemetryEvent.type).to.equal(
+          expect(failedTelemetryEvent.type).to.equal(
             'Participant Response Failed',
           );
 
-          expect(firstTelemetryEvent.properties.command).to.equal('docs');
-          expect(firstTelemetryEvent.properties.error_name).to.equal(
+          expect(failedTelemetryEvent.properties.command).to.equal('docs');
+          expect(failedTelemetryEvent.properties.error_name).to.equal(
             'Docs Chatbot API Issue',
           );
 
