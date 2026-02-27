@@ -1467,6 +1467,7 @@
     ]
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.34",
     "@babel/core": "^7.25.8",
     "@babel/parser": "^7.25.8",
     "@babel/traverse": "^7.25.7",
@@ -1485,6 +1486,7 @@
     "@segment/analytics-node": "^1.3.0",
     "@vscode-elements/react-elements": "^2.4.0",
     "@vscode/codicons": "^0.0.44",
+    "ai": "^6.0.101",
     "bson": "^6.10.4",
     "debug": "^4.3.7",
     "dotenv": "^16.4.5",
@@ -1564,7 +1566,6 @@
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^7.0.0",
-    "mongodb-rag-core": "^0.7.1",
     "mongodb-runner": "^5.10.0",
     "node-fetch": "^2.7.0",
     "node-loader": "^0.6.0",
