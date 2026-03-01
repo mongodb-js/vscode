@@ -190,42 +190,27 @@ const actionButtonStyles = css({
   },
 });
 
-// Maximum number of top-level fields to show initially
-const MAX_INITIAL_FIELDS = 25;
+const MAX_INITIAL_FIELDS_SHOWING = 25;
 
-/**
- * Find the 1-based line number in a formatted JS string where the
- * (maxFields + 1)-th top-level field begins.  Returns `null` when
- * all fields fit within the limit.
- */
+// Finds the 1-based line number where the (maxFields+1)th top-level field starts.
+// Walks keys sequentially so nested fields with the same name as a later top-level
+// key are naturally skipped over.
 function findCollapseLineNumber(
   text: string,
+  topLevelKeys: string[],
   maxFields: number,
 ): number | null {
+  if (topLevelKeys.length <= maxFields) return null;
+
   const lines = text.split('\n');
-  let depth = 0;
-  let fieldCount = 0;
+  let keyIndex = 0;
 
   for (let i = 0; i < lines.length; i++) {
-    const prevDepth = depth;
-
-    for (const char of lines[i]) {
-      if (char === '{' || char === '[') depth++;
-      else if (char === '}' || char === ']') depth--;
-    }
-
-    const trimmed = lines[i].trim();
-    // A line at depth 1 that isn't a closing brace/bracket starts a top-level field
-    if (
-      prevDepth === 1 &&
-      trimmed &&
-      !trimmed.startsWith('}') &&
-      !trimmed.startsWith(']')
-    ) {
-      fieldCount++;
-      if (fieldCount > maxFields) {
-        return i + 1; // 1-based
+    if (lines[i].trimStart().startsWith(`${topLevelKeys[keyIndex]}:`)) {
+      if (keyIndex === maxFields) {
+        return i + 1; // 1-based line number
       }
+      keyIndex++;
     }
   }
 
@@ -358,11 +343,16 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
   // Find the line where field MAX_INITIAL_FIELDS+1 starts
   const collapseAtLine = useMemo(
-    () => findCollapseLineNumber(documentString, MAX_INITIAL_FIELDS),
-    [documentString],
+    () =>
+      findCollapseLineNumber(
+        documentString,
+        Object.keys(document),
+        MAX_INITIAL_FIELDS_SHOWING,
+      ),
+    [documentString, document],
   );
   const hasMoreFields = collapseAtLine !== null;
-  const hiddenFieldCount = Object.keys(document).length - MAX_INITIAL_FIELDS;
+  const hiddenFieldCount = Object.keys(document).length - MAX_INITIAL_FIELDS_SHOWING;
 
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
