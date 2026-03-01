@@ -362,8 +362,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     [documentString],
   );
   const hasMoreFields = collapseAtLine !== null;
-  const hiddenFieldCount =
-    Object.keys(document).length - MAX_INITIAL_FIELDS;
+  const hiddenFieldCount = Object.keys(document).length - MAX_INITIAL_FIELDS;
 
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
@@ -514,8 +513,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             hasMoreFields && !showAllFields && collapsedHeight !== null
               ? collapsedHeight
               : undefined,
-          overflow:
-            hasMoreFields && !showAllFields ? 'hidden' : undefined,
+          overflow: hasMoreFields && !showAllFields ? 'hidden' : undefined,
         }}
       >
         <div className={monacoWrapperStyles}>
