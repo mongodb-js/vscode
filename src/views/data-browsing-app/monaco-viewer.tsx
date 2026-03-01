@@ -274,6 +274,9 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   const [editorHeight, setEditorHeight] = useState<number>(0);
   const [showAllFields, setShowAllFields] = useState(false);
   const [collapsedHeight, setCollapsedHeight] = useState<number | null>(null);
+  const buttonWrapperRef = useRef<HTMLDivElement | null>(null);
+  // Stores the button's viewport Y before collapsing so we can scroll to restore it.
+  const collapseScrollTargetRef = useRef<number | null>(null);
 
   // Monaco expects colors without the # prefix, so strip it here once.
   // Individual color properties may be undefined when the active VS Code
@@ -435,6 +438,26 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     };
   }, []);
 
+  const handleCollapse = useCallback(() => {
+    // Capture the button wrapper's viewport Y before the DOM collapses.
+    collapseScrollTargetRef.current =
+      buttonWrapperRef.current?.getBoundingClientRect().top ?? null;
+    setShowAllFields(false);
+  }, []);
+
+  // After collapsing, scroll so the button stays at the same viewport position.
+  useEffect(() => {
+    if (showAllFields || collapseScrollTargetRef.current === null) return;
+    const targetTop = collapseScrollTargetRef.current;
+    collapseScrollTargetRef.current = null;
+
+    requestAnimationFrame(() => {
+      if (!buttonWrapperRef.current) return;
+      const newTop = buttonWrapperRef.current.getBoundingClientRect().top;
+      window.scrollBy(0, newTop - targetTop);
+    });
+  }, [showAllFields]);
+
   const handleEdit = useCallback(() => {
     if (document._id) {
       sendEditDocument(document._id);
@@ -519,26 +542,28 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         </div>
       </div>
 
-      {hasMoreFields && !showAllFields && (
-        <button
-          className={showMoreButtonStyles}
-          onClick={() => setShowAllFields(true)}
-          data-expanded="false"
-        >
-          Show {hiddenFieldCount} more field
-          {hiddenFieldCount !== 1 ? 's' : ''}
-        </button>
-      )}
+      <div ref={buttonWrapperRef}>
+        {hasMoreFields && !showAllFields && (
+          <button
+            className={showMoreButtonStyles}
+            onClick={() => setShowAllFields(true)}
+            data-expanded="false"
+          >
+            Show {hiddenFieldCount} more field
+            {hiddenFieldCount !== 1 ? 's' : ''}
+          </button>
+        )}
 
-      {hasMoreFields && showAllFields && (
-        <button
-          className={showMoreButtonStyles}
-          onClick={() => setShowAllFields(false)}
-          data-expanded="true"
-        >
-          Show less
-        </button>
-      )}
+        {hasMoreFields && showAllFields && (
+          <button
+            className={showMoreButtonStyles}
+            onClick={handleCollapse}
+            data-expanded="true"
+          >
+            Show less
+          </button>
+        )}
+      </div>
     </div>
   );
 };
