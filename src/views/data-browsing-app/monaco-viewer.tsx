@@ -389,7 +389,10 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       expandedPathsRef.current,
     );
     const formatted = toJSString(truncated) ?? '';
-    lineToPathMapRef.current = buildLineToPathMap(formatted, truncationMapRef.current);
+    lineToPathMapRef.current = buildLineToPathMap(
+      formatted,
+      truncationMapRef.current,
+    );
     return addExpandIndicators(formatted, lineToPathMapRef.current);
   }, [document]);
 
