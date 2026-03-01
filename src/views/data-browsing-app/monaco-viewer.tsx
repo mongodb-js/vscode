@@ -355,7 +355,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     [documentString, document],
   );
   const hasMoreFields = collapseAtLine !== null;
-  const hiddenFieldCount = Object.keys(document).length - MAX_INITIAL_FIELDS_SHOWING;
+  const hiddenFieldCount =
+    Object.keys(document).length - MAX_INITIAL_FIELDS_SHOWING;
 
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
