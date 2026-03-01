@@ -359,10 +359,10 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const editButton = screen.queryByTitle('Edit');
-      const copyButton = screen.queryByTitle('Copy');
-      const cloneButton = screen.queryByTitle('Clone');
-      const deleteButton = screen.queryByTitle('Delete');
+      const editButton = screen.queryByLabelText('Edit Document');
+      const copyButton = screen.queryByLabelText('Copy Document');
+      const cloneButton = screen.queryByLabelText('Clone Document');
+      const deleteButton = screen.queryByLabelText('Delete Document');
 
       expect(editButton).to.exist;
       expect(copyButton).to.exist;
@@ -375,10 +375,10 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const editButton = screen.queryByTitle('Edit');
-      const copyButton = screen.queryByTitle('Copy');
-      const cloneButton = screen.queryByTitle('Clone');
-      const deleteButton = screen.queryByTitle('Delete');
+      const editButton = screen.queryByLabelText('Edit Document');
+      const copyButton = screen.queryByLabelText('Copy Document');
+      const cloneButton = screen.queryByLabelText('Clone Document');
+      const deleteButton = screen.queryByLabelText('Delete Document');
 
       expect(editButton).to.not.exist;
       expect(copyButton).to.exist;
@@ -391,7 +391,7 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const editButton = screen.getByTitle('Edit');
+      const editButton = screen.getByLabelText('Edit Document');
       fireEvent.click(editButton);
 
       expect(sendEditDocumentStub.calledOnce).to.be.true;
@@ -403,7 +403,7 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const copyButton = screen.getByTitle('Copy');
+      const copyButton = screen.getByLabelText('Copy Document');
       fireEvent.click(copyButton);
 
       await waitFor(() => {
@@ -420,7 +420,7 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const cloneButton = screen.getByTitle('Clone');
+      const cloneButton = screen.getByLabelText('Clone Document');
       fireEvent.click(cloneButton);
 
       expect(sendCloneDocumentStub.calledOnce).to.be.true;
@@ -432,7 +432,7 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const deleteButton = screen.getByTitle('Delete');
+      const deleteButton = screen.getByLabelText('Delete Document');
       fireEvent.click(deleteButton);
 
       expect(sendDeleteDocumentStub.calledOnce).to.be.true;
@@ -447,7 +447,7 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const editButton = screen.getByTitle('Edit');
+      const editButton = screen.getByLabelText('Edit Document');
       fireEvent.click(editButton);
 
       expect(sendEditDocumentStub.calledOnce).to.be.true;
@@ -461,7 +461,7 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const deleteButton = screen.getByTitle('Delete');
+      const deleteButton = screen.getByLabelText('Delete Document');
       fireEvent.click(deleteButton);
 
       expect(sendDeleteDocumentStub.calledOnce).to.be.true;
@@ -473,10 +473,10 @@ describe('MonacoViewer test suite', function () {
 
       render(<MonacoViewer document={document} themeKind="vs-dark" />);
 
-      const editButton = screen.getByTitle('Edit');
-      const copyButton = screen.getByTitle('Copy');
-      const cloneButton = screen.getByTitle('Clone');
-      const deleteButton = screen.getByTitle('Delete');
+      const editButton = screen.getByLabelText('Edit Document');
+      const copyButton = screen.getByLabelText('Copy Document');
+      const cloneButton = screen.getByLabelText('Clone Document');
+      const deleteButton = screen.getByLabelText('Delete Document');
 
       const editIcon = editButton.querySelector('.codicon-edit');
       const copyIcon = copyButton.querySelector('.codicon-copy');
