@@ -477,7 +477,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       <div
         style={{
           maxHeight:
-            hasMoreFields && !showAllFields && collapsedHeight != null
+            hasMoreFields && !showAllFields && collapsedHeight !== null
               ? collapsedHeight
               : undefined,
           overflow:
