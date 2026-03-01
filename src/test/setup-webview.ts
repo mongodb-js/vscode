@@ -99,6 +99,16 @@ if (
   };
 }
 
+// Polyfill for requestAnimationFrame / cancelAnimationFrame (not implemented by JSDOM)
+if (!global.requestAnimationFrame) {
+  global.requestAnimationFrame = (cb: FrameRequestCallback): number => {
+    return setTimeout(() => cb(Date.now()), 0) as unknown as number;
+  };
+  global.cancelAnimationFrame = (id: number): void => {
+    clearTimeout(id);
+  };
+}
+
 // Polyfill for ResizeObserver (required by @vscode-elements/elements)
 // JSDOM does not support ResizeObserver, so we provide a no-op implementation
 class ResizeObserverPolyfill {

@@ -489,4 +489,106 @@ describe('MonacoViewer test suite', function () {
       expect(deleteIcon).to.exist;
     });
   });
+
+  describe('Show more / Show less', function () {
+    // Builds a document with `count` top-level fields named field0..fieldN.
+    const makeDocument = (count: number): Record<string, unknown> =>
+      Object.fromEntries(
+        Array.from({ length: count }, (_, i) => [`field${i}`, i]),
+      );
+
+    it('should not show toggle buttons for documents with ≤ 25 fields', function () {
+      render(<MonacoViewer document={makeDocument(25)} themeKind="vs-dark" />);
+
+      expect(screen.queryByText(/Show .* more field/)).to.not.exist;
+      expect(screen.queryByText('Show less')).to.not.exist;
+    });
+
+    it('should show "Show N more fields" button for documents with > 25 fields', function () {
+      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+
+      const btn = screen.getByText(/Show 5 more fields/);
+      expect(btn).to.exist;
+      expect(btn.getAttribute('data-expanded')).to.equal('false');
+    });
+
+    it('should use singular "field" when exactly one field is hidden', function () {
+      render(<MonacoViewer document={makeDocument(26)} themeKind="vs-dark" />);
+
+      // "Show 1 more field" — no trailing "s"
+      expect(screen.getByText(/Show 1 more field/)).to.exist;
+      expect(screen.queryByText(/Show 1 more fields/)).to.not.exist;
+    });
+
+    it('should switch to "Show less" button after clicking "Show more"', function () {
+      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+
+      fireEvent.click(screen.getByText(/Show 5 more fields/));
+
+      const btn = screen.getByText('Show less');
+      expect(btn).to.exist;
+      expect(btn.getAttribute('data-expanded')).to.equal('true');
+      expect(screen.queryByText(/Show 5 more fields/)).to.not.exist;
+    });
+
+    it('should switch back to "Show more" button after clicking "Show less"', function () {
+      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+
+      fireEvent.click(screen.getByText(/Show 5 more fields/));
+      fireEvent.click(screen.getByText('Show less'));
+
+      expect(screen.getByText(/Show 5 more fields/)).to.exist;
+      expect(screen.queryByText('Show less')).to.not.exist;
+    });
+
+    it('should call window.scrollBy to restore button viewport position after collapsing', async function () {
+      // JSDOM may not have scrollBy — define a no-op so sinon can stub it.
+      if (!window.scrollBy) {
+        (window as any).scrollBy = () => {
+          /* no-op */
+        };
+      }
+      const scrollByStub = sinon.stub(window, 'scrollBy');
+
+      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+
+      // Expand so the "Show less" button is visible.
+      fireEvent.click(screen.getByText(/Show 5 more fields/));
+
+      // Stub getBoundingClientRect on the button wrapper (the parent div of
+      // the Show less button) to return controlled viewport positions:
+      //   1st call (in handleCollapse, while expanded) → top = 500
+      //   2nd call (inside requestAnimationFrame, after collapse) → top = 200
+      const showLessBtn = screen.getByText('Show less');
+      const buttonWrapper = showLessBtn.parentElement as HTMLDivElement;
+      let rectCallCount = 0;
+      sinon
+        .stub(buttonWrapper, 'getBoundingClientRect')
+        .callsFake(
+          () => ({ top: rectCallCount++ === 0 ? 500 : 200 }) as DOMRect,
+        );
+
+      fireEvent.click(showLessBtn);
+
+      await waitFor(() => {
+        expect(scrollByStub.calledOnce).to.be.true;
+        // delta = newTop - targetTop = 200 - 500 = -300
+        expect(scrollByStub.calledWith(0, -300)).to.be.true;
+      });
+    });
+
+    it('should not call window.scrollBy when clicking "Show more"', function () {
+      if (!window.scrollBy) {
+        (window as any).scrollBy = () => {
+          /* no-op */
+        };
+      }
+      const scrollByStub = sinon.stub(window, 'scrollBy');
+
+      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+      fireEvent.click(screen.getByText(/Show 5 more fields/));
+
+      expect(scrollByStub.called).to.be.false;
+    });
+  });
 });
