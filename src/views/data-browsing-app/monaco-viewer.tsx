@@ -49,7 +49,7 @@ function truncateLongValues(
   obj: any,
   truncationMap: Map<string, string>,
   expandedPaths: Set<string>,
-  currentPath: string = ''
+  currentPath = '',
 ): any {
   if (typeof obj === 'string') {
     if (obj.length > MAX_VALUE_LENGTH && !expandedPaths.has(currentPath)) {
@@ -61,15 +61,25 @@ function truncateLongValues(
 
   if (Array.isArray(obj)) {
     return obj.map((item, index) =>
-      truncateLongValues(item, truncationMap, expandedPaths, `${currentPath}[${index}]`)
+      truncateLongValues(
+        item,
+        truncationMap,
+        expandedPaths,
+        `${currentPath}[${index}]`,
+      ),
     );
   }
 
   if (obj !== null && typeof obj === 'object') {
-    const result: Record<string, any> = {};
+    const result: Record<string, any> = Object.create(null);
     for (const [key, value] of Object.entries(obj)) {
       const newPath = currentPath ? `${currentPath}.${key}` : key;
-      result[key] = truncateLongValues(value, truncationMap, expandedPaths, newPath);
+      result[key] = truncateLongValues(
+        value,
+        truncationMap,
+        expandedPaths,
+        newPath,
+      );
     }
     return result;
   }
@@ -120,7 +130,7 @@ function findPathAtPosition(text: string, lineNumber: number): string | null {
  */
 function addExpandIndicators(
   formattedText: string,
-  truncationMap: Map<string, string>
+  truncationMap: Map<string, string>,
 ): string {
   if (truncationMap.size === 0) return formattedText;
 
@@ -173,7 +183,6 @@ const monacoWrapperStyles = css({
   '& .monaco-editor .find-widget': {
     right: '50px !important',
   },
-
 });
 
 const cardStyles = css({
@@ -392,7 +401,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     const truncated = truncateLongValues(
       deserialized,
       truncationMapRef.current,
-      expandedPathsRef.current
+      expandedPathsRef.current,
     );
     const formatted = toJSString(truncated) ?? '';
     return addExpandIndicators(formatted, truncationMapRef.current);
@@ -476,7 +485,9 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       // Monaco re-renders them (content edits, fold/unfold, re-tokenization).
       // This is more reliable than timing-based approaches because Monaco's
       // async tokenizer can re-create spans across multiple frames.
-      const viewLines = editorInstance.getDomNode()?.querySelector('.view-lines');
+      const viewLines = editorInstance
+        .getDomNode()
+        ?.querySelector('.view-lines');
       if (viewLines) {
         let styleTimeout: ReturnType<typeof setTimeout> | undefined;
         observerRef.current = new MutationObserver(() => {
@@ -508,12 +519,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             position.lineNumber,
           );
 
-          if (
-            pathAtPosition &&
-            truncationMapRef.current.has(pathAtPosition)
-          ) {
-            const fullValue =
-              truncationMapRef.current.get(pathAtPosition)!;
+          if (pathAtPosition && truncationMapRef.current.has(pathAtPosition)) {
+            const fullValue = truncationMapRef.current.get(pathAtPosition)!;
             const truncatedValue =
               fullValue.substring(0, MAX_VALUE_LENGTH) + '...';
 
@@ -523,7 +530,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             const lineContent = model.getLineContent(position.lineNumber);
             const newLine = lineContent.replace(
               `${formattedTruncated} ⋯`,
-              formattedFull
+              formattedFull,
             );
 
             const lineLength = model.getLineLength(position.lineNumber);
