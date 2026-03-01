@@ -2601,6 +2601,7 @@ suite('MongoDBService Test Suite', function () {
           type: 'number',
           content: 2,
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
@@ -2653,6 +2654,7 @@ suite('MongoDBService Test Suite', function () {
                 type: 'Document',
                 content: { name: 'Test1', number: { $numberInt: '1' } },
                 language: 'json',
+                constructionOptions: undefined,
               },
             };
 
@@ -2685,6 +2687,7 @@ suite('MongoDBService Test Suite', function () {
                 type: 'Document',
                 content: { name: 'Test2', number: { $numberInt: '2' } },
                 language: 'json',
+                constructionOptions: undefined,
               },
             };
 
@@ -2754,6 +2757,7 @@ suite('MongoDBService Test Suite', function () {
           type: 'number',
           content: 3,
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
@@ -2776,6 +2780,7 @@ suite('MongoDBService Test Suite', function () {
           type: 'number',
           content: 2,
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
@@ -2795,6 +2800,7 @@ suite('MongoDBService Test Suite', function () {
           type: 'number',
           content: 3,
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
@@ -2823,6 +2829,7 @@ suite('MongoDBService Test Suite', function () {
             },
           },
           language: 'json',
+          constructionOptions: undefined,
         },
       };
 
@@ -2848,6 +2855,7 @@ suite('MongoDBService Test Suite', function () {
             name: 'a short string',
           },
           language: 'json',
+          constructionOptions: undefined,
         },
       };
 
@@ -2875,6 +2883,7 @@ suite('MongoDBService Test Suite', function () {
             },
           ],
           language: 'json',
+          constructionOptions: undefined,
         },
       };
 
@@ -2897,6 +2906,7 @@ suite('MongoDBService Test Suite', function () {
           type: 'undefined',
           content: undefined,
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
@@ -2919,6 +2929,7 @@ suite('MongoDBService Test Suite', function () {
           type: 'object',
           content: null,
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
@@ -2942,6 +2953,7 @@ suite('MongoDBService Test Suite', function () {
           type: 'string',
           content: 'A single line string',
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
@@ -2969,6 +2981,7 @@ suite('MongoDBService Test Suite', function () {
           is
           awesome`,
           language: 'plaintext',
+          constructionOptions: undefined,
         },
       };
 
