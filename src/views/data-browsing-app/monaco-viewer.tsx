@@ -88,41 +88,28 @@ function truncateLongValues(
 }
 
 /**
- * Find the JSON path at a specific position in the formatted text
- * This is a simplified implementation that looks for the key on the current line
+ * Build a map from 1-based line number to JSON path for all truncated values.
+ * Finds each truncated value's content directly in the formatted text,
+ * avoiding fragile text-parsing heuristics.
  */
-function findPathAtPosition(text: string, lineNumber: number): string | null {
-  const lines = text.split('\n');
-  if (lineNumber < 1 || lineNumber > lines.length) return null;
+function buildLineToPathMap(
+  formattedText: string,
+  truncationMap: Map<string, string>,
+): Map<number, string> {
+  const lineToPath = new Map<number, string>();
+  if (truncationMap.size === 0) return lineToPath;
 
-  const currentLine = lines[lineNumber - 1];
-
-  // Try to extract the key from the current line (format: "key: value")
-  const keyMatch = currentLine.match(/^\s*(\w+):/);
-  if (!keyMatch) return null;
-
-  const key = keyMatch[1];
-
-  // Build the path by looking at parent objects
-  const path: string[] = [];
-  let currentIndent = currentLine.search(/\S/);
-
-  // Look backwards to find parent keys
-  for (let i = lineNumber - 2; i >= 0; i--) {
-    const line = lines[i];
-    const lineIndent = line.search(/\S/);
-
-    if (lineIndent < currentIndent) {
-      const parentKeyMatch = line.match(/^\s*(\w+):/);
-      if (parentKeyMatch) {
-        path.unshift(parentKeyMatch[1]);
-        currentIndent = lineIndent;
+  const lines = formattedText.split('\n');
+  for (const [path, fullValue] of truncationMap) {
+    const truncatedSnippet = fullValue.substring(0, MAX_VALUE_LENGTH) + '...';
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes(truncatedSnippet)) {
+        lineToPath.set(i + 1, path);
+        break;
       }
     }
   }
-
-  path.push(key);
-  return path.join('.');
+  return lineToPath;
 }
 
 /**
@@ -130,17 +117,14 @@ function findPathAtPosition(text: string, lineNumber: number): string | null {
  */
 function addExpandIndicators(
   formattedText: string,
-  truncationMap: Map<string, string>,
+  lineToPathMap: Map<number, string>,
 ): string {
-  if (truncationMap.size === 0) return formattedText;
+  if (lineToPathMap.size === 0) return formattedText;
 
   const lines = formattedText.split('\n');
   const result = lines.map((line, index) => {
-    if (line.match(/\.\.\.("|')(\s*,?\s*)$/)) {
-      const path = findPathAtPosition(formattedText, index + 1);
-      if (path && truncationMap.has(path)) {
-        return line.replace(/(\.\.\.("|'))(\s*,?\s*)$/, '$1 ⋯$3');
-      }
+    if (lineToPathMap.has(index + 1) && line.match(/\.\.\.("|')(\s*,?\s*)$/)) {
+      return line.replace(/(\.\.\.("|'))(\s*,?\s*)$/, '$1 ⋯$3');
     }
     return line;
   });
@@ -330,6 +314,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   const [editorHeight, setEditorHeight] = useState<number>(0);
   const expandedPathsRef = useRef<Set<string>>(new Set());
   const truncationMapRef = useRef<Map<string, string>>(new Map());
+  const lineToPathMapRef = useRef<Map<number, string>>(new Map());
   const observerRef = useRef<MutationObserver | null>(null);
 
   // Monaco expects colors without the # prefix, so strip it here once.
@@ -404,7 +389,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       expandedPathsRef.current,
     );
     const formatted = toJSString(truncated) ?? '';
-    return addExpandIndicators(formatted, truncationMapRef.current);
+    lineToPathMapRef.current = buildLineToPathMap(formatted, truncationMapRef.current);
+    return addExpandIndicators(formatted, lineToPathMapRef.current);
   }, [document]);
 
   const calculateHeight = useCallback(() => {
@@ -513,11 +499,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           Math.abs(position.column - (ellipsisIndex + 1)) <= 3;
 
         if (clickedOnEllipsis) {
-          const fullText = model.getValue();
-          const pathAtPosition = findPathAtPosition(
-            fullText,
-            position.lineNumber,
-          );
+          const pathAtPosition =
+            lineToPathMapRef.current.get(position.lineNumber) ?? null;
 
           if (pathAtPosition && truncationMapRef.current.has(pathAtPosition)) {
             const fullValue = truncationMapRef.current.get(pathAtPosition)!;
