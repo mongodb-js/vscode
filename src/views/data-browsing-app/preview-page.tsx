@@ -257,20 +257,22 @@ const PreviewApp: React.FC = () => {
           </VscodeButton>
 
           {/* Sort */}
-          <span>Sort</span>
           {viewType === 'documents' && (
-            <VscodeSingleSelect
-              className={sortSelectStyles}
-              aria-label="Sort"
-              value={sort?.value ?? 'default'}
-              onChange={handleSortChange}
-            >
-              {SORT_OPTIONS.map((option) => (
-                <VscodeOption key={option.value} value={option.value}>
-                  {option.label}
-                </VscodeOption>
-              ))}
-            </VscodeSingleSelect>
+            <>
+              <span>Sort</span>
+              <VscodeSingleSelect
+                className={sortSelectStyles}
+                aria-label="Sort"
+                value={sort?.value ?? 'default'}
+                onChange={handleSortChange}
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <VscodeOption key={option.value} value={option.value}>
+                    {option.label}
+                  </VscodeOption>
+                ))}
+              </VscodeSingleSelect>
+            </>
           )}
 
           {/* Items per page */}
