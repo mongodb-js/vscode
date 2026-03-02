@@ -1315,10 +1315,12 @@ suite('DataBrowsingController Test Suite', function () {
         limit?: number;
         skip?: number;
         filter?: object;
+        sort?: object;
       }): DataBrowsingOptions {
-        const findOpts: Record<string, number> = Object.create(null);
+        const findOpts: Record<string, any> = Object.create(null);
         if (overrides?.limit) findOpts.limit = overrides.limit;
         if (overrides?.skip) findOpts.skip = overrides.skip;
+        if (overrides?.sort) findOpts.sort = overrides.sort;
         return createMockOptions({
           query: {
             options: {
@@ -1404,11 +1406,14 @@ suite('DataBrowsingController Test Suite', function () {
       });
 
       test('does not pass sort when query is present', async function () {
-        const options = createFindQueryOptions();
-        await testController.handleGetDocuments(mockPanel, options, 0, 10);
+        const options = createFindQueryOptions({ sort: { foo: 1 } });
+        await testController.handleGetDocuments(mockPanel, options, 0, 10, {
+          _id: -1,
+        });
 
         const findOptions = mockServiceProvider.find.firstCall.args[3];
-        expect(findOptions.sort).to.be.undefined;
+        // sort is left unchanged
+        expect(findOptions.sort).to.deep.equal({ foo: 1 });
       });
     },
   );
