@@ -18,26 +18,6 @@ suite('DocsChatbotAIService Test Suite', function () {
     sinon.restore();
   });
 
-  test('streamMessage returns a result with textStream and sources', function () {
-    const streamMessageStub = sinon
-      .stub(docsChatbotAIService, 'streamMessage')
-      .returns({
-        textStream: (function* (): Generator<string> {
-          yield 'To connect to MongoDB using mongosh, you can follow these steps';
-        })() as any,
-        sources: Promise.resolve([]),
-      } satisfies DocsStreamResult);
-
-    const result = docsChatbotAIService.streamMessage({
-      messages: [{ role: 'user', content: 'how to connect to mongodb' }],
-      signal: new AbortController().signal,
-    });
-
-    expect(streamMessageStub.calledOnce).to.be.true;
-    expect(result).to.have.property('textStream');
-    expect(result).to.have.property('sources');
-  });
-
   test('respects MONGODB_DOCS_CHATBOT_BASE_URI_OVERRIDE env variable', function () {
     process.env.MONGODB_DOCS_CHATBOT_BASE_URI_OVERRIDE =
       'https://custom.mongodb.com';
