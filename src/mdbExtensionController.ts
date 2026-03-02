@@ -971,11 +971,13 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbDeleteAllDocuments,
-      async (element: {
+      async ({
+        databaseName,
+        collectionName,
+      }: {
         databaseName: string;
         collectionName: string;
       }): Promise<boolean> => {
-        const { databaseName, collectionName } = element;
         const namespace = `${databaseName}.${collectionName}`;
 
         const confirmationResult = await vscode.window.showInformationMessage(
