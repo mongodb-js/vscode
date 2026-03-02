@@ -24,6 +24,7 @@ import {
   HelpExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
+import type { PlaygroundRunCursorResult } from './types/playgroundType';
 import { type ExportToLanguageResult } from './types/playgroundType';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
@@ -158,6 +159,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbInsertDocumentFromDataBrowser,
   ExtensionCommand.mdbCloneDocumentFromDataBrowser,
   ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+  ExtensionCommand.mdbOpenDataBrowserFromPlayground,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -887,6 +889,31 @@ export default class MDBExtensionController implements vscode.Disposable {
           collectionName: element.collectionName,
           collectionType: element.type,
         });
+
+        return Promise.resolve(true);
+      },
+    );
+    this.registerCommand(
+      ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+      ({ result }: { result: PlaygroundRunCursorResult }): Promise<boolean> => {
+        const { method } = result.constructionOptions.options;
+        if (method === 'find' || method === 'aggregate') {
+          // For these the first two args happen to be databaseName and collectionName
+          const [databaseName, collectionName] =
+            result.constructionOptions.options.args;
+
+          this._dataBrowsingController.openDataBrowser(this._context, {
+            databaseName,
+            collectionName,
+            collectionType: 'unknown',
+            query: result.constructionOptions,
+          });
+        } else {
+          // we check this before calling this command, but we add this check here just in case
+          throw new Error(
+            `Only find and aggregate supported because we need a database and collection. Received method ${method}.`,
+          );
+        }
 
         return Promise.resolve(true);
       },
