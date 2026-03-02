@@ -910,7 +910,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         } else {
           // we check this before calling this command, but we add this check here just in case
           throw new Error(
-            `Only find and aggregate supported becase we need a database and collection. Received method ${method}.`,
+            `Only find and aggregate supported because we need a database and collection. Received method ${method}.`,
           );
         }
 
