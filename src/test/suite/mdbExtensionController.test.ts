@@ -20,6 +20,7 @@ import {
 import { ExtensionCommand } from '../../commands';
 import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
+import ShowPreviewTreeItem from '../../explorer/documentPreviewItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
 import { mockTextEditor } from './stubs';
 import {
@@ -576,6 +577,42 @@ suite('MDBExtensionController Test Suite', function () {
       );
       assert.strictEqual(docListTreeItem.cacheIsUpToDate, false);
       assert.strictEqual(testTreeItem.documentCount, 10000);
+      assert.strictEqual(fakeRefresh.called, true);
+    });
+
+    test('mdb.refreshDocumentList command should update the document count and description for ShowPreviewTreeItem', async function () {
+      setFeatureFlag('useEnhancedDataBrowsingExperience', true);
+
+      let count = 9000;
+      const testTreeItem = getTestCollectionTreeItem({
+        dataService: {
+          estimatedCount: () => Promise.resolve(count),
+        } as unknown as DataService,
+      });
+      await testTreeItem.onDidExpand();
+
+      const collectionChildren = await testTreeItem.getChildren();
+      const docPreviewTreeItem = collectionChildren[0];
+      assert(
+        docPreviewTreeItem instanceof ShowPreviewTreeItem,
+        'Expected first child to be ShowPreviewTreeItem when enhanced data browsing is enabled',
+      );
+      assert.strictEqual(docPreviewTreeItem.description, '9K');
+      count = 10000;
+
+      const fakeRefresh = sandbox.fake();
+      sandbox.replace(
+        mdbTestExtension.testExtensionController._explorerController,
+        'refresh',
+        fakeRefresh,
+      );
+
+      await vscode.commands.executeCommand(
+        'mdb.refreshDocumentList',
+        docPreviewTreeItem,
+      );
+      assert.strictEqual(docPreviewTreeItem.cacheIsUpToDate, false);
+      assert.strictEqual(docPreviewTreeItem.description, '10K');
       assert.strictEqual(fakeRefresh.called, true);
     });
 
