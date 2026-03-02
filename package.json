@@ -798,26 +798,6 @@
           "when": "view == mongoDBConnectionExplorer && viewItem == indexListTreeItem"
         },
         {
-          "command": "mdb.openMongoDBDocumentFromTree",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "1@1"
-        },
-        {
-          "command": "mdb.copyDocumentContentsFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "2@1"
-        },
-        {
-          "command": "mdb.cloneDocumentFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "2@2"
-        },
-        {
-          "command": "mdb.deleteDocumentFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "3@1"
-        },
-        {
           "command": "mdb.startStreamProcessor",
           "when": "view == mongoDBConnectionExplorer && viewItem == streamProcessorTreeItem",
           "group": "6@1"

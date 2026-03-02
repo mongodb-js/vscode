@@ -4,7 +4,6 @@ import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import { expect } from 'chai';
 
-import { DocumentTreeItem } from '../../../explorer';
 import {
   allBsonTypes,
   allBsonTypesShellSyntax,
@@ -22,20 +21,17 @@ import { mdbTestExtension } from '../stubbableMdbExtension';
 
 const allTypesCollection = 'test_all_types';
 
-function getTestDocumentTreeItem({
-  dataService,
-  document,
-}: Pick<
-  ConstructorParameters<typeof DocumentTreeItem>[0],
-  'dataService' | 'document'
->): DocumentTreeItem {
-  return new DocumentTreeItem({
-    dataService,
-    document,
-    documentIndexInTree: 0,
+function getTestDocumentItem(
+  connectionId: string | null,
+  document: any,
+  format: 'shell' | 'ejson',
+) {
+  return {
+    documentId: document._id,
     namespace: `${TEST_DB_NAME}.${allTypesCollection}`,
-    resetDocumentListCache: () => Promise.resolve(),
-  });
+    format,
+    connectionId,
+  };
 }
 
 suite('openMongoDBDocument Command Test Suite', function () {
@@ -49,7 +45,6 @@ suite('openMongoDBDocument Command Test Suite', function () {
 
     before(async () => {
       dataService = await createTestDataService(TEST_DATABASE_URI);
-
       // Add connection through the extension controller
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
         {
@@ -77,15 +72,16 @@ suite('openMongoDBDocument Command Test Suite', function () {
       await cleanupTestDB();
     });
 
-    test('mdb.openMongoDBDocumentFromTree opens a document with shell format (all types)', async function () {
-      const testDocumentTreeItem = getTestDocumentTreeItem({
-        dataService,
-        document: allBsonTypes,
-      });
+    test('mdb.openMongoDBDocumentFromDataBrowser opens a document with shell format (all types)', async function () {
+      const testDocument = getTestDocumentItem(
+        mdbTestExtension.testExtensionController._connectionController.getActiveConnectionId(),
+        allBsonTypes,
+        'shell',
+      );
 
       await vscode.commands.executeCommand(
-        'mdb.openMongoDBDocumentFromTree',
-        testDocumentTreeItem,
+        'mdb.openMongoDBDocumentFromDataBrowser',
+        testDocument,
       );
 
       const document: vscode.TextDocument =
@@ -113,15 +109,16 @@ suite('openMongoDBDocument Command Test Suite', function () {
           .update('documentViewAndEditFormat', documentViewAndEditFormat, true);
       });
 
-      test('mdb.openMongoDBDocumentFromTree opens a document with ejson format (all types)', async function () {
-        const testDocumentTreeItem = getTestDocumentTreeItem({
-          dataService,
-          document: allBsonTypes,
-        });
+      test('mdb.openMongoDBDocumentFromDataBrowser opens a document with ejson format (all types)', async function () {
+        const testDocument = getTestDocumentItem(
+          mdbTestExtension.testExtensionController._connectionController.getActiveConnectionId(),
+          allBsonTypes,
+          'ejson',
+        );
 
         await vscode.commands.executeCommand(
-          'mdb.openMongoDBDocumentFromTree',
-          testDocumentTreeItem,
+          'mdb.openMongoDBDocumentFromDataBrowser',
+          testDocument,
         );
 
         const document: vscode.TextDocument =

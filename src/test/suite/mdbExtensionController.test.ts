@@ -13,7 +13,6 @@ import {
   CollectionType,
   ConnectionTreeItem,
   DatabaseTreeItem,
-  DocumentTreeItem,
   SchemaTreeItem,
   StreamProcessorTreeItem,
 } from '../../explorer';
@@ -120,19 +119,6 @@ function getTestSchemaTreeItem(): SchemaTreeItem {
     hasMoreFieldsToShow: false,
     cacheIsUpToDate: false,
     childrenCache: {},
-  });
-}
-
-function getTestDocumentTreeItem(
-  options?: Partial<ConstructorParameters<typeof DocumentTreeItem>[0]>,
-): DocumentTreeItem {
-  return new DocumentTreeItem({
-    document: {},
-    namespace: 'waffle.house',
-    documentIndexInTree: 0,
-    dataService: {} as DataService,
-    resetDocumentListCache: () => Promise.resolve(),
-    ...options,
   });
 }
 
@@ -1032,94 +1018,6 @@ suite('MDBExtensionController Test Suite', function () {
       mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
     });
 
-    test('mdb.openMongoDBDocumentFromTree opens a document from the sidebar and saves it to MongoDB with shell syntax', async function () {
-      const mockDocument = {
-        _id: 'pancakes',
-        name: '',
-        time: new Date('3001-01-01T05:00:00.000Z'),
-      };
-      const fakeGet = sandbox.fake.returns('pancakes');
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._editorsController
-          ._documentIdStore,
-        'get',
-        fakeGet,
-      );
-
-      const activeTextEditor = mockTextEditor;
-      activeTextEditor.document.uri = vscode.Uri.parse(
-        [
-          'VIEW_DOCUMENT_SCHEME:/',
-          'waffle.house:pancakes?',
-          'namespace=waffle.house&',
-          'connectionId=tasty_sandwich&',
-          'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
-          'source=treeview&',
-          'format=shell',
-        ].join(''),
-      );
-      activeTextEditor.document.getText = (): string =>
-        `{\n  _id: 'pancakes',\n  name: '',\n  time: ISODate('3001-01-01T05:00:00.000Z')\n}`;
-      sandbox.replaceGetter(
-        vscode.window,
-        'activeTextEditor',
-        () => activeTextEditor,
-      );
-
-      const fakeGetActiveDataService = sandbox.fake.returns({
-        find: () => {
-          return Promise.resolve([mockDocument]);
-        },
-        findOneAndReplace: () => {
-          mockDocument.name = 'something sweet';
-          return Promise.resolve(mockDocument);
-        },
-      });
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._connectionController,
-        'getActiveDataService',
-        fakeGetActiveDataService,
-      );
-
-      const documentItem = getTestDocumentTreeItem({
-        document: mockDocument,
-      });
-      await vscode.commands.executeCommand(
-        'mdb.openMongoDBDocumentFromTree',
-        documentItem,
-      );
-      expect(openTextDocumentStub.firstCall.args[0].path).to.not.include(
-        '.json',
-      );
-      expect(openTextDocumentStub.firstCall.args[0].scheme).to.equal(
-        'VIEW_DOCUMENT_SCHEME',
-      );
-      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
-        'documentId=',
-      );
-      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
-        'connectionId=',
-      );
-      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
-        'source=treeview',
-      );
-      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
-        'namespace=waffle.house',
-      );
-      expect(openTextDocumentStub.firstCall.args[0].query).to.include(
-        'format=shell',
-      );
-      await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
-      expect(mockDocument.name).to.equal('something sweet');
-
-      const expectedMessage =
-        "The document was saved successfully to 'waffle.house'";
-
-      expect(showInformationMessageStub.firstCall.args[0]).to.equal(
-        expectedMessage,
-      );
-    });
-
     test('mdb.saveMongoDBDocument replaces a document with a treeview source using shell format', async function () {
       const fakeGet = sandbox.fake.returns('pancakes');
       sandbox.replace(
@@ -1162,45 +1060,6 @@ suite('MDBExtensionController Test Suite', function () {
       expect(fakeReplaceDocument.firstCall.args[0].source).to.equal('treeview');
     });
 
-    test('mdb.copyDocumentContentsFromTreeView should copy shell syntax to clipboard', async function () {
-      const mockDocument = {
-        _id: 'pancakes',
-        time: new Date('3001-01-01T05:00:00.000Z'),
-      };
-      let namespaceUsed = '';
-
-      const findStub = sandbox.stub();
-      findStub.resolves([mockDocument]);
-
-      const dataServiceStub = {
-        find: (namespace: string) => {
-          namespaceUsed = namespace;
-          return Promise.resolve([mockDocument]);
-        },
-      } as unknown as DataService;
-      const documentTreeItem = getTestDocumentTreeItem({
-        dataService: dataServiceStub,
-      });
-
-      const fakeWriteText = sandbox.fake();
-      sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
-        writeText: fakeWriteText,
-        readText: sandbox.fake(),
-      }));
-      await vscode.commands.executeCommand(
-        'mdb.copyDocumentContentsFromTreeView',
-        documentTreeItem,
-      );
-      expect(fakeWriteText.called).to.be.true;
-      expect(fakeWriteText.firstCall.args[0]).to.equal(
-        `{
-  _id: 'pancakes',
-  time: ISODate('3001-01-01T05:00:00.000Z')
-}`,
-      );
-      expect(namespaceUsed).to.equal('waffle.house');
-    });
-
     suite('document operations with ejson format', function () {
       let documentViewAndEditFormat;
 
@@ -1217,129 +1076,6 @@ suite('MDBExtensionController Test Suite', function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('documentViewAndEditFormat', documentViewAndEditFormat, true);
-      });
-
-      test('mdb.openMongoDBDocumentFromTree opens a document from the sidebar and saves it to MongoDB', async function () {
-        const mockDocument = {
-          _id: 'pancakes',
-          name: '',
-          time: {
-            $time: '12345',
-          },
-        };
-        const fakeGet = sandbox.fake.returns('pancakes');
-        sandbox.replace(
-          mdbTestExtension.testExtensionController._editorsController
-            ._documentIdStore,
-          'get',
-          fakeGet,
-        );
-
-        const activeTextEditor = mockTextEditor;
-        activeTextEditor.document.uri = vscode.Uri.parse(
-          [
-            'VIEW_DOCUMENT_SCHEME:/',
-            'waffle.house:pancakes.json?',
-            'namespace=waffle.house&',
-            'connectionId=tasty_sandwich&',
-            'documentId=93333a0d-83f6-4e6f-a575-af7ea6187a4a&',
-            'source=treeview&',
-            'format=ejson',
-          ].join(''),
-        );
-        activeTextEditor.document.getText = (): string =>
-          JSON.stringify(mockDocument);
-        sandbox.replaceGetter(
-          vscode.window,
-          'activeTextEditor',
-          () => activeTextEditor,
-        );
-
-        const fakeGetActiveDataService = sandbox.fake.returns({
-          find: () => {
-            return Promise.resolve([mockDocument]);
-          },
-          findOneAndReplace: () => {
-            mockDocument.name = 'something sweet';
-
-            return Promise.resolve(mockDocument);
-          },
-        });
-        sandbox.replace(
-          mdbTestExtension.testExtensionController._connectionController,
-          'getActiveDataService',
-          fakeGetActiveDataService,
-        );
-
-        const documentItem = getTestDocumentTreeItem({
-          document: mockDocument,
-        });
-        await vscode.commands.executeCommand(
-          'mdb.openMongoDBDocumentFromTree',
-          documentItem,
-        );
-        assert(openTextDocumentStub.firstCall.args[0].path.includes('.json'));
-        assert.strictEqual(
-          openTextDocumentStub.firstCall.args[0].scheme,
-          'VIEW_DOCUMENT_SCHEME',
-        );
-        assert(
-          openTextDocumentStub.firstCall.args[0].query.includes('documentId='),
-        );
-        assert(
-          openTextDocumentStub.firstCall.args[0].query.includes(
-            'connectionId=',
-          ),
-        );
-        assert(
-          openTextDocumentStub.firstCall.args[0].query.includes(
-            'source=treeview',
-          ),
-        );
-        assert(
-          openTextDocumentStub.firstCall.args[0].query.includes(
-            'namespace=waffle.house',
-          ),
-        );
-        await vscode.commands.executeCommand('mdb.saveMongoDBDocument');
-        assert.strictEqual(mockDocument.name, 'something sweet');
-        assert.strictEqual(mockDocument.time.$time, '12345');
-
-        const expectedMessage =
-          "The document was saved successfully to 'waffle.house'";
-
-        assert.strictEqual(
-          showInformationMessageStub.firstCall.args[0],
-          expectedMessage,
-        );
-      });
-
-      test('mdb.openMongoDBDocumentFromTree opens a document from a tree with a treeview source', async function () {
-        const mockDocument = {
-          _id: 'pancakes',
-          name: '',
-          time: {
-            $time: '12345',
-          },
-        };
-        const documentItem = getTestDocumentTreeItem({
-          document: mockDocument,
-        });
-        const fakeFetchDocument = sandbox.fake.resolves(null);
-        sandbox.replace(
-          mdbTestExtension.testExtensionController._editorsController
-            ._mongoDBDocumentService,
-          'fetchDocument',
-          fakeFetchDocument,
-        );
-        await vscode.commands.executeCommand(
-          'mdb.openMongoDBDocumentFromTree',
-          documentItem,
-        );
-        assert.strictEqual(
-          fakeFetchDocument.firstCall.args[0].source,
-          'treeview',
-        );
       });
 
       test('mdb.openMongoDBDocumentFromCodeLens opens a document from a playground results with a playground source', async function () {
@@ -1468,50 +1204,6 @@ suite('MDBExtensionController Test Suite', function () {
           'playground',
         );
       });
-
-      test("mdb.copyDocumentContentsFromTreeView should copy a document's content to the clipboard", async function () {
-        const mockDocument = {
-          _id: new ObjectId('6536b0aef59f6ffc9af93f3c'),
-          pineapple: new Long('90071992547409920'),
-        };
-        let namespaceUsed = '';
-
-        const findStub = sandbox.stub();
-        findStub.resolves([mockDocument]);
-
-        const dataServiceStub = {
-          find: (namespace: string) => {
-            namespaceUsed = namespace;
-            return Promise.resolve([mockDocument]);
-          },
-        } as unknown as DataService;
-        const documentTreeItem = getTestDocumentTreeItem({
-          dataService: dataServiceStub,
-        });
-
-        const fakeWriteText = sandbox.fake();
-        sandbox.replaceGetter(vscode.env, 'clipboard', () => ({
-          writeText: fakeWriteText,
-          readText: sandbox.fake(),
-        }));
-        await vscode.commands.executeCommand(
-          'mdb.copyDocumentContentsFromTreeView',
-          documentTreeItem,
-        );
-        assert.strictEqual(fakeWriteText.called, true);
-        assert.strictEqual(
-          fakeWriteText.firstCall.args[0],
-          `{
-  "_id": {
-    "$oid": "6536b0aef59f6ffc9af93f3c"
-  },
-  "pineapple": {
-    "$numberLong": "90071992547409920"
-  }
-}`,
-        );
-        assert.strictEqual(namespaceUsed, 'waffle.house');
-      });
     });
 
     test('mdb.runSelectedPlaygroundBlocks runs selected playgroundB blocks once', async function () {
@@ -1572,53 +1264,6 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    test("mdb.cloneDocumentFromTreeView opens a playground with a document's content", async function () {
-      const mockDocument = {
-        _id: 'pancakes',
-        time: new Date('3001-01-01T05:00:00.000Z'),
-        objectIdField: new ObjectId('57e193d7a9cc81b4027498b2'),
-      };
-      let namespaceUsed = '';
-      const dataServiceStub = {
-        find: (namespace: string) => {
-          namespaceUsed = namespace;
-          return Promise.resolve([mockDocument]);
-        },
-      } as unknown as DataService;
-      const documentTreeItem = getTestDocumentTreeItem({
-        document: mockDocument,
-        dataService: dataServiceStub,
-      });
-      const fakeCreatePlaygroundForCloneDocument = sandbox.fake();
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._playgroundController,
-        'createPlaygroundForCloneDocument',
-        fakeCreatePlaygroundForCloneDocument,
-      );
-      await vscode.commands.executeCommand(
-        'mdb.cloneDocumentFromTreeView',
-        documentTreeItem,
-      );
-      assert.strictEqual(fakeCreatePlaygroundForCloneDocument.calledOnce, true);
-      assert.strictEqual(
-        fakeCreatePlaygroundForCloneDocument.firstCall.args[0],
-        `{
-  _id: 'pancakes',
-  time: ISODate('3001-01-01T05:00:00.000Z'),
-  objectIdField: ObjectId('57e193d7a9cc81b4027498b2')
-}`,
-      );
-      assert.strictEqual(
-        fakeCreatePlaygroundForCloneDocument.firstCall.args[1],
-        'waffle',
-      );
-      assert.strictEqual(
-        fakeCreatePlaygroundForCloneDocument.firstCall.args[2],
-        'house',
-      );
-      assert.strictEqual(namespaceUsed, 'waffle.house');
-    });
-
     test('mdb.insertDocumentFromTreeView opens a playground with an insert document template', async function () {
       const collectionTreeItem = getTestCollectionTreeItem({
         collection: {
@@ -1649,74 +1294,6 @@ suite('MDBExtensionController Test Suite', function () {
         fakeCreatePlaygroundForInsertDocument.firstCall.args[1],
         'pineapple',
       );
-    });
-
-    test('mdb.deleteDocumentFromTreeView deletes a document when the confirmation is canceled', async function () {
-      const mockDocument = {
-        _id: 'pancakes',
-        time: {
-          $time: '12345',
-        },
-      };
-      let calledDelete = false;
-      const dataServiceStub = {
-        deleteOne: (): ReturnType<DataService['deleteOne']> => {
-          calledDelete = true;
-          return Promise.resolve({
-            acknowledged: true,
-            deletedCount: 1,
-          });
-        },
-      } as unknown as DataService;
-      const documentTreeItem = getTestDocumentTreeItem({
-        document: mockDocument,
-        dataService: dataServiceStub,
-      });
-      const result = await vscode.commands.executeCommand(
-        'mdb.deleteDocumentFromTreeView',
-        documentTreeItem,
-      );
-      assert.strictEqual(result, false);
-      assert.strictEqual(calledDelete, false);
-    });
-
-    test('mdb.deleteDocumentFromTreeView deletes a document after confirmation', async function () {
-      showInformationMessageStub.resolves('Yes');
-
-      const mockDocument = {
-        _id: 'pancakes',
-        time: {
-          $time: '12345',
-        },
-      };
-      let namespaceUsed = '';
-      let _idUsed;
-      const dataServiceStub = {
-        deleteOne: (
-          namespace: string,
-          filter: Filter<Document>,
-        ): ReturnType<DataService['deleteOne']> => {
-          _idUsed = filter;
-          namespaceUsed = namespace;
-          return Promise.resolve({
-            acknowledged: true,
-            deletedCount: 1,
-          });
-        },
-      } as unknown as DataService;
-      const documentTreeItem = getTestDocumentTreeItem({
-        document: mockDocument,
-        dataService: dataServiceStub,
-      });
-      const result = await vscode.commands.executeCommand(
-        'mdb.deleteDocumentFromTreeView',
-        documentTreeItem,
-      );
-      assert.deepStrictEqual(_idUsed, {
-        _id: 'pancakes',
-      });
-      assert.strictEqual(namespaceUsed, 'waffle.house');
-      assert.strictEqual(result, true);
     });
 
     test('mdb.addStreamProcessor should create a MongoDB playground with create stream processor template', async function () {

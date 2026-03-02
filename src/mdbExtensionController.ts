@@ -12,7 +12,6 @@ import ConnectionController from './connectionController';
 import type ConnectionTreeItem from './explorer/connectionTreeItem';
 import type DatabaseTreeItem from './explorer/databaseTreeItem';
 import { DocumentSource } from './documentSource';
-import type DocumentTreeItem from './explorer/documentTreeItem';
 import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
 import { EditorsController, PlaygroundController } from './editors';
 import type { EditDocumentInfo } from './types/editDocumentInfoType';
@@ -958,19 +957,6 @@ export default class MDBExtensionController implements vscode.Disposable {
         ),
     );
     this.registerCommand(
-      ExtensionCommand.mdbOpenMongodbDocumentFromTree,
-      (element: DocumentTreeItem): Promise<boolean> => {
-        return this._editorsController.openMongoDBDocument({
-          source: DocumentSource.treeview,
-          documentId: element.documentId,
-          namespace: element.namespace,
-          format: getDocumentViewAndEditFormat(),
-          connectionId: this._connectionController.getActiveConnectionId(),
-          line: 1,
-        });
-      },
-    );
-    this.registerCommand(
       ExtensionCommand.mdbRefreshDocumentList,
       async (documentsListTreeItem: ShowPreviewTreeItem): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
@@ -1118,36 +1104,6 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._playgroundController.openPlayground(playgroundsTreeItem.filePath),
     );
     this.registerCommand(
-      ExtensionCommand.mdbCopyDocumentContentsFromTreeView,
-      async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
-        const documentFormat = getDocumentViewAndEditFormat();
-        const documentContents =
-          documentFormat === 'ejson'
-            ? await documentTreeItem.getStringifiedEJSONDocumentContents()
-            : await documentTreeItem.getJSStringDocumentContents();
-        await vscode.env.clipboard.writeText(documentContents);
-        void vscode.window.showInformationMessage('Copied to clipboard.');
-
-        return true;
-      },
-    );
-    this.registerCommand(
-      ExtensionCommand.mdbCloneDocumentFromTreeView,
-      async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
-        const documentContents =
-          await documentTreeItem.getJSStringDocumentContents();
-
-        const [databaseName, collectionName] =
-          documentTreeItem.namespace.split(/\.(.*)/s);
-
-        return this._playgroundController.createPlaygroundForCloneDocument(
-          documentContents,
-          databaseName,
-          collectionName,
-        );
-      },
-    );
-    this.registerCommand(
       ExtensionCommand.mdbCloneDocumentFromDataBrowser,
       async ({
         documentContents,
@@ -1163,25 +1119,6 @@ export default class MDBExtensionController implements vscode.Disposable {
           databaseName,
           collectionName,
         );
-      },
-    );
-    this.registerCommand(
-      ExtensionCommand.mdbDeleteDocumentFromTreeView,
-      async (documentTreeItem: DocumentTreeItem): Promise<boolean> => {
-        const successfullyDropped =
-          await documentTreeItem.onDeleteDocumentClicked();
-
-        if (successfullyDropped) {
-          void vscode.window.showInformationMessage(
-            'Document successfully deleted.',
-          );
-
-          // When we successfully drop a document, we need
-          // to update the explorer view.
-          this._explorerController.refresh();
-        }
-
-        return successfullyDropped;
       },
     );
     this.registerCommand(

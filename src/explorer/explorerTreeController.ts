@@ -4,7 +4,6 @@ import type ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import type DatabaseTreeItem from './databaseTreeItem';
 import { createLogger } from '../logging';
-import { DOCUMENT_ITEM } from './documentTreeItem';
 import ExtensionCommand from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import type { LoadedConnection } from '../storage/connectionStorage';
@@ -117,13 +116,6 @@ export default class ExplorerTreeController
           selectedItem.onShowMoreClicked();
 
           this._onTreeItemUpdate();
-        }
-
-        if (selectedItem.contextValue === DOCUMENT_ITEM) {
-          await vscode.commands.executeCommand(
-            ExtensionCommand.mdbOpenMongodbDocumentFromTree,
-            event.selection[0],
-          );
         }
 
         if (selectedItem.contextValue === PREVIEW_LIST_ITEM) {
