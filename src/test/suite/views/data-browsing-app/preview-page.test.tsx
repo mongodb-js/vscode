@@ -219,7 +219,7 @@ describe('PreviewApp test suite', function () {
         );
       });
 
-      expect(screen.getByText('This collection has no documents')).to.exist;
+      expect(screen.getByText('No documents to display')).to.exist;
 
       // Should show an Insert Document button in the empty state
       const insertButtons = screen.getAllByLabelText('Insert Document');
@@ -431,7 +431,7 @@ describe('PreviewApp test suite', function () {
       // Should not show loading state
       expect(screen.queryByText('Running query')).to.be.null;
       // Should not show empty state
-      expect(screen.queryByText('This collection has no documents')).to.be.null;
+      expect(screen.queryByText('No documents to display')).to.be.null;
       // Monaco viewer container should be rendered
       const monacoContainer = screen.getByTestId('monaco-viewer-container');
       expect(monacoContainer).to.exist;
@@ -457,7 +457,7 @@ describe('PreviewApp test suite', function () {
       // Should not show loading state
       expect(screen.queryByText('Running query')).to.be.null;
       // Should not show empty state
-      expect(screen.queryByText('This collection has no documents')).to.be.null;
+      expect(screen.queryByText('No documents to display')).to.be.null;
       // Both documents should be rendered in separate Monaco viewer containers
       const monacoContainers = screen.getAllByTestId('monaco-viewer-container');
       expect(monacoContainers.length).to.equal(2);
@@ -733,7 +733,7 @@ describe('PreviewApp test suite', function () {
 
       // Verify first document is rendered (not loading, not empty)
       expect(screen.queryByText('Running query')).to.be.null;
-      expect(screen.queryByText('This collection has no documents')).to.be.null;
+      expect(screen.queryByText('No documents to display')).to.be.null;
 
       // Then receive page 2 documents
       act(() => {
@@ -749,7 +749,7 @@ describe('PreviewApp test suite', function () {
 
       // Should still show documents (not loading, not empty)
       expect(screen.queryByText('Running query')).to.be.null;
-      expect(screen.queryByText('This collection has no documents')).to.be.null;
+      expect(screen.queryByText('No documents to display')).to.be.null;
     });
   });
 });

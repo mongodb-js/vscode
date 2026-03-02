@@ -83,6 +83,7 @@ export const ExtensionCommand = {
   mdbInsertDocumentFromDataBrowser: 'mdb.insertDocumentFromDataBrowser',
   mdbCloneDocumentFromDataBrowser: 'mdb.cloneDocumentFromDataBrowser',
   mdbRefreshCollectionFromDataBrowser: 'mdb.refreshCollectionFromDataBrowser',
+  mdbOpenDataBrowserFromPlayground: 'mdb.openBrowserFromPlayground',
 
   // Chat participant.
   openParticipantCodeInPlayground: 'mdb.openParticipantCodeInPlayground',
