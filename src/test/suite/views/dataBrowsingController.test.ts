@@ -1404,17 +1404,6 @@ suite('DataBrowsingController Test Suite', function () {
         const filter = mockServiceProvider.find.firstCall.args[2];
         expect(filter).to.deep.equal({ status: 'active' });
       });
-
-      test('does not pass sort when query is present', async function () {
-        const options = createFindQueryOptions({ sort: { foo: 1 } });
-        await testController.handleGetDocuments(mockPanel, options, 0, 10, {
-          _id: -1,
-        });
-
-        const findOptions = mockServiceProvider.find.firstCall.args[3];
-        // sort is left unchanged
-        expect(findOptions.sort).to.deep.equal({ foo: 1 });
-      });
     },
   );
 

@@ -821,10 +821,7 @@ export default class DataBrowsingController {
       return this._fetchDocumentsForFind({
         ...options,
         parsedQuery,
-        // make sure we don't override sort if there is a query (The UI
-        // shouldn't even show a sort dropdown in that case, so this is just to
-        // be safe)
-        sort: parsedQuery ? undefined : options.sort,
+        sort: options.sort,
       });
     }
 
