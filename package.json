@@ -517,10 +517,6 @@
         "title": "MongoDB: Generate ObjectId to Clipboard"
       },
       {
-        "command": "mdb.openMongoDBDocumentFromTree",
-        "title": "Open Document"
-      },
-      {
         "command": "mdb.addStreamProcessor",
         "title": "Add StreamProcessor...",
         "icon": "$(mdb-plus-circle)"
@@ -1016,10 +1012,6 @@
         },
         {
           "command": "mdb.copySchemaFieldName",
-          "when": "false"
-        },
-        {
-          "command": "mdb.openMongoDBDocumentFromTree",
           "when": "false"
         },
         {
