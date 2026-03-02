@@ -134,7 +134,6 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbRemoveConnection,
 
   // Location-specific items - not intended to be accessed in other ways
-  ExtensionCommand.mdbDeleteDocumentFromTreeView,
   ExtensionCommand.mdbRemoveConnectionTreeView,
   ExtensionCommand.mdbOpenMdbShellFromTreeView,
   ExtensionCommand.mdbRefreshPlaygroundsFromTreeView,
@@ -145,8 +144,6 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbDisconnectFromConnectionTreeView,
   ExtensionCommand.mdbOpenMongodbDocumentFromTree,
   ExtensionCommand.mdbInsertDocumentFromTreeView,
-  ExtensionCommand.mdbCopyDocumentContentsFromTreeView,
-  ExtensionCommand.mdbCloneDocumentFromTreeView,
   ExtensionCommand.askCopilotFromTreeItem,
   ExtensionCommand.mdbCreateIndexTreeView,
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
