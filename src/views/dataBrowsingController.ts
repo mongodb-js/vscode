@@ -29,6 +29,15 @@ import type {
 import type { AggregateOptions, DbOptions, FindOptions } from 'mongodb';
 import type { EventEmitter } from 'events';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
+import {
+  DataBrowserOpenedTelemetryEvent,
+  DataBrowserDocumentsFetchedTelemetryEvent,
+  DataBrowserDocumentEditedTelemetryEvent,
+  DataBrowserDocumentClonedTelemetryEvent,
+  DataBrowserDocumentInsertedTelemetryEvent,
+  DataBrowserDocumentDeletedTelemetryEvent,
+  DataBrowserCollectionRefreshedTelemetryEvent,
+} from '../telemetry';
 
 const log = createLogger('data browsing controller');
 
@@ -425,6 +434,7 @@ export default class DataBrowsingController {
         return;
       }
 
+      this._telemetryService.track(new DataBrowserDocumentsFetchedTelemetryEvent());
       void panel.webview.postMessage({
         command: PreviewMessageType.loadPage,
         documents: EJSON.serialize(documents, { relaxed: false }),
@@ -491,6 +501,7 @@ export default class DataBrowsingController {
           connectionId: this._connectionController.getActiveConnectionId(),
         },
       );
+      this._telemetryService.track(new DataBrowserDocumentEditedTelemetryEvent());
     } catch (error) {
       log.error('Error opening document for editing', error);
       void vscode.window.showErrorMessage(
@@ -516,6 +527,7 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
+      this._telemetryService.track(new DataBrowserDocumentClonedTelemetryEvent());
     } catch (error) {
       log.error('Error cloning document', error);
       void vscode.window.showErrorMessage(
@@ -535,6 +547,7 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
+      this._telemetryService.track(new DataBrowserDocumentInsertedTelemetryEvent());
     } catch (error) {
       log.error('Error opening insert document playground', error);
       void vscode.window.showErrorMessage(
@@ -558,6 +571,9 @@ export default class DataBrowsingController {
       await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbDeleteAllDocuments,
         options,
+      );
+      this._telemetryService.track(
+        new DataBrowserDocumentDeletedTelemetryEvent(true),
       );
     } catch (error) {
       log.error('Error deleting all documents', error);
@@ -613,6 +629,9 @@ export default class DataBrowsingController {
 
       void vscode.window.showInformationMessage(
         'Document successfully deleted.',
+      );
+      this._telemetryService.track(
+        new DataBrowserDocumentDeletedTelemetryEvent(false),
       );
 
       // Refresh the tree view in the sidebar (reset collection cache so
@@ -830,6 +849,9 @@ export default class DataBrowsingController {
     const namespace = `${databaseName}.${collectionName}`;
     for (const panel of this._activeWebviewPanels) {
       if (panel.title === namespace) {
+        this._telemetryService.track(
+          new DataBrowserCollectionRefreshedTelemetryEvent(),
+        );
         void panel.webview.postMessage({
           command: PreviewMessageType.documentDeleted,
         });
@@ -893,6 +915,9 @@ export default class DataBrowsingController {
     log.info(
       'Opening data browser...',
       `${options.databaseName}.${options.collectionName}`,
+    );
+    this._telemetryService.track(
+      new DataBrowserOpenedTelemetryEvent(options.collectionType),
     );
     const extensionPath = context.extensionPath;
 
