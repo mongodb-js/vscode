@@ -24,6 +24,7 @@ import {
   HelpExplorer,
 } from './explorer';
 import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
+import type { PlaygroundRunCursorResult } from './types/playgroundType';
 import { type ExportToLanguageResult } from './types/playgroundType';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
@@ -153,10 +154,12 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
   ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+  ExtensionCommand.mdbDeleteAllDocuments,
   ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
   ExtensionCommand.mdbInsertDocumentFromDataBrowser,
   ExtensionCommand.mdbCloneDocumentFromDataBrowser,
   ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+  ExtensionCommand.mdbOpenDataBrowserFromPlayground,
 ] as const;
 
 // This class is the top-level controller for our extension.
@@ -891,6 +894,31 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
+      ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+      ({ result }: { result: PlaygroundRunCursorResult }): Promise<boolean> => {
+        const { method } = result.constructionOptions.options;
+        if (method === 'find' || method === 'aggregate') {
+          // For these the first two args happen to be databaseName and collectionName
+          const [databaseName, collectionName] =
+            result.constructionOptions.options.args;
+
+          this._dataBrowsingController.openDataBrowser(this._context, {
+            databaseName,
+            collectionName,
+            collectionType: 'unknown',
+            query: result.constructionOptions,
+          });
+        } else {
+          // we check this before calling this command, but we add this check here just in case
+          throw new Error(
+            `Only find and aggregate supported because we need a database and collection. Received method ${method}.`,
+          );
+        }
+
+        return Promise.resolve(true);
+      },
+    );
+    this.registerCommand(
       ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
       async ({
         documentId,
@@ -947,7 +975,9 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbRefreshDocumentList,
-      async (documentsListTreeItem: DocumentListTreeItem): Promise<boolean> => {
+      async (
+        documentsListTreeItem: DocumentListTreeItem | ShowPreviewTreeItem,
+      ): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
         this._explorerController.refresh();
         await this._languageServerController.resetCache({ fields: true });
@@ -967,6 +997,64 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
+      ExtensionCommand.mdbDeleteAllDocuments,
+      async ({
+        databaseName,
+        collectionName,
+      }: {
+        databaseName: string;
+        collectionName: string;
+      }): Promise<boolean> => {
+        const namespace = `${databaseName}.${collectionName}`;
+
+        const confirmationResult = await vscode.window.showInformationMessage(
+          `Are you sure you wish to delete all documents in ${namespace} collection?`,
+          {
+            modal: true,
+            detail:
+              'All documents present in this collection will be deleted. This action cannot be undone.',
+          },
+          'Yes',
+        );
+
+        if (confirmationResult !== 'Yes') {
+          return false;
+        }
+
+        const dataService = this._connectionController.getActiveDataService();
+        if (!dataService) {
+          void vscode.window.showErrorMessage('No active database connection.');
+          return false;
+        }
+
+        try {
+          const deleteResult = await dataService.deleteMany(namespace, {}, {});
+
+          void vscode.window.showInformationMessage(
+            `${deleteResult.deletedCount} document(s) successfully deleted.`,
+          );
+
+          this._explorerController.refreshCollection(
+            databaseName,
+            collectionName,
+          );
+
+          this._dataBrowsingController.notifyDocumentsChanged(
+            databaseName,
+            collectionName,
+          );
+
+          return true;
+        } catch (error) {
+          void vscode.window.showErrorMessage(
+            `Failed to delete all documents: ${formatError(error).message}`,
+          );
+          return false;
+        }
+      },
+    );
+
+    this.registerCommand(
       ExtensionCommand.mdbInsertDocumentFromDataBrowser,
       async ({
         databaseName,
@@ -981,6 +1069,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         );
       },
     );
+
     this.registerCommand(
       ExtensionCommand.mdbRefreshSchema,
       async (schemaTreeItem: SchemaTreeItem): Promise<boolean> => {

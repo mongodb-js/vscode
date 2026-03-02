@@ -3,12 +3,17 @@ import * as vscode from 'vscode';
 import { expect } from 'chai';
 import { beforeEach, afterEach } from 'mocha';
 
-import DataBrowsingController from '../../../views/dataBrowsingController';
+import DataBrowsingController, {
+  parseConstructionOptions,
+  parseConstructionOptionsForFind,
+  parseConstructionOptionsForAggregate,
+} from '../../../views/dataBrowsingController';
 import { PreviewMessageType } from '../../../views/data-browsing-app/extension-app-message-constants';
 import type { DataBrowsingOptions } from '../../../views/dataBrowsingController';
 import { CollectionType } from '../../../explorer/documentUtils';
 import { EJSON } from 'bson';
 import ExtensionCommand from '../../../commands';
+import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 
 suite('DataBrowsingController Test Suite', function () {
   const sandbox: SinonSandbox = sinon.createSandbox();
@@ -16,11 +21,19 @@ suite('DataBrowsingController Test Suite', function () {
   let mockPanel: vscode.WebviewPanel;
   let postMessageStub: SinonStub;
   let mockDataService: {
-    find: SinonStub;
     aggregate: SinonStub;
   };
   let mockConnectionController: {
     getActiveDataService: SinonStub;
+    getMongoClientConnectionOptions: SinonStub;
+  };
+  let mockServiceProvider: {
+    find: SinonStub;
+    aggregate: SinonStub;
+    close: SinonStub;
+  };
+  let mockCursor: {
+    toArray: SinonStub;
   };
   let mockExplorerController: {
     refresh: SinonStub;
@@ -53,12 +66,25 @@ suite('DataBrowsingController Test Suite', function () {
   }
 
   beforeEach(() => {
+    mockCursor = {
+      toArray: sandbox.stub().resolves([{ _id: '1', name: 'test' }]),
+    };
+    mockServiceProvider = {
+      find: sandbox.stub().returns(mockCursor),
+      aggregate: sandbox.stub().returns(mockCursor),
+      close: sandbox.stub().resolves(),
+    };
+    sandbox
+      .stub(NodeDriverServiceProvider, 'connect')
+      .resolves(mockServiceProvider as any);
     mockDataService = {
-      find: sandbox.stub().resolves([{ _id: '1', name: 'test' }]),
       aggregate: sandbox.stub().resolves([{ count: 16 }]),
     };
     mockConnectionController = {
       getActiveDataService: sandbox.stub().returns(mockDataService),
+      getMongoClientConnectionOptions: sandbox
+        .stub()
+        .returns({ url: 'mongodb://localhost:27017', options: {} }),
     };
     mockExplorerController = {
       refresh: sandbox.stub().returns(true),
@@ -104,7 +130,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('aborts previous AbortController when a new request of the same type starts', async function () {
       // Simulate a slow find request
-      mockDataService.find = sandbox.stub().callsFake(async () => {
+      mockCursor.toArray = sandbox.stub().callsFake(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
         return [{ _id: '1', name: 'test' }];
       });
@@ -141,7 +167,7 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('does not abort documents controller when totalCount request starts', async function () {
       // Simulate slow requests
-      mockDataService.find = sandbox.stub().callsFake(async () => {
+      mockCursor.toArray = sandbox.stub().callsFake(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
         return [{ _id: '1', name: 'test' }];
       });
@@ -182,7 +208,7 @@ suite('DataBrowsingController Test Suite', function () {
       const options = createMockOptions();
 
       // Simulate slow requests
-      mockDataService.find = sandbox.stub().callsFake(async () => {
+      mockCursor.toArray = sandbox.stub().callsFake(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         return [{ _id: '1', name: 'test' }];
       });
@@ -224,7 +250,7 @@ suite('DataBrowsingController Test Suite', function () {
       const options = createMockOptions();
 
       // Simulate slow requests
-      mockDataService.find = sandbox.stub().callsFake(async () => {
+      mockCursor.toArray = sandbox.stub().callsFake(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
         return [{ _id: '1', name: 'test' }];
       });
@@ -263,13 +289,12 @@ suite('DataBrowsingController Test Suite', function () {
   suite('Request handling with abort', function () {
     test('does not post message when request is aborted', async function () {
       // Abort the controller during the find request
-      mockDataService.find = sandbox.stub().callsFake(() => {
+      mockCursor.toArray = sandbox.stub().callsFake(() => {
         testController._panelAbortControllers
           .get(mockPanel)
           ?.documents?.abort();
         return [{ _id: '1', name: 'test' }];
       });
-      mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
 
       const options = createMockOptions();
 
@@ -281,13 +306,12 @@ suite('DataBrowsingController Test Suite', function () {
 
     test('does not throw when error occurs on aborted request', async function () {
       // Abort the controller and throw an error during find
-      mockDataService.find = sandbox.stub().callsFake(() => {
+      mockCursor.toArray = sandbox.stub().callsFake(() => {
         testController._panelAbortControllers
           .get(mockPanel)
           ?.documents?.abort();
         throw new Error('Connection error');
       });
-      mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
 
       const options = createMockOptions();
 
@@ -305,9 +329,9 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      expect(mockDataService.find.calledOnce).to.be.true;
-      const executionOptions = mockDataService.find.firstCall.args[3];
-      expect(executionOptions.abortSignal).to.be.instanceOf(AbortSignal);
+      expect(mockServiceProvider.find.calledOnce).to.be.true;
+      const dbOptions = mockServiceProvider.find.firstCall.args[4];
+      expect(dbOptions.abortSignal).to.be.instanceOf(AbortSignal);
     });
   });
 
@@ -317,7 +341,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      expect(mockDataService.find.calledOnce).to.be.true;
+      expect(mockServiceProvider.find.calledOnce).to.be.true;
       expect(postMessageStub.callCount).to.equal(1);
       const message = findMessageByCommand(
         postMessageStub,
@@ -351,7 +375,7 @@ suite('DataBrowsingController Test Suite', function () {
 
   suite('Error handling in handleGetDocuments', function () {
     test('posts getDocumentError message on fetch failure', async function () {
-      mockDataService.find = sandbox
+      mockCursor.toArray = sandbox
         .stub()
         .rejects(new Error('Connection timeout'));
       const options = createMockOptions();
@@ -369,8 +393,8 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('Data service not available', function () {
-    test('posts error message when no active data service', async function () {
-      mockConnectionController.getActiveDataService = sandbox
+    test('posts error message when no connection options', async function () {
+      mockConnectionController.getMongoClientConnectionOptions = sandbox
         .stub()
         .returns(null);
       const options = createMockOptions();
@@ -382,11 +406,11 @@ suite('DataBrowsingController Test Suite', function () {
         PreviewMessageType.getDocumentError,
       ) as { command: string; error: string };
       expect(message).to.not.be.undefined;
-      expect(message.error).to.equal('No active database connection');
+      expect(message.error).to.equal('No connection options found');
     });
 
-    test('posts error message for handleGetDocuments with pagination when no active data service', async function () {
-      mockConnectionController.getActiveDataService = sandbox
+    test('posts error message for handleGetDocuments with pagination when no connection options', async function () {
+      mockConnectionController.getMongoClientConnectionOptions = sandbox
         .stub()
         .returns(null);
       const options = createMockOptions();
@@ -398,7 +422,7 @@ suite('DataBrowsingController Test Suite', function () {
         PreviewMessageType.getDocumentError,
       ) as { command: string; error: string };
       expect(message).to.not.be.undefined;
-      expect(message.error).to.equal('No active database connection');
+      expect(message.error).to.equal('No connection options found');
     });
   });
 
@@ -481,7 +505,7 @@ suite('DataBrowsingController Test Suite', function () {
 
   suite('handleGetDocuments with pagination', function () {
     test('posts loadPage message with documents on pagination', async function () {
-      mockDataService.find = sandbox.stub().resolves([
+      mockCursor.toArray = sandbox.stub().resolves([
         { _id: '11', name: 'doc11' },
         { _id: '12', name: 'doc12' },
       ]);
@@ -489,8 +513,8 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 10, 10);
 
-      expect(mockDataService.find.calledOnce).to.be.true;
-      const findOptions = mockDataService.find.firstCall.args[2];
+      expect(mockServiceProvider.find.calledOnce).to.be.true;
+      const findOptions = mockServiceProvider.find.firstCall.args[3];
       expect(findOptions.skip).to.equal(10);
       expect(findOptions.limit).to.equal(10);
       expect(postMessageStub.callCount).to.equal(1);
@@ -510,7 +534,7 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 25);
 
-      const findOptions = mockDataService.find.firstCall.args[2];
+      const findOptions = mockServiceProvider.find.firstCall.args[3];
       expect(findOptions.limit).to.equal(25);
       // skip should not be set when 0
       expect(findOptions.skip).to.be.undefined;
@@ -523,8 +547,8 @@ suite('DataBrowsingController Test Suite', function () {
         _id: -1,
       });
 
-      expect(mockDataService.find.calledOnce).to.be.true;
-      const findOptions = mockDataService.find.firstCall.args[2];
+      expect(mockServiceProvider.find.calledOnce).to.be.true;
+      const findOptions = mockServiceProvider.find.firstCall.args[3];
       expect(findOptions.sort).to.deep.equal({ _id: -1 });
     });
 
@@ -533,13 +557,13 @@ suite('DataBrowsingController Test Suite', function () {
 
       await testController.handleGetDocuments(mockPanel, options, 0, 10);
 
-      expect(mockDataService.find.calledOnce).to.be.true;
-      const findOptions = mockDataService.find.firstCall.args[2];
+      expect(mockServiceProvider.find.calledOnce).to.be.true;
+      const findOptions = mockServiceProvider.find.firstCall.args[3];
       expect(findOptions.sort).to.be.undefined;
     });
 
     test('posts getDocumentError message on fetch failure', async function () {
-      mockDataService.find = sandbox
+      mockCursor.toArray = sandbox
         .stub()
         .rejects(new Error('Connection failed'));
       const options = createMockOptions();
@@ -556,7 +580,7 @@ suite('DataBrowsingController Test Suite', function () {
     });
 
     test('does not post message when request is aborted', async function () {
-      mockDataService.find = sandbox.stub().callsFake(() => {
+      mockCursor.toArray = sandbox.stub().callsFake(() => {
         testController._panelAbortControllers
           .get(mockPanel)
           ?.documents?.abort();
@@ -649,12 +673,11 @@ suite('DataBrowsingController Test Suite', function () {
     test('cancels in-flight request when cancelRequest message is received', async function () {
       // Simulate a slow find request
       let findResolve: (value: unknown) => void = () => {};
-      mockDataService.find = sandbox.stub().callsFake(() => {
+      mockCursor.toArray = sandbox.stub().callsFake(() => {
         return new Promise((resolve) => {
           findResolve = resolve;
         });
       });
-      mockDataService.aggregate = sandbox.stub().resolves([{ count: 16 }]);
 
       const options = createMockOptions();
 
@@ -723,6 +746,22 @@ suite('DataBrowsingController Test Suite', function () {
     test('does not call aggregate for timeseries collections and sends null totalCount', async function () {
       const options = createMockOptions({
         collectionType: CollectionType.timeseries,
+      });
+
+      await testController.handleGetTotalCount(mockPanel, options);
+
+      expect(mockDataService.aggregate.called).to.be.false;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.updateTotalCount);
+      expect(message.totalCount).to.equal(null);
+    });
+
+    test('does not call aggregate for cursor queries and sends null totalCount', async function () {
+      const options = createMockOptions({
+        query: {
+          options: { method: 'find', args: ['db', 'coll', {}] },
+          chains: [],
+        } as any,
       });
 
       await testController.handleGetTotalCount(mockPanel, options);
@@ -894,94 +933,42 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('handleDeleteAllDocuments', function () {
-    let showInfoStub: SinonStub;
-
-    function setupDeleteAllMocks(overrides?: {
-      deletedCount?: number;
-      confirmResult?: string | undefined;
-    }) {
-      const { deletedCount = 100 } = overrides ?? {};
-      const confirmResult =
-        overrides && 'confirmResult' in overrides
-          ? overrides.confirmResult
-          : 'Yes';
-
-      showInfoStub = sandbox.stub(vscode.window, 'showInformationMessage');
-      showInfoStub.onFirstCall().resolves(confirmResult as any);
-
-      (mockDataService as any).deleteMany = sandbox
-        .stub()
-        .resolves({ deletedCount });
-
-      (testController as any)._connectionController = {
-        getActiveDataService: () => mockDataService,
-      };
-    }
-
-    test('calls correct vscode command to refresh collection', async function () {
+    test('delegates to mdb.deleteAllDocuments command', async function () {
       const options = createMockOptions();
-      setupDeleteAllMocks({ deletedCount: 500 });
-
-      (testController as any)._explorerController = mockExplorerController;
-
       const executeCommandStub = sandbox
         .stub(vscode.commands, 'executeCommand')
         .resolves(true);
 
-      await testController.handleDeleteAllDocuments(mockPanel, options);
+      (testController as any)._explorerController = mockExplorerController;
+
+      await testController.handleDeleteAllDocuments(options);
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.firstCall.args[0]).to.equal(
-        ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
+        'mdb.deleteAllDocuments',
       );
+
+      expect(executeCommandStub.firstCall.args[1]).to.deep.equal(options);
     });
 
-    test('does nothing when user cancels initial confirmation', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks({ confirmResult: undefined });
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      expect((mockDataService as any).deleteMany.called).to.be.false;
-      expect(postMessageStub.called).to.be.false;
-    });
-
-    test('shows error when no active data service', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks();
-
-      (testController as any)._connectionController = {
-        getActiveDataService: () => null,
-      };
+    test('shows error when options have a query', async function () {
+      const options = createMockOptions({
+        query: {
+          options: { method: 'find', args: ['db', 'coll', {}] },
+          chains: [],
+        } as any,
+      });
 
       const showErrorStub = sandbox
         .stub(vscode.window, 'showErrorMessage')
         .resolves();
 
-      await testController.handleDeleteAllDocuments(mockPanel, options);
+      await testController.handleDeleteAllDocuments(options);
 
       expect(showErrorStub.calledOnce).to.be.true;
       expect(showErrorStub.firstCall.args[0]).to.include(
-        'No active database connection',
+        'Delete all documents with a query is not supported',
       );
-    });
-
-    test('shows error message when deleteMany fails', async function () {
-      const options = createMockOptions();
-      setupDeleteAllMocks();
-
-      (mockDataService as any).deleteMany = sandbox
-        .stub()
-        .rejects(new Error('Delete failed'));
-
-      const showErrorStub = sandbox
-        .stub(vscode.window, 'showErrorMessage')
-        .resolves();
-
-      await testController.handleDeleteAllDocuments(mockPanel, options);
-
-      expect(showErrorStub.calledOnce).to.be.true;
-      expect(showErrorStub.firstCall.args[0]).to.include('Delete failed');
     });
   });
 
@@ -993,10 +980,8 @@ suite('DataBrowsingController Test Suite', function () {
         'handleDeleteAllDocuments',
       );
 
-      // Stub showInformationMessage to cancel so we don't need full mock setup
-      sandbox
-        .stub(vscode.window, 'showInformationMessage')
-        .resolves(undefined as any);
+      // Stub executeCommand since handleDeleteAllDocuments now delegates to the command
+      sandbox.stub(vscode.commands, 'executeCommand').resolves(true);
 
       await testController.handleWebviewMessage(
         { command: PreviewMessageType.deleteAllDocuments },
@@ -1005,11 +990,75 @@ suite('DataBrowsingController Test Suite', function () {
       );
 
       expect(handleDeleteAllSpy.calledOnce).to.be.true;
-      expect(handleDeleteAllSpy.calledWith(mockPanel, options)).to.be.true;
+      expect(handleDeleteAllSpy.calledWith(options)).to.be.true;
     });
   });
 
-  test('handleInsertDocument calls relevant vscode command', async function () {
+  suite('notifyDocumentsChanged', function () {
+    test('sends documentDeleted message to panels matching the namespace', function () {
+      const matchingPostMessage = sandbox.stub().resolves(true);
+      const matchingPanel = {
+        title: 'testDb.testCol',
+        webview: { postMessage: matchingPostMessage },
+      } as unknown as vscode.WebviewPanel;
+
+      (testController as any)._activeWebviewPanels = [matchingPanel];
+
+      testController.notifyDocumentsChanged('testDb', 'testCol');
+
+      expect(matchingPostMessage.calledOnce).to.be.true;
+      expect(matchingPostMessage.firstCall.args[0]).to.deep.equal({
+        command: PreviewMessageType.documentDeleted,
+      });
+    });
+
+    test('does not send message to panels with non-matching title', function () {
+      const otherPostMessage = sandbox.stub().resolves(true);
+      const otherPanel = {
+        title: 'otherDb.otherCol',
+        webview: { postMessage: otherPostMessage },
+      } as unknown as vscode.WebviewPanel;
+
+      (testController as any)._activeWebviewPanels = [otherPanel];
+
+      testController.notifyDocumentsChanged('testDb', 'testCol');
+
+      expect(otherPostMessage.called).to.be.false;
+    });
+
+    test('sends message only to matching panels when multiple are open', function () {
+      const matchingPostMessage = sandbox.stub().resolves(true);
+      const otherPostMessage = sandbox.stub().resolves(true);
+
+      const matchingPanel = {
+        title: 'myDb.myCol',
+        webview: { postMessage: matchingPostMessage },
+      } as unknown as vscode.WebviewPanel;
+      const otherPanel = {
+        title: 'myDb.otherCol',
+        webview: { postMessage: otherPostMessage },
+      } as unknown as vscode.WebviewPanel;
+
+      (testController as any)._activeWebviewPanels = [
+        matchingPanel,
+        otherPanel,
+      ];
+
+      testController.notifyDocumentsChanged('myDb', 'myCol');
+
+      expect(matchingPostMessage.calledOnce).to.be.true;
+      expect(otherPostMessage.called).to.be.false;
+    });
+
+    test('handles empty active panels gracefully', function () {
+      (testController as any)._activeWebviewPanels = [];
+
+      // Should not throw
+      testController.notifyDocumentsChanged('testDb', 'testCol');
+    });
+  });
+
+  test('handleInsertDocument calls playgroundController.createPlaygroundForInsertDocument', async function () {
     const options = createMockOptions();
 
     const executeCommandStub = sandbox
@@ -1062,6 +1111,350 @@ suite('DataBrowsingController Test Suite', function () {
 
       expect(handleInsertDocumentSpy.calledOnce).to.be.true;
       expect(handleInsertDocumentSpy.calledWith(options)).to.be.true;
+    });
+  });
+
+  suite('parseConstructionOptions', function () {
+    test('returns default find query when no query is provided', function () {
+      const result = parseConstructionOptions(undefined);
+      expect(result.limit).to.be.null;
+      expect(result.skip).to.be.null;
+      expect((result as any).find).to.deep.equal({
+        filter: {},
+        findOptions: {},
+        dbOptions: {},
+      });
+      expect(result.chains).to.deep.equal([]);
+    });
+
+    test('throws for unsupported query methods', function () {
+      expect(() =>
+        parseConstructionOptions({
+          options: { method: 'runCursorCommand', args: ['db', {}] },
+          chains: [],
+        } as any),
+      ).to.throw('Only find and aggregate queries are supported');
+    });
+  });
+
+  suite('parseConstructionOptionsForFind', function () {
+    test('extracts limit from findOptions', function () {
+      const result = parseConstructionOptionsForFind({
+        options: {
+          method: 'find',
+          args: ['db', 'coll', { name: 'test' }, { limit: 50 }, {}],
+        },
+        chains: [],
+      } as any);
+      expect(result.limit).to.equal(50);
+      expect(result.skip).to.be.null;
+      expect((result as any).find.filter).to.deep.equal({ name: 'test' });
+      // limit should be stripped from findOptions
+      expect((result as any).find.findOptions.limit).to.be.undefined;
+    });
+
+    test('extracts skip from findOptions', function () {
+      const result = parseConstructionOptionsForFind({
+        options: {
+          method: 'find',
+          args: ['db', 'coll', {}, { skip: 20 }, {}],
+        },
+        chains: [],
+      } as any);
+      expect(result.skip).to.equal(20);
+      expect((result as any).find.findOptions.skip).to.be.undefined;
+    });
+
+    test('extracts both limit and skip from findOptions', function () {
+      const result = parseConstructionOptionsForFind({
+        options: {
+          method: 'find',
+          args: ['db', 'coll', {}, { limit: 30, skip: 10 }, {}],
+        },
+        chains: [],
+      } as any);
+      expect(result.limit).to.equal(30);
+      expect(result.skip).to.equal(10);
+    });
+
+    test('extracts limit from chains', function () {
+      const result = parseConstructionOptionsForFind({
+        options: { method: 'find', args: ['db', 'coll', {}, {}, {}] },
+        chains: [{ method: 'limit', args: [25] }],
+      } as any);
+      expect(result.limit).to.equal(25);
+      // limit chain should be filtered out
+      expect(result.chains).to.deep.equal([]);
+    });
+
+    test('extracts skip from chains', function () {
+      const result = parseConstructionOptionsForFind({
+        options: { method: 'find', args: ['db', 'coll', {}, {}, {}] },
+        chains: [{ method: 'skip', args: [15] }],
+      } as any);
+      expect(result.skip).to.equal(15);
+      expect(result.chains).to.deep.equal([]);
+    });
+
+    test('chains override findOptions for limit and skip', function () {
+      const result = parseConstructionOptionsForFind({
+        options: {
+          method: 'find',
+          args: ['db', 'coll', {}, { limit: 10, skip: 5 }, {}],
+        },
+        chains: [
+          { method: 'limit', args: [100] },
+          { method: 'skip', args: [50] },
+        ],
+      } as any);
+      // chains should win over findOptions
+      expect(result.limit).to.equal(100);
+      expect(result.skip).to.equal(50);
+    });
+
+    test('preserves non-limit/skip chains', function () {
+      const result = parseConstructionOptionsForFind({
+        options: { method: 'find', args: ['db', 'coll', {}, {}, {}] },
+        chains: [
+          { method: 'sort', args: [{ _id: -1 }] },
+          { method: 'limit', args: [10] },
+          { method: 'project', args: [{ name: 1 }] },
+        ],
+      } as any);
+      expect(result.limit).to.equal(10);
+      expect(result.chains).to.have.lengthOf(2);
+      expect(result.chains[0].method).to.equal('sort');
+      expect(result.chains[1].method).to.equal('project');
+    });
+
+    test('does not mutate original query findOptions', function () {
+      const originalFindOptions = {
+        limit: 10,
+        skip: 5,
+        projection: { name: 1 },
+      };
+      const query = {
+        options: {
+          method: 'find' as const,
+          args: ['db', 'coll', {}, originalFindOptions, {}],
+        },
+        chains: [],
+      };
+      parseConstructionOptionsForFind(query as any);
+      // Original should still have limit and skip
+      expect(originalFindOptions.limit).to.equal(10);
+      expect(originalFindOptions.skip).to.equal(5);
+    });
+
+    test('handles null/undefined findOptions', function () {
+      const result = parseConstructionOptionsForFind({
+        options: {
+          method: 'find',
+          args: ['db', 'coll', {}, undefined, undefined],
+        },
+        chains: [],
+      } as any);
+      expect(result.limit).to.be.null;
+      expect(result.skip).to.be.null;
+    });
+  });
+
+  suite('parseConstructionOptionsForAggregate', function () {
+    test('returns null limit and skip for aggregations', function () {
+      const result = parseConstructionOptionsForAggregate({
+        options: {
+          method: 'aggregate',
+          args: [
+            'db',
+            'coll',
+            [{ $match: { status: 'active' } }, { $limit: 10 }],
+            {},
+            {},
+          ],
+        },
+        chains: [],
+      } as any);
+      expect(result.limit).to.be.null;
+      expect(result.skip).to.be.null;
+      expect((result as any).aggregate.pipeline).to.deep.equal([
+        { $match: { status: 'active' } },
+        { $limit: 10 },
+      ]);
+    });
+
+    test('preserves all chains for aggregations', function () {
+      const result = parseConstructionOptionsForAggregate({
+        options: {
+          method: 'aggregate',
+          args: ['db', 'coll', [{ $match: {} }], {}, {}],
+        },
+        chains: [
+          { method: 'limit', args: [5] },
+          { method: 'skip', args: [10] },
+        ],
+      } as any);
+      // Unlike find, aggregate should keep limit/skip in chains
+      expect(result.chains).to.have.lengthOf(2);
+    });
+  });
+
+  suite(
+    'handleGetDocuments with find query (pagination + query limits)',
+    function () {
+      function createFindQueryOptions(overrides?: {
+        limit?: number;
+        skip?: number;
+        filter?: object;
+        sort?: object;
+      }): DataBrowsingOptions {
+        const findOpts: Record<string, any> = Object.create(null);
+        if (overrides?.limit) findOpts.limit = overrides.limit;
+        if (overrides?.skip) findOpts.skip = overrides.skip;
+        if (overrides?.sort) findOpts.sort = overrides.sort;
+        return createMockOptions({
+          query: {
+            options: {
+              method: 'find',
+              args: [
+                'test',
+                'collection',
+                overrides?.filter ?? {},
+                Object.keys(findOpts).length > 0 ? findOpts : undefined,
+                undefined,
+              ],
+            },
+            chains: [],
+          } as any,
+        });
+      }
+
+      test('query skip offsets pagination skip', async function () {
+        const options = createFindQueryOptions({ skip: 10 });
+        await testController.handleGetDocuments(mockPanel, options, 0, 10);
+
+        const findOptions = mockServiceProvider.find.firstCall.args[3];
+        expect(findOptions.skip).to.equal(10);
+      });
+
+      test('query skip adds to pagination skip', async function () {
+        const options = createFindQueryOptions({ skip: 10 });
+        await testController.handleGetDocuments(mockPanel, options, 20, 10);
+
+        const findOptions = mockServiceProvider.find.firstCall.args[3];
+        expect(findOptions.skip).to.equal(30);
+      });
+
+      test('query limit caps pagination limit', async function () {
+        const options = createFindQueryOptions({ limit: 25 });
+        await testController.handleGetDocuments(mockPanel, options, 0, 10);
+
+        const findOptions = mockServiceProvider.find.firstCall.args[3];
+        expect(findOptions.limit).to.equal(10);
+      });
+
+      test('query limit reduces available on later pages', async function () {
+        const options = createFindQueryOptions({ limit: 25 });
+        await testController.handleGetDocuments(mockPanel, options, 20, 10);
+
+        const findOptions = mockServiceProvider.find.firstCall.args[3];
+        // remaining = 25 - 20 = 5, min(5, 10) = 5
+        expect(findOptions.limit).to.equal(5);
+      });
+
+      test('returns empty when past query limit', async function () {
+        const options = createFindQueryOptions({ limit: 10 });
+        await testController.handleGetDocuments(mockPanel, options, 10, 10);
+
+        const message = findMessageByCommand(
+          postMessageStub,
+          PreviewMessageType.loadPage,
+        ) as any;
+        expect(message.documents).to.deep.equal([]);
+      });
+
+      test('query skip + limit boundary returns empty past limit', async function () {
+        const options = createFindQueryOptions({ skip: 10, limit: 20 });
+        // skip=10 in query, limit=20, pagination skip=30
+        // findOptions.skip = 10 + 30 = 40, remaining = 20 - 40 = -20 < 1 => empty
+        await testController.handleGetDocuments(mockPanel, options, 30, 10);
+
+        const message = findMessageByCommand(
+          postMessageStub,
+          PreviewMessageType.loadPage,
+        ) as any;
+        expect(message.documents).to.deep.equal([]);
+      });
+
+      test('passes filter from query to find', async function () {
+        const options = createFindQueryOptions({
+          filter: { status: 'active' },
+        });
+        await testController.handleGetDocuments(mockPanel, options, 0, 10);
+
+        const filter = mockServiceProvider.find.firstCall.args[2];
+        expect(filter).to.deep.equal({ status: 'active' });
+      });
+    },
+  );
+
+  suite('handleGetDocuments with aggregate query', function () {
+    function createAggregateQueryOptions(
+      pipeline?: object[],
+    ): DataBrowsingOptions {
+      return createMockOptions({
+        query: {
+          options: {
+            method: 'aggregate',
+            args: [
+              'test',
+              'collection',
+              pipeline ?? [{ $match: { status: 'active' } }],
+              {},
+              {},
+            ],
+          },
+          chains: [],
+        } as any,
+      });
+    }
+
+    test('appends $skip and $limit to pipeline', async function () {
+      const options = createAggregateQueryOptions([{ $match: {} }]);
+      await testController.handleGetDocuments(mockPanel, options, 20, 10);
+
+      const pipeline = mockServiceProvider.aggregate.firstCall.args[2];
+      expect(pipeline).to.deep.equal([
+        { $match: {} },
+        { $skip: 20 },
+        { $limit: 10 },
+      ]);
+    });
+
+    test('works with existing $limit/$skip in pipeline', async function () {
+      const options = createAggregateQueryOptions([
+        { $match: {} },
+        { $skip: 5 },
+        { $limit: 50 },
+      ]);
+      await testController.handleGetDocuments(mockPanel, options, 10, 10);
+
+      const pipeline = mockServiceProvider.aggregate.firstCall.args[2];
+      expect(pipeline).to.deep.equal([
+        { $match: {} },
+        { $skip: 5 },
+        { $limit: 50 },
+        { $skip: 10 },
+        { $limit: 10 },
+      ]);
+    });
+
+    test('first page has $skip: 0', async function () {
+      const options = createAggregateQueryOptions();
+      await testController.handleGetDocuments(mockPanel, options, 0, 10);
+
+      const pipeline = mockServiceProvider.aggregate.firstCall.args[2];
+      const lastSkip = pipeline[pipeline.length - 2];
+      expect(lastSkip).to.deep.equal({ $skip: 0 });
     });
   });
 });

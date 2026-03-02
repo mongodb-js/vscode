@@ -373,7 +373,9 @@ ${jsonConfig}`,
 
     return new vscode.McpHttpServerDefinition(
       'MongoDB MCP Server',
-      vscode.Uri.parse(`${this.server.runner.serverAddress}/mcp`),
+      vscode.Uri.parse(
+        `${String(this.server.runner['mcpServer'].serverAddress)}/mcp`,
+      ),
       this.server.headers,
     );
   }

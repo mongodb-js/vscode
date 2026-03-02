@@ -27,6 +27,7 @@ import {
   requestCancellationRequested,
   currentPageAdjusted,
   SORT_OPTIONS,
+  isBasicQuery,
 } from './store/documentQuerySlice';
 import { setupMessageHandler } from './store/messageHandler';
 import {
@@ -83,7 +84,7 @@ const paginationInfoStyles = css({
   fontSize: '13px',
   whiteSpace: 'nowrap',
   display: 'flex',
-  gap: spacing[200],
+  gap: spacing[100],
   alignItems: 'center',
 });
 
@@ -118,9 +119,13 @@ const contentStyles = css({
 });
 
 const emptyStateStyles = css({
-  textAlign: 'center',
-  padding: spacing[500],
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: spacing[1200],
   color: VSCODE_DESCRIPTION_FOREGROUND,
+  gap: spacing[300],
 });
 
 const errorBannerStyles = css({
@@ -150,13 +155,18 @@ const insertDocumentButtonStyles = css({
 const PreviewApp: React.FC = () => {
   const dispatch = useAppDispatch();
 
+  const documentQuery = useAppSelector(selectDocumentQuery);
+
+  const isDocumentsView = isBasicQuery(documentQuery);
+  const viewType = isDocumentsView ? 'documents' : 'cursor';
+
   const {
     displayedDocuments,
     currentPage,
     itemsPerPage,
     sort,
     isLoading,
-    totalCountInCollection,
+    totalCountForQuery,
     hasReceivedCount,
     totalPages,
     startItem,
@@ -167,7 +177,7 @@ const PreviewApp: React.FC = () => {
       getDocuments: getDocumentsError,
       getTotalCount: getTotalCountError,
     },
-  } = useAppSelector(selectDocumentQuery);
+  } = documentQuery;
 
   useEffect(() => {
     dispatch(currentPageAdjusted());
@@ -212,24 +222,28 @@ const PreviewApp: React.FC = () => {
       <div className={toolbarStyles}>
         {/* Left side - Insert Document */}
         <div className={toolbarGroupStyles}>
-          <VscodeButton
-            className={insertDocumentButtonStyles}
-            aria-label="Insert Document"
-            title="Insert Document"
-            onClick={(): void => {
-              sendInsertDocument();
-            }}
-            disabled={isLoading}
-            icon="add"
-            secondary
-          >
-            Insert Document
-          </VscodeButton>
-          <BulkActionsSelect
-            actions={BULK_ACTIONS}
-            onAction={handleBulkAction}
-            disabled={isLoading}
-          />
+          {
+            <VscodeButton
+              className={insertDocumentButtonStyles}
+              aria-label="Insert Document"
+              title="Insert Document"
+              onClick={(): void => {
+                sendInsertDocument();
+              }}
+              disabled={isLoading}
+              icon="add"
+              secondary
+            >
+              Insert Document
+            </VscodeButton>
+          }
+          {isDocumentsView && (
+            <BulkActionsSelect
+              actions={BULK_ACTIONS}
+              onAction={handleBulkAction}
+              disabled={isLoading}
+            />
+          )}
         </div>
         {/* Right side - Actions */}
         <div className={toolbarGroupWideStyles}>
@@ -247,19 +261,23 @@ const PreviewApp: React.FC = () => {
           </VscodeButton>
 
           {/* Sort */}
-          <span>Sort</span>
-          <VscodeSingleSelect
-            className={sortSelectStyles}
-            aria-label="Sort"
-            value={sort?.value ?? 'default'}
-            onChange={handleSortChange}
-          >
-            {SORT_OPTIONS.map((option) => (
-              <VscodeOption key={option.value} value={option.value}>
-                {option.label}
-              </VscodeOption>
-            ))}
-          </VscodeSingleSelect>
+          {viewType === 'documents' && (
+            <>
+              <span>Sort</span>
+              <VscodeSingleSelect
+                className={sortSelectStyles}
+                aria-label="Sort"
+                value={sort?.value ?? 'default'}
+                onChange={handleSortChange}
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <VscodeOption key={option.value} value={option.value}>
+                    {option.label}
+                  </VscodeOption>
+                ))}
+              </VscodeSingleSelect>
+            </>
+          )}
 
           {/* Items per page */}
           <VscodeSingleSelect
@@ -291,12 +309,14 @@ const PreviewApp: React.FC = () => {
               <span className={countErrorStyles} title={getTotalCountError}>
                 Error
               </span>
-            ) : totalCountInCollection === null ? (
+            ) : viewType === 'cursor' ? (
+              <span title="We don't know the total count">N/A</span>
+            ) : totalCountForQuery === null ? (
               <span title="We don't run a count for time series and views">
                 N/A
               </span>
             ) : (
-              totalCountInCollection
+              totalCountForQuery
             )}
           </span>
 
@@ -308,7 +328,7 @@ const PreviewApp: React.FC = () => {
               onClick={(): void => {
                 dispatch(previousPageRequested());
               }}
-              disabled={currentPage <= 1 || isLoading}
+              disabled={(totalPages !== null && currentPage <= 1) || isLoading}
               iconOnly
               icon="chevron-left"
               secondary
@@ -319,7 +339,9 @@ const PreviewApp: React.FC = () => {
               onClick={(): void => {
                 dispatch(nextPageRequested());
               }}
-              disabled={currentPage >= totalPages || isLoading}
+              disabled={
+                (totalPages !== null && currentPage >= totalPages) || isLoading
+              }
               iconOnly
               icon="chevron-right"
               secondary
@@ -367,7 +389,19 @@ const PreviewApp: React.FC = () => {
               />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (
-              <div className={emptyStateStyles}>No documents to display</div>
+              <div className={emptyStateStyles}>
+                <span>No documents to display</span>
+                <VscodeButton
+                  aria-label="Insert Document"
+                  title="Insert Document"
+                  onClick={(): void => {
+                    sendInsertDocument();
+                  }}
+                  secondary
+                >
+                  Insert Document
+                </VscodeButton>
+              </div>
             )}
           </>
         )}

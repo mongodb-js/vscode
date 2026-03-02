@@ -91,8 +91,14 @@ const cardStyles = css({
     top: spacing[200],
     right: spacing[200],
     display: 'flex',
-    gap: spacing[100],
+    gap: 0,
     zIndex: 1000,
+    backgroundColor:
+      'var(--vscode-editorWidget-background, var(--vscode-editor-background))',
+    border:
+      '1px solid var(--vscode-editorWidget-border, var(--vscode-widget-border, rgba(255, 255, 255, 0.12)))',
+    borderRadius: '6px',
+    padding: `${spacing[100]}px`,
 
     opacity: 0,
     transition: 'opacity 0.2s',
@@ -109,9 +115,9 @@ const cardStyles = css({
 
 const actionButtonStyles = css({
   position: 'relative',
-  background: 'var(--vscode-button-secondaryBackground)',
-  border: '1px solid var(--vscode-button-border, transparent)',
-  color: 'var(--vscode-button-secondaryForeground)',
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--vscode-foreground)',
   borderRadius: '4px',
   padding: `${spacing[100]}px ${spacing[200]}px`,
   cursor: 'pointer',
@@ -123,17 +129,19 @@ const actionButtonStyles = css({
   minHeight: '24px',
 
   '&:hover': {
-    background: 'var(--vscode-button-secondaryHoverBackground)',
+    background:
+      'var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1))',
   },
 
   '&:active': {
-    background: 'var(--vscode-button-secondaryBackground)',
+    background:
+      'var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.07))',
   },
 
   '&::after': {
     content: 'attr(data-tooltip)',
     position: 'absolute',
-    top: 'calc(100% + 4px)',
+    top: 'calc(100% + 12px)',
     left: '50%',
     transform: 'translateX(-50%)',
     background:

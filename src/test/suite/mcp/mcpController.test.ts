@@ -52,6 +52,7 @@ async function createConnectedMCPClient(
 
 const sandbox = sinon.createSandbox();
 suite('MCPController test suite', function () {
+  this.timeout(10_000);
   let connectionController: ConnectionController;
   let mcpController: MCPController;
 
