@@ -264,13 +264,13 @@ const isAggregateQuery = (
 const isFindParsedQuery = (
   query: ParsedQuery,
 ): query is ParsedQuery & { find: FindQuery } => {
-  return (query as any).find !== undefined;
+  return 'find' in query;
 };
 
 const isAggregateParsedQuery = (
   query: ParsedQuery,
 ): query is ParsedQuery & { aggregate: AggregateQuery } => {
-  return (query as any).aggregate !== undefined;
+  return 'aggregate' in query;
 };
 
 export default class DataBrowsingController {
