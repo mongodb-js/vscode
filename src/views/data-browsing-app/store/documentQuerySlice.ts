@@ -87,7 +87,6 @@ export type DocumentQueryState = {
   sort: SortOption | null;
   query: ServiceProviderQuery | null;
 
-  // TODO: these are derived values, why are we storing them?
   totalPages: number | null;
   startItem: number;
   endItem: number;

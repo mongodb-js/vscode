@@ -905,7 +905,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           this._dataBrowsingController.openDataBrowser(this._context, {
             databaseName,
             collectionName,
-            collectionType: 'unknown', // TODO: figure this out or remove it
+            collectionType: 'unknown',
             query: result.constructionOptions,
           });
         } else {
