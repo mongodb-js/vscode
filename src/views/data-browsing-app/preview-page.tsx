@@ -119,9 +119,13 @@ const contentStyles = css({
 });
 
 const emptyStateStyles = css({
-  textAlign: 'center',
-  padding: spacing[500],
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: spacing[1200],
   color: VSCODE_DESCRIPTION_FOREGROUND,
+  gap: spacing[300],
 });
 
 const errorBannerStyles = css({
@@ -385,7 +389,19 @@ const PreviewApp: React.FC = () => {
               />
             ))}
             {displayedDocuments.length === 0 && !getDocumentsError && (
-              <div className={emptyStateStyles}>No documents to display</div>
+              <div className={emptyStateStyles}>
+                <span>No documents to display</span>
+                <VscodeButton
+                  aria-label="Insert Document"
+                  title="Insert Document"
+                  onClick={(): void => {
+                    sendInsertDocument();
+                  }}
+                  secondary
+                >
+                  Insert Document
+                </VscodeButton>
+              </div>
             )}
           </>
         )}
