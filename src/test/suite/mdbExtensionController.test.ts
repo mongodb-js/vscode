@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
-import { Long, ObjectId } from 'bson';
 import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
-import type { Document, Filter } from 'mongodb';
 import { expect } from 'chai';
 
 import {
@@ -21,7 +19,6 @@ import FieldTreeItem from '../../explorer/fieldTreeItem';
 import IndexListTreeItem from '../../explorer/indexListTreeItem';
 import ShowPreviewTreeItem from '../../explorer/documentPreviewItem';
 import { mdbTestExtension } from './stubbableMdbExtension';
-import { mockTextEditor } from './stubs';
 import {
   StorageLocation,
   SecretStorageLocation,
@@ -34,7 +31,6 @@ import {
   DEEP_LINK_ALLOWED_COMMANDS,
   DEEP_LINK_DISALLOWED_COMMANDS,
 } from '../../mdbExtensionController';
-import { setFeatureFlag, resetFeatureFlags } from '../../featureFlags';
 
 const testDatabaseURI = 'mongodb://localhost:27088';
 
@@ -128,7 +124,6 @@ suite('MDBExtensionController Test Suite', function () {
 
   afterEach(() => {
     sandbox.restore();
-    resetFeatureFlags();
   });
 
   suite('Deep link command lists validation', function () {

@@ -63,6 +63,8 @@ suite('openMongoDBDocument Command Test Suite', function () {
       await disconnectFromTestDB();
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');
       await vscode.commands.executeCommand('notifications.clearAll');
+
+      await dataService.disconnect();
     });
 
     beforeEach(async () => {
