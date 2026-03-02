@@ -387,6 +387,20 @@ describe('documentQuerySlice', function () {
       expect(result.endItem).to.equal(3);
     });
 
+    it('endItem uses the larger term when startItem is smaller for cursor queries', function () {
+      const pageTwoCursorState: DocumentQueryState = {
+        ...cursorState,
+        currentPage: 2,
+        itemsPerPage: 10,
+      };
+      const docs = [];
+
+      const result = reducer(pageTwoCursorState, documentsReceived(docs));
+
+      expect(result.startItem).to.equal(11);
+      expect(result.endItem).to.equal(11);
+    });
+
     it('totalCountReceived(null) keeps totalPages null for cursor queries', function () {
       const stateWithDocs = reducer(
         cursorState,
