@@ -45,7 +45,6 @@ import {
   PlaygroundSavedTelemetryEvent,
 } from '../telemetry';
 import { ExtensionCommand } from '../commands';
-import { getFeatureFlag } from '../featureFlags';
 
 const log = createLogger('playground controller');
 

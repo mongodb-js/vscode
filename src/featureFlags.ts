@@ -13,7 +13,9 @@ export const setFeatureFlag = (flag: FeatureFlag, value: boolean): void => {
   FEATURE_FLAGS[flag] = value;
 };
 
-export const resetFeatureFlags = (): void => {};
+export const resetFeatureFlags = (): void => {
+  // left intentionally blank
+};
 
 // Initialize feature flags on module load.
 resetFeatureFlags();

@@ -25,7 +25,12 @@ function getTestDocumentItem(
   connectionId: string | null,
   document: any,
   format: 'shell' | 'ejson',
-) {
+): {
+  connectionId: string | null;
+  documentId: string;
+  namespace: string;
+  format: 'shell' | 'ejson';
+} {
   return {
     documentId: document._id,
     namespace: `${TEST_DB_NAME}.${allTypesCollection}`,
