@@ -2,10 +2,7 @@ import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
 
-import {
-  DocsChatbotAIService,
-  type DocsStreamResult,
-} from '../../../participant/docsChatbotAIService';
+import { DocsChatbotAIService } from '../../../participant/docsChatbotAIService';
 
 suite('DocsChatbotAIService Test Suite', function () {
   let docsChatbotAIService: DocsChatbotAIService;
