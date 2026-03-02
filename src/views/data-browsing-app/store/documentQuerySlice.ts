@@ -135,9 +135,12 @@ const recalculatePaginationValues = (
     state.totalDocuments = null;
     state.totalPages = null;
     state.startItem = (state.currentPage - 1) * state.itemsPerPage + 1;
-    state.endItem = Math.min(
-      state.currentPage * state.itemsPerPage,
-      state.startItem + state.displayedDocuments.length - 1,
+    state.endItem = Math.max(
+      Math.min(
+        state.currentPage * state.itemsPerPage,
+        state.startItem + state.displayedDocuments.length - 1,
+      ),
+      state.startItem,
     );
   }
 };
