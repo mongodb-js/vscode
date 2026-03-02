@@ -70,7 +70,7 @@ export const ExtensionCommand = {
   mdbCopyDocumentContentsFromTreeView: 'mdb.copyDocumentContentsFromTreeView',
   mdbCloneDocumentFromTreeView: 'mdb.cloneDocumentFromTreeView',
   mdbDeleteDocumentFromTreeView: 'mdb.deleteDocumentFromTreeView',
-  mdbDeleteAllDocumentsFromTreeView: 'mdb.deleteAllDocumentsFromTreeView',
+  mdbDeleteAllDocuments: 'mdb.deleteAllDocuments',
   mdbAddStreamProcessor: 'mdb.addStreamProcessor',
   mdbStartStreamProcessor: 'mdb.startStreamProcessor',
   mdbStopStreamProcessor: 'mdb.stopStreamProcessor',

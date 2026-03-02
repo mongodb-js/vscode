@@ -894,7 +894,7 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   suite('handleDeleteAllDocuments', function () {
-    test('delegates to mdb.deleteAllDocumentsFromTreeView command', async function () {
+    test('delegates to mdb.deleteAllDocuments command', async function () {
       const options = createMockOptions();
       const executeCommandStub = sandbox
         .stub(vscode.commands, 'executeCommand')
@@ -902,11 +902,11 @@ suite('DataBrowsingController Test Suite', function () {
 
       (testController as any)._explorerController = mockExplorerController;
 
-      await testController.handleDeleteAllDocuments(mockPanel, options);
+      await testController.handleDeleteAllDocuments(options);
 
       expect(executeCommandStub.calledOnce).to.be.true;
       expect(executeCommandStub.firstCall.args[0]).to.equal(
-        'mdb.deleteAllDocumentsFromTreeView',
+        'mdb.deleteAllDocuments',
       );
       expect(executeCommandStub.firstCall.args[1]).to.deep.equal(options);
     });
@@ -930,7 +930,7 @@ suite('DataBrowsingController Test Suite', function () {
       );
 
       expect(handleDeleteAllSpy.calledOnce).to.be.true;
-      expect(handleDeleteAllSpy.calledWith(mockPanel, options)).to.be.true;
+      expect(handleDeleteAllSpy.calledWith(options)).to.be.true;
     });
   });
 

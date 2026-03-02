@@ -488,7 +488,7 @@
         "title": "Insert Document..."
       },
       {
-        "command": "mdb.deleteAllDocumentsFromTreeView",
+        "command": "mdb.deleteAllDocuments",
         "title": "Delete All Documents..."
       },
       {
@@ -822,7 +822,7 @@
           "group": "1@4"
         },
         {
-          "command": "mdb.deleteAllDocumentsFromTreeView",
+          "command": "mdb.deleteAllDocuments",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentPreviewItem",
           "group": "2@1"
         },
@@ -1117,7 +1117,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.deleteAllDocumentsFromTreeView",
+          "command": "mdb.deleteAllDocuments",
           "when": "false"
         },
         {

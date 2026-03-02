@@ -194,7 +194,7 @@ export default class DataBrowsingController {
         );
         return;
       case PreviewMessageType.deleteAllDocuments:
-        await this.handleDeleteAllDocuments(panel, options);
+        await this.handleDeleteAllDocuments(options);
         return;
       case PreviewMessageType.insertDocument:
         await this.handleInsertDocument(options);
@@ -364,13 +364,19 @@ export default class DataBrowsingController {
   };
 
   handleDeleteAllDocuments = async (
-    _panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
-    await vscode.commands.executeCommand<boolean>(
-      ExtensionCommand.mdbDeleteAllDocumentsFromTreeView,
-      options,
-    );
+    try {
+      await vscode.commands.executeCommand<boolean>(
+        ExtensionCommand.mdbDeleteAllDocuments,
+        options,
+      );
+    } catch (error) {
+      log.error('Error deleting all documents', error);
+      void vscode.window.showErrorMessage(
+        `Failed to delete all documents: ${formatError(error).message}`,
+      );
+    }
   };
 
   handleDeleteDocument = async (
