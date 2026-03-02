@@ -13,13 +13,6 @@ export const setFeatureFlag = (flag: FeatureFlag, value: boolean): void => {
   FEATURE_FLAGS[flag] = value;
 };
 
-export const resetFeatureFlags = (): void => {
-  // left intentionally blank
-};
-
-// Initialize feature flags on module load.
-resetFeatureFlags();
-
 export const getFeatureFlagsScript = (nonce: string): string => {
   return `
     <script nonce="${nonce}">window['MDB_FEATURE_FLAGS']=${JSON.stringify(

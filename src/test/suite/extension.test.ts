@@ -50,7 +50,6 @@ suite('Extension Test Suite', function () {
       'mdb.createIndexFromTreeView',
       'mdb.insertObjectIdToEditor',
       'mdb.generateObjectIdToClipboard',
-      'mdb.openMongoDBDocumentFromTree',
       'mdb.openMongoDBDocumentFromCodeLens',
       'mdb.addStreamProcessor',
       'mdb.startStreamProcessor',

@@ -27,7 +27,6 @@ export const ExtensionCommand = {
     'mdb.changeDriverSyntaxForExportToLanguage',
 
   mdbOpenMongodbDocumentFromCodeLens: 'mdb.openMongoDBDocumentFromCodeLens',
-  mdbOpenMongodbDocumentFromTree: 'mdb.openMongoDBDocumentFromTree',
   mdbSaveMongodbDocument: 'mdb.saveMongoDBDocument',
 
   mdbChangeActiveConnection: 'mdb.changeActiveConnection',

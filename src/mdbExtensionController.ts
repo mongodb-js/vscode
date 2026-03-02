@@ -141,7 +141,6 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbCreatePlaygroundFromTreeView,
   ExtensionCommand.mdbCreatePlaygroundFromTreeItem,
   ExtensionCommand.mdbDisconnectFromConnectionTreeView,
-  ExtensionCommand.mdbOpenMongodbDocumentFromTree,
   ExtensionCommand.mdbInsertDocumentFromTreeView,
   ExtensionCommand.askCopilotFromTreeItem,
   ExtensionCommand.mdbCreateIndexTreeView,
