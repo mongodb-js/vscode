@@ -434,7 +434,9 @@ export default class DataBrowsingController {
         return;
       }
 
-      this._telemetryService.track(new DataBrowserDocumentsFetchedTelemetryEvent());
+      this._telemetryService.track(
+        new DataBrowserDocumentsFetchedTelemetryEvent(),
+      );
       void panel.webview.postMessage({
         command: PreviewMessageType.loadPage,
         documents: EJSON.serialize(documents, { relaxed: false }),
@@ -501,7 +503,9 @@ export default class DataBrowsingController {
           connectionId: this._connectionController.getActiveConnectionId(),
         },
       );
-      this._telemetryService.track(new DataBrowserDocumentEditedTelemetryEvent());
+      this._telemetryService.track(
+        new DataBrowserDocumentEditedTelemetryEvent(),
+      );
     } catch (error) {
       log.error('Error opening document for editing', error);
       void vscode.window.showErrorMessage(
@@ -527,7 +531,9 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
-      this._telemetryService.track(new DataBrowserDocumentClonedTelemetryEvent());
+      this._telemetryService.track(
+        new DataBrowserDocumentClonedTelemetryEvent(),
+      );
     } catch (error) {
       log.error('Error cloning document', error);
       void vscode.window.showErrorMessage(
@@ -547,7 +553,9 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
-      this._telemetryService.track(new DataBrowserDocumentInsertedTelemetryEvent());
+      this._telemetryService.track(
+        new DataBrowserDocumentInsertedTelemetryEvent(),
+      );
     } catch (error) {
       log.error('Error opening insert document playground', error);
       void vscode.window.showErrorMessage(
