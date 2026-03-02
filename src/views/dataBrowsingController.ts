@@ -653,7 +653,10 @@ export default class DataBrowsingController {
     if (!connectionOptions) {
       throw new Error('No connection options found');
     }
-    // TODO: connect only once and reuse the connection for subsequent requests instead of reconnecting every time
+    // TODO(VSCODE-757, VSCODE-758): connect only once and reuse the connection
+    // for subsequent requests instead of reconnecting every time. Or switch to
+    // only using node service provider in the whole extension, then use the
+    // same connection everywhere.
     const serviceProvider = await NodeDriverServiceProvider.connect(
       connectionOptions.url,
       connectionOptions.options,
@@ -738,7 +741,10 @@ export default class DataBrowsingController {
     if (!connectionOptions) {
       throw new Error('No connection options found');
     }
-    // TODO: connect only once and reuse the connection for subsequent requests instead of reconnecting every time
+    // TODO(VSCODE-757, VSCODE-758): connect only once and reuse the connection
+    // for subsequent requests instead of reconnecting every time. Or switch to
+    // only using node service provider in the whole extension, then use the
+    // same connection everywhere.
     const serviceProvider = await NodeDriverServiceProvider.connect(
       connectionOptions.url,
       connectionOptions.options,
