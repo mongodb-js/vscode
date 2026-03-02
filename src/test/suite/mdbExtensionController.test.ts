@@ -546,43 +546,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    test('mdb.refreshDocumentList command should update the document count and call to refresh the explorer controller', async function () {
-      // Ensure we get DocumentListTreeItem (which has resetCache) instead of ShowPreviewTreeItem
-      setFeatureFlag('useEnhancedDataBrowsingExperience', false);
-
-      let count = 9000;
-      const testTreeItem = getTestCollectionTreeItem({
-        dataService: {
-          estimatedCount: () => Promise.resolve(count),
-        } as unknown as DataService,
-      });
-      await testTreeItem.onDidExpand();
-
-      const collectionChildren = await testTreeItem.getChildren();
-      const docListTreeItem = collectionChildren[0];
-      assert.strictEqual(docListTreeItem.description, '9K');
-      count = 10000;
-      docListTreeItem.isExpanded = true;
-
-      const fakeRefresh = sandbox.fake();
-      sandbox.replace(
-        mdbTestExtension.testExtensionController._explorerController,
-        'refresh',
-        fakeRefresh,
-      );
-
-      await vscode.commands.executeCommand(
-        'mdb.refreshDocumentList',
-        docListTreeItem,
-      );
-      assert.strictEqual(docListTreeItem.cacheIsUpToDate, false);
-      assert.strictEqual(testTreeItem.documentCount, 10000);
-      assert.strictEqual(fakeRefresh.called, true);
-    });
-
     test('mdb.refreshDocumentList command should update the document count and description for ShowPreviewTreeItem', async function () {
-      setFeatureFlag('useEnhancedDataBrowsingExperience', true);
-
       let count = 9000;
       const testTreeItem = getTestCollectionTreeItem({
         dataService: {
@@ -617,8 +581,6 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     test('mdb.refreshCollection command with enhanced data browsing should reset the schema expanded state and call to refresh the explorer controller', async function () {
-      setFeatureFlag('useEnhancedDataBrowsingExperience', true);
-
       const testTreeItem = getTestCollectionTreeItem();
       testTreeItem.isExpanded = true;
 

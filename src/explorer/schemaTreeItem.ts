@@ -7,8 +7,9 @@ import FieldTreeItem from './fieldTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
-import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 import type { DataService } from 'mongodb-data-service';
+
+export const MAX_DOCUMENTS_VISIBLE = 10;
 
 const log = createLogger('schema tree item');
 

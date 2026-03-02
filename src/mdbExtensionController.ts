@@ -11,7 +11,6 @@ import PlaygroundDiagnosticsCodeActionProvider from './editors/playgroundDiagnos
 import ConnectionController from './connectionController';
 import type ConnectionTreeItem from './explorer/connectionTreeItem';
 import type DatabaseTreeItem from './explorer/databaseTreeItem';
-import type DocumentListTreeItem from './explorer/documentListTreeItem';
 import { DocumentSource } from './documentSource';
 import type DocumentTreeItem from './explorer/documentTreeItem';
 import EditDocumentCodeLensProvider from './editors/editDocumentCodeLensProvider';
@@ -873,9 +872,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbViewCollectionDocuments,
-      (
-        element: CollectionTreeItem | DocumentListTreeItem,
-      ): Promise<boolean> => {
+      (element: CollectionTreeItem): Promise<boolean> => {
         const namespace = `${element.databaseName}.${element.collectionName}`;
 
         return this._editorsController.onViewCollectionDocuments(namespace);
@@ -954,7 +951,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbSearchForDocuments,
-      (element: DocumentListTreeItem): Promise<boolean> =>
+      (element: ShowPreviewTreeItem): Promise<boolean> =>
         this._playgroundController.createPlaygroundForSearch(
           element.databaseName,
           element.collectionName,
@@ -975,9 +972,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbRefreshDocumentList,
-      async (
-        documentsListTreeItem: DocumentListTreeItem | ShowPreviewTreeItem,
-      ): Promise<boolean> => {
+      async (documentsListTreeItem: ShowPreviewTreeItem): Promise<boolean> => {
         await documentsListTreeItem.resetCache();
         this._explorerController.refresh();
         await this._languageServerController.resetCache({ fields: true });
@@ -987,9 +982,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbInsertDocumentFromTreeView,
-      async (
-        documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem,
-      ): Promise<boolean> => {
+      async (documentsListTreeItem: CollectionTreeItem): Promise<boolean> => {
         return this._playgroundController.createPlaygroundForInsertDocument(
           documentsListTreeItem.databaseName,
           documentsListTreeItem.collectionName,
