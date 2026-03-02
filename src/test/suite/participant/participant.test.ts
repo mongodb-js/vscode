@@ -1748,9 +1748,9 @@ Schema:
           // Expect the error to be reported through the telemetry service
           expect(
             telemetryTrackStub.getCalls(),
-          ).to.have.length.greaterThanOrEqual(3);
+          ).to.have.length.greaterThanOrEqual(4);
 
-          const failedTelemetryEvent = telemetryTrackStub.secondCall
+          const failedTelemetryEvent = telemetryTrackStub.getCalls()[1]
             .args[0] as ParticipantResponseFailedTelemetryEvent;
           expect(failedTelemetryEvent.type).to.equal(
             'Participant Response Failed',
@@ -1762,7 +1762,7 @@ Schema:
           );
 
           assertResponseTelemetry('docs/copilot', {
-            callIndex: 2,
+            callIndex: 3,
             hasCTA: true,
           });
         });
