@@ -15,6 +15,13 @@ import * as vscodeApi from '../../../../views/data-browsing-app/vscode-api';
 // Mock the Monaco Editor component
 let mockEditorValue = '';
 
+// Minimal Monaco instance passed as the second argument to onMount.
+const mockMonacoInstance = {
+  editor: { EditorOption: { lineHeight: 31 } },
+  KeyMod: { CtrlCmd: 2048 },
+  KeyCode: { KeyC: 33 },
+};
+
 const mockEditorInstance = {
   getValue: (): string => mockEditorValue,
   setValue: (value: string): void => {
@@ -24,15 +31,22 @@ const mockEditorInstance = {
     getValue: (): string => mockEditorValue,
   }),
   getContentHeight: (): number => 100,
+  // getOption is used to read the real line height after mount.
+  getOption: (): number => 19,
+  // addAction is used to register the Ctrl+C keybinding.
+  addAction: (): { dispose: () => void } => ({
+    dispose: (): void => {
+      /* no-op */
+    },
+  }),
   onDidContentSizeChange: (): { dispose: () => void } => ({
     dispose: (): void => {
       /* no-op */
     },
   }),
-  getAction: (): { run: () => void } => ({
-    run: (): void => {
-      /* no-op */
-    },
+  // run() must return a Promise because the component chains .then() on it.
+  getAction: (): { run: () => Promise<void> } => ({
+    run: (): Promise<void> => Promise.resolve(),
   }),
   dispose: (): void => {
     /* no-op */
@@ -44,9 +58,11 @@ const MockEditor = ({ value, onMount }: any): JSX.Element => {
   React.useEffect(() => {
     if (onMount && value) {
       mockEditorValue = value;
-      // Simulate editor mount
+      // Simulate editor mount, passing both the editor instance and the monaco
+      // instance so the component's handleEditorMount doesn't error on the
+      // second argument (used for EditorOption.lineHeight, KeyMod, KeyCode).
       setTimeout(() => {
-        onMount(mockEditorInstance);
+        onMount(mockEditorInstance, mockMonacoInstance);
       }, 0);
     }
   }, [onMount, value]);
@@ -497,42 +513,51 @@ describe('MonacoViewer test suite', function () {
         Array.from({ length: count }, (_, i) => [`field${i}`, i]),
       );
 
-    it('should not show toggle buttons for documents with ≤ 25 fields', function () {
-      render(<MonacoViewer document={makeDocument(25)} themeKind="vs-dark" />);
+    it('should not show toggle buttons for documents with ≤ 15 fields', function () {
+      render(<MonacoViewer document={makeDocument(15)} themeKind="vs-dark" />);
 
       expect(screen.queryByText(/Show .* more field/)).to.not.exist;
       expect(screen.queryByText('Show less')).to.not.exist;
     });
 
-    it('should show "Show N more fields" button for documents with > 25 fields', function () {
-      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+    it('should show "Show N more fields" button for documents with > 15 fields', function () {
+      // 20 fields → 20 - 15 = 5 hidden → "Show 5 more fields"
+      render(<MonacoViewer document={makeDocument(20)} themeKind="vs-dark" />);
 
-      const btn = screen.getByText(/Show 5 more fields/);
-      expect(btn).to.exist;
-      expect(btn.getAttribute('data-expanded')).to.equal('false');
+      // Button text lives inside a <span>; use closest('button') for the
+      // data-expanded attribute which is set on the <button> element.
+      const btnText = screen.getByText(/Show 5 more fields/);
+      expect(btnText).to.exist;
+      expect(btnText.closest('button')?.getAttribute('data-expanded')).to.equal(
+        'false',
+      );
     });
 
     it('should use singular "field" when exactly one field is hidden', function () {
-      render(<MonacoViewer document={makeDocument(26)} themeKind="vs-dark" />);
+      // 16 fields → 16 - 15 = 1 hidden → "Show 1 more field" (no trailing "s")
+      render(<MonacoViewer document={makeDocument(16)} themeKind="vs-dark" />);
 
-      // "Show 1 more field" — no trailing "s"
       expect(screen.getByText(/Show 1 more field/)).to.exist;
       expect(screen.queryByText(/Show 1 more fields/)).to.not.exist;
     });
 
     it('should switch to "Show less" button after clicking "Show more"', function () {
-      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+      render(<MonacoViewer document={makeDocument(20)} themeKind="vs-dark" />);
 
       fireEvent.click(screen.getByText(/Show 5 more fields/));
 
-      const btn = screen.getByText('Show less');
-      expect(btn).to.exist;
-      expect(btn.getAttribute('data-expanded')).to.equal('true');
+      // "Show less" text is inside a <span>; the data-expanded attribute is on
+      // the parent <button>.
+      const btnText = screen.getByText('Show less');
+      expect(btnText).to.exist;
+      expect(btnText.closest('button')?.getAttribute('data-expanded')).to.equal(
+        'true',
+      );
       expect(screen.queryByText(/Show 5 more fields/)).to.not.exist;
     });
 
     it('should switch back to "Show more" button after clicking "Show less"', function () {
-      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+      render(<MonacoViewer document={makeDocument(20)} themeKind="vs-dark" />);
 
       fireEvent.click(screen.getByText(/Show 5 more fields/));
       fireEvent.click(screen.getByText('Show less'));
@@ -550,17 +575,19 @@ describe('MonacoViewer test suite', function () {
       }
       const scrollByStub = sinon.stub(window, 'scrollBy');
 
-      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+      render(<MonacoViewer document={makeDocument(20)} themeKind="vs-dark" />);
 
       // Expand so the "Show less" button is visible.
       fireEvent.click(screen.getByText(/Show 5 more fields/));
 
-      // Stub getBoundingClientRect on the button wrapper (the parent div of
-      // the Show less button) to return controlled viewport positions:
+      // "Show less" text is inside a <span> inside a <button> inside the
+      // <div ref={buttonWrapperRef}>.  We need to stub getBoundingClientRect
+      // on that outer <div>, which is what handleCollapse reads.
       //   1st call (in handleCollapse, while expanded) → top = 500
       //   2nd call (inside requestAnimationFrame, after collapse) → top = 200
-      const showLessBtn = screen.getByText('Show less');
-      const buttonWrapper = showLessBtn.parentElement as HTMLDivElement;
+      const showLessSpan = screen.getByText('Show less');
+      const buttonWrapper = showLessSpan.closest('button')
+        ?.parentElement as HTMLDivElement;
       let rectCallCount = 0;
       sinon
         .stub(buttonWrapper, 'getBoundingClientRect')
@@ -568,7 +595,7 @@ describe('MonacoViewer test suite', function () {
           () => ({ top: rectCallCount++ === 0 ? 500 : 200 }) as DOMRect,
         );
 
-      fireEvent.click(showLessBtn);
+      fireEvent.click(showLessSpan);
 
       await waitFor(() => {
         expect(scrollByStub.calledOnce).to.be.true;
@@ -585,7 +612,7 @@ describe('MonacoViewer test suite', function () {
       }
       const scrollByStub = sinon.stub(window, 'scrollBy');
 
-      render(<MonacoViewer document={makeDocument(30)} themeKind="vs-dark" />);
+      render(<MonacoViewer document={makeDocument(20)} themeKind="vs-dark" />);
       fireEvent.click(screen.getByText(/Show 5 more fields/));
 
       expect(scrollByStub.called).to.be.false;
