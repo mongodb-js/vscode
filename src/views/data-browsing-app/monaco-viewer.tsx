@@ -126,7 +126,7 @@ const showMoreButtonStyles = css({
   alignItems: 'center',
   gap: '4px',
   width: '100%',
-  '&:hover': {
+  '&:hover span': {
     textDecoration: 'underline',
   },
   '&::before': {
@@ -190,31 +190,29 @@ const actionButtonStyles = css({
   },
 });
 
-const MAX_INITIAL_FIELDS_SHOWING = 25;
+const MAX_INITIAL_FIELDS_SHOWING = 15;
 
-// Finds the 1-based line number where the (maxFields+1)th top-level field starts.
-// Walks keys sequentially so nested fields with the same name as a later top-level
-// key are naturally skipped over.
+function isExpandedValue(value: unknown): boolean {
+  if (Array.isArray(value)) return true;
+  if (value === null || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
 function findCollapseLineNumber(
-  text: string,
-  topLevelKeys: string[],
+  deserialized: Record<string, unknown>,
   maxFields: number,
 ): number | null {
-  if (topLevelKeys.length <= maxFields) return null;
+  const entries = Object.entries(deserialized);
+  if (entries.length <= maxFields) return null;
 
-  const lines = text.split('\n');
-  let keyIndex = 0;
-
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trimStart().startsWith(`${topLevelKeys[keyIndex]}:`)) {
-      if (keyIndex === maxFields) {
-        return i + 1; // 1-based line number
-      }
-      keyIndex++;
-    }
+  // Line 1 is the opening `{`, fields start at line 2.
+  let line = 2;
+  for (let i = 0; i < maxFields; i++) {
+    line += isExpandedValue(entries[i][1]) ? 2 : 1;
   }
 
-  return null;
+  return line;
 }
 
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -271,6 +269,11 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 }) => {
   const monaco = useMonaco();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const lineHeightRef = useRef<number>(19);
+  // Tracks the last known Monaco content height so we can compute deltas.
+  const prevContentHeightRef = useRef<number>(0);
+  // True once the initial foldLevel2 + updateCollapsedHeight pass is done.
+  const collapsedHeightInitializedRef = useRef<boolean>(false);
   const [editorHeight, setEditorHeight] = useState<number>(0);
   const [showAllFields, setShowAllFields] = useState(false);
   const [collapsedHeight, setCollapsedHeight] = useState<number | null>(null);
@@ -339,20 +342,25 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     });
   }, [monaco, colors, themeKind]);
 
-  const documentString = useMemo(() => {
-    const deserialized = EJSON.deserialize(document, { relaxed: false });
-    return toJSString(deserialized) ?? '';
-  }, [document]);
+  const deserialized = useMemo(
+    () =>
+      EJSON.deserialize(document, { relaxed: false }) as Record<
+        string,
+        unknown
+      >,
+    [document],
+  );
+
+  const documentString = useMemo(
+    () => toJSString(deserialized) ?? '',
+    [deserialized],
+  );
 
   // Find the line where field MAX_INITIAL_FIELDS+1 starts
+
   const collapseAtLine = useMemo(
-    () =>
-      findCollapseLineNumber(
-        documentString,
-        Object.keys(document),
-        MAX_INITIAL_FIELDS_SHOWING,
-      ),
-    [documentString, document],
+    () => findCollapseLineNumber(deserialized, MAX_INITIAL_FIELDS_SHOWING),
+    [deserialized],
   );
   const hasMoreFields = collapseAtLine !== null;
   const hiddenFieldCount =
@@ -374,11 +382,9 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     setEditorHeight(calculateHeight());
   }, [documentString, calculateHeight]);
 
-  // Recompute the pixel height at which we clip when collapsed.
   const updateCollapsedHeight = useCallback(() => {
-    if (!editorRef.current || collapseAtLine === null) return;
-    const top = editorRef.current.getTopForLineNumber(collapseAtLine);
-    setCollapsedHeight(top);
+    if (collapseAtLine === null) return;
+    setCollapsedHeight((collapseAtLine - 1) * lineHeightRef.current);
   }, [collapseAtLine]);
 
   const handleEditorMount = useCallback(
@@ -389,16 +395,26 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       >[1],
     ) => {
       editorRef.current = editorInstance;
-      setEditorHeight(calculateHeight());
 
-      // Fold all levels except the outermost object
-      const runFold = (): void => {
-        void editorInstance.getAction('editor.foldLevel2')?.run();
-      };
+      // Capture the real line height now that the editor and monaco are ready.
+      const lh = editorInstance.getOption(
+        monacoInstance.editor.EditorOption.lineHeight,
+      );
+      lineHeightRef.current = lh > 0 ? lh : 19;
 
+      // Fold all levels except the outermost object, then — and only then —
+      // apply the collapsed height so we never clip before folding has run.
+      // After that, record the baseline content height and mark initialization
+      // complete so subsequent fold-toggle deltas are tracked correctly.
       requestAnimationFrame(() => {
-        runFold();
-        updateCollapsedHeight();
+        void editorInstance
+          .getAction('editor.foldLevel2')
+          ?.run()
+          .then(() => {
+            updateCollapsedHeight();
+            prevContentHeightRef.current = editorInstance.getContentHeight();
+            collapsedHeightInitializedRef.current = true;
+          });
       });
 
       // VS Code webviews intercept Ctrl+C before it reaches the embedded Monaco editor,
@@ -420,8 +436,19 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
       const disposable = editorInstance.onDidContentSizeChange(() => {
         const contentHeight = editorInstance.getContentHeight();
+        const delta = contentHeight - prevContentHeightRef.current;
+        prevContentHeightRef.current = contentHeight;
         setEditorHeight(contentHeight);
-        updateCollapsedHeight();
+
+        // After the initial fold pass, keep the collapsed-height cap in sync
+        // with Monaco's fold state: when the user expands or collapses a
+        // section inside the visible area the card grows or shrinks by the
+        // same number of pixels, so newly revealed lines are always visible.
+        if (collapsedHeightInitializedRef.current && delta !== 0) {
+          setCollapsedHeight((prev) =>
+            prev !== null ? Math.max(0, prev + delta) : prev,
+          );
+        }
       });
 
       (editorInstance as any).__foldDisposables = [disposable, copyKeybinding];
@@ -550,8 +577,10 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             onClick={() => setShowAllFields(true)}
             data-expanded="false"
           >
-            Show {hiddenFieldCount} more field
-            {hiddenFieldCount !== 1 ? 's' : ''}
+            <span>
+              Show {hiddenFieldCount} more field
+              {hiddenFieldCount !== 1 ? 's' : ''}
+            </span>
           </button>
         )}
 
@@ -561,7 +590,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             onClick={handleCollapse}
             data-expanded="true"
           >
-            Show less
+            <span>Show less</span>
           </button>
         )}
       </div>
