@@ -70,6 +70,7 @@ export const ExtensionCommand = {
   mdbCopyDocumentContentsFromTreeView: 'mdb.copyDocumentContentsFromTreeView',
   mdbCloneDocumentFromTreeView: 'mdb.cloneDocumentFromTreeView',
   mdbDeleteDocumentFromTreeView: 'mdb.deleteDocumentFromTreeView',
+  mdbDeleteAllDocuments: 'mdb.deleteAllDocuments',
   mdbAddStreamProcessor: 'mdb.addStreamProcessor',
   mdbStartStreamProcessor: 'mdb.startStreamProcessor',
   mdbStopStreamProcessor: 'mdb.stopStreamProcessor',
@@ -82,6 +83,7 @@ export const ExtensionCommand = {
   mdbInsertDocumentFromDataBrowser: 'mdb.insertDocumentFromDataBrowser',
   mdbCloneDocumentFromDataBrowser: 'mdb.cloneDocumentFromDataBrowser',
   mdbRefreshCollectionFromDataBrowser: 'mdb.refreshCollectionFromDataBrowser',
+  mdbOpenDataBrowserFromPlayground: 'mdb.openBrowserFromPlayground',
 
   // Chat participant.
   openParticipantCodeInPlayground: 'mdb.openParticipantCodeInPlayground',

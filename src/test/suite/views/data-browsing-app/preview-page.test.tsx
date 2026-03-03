@@ -220,6 +220,11 @@ describe('PreviewApp test suite', function () {
       });
 
       expect(screen.getByText('No documents to display')).to.exist;
+
+      // Should show an Insert Document button in the empty state
+      const insertButtons = screen.getAllByLabelText('Insert Document');
+      // One in the toolbar, one in the empty state
+      expect(insertButtons.length).to.equal(2);
     });
   });
 

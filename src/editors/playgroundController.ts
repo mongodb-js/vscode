@@ -44,6 +44,8 @@ import {
   PlaygroundExecutedTelemetryEvent,
   PlaygroundSavedTelemetryEvent,
 } from '../telemetry';
+import { ExtensionCommand } from '../commands';
+import { getFeatureFlag } from '../featureFlags';
 
 const log = createLogger('playground controller');
 
@@ -472,6 +474,29 @@ export default class PlaygroundController {
     }
   }
 
+  async _openResult(result: PlaygroundRunResult): Promise<void> {
+    const useEnhancedDataBrowsing = getFeatureFlag(
+      'useEnhancedDataBrowsingExperience',
+    );
+    if (useEnhancedDataBrowsing && result.constructionOptions) {
+      const { method } = result.constructionOptions.options;
+      if (method === 'find' || method === 'aggregate') {
+        // open find or aggregate cursor results in the data browser
+        // Note: We leave out aggregateDb and runCursorCommand for now because
+        // those don't have an associated collectionName and that's a bit
+        // removed from how data browser currently works.
+        await vscode.commands.executeCommand(
+          ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+          { result },
+        );
+        return;
+      }
+    }
+
+    // as a fallback, show results that aren't find or aggregate cursors in the result pane
+    await this._openInResultPane(result);
+  }
+
   _refreshResultAsVirtualDocument(): void {
     this._playgroundResultProvider.refresh();
   }
@@ -530,7 +555,7 @@ export default class PlaygroundController {
       return false;
     }
 
-    await this._openInResultPane(evaluateResponse.result);
+    await this._openResult(evaluateResponse.result);
 
     return true;
   }
@@ -605,7 +630,7 @@ export default class PlaygroundController {
     }
 
     this._playgroundResult = evaluateResponse.result;
-    await this._openInResultPane(this._playgroundResult);
+    await this._openResult(this._playgroundResult);
 
     return true;
   }

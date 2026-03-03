@@ -1,6 +1,7 @@
 export interface DataBrowsingVscodeOptions {
   monacoEditorBaseUri?: string;
   defaultSortOrder?: string;
+  query?: string;
 }
 
 declare global {

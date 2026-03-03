@@ -8,6 +8,10 @@ import reducer, {
   themeColorsReceived,
   selectDocumentQuery,
   getInitialSort,
+  isBasicQuery,
+  nextPageRequested,
+  previousPageRequested,
+  documentsRefreshRequested,
   SORT_OPTIONS,
   type DocumentQueryState,
   type PreviewDocument,
@@ -37,7 +41,7 @@ describe('documentQuerySlice', function () {
       expect(result.itemsPerPage).to.equal(10);
       expect(result.sort).to.be.null;
       expect(result.isLoading).to.be.true;
-      expect(result.totalCountInCollection).to.be.null;
+      expect(result.totalCountForQuery).to.be.null;
       expect(result.hasReceivedCount).to.be.false;
       expect(result.errors.getDocuments).to.be.null;
       expect(result.errors.getTotalCount).to.be.null;
@@ -76,14 +80,14 @@ describe('documentQuerySlice', function () {
     describe('totalCountReceived', function () {
       it('should set total count and mark as received', function () {
         const result = reducer(initialState, totalCountReceived(100));
-        expect(result.totalCountInCollection).to.equal(100);
+        expect(result.totalCountForQuery).to.equal(100);
         expect(result.hasReceivedCount).to.be.true;
       });
 
       it('should handle null count', function () {
-        const state = { ...initialState, totalCountInCollection: 50 };
+        const state = { ...initialState, totalCountForQuery: 50 };
         const result = reducer(state, totalCountReceived(null));
-        expect(result.totalCountInCollection).to.be.null;
+        expect(result.totalCountForQuery).to.be.null;
         expect(result.hasReceivedCount).to.be.true;
       });
     });
@@ -95,7 +99,7 @@ describe('documentQuerySlice', function () {
           totalCountFetchFailed('Count failed'),
         );
         expect(result.hasReceivedCount).to.be.true;
-        expect(result.totalCountInCollection).to.be.null;
+        expect(result.totalCountForQuery).to.be.null;
         expect(result.errors.getTotalCount).to.equal('Count failed');
       });
     });
@@ -265,7 +269,7 @@ describe('documentQuerySlice', function () {
           currentPage: 3,
           itemsPerPage: 25,
           isLoading: false,
-          totalCountInCollection: 100,
+          totalCountForQuery: 100,
           hasReceivedCount: true,
           errors: { getDocuments: 'Test error', getTotalCount: null },
         });
@@ -274,7 +278,7 @@ describe('documentQuerySlice', function () {
         expect(result.currentPage).to.equal(3);
         expect(result.itemsPerPage).to.equal(25);
         expect(result.isLoading).to.be.false;
-        expect(result.totalCountInCollection).to.equal(100);
+        expect(result.totalCountForQuery).to.equal(100);
         expect(result.hasReceivedCount).to.be.true;
         expect(result.errors.getDocuments).to.equal('Test error');
       });
@@ -303,12 +307,12 @@ describe('documentQuerySlice', function () {
       });
 
       describe('totalCountReceived recalculates computed values', function () {
-        it('should use totalCountInCollection for totalDocuments', function () {
+        it('should use totalCountForQuery for totalDocuments', function () {
           const result = reducer(initialState, totalCountReceived(100));
           expect(result.totalDocuments).to.equal(100);
         });
 
-        it('should calculate totalPages from totalCountInCollection', function () {
+        it('should calculate totalPages from totalCountForQuery', function () {
           const result = reducer(initialState, totalCountReceived(55));
           expect(result.totalPages).to.equal(6); // 55 / 10 = 6 pages
         });
@@ -339,6 +343,136 @@ describe('documentQuerySlice', function () {
           expect(state.totalPages).to.equal(10); // 100 / 10 = 10 pages
         });
       });
+    });
+  });
+
+  describe('isBasicQuery', function () {
+    it('returns true when query is null', function () {
+      const state = { ...initialState, query: null };
+      expect(isBasicQuery(state)).to.be.true;
+    });
+
+    it('returns false when query is set', function () {
+      const state = {
+        ...initialState,
+        query: {
+          options: { method: 'find', args: ['db', 'coll', {}] },
+          chains: [],
+        },
+      };
+      expect(isBasicQuery(state)).to.be.false;
+    });
+  });
+
+  describe('Cursor query pagination (non-basic query)', function () {
+    const cursorState: DocumentQueryState = {
+      ...initialState,
+      query: {
+        options: { method: 'find', args: ['db', 'coll', {}] },
+        chains: [],
+      } as any,
+    };
+
+    it('recalculatePaginationValues sets totalPages and totalDocuments to null for cursor queries', function () {
+      const docs = [{ _id: '1' }, { _id: '2' }];
+      const result = reducer(cursorState, documentsReceived(docs));
+      expect(result.totalPages).to.be.null;
+      expect(result.totalDocuments).to.be.null;
+    });
+
+    it('endItem is based on displayedDocuments length for cursor queries', function () {
+      const docs = [{ _id: '1' }, { _id: '2' }, { _id: '3' }];
+      const result = reducer(cursorState, documentsReceived(docs));
+      expect(result.startItem).to.equal(1);
+      expect(result.endItem).to.equal(3);
+    });
+
+    it('endItem uses the larger term when startItem is smaller for cursor queries', function () {
+      const pageTwoCursorState: DocumentQueryState = {
+        ...cursorState,
+        currentPage: 2,
+        itemsPerPage: 10,
+      };
+      const docs = [];
+
+      const result = reducer(pageTwoCursorState, documentsReceived(docs));
+
+      expect(result.startItem).to.equal(11);
+      expect(result.endItem).to.equal(11);
+    });
+
+    it('totalCountReceived(null) keeps totalPages null for cursor queries', function () {
+      const stateWithDocs = reducer(
+        cursorState,
+        documentsReceived([{ _id: '1' }]),
+      );
+      const result = reducer(stateWithDocs, totalCountReceived(null));
+      expect(result.totalPages).to.be.null;
+      expect(result.totalDocuments).to.be.null;
+    });
+
+    it('nextPageRequested works when totalPages is null', function () {
+      const stateWithDocs = reducer(
+        { ...cursorState, isLoading: false },
+        documentsReceived([{ _id: '1' }]),
+      );
+      const result = reducer(stateWithDocs, nextPageRequested());
+      expect(result.currentPage).to.equal(2);
+      expect(result.isLoading).to.be.true;
+    });
+
+    it('nextPageRequested does not navigate when loading', function () {
+      const loadingState = {
+        ...cursorState,
+        isLoading: true,
+        currentPage: 1,
+      };
+      const result = reducer(loadingState, nextPageRequested());
+      expect(result.currentPage).to.equal(1);
+    });
+
+    it('previousPageRequested works on cursor queries', function () {
+      const stateOnPage2 = {
+        ...cursorState,
+        currentPage: 2,
+        isLoading: false,
+      };
+      const result = reducer(stateOnPage2, previousPageRequested());
+      expect(result.currentPage).to.equal(1);
+      expect(result.isLoading).to.be.true;
+    });
+
+    it('previousPageRequested does not go below page 1', function () {
+      const stateOnPage1 = {
+        ...cursorState,
+        currentPage: 1,
+        isLoading: false,
+      };
+      const result = reducer(stateOnPage1, previousPageRequested());
+      expect(result.currentPage).to.equal(1);
+    });
+
+    it('previousPageRequested does not navigate when loading', function () {
+      const loadingState = {
+        ...cursorState,
+        currentPage: 2,
+        isLoading: true,
+      };
+      const result = reducer(loadingState, previousPageRequested());
+      expect(result.currentPage).to.equal(2);
+    });
+
+    it('documentsRefreshRequested resets to page 1 for cursor queries', function () {
+      const stateOnPage3 = {
+        ...cursorState,
+        currentPage: 3,
+        isLoading: false,
+      };
+      const result = reducer(stateOnPage3, documentsRefreshRequested());
+      expect(result.currentPage).to.equal(1);
+      expect(result.isLoading).to.be.true;
+      expect(result.totalPages).to.be.null;
+      expect(result.totalDocuments).to.be.null;
     });
   });
 });
