@@ -192,27 +192,40 @@ const actionButtonStyles = css({
 
 const MAX_INITIAL_FIELDS_SHOWING = 15;
 
-function isExpandedValue(value: unknown): boolean {
-  if (Array.isArray(value)) return true;
-  if (value === null || typeof value !== 'object') return false;
-  const proto = Object.getPrototypeOf(value);
-  return proto === Object.prototype || proto === null;
-}
-
+/**
+ * Scan the serialized document string to find the model line number where the
+ * (maxFields+1)th top-level field starts. We track brace/bracket depth so that
+ * nested objects and arrays (which span many model lines) are skipped correctly.
+ * Returns null if the document has fewer than maxFields+1 top-level fields.
+ */
 function findCollapseLineNumber(
-  deserialized: Record<string, unknown>,
+  serialized: string,
   maxFields: number,
 ): number | null {
-  const entries = Object.entries(deserialized);
-  if (entries.length <= maxFields) return null;
+  const lines = serialized.split('\n');
+  let depth = 0;
+  let topLevelFields = 0;
 
-  // Line 1 is the opening `{`, fields start at line 2.
-  let line = 2;
-  for (let i = 0; i < maxFields; i++) {
-    line += isExpandedValue(entries[i][1]) ? 2 : 1;
+  for (let i = 0; i < lines.length; i++) {
+    const depthBefore = depth;
+    const trimmed = lines[i].trim();
+
+    for (const ch of trimmed) {
+      if (ch === '{' || ch === '[') depth++;
+      else if (ch === '}' || ch === ']') depth--;
+    }
+
+    // A new top-level field starts on a line where depth was 1 before the line
+    // (inside the root object) and the line looks like a key (contains a colon).
+    if (depthBefore === 1 && trimmed.includes(':')) {
+      topLevelFields++;
+      if (topLevelFields > maxFields) {
+        return i + 1; // 1-based line number
+      }
+    }
   }
 
-  return line;
+  return null;
 }
 
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -357,11 +370,9 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     [deserialized],
   );
 
-  // Find the line where field MAX_INITIAL_FIELDS+1 starts
-
   const collapseAtLine = useMemo(
-    () => findCollapseLineNumber(deserialized, MAX_INITIAL_FIELDS_SHOWING),
-    [deserialized],
+    () => findCollapseLineNumber(documentString, MAX_INITIAL_FIELDS_SHOWING),
+    [documentString],
   );
   const hasMoreFields = collapseAtLine !== null;
   const hiddenFieldCount =
@@ -387,8 +398,9 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     if (collapseAtLine === null) return;
     if (editorRef.current) {
       // Use Monaco's API to get the actual pixel offset for the collapse line.
-      // This correctly accounts for word-wrapped lines that span multiple
-      // visual rows (e.g. long string values).
+      // collapseAtLine is the correct model line number (computed by scanning
+      // the serialized string with depth tracking), and after foldLevel2 the
+      // editor knows the real visual position accounting for folded regions.
       const top = editorRef.current.getTopForLineNumber(collapseAtLine);
       setCollapsedHeight(top);
     } else {
