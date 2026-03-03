@@ -58,14 +58,13 @@ function isChildCacheOutOfSync(
     ? collapsibleState !== vscode.TreeItemCollapsibleState.Expanded
     : collapsibleState !== vscode.TreeItemCollapsibleState.Collapsed;
 }
-export type DocumentsTreeItem = ShowPreviewTreeItem;
 export default class CollectionTreeItem
   extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem>
 {
   contextValue = 'collectionTreeItem' as const;
 
-  private _documentsChild: DocumentsTreeItem;
+  private _documentsChild: ShowPreviewTreeItem;
   private _schemaChild: SchemaTreeItem;
   private _indexListChild: IndexListTreeItem;
 
@@ -103,7 +102,7 @@ export default class CollectionTreeItem
     isExpanded: boolean;
     cacheIsUpToDate: boolean;
     cachedDocumentCount: number | null;
-    existingDocumentsChild?: DocumentsTreeItem;
+    existingDocumentsChild?: ShowPreviewTreeItem;
     existingSchemaChild?: SchemaTreeItem;
     existingIndexListChild?: IndexListTreeItem;
   }) {
@@ -296,7 +295,7 @@ export default class CollectionTreeItem
     });
   }
 
-  getDocumentsChild(): DocumentsTreeItem {
+  getDocumentsChild(): ShowPreviewTreeItem {
     return this._documentsChild;
   }
   getSchemaChild(): SchemaTreeItem {
