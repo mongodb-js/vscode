@@ -948,7 +948,11 @@ suite('DataBrowsingController Test Suite', function () {
         'mdb.deleteAllDocuments',
       );
 
-      expect(executeCommandStub.firstCall.args[1]).to.deep.equal(options);
+      expect(executeCommandStub.firstCall.args[1]).to.deep.equal({
+        ...options,
+        view: 'data-browser',
+        source: 'collection',
+      });
     });
 
     test('shows error when options have a query', async function () {
