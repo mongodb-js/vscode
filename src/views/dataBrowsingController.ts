@@ -584,7 +584,9 @@ export default class DataBrowsingController {
         {
           ...options,
           view: 'data-browser' as const,
-          source: options.query ? ('query-results' as const) : ('collection' as const),
+          source: options.query
+            ? ('query-results' as const)
+            : ('collection' as const),
         },
       );
     } catch (error) {
@@ -644,7 +646,11 @@ export default class DataBrowsingController {
       );
       const source = options.query ? 'query-results' : 'collection';
       this._telemetryService.track(
-        new DataBrowserDocumentDeletedTelemetryEvent(false, 'data-browser', source),
+        new DataBrowserDocumentDeletedTelemetryEvent(
+          false,
+          'data-browser',
+          source,
+        ),
       );
 
       // Refresh the tree view in the sidebar (reset collection cache so

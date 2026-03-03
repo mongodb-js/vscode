@@ -986,7 +986,10 @@ export default class MDBExtensionController implements vscode.Disposable {
         await this._languageServerController.resetCache({ fields: true });
 
         this._telemetryService.track(
-          new DataBrowserCollectionRefreshedTelemetryEvent('tree', 'collection'),
+          new DataBrowserCollectionRefreshedTelemetryEvent(
+            'tree',
+            'collection',
+          ),
         );
 
         return true;
@@ -1199,7 +1202,11 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (successfullyDropped) {
           this._telemetryService.track(
-            new DataBrowserDocumentDeletedTelemetryEvent(false, 'tree', 'collection'),
+            new DataBrowserDocumentDeletedTelemetryEvent(
+              false,
+              'tree',
+              'collection',
+            ),
           );
           void vscode.window.showInformationMessage(
             'Document successfully deleted.',
