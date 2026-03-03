@@ -9,8 +9,6 @@ import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 import type { DataService } from 'mongodb-data-service';
 
-export const MAX_DOCUMENTS_VISIBLE = 10;
-
 const log = createLogger('schema tree item');
 
 const ITEM_LABEL = 'Schema';
@@ -116,7 +114,7 @@ export default class SchemaTreeItem
         namespace,
         {}, // No filter.
         {
-          limit: MAX_DOCUMENTS_VISIBLE,
+          limit: 10,
           promoteValues: false,
         },
       );

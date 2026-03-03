@@ -10,8 +10,6 @@ import type TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 import { CollectionType } from './documentUtils';
 
-export const MAX_DOCUMENTS_VISIBLE = 10;
-
 function getIconPath(
   type: string,
   isExpanded: boolean,
@@ -306,7 +304,7 @@ export default class CollectionTreeItem
   }
 
   getMaxDocumentsToShow(): number {
-    return MAX_DOCUMENTS_VISIBLE;
+    return 10;
   }
 
   refreshDocumentCount = async (): Promise<number> => {
