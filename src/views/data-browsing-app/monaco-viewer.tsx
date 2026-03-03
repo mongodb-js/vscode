@@ -334,6 +334,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     monaco.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: false,
+      noSuggestionDiagnostics: true,
     });
     monaco.typescript.typescriptDefaults.setCompilerOptions({
       target: monaco.typescript.ScriptTarget.Latest,
@@ -384,7 +385,15 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
   const updateCollapsedHeight = useCallback(() => {
     if (collapseAtLine === null) return;
-    setCollapsedHeight((collapseAtLine - 1) * lineHeightRef.current);
+    if (editorRef.current) {
+      // Use Monaco's API to get the actual pixel offset for the collapse line.
+      // This correctly accounts for word-wrapped lines that span multiple
+      // visual rows (e.g. long string values).
+      const top = editorRef.current.getTopForLineNumber(collapseAtLine);
+      setCollapsedHeight(top);
+    } else {
+      setCollapsedHeight((collapseAtLine - 1) * lineHeightRef.current);
+    }
   }, [collapseAtLine]);
 
   const handleEditorMount = useCallback(
