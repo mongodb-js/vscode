@@ -714,6 +714,19 @@ export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
+/** Reported when the data browser webview is closed */
+export class DataBrowserClosedTelemetryEvent implements TelemetryEventBase {
+  type = 'Data Browser Closed';
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
+}
+
 /** Reported when documents are fetched/loaded in the data browser */
 export class DataBrowserDocumentsFetchedTelemetryEvent
   implements TelemetryEventBase
@@ -852,4 +865,5 @@ export type TelemetryEvent =
   | DataBrowserDocumentClonedTelemetryEvent
   | DataBrowserDocumentInsertedTelemetryEvent
   | DataBrowserDocumentDeletedTelemetryEvent
+  | DataBrowserClosedTelemetryEvent
   | DataBrowserCollectionRefreshedTelemetryEvent;

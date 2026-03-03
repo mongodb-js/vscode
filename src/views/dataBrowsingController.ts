@@ -36,6 +36,7 @@ import {
   DataBrowserDocumentClonedTelemetryEvent,
   DataBrowserDocumentInsertedTelemetryEvent,
   DataBrowserDocumentDeletedTelemetryEvent,
+  DataBrowserClosedTelemetryEvent,
 } from '../telemetry';
 
 const log = createLogger('data browsing controller');
@@ -856,8 +857,14 @@ export default class DataBrowsingController {
     }
   };
 
-  onWebviewPanelClosed = (disposedPanel: vscode.WebviewPanel): void => {
+  onWebviewPanelClosed = (
+    disposedPanel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+  ): void => {
     this._cleanupAbortController(disposedPanel);
+
+    const source = options.query ? 'query-results' : 'collection';
+    this._telemetryService.track(new DataBrowserClosedTelemetryEvent(source));
 
     this._activeWebviewPanels = this._activeWebviewPanels.filter(
       (panel) => panel !== disposedPanel,
@@ -950,7 +957,7 @@ export default class DataBrowsingController {
       iconName: 'leaf.svg',
     });
 
-    panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
+    panel.onDidDispose(() => this.onWebviewPanelClosed(panel, options));
     this._activeWebviewPanels.push(panel);
 
     panel.webview.html = getDataBrowsingContent({
