@@ -1646,7 +1646,8 @@
       "mongodb-client-encryption": "^7.0.0",
       "@mongosh/service-provider-node-driver": "^5.0.2",
       "@mongodb-js/oidc-plugin": "^2.0.8",
-      "@mongodb-js/devtools-proxy-support": "^0.7.5"
+      "@mongodb-js/devtools-proxy-support": "^0.7.5",
+      "tar": "^7.5.8"
     }
   }
 }
