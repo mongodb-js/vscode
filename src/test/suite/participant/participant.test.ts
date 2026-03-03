@@ -1745,22 +1745,34 @@ Schema:
           await invokeChatHandler(chatRequestMock);
           expect(sendRequestStub).to.have.been.called;
 
-          // Expect the error to be reported through the telemetry service
-          expect(
-            telemetryTrackStub.getCalls(),
-          ).to.have.length.greaterThanOrEqual(4);
+          expect(telemetryTrackStub.getCalls()).to.have.length(4);
 
+          // First PromptSubmitted: Tracks the attempt to use AI SDK
+          assertCommandTelemetry('docs', chatRequestMock, {
+            expectSampleDocs: false,
+            callIndex: 0,
+            expectedInternalPurpose: undefined,
+          });
+
+          // ParticipantResponseFailed: Tracks the AI SDK failure
           const failedTelemetryEvent = telemetryTrackStub.getCalls()[1]
             .args[0] as ParticipantResponseFailedTelemetryEvent;
           expect(failedTelemetryEvent.type).to.equal(
             'Participant Response Failed',
           );
-
           expect(failedTelemetryEvent.properties.command).to.equal('docs');
           expect(failedTelemetryEvent.properties.error_name).to.equal(
             'Docs Chatbot API Issue',
           );
 
+          // Second PromptSubmitted: Tracks the fallback attempt to use VSCode Copilot
+          assertCommandTelemetry('docs', chatRequestMock, {
+            expectSampleDocs: false,
+            callIndex: 2,
+            expectedInternalPurpose: undefined,
+          });
+
+          // ParticipantResponseGenerated: Tracks successful fallback response
           assertResponseTelemetry('docs/copilot', {
             callIndex: 3,
             hasCTA: true,
