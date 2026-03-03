@@ -1196,6 +1196,9 @@ export default class MDBExtensionController implements vscode.Disposable {
           await documentTreeItem.onDeleteDocumentClicked();
 
         if (successfullyDropped) {
+          this._telemetryService.track(
+            new DataBrowserDocumentDeletedTelemetryEvent(false, 'tree'),
+          );
           void vscode.window.showInformationMessage(
             'Document successfully deleted.',
           );

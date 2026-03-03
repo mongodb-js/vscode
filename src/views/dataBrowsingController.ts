@@ -36,7 +36,6 @@ import {
   DataBrowserDocumentClonedTelemetryEvent,
   DataBrowserDocumentInsertedTelemetryEvent,
   DataBrowserDocumentDeletedTelemetryEvent,
-  DataBrowserCollectionRefreshedTelemetryEvent,
 } from '../telemetry';
 
 const log = createLogger('data browsing controller');
@@ -854,9 +853,6 @@ export default class DataBrowsingController {
     const namespace = `${databaseName}.${collectionName}`;
     for (const panel of this._activeWebviewPanels) {
       if (panel.title === namespace) {
-        this._telemetryService.track(
-          new DataBrowserCollectionRefreshedTelemetryEvent('data-browser'),
-        );
         void panel.webview.postMessage({
           command: PreviewMessageType.documentDeleted,
         });
