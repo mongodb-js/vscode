@@ -84,7 +84,8 @@
     "onLanguage:json",
     "onLanguage:javascript",
     "onLanguage:plaintext",
-    "onUri"
+    "onUri",
+    "onFileSystem:VIEW_DOCUMENT_SCHEME"
   ],
   "contributes": {
     "chatParticipants": [
