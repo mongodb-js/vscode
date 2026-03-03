@@ -1000,14 +1000,19 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (
         documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem,
       ): Promise<boolean> => {
-        this._telemetryService.track(
-          new DataBrowserDocumentInsertedTelemetryEvent('tree', 'collection'),
-        );
+        const result =
+          await this._playgroundController.createPlaygroundForInsertDocument(
+            documentsListTreeItem.databaseName,
+            documentsListTreeItem.collectionName,
+          );
 
-        return this._playgroundController.createPlaygroundForInsertDocument(
-          documentsListTreeItem.databaseName,
-          documentsListTreeItem.collectionName,
-        );
+        if (result) {
+          this._telemetryService.track(
+            new DataBrowserDocumentInsertedTelemetryEvent('tree', 'collection'),
+          );
+        }
+
+        return result;
       },
     );
     this.registerCommand(

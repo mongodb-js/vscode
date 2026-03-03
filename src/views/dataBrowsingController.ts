@@ -495,7 +495,7 @@ export default class DataBrowsingController {
     documentId: any,
   ): Promise<void> => {
     try {
-      await vscode.commands.executeCommand(
+      const result = await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
         {
           documentId,
@@ -504,10 +504,12 @@ export default class DataBrowsingController {
           connectionId: this._connectionController.getActiveConnectionId(),
         },
       );
-      const source = options.query ? 'query-results' : 'collection';
-      this._telemetryService.track(
-        new DataBrowserDocumentEditedTelemetryEvent(source),
-      );
+      if (result) {
+        const source = options.query ? 'query-results' : 'collection';
+        this._telemetryService.track(
+          new DataBrowserDocumentEditedTelemetryEvent(source),
+        );
+      }
     } catch (error) {
       log.error('Error opening document for editing', error);
       void vscode.window.showErrorMessage(
@@ -525,7 +527,7 @@ export default class DataBrowsingController {
       delete deserialized._id;
       const documentContents = toJSString(deserialized) ?? '';
 
-      await vscode.commands.executeCommand(
+      const result = await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbCloneDocumentFromDataBrowser,
         {
           documentContents,
@@ -533,10 +535,12 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
-      const source = options.query ? 'query-results' : 'collection';
-      this._telemetryService.track(
-        new DataBrowserDocumentClonedTelemetryEvent(source),
-      );
+      if (result) {
+        const source = options.query ? 'query-results' : 'collection';
+        this._telemetryService.track(
+          new DataBrowserDocumentClonedTelemetryEvent(source),
+        );
+      }
     } catch (error) {
       log.error('Error cloning document', error);
       void vscode.window.showErrorMessage(
@@ -549,17 +553,19 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
   ): Promise<void> => {
     try {
-      await vscode.commands.executeCommand(
+      const result = await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbInsertDocumentFromDataBrowser,
         {
           databaseName: options.databaseName,
           collectionName: options.collectionName,
         },
       );
-      const source = options.query ? 'query-results' : 'collection';
-      this._telemetryService.track(
-        new DataBrowserDocumentInsertedTelemetryEvent('data-browser', source),
-      );
+      if (result) {
+        const source = options.query ? 'query-results' : 'collection';
+        this._telemetryService.track(
+          new DataBrowserDocumentInsertedTelemetryEvent('data-browser', source),
+        );
+      }
     } catch (error) {
       log.error('Error opening insert document playground', error);
       void vscode.window.showErrorMessage(
