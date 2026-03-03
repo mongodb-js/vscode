@@ -278,6 +278,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       target: monaco.typescript.ScriptTarget.Latest,
       allowNonTsExtensions: true,
       noLib: true,
+      noSuggestionDiagnostics: true,
     });
   }, [monaco, colors, themeKind]);
 
