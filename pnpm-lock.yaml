@@ -16,6 +16,7 @@ overrides:
   '@mongodb-js/oidc-plugin': ^2.0.8
   '@mongodb-js/devtools-proxy-support': ^0.7.5
   tar: ^7.5.8
+  serialize-javascript: ^7.0.4
 
 importers:
 
@@ -269,8 +270,8 @@ importers:
         specifier: ^7.1.2
         version: 7.1.2(chai@4.5.0)
       copy-webpack-plugin:
-        specifier: ^13.0.1
-        version: 13.0.1(webpack@5.103.0)
+        specifier: ^14.0.0
+        version: 14.0.0(webpack@5.103.0)
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -302,14 +303,14 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4
       mocha:
-        specifier: ^11.7.4
-        version: 11.7.4
+        specifier: ^11.7.5
+        version: 11.7.5
       mocha-junit-reporter:
         specifier: ^2.2.1
-        version: 2.2.1(mocha@11.7.4)
+        version: 2.2.1(mocha@11.7.5)
       mocha-multi:
         specifier: ^1.1.7
-        version: 1.1.7(mocha@11.7.4)
+        version: 1.1.7(mocha@11.7.5)
       mongodb-client-encryption:
         specifier: ^7.0.0
         version: 7.0.0
@@ -343,6 +344,9 @@ importers:
       semver:
         specifier: ^7.7.3
         version: 7.7.3
+      serialize-javascript:
+        specifier: ^7.0.4
+        version: 7.0.4
       sinon:
         specifier: ^9.2.4
         version: 9.2.4
@@ -359,8 +363,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       terser-webpack-plugin:
-        specifier: ^5.3.10
-        version: 5.3.14(webpack@5.103.0)
+        specifier: ^5.3.16
+        version: 5.3.16(webpack@5.103.0)
       ts-loader:
         specifier: ^9.5.1
         version: 9.5.4(typescript@5.9.3)(webpack@5.103.0)
@@ -3696,9 +3700,9 @@ packages:
     resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
 
-  copy-webpack-plugin@13.0.1:
-    resolution: {integrity: sha512-J+YV3WfhY6W/Xf9h+J1znYuqTye2xkBUIGyTPWuBAT27qajBa5mR4f8WBmfDY3YjRftT2kqZZiLi1qf0H+UOFw==}
-    engines: {node: '>= 18.12.0'}
+  copy-webpack-plugin@14.0.0:
+    resolution: {integrity: sha512-3JLW90aBGeaTLpM7mYQKpnVdgsUZRExY55giiZgLuX/xTQRUs1dOCwbBnWnvY6Q6rfZoXMNwzOQJCSZPppfqXA==}
+    engines: {node: '>= 20.9.0'}
     peerDependencies:
       webpack: ^5.1.0
 
@@ -4633,6 +4637,7 @@ packages:
 
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@11.1.0:
@@ -5671,8 +5676,8 @@ packages:
     peerDependencies:
       mocha: '>=2.2.0 <7 || >=9'
 
-  mocha@11.7.4:
-    resolution: {integrity: sha512-1jYAaY8x0kAZ0XszLWu14pzsf4KV740Gld4HXkhNTXwcHx4AUEDkPzgEHg9CM5dVcW+zv036tjpsEbLraPJj4w==}
+  mocha@11.7.5:
+    resolution: {integrity: sha512-mTT6RgopEYABzXWFx+GcJ+ZQ32kp4fMf0xvpZIIfSq9Z8lC/++MtcCnQ9t5FP2veYEP95FIYSvW+U9fV4xrlig==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     hasBin: true
 
@@ -6293,9 +6298,6 @@ packages:
   ramda@0.27.2:
     resolution: {integrity: sha512-SbiLPU40JuJniHexQSAgad32hfwd+DRUdwF2PlVuI5RZD0/vahUco7R8vD86J/tcEKKF9vZrUVwgtmGCqlCKyA==}
 
-  randombytes@2.1.0:
-    resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
-
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
@@ -6678,8 +6680,9 @@ packages:
     resolution: {integrity: sha512-8I8TjW5KMOKsZQTvoxjuSIa7foAwPWGOts+6o7sgjz41/qMD9VQHEDxi6PBvK2l0MXUmqZyNpUK+T2tQaaElvw==}
     engines: {node: '>=10'}
 
-  serialize-javascript@6.0.2:
-    resolution: {integrity: sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==}
+  serialize-javascript@7.0.4:
+    resolution: {integrity: sha512-DuGdB+Po43Q5Jxwpzt1lhyFSYKryqoNjQSA9M92tyw0lyHIOur+XCalOUe0KTJpyqzT8+fQ5A0Jf7vCx/NKmIg==}
+    engines: {node: '>=20.0.0'}
 
   serve-static@2.2.0:
     resolution: {integrity: sha512-61g9pCh0Vnh7IutZjtLGGpTA355+OPn2TyDv/6ivP2h/AdAVX9azsoxmg2/M6nZeQZNYBEwIcsne1mJd9oQItQ==}
@@ -7055,8 +7058,8 @@ packages:
     resolution: {integrity: sha512-lk+vH+MccxNqgVqSnkMVKx4VLJfnLjDBGzH16JVZjKE2DoxP57s6/vt6JmXV5I3jBcfGrxNrYtC+mPtU7WJztA==}
     engines: {node: '>=18'}
 
-  terser-webpack-plugin@5.3.14:
-    resolution: {integrity: sha512-vkZjpUjb6OMS7dhV+tILUW6BhpDR7P2L/aQSAv+Uwk+m8KATX9EccViHTJR2qDtACKPIYndLGCyl3FMo+r2LMw==}
+  terser-webpack-plugin@5.3.16:
+    resolution: {integrity: sha512-h9oBFCWrq78NyWWVcSwZarJkZ01c2AyGrzs1crmHZO3QUg9D61Wu4NPjBy69n7JqylFF5y+CsUZYmYEIZ3mR+Q==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
       '@swc/core': '*'
@@ -13257,12 +13260,12 @@ snapshots:
 
   cookie@0.7.2: {}
 
-  copy-webpack-plugin@13.0.1(webpack@5.103.0):
+  copy-webpack-plugin@14.0.0(webpack@5.103.0):
     dependencies:
       glob-parent: 6.0.2
       normalize-path: 3.0.0
       schema-utils: 4.3.3
-      serialize-javascript: 6.0.2
+      serialize-javascript: 7.0.4
       tinyglobby: 0.2.15
       webpack: 5.103.0(webpack-cli@5.1.4)
 
@@ -15568,29 +15571,29 @@ snapshots:
 
   mkdirp@3.0.1: {}
 
-  mocha-junit-reporter@2.2.1(mocha@11.7.4):
+  mocha-junit-reporter@2.2.1(mocha@11.7.5):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       md5: 2.3.0
       mkdirp: 3.0.1
-      mocha: 11.7.4
+      mocha: 11.7.5
       strip-ansi: 6.0.1
       xml: 1.0.1
     transitivePeerDependencies:
       - supports-color
 
-  mocha-multi@1.1.7(mocha@11.7.4):
+  mocha-multi@1.1.7(mocha@11.7.5):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       is-string: 1.1.1
       lodash.once: 4.1.1
       mkdirp: 1.0.4
-      mocha: 11.7.4
+      mocha: 11.7.5
       object-assign: 4.1.1
     transitivePeerDependencies:
       - supports-color
 
-  mocha@11.7.4:
+  mocha@11.7.5:
     dependencies:
       browser-stdout: 1.3.1
       chokidar: 4.0.3
@@ -15606,7 +15609,7 @@ snapshots:
       minimatch: 9.0.5
       ms: 2.1.3
       picocolors: 1.1.1
-      serialize-javascript: 6.0.2
+      serialize-javascript: 7.0.4
       strip-json-comments: 3.1.1
       supports-color: 8.1.1
       workerpool: 9.3.4
@@ -16368,10 +16371,6 @@ snapshots:
 
   ramda@0.27.2: {}
 
-  randombytes@2.1.0:
-    dependencies:
-      safe-buffer: 5.2.1
-
   range-parser@1.2.1: {}
 
   raw-body@3.0.2:
@@ -16850,9 +16849,7 @@ snapshots:
     dependencies:
       type-fest: 0.13.1
 
-  serialize-javascript@6.0.2:
-    dependencies:
-      randombytes: 2.1.0
+  serialize-javascript@7.0.4: {}
 
   serve-static@2.2.0:
     dependencies:
@@ -17339,12 +17336,12 @@ snapshots:
       ansi-escapes: 7.2.0
       supports-hyperlinks: 3.2.0
 
-  terser-webpack-plugin@5.3.14(webpack@5.103.0):
+  terser-webpack-plugin@5.3.16(webpack@5.103.0):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
-      serialize-javascript: 6.0.2
+      serialize-javascript: 7.0.4
       terser: 5.44.1
       webpack: 5.103.0(webpack-cli@5.1.4)
 
@@ -17846,7 +17843,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.0
-      terser-webpack-plugin: 5.3.14(webpack@5.103.0)
+      terser-webpack-plugin: 5.3.16(webpack@5.103.0)
       watchpack: 2.4.4
       webpack-sources: 3.3.3
     optionalDependencies:

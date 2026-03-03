@@ -1594,7 +1594,7 @@
     "buffer": "^6.0.3",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
-    "copy-webpack-plugin": "^13.0.1",
+    "copy-webpack-plugin": "^14.0.0",
     "cross-env": "^7.0.3",
     "depcheck": "^1.4.7",
     "duplicate-package-checker-webpack-plugin": "^3.0.0",
@@ -1605,7 +1605,7 @@
     "husky": "^9.1.6",
     "jsdom": "^23.2.0",
     "mkdirp": "^1.0.4",
-    "mocha": "^11.7.4",
+    "mocha": "^11.7.5",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi": "^1.1.7",
     "mongodb-client-encryption": "^7.0.0",
@@ -1619,12 +1619,13 @@
     "process": "^0.11.10",
     "rimraf": "^6.1.2",
     "semver": "^7.7.3",
+    "serialize-javascript": "^7.0.3",
     "sinon": "^9.2.4",
     "sinon-chai": "^3.7.0",
     "snyk": "^1.1301.0",
     "source-map-support": "^0.5.21",
     "stream-browserify": "^3.0.0",
-    "terser-webpack-plugin": "^5.3.10",
+    "terser-webpack-plugin": "^5.3.16",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
@@ -1647,7 +1648,8 @@
       "@mongosh/service-provider-node-driver": "^5.0.2",
       "@mongodb-js/oidc-plugin": "^2.0.8",
       "@mongodb-js/devtools-proxy-support": "^0.7.5",
-      "tar": "^7.5.8"
+      "tar": "^7.5.8",
+      "serialize-javascript": "^7.0.4"
     }
   }
 }
