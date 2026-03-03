@@ -2,16 +2,12 @@ import * as vscode from 'vscode';
 import path from 'path';
 import type { DataService } from 'mongodb-data-service';
 
-import DocumentListTreeItem, {
-  MAX_DOCUMENTS_VISIBLE,
-} from './documentListTreeItem';
 import ShowPreviewTreeItem from './documentPreviewItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import IndexListTreeItem from './indexListTreeItem';
 import type TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
-import { getFeatureFlag } from '../featureFlags';
 import { CollectionType } from './documentUtils';
 
 function getIconPath(
@@ -49,11 +45,7 @@ export type CollectionDetailsType = Awaited<
 >[number];
 
 function isChildCacheOutOfSync(
-  child:
-    | ShowPreviewTreeItem
-    | DocumentListTreeItem
-    | SchemaTreeItem
-    | IndexListTreeItem,
+  child: ShowPreviewTreeItem | SchemaTreeItem | IndexListTreeItem,
 ): boolean {
   if (!('isExpanded' in child)) {
     return false;
@@ -64,14 +56,13 @@ function isChildCacheOutOfSync(
     ? collapsibleState !== vscode.TreeItemCollapsibleState.Expanded
     : collapsibleState !== vscode.TreeItemCollapsibleState.Collapsed;
 }
-export type DocumentsTreeItem = ShowPreviewTreeItem | DocumentListTreeItem;
 export default class CollectionTreeItem
   extends vscode.TreeItem
   implements TreeItemParent, vscode.TreeDataProvider<CollectionTreeItem>
 {
   contextValue = 'collectionTreeItem' as const;
 
-  private _documentsChild: DocumentsTreeItem;
+  private _documentsChild: ShowPreviewTreeItem;
   private _schemaChild: SchemaTreeItem;
   private _indexListChild: IndexListTreeItem;
 
@@ -109,7 +100,7 @@ export default class CollectionTreeItem
     isExpanded: boolean;
     cacheIsUpToDate: boolean;
     cachedDocumentCount: number | null;
-    existingDocumentsChild?: DocumentsTreeItem;
+    existingDocumentsChild?: ShowPreviewTreeItem;
     existingSchemaChild?: SchemaTreeItem;
     existingIndexListChild?: IndexListTreeItem;
   }) {
@@ -157,15 +148,11 @@ export default class CollectionTreeItem
         ? 'Read only view'
         : collection.name;
     this.iconPath = getIconPath(collection.type, isExpanded);
-    const useEnhancedDataBrowsing = getFeatureFlag(
-      'useEnhancedDataBrowsingExperience',
-    );
-
     // Use existing child if provided, otherwise create the appropriate type
     // based on the feature flag.
     if (existingDocumentsChild) {
       this._documentsChild = existingDocumentsChild;
-    } else if (useEnhancedDataBrowsing) {
+    } else {
       this._documentsChild = new ShowPreviewTreeItem({
         collectionName: this.collectionName,
         databaseName: this.databaseName,
@@ -173,19 +160,6 @@ export default class CollectionTreeItem
         cachedDocumentCount: this.documentCount,
         refreshDocumentCount: this.refreshDocumentCount,
         cacheIsUpToDate: false,
-      });
-    } else {
-      this._documentsChild = new DocumentListTreeItem({
-        collectionName: this.collectionName,
-        databaseName: this.databaseName,
-        type: this._type,
-        dataService: this._dataService,
-        isExpanded: false,
-        maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
-        cachedDocumentCount: this.documentCount,
-        refreshDocumentCount: this.refreshDocumentCount,
-        cacheIsUpToDate: false,
-        childrenCache: [], // Empty cache.
       });
     }
   }
@@ -222,29 +196,14 @@ export default class CollectionTreeItem
   }
 
   rebuildDocumentsChild(): void {
-    if (this._documentsChild instanceof ShowPreviewTreeItem) {
-      this._documentsChild = new ShowPreviewTreeItem({
-        collectionName: this.collectionName,
-        databaseName: this.databaseName,
-        type: this._type,
-        cachedDocumentCount: this.documentCount,
-        refreshDocumentCount: this.refreshDocumentCount,
-        cacheIsUpToDate: this._documentsChild.cacheIsUpToDate,
-      });
-    } else {
-      this._documentsChild = new DocumentListTreeItem({
-        collectionName: this.collectionName,
-        databaseName: this.databaseName,
-        type: this._type,
-        dataService: this._dataService,
-        isExpanded: this._documentsChild.isExpanded,
-        maxDocumentsToShow: this._documentsChild.getMaxDocumentsToShow(),
-        cachedDocumentCount: this.documentCount,
-        refreshDocumentCount: this.refreshDocumentCount,
-        cacheIsUpToDate: this._documentsChild.cacheIsUpToDate,
-        childrenCache: this._documentsChild.getChildrenCache(),
-      });
-    }
+    this._documentsChild = new ShowPreviewTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      type: this._type,
+      cachedDocumentCount: this.documentCount,
+      refreshDocumentCount: this.refreshDocumentCount,
+      cacheIsUpToDate: this._documentsChild.cacheIsUpToDate,
+    });
   }
 
   rebuildSchemaTreeItem(): void {
@@ -305,33 +264,14 @@ export default class CollectionTreeItem
     this.cacheIsUpToDate = false;
     this.documentCount = null;
 
-    const useEnhancedDataBrowsing = getFeatureFlag(
-      'useEnhancedDataBrowsingExperience',
-    );
-
-    if (useEnhancedDataBrowsing) {
-      this._documentsChild = new ShowPreviewTreeItem({
-        collectionName: this.collectionName,
-        databaseName: this.databaseName,
-        type: this._type,
-        cachedDocumentCount: this.documentCount,
-        refreshDocumentCount: this.refreshDocumentCount,
-        cacheIsUpToDate: false,
-      });
-    } else {
-      this._documentsChild = new DocumentListTreeItem({
-        collectionName: this.collectionName,
-        databaseName: this.databaseName,
-        type: this._type,
-        dataService: this._dataService,
-        isExpanded: false,
-        maxDocumentsToShow: MAX_DOCUMENTS_VISIBLE,
-        cachedDocumentCount: this.documentCount,
-        refreshDocumentCount: this.refreshDocumentCount,
-        cacheIsUpToDate: false,
-        childrenCache: [], // Empty cache.
-      });
-    }
+    this._documentsChild = new ShowPreviewTreeItem({
+      collectionName: this.collectionName,
+      databaseName: this.databaseName,
+      type: this._type,
+      cachedDocumentCount: this.documentCount,
+      refreshDocumentCount: this.refreshDocumentCount,
+      cacheIsUpToDate: false,
+    });
 
     this._schemaChild = new SchemaTreeItem({
       collectionName: this.collectionName,
@@ -353,7 +293,7 @@ export default class CollectionTreeItem
     });
   }
 
-  getDocumentsChild(): DocumentsTreeItem {
+  getDocumentsChild(): ShowPreviewTreeItem {
     return this._documentsChild;
   }
   getSchemaChild(): SchemaTreeItem {
@@ -364,10 +304,7 @@ export default class CollectionTreeItem
   }
 
   getMaxDocumentsToShow(): number {
-    if (this._documentsChild instanceof DocumentListTreeItem) {
-      return this._documentsChild.getMaxDocumentsToShow();
-    }
-    return MAX_DOCUMENTS_VISIBLE;
+    return 10;
   }
 
   refreshDocumentCount = async (): Promise<number> => {

@@ -27,7 +27,6 @@ export const ExtensionCommand = {
     'mdb.changeDriverSyntaxForExportToLanguage',
 
   mdbOpenMongodbDocumentFromCodeLens: 'mdb.openMongoDBDocumentFromCodeLens',
-  mdbOpenMongodbDocumentFromTree: 'mdb.openMongoDBDocumentFromTree',
   mdbSaveMongodbDocument: 'mdb.saveMongoDBDocument',
 
   mdbChangeActiveConnection: 'mdb.changeActiveConnection',
@@ -67,9 +66,6 @@ export const ExtensionCommand = {
   mdbCreateIndexTreeView: 'mdb.createIndexFromTreeView',
   mdbInsertObjectidToEditor: 'mdb.insertObjectIdToEditor',
   mdbGenerateObjectidToClipboard: 'mdb.generateObjectIdToClipboard',
-  mdbCopyDocumentContentsFromTreeView: 'mdb.copyDocumentContentsFromTreeView',
-  mdbCloneDocumentFromTreeView: 'mdb.cloneDocumentFromTreeView',
-  mdbDeleteDocumentFromTreeView: 'mdb.deleteDocumentFromTreeView',
   mdbDeleteAllDocuments: 'mdb.deleteAllDocuments',
   mdbAddStreamProcessor: 'mdb.addStreamProcessor',
   mdbStartStreamProcessor: 'mdb.startStreamProcessor',
