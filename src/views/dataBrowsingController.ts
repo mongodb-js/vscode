@@ -554,7 +554,7 @@ export default class DataBrowsingController {
         },
       );
       this._telemetryService.track(
-        new DataBrowserDocumentInsertedTelemetryEvent(),
+        new DataBrowserDocumentInsertedTelemetryEvent('data-browser'),
       );
     } catch (error) {
       log.error('Error opening insert document playground', error);
@@ -578,10 +578,7 @@ export default class DataBrowsingController {
     try {
       await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbDeleteAllDocuments,
-        options,
-      );
-      this._telemetryService.track(
-        new DataBrowserDocumentDeletedTelemetryEvent(true),
+        { ...options, view: 'data-browser' as const },
       );
     } catch (error) {
       log.error('Error deleting all documents', error);
@@ -639,7 +636,7 @@ export default class DataBrowsingController {
         'Document successfully deleted.',
       );
       this._telemetryService.track(
-        new DataBrowserDocumentDeletedTelemetryEvent(false),
+        new DataBrowserDocumentDeletedTelemetryEvent(false, 'data-browser'),
       );
 
       // Refresh the tree view in the sidebar (reset collection cache so
@@ -858,7 +855,7 @@ export default class DataBrowsingController {
     for (const panel of this._activeWebviewPanels) {
       if (panel.title === namespace) {
         this._telemetryService.track(
-          new DataBrowserCollectionRefreshedTelemetryEvent(),
+          new DataBrowserCollectionRefreshedTelemetryEvent('data-browser'),
         );
         void panel.webview.postMessage({
           command: PreviewMessageType.documentDeleted,

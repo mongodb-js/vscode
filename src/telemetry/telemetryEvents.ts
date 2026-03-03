@@ -732,15 +732,22 @@ export class DataBrowserDocumentClonedTelemetryEvent
   properties = {};
 }
 
-/** Reported when a new document is inserted from the data browser */
+/** Reported when a new document is inserted from the data browser or tree view */
 export class DataBrowserDocumentInsertedTelemetryEvent
   implements TelemetryEventBase
 {
   type = 'Data Browser Document Inserted';
-  properties = {};
+  properties: {
+    /** Whether the action was triggered from the tree view or the data browser */
+    view: 'tree' | 'data-browser';
+  };
+
+  constructor(view: 'tree' | 'data-browser') {
+    this.properties = { view };
+  }
 }
 
-/** Reported when one or more documents are deleted from the data browser */
+/** Reported when one or more documents are deleted from the data browser or tree view */
 export class DataBrowserDocumentDeletedTelemetryEvent
   implements TelemetryEventBase
 {
@@ -748,19 +755,29 @@ export class DataBrowserDocumentDeletedTelemetryEvent
   properties: {
     /** Whether all documents in the collection were deleted */
     delete_all: boolean;
+
+    /** Whether the action was triggered from the tree view or the data browser */
+    view: 'tree' | 'data-browser';
   };
 
-  constructor(deleteAll: boolean) {
-    this.properties = { delete_all: deleteAll };
+  constructor(deleteAll: boolean, view: 'tree' | 'data-browser') {
+    this.properties = { delete_all: deleteAll, view };
   }
 }
 
-/** Reported when the collection is refreshed in the data browser */
+/** Reported when the collection is refreshed in the data browser or tree view */
 export class DataBrowserCollectionRefreshedTelemetryEvent
   implements TelemetryEventBase
 {
   type = 'Data Browser Collection Refreshed';
-  properties = {};
+  properties: {
+    /** Whether the action was triggered from the tree view or the data browser */
+    view: 'tree' | 'data-browser';
+  };
+
+  constructor(view: 'tree' | 'data-browser') {
+    this.properties = { view };
+  }
 }
 
 export type TelemetryEvent =

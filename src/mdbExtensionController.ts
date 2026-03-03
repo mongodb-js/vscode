@@ -53,6 +53,9 @@ import ExtensionCommand from './commands';
 import { COPILOT_EXTENSION_ID } from './participant/constants';
 import {
   CommandRunTelemetryEvent,
+  DataBrowserCollectionRefreshedTelemetryEvent,
+  DataBrowserDocumentDeletedTelemetryEvent,
+  DataBrowserDocumentInsertedTelemetryEvent,
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
@@ -982,6 +985,10 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._explorerController.refresh();
         await this._languageServerController.resetCache({ fields: true });
 
+        this._telemetryService.track(
+          new DataBrowserCollectionRefreshedTelemetryEvent('tree'),
+        );
+
         return true;
       },
     );
@@ -990,6 +997,10 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (
         documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem,
       ): Promise<boolean> => {
+        this._telemetryService.track(
+          new DataBrowserDocumentInsertedTelemetryEvent('tree'),
+        );
+
         return this._playgroundController.createPlaygroundForInsertDocument(
           documentsListTreeItem.databaseName,
           documentsListTreeItem.collectionName,
@@ -1001,9 +1012,11 @@ export default class MDBExtensionController implements vscode.Disposable {
       async ({
         databaseName,
         collectionName,
+        view = 'tree',
       }: {
         databaseName: string;
         collectionName: string;
+        view?: 'tree' | 'data-browser';
       }): Promise<boolean> => {
         const namespace = `${databaseName}.${collectionName}`;
 
@@ -1032,6 +1045,10 @@ export default class MDBExtensionController implements vscode.Disposable {
 
           void vscode.window.showInformationMessage(
             `${deleteResult.deletedCount} document(s) successfully deleted.`,
+          );
+
+          this._telemetryService.track(
+            new DataBrowserDocumentDeletedTelemetryEvent(true, view),
           );
 
           this._explorerController.refreshCollection(
