@@ -695,16 +695,22 @@ export class DeepLinkTelemetryEvent implements TelemetryEventBase {
   }
 }
 
+/** Whether the user is browsing a collection directly or viewing playground query results */
+type DataBrowserSource = 'collection' | 'query-results';
+
 /** Reported when the data browser webview is opened */
 export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Opened';
   properties: {
-    /** The type of the collection being browsed - e.g. 'collection', 'view', 'timeseries' */
+    /** The type of the collection being browsed - e.g. 'collection', 'view', 'timeseries', 'unknown' */
     collection_type: string;
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
   };
 
-  constructor(collectionType: string) {
-    this.properties = { collection_type: collectionType };
+  constructor(collectionType: string, source: DataBrowserSource) {
+    this.properties = { collection_type: collectionType, source };
   }
 }
 
@@ -713,7 +719,14 @@ export class DataBrowserDocumentsFetchedTelemetryEvent
   implements TelemetryEventBase
 {
   type = 'Data Browser Documents Fetched';
-  properties = {};
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
 }
 
 /** Reported when a document is opened for editing from the data browser */
@@ -721,7 +734,14 @@ export class DataBrowserDocumentEditedTelemetryEvent
   implements TelemetryEventBase
 {
   type = 'Data Browser Document Edited';
-  properties = {};
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
 }
 
 /** Reported when a document is cloned from the data browser */
@@ -729,7 +749,14 @@ export class DataBrowserDocumentClonedTelemetryEvent
   implements TelemetryEventBase
 {
   type = 'Data Browser Document Cloned';
-  properties = {};
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
 }
 
 /** Reported when a new document is inserted from the data browser or tree view */
@@ -740,10 +767,13 @@ export class DataBrowserDocumentInsertedTelemetryEvent
   properties: {
     /** Whether the action was triggered from the tree view or the data browser */
     view: 'tree' | 'data-browser';
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
   };
 
-  constructor(view: 'tree' | 'data-browser') {
-    this.properties = { view };
+  constructor(view: 'tree' | 'data-browser', source: DataBrowserSource) {
+    this.properties = { view, source };
   }
 }
 
@@ -758,10 +788,17 @@ export class DataBrowserDocumentDeletedTelemetryEvent
 
     /** Whether the action was triggered from the tree view or the data browser */
     view: 'tree' | 'data-browser';
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
   };
 
-  constructor(deleteAll: boolean, view: 'tree' | 'data-browser') {
-    this.properties = { delete_all: deleteAll, view };
+  constructor(
+    deleteAll: boolean,
+    view: 'tree' | 'data-browser',
+    source: DataBrowserSource,
+  ) {
+    this.properties = { delete_all: deleteAll, view, source };
   }
 }
 
@@ -773,10 +810,13 @@ export class DataBrowserCollectionRefreshedTelemetryEvent
   properties: {
     /** Whether the action was triggered from the tree view or the data browser */
     view: 'tree' | 'data-browser';
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
   };
 
-  constructor(view: 'tree' | 'data-browser') {
-    this.properties = { view };
+  constructor(view: 'tree' | 'data-browser', source: DataBrowserSource) {
+    this.properties = { view, source };
   }
 }
 

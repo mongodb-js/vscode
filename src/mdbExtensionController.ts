@@ -986,7 +986,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         await this._languageServerController.resetCache({ fields: true });
 
         this._telemetryService.track(
-          new DataBrowserCollectionRefreshedTelemetryEvent('tree'),
+          new DataBrowserCollectionRefreshedTelemetryEvent('tree', 'collection'),
         );
 
         return true;
@@ -998,7 +998,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem,
       ): Promise<boolean> => {
         this._telemetryService.track(
-          new DataBrowserDocumentInsertedTelemetryEvent('tree'),
+          new DataBrowserDocumentInsertedTelemetryEvent('tree', 'collection'),
         );
 
         return this._playgroundController.createPlaygroundForInsertDocument(
@@ -1013,10 +1013,12 @@ export default class MDBExtensionController implements vscode.Disposable {
         databaseName,
         collectionName,
         view = 'tree',
+        source = 'collection',
       }: {
         databaseName: string;
         collectionName: string;
         view?: 'tree' | 'data-browser';
+        source?: 'collection' | 'query-results';
       }): Promise<boolean> => {
         const namespace = `${databaseName}.${collectionName}`;
 
@@ -1048,7 +1050,7 @@ export default class MDBExtensionController implements vscode.Disposable {
           );
 
           this._telemetryService.track(
-            new DataBrowserDocumentDeletedTelemetryEvent(true, view),
+            new DataBrowserDocumentDeletedTelemetryEvent(true, view, source),
           );
 
           this._explorerController.refreshCollection(
@@ -1197,7 +1199,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
         if (successfullyDropped) {
           this._telemetryService.track(
-            new DataBrowserDocumentDeletedTelemetryEvent(false, 'tree'),
+            new DataBrowserDocumentDeletedTelemetryEvent(false, 'tree', 'collection'),
           );
           void vscode.window.showInformationMessage(
             'Document successfully deleted.',

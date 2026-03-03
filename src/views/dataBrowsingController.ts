@@ -433,8 +433,9 @@ export default class DataBrowsingController {
         return;
       }
 
+      const source = options.query ? 'query-results' : 'collection';
       this._telemetryService.track(
-        new DataBrowserDocumentsFetchedTelemetryEvent(),
+        new DataBrowserDocumentsFetchedTelemetryEvent(source),
       );
       void panel.webview.postMessage({
         command: PreviewMessageType.loadPage,
@@ -502,8 +503,9 @@ export default class DataBrowsingController {
           connectionId: this._connectionController.getActiveConnectionId(),
         },
       );
+      const source = options.query ? 'query-results' : 'collection';
       this._telemetryService.track(
-        new DataBrowserDocumentEditedTelemetryEvent(),
+        new DataBrowserDocumentEditedTelemetryEvent(source),
       );
     } catch (error) {
       log.error('Error opening document for editing', error);
@@ -530,8 +532,9 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
+      const source = options.query ? 'query-results' : 'collection';
       this._telemetryService.track(
-        new DataBrowserDocumentClonedTelemetryEvent(),
+        new DataBrowserDocumentClonedTelemetryEvent(source),
       );
     } catch (error) {
       log.error('Error cloning document', error);
@@ -552,8 +555,9 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
+      const source = options.query ? 'query-results' : 'collection';
       this._telemetryService.track(
-        new DataBrowserDocumentInsertedTelemetryEvent('data-browser'),
+        new DataBrowserDocumentInsertedTelemetryEvent('data-browser', source),
       );
     } catch (error) {
       log.error('Error opening insert document playground', error);
@@ -577,7 +581,11 @@ export default class DataBrowsingController {
     try {
       await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbDeleteAllDocuments,
-        { ...options, view: 'data-browser' as const },
+        {
+          ...options,
+          view: 'data-browser' as const,
+          source: options.query ? ('query-results' as const) : ('collection' as const),
+        },
       );
     } catch (error) {
       log.error('Error deleting all documents', error);
@@ -634,8 +642,9 @@ export default class DataBrowsingController {
       void vscode.window.showInformationMessage(
         'Document successfully deleted.',
       );
+      const source = options.query ? 'query-results' : 'collection';
       this._telemetryService.track(
-        new DataBrowserDocumentDeletedTelemetryEvent(false, 'data-browser'),
+        new DataBrowserDocumentDeletedTelemetryEvent(false, 'data-browser', source),
       );
 
       // Refresh the tree view in the sidebar (reset collection cache so
@@ -917,8 +926,9 @@ export default class DataBrowsingController {
       'Opening data browser...',
       `${options.databaseName}.${options.collectionName}`,
     );
+    const source = options.query ? 'query-results' : 'collection';
     this._telemetryService.track(
-      new DataBrowserOpenedTelemetryEvent(options.collectionType),
+      new DataBrowserOpenedTelemetryEvent(options.collectionType, source),
     );
     const extensionPath = context.extensionPath;
 
