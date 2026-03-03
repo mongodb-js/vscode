@@ -695,6 +695,144 @@ export class DeepLinkTelemetryEvent implements TelemetryEventBase {
   }
 }
 
+/** Whether the user is browsing a collection directly or viewing playground query results */
+type DataBrowserSource = 'collection' | 'query-results';
+
+/** Reported when the data browser webview is opened */
+export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
+  type = 'Data Browser Opened';
+  properties: {
+    /** The type of the collection being browsed - e.g. 'collection', 'view', 'timeseries', 'unknown' */
+    collection_type: string;
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(collectionType: string, source: DataBrowserSource) {
+    this.properties = { collection_type: collectionType, source };
+  }
+}
+
+/** Reported when the data browser webview is closed */
+export class DataBrowserClosedTelemetryEvent implements TelemetryEventBase {
+  type = 'Data Browser Closed';
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
+}
+
+/** Reported when documents are fetched/loaded in the data browser */
+export class DataBrowserDocumentsFetchedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Documents Fetched';
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
+}
+
+/** Reported when a document is opened for editing from the data browser */
+export class DataBrowserDocumentEditedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Edited';
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
+}
+
+/** Reported when a document is cloned from the data browser */
+export class DataBrowserDocumentClonedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Cloned';
+  properties: {
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(source: DataBrowserSource) {
+    this.properties = { source };
+  }
+}
+
+/** Reported when a new document is inserted from the data browser or tree view */
+export class DataBrowserDocumentInsertedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Inserted';
+  properties: {
+    /** Whether the action was triggered from the tree view or the data browser */
+    view: 'tree' | 'data-browser';
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(view: 'tree' | 'data-browser', source: DataBrowserSource) {
+    this.properties = { view, source };
+  }
+}
+
+/** Reported when one or more documents are deleted from the data browser or tree view */
+export class DataBrowserDocumentDeletedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Document Deleted';
+  properties: {
+    /** Whether all documents in the collection were deleted */
+    delete_all: boolean;
+
+    /** Whether the action was triggered from the tree view or the data browser */
+    view: 'tree' | 'data-browser';
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(
+    deleteAll: boolean,
+    view: 'tree' | 'data-browser',
+    source: DataBrowserSource,
+  ) {
+    this.properties = { delete_all: deleteAll, view, source };
+  }
+}
+
+/** Reported when the collection is refreshed in the data browser or tree view */
+export class DataBrowserCollectionRefreshedTelemetryEvent
+  implements TelemetryEventBase
+{
+  type = 'Data Browser Collection Refreshed';
+  properties: {
+    /** Whether the action was triggered from the tree view or the data browser */
+    view: 'tree' | 'data-browser';
+
+    /** Whether the user is browsing a collection or viewing playground query results */
+    source: DataBrowserSource;
+  };
+
+  constructor(view: 'tree' | 'data-browser', source: DataBrowserSource) {
+    this.properties = { view, source };
+  }
+}
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent
@@ -720,4 +858,12 @@ export type TelemetryEvent =
   | PresetConnectionEditedTelemetryEvent
   | SidePanelOpenedTelemetryEvent
   | TreeItemExpandedTelemetryEvent
-  | DeepLinkTelemetryEvent;
+  | DeepLinkTelemetryEvent
+  | DataBrowserOpenedTelemetryEvent
+  | DataBrowserDocumentsFetchedTelemetryEvent
+  | DataBrowserDocumentEditedTelemetryEvent
+  | DataBrowserDocumentClonedTelemetryEvent
+  | DataBrowserDocumentInsertedTelemetryEvent
+  | DataBrowserDocumentDeletedTelemetryEvent
+  | DataBrowserClosedTelemetryEvent
+  | DataBrowserCollectionRefreshedTelemetryEvent;

@@ -53,6 +53,9 @@ import ExtensionCommand from './commands';
 import { COPILOT_EXTENSION_ID } from './participant/constants';
 import {
   CommandRunTelemetryEvent,
+  DataBrowserCollectionRefreshedTelemetryEvent,
+  DataBrowserDocumentDeletedTelemetryEvent,
+  DataBrowserDocumentInsertedTelemetryEvent,
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
@@ -982,6 +985,13 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._explorerController.refresh();
         await this._languageServerController.resetCache({ fields: true });
 
+        this._telemetryService.track(
+          new DataBrowserCollectionRefreshedTelemetryEvent(
+            'tree',
+            'collection',
+          ),
+        );
+
         return true;
       },
     );
@@ -990,10 +1000,19 @@ export default class MDBExtensionController implements vscode.Disposable {
       async (
         documentsListTreeItem: DocumentListTreeItem | CollectionTreeItem,
       ): Promise<boolean> => {
-        return this._playgroundController.createPlaygroundForInsertDocument(
-          documentsListTreeItem.databaseName,
-          documentsListTreeItem.collectionName,
-        );
+        const result =
+          await this._playgroundController.createPlaygroundForInsertDocument(
+            documentsListTreeItem.databaseName,
+            documentsListTreeItem.collectionName,
+          );
+
+        if (result) {
+          this._telemetryService.track(
+            new DataBrowserDocumentInsertedTelemetryEvent('tree', 'collection'),
+          );
+        }
+
+        return result;
       },
     );
     this.registerCommand(
@@ -1001,9 +1020,13 @@ export default class MDBExtensionController implements vscode.Disposable {
       async ({
         databaseName,
         collectionName,
+        view = 'tree',
+        source = 'collection',
       }: {
         databaseName: string;
         collectionName: string;
+        view?: 'tree' | 'data-browser';
+        source?: 'collection' | 'query-results';
       }): Promise<boolean> => {
         const namespace = `${databaseName}.${collectionName}`;
 
@@ -1032,6 +1055,10 @@ export default class MDBExtensionController implements vscode.Disposable {
 
           void vscode.window.showInformationMessage(
             `${deleteResult.deletedCount} document(s) successfully deleted.`,
+          );
+
+          this._telemetryService.track(
+            new DataBrowserDocumentDeletedTelemetryEvent(true, view, source),
           );
 
           this._explorerController.refreshCollection(
@@ -1179,6 +1206,13 @@ export default class MDBExtensionController implements vscode.Disposable {
           await documentTreeItem.onDeleteDocumentClicked();
 
         if (successfullyDropped) {
+          this._telemetryService.track(
+            new DataBrowserDocumentDeletedTelemetryEvent(
+              false,
+              'tree',
+              'collection',
+            ),
+          );
           void vscode.window.showInformationMessage(
             'Document successfully deleted.',
           );
