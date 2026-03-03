@@ -92,7 +92,7 @@ suite('DataBrowsingController Test Suite', function () {
     };
     testController = new DataBrowsingController({
       connectionController: mockConnectionController as any,
-      telemetryService: {} as any,
+      telemetryService: { track: sandbox.stub() } as any,
     });
     mockPanel = createMockPanel();
   });
@@ -234,7 +234,7 @@ suite('DataBrowsingController Test Suite', function () {
       const countController = controllers?.totalCount;
 
       // Simulate panel close
-      testController.onWebviewPanelClosed(mockPanel);
+      testController.onWebviewPanelClosed(mockPanel, options);
 
       // Both controllers should be aborted and removed
       expect(documentsController?.signal.aborted).to.be.true;
