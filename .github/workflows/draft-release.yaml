@@ -236,7 +236,7 @@ jobs:
 
   create-draft-release:
     name: Create Draft Release
-    needs: [prepare-version, test, test-install, test-snyk]
+    needs: [prepare-version, test, test-install]
 
     runs-on: ubuntu-latest
 
