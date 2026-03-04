@@ -21,9 +21,9 @@ suite('Worker Test Suite', function () {
           data: {} as any,
         },
         {
-          executeFn: async () => {
+          executeFn: () => {
             executeCalled = true;
-            return { data: null };
+            return Promise.resolve({ data: null });
           },
           postMessageFn: (message) => {
             postedMessage = message;
@@ -57,7 +57,7 @@ suite('Worker Test Suite', function () {
           data: {} as any,
         },
         {
-          executeFn: async () => payload,
+          executeFn: () => Promise.resolve(payload),
           postMessageFn: (message) => {
             postedMessage = message;
           },
@@ -94,7 +94,7 @@ suite('Worker Test Suite', function () {
           data: {} as any,
         },
         {
-          executeFn: async () => payload,
+          executeFn: () => Promise.resolve(payload),
           postMessageFn: (message) => {
             postedMessage = message;
           },
