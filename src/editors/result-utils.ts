@@ -1,6 +1,11 @@
-import type { PlaygroundRunResult } from '../types/playgroundType';
+import type {
+  PlaygroundRunCursorResult,
+  PlaygroundRunResult,
+} from '../types/playgroundType';
 
-export function isSafeQueryResult(result: PlaygroundRunResult): boolean {
+export function isSafeQueryResult(
+  result: PlaygroundRunResult,
+): result is PlaygroundRunCursorResult {
   if (!result.constructionOptions) {
     return false;
   }
