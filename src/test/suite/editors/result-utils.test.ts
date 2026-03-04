@@ -38,7 +38,7 @@ suite('result-utils', function () {
         constructionOptions: {
           options: {
             method: 'aggregate',
-            args: ['db.coll', {}, [{ $out: 'archived' }]],
+            args: ['db', 'coll', [{ $out: 'archived' }]],
           },
         } as any,
       });
@@ -51,7 +51,7 @@ suite('result-utils', function () {
         constructionOptions: {
           options: {
             method: 'aggregate',
-            args: ['db.coll', {}, [{ $merge: { into: 'archived' } }]],
+            args: ['db', 'coll', [{ $merge: { into: 'archived' } }]],
           },
         } as any,
       });
@@ -64,7 +64,7 @@ suite('result-utils', function () {
         constructionOptions: {
           options: {
             method: 'aggregate',
-            args: ['db.coll', {}, [{ $match: { status: 'open' } }]],
+            args: ['db', 'coll', [{ $match: { status: 'open' } }]],
           },
         } as any,
       });
