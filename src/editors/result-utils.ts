@@ -1,4 +1,4 @@
-import { PlaygroundRunResult } from '../types/playgroundType';
+import type { PlaygroundRunResult } from '../types/playgroundType';
 
 export function isSafeQueryResult(result: PlaygroundRunResult): boolean {
   if (!result.constructionOptions) {
