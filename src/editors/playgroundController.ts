@@ -45,6 +45,7 @@ import {
   PlaygroundSavedTelemetryEvent,
 } from '../telemetry';
 import { ExtensionCommand } from '../commands';
+import { isSafeQueryResult } from './result-utils';
 
 const log = createLogger('playground controller');
 
@@ -474,7 +475,7 @@ export default class PlaygroundController {
   }
 
   async _openResult(result: PlaygroundRunResult): Promise<void> {
-    if (result.constructionOptions) {
+    if (result.constructionOptions && isSafeQueryResult(result)) {
       const { method } = result.constructionOptions.options;
       if (method === 'find' || method === 'aggregate') {
         // open find or aggregate cursor results in the data browser
