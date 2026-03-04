@@ -26,8 +26,14 @@ import type {
   CursorConstructionOptionsWithChains,
   CursorChainOptions,
 } from '@mongosh/shell-api';
+import {
+  Cursor,
+  AggregationCursor,
+  ShellInstanceState,
+  Mongo,
+} from '@mongosh/shell-api';
 import type { AggregateOptions, DbOptions, FindOptions } from 'mongodb';
-import type { EventEmitter } from 'events';
+import { EventEmitter } from 'events';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import {
   DataBrowserOpenedTelemetryEvent,
@@ -748,23 +754,30 @@ export default class DataBrowsingController {
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
+    const instanceState = new ShellInstanceState(
+      serviceProvider,
+      new EventEmitter(),
+    );
+    const mongo = new Mongo(instanceState);
+
+    const spCursor = serviceProvider.find(
+      databaseName,
+      collectionName,
+      parsedQuery.find.filter,
+      {
+        ...parsedQuery.find.findOptions,
+        ...findOptions,
+      },
+      {
+        ...parsedQuery.find.dbOptions,
+        ...executionOptions,
+      },
+    );
+    let cursor = new Cursor(mongo, spCursor);
+    for (const chain of parsedQuery.chains) {
+      cursor = cursor[chain.method](...chain.args);
+    }
     try {
-      let cursor = serviceProvider.find(
-        databaseName,
-        collectionName,
-        parsedQuery.find.filter,
-        {
-          ...parsedQuery.find.findOptions,
-          ...findOptions,
-        },
-        {
-          ...parsedQuery.find.dbOptions,
-          ...executionOptions,
-        },
-      );
-      for (const chain of parsedQuery.chains) {
-        cursor = cursor[chain.method](...chain.args);
-      }
       return await cursor.toArray();
     } finally {
       await serviceProvider.close();
@@ -797,28 +810,35 @@ export default class DataBrowsingController {
 
     const executionOptions = signal ? { abortSignal: signal } : undefined;
 
+    const instanceState = new ShellInstanceState(
+      serviceProvider,
+      new EventEmitter(),
+    );
+    const mongo = new Mongo(instanceState);
+
+    const pipeline = [
+      ...parsedQuery.aggregate.pipeline,
+      { $skip: skip },
+      { $limit: limit },
+    ];
+
+    const spCursor = serviceProvider.aggregate(
+      databaseName,
+      collectionName,
+      pipeline,
+      parsedQuery.aggregate.aggregateOptions,
+      {
+        ...parsedQuery.aggregate.dbOptions,
+        ...executionOptions,
+      },
+    );
+
+    let cursor = new AggregationCursor(mongo, spCursor);
+    for (const chain of parsedQuery.chains) {
+      cursor = cursor[chain.method](...chain.args);
+    }
+
     try {
-      const pipeline = [
-        ...parsedQuery.aggregate.pipeline,
-        { $skip: skip },
-        { $limit: limit },
-      ];
-
-      let cursor = serviceProvider.aggregate(
-        databaseName,
-        collectionName,
-        pipeline,
-        parsedQuery.aggregate.aggregateOptions,
-        {
-          ...parsedQuery.aggregate.dbOptions,
-          ...executionOptions,
-        },
-      );
-
-      for (const chain of parsedQuery.chains) {
-        cursor = cursor[chain.method](...chain.args);
-      }
-
       return await cursor.toArray();
     } finally {
       await serviceProvider.close();
