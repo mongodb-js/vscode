@@ -273,6 +273,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     monaco.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: false,
+      noSuggestionDiagnostics: true,
     });
     monaco.typescript.typescriptDefaults.setCompilerOptions({
       target: monaco.typescript.ScriptTarget.Latest,
