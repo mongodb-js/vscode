@@ -171,7 +171,9 @@ type HandleMessageDeps = {
 
 function stripConstructionOptions(payload: Payload): Payload {
   const clone = _.cloneDeep(payload);
-  delete clone.data?.result?.constructionOptions;
+  if (clone.data?.result?.constructionOptions) {
+    delete clone.data?.result?.constructionOptions;
+  }
   return clone;
 }
 
