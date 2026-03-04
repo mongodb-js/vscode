@@ -26,8 +26,14 @@ import type {
   CursorConstructionOptionsWithChains,
   CursorChainOptions,
 } from '@mongosh/shell-api';
+import {
+  Cursor,
+  AggregationCursor,
+  ShellInstanceState,
+  Mongo,
+} from '@mongosh/shell-api';
 import type { AggregateOptions, DbOptions, FindOptions } from 'mongodb';
-import type { EventEmitter } from 'events';
+import { EventEmitter } from 'events';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import {
   DataBrowserOpenedTelemetryEvent,
@@ -707,49 +713,55 @@ export default class DataBrowsingController {
       connectionOptions.options,
     );
 
-    const findOptions: {
-      limit: number;
-      skip?: number;
-      sort?: DocumentSort;
-      promoteValues: false;
-    } = {
-      limit: DEFAULT_DOCUMENTS_LIMIT,
-      promoteValues: false,
-    };
-
-    if (parsedQuery.skip) {
-      // if the parsed query has a skip, we honor that so that the first page only starts after that skip value
-      findOptions.skip = parsedQuery.skip;
-    }
-    if (skip !== undefined && skip > 0) {
-      // we add the skip from the pagination onto the parsed query skip if it is exists
-      findOptions.skip = (findOptions.skip ?? 0) + skip;
-    }
-
-    if (parsedQuery.limit) {
-      // if the parsed query has a limit we want to honor that so that we don't go past it
-      const remaining = parsedQuery.limit - (findOptions.skip ?? 0);
-      if (remaining < 1) {
-        // TODO: log
-        return [];
-      }
-      findOptions.limit = limit ? Math.min(remaining, limit) : remaining;
-    } else if (limit) {
-      // otherwise we only have to take the limit from the pagination into account
-      findOptions.limit = limit;
-    }
-
-    // Sort is only for a collection's documents list. It should be null if this
-    // relates back to a find cursor so that we use the playground's sort
-    // instead of overriding it.
-    if (sort) {
-      findOptions.sort = sort;
-    }
-
-    const executionOptions = signal ? { abortSignal: signal } : undefined;
-
     try {
-      let cursor = serviceProvider.find(
+      const findOptions: {
+        limit: number;
+        skip?: number;
+        sort?: DocumentSort;
+        promoteValues: false;
+      } = {
+        limit: DEFAULT_DOCUMENTS_LIMIT,
+        promoteValues: false,
+      };
+
+      if (parsedQuery.skip) {
+        // if the parsed query has a skip, we honor that so that the first page only starts after that skip value
+        findOptions.skip = parsedQuery.skip;
+      }
+      if (skip !== undefined && skip > 0) {
+        // we add the skip from the pagination onto the parsed query skip if it is exists
+        findOptions.skip = (findOptions.skip ?? 0) + skip;
+      }
+
+      if (parsedQuery.limit) {
+        // if the parsed query has a limit we want to honor that so that we don't go past it
+        const remaining = parsedQuery.limit - (findOptions.skip ?? 0);
+        if (remaining < 1) {
+          // TODO: log
+          return [];
+        }
+        findOptions.limit = limit ? Math.min(remaining, limit) : remaining;
+      } else if (limit) {
+        // otherwise we only have to take the limit from the pagination into account
+        findOptions.limit = limit;
+      }
+
+      // Sort is only for a collection's documents list. It should be null if this
+      // relates back to a find cursor so that we use the playground's sort
+      // instead of overriding it.
+      if (sort) {
+        findOptions.sort = sort;
+      }
+
+      const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+      const instanceState = new ShellInstanceState(
+        serviceProvider,
+        new EventEmitter(),
+      );
+      const mongo = new Mongo(instanceState);
+
+      const spCursor = serviceProvider.find(
         databaseName,
         collectionName,
         parsedQuery.find.filter,
@@ -762,6 +774,7 @@ export default class DataBrowsingController {
           ...executionOptions,
         },
       );
+      let cursor = new Cursor(mongo, spCursor);
       for (const chain of parsedQuery.chains) {
         cursor = cursor[chain.method](...chain.args);
       }
@@ -795,16 +808,22 @@ export default class DataBrowsingController {
       connectionOptions.options,
     );
 
-    const executionOptions = signal ? { abortSignal: signal } : undefined;
-
     try {
+      const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+      const instanceState = new ShellInstanceState(
+        serviceProvider,
+        new EventEmitter(),
+      );
+      const mongo = new Mongo(instanceState);
+
       const pipeline = [
         ...parsedQuery.aggregate.pipeline,
         { $skip: skip },
         { $limit: limit },
       ];
 
-      let cursor = serviceProvider.aggregate(
+      const spCursor = serviceProvider.aggregate(
         databaseName,
         collectionName,
         pipeline,
@@ -815,6 +834,7 @@ export default class DataBrowsingController {
         },
       );
 
+      let cursor = new AggregationCursor(mongo, spCursor);
       for (const chain of parsedQuery.chains) {
         cursor = cursor[chain.method](...chain.args);
       }

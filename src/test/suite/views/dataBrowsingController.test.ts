@@ -2,6 +2,7 @@ import sinon, { type SinonSandbox, type SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { expect } from 'chai';
 import { beforeEach, afterEach } from 'mocha';
+import * as bson from 'bson';
 
 import DataBrowsingController, {
   parseConstructionOptions,
@@ -37,6 +38,7 @@ suite('DataBrowsingController Test Suite', function () {
     find: SinonStub;
     aggregate: SinonStub;
     close: SinonStub;
+    get bsonLibrary(): typeof bson;
   };
   let mockCursor: {
     toArray: SinonStub;
@@ -80,6 +82,9 @@ suite('DataBrowsingController Test Suite', function () {
       find: sandbox.stub().returns(mockCursor),
       aggregate: sandbox.stub().returns(mockCursor),
       close: sandbox.stub().resolves(),
+      get bsonLibrary() {
+        return bson;
+      },
     };
     sandbox
       .stub(NodeDriverServiceProvider, 'connect')
@@ -1403,7 +1408,12 @@ suite('DataBrowsingController Test Suite', function () {
                 undefined,
               ],
             },
-            chains: [],
+            chains: [
+              {
+                method: 'projection',
+                args: [{ name: 1 }],
+              },
+            ],
           } as any,
         });
       }
@@ -1493,7 +1503,12 @@ suite('DataBrowsingController Test Suite', function () {
               {},
             ],
           },
-          chains: [],
+          chains: [
+            {
+              method: 'limit',
+              args: [25],
+            },
+          ],
         } as any,
       });
     }
