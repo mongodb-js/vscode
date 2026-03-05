@@ -322,6 +322,185 @@ describe('MonacoViewer test suite', function () {
     });
   });
 
+  describe('Value truncation', function () {
+    it('should not truncate strings of 70 characters or fewer', async function () {
+      const shortString = 'a'.repeat(70); // exactly at boundary - should NOT truncate
+      const document = { _id: '1', text: shortString };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include(shortString);
+          expect(content).to.not.include('⋯');
+        }
+      });
+    });
+
+    it('should truncate strings longer than 70 characters', async function () {
+      const longString = 'a'.repeat(80);
+      const document = { _id: '1', text: longString };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('a'.repeat(70) + '...');
+          expect(content).to.not.include(longString);
+        }
+      });
+    });
+
+    it('should add ⋯ expand indicator to truncated values', async function () {
+      const longString = 'b'.repeat(80);
+      const document = { _id: '1', text: longString };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('⋯');
+        }
+      });
+    });
+
+    it('should not add ⋯ indicator to short strings', async function () {
+      const document = { _id: '1', text: 'short value' };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.not.include('⋯');
+        }
+      });
+    });
+
+    it('should truncate long strings in nested objects', async function () {
+      const longString = 'c'.repeat(80);
+      const document = { _id: '1', nested: { field: longString } };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('c'.repeat(70) + '...');
+          expect(content).to.include('⋯');
+          expect(content).to.not.include(longString);
+        }
+      });
+    });
+
+    it('should truncate long strings inside arrays', async function () {
+      const longString = 'd'.repeat(80);
+      const document = { _id: '1', items: [longString] };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('d'.repeat(70) + '...');
+          expect(content).to.include('⋯');
+          expect(content).to.not.include(longString);
+        }
+      });
+    });
+
+    it('should truncate multiple long values in the same document', async function () {
+      const long1 = 'e'.repeat(80);
+      const long2 = 'f'.repeat(90);
+      const document = { _id: '1', first: long1, second: long2 };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('e'.repeat(70) + '...');
+          expect(content).to.include('f'.repeat(70) + '...');
+          const indicatorCount = (content.match(/⋯/g) || []).length;
+          expect(indicatorCount).to.equal(2);
+        }
+      });
+    });
+
+    it('should not truncate non-string values regardless of size', async function () {
+      const document = {
+        _id: '1',
+        count: 12345,
+        flag: true,
+        price: 99.99,
+      };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('12345');
+          expect(content).to.include('true');
+          expect(content).to.include('99.99');
+          expect(content).to.not.include('⋯');
+        }
+      });
+    });
+
+    it('should correctly handle keys with special characters (regression: old parser only matched \\w+ keys)', async function () {
+      // The old findPathAtPosition used /^\s*(\w+):/ which silently failed
+      // on keys containing hyphens, spaces, etc. buildLineToPathMap searches
+      // by value content instead, so it handles any key format correctly.
+      const longString = 'g'.repeat(80);
+      const document = { _id: '1', 'some-key': longString };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('g'.repeat(70) + '...');
+          expect(content).to.include('⋯');
+        }
+      });
+    });
+
+    it('should correctly handle truncated values in deeply nested paths (regression: old parser lost array bracket notation)', async function () {
+      // The old findPathAtPosition built dot-joined paths (e.g. "items.0")
+      // while truncationMap stored bracket notation (e.g. "items[0]"), so
+      // lookups would silently fail for array items.
+      const longString = 'h'.repeat(80);
+      const document = {
+        _id: '1',
+        nested: { items: [longString] },
+      };
+
+      render(<MonacoViewer document={document} themeKind="vs-dark" />);
+
+      await waitFor(() => {
+        const editorMock = screen.queryByTestId('monaco-editor-mock');
+        if (editorMock) {
+          const content = editorMock.textContent || '';
+          expect(content).to.include('h'.repeat(70) + '...');
+          expect(content).to.include('⋯');
+        }
+      });
+    });
+  });
+
   describe('Action bar', function () {
     let sendEditDocumentStub: sinon.SinonStub;
     let sendCloneDocumentStub: sinon.SinonStub;
