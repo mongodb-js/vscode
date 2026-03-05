@@ -113,6 +113,32 @@ const cardStyles = css({
   },
 });
 
+const showMoreButtonStyles = css({
+  color: 'var(--vscode-textLink-foreground, #3794ff)',
+  cursor: 'pointer',
+  background: 'none',
+  border: 'none',
+  padding: '8px 12px',
+  fontSize: '13px',
+  fontFamily:
+    'var(--vscode-editor-font-family, "Consolas", "Courier New", monospace)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  width: '100%',
+  '&:hover span': {
+    textDecoration: 'underline',
+  },
+  '&::before': {
+    content: '"▸"',
+    display: 'inline-block',
+    transition: 'transform 0.2s',
+  },
+  '&[data-expanded="false"]::before': {
+    transform: 'rotate(90deg)',
+  },
+});
+
 const actionButtonStyles = css({
   position: 'relative',
   background: 'transparent',
@@ -163,6 +189,44 @@ const actionButtonStyles = css({
     opacity: 1,
   },
 });
+
+const MAX_INITIAL_FIELDS_SHOWING = 15;
+
+/**
+ * Scan the serialized document string to find the model line number where the
+ * (maxFields+1)th top-level field starts. We track brace/bracket depth so that
+ * nested objects and arrays (which span many model lines) are skipped correctly.
+ * Returns null if the document has fewer than maxFields+1 top-level fields.
+ */
+function findCollapseLineNumber(
+  serialized: string,
+  maxFields: number,
+): number | null {
+  const lines = serialized.split('\n');
+  let depth = 0;
+  let topLevelFields = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const depthBefore = depth;
+    const trimmed = lines[i].trim();
+
+    for (const ch of trimmed) {
+      if (ch === '{' || ch === '[') depth++;
+      else if (ch === '}' || ch === ']') depth--;
+    }
+
+    // A new top-level field starts on a line where depth was 1 before the line
+    // (inside the root object) and the line looks like a key (contains a colon).
+    if (depthBefore === 1 && trimmed.includes(':')) {
+      topLevelFields++;
+      if (topLevelFields > maxFields) {
+        return i + 1; // 1-based line number
+      }
+    }
+  }
+
+  return null;
+}
 
 const viewerOptions: Monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
@@ -218,7 +282,17 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 }) => {
   const monaco = useMonaco();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const lineHeightRef = useRef<number>(19);
+  // Tracks the last known Monaco content height so we can compute deltas.
+  const prevContentHeightRef = useRef<number>(0);
+  // True once the initial foldLevel2 + updateCollapsedHeight pass is done.
+  const collapsedHeightInitializedRef = useRef<boolean>(false);
   const [editorHeight, setEditorHeight] = useState<number>(0);
+  const [showAllFields, setShowAllFields] = useState(false);
+  const [collapsedHeight, setCollapsedHeight] = useState<number | null>(null);
+  const buttonWrapperRef = useRef<HTMLDivElement | null>(null);
+  // Stores the button's viewport Y before collapsing so we can scroll to restore it.
+  const collapseScrollTargetRef = useRef<number | null>(null);
 
   // Monaco expects colors without the # prefix, so strip it here once.
   // Individual color properties may be undefined when the active VS Code
@@ -284,10 +358,27 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     });
   }, [monaco, colors, themeKind]);
 
-  const documentString = useMemo(() => {
-    const deserialized = EJSON.deserialize(document, { relaxed: false });
-    return toJSString(deserialized) ?? '';
-  }, [document]);
+  const deserialized = useMemo(
+    () =>
+      EJSON.deserialize(document, { relaxed: false }) as Record<
+        string,
+        unknown
+      >,
+    [document],
+  );
+
+  const documentString = useMemo(
+    () => toJSString(deserialized) ?? '',
+    [deserialized],
+  );
+
+  const collapseAtLine = useMemo(
+    () => findCollapseLineNumber(documentString, MAX_INITIAL_FIELDS_SHOWING),
+    [documentString],
+  );
+  const hasMoreFields = collapseAtLine !== null;
+  const hiddenFieldCount =
+    Object.keys(document).length - MAX_INITIAL_FIELDS_SHOWING;
 
   const calculateHeight = useCallback(() => {
     if (!editorRef.current) {
@@ -305,6 +396,20 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     setEditorHeight(calculateHeight());
   }, [documentString, calculateHeight]);
 
+  const updateCollapsedHeight = useCallback(() => {
+    if (collapseAtLine === null) return;
+    if (editorRef.current) {
+      // Use Monaco's API to get the actual pixel offset for the collapse line.
+      // collapseAtLine is the correct model line number (computed by scanning
+      // the serialized string with depth tracking), and after foldLevel2 the
+      // editor knows the real visual position accounting for folded regions.
+      const top = editorRef.current.getTopForLineNumber(collapseAtLine);
+      setCollapsedHeight(top);
+    } else {
+      setCollapsedHeight((collapseAtLine - 1) * lineHeightRef.current);
+    }
+  }, [collapseAtLine]);
+
   const handleEditorMount = useCallback(
     (
       editorInstance: editor.IStandaloneCodeEditor,
@@ -313,14 +418,27 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       >[1],
     ) => {
       editorRef.current = editorInstance;
-      setEditorHeight(calculateHeight());
 
-      // Fold all levels except the outermost object
-      const runFold = (): void => {
-        void editorInstance.getAction('editor.foldLevel2')?.run();
-      };
+      // Capture the real line height now that the editor and monaco are ready.
+      const lh = editorInstance.getOption(
+        monacoInstance.editor.EditorOption.lineHeight,
+      );
+      lineHeightRef.current = lh > 0 ? lh : 19;
 
-      requestAnimationFrame(runFold);
+      // Fold all levels except the outermost object, then — and only then —
+      // apply the collapsed height so we never clip before folding has run.
+      // After that, record the baseline content height and mark initialization
+      // complete so subsequent fold-toggle deltas are tracked correctly.
+      requestAnimationFrame(() => {
+        void editorInstance
+          .getAction('editor.foldLevel2')
+          ?.run()
+          .then(() => {
+            updateCollapsedHeight();
+            prevContentHeightRef.current = editorInstance.getContentHeight();
+            collapsedHeightInitializedRef.current = true;
+          });
+      });
 
       // VS Code webviews intercept Ctrl+C before it reaches the embedded Monaco editor,
       const copyKeybinding = editorInstance.addAction({
@@ -341,12 +459,24 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
       const disposable = editorInstance.onDidContentSizeChange(() => {
         const contentHeight = editorInstance.getContentHeight();
+        const delta = contentHeight - prevContentHeightRef.current;
+        prevContentHeightRef.current = contentHeight;
         setEditorHeight(contentHeight);
+
+        // After the initial fold pass, keep the collapsed-height cap in sync
+        // with Monaco's fold state: when the user expands or collapses a
+        // section inside the visible area the card grows or shrinks by the
+        // same number of pixels, so newly revealed lines are always visible.
+        if (collapsedHeightInitializedRef.current && delta !== 0) {
+          setCollapsedHeight((prev) =>
+            prev !== null ? Math.max(0, prev + delta) : prev,
+          );
+        }
       });
 
       (editorInstance as any).__foldDisposables = [disposable, copyKeybinding];
     },
-    [calculateHeight],
+    [calculateHeight, updateCollapsedHeight],
   );
 
   // Cleanup effect to dispose event listeners when component unmounts
@@ -358,6 +488,26 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       }
     };
   }, []);
+
+  const handleCollapse = useCallback(() => {
+    // Capture the button wrapper's viewport Y before the DOM collapses.
+    collapseScrollTargetRef.current =
+      buttonWrapperRef.current?.getBoundingClientRect().top ?? null;
+    setShowAllFields(false);
+  }, []);
+
+  // After collapsing, scroll so the button stays at the same viewport position.
+  useEffect(() => {
+    if (showAllFields || collapseScrollTargetRef.current === null) return;
+    const targetTop = collapseScrollTargetRef.current;
+    collapseScrollTargetRef.current = null;
+
+    requestAnimationFrame(() => {
+      if (!buttonWrapperRef.current) return;
+      const newTop = buttonWrapperRef.current.getBoundingClientRect().top;
+      window.scrollBy(0, newTop - targetTop);
+    });
+  }, [showAllFields]);
 
   const handleEdit = useCallback(() => {
     if (document._id) {
@@ -421,16 +571,51 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
           </button>
         )}
       </div>
-      <div className={monacoWrapperStyles}>
-        <Editor
-          height={editorHeight}
-          defaultLanguage="typescript"
-          value={documentString}
-          theme="currentVSCodeTheme"
-          options={viewerOptions}
-          loading={null}
-          onMount={handleEditorMount}
-        />
+      <div
+        style={{
+          maxHeight:
+            hasMoreFields && !showAllFields && collapsedHeight !== null
+              ? collapsedHeight
+              : undefined,
+          overflow: hasMoreFields && !showAllFields ? 'hidden' : undefined,
+        }}
+      >
+        <div className={monacoWrapperStyles}>
+          <Editor
+            height={editorHeight}
+            defaultLanguage="typescript"
+            value={documentString}
+            theme="currentVSCodeTheme"
+            options={viewerOptions}
+            loading={null}
+            onMount={handleEditorMount}
+          />
+        </div>
+      </div>
+
+      <div ref={buttonWrapperRef}>
+        {hasMoreFields && !showAllFields && (
+          <button
+            className={showMoreButtonStyles}
+            onClick={() => setShowAllFields(true)}
+            data-expanded="false"
+          >
+            <span>
+              Show {hiddenFieldCount} more field
+              {hiddenFieldCount !== 1 ? 's' : ''}
+            </span>
+          </button>
+        )}
+
+        {hasMoreFields && showAllFields && (
+          <button
+            className={showMoreButtonStyles}
+            onClick={handleCollapse}
+            data-expanded="true"
+          >
+            <span>Show less</span>
+          </button>
+        )}
       </div>
     </div>
   );
