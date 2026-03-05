@@ -704,7 +704,7 @@
         {
           "command": "mdb.askCopilotFromTreeItem",
           "when": "mdb.isCopilotActive == true && view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
-          "group": "3@1"
+          "group": "3@0"
         },
         {
           "command": "mdb.createNewPlaygroundFromTreeItem",
