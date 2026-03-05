@@ -1388,6 +1388,11 @@
           "type": "number",
           "default": 120000,
           "description": "Controls how often the MongoDB MCP server runs the export cleanup process to remove expired files (in milliseconds). Default is 2 minutes (120000ms)."
+        },
+        "mongodb.agentSkills.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable MongoDB Agent Skills for GitHub Copilot."
         }
       }
     },
@@ -1426,6 +1431,16 @@
         "id": "mongodb",
         "label": "MongoDB MCP Server Definition Provider"
       }
+    ],
+    "chatSkills": [
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-mcp-setup/SKILL.md" },
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-query-generator/SKILL.md" },
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-client-management/SKILL.md" },
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-data-modeling/SKILL.md" },
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-query-optimization/SKILL.md" },
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-stream-processing/SKILL.md" },
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-search-ai/SKILL.md" },
+      { "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-transactions/SKILL.md" }
     ]
   },
   "dependencies": {
