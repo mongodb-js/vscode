@@ -868,17 +868,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
-      (
-        element:
-          | ShowPreviewTreeItem
-          | CollectionTreeItem
-          | {
-              databaseName: string;
-              collectionName: string;
-              type?: string;
-              collection?: { type?: string };
-            },
-      ): Promise<boolean> => {
+      (element: ShowPreviewTreeItem | CollectionTreeItem): Promise<boolean> => {
         const collectionType =
           ('type' in element && element.type) ||
           ('collection' in element && element.collection?.type) ||
