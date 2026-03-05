@@ -200,7 +200,6 @@ suite('MDBExtensionController Test Suite', function () {
 
   suite('when connected', function () {
     let showInformationMessageStub: SinonStub;
-    let openTextDocumentStub: SinonStub;
     let fakeActiveConnectionId: SinonSpy;
     let showErrorMessageStub: SinonStub;
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
@@ -210,7 +209,6 @@ suite('MDBExtensionController Test Suite', function () {
         vscode.window,
         'showInformationMessage',
       );
-      openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
       fakeActiveConnectionId = sandbox.fake.returns('tasty_sandwich');
       sandbox.replace(
         mdbTestExtension.testExtensionController._connectionController,
