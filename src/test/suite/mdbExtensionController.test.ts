@@ -231,7 +231,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    test('mdb.openCollectionPreviewFromTreeView command should open the data browser for a collection tree item', async function () {
+    test('mdb.viewCollectionDocuments command should open the data browser for a collection tree item', async function () {
       const openDataBrowserStub = sandbox.stub(
         mdbTestExtension.testExtensionController._dataBrowsingController,
         'openDataBrowser',
@@ -239,7 +239,7 @@ suite('MDBExtensionController Test Suite', function () {
       const collectionTreeItem = getTestCollectionTreeItem();
 
       await vscode.commands.executeCommand(
-        'mdb.openCollectionPreviewFromTreeView',
+        'mdb.viewCollectionDocuments',
         collectionTreeItem,
       );
 
@@ -251,7 +251,7 @@ suite('MDBExtensionController Test Suite', function () {
       });
     });
 
-    test('mdb.openCollectionPreviewFromTreeView command should also work with the documents list', async function () {
+    test('mdb.viewCollectionDocuments command should also work with the documents list', async function () {
       const openDataBrowserStub = sandbox.stub(
         mdbTestExtension.testExtensionController._dataBrowsingController,
         'openDataBrowser',
@@ -260,7 +260,7 @@ suite('MDBExtensionController Test Suite', function () {
       const documentsListTreeItem = collectionTreeItem.getDocumentsChild();
 
       await vscode.commands.executeCommand(
-        'mdb.openCollectionPreviewFromTreeView',
+        'mdb.viewCollectionDocuments',
         documentsListTreeItem,
       );
 
