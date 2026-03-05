@@ -120,7 +120,7 @@ export default class ExplorerTreeController
 
         if (selectedItem.contextValue === PREVIEW_LIST_ITEM) {
           await vscode.commands.executeCommand(
-            ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+            ExtensionCommand.mdbViewCollectionDocuments,
             event.selection[0],
           );
         }

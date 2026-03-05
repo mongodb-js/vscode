@@ -461,7 +461,7 @@
         "icon": "$(mdb-plus-circle)"
       },
       {
-        "command": "mdb.openCollectionPreviewFromTreeView",
+        "command": "mdb.viewCollectionDocuments",
         "title": "View Documents"
       },
       {
@@ -722,7 +722,7 @@
           "group": "4@1"
         },
         {
-          "command": "mdb.openCollectionPreviewFromTreeView",
+          "command": "mdb.viewCollectionDocuments",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "1@1"
         },
@@ -757,7 +757,7 @@
           "group": "inline"
         },
         {
-          "command": "mdb.openCollectionPreviewFromTreeView",
+          "command": "mdb.viewCollectionDocuments",
           "when": "view == mongoDBConnectionExplorer && viewItem == documentPreviewItem",
           "group": "1@1"
         },
@@ -984,7 +984,7 @@
           "when": "false"
         },
         {
-          "command": "mdb.openCollectionPreviewFromTreeView",
+          "command": "mdb.viewCollectionDocuments",
           "when": "false"
         },
         {

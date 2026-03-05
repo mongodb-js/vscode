@@ -148,7 +148,7 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbCreateIndexTreeView,
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
-  ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+  ExtensionCommand.mdbViewCollectionDocuments,
   ExtensionCommand.mdbDeleteAllDocuments,
   ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
   ExtensionCommand.mdbInsertDocumentFromDataBrowser,
@@ -867,7 +867,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+      ExtensionCommand.mdbViewCollectionDocuments,
       (element: ShowPreviewTreeItem | CollectionTreeItem): Promise<boolean> => {
         const collectionType =
           ('type' in element && element.type) ||

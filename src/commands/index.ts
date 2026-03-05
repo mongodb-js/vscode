@@ -72,7 +72,7 @@ export const ExtensionCommand = {
   mdbDropStreamProcessor: 'mdb.dropStreamProcessor',
 
   // Commands for the data browsing upgrade.
-  mdbOpenCollectionPreviewFromTreeView: 'mdb.openCollectionPreviewFromTreeView',
+  mdbViewCollectionDocuments: 'mdb.viewCollectionDocuments',
   mdbOpenMongodbDocumentFromDataBrowser:
     'mdb.openMongoDBDocumentFromDataBrowser',
   mdbInsertDocumentFromDataBrowser: 'mdb.insertDocumentFromDataBrowser',
