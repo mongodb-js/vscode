@@ -99,7 +99,6 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.mdbRefreshDatabase,
   ExtensionCommand.mdbAddCollection,
   ExtensionCommand.mdbCopyCollectionName,
-  ExtensionCommand.mdbViewCollectionDocuments,
   ExtensionCommand.mdbRefreshCollection,
   ExtensionCommand.mdbRefreshDocumentList,
 
@@ -868,20 +867,27 @@ export default class MDBExtensionController implements vscode.Disposable {
       },
     );
     this.registerCommand(
-      ExtensionCommand.mdbViewCollectionDocuments,
-      (element: CollectionTreeItem): Promise<boolean> => {
-        const namespace = `${element.databaseName}.${element.collectionName}`;
-
-        return this._editorsController.onViewCollectionDocuments(namespace);
-      },
-    );
-    this.registerCommand(
       ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
-      (element: ShowPreviewTreeItem): Promise<boolean> => {
+      (
+        element:
+          | ShowPreviewTreeItem
+          | CollectionTreeItem
+          | {
+              databaseName: string;
+              collectionName: string;
+              type?: string;
+              collection?: { type?: string };
+            },
+      ): Promise<boolean> => {
+        const collectionType =
+          ('type' in element && element.type) ||
+          ('collection' in element && element.collection?.type) ||
+          'collection';
+
         this._dataBrowsingController.openDataBrowser(this._context, {
           databaseName: element.databaseName,
           collectionName: element.collectionName,
-          collectionType: element.type,
+          collectionType,
         });
 
         return Promise.resolve(true);
