@@ -39,7 +39,6 @@ suite('Extension Test Suite', function () {
       'mdb.copyDatabaseName',
       'mdb.refreshDatabase',
       'mdb.addCollection',
-      'mdb.viewCollectionDocuments',
       'mdb.refreshDocumentList',
       'mdb.searchForDocuments',
       'mdb.copyCollectionName',

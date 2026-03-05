@@ -56,7 +56,6 @@ export const ExtensionCommand = {
   mdbAddCollection: 'mdb.addCollection',
   mdbCopyCollectionName: 'mdb.copyCollectionName',
   mdbDropCollection: 'mdb.dropCollection',
-  mdbViewCollectionDocuments: 'mdb.viewCollectionDocuments',
   mdbRefreshCollection: 'mdb.refreshCollection',
   mdbRefreshDocumentList: 'mdb.refreshDocumentList',
   mdbInsertDocumentFromTreeView: 'mdb.insertDocumentFromTreeView',
