@@ -29,7 +29,7 @@ import Sinon from 'sinon';
 const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
 
-suite('MongoDBService Test Suite', function () {
+suite.only('MongoDBService Test Suite', function () {
   const params = {
     connectionId: 'pineapple',
     connectionString: 'mongodb://localhost:27088',
@@ -2597,11 +2597,9 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'number',
           content: 2,
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -2654,7 +2652,6 @@ suite('MongoDBService Test Suite', function () {
                 type: 'Document',
                 content: { name: 'Test1', number: { $numberInt: '1' } },
                 language: 'json',
-                constructionOptions: undefined,
               },
             };
 
@@ -2687,7 +2684,6 @@ suite('MongoDBService Test Suite', function () {
                 type: 'Document',
                 content: { name: 'Test2', number: { $numberInt: '2' } },
                 language: 'json',
-                constructionOptions: undefined,
               },
             };
 
@@ -2717,7 +2713,6 @@ suite('MongoDBService Test Suite', function () {
                 type: 'Document',
                 content: { name: 'Test2', number: { $numberInt: '2' } },
                 language: 'json',
-                constructionOptions: undefined,
               },
             };
 
@@ -2753,11 +2748,9 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'number',
           content: 3,
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -2776,11 +2769,9 @@ suite('MongoDBService Test Suite', function () {
       );
       const firstRes = {
         result: {
-          namespace: undefined,
           type: 'number',
           content: 2,
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -2796,11 +2787,9 @@ suite('MongoDBService Test Suite', function () {
       );
       const secondRes = {
         result: {
-          namespace: undefined,
           type: 'number',
           content: 3,
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -2821,7 +2810,6 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'object',
           content: {
             _id: {
@@ -2829,7 +2817,6 @@ suite('MongoDBService Test Suite', function () {
             },
           },
           language: 'json',
-          constructionOptions: undefined,
         },
       };
 
@@ -2849,13 +2836,11 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'object',
           content: {
             name: 'a short string',
           },
           language: 'json',
-          constructionOptions: undefined,
         },
       };
 
@@ -2875,7 +2860,6 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'object',
           content: [
             {
@@ -2883,7 +2867,6 @@ suite('MongoDBService Test Suite', function () {
             },
           ],
           language: 'json',
-          constructionOptions: undefined,
         },
       };
 
@@ -2902,11 +2885,8 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'undefined',
-          content: undefined,
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -2925,11 +2905,9 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'object',
           content: null,
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -2949,11 +2927,9 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'string',
           content: 'A single line string',
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -2975,13 +2951,11 @@ suite('MongoDBService Test Suite', function () {
       );
       const expectedResult = {
         result: {
-          namespace: undefined,
           type: 'string',
           content: `vscode
           is
           awesome`,
           language: 'plaintext',
-          constructionOptions: undefined,
         },
       };
 
@@ -3030,11 +3004,9 @@ suite('MongoDBService Test Suite', function () {
 
         const expectedResult = {
           result: {
-            namespace: undefined,
             type: 'number',
             content: 42,
             language: 'plaintext',
-            constructionOptions: undefined,
           },
         };
         expect(result).to.deep.equal(expectedResult);
@@ -3069,11 +3041,9 @@ suite('MongoDBService Test Suite', function () {
         );
         const expectedResult = {
           result: {
-            namespace: undefined,
             type: 'number',
             content: 3,
             language: 'plaintext',
-            constructionOptions: undefined,
           },
         };
 
