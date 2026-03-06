@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 export type ChatMetadata = {
   databaseName?: string;
   collectionName?: string;
-  docsChatbotConversationId?: string;
 };
 
 export class ChatMetadataStore {

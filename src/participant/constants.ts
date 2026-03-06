@@ -27,7 +27,6 @@ interface AskForNamespaceMetadata {
 interface DocsRequestMetadata {
   intent: 'docs';
   chatId: string;
-  docsChatbotMessageId?: string;
 }
 
 export interface ChatResult extends vscode.ChatResult {
@@ -97,16 +96,13 @@ export function queryRequestChatResult(
 
 export function docsRequestChatResult({
   chatId,
-  docsChatbotMessageId,
 }: {
   chatId: string;
-  docsChatbotMessageId?: string;
 }): ChatResult {
   return {
     metadata: {
       chatId,
       intent: 'docs',
-      docsChatbotMessageId,
     },
   };
 }
