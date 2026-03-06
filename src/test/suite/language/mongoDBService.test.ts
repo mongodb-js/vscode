@@ -29,7 +29,7 @@ import Sinon from 'sinon';
 const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
 
-suite.only('MongoDBService Test Suite', function () {
+suite('MongoDBService Test Suite', function () {
   const params = {
     connectionId: 'pineapple',
     connectionString: 'mongodb://localhost:27088',
