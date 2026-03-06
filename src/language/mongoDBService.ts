@@ -30,6 +30,9 @@ import type {
   ShellEvaluateResult,
   PlaygroundEvaluateParams,
   MongoClientOptions,
+  SerializedPlaygroundExecutionResult,
+  PlaygroundExecutionResult,
+  SerializedPlaygroundRunResult,
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 import { Visitor } from './visitor';
@@ -38,6 +41,7 @@ import LINKS from '../utils/links';
 
 import DiagnosticCode from './diagnosticCodes';
 import { getDBFromConnectionString } from '../utils/connection-string-db';
+import { EJSON } from 'bson';
 
 const PROJECT = '$project';
 
@@ -48,6 +52,43 @@ const MATCH = '$match';
 const SET_WINDOW_FIELDS = '$setWindowFields';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
+
+function parsePayload({
+  data,
+  error,
+}: SerializedPlaygroundExecutionResult): PlaygroundExecutionResult {
+  const result = {
+    data:
+      data && data.result
+        ? {
+            result: {
+              content: data.result.content,
+              language: data.result.language,
+              namespace: data.result.namespace,
+              type: data.result.type,
+              // Turn the stringified constructionOptions back to an object, if it
+              // exists. This way cursors with query parameters that contain things
+              // like dates will be reconstructed correctly
+              constructionOptions: data.result.constructionOptions
+                ? EJSON.parse(data.result.constructionOptions, {
+                    relaxed: false,
+                  })
+                : undefined,
+            },
+          }
+        : null,
+    error,
+  };
+
+  if (result.data) {
+    for (const key in result.data.result) {
+      if (typeof result.data.result[key] === 'undefined') {
+        delete result.data.result[key];
+      }
+    }
+  }
+  return result;
+}
 
 interface ServiceProviderParams {
   connectionId: string | null;
@@ -272,10 +313,12 @@ export default class MongoDBService {
           }
 
           if (name === ServerCommand.codeExecutionResult) {
-            const { error, data } = payload as {
-              data: ShellEvaluateResult | null;
-              error?: any;
-            };
+            const { error, data } = parsePayload(
+              payload as SerializedPlaygroundExecutionResult,
+            );
+            console.log(
+              util.inspect({ error, data, payload }, { depth: null }),
+            );
             if (error) {
               this._connection.console.error(
                 `WORKER error: ${util.inspect(error)}`,

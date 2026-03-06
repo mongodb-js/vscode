@@ -9,6 +9,9 @@ import { ServerCommand } from './serverCommands';
 import type {
   ShellEvaluateResult,
   MongoClientOptions,
+  SerializedPlaygroundRunResult,
+  PlaygroundExecutionResult,
+  SerializedPlaygroundExecutionResult,
 } from '../types/playgroundType';
 import { getEJSON } from '../utils/ejson';
 import type { DocumentViewAndEditFormat } from '../editors/types';
@@ -142,7 +145,7 @@ export const execute = async ({
       type: type ? type : typeof rpcSafePrintable,
       content,
       language: getLanguage(content, expectedFormat),
-      constructionOptions,
+      constructionOptions: constructionOptions,
     };
 
     return { data: { result } };
@@ -153,11 +156,6 @@ export const execute = async ({
   }
 };
 
-type Payload = {
-  data: ShellEvaluateResult | null;
-  error?: Error;
-};
-
 type MessageFromParentPort = {
   name: string;
   data: Parameters<typeof execute>[0];
@@ -166,10 +164,15 @@ type MessageFromParentPort = {
 type HandleMessageDeps = {
   executeFn?: typeof execute;
   isSafeQueryResultFn?: typeof isSafeQueryResult;
-  postMessageFn?: (message: { name: string; payload: Payload }) => void;
+  postMessageFn?: (message: {
+    name: string;
+    payload: SerializedPlaygroundExecutionResult;
+  }) => void;
 };
 
-function stripConstructionOptions(payload: Payload): Payload {
+function stripConstructionOptions(
+  payload: PlaygroundExecutionResult,
+): PlaygroundExecutionResult {
   const clone = _.cloneDeep(payload);
   if (clone.data?.result?.constructionOptions) {
     delete clone.data?.result?.constructionOptions;
@@ -187,19 +190,45 @@ export const handleMessageFromParentPort = async (
 ): Promise<void> => {
   if (name === ServerCommand.executeCodeFromPlayground) {
     const payload = await executeFn(data);
-    // .map() cannot be cloned by  so just strip the constructionOptions and
-    // then it won't be opened in the data browser and this result gets the
-    // usual fallback experience
-    const safePayload =
+    // .map() cannot be cloned so just strip the constructionOptions and then it
+    // won't be opened in the data browser and this result gets the usual
+    // fallback experience
+    const safePayload: SerializedPlaygroundExecutionResult = serializePayload(
       payload.data?.result && isSafeQueryResultFn(payload.data.result)
         ? payload
-        : stripConstructionOptions(payload);
+        : stripConstructionOptions(payload),
+    );
+
     postMessageFn({
       name: ServerCommand.codeExecutionResult,
       payload: safePayload,
     });
   }
 };
+
+export function serializePayload(
+  payload: PlaygroundExecutionResult,
+): SerializedPlaygroundExecutionResult {
+  return {
+    data: payload.data?.result
+      ? {
+          result: {
+            content: payload.data.result.content,
+            language: payload.data.result.language,
+            namespace: payload.data.result.namespace,
+            type: payload.data.result.type,
+            constructionOptions: EJSON.stringify(
+              payload.data.result.constructionOptions,
+              { relaxed: false },
+            ),
+          },
+        }
+      : {
+          result: null,
+        },
+    error: payload.error,
+  };
+}
 
 // parentPort allows communication with the parent thread.
 parentPort?.once('message', (message: MessageFromParentPort): void => {
