@@ -44,6 +44,7 @@ import {
   DataBrowserDocumentDeletedTelemetryEvent,
   DataBrowserClosedTelemetryEvent,
 } from '../telemetry';
+import { serializeBSON } from '../language/serializer';
 
 const log = createLogger('data browsing controller');
 
@@ -799,6 +800,7 @@ export default class DataBrowsingController {
     if (!connectionOptions) {
       throw new Error('No connection options found');
     }
+
     // TODO(VSCODE-757, VSCODE-758): connect only once and reuse the connection
     // for subsequent requests instead of reconnecting every time. Or switch to
     // only using node service provider in the whole extension, then use the
@@ -991,7 +993,7 @@ export default class DataBrowsingController {
       webview: panel.webview,
       databaseName: options.databaseName,
       collectionName: options.collectionName,
-      query: JSON.stringify(options.query),
+      query: serializeBSON(options.query),
     });
 
     panel.webview.onDidReceiveMessage(
