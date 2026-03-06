@@ -13,7 +13,7 @@ import {
   type SortValueKey,
 } from '../extension-app-message-constants';
 import type { ServiceProvider } from '@mongosh/service-provider-core';
-import { EJSON } from 'bson';
+import { deserializeBSON } from '../../../language/serializer';
 
 export interface PreviewDocument {
   [key: string]: unknown;
@@ -163,7 +163,7 @@ export const getInitialQuery = (): ServiceProviderQuery | null => {
     window.MDB_DATA_BROWSING_OPTIONS?.query
   ) {
     const queryString = window.MDB_DATA_BROWSING_OPTIONS.query;
-    return EJSON.parse(queryString, { relaxed: false }) as ServiceProviderQuery;
+    return deserializeBSON(queryString) as ServiceProviderQuery;
   }
   return null;
 };

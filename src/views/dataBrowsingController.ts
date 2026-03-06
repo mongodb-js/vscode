@@ -44,6 +44,7 @@ import {
   DataBrowserDocumentDeletedTelemetryEvent,
   DataBrowserClosedTelemetryEvent,
 } from '../telemetry';
+import { serializeBSON } from '../language/serializer';
 
 const log = createLogger('data browsing controller');
 
@@ -992,7 +993,7 @@ export default class DataBrowsingController {
       webview: panel.webview,
       databaseName: options.databaseName,
       collectionName: options.collectionName,
-      query: EJSON.stringify(options.query, { relaxed: false }),
+      query: serializeBSON(options.query),
     });
 
     panel.webview.onDidReceiveMessage(
