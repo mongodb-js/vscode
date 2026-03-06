@@ -17,6 +17,7 @@ import type {
 } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
 import { ServerCommand } from './serverCommands';
+import { deserializeBSON } from './serializer';
 
 const log = createLogger('language server controller');
 
@@ -178,10 +179,12 @@ export default class LanguageServerController {
     // Send a request with a cancellation token
     // to the language server instance to execute scripts from a playground
     // and return results to the playground controller when ready.
-    const res: ShellEvaluateResult = await this._client.sendRequest(
-      ServerCommand.executeCodeFromPlayground,
-      playgroundExecuteParameters,
-      token,
+    const res: ShellEvaluateResult = deserializeBSON(
+      await this._client.sendRequest(
+        ServerCommand.executeCodeFromPlayground,
+        playgroundExecuteParameters,
+        token,
+      ),
     );
 
     log.info('Evaluate response', {

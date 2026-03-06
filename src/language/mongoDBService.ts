@@ -38,6 +38,7 @@ import LINKS from '../utils/links';
 
 import DiagnosticCode from './diagnosticCodes';
 import { getDBFromConnectionString } from '../utils/connection-string-db';
+import { deserializeBSON, serializeBSON } from './serializer';
 
 const PROJECT = '$project';
 
@@ -272,34 +273,34 @@ export default class MongoDBService {
           }
 
           if (name === ServerCommand.codeExecutionResult) {
-            const { error, data } = payload as {
+            const result = deserializeBSON(payload) as {
               data: ShellEvaluateResult | null;
               error?: any;
             };
-            if (error) {
+            if (result.error) {
               this._connection.console.error(
-                `WORKER error: ${util.inspect(error)}`,
+                `WORKER error: ${util.inspect(result.error)}`,
               );
               void this._connection.sendNotification(
                 ServerCommand.showErrorMessage,
-                formatError(error).message,
+                formatError(result.error).message,
               );
             }
             void worker.terminate().then(() => {
-              resolve(data);
+              resolve(result.data);
             });
           }
         });
 
         worker.postMessage({
           name: ServerCommand.executeCodeFromPlayground,
-          data: {
+          data: serializeBSON({
             codeToEvaluate: params.codeToEvaluate,
             expectedFormat: params.expectedFormat,
             filePath: params.filePath,
             connectionString: this.connectionString,
             connectionOptions: this.connectionOptions,
-          },
+          }),
         });
 
         // Listen for cancellation request from the language server client.

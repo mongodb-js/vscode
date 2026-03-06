@@ -13,6 +13,7 @@ import type {
 import { getEJSON } from '../utils/ejson';
 import type { DocumentViewAndEditFormat } from '../editors/types';
 import { isSafeQueryResult } from '../editors/result-utils';
+import { deserializeBSON, serializeBSON } from './serializer';
 
 interface EvaluationResult {
   printable: any;
@@ -153,23 +154,25 @@ export const execute = async ({
   }
 };
 
-type Payload = {
+type ExecuteCodeFromPlaygroundResult = {
   data: ShellEvaluateResult | null;
   error?: Error;
 };
 
 type MessageFromParentPort = {
   name: string;
-  data: Parameters<typeof execute>[0];
+  data: string;
 };
 
 type HandleMessageDeps = {
   executeFn?: typeof execute;
   isSafeQueryResultFn?: typeof isSafeQueryResult;
-  postMessageFn?: (message: { name: string; payload: Payload }) => void;
+  postMessageFn?: (message: { name: string; payload: string }) => void;
 };
 
-function stripConstructionOptions(payload: Payload): Payload {
+function stripConstructionOptions(
+  payload: ExecuteCodeFromPlaygroundResult,
+): ExecuteCodeFromPlaygroundResult {
   const clone = _.cloneDeep(payload);
   if (clone.data?.result?.constructionOptions) {
     delete clone.data?.result?.constructionOptions;
@@ -178,25 +181,26 @@ function stripConstructionOptions(payload: Payload): Payload {
 }
 
 export const handleMessageFromParentPort = async (
-  { name, data }: MessageFromParentPort,
+  { name, data: _data }: MessageFromParentPort,
   {
     executeFn = execute,
     isSafeQueryResultFn = isSafeQueryResult,
     postMessageFn = (message) => parentPort?.postMessage(message),
   }: HandleMessageDeps = {},
 ): Promise<void> => {
+  const data = deserializeBSON(_data);
   if (name === ServerCommand.executeCodeFromPlayground) {
-    const payload = await executeFn(data);
+    const result = await executeFn(data);
     // .map() cannot be cloned by  so just strip the constructionOptions and
     // then it won't be opened in the data browser and this result gets the
     // usual fallback experience
-    const safePayload =
-      payload.data?.result && isSafeQueryResultFn(payload.data.result)
-        ? payload
-        : stripConstructionOptions(payload);
+    const safeResult =
+      result.data?.result && isSafeQueryResultFn(result.data.result)
+        ? result
+        : stripConstructionOptions(result);
     postMessageFn({
       name: ServerCommand.codeExecutionResult,
-      payload: safePayload,
+      payload: serializeBSON(safeResult),
     });
   }
 };
