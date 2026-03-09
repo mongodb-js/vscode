@@ -14,3 +14,5 @@ src/test/ai-accuracy-tests/test-results.html
 .yalc
 yalc.lock
 .pnpm-store
+playwright-report
+test-results
