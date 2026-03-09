@@ -1,5 +1,39 @@
 # Change Log
 
+## [v1.15.1](https://github.com/mongodb-js/vscode/releases/tag/v1.15.1) - 2026-03-09
+
+Edit the release notes before publishing.
+
+## What's Changed
+* fix: just hide the total count rather than displaying N/A VSCODE-765 by @lerouxb in https://github.com/mongodb-js/vscode/pull/1276
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.15.0...v1.15.1
+
+
+## [v1.15.0](https://github.com/mongodb-js/vscode/releases/tag/v1.15.0) - 2026-03-09
+
+## What's Changed
+
+* a new data browser for viewing documents in a collection
+ - list controls 
+ - change sort order
+ - change the number per page
+ - paginate through results
+ - insert document
+ - delete documents
+ - per document controls
+ - copy to clipboard
+ - edit document
+ - clone document
+ - delete document
+* open playground cursor results in the new data browser with most of the same new list controls
+* better document titles
+* the default document format is now shell syntax (matching playgrounds, mongosh, compass, etc.)
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.14.6...v1.15.0
+
+
 ## [v1.14.6](https://github.com/mongodb-js/vscode/releases/tag/v1.14.6) - 2026-01-15
 
 ## What's Changed
