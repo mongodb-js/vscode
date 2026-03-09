@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { getSimplifiedSchema, parseSchema } from 'mongodb-schema';
 import type { Document } from 'bson';
-import type { Reference } from 'mongodb-rag-core';
+import type { ModelMessage } from 'ai';
+import type { Reference } from './docsChatbotAIService';
 import util from 'util';
 
 import { createLogger } from '../logging';
@@ -1584,9 +1585,8 @@ export default class ParticipantController {
     request: vscode.ChatRequest;
     stream: vscode.ChatResponseStream;
   }): Promise<{
-    responseContent: string;
     responseReferences?: Reference[];
-    docsChatbotMessageId: string;
+    outputLength: number;
   }> {
     const prompt = request.prompt;
     stream.push(
@@ -1595,42 +1595,26 @@ export default class ParticipantController {
       ),
     );
 
-    let { docsChatbotConversationId } =
-      this._chatMetadataStore.getChatMetadata(chatId) ?? {};
     const abortController = new AbortController();
     token.onCancellationRequested(() => {
       abortController.abort();
     });
-    if (!docsChatbotConversationId) {
-      const conversation = await this._docsChatbotAIService.createConversation({
-        signal: abortController.signal,
-      });
-      docsChatbotConversationId = conversation._id;
-      this._chatMetadataStore.setChatMetadata(chatId, {
-        docsChatbotConversationId,
-      });
-      log.info('Docs chatbot created for chatId', chatId);
-    }
 
     const history = await PromptHistory.getFilteredHistoryForDocs({
       connectionNames: this._getConnectionNames(),
       context: context,
     });
 
-    const previousMessages =
-      history.length > 0
-        ? `${history
-            .map((message: vscode.LanguageModelChatMessage) =>
-              getContent(message),
-            )
-            .join('\n\n')}\n\n`
-        : '';
-
-    const response = await this._docsChatbotAIService.addMessage({
-      message: `${previousMessages}${prompt}`,
-      conversationId: docsChatbotConversationId,
-      signal: abortController.signal,
-    });
+    const messages: ModelMessage[] = [
+      ...history.map((message: vscode.LanguageModelChatMessage) => ({
+        role:
+          message.role === vscode.LanguageModelChatMessageRole.User
+            ? ('user' as const)
+            : ('assistant' as const),
+        content: getContent(message),
+      })),
+      { role: 'user' as const, content: prompt },
+    ];
 
     const stats = Prompts.docs.getStats(history, { request, context });
 
@@ -1638,17 +1622,25 @@ export default class ParticipantController {
       new ParticipantPromptSubmittedTelemetryEvent(stats),
     );
 
-    log.info('Docs chatbot message sent', {
-      chatId,
-      docsChatbotConversationId,
-      docsChatbotMessageId: response.id,
+    const result = this._docsChatbotAIService.streamMessage({
+      messages,
+      signal: abortController.signal,
     });
 
-    return {
-      responseContent: response.content,
-      responseReferences: response.references,
-      docsChatbotMessageId: response.id,
-    };
+    let outputLength = 0;
+    for await (const chunk of result.textStream) {
+      outputLength += chunk.length;
+      stream.markdown(chunk);
+    }
+
+    const sources = await result.sources;
+    const responseReferences: Reference[] = sources
+      .filter((s) => s.sourceType === 'url')
+      .map((s) => ({ url: s.url, title: s.title ?? s.url }));
+
+    log.info('Docs chatbot message streamed', { chatId, outputLength });
+
+    return { responseReferences, outputLength };
   }
 
   async _handleDocsRequestWithCopilot(
@@ -1730,9 +1722,8 @@ export default class ParticipantController {
       context.history,
     );
     let docsResult: {
-      responseContent?: string;
       responseReferences?: Reference[];
-      docsChatbotMessageId?: string;
+      outputLength?: number;
     } = {};
 
     try {
@@ -1743,10 +1734,6 @@ export default class ParticipantController {
         stream,
         context,
       });
-
-      if (docsResult.responseContent) {
-        stream.markdown(docsResult.responseContent);
-      }
 
       if (docsResult.responseReferences) {
         for (const reference of docsResult.responseReferences) {
@@ -1760,10 +1747,10 @@ export default class ParticipantController {
       this._telemetryService.track(
         new ParticipantResponseGeneratedTelemetryEvent({
           command: 'docs/chatbot',
-          hasCta: !!docsResult.responseReferences,
+          hasCta: !!docsResult.responseReferences?.length,
           foundNamespace: false,
           hasRunnableContent: false,
-          outputLength: docsResult.responseContent?.length ?? 0,
+          outputLength: docsResult.outputLength ?? 0,
         }),
       );
     } catch (error) {
@@ -1788,10 +1775,7 @@ export default class ParticipantController {
       await this._handleDocsRequestWithCopilot(...args);
     }
 
-    return docsRequestChatResult({
-      chatId,
-      docsChatbotMessageId: docsResult.docsChatbotMessageId,
-    });
+    return docsRequestChatResult({ chatId });
   }
 
   async selectLanguageWithQuickPick(): Promise<string | undefined> {
@@ -2020,40 +2004,7 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     }
   }
 
-  async _rateDocsChatbotMessage(
-    feedback: vscode.ChatResultFeedback,
-  ): Promise<void> {
-    const chatId = feedback.result.metadata?.chatId;
-    if (!chatId) {
-      return;
-    }
-
-    const { docsChatbotConversationId } =
-      this._chatMetadataStore.getChatMetadata(chatId) ?? {};
-    if (
-      !docsChatbotConversationId ||
-      !feedback.result.metadata?.docsChatbotMessageId
-    ) {
-      return;
-    }
-
-    try {
-      const rating = await this._docsChatbotAIService.rateMessage({
-        conversationId: docsChatbotConversationId,
-        messageId: feedback.result.metadata?.docsChatbotMessageId,
-        rating: !!feedback.kind,
-      });
-      log.info('Docs chatbot rating sent', rating);
-    } catch (error) {
-      log.error(error);
-    }
-  }
-
-  async handleUserFeedback(feedback: vscode.ChatResultFeedback): Promise<void> {
-    if (feedback.result.metadata?.intent === 'docs') {
-      await this._rateDocsChatbotMessage(feedback);
-    }
-
+  handleUserFeedback(feedback: vscode.ChatResultFeedback): void {
     // unhelpfulReason is available in insider builds and is accessed through
     // https://github.com/microsoft/vscode/blob/main/src/vscode-dts/vscode.proposed.chatParticipantAdditions.d.ts
     // Since this is a proposed API, we can't depend on it being available, which is why
