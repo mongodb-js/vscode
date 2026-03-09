@@ -133,38 +133,31 @@ test('playground aggregation results appear in data browsing view', async () => 
   //
   // So we expect 3 results.
 
-  // Check that at least some document content is visible in the webview.
-  // Monaco viewer word-wraps long text, so we collapse whitespace before comparing.
+  // Verify the correct number of document cards are rendered
+  const cards = frameLocator.locator('[data-testid="monaco-viewer-container"]');
+  await expect(cards).toHaveCount(3, { timeout: 30_000 });
+
+  // Verify each expected item appears in its own document card
+  // and that the filtered-out item does not appear
   const normalize = (text: string) => text.replace(/\s+/g, ' ');
-
   await expect(async () => {
-    // TODO: let's not check the body text as one long string, let's rather try
-    // and use the usual locator queries? Except maybe we can get the monaco
-    // viewer content as one string and check that. But for everything else
-    // let's use normal locators.
-    const bodyText = normalize(
-      (await frameLocator.locator('body').textContent({ timeout: 5_000 })) ??
-        '',
+    const cardTexts = await cards.evaluateAll((els) =>
+      els.map((el) => el.textContent ?? ''),
     );
+    const allText = normalize(cardTexts.join(' '));
+
     // The results should contain our aggregated item names
-    expect(bodyText).toContain('thingamajig');
-    expect(bodyText).toContain('gadget');
-    expect(bodyText).toContain('widget');
+    expect(allText).toContain('thingamajig');
+    expect(allText).toContain('gadget');
+    expect(allText).toContain('widget');
     // doohickey should be filtered out (totalRevenue = 40, below threshold of 50)
-    expect(bodyText).not.toContain('doohickey');
-  }).toPass({ timeout: 30_000 });
+    expect(allText).not.toContain('doohickey');
 
-  // Verify computed fields are present
-  await expect(async () => {
-    const bodyText = normalize(
-      (await frameLocator.locator('body').textContent({ timeout: 5_000 })) ??
-        '',
-    );
-    // Check for the aggregation computed fields
-    expect(bodyText).toContain('totalQuantity');
-    expect(bodyText).toContain('totalRevenue');
-    expect(bodyText).toContain('revenueCategory');
+    // Verify computed fields are present in the document cards
+    expect(allText).toContain('totalQuantity');
+    expect(allText).toContain('totalRevenue');
+    expect(allText).toContain('revenueCategory');
     // thingamajig has revenue 500 >= 200, so should be "high"
-    expect(bodyText).toContain('high');
+    expect(allText).toContain('high');
   }).toPass({ timeout: 30_000 });
 });
