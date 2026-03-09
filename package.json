@@ -1435,33 +1435,14 @@
     ],
     "chatSkills": [
       {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-client-management/SKILL.md"
+        "path": "./agent-skills/skills/mongodb-mcp-setup/SKILL.md"
       },
       {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-data-modeling/SKILL.md"
-      },
-      {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-mcp-setup/SKILL.md"
-      },
-      {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-query-generator/SKILL.md"
-      },
-      {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-query-optimization/SKILL.md"
-      },
-      {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-search-ai/SKILL.md"
-      },
-      {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-stream-processing/SKILL.md"
-      },
-      {
-        "path": "./node_modules/@mongodb-js/agent-skills/skills/mongodb-transactions/SKILL.md"
+        "path": "./agent-skills/skills/mongodb-query-generator/SKILL.md"
       }
     ]
   },
   "dependencies": {
-    "@mongodb-js/agent-skills": "file:../agent-skills",
     "@babel/core": "^7.25.8",
     "@babel/parser": "^7.25.8",
     "@babel/traverse": "^7.25.7",
