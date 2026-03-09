@@ -22,6 +22,10 @@ let electronApp: ElectronApplication;
 let page: Page;
 
 test.beforeAll(async () => {
+  // TODO: it would be handy if this could recover from the process being killed
+  // in the middle of a test run and leaving the database running. Maybe we can
+  // check if the process is already running and kill it before starting a new
+  // one? Just in case stopMongoDB never ran.
   await startMongoDB();
   await seedDatabase();
 
@@ -49,6 +53,13 @@ test('playground aggregation results appear in data browsing view', async () => 
     `use('${TEST_DB_NAME}');`,
     '',
     'db.sales.aggregate([',
+    '  {',
+    '    $match: {',
+    // match on date as a regression test to make sure that bson values are
+    // serialised and deserialized correctly through all layers of IPC
+    '      date: { $gte: new Date("2023-01-01") },',
+    '    },',
+    '  },',
     '  {',
     '    $group: {',
     '      _id: "$item",',
@@ -131,6 +142,10 @@ test('playground aggregation results appear in data browsing view', async () => 
   const normalize = (text: string) => text.replace(/\s+/g, ' ');
 
   await expect(async () => {
+    // TODO: let's not check the body text as one long string, let's rather try
+    // and use the usual locator queries? Except maybe we can get the monaco
+    // viewer content as one string and check that. But for everything else
+    // let's use normal locators.
     const bodyText = normalize(
       (await frameLocator.locator('body').textContent({ timeout: 5_000 })) ??
         '',
