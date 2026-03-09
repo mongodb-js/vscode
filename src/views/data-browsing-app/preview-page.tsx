@@ -152,6 +152,53 @@ const insertDocumentButtonStyles = css({
   },
 });
 
+const Pagination: React.FC<{
+  startItem: number;
+  endItem: number;
+  totalCountForQuery: number | null;
+  hasReceivedCount: boolean;
+  getTotalCountError: string | null;
+}> = ({
+  startItem,
+  endItem,
+  totalCountForQuery,
+  hasReceivedCount,
+  getTotalCountError,
+}) => {
+  // If for some reason we couldn't determine the count, don't mention the total
+  // at all. If the count is still loading or there's an error, then we'll
+  // display a loading indicator or the error in place of the total.
+  if (hasReceivedCount && !getTotalCountError && totalCountForQuery === null) {
+    return (
+      <span className={paginationInfoStyles}>
+        {startItem}-{endItem}
+      </span>
+    );
+  }
+
+  return (
+    <span className={paginationInfoStyles}>
+      {startItem}-{endItem} of{' '}
+      {!hasReceivedCount ? (
+        <VscodeProgressRing
+          style={{
+            width: 14,
+            height: 14,
+            display: 'inline-block',
+            verticalAlign: 'middle',
+          }}
+        />
+      ) : getTotalCountError ? (
+        <span className={countErrorStyles} title={getTotalCountError}>
+          Error
+        </span>
+      ) : (
+        totalCountForQuery
+      )}
+    </span>
+  );
+};
+
 const PreviewApp: React.FC = () => {
   const dispatch = useAppDispatch();
 
@@ -297,31 +344,13 @@ const PreviewApp: React.FC = () => {
           </VscodeSingleSelect>
 
           {/* Pagination info */}
-          <span className={paginationInfoStyles}>
-            {startItem}-{endItem} of{' '}
-            {!hasReceivedCount ? (
-              <VscodeProgressRing
-                style={{
-                  width: 14,
-                  height: 14,
-                  display: 'inline-block',
-                  verticalAlign: 'middle',
-                }}
-              />
-            ) : getTotalCountError ? (
-              <span className={countErrorStyles} title={getTotalCountError}>
-                Error
-              </span>
-            ) : viewType === 'cursor' ? (
-              <span title="We don't know the total count">N/A</span>
-            ) : totalCountForQuery === null ? (
-              <span title="We don't run a count for time series and views">
-                N/A
-              </span>
-            ) : (
-              totalCountForQuery
-            )}
-          </span>
+          <Pagination
+            startItem={startItem}
+            endItem={endItem}
+            totalCountForQuery={totalCountForQuery}
+            hasReceivedCount={hasReceivedCount}
+            getTotalCountError={getTotalCountError}
+          />
 
           {/* Page navigation arrows */}
           <div className={paginationArrowsStyles}>
