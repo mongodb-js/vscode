@@ -217,7 +217,10 @@ const PreviewApp: React.FC = () => {
   };
 
   return (
-    <div className={containerStyles}>
+    <div
+      className={containerStyles}
+      data-vscode-context='{"preventDefaultContextMenuItems": true}'
+    >
       {/* Toolbar */}
       <div className={toolbarStyles}>
         {/* Left side - Insert Document */}
