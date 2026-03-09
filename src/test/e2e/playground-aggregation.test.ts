@@ -87,11 +87,7 @@ test('playground aggregation results appear in data browsing view', async () => 
 
   await createAndRunPlayground(electronApp, page, playgroundCode);
 
-  // Wait for the playground execution and data browser to open
-  // The aggregation result opens in a data browsing webview tab
-  await page.waitForTimeout(10_000);
-
-  // Wait for the data browser tab to appear
+  // Wait for the playground result tab to appear
   // The title pattern for playground results is "Playground Result: dbName.collectionName"
   await expect(async () => {
     const title = await page.title();

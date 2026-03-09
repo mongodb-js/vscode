@@ -137,10 +137,13 @@ export async function launchVSCode(): Promise<ElectronApplication> {
   // Download/resolve VS Code Insiders (reuses cached version)
   const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
 
-  // Use isolated directories for e2e tests
+  // Use isolated directories for e2e tests.
+  // Remove and recreate the user-data dir so stale connections from previous
+  // runs don't accumulate in the sidebar.
   const e2eTmpDir = path.join(os.tmpdir(), 'vscode-e2e-test');
   const userDataDir = path.join(e2eTmpDir, 'user-data');
   const extensionsDir = path.join(e2eTmpDir, 'extensions');
+  fs.rmSync(userDataDir, { recursive: true, force: true });
   fs.mkdirSync(userDataDir, { recursive: true });
   fs.mkdirSync(extensionsDir, { recursive: true });
 
@@ -161,6 +164,7 @@ export async function launchVSCode(): Promise<ElectronApplication> {
       'telemetry.telemetryLevel': 'off',
       'mdb.confirmRunAll': false,
       'mdb.showMCPAutoStartPrompt': false,
+      'mdb.showOverviewPageAfterInstall': false,
     }),
   );
 
@@ -196,8 +200,12 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
   await page.waitForSelector('.monaco-workbench', { timeout: 30_000 });
 
   // Wait for the MongoDB extension to fully activate.
-  // The "Add Connection" button appears in the sidebar welcome view after the
-  // extension's activate() runs and sets up tree views.
+  // Click on the MongoDB activity bar icon to open the sidebar, then wait
+  // for the "Add Connection" button which appears after activate() runs.
+  const mongoDBTab = page.getByRole('tab', { name: 'MongoDB' });
+  await mongoDBTab.first().waitFor({ state: 'visible', timeout: 30_000 });
+  await mongoDBTab.first().click();
+
   await page.getByRole('button', { name: 'Add Connection' }).first().waitFor({
     state: 'visible',
     timeout: 30_000,
@@ -207,17 +215,36 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
   await closeAllEditors(page);
 
   // Dismiss any notification banners that might appear (MCP, disabled extensions, etc.)
-  await page.waitForTimeout(2_000);
-  const notifications = page.locator(
+  // Give notifications a short window to appear, then dismiss any that are visible
+  const notificationToast = page.locator(
+    '.notifications-toasts .notification-toast',
+  );
+  await notificationToast
+    .first()
+    .waitFor({ state: 'visible', timeout: 3_000 })
+    .catch(() => {});
+  const dismissButtons = page.locator(
     '.notifications-toasts .notification-toast .codicon-notifications-clear',
   );
-  const notifCount = await notifications.count();
-  for (let i = 0; i < notifCount; i++) {
-    await notifications
-      .nth(0)
+  for (
+    let count = await dismissButtons.count();
+    count > 0;
+    count = await dismissButtons.count()
+  ) {
+    await dismissButtons
+      .first()
       .click()
       .catch(() => {});
-    await page.waitForTimeout(200);
+    // Wait for this notification to be dismissed before trying the next
+    await page
+      .waitForFunction(
+        (prevCount) =>
+          document.querySelectorAll('.notifications-toasts .notification-toast')
+            .length < prevCount,
+        count,
+        { timeout: 2_000 },
+      )
+      .catch(() => {});
   }
 }
 
@@ -226,7 +253,12 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
  */
 export async function closeAllEditors(page: Page): Promise<void> {
   await executeCommand(page, 'View: Close All Editors');
-  await page.waitForTimeout(500);
+  // Wait until all editor tabs are closed
+  await page
+    .locator('.editor-group-container .tab')
+    .first()
+    .waitFor({ state: 'hidden', timeout: 5_000 })
+    .catch(() => {});
 }
 
 /**
@@ -248,15 +280,23 @@ export async function executeCommand(
   // Wait for the command palette input to appear
   const quickInput = page.locator('.quick-input-widget input[type="text"]');
   await quickInput.waitFor({ state: 'visible', timeout: 5_000 });
-  await page.waitForTimeout(500);
 
   // Clear any existing text and type the command
   await quickInput.fill('>' + command);
-  await page.waitForTimeout(1_500);
+
+  // Wait for matching commands to appear in the quick pick list
+  await page
+    .locator('.quick-input-list .monaco-list-row')
+    .first()
+    .waitFor({ state: 'visible', timeout: 5_000 });
 
   // Select the first matching item
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(1_000);
+
+  // Wait for the command palette to close
+  await page
+    .locator('.quick-input-widget')
+    .waitFor({ state: 'hidden', timeout: 5_000 });
 }
 
 /**
@@ -274,30 +314,45 @@ export async function connectToMongoDB(page: Page): Promise<void> {
 
   let quickInput = page.locator('.quick-input-widget input[type="text"]');
   await quickInput.waitFor({ state: 'visible', timeout: 5_000 });
-  await page.waitForTimeout(300);
 
   // Step 2: Type the connect command and execute it
   await quickInput.fill('>MongoDB: Connect with Connection String');
-  await page.waitForTimeout(1_000);
+  await page
+    .locator('.quick-input-list .monaco-list-row')
+    .first()
+    .waitFor({ state: 'visible', timeout: 5_000 });
   await page.keyboard.press('Enter');
 
   // Step 3: Wait for the connection string input box to appear.
   // VS Code reuses the quick-input widget. After the command palette closes,
-  // showInputBox opens a new one. Wait a bit for the transition.
-  await page.waitForTimeout(2_000);
+  // showInputBox opens a new one. Wait for it to transition: the '>' prefix
+  // used by the command palette is cleared when the input box appears.
+  await page.waitForFunction(
+    () => {
+      const input = document.querySelector(
+        '.quick-input-widget input[type="text"]',
+      ) as HTMLInputElement | null;
+      return (
+        input && input.offsetParent !== null && !input.value.startsWith('>')
+      );
+    },
+    { timeout: 10_000 },
+  );
 
   // The input box should now be visible with the connection string placeholder
   quickInput = page.locator('.quick-input-widget input[type="text"]');
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-  await page.waitForTimeout(300);
 
   // Step 4: Type the connection string and submit
   await quickInput.fill(TEST_DATABASE_URI);
-  await page.waitForTimeout(500);
   await page.keyboard.press('Enter');
 
   // Step 5: Wait for connection to establish
-  await page.waitForTimeout(5_000);
+  // The connection appears as a tree item in the sidebar
+  await page
+    .locator('.monaco-list-row', { hasText: `localhost:${TEST_DATABASE_PORT}` })
+    .first()
+    .waitFor({ state: 'visible', timeout: 30_000 });
 }
 
 /**
@@ -310,7 +365,39 @@ export async function createAndRunPlayground(
 ): Promise<void> {
   // Create a new playground
   await executeCommand(page, 'MongoDB: Create MongoDB Playground');
-  await page.waitForTimeout(3_000);
+
+  // Wait for the new playground editor to be ready for input.
+  // The command creates an untitled document and opens it in the editor.
+  const editorViewLines = page.locator('.monaco-editor .view-lines').first();
+  await editorViewLines.waitFor({ state: 'visible', timeout: 30_000 });
+
+  // Dismiss any notifications that may have appeared (e.g. MCP auto-start)
+  // and could steal keyboard focus from the editor.
+  const dismissButtons = page.locator(
+    '.notifications-toasts .notification-toast .codicon-notifications-clear',
+  );
+  for (
+    let count = await dismissButtons.count();
+    count > 0;
+    count = await dismissButtons.count()
+  ) {
+    await dismissButtons
+      .first()
+      .click()
+      .catch(() => {});
+    await page
+      .waitForFunction(
+        (prevCount) =>
+          document.querySelectorAll('.notifications-toasts .notification-toast')
+            .length < prevCount,
+        count,
+        { timeout: 2_000 },
+      )
+      .catch(() => {});
+  }
+
+  // Click on the editor to ensure it has keyboard focus
+  await editorViewLines.click();
 
   // Select all existing content and replace with our playground
   const isMac = process.platform === 'darwin';
@@ -319,7 +406,6 @@ export async function createAndRunPlayground(
   } else {
     await page.keyboard.press('Control+A');
   }
-  await page.waitForTimeout(300);
 
   // Write to clipboard via Electron's main process API, then paste
   await electronApp.evaluate(async ({ clipboard }, text) => {
@@ -330,7 +416,20 @@ export async function createAndRunPlayground(
   } else {
     await page.keyboard.press('Control+V');
   }
-  await page.waitForTimeout(1_000);
+
+  // Wait for the pasted content to appear in the editor.
+  // Monaco virtualizes rendering, so lines scrolled out of view aren't in the
+  // DOM. Instead, verify the editor tab title updated to reflect the new content
+  // (VS Code uses the first line as the tab title for untitled files).
+  const firstLine = playgroundContent.split('\n')[0];
+  await page.waitForFunction(
+    (snippet) => {
+      const tabs = document.querySelectorAll('.tab .label-name');
+      return Array.from(tabs).some((tab) => tab.textContent?.includes(snippet));
+    },
+    firstLine,
+    { timeout: 15_000 },
+  );
 
   // Run the playground (confirmRunAll is disabled in settings)
   await executeCommand(page, 'MongoDB: Run All From Playground');
