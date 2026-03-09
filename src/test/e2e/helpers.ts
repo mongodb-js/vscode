@@ -1,6 +1,7 @@
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
+import { execSync } from 'child_process';
 import {
   _electron as electron,
   type ElectronApplication,
@@ -15,7 +16,22 @@ export const TEST_DB_NAME = 'e2eTestDB';
 
 let mongoCluster: MongoCluster | undefined;
 
+function killExistingProcessOnPort(port: string): void {
+  try {
+    const pids = execSync(`lsof -ti :${port}`, { encoding: 'utf-8' }).trim();
+    if (pids) {
+      for (const pid of pids.split('\n')) {
+        console.log(`Killing leftover process ${pid} on port ${port}`);
+        process.kill(Number(pid), 'SIGTERM');
+      }
+    }
+  } catch {
+    // lsof exits with code 1 when no process is found — that's fine
+  }
+}
+
 export async function startMongoDB(): Promise<void> {
+  killExistingProcessOnPort(TEST_DATABASE_PORT);
   console.log('Starting MongoDB server on port', TEST_DATABASE_PORT);
   mongoCluster = await MongoCluster.start({
     topology: 'standalone',

@@ -22,10 +22,6 @@ let electronApp: ElectronApplication;
 let page: Page;
 
 test.beforeAll(async () => {
-  // TODO: it would be handy if this could recover from the process being killed
-  // in the middle of a test run and leaving the database running. Maybe we can
-  // check if the process is already running and kill it before starting a new
-  // one? Just in case stopMongoDB never ran.
   await startMongoDB();
   await seedDatabase();
 
