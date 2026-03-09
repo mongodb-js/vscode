@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 /**
- * Scans node_modules/@mongodb-js/agent-skills/skills/ for SKILL.md files
+ * Scans agent-skills/skills/ (git submodule) for SKILL.md files
  * and updates the `contributes.chatSkills` array in package.json automatically.
  *
  * Usage:
@@ -18,8 +18,6 @@ const ROOT_DIR = path.join(__dirname, '..');
 const PACKAGE_JSON_PATH = path.join(ROOT_DIR, 'package.json');
 const SKILLS_DIR = path.join(
   ROOT_DIR,
-  'node_modules',
-  '@mongodb-js',
   'agent-skills',
   'skills',
 );
@@ -29,7 +27,7 @@ const CHECK_MODE = process.argv.includes('--check');
 function discoverSkills(): string[] {
   if (!fs.existsSync(SKILLS_DIR)) {
     console.warn(
-      `⚠  Skills directory not found at ${SKILLS_DIR}. Is @mongodb-js/agent-skills installed?`,
+      `⚠  Skills directory not found at ${SKILLS_DIR}. Is the agent-skills submodule initialised?`,
     );
     return [];
   }
@@ -49,7 +47,7 @@ function buildChatSkills(
   skillNames: string[],
 ): Array<{ path: string }> {
   return skillNames.map((name) => ({
-    path: `./node_modules/@mongodb-js/agent-skills/skills/${name}/SKILL.md`,
+    path: `./agent-skills/skills/${name}/SKILL.md`,
   }));
 }
 

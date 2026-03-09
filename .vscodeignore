@@ -2,7 +2,7 @@
 .vscode-test/**
 out/**
 node_modules/**
-!node_modules/@mongodb-js/agent-skills/**
+!agent-skills/**
 src/**
 .gitignore
 vsc-extension-quickstart.md
