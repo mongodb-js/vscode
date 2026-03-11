@@ -19,3 +19,16 @@ playgrounds/**
 resources
 .sbom/**
 CHANGELOG.md
+ext/**
+!ext/agent-skills/skills/**
+ext/agent-skills/skills/mongodb-mcp-setup/**
+.claude/**
+.github/**
+.husky/**
+.depcheckrc
+.gitmodules
+.prettierignore
+.snyk
+babel.config.json
+pnpm-lock.yaml
+scripts/**
