@@ -2,7 +2,7 @@
 .vscode-test/**
 out/**
 node_modules/**
-!agent-skills/**
+!agent-skills/skills/*/SKILL.md
 src/**
 .gitignore
 vsc-extension-quickstart.md
