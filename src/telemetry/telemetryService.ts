@@ -17,8 +17,6 @@ import {
   NewConnectionTelemetryEvent,
   SidePanelOpenedTelemetryEvent,
   ParticipantResponseFailedTelemetryEvent,
-  AgentSkillInvokedTelemetryEvent,
-  AgentSkillCompletedTelemetryEvent,
 } from './telemetryEvents';
 import { getDeviceId } from '@mongodb-js/device-id';
 
@@ -242,24 +240,7 @@ export class TelemetryService {
     { leading: true, trailing: false },
   );
 
-  trackAgentSkillInvoked(
-    skillName: string,
-    invocationSource: 'user' | 'model',
-  ): void {
-    this.track(
-      new AgentSkillInvokedTelemetryEvent(skillName, invocationSource),
-    );
-  }
 
-  trackAgentSkillCompleted(
-    skillName: string,
-    success: boolean,
-    mcpToolCalls: number,
-  ): void {
-    this.track(
-      new AgentSkillCompletedTelemetryEvent(skillName, success, mcpToolCalls),
-    );
-  }
 
   private getDeviceId(): Promise<string> {
     return getDeviceId({

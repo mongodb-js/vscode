@@ -833,47 +833,7 @@ export class DataBrowserCollectionRefreshedTelemetryEvent
   }
 }
 
-/** Reported when an agent skill is invoked by Copilot */
-export class AgentSkillInvokedTelemetryEvent implements TelemetryEventBase {
-  type = 'Agent Skill Invoked';
-  properties: {
-    /** The name of the skill that was invoked - e.g. 'mongodb-query-generator' */
-    skill_name: string;
 
-    /** Whether the skill was invoked by the user or by the model */
-    invocation_source: 'user' | 'model';
-  };
-
-  constructor(skillName: string, invocationSource: 'user' | 'model') {
-    this.properties = {
-      skill_name: skillName,
-      invocation_source: invocationSource,
-    };
-  }
-}
-
-/** Reported when an agent skill interaction completes */
-export class AgentSkillCompletedTelemetryEvent implements TelemetryEventBase {
-  type = 'Agent Skill Completed';
-  properties: {
-    /** The name of the skill that completed */
-    skill_name: string;
-
-    /** Whether the skill completed successfully */
-    success: boolean;
-
-    /** The number of MCP tool calls made during the skill interaction */
-    mcp_tool_calls: number;
-  };
-
-  constructor(skillName: string, success: boolean, mcpToolCalls: number) {
-    this.properties = {
-      skill_name: skillName,
-      success,
-      mcp_tool_calls: mcpToolCalls,
-    };
-  }
-}
 
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
@@ -908,6 +868,4 @@ export type TelemetryEvent =
   | DataBrowserDocumentInsertedTelemetryEvent
   | DataBrowserDocumentDeletedTelemetryEvent
   | DataBrowserClosedTelemetryEvent
-  | DataBrowserCollectionRefreshedTelemetryEvent
-  | AgentSkillInvokedTelemetryEvent
-  | AgentSkillCompletedTelemetryEvent;
+  | DataBrowserCollectionRefreshedTelemetryEvent;
