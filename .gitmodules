@@ -1,0 +1,3 @@
+[submodule "ext/agent-skills"]
+	path = ext/agent-skills
+	url = https://github.com/mongodb/agent-skills

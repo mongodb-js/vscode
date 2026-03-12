@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
@@ -37,6 +38,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
@@ -76,6 +78,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment
@@ -104,6 +107,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Setup Node environment
         uses: ./.github/workflows/actions/setup-node-environment

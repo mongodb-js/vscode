@@ -3,3 +3,4 @@ out
 dist
 scripts
 src/vscode-dts
+ext/agent-skills
