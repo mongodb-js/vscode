@@ -240,6 +240,8 @@ export class TelemetryService {
     { leading: true, trailing: false },
   );
 
+
+
   private getDeviceId(): Promise<string> {
     return getDeviceId({
       getMachineId: (): Promise<string> => nodeMachineId.machineId(true),

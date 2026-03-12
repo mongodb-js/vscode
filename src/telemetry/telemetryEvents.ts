@@ -833,6 +833,8 @@ export class DataBrowserCollectionRefreshedTelemetryEvent
   }
 }
 
+
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent

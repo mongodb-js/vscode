@@ -58,7 +58,8 @@
     "test-install": "bash ./scripts/test-vsix-install.sh",
     "ai-accuracy-tests": "env TS_NODE_FILES=true mocha -r ts-node/register --grep=\"${MOCHA_GREP}\" --file ./src/test/ai-accuracy-tests/test-setup.ts ./src/test/ai-accuracy-tests/ai-accuracy-tests.ts",
     "analyze-bundle": "webpack --mode production --analyze",
-    "vscode:prepublish": "pnpm run clean && pnpm run compile:constants && pnpm run compile:resources && webpack --mode production",
+    "sync-skills": "node ./scripts/sync-agent-skills.ts",
+    "vscode:prepublish": "pnpm run sync-skills && pnpm run clean && pnpm run compile:constants && pnpm run compile:resources && webpack --mode production",
     "check": "pnpm run lint && pnpm run depcheck",
     "depcheck": "depcheck",
     "package": "cross-env NODE_OPTIONS='--require ./scripts/no-npm-list-fail.js' vsce package --githubBranch main",
@@ -1388,6 +1389,11 @@
           "type": "number",
           "default": 120000,
           "description": "Controls how often the MongoDB MCP server runs the export cleanup process to remove expired files (in milliseconds). Default is 2 minutes (120000ms)."
+        },
+        "mongodb.agentSkills.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable MongoDB Agent Skills for GitHub Copilot."
         }
       }
     },
@@ -1425,6 +1431,14 @@
       {
         "id": "mongodb",
         "label": "MongoDB MCP Server Definition Provider"
+      }
+    ],
+    "chatSkills": [
+      {
+        "path": "./agent-skills/skills/mongodb-mcp-setup/SKILL.md"
+      },
+      {
+        "path": "./agent-skills/skills/mongodb-query-generator/SKILL.md"
       }
     ]
   },
