@@ -72,7 +72,7 @@
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
     "precommit": "node ./scripts/precommit.ts",
-    "sync-skills": "node ./scripts/sync-skills.ts && pnpm run reformat"
+    "sync-skills": "node ./scripts/sync-skills.ts && prettier --write package.json"
   },
   "engines": {
     "vscode": "^1.101.1",
