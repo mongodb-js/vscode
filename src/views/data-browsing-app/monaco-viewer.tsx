@@ -38,6 +38,99 @@ interface MonacoViewerProps {
   themeColors?: TokenColors;
   themeKind: MonacoBaseTheme;
 }
+// Maximum length for string values before truncation
+const MAX_VALUE_LENGTH = 70;
+
+/**
+ * Recursively truncate long string values in an object
+ * Returns both the truncated object and metadata about truncations
+ */
+function truncateLongValues(
+  obj: any,
+  truncationMap: Map<string, string>,
+  expandedPaths: Set<string>,
+  currentPath = '',
+): any {
+  if (typeof obj === 'string') {
+    if (obj.length > MAX_VALUE_LENGTH && !expandedPaths.has(currentPath)) {
+      truncationMap.set(currentPath, obj);
+      return obj.substring(0, MAX_VALUE_LENGTH) + '...';
+    }
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item, index) =>
+      truncateLongValues(
+        item,
+        truncationMap,
+        expandedPaths,
+        `${currentPath}[${index}]`,
+      ),
+    );
+  }
+
+  if (obj !== null && typeof obj === 'object') {
+    const result: Record<string, any> = Object.create(null);
+    for (const [key, value] of Object.entries(obj)) {
+      const newPath = currentPath ? `${currentPath}.${key}` : key;
+      result[key] = truncateLongValues(
+        value,
+        truncationMap,
+        expandedPaths,
+        newPath,
+      );
+    }
+    return result;
+  }
+
+  return obj;
+}
+
+/**
+ * Build a map from 1-based line number to JSON path for all truncated values.
+ * Finds each truncated value's content directly in the formatted text,
+ * avoiding fragile text-parsing heuristics.
+ */
+function buildLineToPathMap(
+  formattedText: string,
+  truncationMap: Map<string, string>,
+): Map<number, string> {
+  const lineToPath = new Map<number, string>();
+  if (truncationMap.size === 0) return lineToPath;
+
+  const lines = formattedText.split('\n');
+  for (const [path, fullValue] of truncationMap) {
+    const truncatedSnippet = fullValue.substring(0, MAX_VALUE_LENGTH) + '...';
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes(truncatedSnippet)) {
+        lineToPath.set(i + 1, path);
+        break;
+      }
+    }
+  }
+  return lineToPath;
+}
+
+/**
+ * Append ⋯ to truncated string lines in the formatted text.
+ */
+function addExpandIndicators(
+  formattedText: string,
+  lineToPathMap: Map<number, string>,
+): string {
+  if (lineToPathMap.size === 0) return formattedText;
+
+  const lines = formattedText.split('\n');
+  const result = lines.map((line, index) => {
+    if (lineToPathMap.has(index + 1) && line.match(/\.\.\.("|')(\s*,?\s*)$/)) {
+      return line.replace(/(\.\.\.("|'))(\s*,?\s*)$/, '$1 ⋯$3');
+    }
+    return line;
+  });
+  return result.join('\n');
+}
+
 const monacoWrapperStyles = css({
   // Hide Monaco's internal textarea elements that appear as white boxes
   '& .monaco-editor .native-edit-context': {
@@ -219,6 +312,10 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   const monaco = useMonaco();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const [editorHeight, setEditorHeight] = useState<number>(0);
+  const expandedPathsRef = useRef<Set<string>>(new Set());
+  const truncationMapRef = useRef<Map<string, string>>(new Map());
+  const lineToPathMapRef = useRef<Map<number, string>>(new Map());
+  const observerRef = useRef<MutationObserver | null>(null);
 
   // Monaco expects colors without the # prefix, so strip it here once.
   // Individual color properties may be undefined when the active VS Code
@@ -285,8 +382,20 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [monaco, colors, themeKind]);
 
   const documentString = useMemo(() => {
+    // Clear and rebuild truncation map
+    truncationMapRef.current.clear();
     const deserialized = EJSON.deserialize(document, { relaxed: false });
-    return toJSString(deserialized) ?? '';
+    const truncated = truncateLongValues(
+      deserialized,
+      truncationMapRef.current,
+      expandedPathsRef.current,
+    );
+    const formatted = toJSString(truncated) ?? '';
+    lineToPathMapRef.current = buildLineToPathMap(
+      formatted,
+      truncationMapRef.current,
+    );
+    return addExpandIndicators(formatted, lineToPathMapRef.current);
   }, [document]);
 
   const calculateHeight = useCallback(() => {
@@ -305,6 +414,22 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     setEditorHeight(calculateHeight());
   }, [documentString, calculateHeight]);
 
+  // Apply gray color and pointer cursor to ⋯ characters in the editor DOM.
+  // Monaco's tokenizer assigns its own color classes to text spans, and
+  // CSS class-based overrides cannot reliably beat them. Setting inline
+  // styles directly on the spans is the only approach that works.
+  const styleExpandIndicators = useCallback(() => {
+    const dom = editorRef.current?.getDomNode();
+    if (!dom) return;
+    dom.querySelectorAll('.view-lines span').forEach((span) => {
+      const el = span as HTMLElement;
+      if (el.children.length === 0 && el.textContent?.includes('⋯')) {
+        el.style.setProperty('color', '#888', 'important');
+        el.style.setProperty('cursor', 'pointer');
+      }
+    });
+  }, []);
+
   const handleEditorMount = useCallback(
     (
       editorInstance: editor.IStandaloneCodeEditor,
@@ -313,7 +438,11 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       >[1],
     ) => {
       editorRef.current = editorInstance;
-      setEditorHeight(calculateHeight());
+
+      setTimeout(() => {
+        setEditorHeight(calculateHeight());
+        styleExpandIndicators();
+      }, 0);
 
       // Fold all levels except the outermost object
       const runFold = (): void => {
@@ -339,14 +468,81 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         },
       });
 
-      const disposable = editorInstance.onDidContentSizeChange(() => {
-        const contentHeight = editorInstance.getContentHeight();
-        setEditorHeight(contentHeight);
+      const d1 = editorInstance.onDidContentSizeChange(() => {
+        setEditorHeight(editorInstance.getContentHeight());
       });
 
-      (editorInstance as any).__foldDisposables = [disposable, copyKeybinding];
+      // Use a MutationObserver on .view-lines to re-style ⋯ spans whenever
+      // Monaco re-renders them (content edits, fold/unfold, re-tokenization).
+      // This is more reliable than timing-based approaches because Monaco's
+      // async tokenizer can re-create spans across multiple frames.
+      const viewLines = editorInstance
+        .getDomNode()
+        ?.querySelector('.view-lines');
+      if (viewLines) {
+        let styleTimeout: ReturnType<typeof setTimeout> | undefined;
+        observerRef.current = new MutationObserver(() => {
+          clearTimeout(styleTimeout);
+          styleTimeout = setTimeout(styleExpandIndicators, 0);
+        });
+        observerRef.current.observe(viewLines, {
+          childList: true,
+          subtree: true,
+        });
+      }
+
+      // Handle clicks on ⋯ to expand truncated values
+      const d3 = editorInstance.onMouseDown((e) => {
+        const model = editorInstance.getModel();
+        if (!model || !e.target.position) return;
+
+        const position = e.target.position;
+        const lineContent = model.getLineContent(position.lineNumber);
+        const ellipsisIndex = lineContent.indexOf('⋯');
+        const clickedOnEllipsis =
+          ellipsisIndex !== -1 &&
+          Math.abs(position.column - (ellipsisIndex + 1)) <= 3;
+
+        if (clickedOnEllipsis) {
+          const pathAtPosition =
+            lineToPathMapRef.current.get(position.lineNumber) ?? null;
+
+          if (pathAtPosition && truncationMapRef.current.has(pathAtPosition)) {
+            const fullValue = truncationMapRef.current.get(pathAtPosition)!;
+            const truncatedValue =
+              fullValue.substring(0, MAX_VALUE_LENGTH) + '...';
+
+            const formattedFull = toJSString(fullValue) ?? '';
+            const formattedTruncated = toJSString(truncatedValue) ?? '';
+
+            const lineContent = model.getLineContent(position.lineNumber);
+            const newLine = lineContent.replace(
+              `${formattedTruncated} ⋯`,
+              formattedFull,
+            );
+
+            const lineLength = model.getLineLength(position.lineNumber);
+            model.applyEdits([
+              {
+                range: {
+                  startLineNumber: position.lineNumber,
+                  startColumn: 1,
+                  endLineNumber: position.lineNumber,
+                  endColumn: lineLength + 1,
+                },
+                text: newLine,
+              },
+            ]);
+
+            expandedPathsRef.current.add(pathAtPosition);
+            truncationMapRef.current.delete(pathAtPosition);
+          }
+        }
+      });
+
+      (editorInstance as any).__foldDisposables = [d1, d3, copyKeybinding];
     },
-    [calculateHeight],
+    [calculateHeight, styleExpandIndicators],
   );
 
   // Cleanup effect to dispose event listeners when component unmounts
@@ -356,6 +552,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       if (disposables) {
         disposables.forEach((d: any) => d.dispose());
       }
+      observerRef.current?.disconnect();
     };
   }, []);
 
