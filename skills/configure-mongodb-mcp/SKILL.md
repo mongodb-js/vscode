@@ -27,7 +27,7 @@ The workspace config is located at `.vscode/settings.json` within the current wo
 
 The MCP configuration options are prefixed with `mdb.mcp` - for example, `mdb.mcp.apiClientId`. Settings in the workspace config take priority over the user config settings.
 
-Additionally, review the environment variabls for MCP server config - those variables should start with `MDB_MCP_` - for example, `MDB_MCP_API_CLIENT_ID`. Environment variables are not used for configuration, but if they are set, you can offer the user to copy those values into their settings file to make them available to the MCP server.
+Additionally, review the environment variables for MCP server config - those variables should start with `MDB_MCP_` - for example, `MDB_MCP_API_CLIENT_ID`. Environment variables are not used for configuration, but if they are set, you can offer the user to copy those values into their settings file to make them available to the MCP server.
 
 ## Step 2. Guide User Through Configuration Options
 
