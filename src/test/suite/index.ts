@@ -37,36 +37,32 @@ export async function run(): Promise<void> {
 
   await mdbTestExtension.testExtensionController.activate();
 
-  return new Promise(async (c, e) => {
-    try {
-      const files = await glob('**/**.test.js', {
-        cwd: testsRoot,
-        ignore: ['**/webview-app/**/*.js', '**/data-browsing-app/**/*.js'],
-      });
+  const files = await glob('**/**.test.js', {
+    cwd: testsRoot,
+    ignore: ['**/webview-app/**/*.js', '**/data-browsing-app/**/*.js'],
+  });
 
-      // Add files to the test suite.
-      files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+  // Add files to the test suite.
+  files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
 
-      // Run the mocha test.
-      mocha.run((failures) => {
-        // Deactivate the extension to properly clean up the language server
-        void mdbTestExtension.testExtensionController
-          .deactivate()
-          .then(() => {
-            if (failures > 0) {
-              e(new Error(`${failures} tests failed.`));
-            } else {
-              c();
-            }
-          })
-          .catch((deactivateErr) => {
-            console.error('Error deactivating extension:');
-            console.error(deactivateErr);
-            e(deactivateErr);
-          });
-      });
-    } catch (err) {
-      e(err);
-    }
+  // Run the mocha test.
+  return new Promise((c, e) => {
+    mocha.run((failures) => {
+      // Deactivate the extension to properly clean up the language server
+      void mdbTestExtension.testExtensionController
+        .deactivate()
+        .then(() => {
+          if (failures > 0) {
+            e(new Error(`${failures} tests failed.`));
+          } else {
+            c();
+          }
+        })
+        .catch((deactivateErr) => {
+          console.error('Error deactivating extension:');
+          console.error(deactivateErr);
+          e(deactivateErr);
+        });
+    });
   });
 }
