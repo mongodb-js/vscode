@@ -27,7 +27,6 @@ export const ExtensionCommand = {
     'mdb.changeDriverSyntaxForExportToLanguage',
 
   mdbOpenMongodbDocumentFromCodeLens: 'mdb.openMongoDBDocumentFromCodeLens',
-  mdbOpenMongodbDocumentFromTree: 'mdb.openMongoDBDocumentFromTree',
   mdbSaveMongodbDocument: 'mdb.saveMongoDBDocument',
 
   mdbChangeActiveConnection: 'mdb.changeActiveConnection',
@@ -57,7 +56,6 @@ export const ExtensionCommand = {
   mdbAddCollection: 'mdb.addCollection',
   mdbCopyCollectionName: 'mdb.copyCollectionName',
   mdbDropCollection: 'mdb.dropCollection',
-  mdbViewCollectionDocuments: 'mdb.viewCollectionDocuments',
   mdbRefreshCollection: 'mdb.refreshCollection',
   mdbRefreshDocumentList: 'mdb.refreshDocumentList',
   mdbInsertDocumentFromTreeView: 'mdb.insertDocumentFromTreeView',
@@ -67,9 +65,6 @@ export const ExtensionCommand = {
   mdbCreateIndexTreeView: 'mdb.createIndexFromTreeView',
   mdbInsertObjectidToEditor: 'mdb.insertObjectIdToEditor',
   mdbGenerateObjectidToClipboard: 'mdb.generateObjectIdToClipboard',
-  mdbCopyDocumentContentsFromTreeView: 'mdb.copyDocumentContentsFromTreeView',
-  mdbCloneDocumentFromTreeView: 'mdb.cloneDocumentFromTreeView',
-  mdbDeleteDocumentFromTreeView: 'mdb.deleteDocumentFromTreeView',
   mdbDeleteAllDocuments: 'mdb.deleteAllDocuments',
   mdbAddStreamProcessor: 'mdb.addStreamProcessor',
   mdbStartStreamProcessor: 'mdb.startStreamProcessor',
@@ -77,7 +72,7 @@ export const ExtensionCommand = {
   mdbDropStreamProcessor: 'mdb.dropStreamProcessor',
 
   // Commands for the data browsing upgrade.
-  mdbOpenCollectionPreviewFromTreeView: 'mdb.openCollectionPreviewFromTreeView',
+  mdbViewCollectionDocuments: 'mdb.viewCollectionDocuments',
   mdbOpenMongodbDocumentFromDataBrowser:
     'mdb.openMongoDBDocumentFromDataBrowser',
   mdbInsertDocumentFromDataBrowser: 'mdb.insertDocumentFromDataBrowser',

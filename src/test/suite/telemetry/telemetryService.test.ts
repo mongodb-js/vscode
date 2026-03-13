@@ -11,7 +11,7 @@ import sinonChai from 'sinon-chai';
 
 import { DocumentSource } from '../../../documentSource';
 import { mdbTestExtension } from '../stubbableMdbExtension';
-import { DatabaseTreeItem, DocumentTreeItem } from '../../../explorer';
+import { DatabaseTreeItem } from '../../../explorer';
 import { DataServiceStub } from '../stubs';
 import {
   DocumentEditedTelemetryEvent,
@@ -442,43 +442,6 @@ suite('Telemetry Controller Test Suite', function () {
             event: 'Playground Created',
             properties: {
               playground_type: 'index',
-              ...commonProperties,
-            },
-          }),
-        );
-      });
-
-      test('track on clone document', async function () {
-        const mockDocument = {
-          _id: 'pancakes',
-          name: '',
-          time: {
-            $time: '12345',
-          },
-        };
-        const dataServiceStub = {
-          find: () => {
-            return Promise.resolve([mockDocument]);
-          },
-        } as unknown as DataService;
-        const documentItem = new DocumentTreeItem({
-          document: mockDocument,
-          namespace: 'waffle.house',
-          documentIndexInTree: 0,
-          dataService: dataServiceStub,
-          resetDocumentListCache: (): Promise<void> => Promise.resolve(),
-        });
-        await vscode.commands.executeCommand(
-          'mdb.cloneDocumentFromTreeView',
-          documentItem,
-        );
-        sandbox.assert.calledWith(
-          fakeSegmentAnalyticsTrack,
-          sinon.match({
-            ...telemetryIdentity,
-            event: 'Playground Created',
-            properties: {
-              playground_type: 'cloneDocument',
               ...commonProperties,
             },
           }),

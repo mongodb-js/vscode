@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import crypto from 'crypto';
+import xss from 'xss';
 
 export const getNonce = (): string => {
   return crypto.randomBytes(16).toString('base64');
@@ -66,7 +67,7 @@ export const getWebviewHtml = ({
           connect-src vscode-resource: 'self' https:;
           worker-src vscode-resource: 'self' blob:;"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${title}</title>
+      <title>${xss(title)}</title>
     </head>
     <body>
       <div id="root"></div>

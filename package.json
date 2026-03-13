@@ -84,7 +84,8 @@
     "onLanguage:json",
     "onLanguage:javascript",
     "onLanguage:plaintext",
-    "onUri"
+    "onUri",
+    "onFileSystem:VIEW_DOCUMENT_SCHEME"
   ],
   "contributes": {
     "chatParticipants": [
@@ -517,22 +518,6 @@
         "title": "MongoDB: Generate ObjectId to Clipboard"
       },
       {
-        "command": "mdb.openMongoDBDocumentFromTree",
-        "title": "Open Document"
-      },
-      {
-        "command": "mdb.copyDocumentContentsFromTreeView",
-        "title": "Copy Document"
-      },
-      {
-        "command": "mdb.cloneDocumentFromTreeView",
-        "title": "Clone Document..."
-      },
-      {
-        "command": "mdb.deleteDocumentFromTreeView",
-        "title": "Delete Document..."
-      },
-      {
         "command": "mdb.addStreamProcessor",
         "title": "Add StreamProcessor...",
         "icon": "$(mdb-plus-circle)"
@@ -719,7 +704,7 @@
         {
           "command": "mdb.askCopilotFromTreeItem",
           "when": "mdb.isCopilotActive == true && view == mongoDBConnectionExplorer && (viewItem == databaseTreeItem || viewItem == collectionTreeItem)",
-          "group": "3@1"
+          "group": "3@0"
         },
         {
           "command": "mdb.createNewPlaygroundFromTreeItem",
@@ -760,36 +745,6 @@
           "command": "mdb.dropCollection",
           "when": "view == mongoDBConnectionExplorer && viewItem == collectionTreeItem",
           "group": "4@1"
-        },
-        {
-          "command": "mdb.searchForDocuments",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
-          "group": "inline"
-        },
-        {
-          "command": "mdb.refreshDocumentList",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
-          "group": "inline"
-        },
-        {
-          "command": "mdb.viewCollectionDocuments",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
-          "group": "1@1"
-        },
-        {
-          "command": "mdb.refreshDocumentList",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
-          "group": "1@2"
-        },
-        {
-          "command": "mdb.searchForDocuments",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
-          "group": "2@1"
-        },
-        {
-          "command": "mdb.insertDocumentFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentListTreeItem",
-          "group": "3@1"
         },
         {
           "command": "mdb.searchForDocuments",
@@ -846,26 +801,6 @@
         {
           "command": "mdb.createIndexFromTreeView",
           "when": "view == mongoDBConnectionExplorer && viewItem == indexListTreeItem"
-        },
-        {
-          "command": "mdb.openMongoDBDocumentFromTree",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "1@1"
-        },
-        {
-          "command": "mdb.copyDocumentContentsFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "2@1"
-        },
-        {
-          "command": "mdb.cloneDocumentFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "2@2"
-        },
-        {
-          "command": "mdb.deleteDocumentFromTreeView",
-          "when": "view == mongoDBConnectionExplorer && viewItem == documentTreeItem",
-          "group": "3@1"
         },
         {
           "command": "mdb.startStreamProcessor",
@@ -1098,22 +1033,6 @@
         },
         {
           "command": "mdb.copySchemaFieldName",
-          "when": "false"
-        },
-        {
-          "command": "mdb.openMongoDBDocumentFromTree",
-          "when": "false"
-        },
-        {
-          "command": "mdb.copyDocumentContentsFromTreeView",
-          "when": "false"
-        },
-        {
-          "command": "mdb.cloneDocumentFromTreeView",
-          "when": "false"
-        },
-        {
-          "command": "mdb.deleteDocumentFromTreeView",
           "when": "false"
         },
         {
@@ -1556,7 +1475,8 @@
     "uuid": "^8.3.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1",
-    "vscode-languageserver-textdocument": "^1.0.12"
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.25.7",

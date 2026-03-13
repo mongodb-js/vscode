@@ -77,50 +77,6 @@ suite('DatabaseTreeItem Test Suite', function () {
     );
   });
 
-  test('when expanded and collapsed its collections cache their expanded documents', async function () {
-    const testDatabaseTreeItem = getTestDatabaseTreeItem();
-
-    await testDatabaseTreeItem.onDidExpand();
-
-    const collectionTreeItems = await testDatabaseTreeItem.getChildren();
-
-    assert.strictEqual(collectionTreeItems[1].isExpanded, false);
-
-    await collectionTreeItems[1].onDidExpand();
-    await collectionTreeItems[1].getChildren();
-    const documentListItem = collectionTreeItems[1].getDocumentsChild();
-    if (!documentListItem) {
-      assert(false, 'No document list tree item found on collection.');
-    }
-    await documentListItem.onDidExpand();
-    documentListItem.onShowMoreClicked();
-
-    const documents = await documentListItem.getChildren();
-    const amountOfDocs = documents.length;
-    const expectedDocs = 21;
-    assert.strictEqual(expectedDocs, amountOfDocs);
-
-    testDatabaseTreeItem.onDidCollapse();
-    const postCollapseCollectionTreeItems =
-      await testDatabaseTreeItem.getChildren();
-
-    assert.strictEqual(postCollapseCollectionTreeItems.length, 0);
-
-    await testDatabaseTreeItem.onDidExpand();
-    const newCollectionTreeItems = await testDatabaseTreeItem.getChildren();
-
-    assert.strictEqual(newCollectionTreeItems[1].isExpanded, true);
-
-    const documentsPostCollapseExpand = await newCollectionTreeItems[1]
-      .getDocumentsChild()
-      .getChildren();
-
-    // It should cache that we activated show more.
-    const amountOfCachedDocs = documentsPostCollapseExpand.length;
-    const expectedCachedDocs = 21;
-    assert.strictEqual(amountOfCachedDocs, expectedCachedDocs);
-  });
-
   test('collections are displayed in the alphanumerical case insensitive order, with system collections last', async function () {
     const testDatabaseTreeItem = getTestDatabaseTreeItem({
       databaseName: mockDatabaseNames[2],

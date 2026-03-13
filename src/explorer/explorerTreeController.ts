@@ -4,8 +4,6 @@ import type ConnectionController from '../connectionController';
 import ConnectionTreeItem from './connectionTreeItem';
 import type DatabaseTreeItem from './databaseTreeItem';
 import { createLogger } from '../logging';
-import { DOCUMENT_ITEM } from './documentTreeItem';
-import { DOCUMENT_LIST_ITEM } from './documentListTreeItem';
 import ExtensionCommand from '../commands';
 import { sortTreeItemsByLabel } from './treeItemUtils';
 import type { LoadedConnection } from '../storage/connectionStorage';
@@ -14,7 +12,6 @@ import {
   type TelemetryService,
 } from '../telemetry';
 import type TreeItemParentInterface from './treeItemParentInterface';
-import { CollectionType } from './documentUtils';
 import { PREVIEW_LIST_ITEM } from './documentPreviewItem';
 
 const log = createLogger('explorer tree controller');
@@ -121,26 +118,9 @@ export default class ExplorerTreeController
           this._onTreeItemUpdate();
         }
 
-        if (selectedItem.contextValue === DOCUMENT_ITEM) {
-          await vscode.commands.executeCommand(
-            ExtensionCommand.mdbOpenMongodbDocumentFromTree,
-            event.selection[0],
-          );
-        }
-
-        if (
-          selectedItem.contextValue === DOCUMENT_LIST_ITEM &&
-          selectedItem.type === CollectionType.view
-        ) {
-          await vscode.commands.executeCommand(
-            ExtensionCommand.mdbViewCollectionDocuments,
-            event.selection[0],
-          );
-        }
-
         if (selectedItem.contextValue === PREVIEW_LIST_ITEM) {
           await vscode.commands.executeCommand(
-            ExtensionCommand.mdbOpenCollectionPreviewFromTreeView,
+            ExtensionCommand.mdbViewCollectionDocuments,
             event.selection[0],
           );
         }

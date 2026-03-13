@@ -264,6 +264,8 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       colors: {
         'editor.background': '#00000000',
         'editorGutter.background': '#00000000',
+        'editor.foldBackground': '#00000000',
+        'editor.lineHighlightBorder': '#00000000',
       },
     });
     monaco.editor.setTheme('currentVSCodeTheme');
@@ -273,6 +275,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
     monaco.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: false,
+      noSuggestionDiagnostics: true,
     });
     monaco.typescript.typescriptDefaults.setCompilerOptions({
       target: monaco.typescript.ScriptTarget.Latest,

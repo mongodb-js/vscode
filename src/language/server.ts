@@ -19,6 +19,7 @@ import MongoDBService from './mongoDBService';
 import { ServerCommand } from './serverCommands';
 import type { PlaygroundEvaluateParams } from '../types/playgroundType';
 import type { ClearCompletionsCache } from '../types/completionsCache';
+import { serializeBSON } from './serializer';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -159,8 +160,12 @@ connection.onDidChangeWatchedFiles((/* _change */) => {
 // Execute a playground.
 connection.onRequest(
   ServerCommand.executeCodeFromPlayground,
-  (evaluateParams: PlaygroundEvaluateParams, token: CancellationToken) => {
-    return mongoDBService.evaluate(evaluateParams, token);
+  async (
+    evaluateParams: PlaygroundEvaluateParams,
+    token: CancellationToken,
+  ) => {
+    const result = await mongoDBService.evaluate(evaluateParams, token);
+    return serializeBSON(result);
   },
 );
 

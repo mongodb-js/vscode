@@ -7,7 +7,6 @@ import FieldTreeItem from './fieldTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
-import { MAX_DOCUMENTS_VISIBLE } from './documentListTreeItem';
 import type { DataService } from 'mongodb-data-service';
 
 const log = createLogger('schema tree item');
@@ -115,7 +114,7 @@ export default class SchemaTreeItem
         namespace,
         {}, // No filter.
         {
-          limit: MAX_DOCUMENTS_VISIBLE,
+          limit: 10,
           promoteValues: false,
         },
       );

@@ -60,7 +60,7 @@ export class DocsChatbotAIService {
       },
       providerOptions: {
         openai: {
-          store: false,
+          store: true,
         },
       },
     }) as unknown as DocsStreamResult;

@@ -13,14 +13,6 @@ export const setFeatureFlag = (flag: FeatureFlag, value: boolean): void => {
   FEATURE_FLAGS[flag] = value;
 };
 
-export const resetFeatureFlags = (): void => {
-  FEATURE_FLAGS.useEnhancedDataBrowsingExperience =
-    process.env.MDB_USE_ENHANCED_DATA_BROWSING_EXPERIENCE === 'true';
-};
-
-// Initialize feature flags on module load.
-resetFeatureFlags();
-
 export const getFeatureFlagsScript = (nonce: string): string => {
   return `
     <script nonce="${nonce}">window['MDB_FEATURE_FLAGS']=${JSON.stringify(

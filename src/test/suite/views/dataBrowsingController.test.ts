@@ -2,6 +2,7 @@ import sinon, { type SinonSandbox, type SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { expect } from 'chai';
 import { beforeEach, afterEach } from 'mocha';
+import * as bson from 'bson';
 
 import DataBrowsingController, {
   parseConstructionOptions,
@@ -14,6 +15,12 @@ import { CollectionType } from '../../../explorer/documentUtils';
 import { EJSON } from 'bson';
 import ExtensionCommand from '../../../commands';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
+import {
+  DataBrowserDocumentsFetchedTelemetryEvent,
+  DataBrowserDocumentEditedTelemetryEvent,
+  DataBrowserDocumentClonedTelemetryEvent,
+  DataBrowserDocumentInsertedTelemetryEvent,
+} from '../../../telemetry';
 
 suite('DataBrowsingController Test Suite', function () {
   const sandbox: SinonSandbox = sinon.createSandbox();
@@ -31,6 +38,7 @@ suite('DataBrowsingController Test Suite', function () {
     find: SinonStub;
     aggregate: SinonStub;
     close: SinonStub;
+    get bsonLibrary(): typeof bson;
   };
   let mockCursor: {
     toArray: SinonStub;
@@ -39,6 +47,7 @@ suite('DataBrowsingController Test Suite', function () {
     refresh: SinonStub;
     refreshCollection: SinonStub;
   };
+  let trackStub: SinonStub;
 
   function createMockPanel(): vscode.WebviewPanel {
     postMessageStub = sandbox.stub().resolves(true);
@@ -73,6 +82,9 @@ suite('DataBrowsingController Test Suite', function () {
       find: sandbox.stub().returns(mockCursor),
       aggregate: sandbox.stub().returns(mockCursor),
       close: sandbox.stub().resolves(),
+      get bsonLibrary() {
+        return bson;
+      },
     };
     sandbox
       .stub(NodeDriverServiceProvider, 'connect')
@@ -90,9 +102,10 @@ suite('DataBrowsingController Test Suite', function () {
       refresh: sandbox.stub().returns(true),
       refreshCollection: sandbox.stub().returns(true),
     };
+    trackStub = sandbox.stub();
     testController = new DataBrowsingController({
       connectionController: mockConnectionController as any,
-      telemetryService: {} as any,
+      telemetryService: { track: trackStub } as any,
     });
     mockPanel = createMockPanel();
   });
@@ -234,7 +247,7 @@ suite('DataBrowsingController Test Suite', function () {
       const countController = controllers?.totalCount;
 
       // Simulate panel close
-      testController.onWebviewPanelClosed(mockPanel);
+      testController.onWebviewPanelClosed(mockPanel, options);
 
       // Both controllers should be aborted and removed
       expect(documentsController?.signal.aborted).to.be.true;
@@ -349,6 +362,13 @@ suite('DataBrowsingController Test Suite', function () {
       ) as { command: string; documents: unknown[] };
       expect(message).to.not.be.undefined;
       expect(message.documents).to.deep.equal([{ _id: '1', name: 'test' }]);
+      expect(trackStub.calledOnce).to.be.true;
+      expect(trackStub.firstCall.args[0]).to.be.instanceOf(
+        DataBrowserDocumentsFetchedTelemetryEvent,
+      );
+      expect(trackStub.firstCall.args[0].properties.source).to.equal(
+        'collection',
+      );
     });
 
     test('posts loadPage message with documents on pagination', async function () {
@@ -860,6 +880,27 @@ suite('DataBrowsingController Test Suite', function () {
       `${options.databaseName}.${options.collectionName}`,
     );
     expect(commandArgs.connectionId).to.equal('conn-id');
+    expect(trackStub.calledOnce).to.be.true;
+    expect(trackStub.firstCall.args[0]).to.be.instanceOf(
+      DataBrowserDocumentEditedTelemetryEvent,
+    );
+    expect(trackStub.firstCall.args[0].properties.source).to.equal(
+      'collection',
+    );
+  });
+
+  test('handleEditDocument does not track telemetry when command returns false', async function () {
+    const options = createMockOptions();
+
+    (testController as any)._connectionController = {
+      getActiveConnectionId: sandbox.stub().returns('conn-id'),
+    };
+
+    sandbox.stub(vscode.commands, 'executeCommand').resolves(false);
+
+    await testController.handleEditDocument(options, 'my-id');
+
+    expect(trackStub.called).to.be.false;
   });
 
   test('handleCloneDocument creates playground without _id', async function () {
@@ -885,6 +926,26 @@ suite('DataBrowsingController Test Suite', function () {
     expect(commandArgs.documentContents).to.not.include('_id');
     expect(commandArgs.databaseName).to.equal('test');
     expect(commandArgs.collectionName).to.equal('collection');
+    expect(trackStub.calledOnce).to.be.true;
+    expect(trackStub.firstCall.args[0]).to.be.instanceOf(
+      DataBrowserDocumentClonedTelemetryEvent,
+    );
+    expect(trackStub.firstCall.args[0].properties.source).to.equal(
+      'collection',
+    );
+  });
+
+  test('handleCloneDocument does not track telemetry when command returns false', async function () {
+    const options = createMockOptions();
+
+    sandbox.stub(vscode.commands, 'executeCommand').resolves(false);
+
+    const doc = { _id: '123', name: 'Test' };
+    const singleSerialized = EJSON.serialize(doc, { relaxed: false });
+
+    await testController.handleCloneDocument(options, singleSerialized);
+
+    expect(trackStub.called).to.be.false;
   });
 
   test('handleDeleteDocument calls correct vscode command when confirmed', async function () {
@@ -948,7 +1009,11 @@ suite('DataBrowsingController Test Suite', function () {
         'mdb.deleteAllDocuments',
       );
 
-      expect(executeCommandStub.firstCall.args[1]).to.deep.equal(options);
+      expect(executeCommandStub.firstCall.args[1]).to.deep.equal({
+        ...options,
+        view: 'data-browser',
+        source: 'collection',
+      });
     });
 
     test('shows error when options have a query', async function () {
@@ -1074,6 +1139,26 @@ suite('DataBrowsingController Test Suite', function () {
     const commandArgs = executeCommandStub.firstCall.args[1];
     expect(commandArgs.databaseName).to.equal('test');
     expect(commandArgs.collectionName).to.equal('collection');
+    expect(trackStub.calledOnce).to.be.true;
+    expect(trackStub.firstCall.args[0]).to.be.instanceOf(
+      DataBrowserDocumentInsertedTelemetryEvent,
+    );
+    expect(trackStub.firstCall.args[0].properties.view).to.equal(
+      'data-browser',
+    );
+    expect(trackStub.firstCall.args[0].properties.source).to.equal(
+      'collection',
+    );
+  });
+
+  test('handleInsertDocument does not track telemetry when command returns false', async function () {
+    const options = createMockOptions();
+
+    sandbox.stub(vscode.commands, 'executeCommand').resolves(false);
+
+    await testController.handleInsertDocument(options);
+
+    expect(trackStub.called).to.be.false;
   });
 
   test('handleInsertDocument shows error message on failure', async function () {
@@ -1323,7 +1408,12 @@ suite('DataBrowsingController Test Suite', function () {
                 undefined,
               ],
             },
-            chains: [],
+            chains: [
+              {
+                method: 'projection',
+                args: [{ name: 1 }],
+              },
+            ],
           } as any,
         });
       }
@@ -1413,7 +1503,12 @@ suite('DataBrowsingController Test Suite', function () {
               {},
             ],
           },
-          chains: [],
+          chains: [
+            {
+              method: 'limit',
+              args: [25],
+            },
+          ],
         } as any,
       });
     }

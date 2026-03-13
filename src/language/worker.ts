@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import { ElectronRuntime } from '@mongosh/browser-runtime-electron';
 import { parentPort } from 'worker_threads';
@@ -7,11 +8,12 @@ import { EJSON } from 'bson';
 import { ServerCommand } from './serverCommands';
 import type {
   ShellEvaluateResult,
-  WorkerEvaluate,
   MongoClientOptions,
 } from '../types/playgroundType';
 import { getEJSON } from '../utils/ejson';
 import type { DocumentViewAndEditFormat } from '../editors/types';
+import { isSafeQueryResult } from '../editors/result-utils';
+import { deserializeBSON, serializeBSON } from './serializer';
 
 interface EvaluationResult {
   printable: any;
@@ -152,19 +154,58 @@ export const execute = async ({
   }
 };
 
-const handleMessageFromParentPort = async ({ name, data }): Promise<void> => {
+type ExecuteCodeFromPlaygroundResult = {
+  data: ShellEvaluateResult | null;
+  error?: Error;
+};
+
+type MessageFromParentPort = {
+  name: string;
+  data: string;
+};
+
+type HandleMessageDeps = {
+  executeFn?: typeof execute;
+  isSafeQueryResultFn?: typeof isSafeQueryResult;
+  postMessageFn?: (message: { name: string; payload: string }) => void;
+};
+
+function stripConstructionOptions(
+  payload: ExecuteCodeFromPlaygroundResult,
+): ExecuteCodeFromPlaygroundResult {
+  const clone = _.cloneDeep(payload);
+  if (clone.data?.result?.constructionOptions) {
+    delete clone.data?.result?.constructionOptions;
+  }
+  return clone;
+}
+
+export const handleMessageFromParentPort = async (
+  { name, data: _data }: MessageFromParentPort,
+  {
+    executeFn = execute,
+    isSafeQueryResultFn = isSafeQueryResult,
+    postMessageFn = (message) => parentPort?.postMessage(message),
+  }: HandleMessageDeps = {},
+): Promise<void> => {
+  const data = deserializeBSON(_data);
   if (name === ServerCommand.executeCodeFromPlayground) {
-    parentPort?.postMessage({
+    const result = await executeFn(data);
+    // .map() cannot be cloned by  so just strip the constructionOptions and
+    // then it won't be opened in the data browser and this result gets the
+    // usual fallback experience
+    const safeResult =
+      result.data?.result && isSafeQueryResultFn(result.data.result)
+        ? result
+        : stripConstructionOptions(result);
+    postMessageFn({
       name: ServerCommand.codeExecutionResult,
-      payload: await execute(data),
+      payload: serializeBSON(safeResult),
     });
   }
 };
 
 // parentPort allows communication with the parent thread.
-parentPort?.once(
-  'message',
-  (message: { name: string; data: WorkerEvaluate }): void => {
-    void handleMessageFromParentPort(message);
-  },
-);
+parentPort?.once('message', (message: MessageFromParentPort): void => {
+  void handleMessageFromParentPort(message);
+});

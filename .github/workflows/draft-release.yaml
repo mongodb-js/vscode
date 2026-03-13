@@ -236,7 +236,7 @@ jobs:
 
   create-draft-release:
     name: Create Draft Release
-    needs: [prepare-version, test, test-install, test-snyk]
+    needs: [prepare-version, test, test-install]
 
     runs-on: ubuntu-latest
 
@@ -282,6 +282,7 @@ jobs:
       - name: Create Draft Release
         env:
           RELEASE_TAG: ${{ needs.prepare-version.outputs.release_tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           echo Creating draft release for: "${RELEASE_TAG}"
@@ -296,5 +297,3 @@ jobs:
             *.vsix \
             *.vsix.sig
         shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

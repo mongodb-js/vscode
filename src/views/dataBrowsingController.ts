@@ -26,9 +26,25 @@ import type {
   CursorConstructionOptionsWithChains,
   CursorChainOptions,
 } from '@mongosh/shell-api';
+import {
+  Cursor,
+  AggregationCursor,
+  ShellInstanceState,
+  Mongo,
+} from '@mongosh/shell-api';
 import type { AggregateOptions, DbOptions, FindOptions } from 'mongodb';
-import type { EventEmitter } from 'events';
+import { EventEmitter } from 'events';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
+import {
+  DataBrowserOpenedTelemetryEvent,
+  DataBrowserDocumentsFetchedTelemetryEvent,
+  DataBrowserDocumentEditedTelemetryEvent,
+  DataBrowserDocumentClonedTelemetryEvent,
+  DataBrowserDocumentInsertedTelemetryEvent,
+  DataBrowserDocumentDeletedTelemetryEvent,
+  DataBrowserClosedTelemetryEvent,
+} from '../telemetry';
+import { serializeBSON } from '../language/serializer';
 
 const log = createLogger('data browsing controller');
 
@@ -425,6 +441,10 @@ export default class DataBrowsingController {
         return;
       }
 
+      const source = options.query ? 'query-results' : 'collection';
+      this._telemetryService.track(
+        new DataBrowserDocumentsFetchedTelemetryEvent(source),
+      );
       void panel.webview.postMessage({
         command: PreviewMessageType.loadPage,
         documents: EJSON.serialize(documents, { relaxed: false }),
@@ -482,7 +502,7 @@ export default class DataBrowsingController {
     documentId: any,
   ): Promise<void> => {
     try {
-      await vscode.commands.executeCommand(
+      const result = await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
         {
           documentId,
@@ -491,6 +511,12 @@ export default class DataBrowsingController {
           connectionId: this._connectionController.getActiveConnectionId(),
         },
       );
+      if (result) {
+        const source = options.query ? 'query-results' : 'collection';
+        this._telemetryService.track(
+          new DataBrowserDocumentEditedTelemetryEvent(source),
+        );
+      }
     } catch (error) {
       log.error('Error opening document for editing', error);
       void vscode.window.showErrorMessage(
@@ -508,7 +534,7 @@ export default class DataBrowsingController {
       delete deserialized._id;
       const documentContents = toJSString(deserialized) ?? '';
 
-      await vscode.commands.executeCommand(
+      const result = await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbCloneDocumentFromDataBrowser,
         {
           documentContents,
@@ -516,6 +542,12 @@ export default class DataBrowsingController {
           collectionName: options.collectionName,
         },
       );
+      if (result) {
+        const source = options.query ? 'query-results' : 'collection';
+        this._telemetryService.track(
+          new DataBrowserDocumentClonedTelemetryEvent(source),
+        );
+      }
     } catch (error) {
       log.error('Error cloning document', error);
       void vscode.window.showErrorMessage(
@@ -528,13 +560,19 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
   ): Promise<void> => {
     try {
-      await vscode.commands.executeCommand(
+      const result = await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbInsertDocumentFromDataBrowser,
         {
           databaseName: options.databaseName,
           collectionName: options.collectionName,
         },
       );
+      if (result) {
+        const source = options.query ? 'query-results' : 'collection';
+        this._telemetryService.track(
+          new DataBrowserDocumentInsertedTelemetryEvent('data-browser', source),
+        );
+      }
     } catch (error) {
       log.error('Error opening insert document playground', error);
       void vscode.window.showErrorMessage(
@@ -557,7 +595,13 @@ export default class DataBrowsingController {
     try {
       await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbDeleteAllDocuments,
-        options,
+        {
+          ...options,
+          view: 'data-browser' as const,
+          source: options.query
+            ? ('query-results' as const)
+            : ('collection' as const),
+        },
       );
     } catch (error) {
       log.error('Error deleting all documents', error);
@@ -614,6 +658,14 @@ export default class DataBrowsingController {
       void vscode.window.showInformationMessage(
         'Document successfully deleted.',
       );
+      const source = options.query ? 'query-results' : 'collection';
+      this._telemetryService.track(
+        new DataBrowserDocumentDeletedTelemetryEvent(
+          false,
+          'data-browser',
+          source,
+        ),
+      );
 
       // Refresh the tree view in the sidebar (reset collection cache so
       // the document count is re-fetched).
@@ -662,49 +714,55 @@ export default class DataBrowsingController {
       connectionOptions.options,
     );
 
-    const findOptions: {
-      limit: number;
-      skip?: number;
-      sort?: DocumentSort;
-      promoteValues: false;
-    } = {
-      limit: DEFAULT_DOCUMENTS_LIMIT,
-      promoteValues: false,
-    };
-
-    if (parsedQuery.skip) {
-      // if the parsed query has a skip, we honor that so that the first page only starts after that skip value
-      findOptions.skip = parsedQuery.skip;
-    }
-    if (skip !== undefined && skip > 0) {
-      // we add the skip from the pagination onto the parsed query skip if it is exists
-      findOptions.skip = (findOptions.skip ?? 0) + skip;
-    }
-
-    if (parsedQuery.limit) {
-      // if the parsed query has a limit we want to honor that so that we don't go past it
-      const remaining = parsedQuery.limit - (findOptions.skip ?? 0);
-      if (remaining < 1) {
-        // TODO: log
-        return [];
-      }
-      findOptions.limit = limit ? Math.min(remaining, limit) : remaining;
-    } else if (limit) {
-      // otherwise we only have to take the limit from the pagination into account
-      findOptions.limit = limit;
-    }
-
-    // Sort is only for a collection's documents list. It should be null if this
-    // relates back to a find cursor so that we use the playground's sort
-    // instead of overriding it.
-    if (sort) {
-      findOptions.sort = sort;
-    }
-
-    const executionOptions = signal ? { abortSignal: signal } : undefined;
-
     try {
-      let cursor = serviceProvider.find(
+      const findOptions: {
+        limit: number;
+        skip?: number;
+        sort?: DocumentSort;
+        promoteValues: false;
+      } = {
+        limit: DEFAULT_DOCUMENTS_LIMIT,
+        promoteValues: false,
+      };
+
+      if (parsedQuery.skip) {
+        // if the parsed query has a skip, we honor that so that the first page only starts after that skip value
+        findOptions.skip = parsedQuery.skip;
+      }
+      if (skip !== undefined && skip > 0) {
+        // we add the skip from the pagination onto the parsed query skip if it is exists
+        findOptions.skip = (findOptions.skip ?? 0) + skip;
+      }
+
+      if (parsedQuery.limit) {
+        // if the parsed query has a limit we want to honor that so that we don't go past it
+        const remaining = parsedQuery.limit - (findOptions.skip ?? 0);
+        if (remaining < 1) {
+          // TODO: log
+          return [];
+        }
+        findOptions.limit = limit ? Math.min(remaining, limit) : remaining;
+      } else if (limit) {
+        // otherwise we only have to take the limit from the pagination into account
+        findOptions.limit = limit;
+      }
+
+      // Sort is only for a collection's documents list. It should be null if this
+      // relates back to a find cursor so that we use the playground's sort
+      // instead of overriding it.
+      if (sort) {
+        findOptions.sort = sort;
+      }
+
+      const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+      const instanceState = new ShellInstanceState(
+        serviceProvider,
+        new EventEmitter(),
+      );
+      const mongo = new Mongo(instanceState);
+
+      const spCursor = serviceProvider.find(
         databaseName,
         collectionName,
         parsedQuery.find.filter,
@@ -717,6 +775,7 @@ export default class DataBrowsingController {
           ...executionOptions,
         },
       );
+      let cursor = new Cursor(mongo, spCursor);
       for (const chain of parsedQuery.chains) {
         cursor = cursor[chain.method](...chain.args);
       }
@@ -741,6 +800,7 @@ export default class DataBrowsingController {
     if (!connectionOptions) {
       throw new Error('No connection options found');
     }
+
     // TODO(VSCODE-757, VSCODE-758): connect only once and reuse the connection
     // for subsequent requests instead of reconnecting every time. Or switch to
     // only using node service provider in the whole extension, then use the
@@ -750,16 +810,22 @@ export default class DataBrowsingController {
       connectionOptions.options,
     );
 
-    const executionOptions = signal ? { abortSignal: signal } : undefined;
-
     try {
+      const executionOptions = signal ? { abortSignal: signal } : undefined;
+
+      const instanceState = new ShellInstanceState(
+        serviceProvider,
+        new EventEmitter(),
+      );
+      const mongo = new Mongo(instanceState);
+
       const pipeline = [
         ...parsedQuery.aggregate.pipeline,
         { $skip: skip },
         { $limit: limit },
       ];
 
-      let cursor = serviceProvider.aggregate(
+      const spCursor = serviceProvider.aggregate(
         databaseName,
         collectionName,
         pipeline,
@@ -770,6 +836,7 @@ export default class DataBrowsingController {
         },
       );
 
+      let cursor = new AggregationCursor(mongo, spCursor);
       for (const chain of parsedQuery.chains) {
         cursor = cursor[chain.method](...chain.args);
       }
@@ -818,8 +885,14 @@ export default class DataBrowsingController {
     }
   };
 
-  onWebviewPanelClosed = (disposedPanel: vscode.WebviewPanel): void => {
+  onWebviewPanelClosed = (
+    disposedPanel: vscode.WebviewPanel,
+    options: DataBrowsingOptions,
+  ): void => {
     this._cleanupAbortController(disposedPanel);
+
+    const source = options.query ? 'query-results' : 'collection';
+    this._telemetryService.track(new DataBrowserClosedTelemetryEvent(source));
 
     this._activeWebviewPanels = this._activeWebviewPanels.filter(
       (panel) => panel !== disposedPanel,
@@ -894,6 +967,10 @@ export default class DataBrowsingController {
       'Opening data browser...',
       `${options.databaseName}.${options.collectionName}`,
     );
+    const source = options.query ? 'query-results' : 'collection';
+    this._telemetryService.track(
+      new DataBrowserOpenedTelemetryEvent(options.collectionType, source),
+    );
     const extensionPath = context.extensionPath;
 
     const panel = createWebviewPanel({
@@ -908,7 +985,7 @@ export default class DataBrowsingController {
       iconName: 'leaf.svg',
     });
 
-    panel.onDidDispose(() => this.onWebviewPanelClosed(panel));
+    panel.onDidDispose(() => this.onWebviewPanelClosed(panel, options));
     this._activeWebviewPanels.push(panel);
 
     panel.webview.html = getDataBrowsingContent({
@@ -916,7 +993,7 @@ export default class DataBrowsingController {
       webview: panel.webview,
       databaseName: options.databaseName,
       collectionName: options.collectionName,
-      query: JSON.stringify(options.query),
+      query: serializeBSON(options.query),
     });
 
     panel.webview.onDidReceiveMessage(
