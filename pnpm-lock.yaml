@@ -315,8 +315,8 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0
       mongodb-runner:
-        specifier: ^5.10.0
-        version: 5.11.1(@aws-sdk/credential-providers@3.995.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+        specifier: ^6.7.1
+        version: 6.7.1(@aws-sdk/credential-providers@3.995.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       node-fetch:
         specifier: ^2.7.0
         version: 2.7.0
@@ -1936,8 +1936,8 @@ packages:
     peerDependencies:
       bson: ^7.2.0
 
-  '@mongodb-js/mongodb-downloader@0.5.0':
-    resolution: {integrity: sha512-N0ijRRNygm1xTQ3IhAMFcnZNhhF1CTwzFHqMk+tttm6LKD576t7j6olfuqSf8vFQ+tVpO6Z1JWOcquTKrpwOlQ==}
+  '@mongodb-js/mongodb-downloader@1.1.7':
+    resolution: {integrity: sha512-5CbL5lybUKrtvKdBqyAMn9+bwrdeTxOoql+5l5OlGLKcF/pjwu54mGdC1pU/mTyeux9hLqMOozw4fNNJFccHnw==}
 
   '@mongodb-js/mongodb-ts-autocomplete@0.6.5':
     resolution: {integrity: sha512-ijnvfCD9EI8sQx3tXbJcXacgLh6iuxAHGzxCrncmFpF2dPvVj0cT195Fjc96K6Nqv+qaevVhCxFy3F1CdVyERg==}
@@ -1947,6 +1947,10 @@ packages:
 
   '@mongodb-js/oidc-mock-provider@0.11.5':
     resolution: {integrity: sha512-gzSfBK9CXVCv4KIlGv9eXtKR2Zw+/tuUxLrr0z+rlbITuOfL/lDcWKGpcTC2b6StSkNCsLHsuqJLS/xa16V1AQ==}
+    hasBin: true
+
+  '@mongodb-js/oidc-mock-provider@0.13.6':
+    resolution: {integrity: sha512-2K7KfCwWquonVKvi/MEPWG+Q8vnTGLMcm1I5En0zf9Jqk6CFuoEnojVK7IJtVHdXYp9oR6fnNCMzir5xs965mQ==}
     hasBin: true
 
   '@mongodb-js/oidc-plugin@2.0.8':
@@ -1960,6 +1964,9 @@ packages:
 
   '@mongodb-js/saslprep@1.3.2':
     resolution: {integrity: sha512-QgA5AySqB27cGTXBFmnpifAi7HxoGUeezwo6p9dI03MuDB6Pp33zgclqVb6oVK3j6I9Vesg0+oojW2XxB59SGg==}
+
+  '@mongodb-js/saslprep@1.4.6':
+    resolution: {integrity: sha512-y+x3H1xBZd38n10NZF/rEBlvDOOMQ6LKUTHqr8R9VkJ+mmQOYtJFxIlkkK8fZrtOiL6VixbOBWMbZGBdal3Z1g==}
 
   '@mongodb-js/sbom-tools@0.8.5':
     resolution: {integrity: sha512-JhOlTaddbFy6RC1MrxjYhsMI2zRvMDTlxlChq+3Fum6DKLyf0gHKYl72Ek2w04fG+Cq3HPBfkz6wZO48AAPC1Q==}
@@ -2190,6 +2197,40 @@ packages:
     resolution: {integrity: sha512-Sr1KwUcbB0SEpnSPO22tNJppku2khjFluEst+mTGhxHzAGQTQncNeJxDnt3F15n+p9Q+mlcorxehd68n1siikQ==}
     cpu: [x64]
     os: [win32]
+
+  '@peculiar/asn1-cms@2.6.1':
+    resolution: {integrity: sha512-vdG4fBF6Lkirkcl53q6eOdn3XYKt+kJTG59edgRZORlg/3atWWEReRCx5rYE1ZzTTX6vLK5zDMjHh7vbrcXGtw==}
+
+  '@peculiar/asn1-csr@2.6.1':
+    resolution: {integrity: sha512-WRWnKfIocHyzFYQTka8O/tXCiBquAPSrRjXbOkHbO4qdmS6loffCEGs+rby6WxxGdJCuunnhS2duHURhjyio6w==}
+
+  '@peculiar/asn1-ecc@2.6.1':
+    resolution: {integrity: sha512-+Vqw8WFxrtDIN5ehUdvlN2m73exS2JVG0UAyfVB31gIfor3zWEAQPD+K9ydCxaj3MLen9k0JhKpu9LqviuCE1g==}
+
+  '@peculiar/asn1-pfx@2.6.1':
+    resolution: {integrity: sha512-nB5jVQy3MAAWvq0KY0R2JUZG8bO/bTLpnwyOzXyEh/e54ynGTatAR+csOnXkkVD9AFZ2uL8Z7EV918+qB1qDvw==}
+
+  '@peculiar/asn1-pkcs8@2.6.1':
+    resolution: {integrity: sha512-JB5iQ9Izn5yGMw3ZG4Nw3Xn/hb/G38GYF3lf7WmJb8JZUydhVGEjK/ZlFSWhnlB7K/4oqEs8HnfFIKklhR58Tw==}
+
+  '@peculiar/asn1-pkcs9@2.6.1':
+    resolution: {integrity: sha512-5EV8nZoMSxeWmcxWmmcolg22ojZRgJg+Y9MX2fnE2bGRo5KQLqV5IL9kdSQDZxlHz95tHvIq9F//bvL1OeNILw==}
+
+  '@peculiar/asn1-rsa@2.6.1':
+    resolution: {integrity: sha512-1nVMEh46SElUt5CB3RUTV4EG/z7iYc7EoaDY5ECwganibQPkZ/Y2eMsTKB/LeyrUJ+W/tKoD9WUqIy8vB+CEdA==}
+
+  '@peculiar/asn1-schema@2.6.0':
+    resolution: {integrity: sha512-xNLYLBFTBKkCzEZIw842BxytQQATQv+lDTCEMZ8C196iJcJJMBUZxrhSTxLaohMyKK8QlzRNTRkUmanucnDSqg==}
+
+  '@peculiar/asn1-x509-attr@2.6.1':
+    resolution: {integrity: sha512-tlW6cxoHwgcQghnJwv3YS+9OO1737zgPogZ+CgWRUK4roEwIPzRH4JEiG770xe5HX2ATfCpmX60gurfWIF9dcQ==}
+
+  '@peculiar/asn1-x509@2.6.1':
+    resolution: {integrity: sha512-O9jT5F1A2+t3r7C4VT7LYGXqkGLK7Kj1xFpz7U0isPrubwU5PbDoyYtx6MiGst29yq7pXN5vZbQFKRCP+lLZlA==}
+
+  '@peculiar/x509@1.14.3':
+    resolution: {integrity: sha512-C2Xj8FZ0uHWeCXXqX5B4/gVFQmtSkiuOolzAgutjTfseNOHT3pUjljDZsTSxXFGgio54bCzVFqmEOUrIVk8RDA==}
+    engines: {node: '>=20.0.0'}
 
   '@pkgjs/nv@0.2.2':
     resolution: {integrity: sha512-LbQbUKwt2d4VsTM5MKG25WLiZtmXu89zeoqVdJz3POlnyICkZ/o63WLswLleIysYOGHY9rqeOF/SBwC4hbq90Q==}
@@ -3258,6 +3299,10 @@ packages:
 
   asn1@0.2.6:
     resolution: {integrity: sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==}
+
+  asn1js@3.0.7:
+    resolution: {integrity: sha512-uLvq6KJu04qoQM6gvBfKFjlh6Gl0vOKQuR5cJMDHQkmwfMOQeN3F3SHCv9SNYSL+CRoHvOGFfllDlVz03GQjvQ==}
+    engines: {node: '>=12.0.0'}
 
   assertion-error@1.1.0:
     resolution: {integrity: sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==}
@@ -5705,8 +5750,8 @@ packages:
   mongodb-data-service@22.37.2:
     resolution: {integrity: sha512-vZKAZh0NVvaSjCjEkICtQwBwmkmTks740Boc7i0ISN3ZsAE3MwhvIDypZ+BIwVS4yYJPL7xsYtnz2fXhv22SRg==}
 
-  mongodb-download-url@1.7.0:
-    resolution: {integrity: sha512-Dj9l3/MzvgAO+no7zaBIbQL0Ilsb0jo5Y8WijkB/sCnagoh3KgnN0Vxu5awglK/75QrEObduf9wa+U0fjxvYMw==}
+  mongodb-download-url@1.8.7:
+    resolution: {integrity: sha512-BYQtlrz5vsSDyi2eO8q/CM32YzxLmQDW50IU4XSN50s5lvFE141qEw/8nzZZr/K6RWkpoY1tUWCK59pHRNscLw==}
     hasBin: true
 
   mongodb-log-writer@2.4.4:
@@ -5733,8 +5778,8 @@ packages:
   mongodb-redact@1.3.0:
     resolution: {integrity: sha512-6qMkQ9RnB7Z92G8c4mCkrDGaqwekuaUreaX+XnjAl/t3oKHJ+u7C+kfFLxSueJIBc1qtI4AtK0TO4yxOHyJqTw==}
 
-  mongodb-runner@5.11.1:
-    resolution: {integrity: sha512-vgp9pKqnfRr5aXUCYqh0DHw0I3LmRjD+LvoiGi2scp1BCgTeftSEZGy9py8xkzeWxCGBr7S0uwdmfcUPiVYusg==}
+  mongodb-runner@6.7.1:
+    resolution: {integrity: sha512-bYCk1EC0wp4boNyZYJ0Prk6Ye5Mq4ibANzL2RrI2vglSCunjaMfaMIFVJl7isyABwAqJah2RT8va/q8QKa26qQ==}
     hasBin: true
 
   mongodb-schema@12.6.3:
@@ -6247,6 +6292,9 @@ packages:
   prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
 
+  proper-lockfile@4.1.2:
+    resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
+
   property-information@6.5.0:
     resolution: {integrity: sha512-PgTgs/BlvHxOu8QuEN7wi5A0OmXaBcHpmCSTehcs6Uuu9IkDIEo13Hy7n898RHfrQ49vKCoGeWZSaAK01nwVig==}
 
@@ -6267,6 +6315,13 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
+
+  pvtsutils@1.3.6:
+    resolution: {integrity: sha512-PLgQXQ6H2FWCaeRak8vvk1GW462lMxB5s3Jm673N82zI4vqtVUPuZdffdZbPDFRoU8kAhItWFtPCWiPpp4/EDg==}
+
+  pvutils@1.1.5:
+    resolution: {integrity: sha512-KTqnxsgGiQ6ZAzZCVlJH5eOjSnvlyEgx1m8bkRJfOhmGRqfo5KLvmAlACQkrjEtOQ4B7wF9TdSLIs9O90MX9xA==}
+    engines: {node: '>=16.0.0'}
 
   qs@6.14.0:
     resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
@@ -6454,6 +6509,9 @@ packages:
   redux@5.0.1:
     resolution: {integrity: sha512-M9/ELqF6fy8FwmkpnF0S3YKOqMyoWJ4+CS5Efg2ct3oY9daQvd/Pc71FpGZsVsbl3Cpb+IIcjBDUnnyBdQbq4w==}
 
+  reflect-metadata@0.2.2:
+    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
+
   reflect.getprototypeof@1.0.10:
     resolution: {integrity: sha512-00o4I+DVrefhv+nX0ulyi3biSHCPDe+yLv5o/p6d/UVlirijB8E16FtfwSAi4g3tcqrQ4lRAqQSoFEZJehYEcw==}
     engines: {node: '>= 0.4'}
@@ -6556,6 +6614,10 @@ packages:
   restore-cursor@5.1.0:
     resolution: {integrity: sha512-oMA2dcrw6u0YfxJQXm342bFKX/E4sG9rbTzO9ptUcR/e8A33cHuvStiYOwH7fszkZlZ1z/ta9AAoPk2F4qIOHA==}
     engines: {node: '>=18'}
+
+  retry@0.12.0:
+    resolution: {integrity: sha512-9LkiTwjUh6rT555DtE9rTX+BKByPfrMzEAtnlEtdEwr3Nkffwiihqe2bWADg+OQRjt9gl6ICdmB/ZFDCGAtSow==}
+    engines: {node: '>= 4'}
 
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
@@ -7176,6 +7238,10 @@ packages:
     engines: {node: '>= 6'}
     peerDependencies:
       typescript: '>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta'
+
+  tsyringe@4.10.0:
+    resolution: {integrity: sha512-axr3IdNuVIxnaK5XGEUFTu3YmAQ6lllgrvqfEoR16g/HGnYY/6We4oWENtAnzK6/LpJ2ur9PAb80RBt7/U4ugw==}
+    engines: {node: '>= 6.0.0'}
 
   ttf2eot@2.0.0:
     resolution: {integrity: sha512-U56aG2Ylw7psLOmakjemAzmpqVgeadwENg9oaDjaZG5NYX4WB6+7h74bNPcc+0BXsoU5A/XWiHabDXyzFOmsxQ==}
@@ -11030,12 +11096,13 @@ snapshots:
       bson: 7.2.0
       semver: 7.7.3
 
-  '@mongodb-js/mongodb-downloader@0.5.0':
+  '@mongodb-js/mongodb-downloader@1.1.7':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       decompress: 4.2.1
-      mongodb-download-url: 1.7.0
+      mongodb-download-url: 1.8.7
       node-fetch: 2.7.0
+      proper-lockfile: 4.1.2
       tar: 7.5.9
     transitivePeerDependencies:
       - encoding
@@ -11068,6 +11135,10 @@ snapshots:
     dependencies:
       yargs: 17.7.2
 
+  '@mongodb-js/oidc-mock-provider@0.13.6':
+    dependencies:
+      yargs: 17.7.2
+
   '@mongodb-js/oidc-plugin@2.0.8':
     dependencies:
       express: 5.2.1
@@ -11082,6 +11153,10 @@ snapshots:
       prettier: 3.6.2
 
   '@mongodb-js/saslprep@1.3.2':
+    dependencies:
+      sparse-bitfield: 3.0.3
+
+  '@mongodb-js/saslprep@1.4.6':
     dependencies:
       sparse-bitfield: 3.0.3
 
@@ -11449,6 +11524,96 @@ snapshots:
 
   '@oven/bun-windows-x64@1.3.6':
     optional: true
+
+  '@peculiar/asn1-cms@2.6.1':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      '@peculiar/asn1-x509-attr': 2.6.1
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-csr@2.6.1':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-ecc@2.6.1':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-pfx@2.6.1':
+    dependencies:
+      '@peculiar/asn1-cms': 2.6.1
+      '@peculiar/asn1-pkcs8': 2.6.1
+      '@peculiar/asn1-rsa': 2.6.1
+      '@peculiar/asn1-schema': 2.6.0
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-pkcs8@2.6.1':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-pkcs9@2.6.1':
+    dependencies:
+      '@peculiar/asn1-cms': 2.6.1
+      '@peculiar/asn1-pfx': 2.6.1
+      '@peculiar/asn1-pkcs8': 2.6.1
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      '@peculiar/asn1-x509-attr': 2.6.1
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-rsa@2.6.1':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-schema@2.6.0':
+    dependencies:
+      asn1js: 3.0.7
+      pvtsutils: 1.3.6
+      tslib: 2.8.1
+
+  '@peculiar/asn1-x509-attr@2.6.1':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-x509@2.6.1':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      asn1js: 3.0.7
+      pvtsutils: 1.3.6
+      tslib: 2.8.1
+
+  '@peculiar/x509@1.14.3':
+    dependencies:
+      '@peculiar/asn1-cms': 2.6.1
+      '@peculiar/asn1-csr': 2.6.1
+      '@peculiar/asn1-ecc': 2.6.1
+      '@peculiar/asn1-pkcs9': 2.6.1
+      '@peculiar/asn1-rsa': 2.6.1
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.1
+      pvtsutils: 1.3.6
+      reflect-metadata: 0.2.2
+      tslib: 2.8.1
+      tsyringe: 4.10.0
 
   '@pkgjs/nv@0.2.2':
     dependencies:
@@ -12809,6 +12974,12 @@ snapshots:
   asn1@0.2.6:
     dependencies:
       safer-buffer: 2.1.2
+
+  asn1js@3.0.7:
+    dependencies:
+      pvtsutils: 1.3.6
+      pvutils: 1.1.5
+      tslib: 2.8.1
 
   assertion-error@1.1.0: {}
 
@@ -15681,7 +15852,7 @@ snapshots:
       - socks
       - supports-color
 
-  mongodb-download-url@1.7.0:
+  mongodb-download-url@1.8.7:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       minimist: 1.2.8
@@ -15759,13 +15930,15 @@ snapshots:
       mongodb-connection-string-url: 7.0.1
       regexp.escape: 2.0.1
 
-  mongodb-runner@5.11.1(@aws-sdk/credential-providers@3.995.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7):
+  mongodb-runner@6.7.1(@aws-sdk/credential-providers@3.995.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7):
     dependencies:
-      '@mongodb-js/mongodb-downloader': 0.5.0
-      '@mongodb-js/saslprep': 1.3.2
+      '@mongodb-js/mongodb-downloader': 1.1.7
+      '@mongodb-js/oidc-mock-provider': 0.13.6
+      '@mongodb-js/saslprep': 1.4.6
+      '@peculiar/x509': 1.14.3
       debug: 4.4.3(supports-color@8.1.1)
       mongodb: 7.1.0(@aws-sdk/credential-providers@3.995.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      mongodb-connection-string-url: 3.0.2
+      mongodb-connection-string-url: 7.0.1
       yargs: 17.7.2
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
@@ -16326,6 +16499,12 @@ snapshots:
       object-assign: 4.1.1
       react-is: 16.13.1
 
+  proper-lockfile@4.1.2:
+    dependencies:
+      graceful-fs: 4.2.11
+      retry: 0.12.0
+      signal-exit: 3.0.7
+
   property-information@6.5.0: {}
 
   proxy-addr@2.0.7:
@@ -16345,6 +16524,12 @@ snapshots:
   punycode.js@2.3.1: {}
 
   punycode@2.3.1: {}
+
+  pvtsutils@1.3.6:
+    dependencies:
+      tslib: 2.8.1
+
+  pvutils@1.1.5: {}
 
   qs@6.14.0:
     dependencies:
@@ -16575,6 +16760,8 @@ snapshots:
 
   redux@5.0.1: {}
 
+  reflect-metadata@0.2.2: {}
+
   reflect.getprototypeof@1.0.10:
     dependencies:
       call-bind: 1.0.8
@@ -16699,6 +16886,8 @@ snapshots:
     dependencies:
       onetime: 7.0.0
       signal-exit: 4.1.0
+
+  retry@0.12.0: {}
 
   reusify@1.1.0: {}
 
@@ -17445,6 +17634,10 @@ snapshots:
     dependencies:
       tslib: 1.14.1
       typescript: 5.9.3
+
+  tsyringe@4.10.0:
+    dependencies:
+      tslib: 1.14.1
 
   ttf2eot@2.0.0:
     dependencies:
