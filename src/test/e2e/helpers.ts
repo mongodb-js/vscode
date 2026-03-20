@@ -347,18 +347,20 @@ export async function connectToMongoDB(page: Page): Promise<void> {
 
   // Step 3: Wait for the connection string input box to appear.
   // VS Code reuses the quick-input widget. After the command palette closes,
-  // showInputBox opens a new one. Wait for it to transition: the '>' prefix
-  // used by the command palette is cleared when the input box appears.
+  // showInputBox opens a new one. Wait for the placeholder text that the
+  // extension sets on the connection string input as a positive signal.
   await page.waitForFunction(
     () => {
       const input = document.querySelector<HTMLInputElement>(
         '.quick-input-widget input[type="text"]',
       );
       return (
-        input && input.offsetParent !== null && !input.value.startsWith('>')
+        input &&
+        input.offsetParent !== null &&
+        input.placeholder.includes('mongodb')
       );
     },
-    { timeout: 10_000 },
+    { timeout: 30_000 },
   );
 
   // The input box should now be visible with the connection string placeholder

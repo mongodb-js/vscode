@@ -32,6 +32,18 @@ test.beforeAll(async () => {
   await connectToMongoDB(page);
 });
 
+test.afterEach(async (_, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus && page) {
+    const screenshotPath = testInfo.outputPath('failure.png');
+    await page.screenshot({ path: screenshotPath });
+    testInfo.attachments.push({
+      name: 'failure-screenshot',
+      path: screenshotPath,
+      contentType: 'image/png',
+    });
+  }
+});
+
 test.afterAll(async () => {
   if (electronApp) {
     await electronApp.close();
