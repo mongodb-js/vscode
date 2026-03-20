@@ -18,6 +18,11 @@ export const TEST_DB_NAME = 'e2eTestDB';
 let mongoCluster: MongoCluster | undefined;
 
 function killExistingProcessOnPort(port: string): void {
+  // lsof won't work on windows. This is just a convenience for local
+  // development, so it is fine to skip on windows
+  if (process.platform === 'win32') {
+    return;
+  }
   try {
     const pids = execSync(`lsof -ti :${port}`, { encoding: 'utf-8' }).trim();
     if (pids) {
