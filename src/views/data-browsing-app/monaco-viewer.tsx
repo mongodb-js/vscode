@@ -302,7 +302,6 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [documentString]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEditorHeight(calculateHeight());
   }, [documentString, calculateHeight]);
 
