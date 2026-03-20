@@ -382,6 +382,72 @@ describe('PreviewApp test suite', function () {
       expect(screen.getByText('1-10 of 50')).to.exist;
     });
 
+    it('should omit total count when count is unavailable', function () {
+      renderWithProvider(<PreviewApp />);
+
+      const documents = Array.from({ length: 10 }, (_, i) => ({
+        _id: String(i + 1),
+        name: `Doc${i + 1}`,
+      }));
+
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadPage,
+              documents,
+            },
+          }),
+        );
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.updateTotalCount,
+              totalCount: null,
+            },
+          }),
+        );
+      });
+
+      const paginationText = screen.getByText('1-10');
+      expect(paginationText).to.exist;
+      expect(paginationText.textContent).to.equal('1-10');
+      expect(screen.queryByText('1-10 of N/A')).to.be.null;
+    });
+
+    it('should display count error when total count retrieval fails', function () {
+      renderWithProvider(<PreviewApp />);
+
+      const documents = Array.from({ length: 10 }, (_, i) => ({
+        _id: String(i + 1),
+        name: `Doc${i + 1}`,
+      }));
+      const errorMessage = 'Count request failed';
+
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadPage,
+              documents,
+            },
+          }),
+        );
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.updateTotalCountError,
+              error: errorMessage,
+            },
+          }),
+        );
+      });
+
+      const countError = screen.getByText('Error');
+      expect(countError).to.exist;
+      expect(countError.getAttribute('title')).to.equal(errorMessage);
+    });
+
     it('should not navigate when pagination buttons clicked while loading', function () {
       renderWithProvider(<PreviewApp />);
 
