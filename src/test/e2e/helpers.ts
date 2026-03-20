@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -345,9 +346,9 @@ export async function connectToMongoDB(page: Page): Promise<void> {
   // used by the command palette is cleared when the input box appears.
   await page.waitForFunction(
     () => {
-      const input = document.querySelector(
+      const input = document.querySelector<HTMLInputElement>(
         '.quick-input-widget input[type="text"]',
-      ) as HTMLInputElement | null;
+      );
       return (
         input && input.offsetParent !== null && !input.value.startsWith('>')
       );
@@ -424,7 +425,7 @@ export async function createAndRunPlayground(
   }
 
   // Write to clipboard via Electron's main process API, then paste
-  await electronApp.evaluate(async ({ clipboard }, text) => {
+  await electronApp.evaluate(({ clipboard }, text) => {
     clipboard.writeText(text);
   }, playgroundContent);
   if (isMac) {
@@ -467,5 +468,5 @@ export async function getDataBrowserContent(
   // VS Code renders webviews inside nested iframes
   const webviewFrame = page.frameLocator('iframe.webview.ready');
   const innerFrame = webviewFrame.frameLocator('#active-frame');
-  return { frameLocator: innerFrame };
+  return Promise.resolve({ frameLocator: innerFrame });
 }
