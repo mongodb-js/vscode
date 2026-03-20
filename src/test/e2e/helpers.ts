@@ -268,6 +268,26 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
       )
       .catch(() => {});
   }
+
+  // Close the Chat panel if it auto-opened (VS Code Insiders) — it can steal
+  // keyboard focus and prevent the command palette from appearing.
+  const chatPanel = page.locator(
+    '.part.panel .composite.title .action-label[aria-label="Close Panel"]',
+  );
+  // Also try the secondary chat sidebar close button
+  const chatSidebar = page.locator(
+    '.part.auxiliarybar .composite.title .action-label[aria-label*="Close"]',
+  );
+  if (await chatPanel.isVisible({ timeout: 1_000 }).catch(() => false)) {
+    await chatPanel.click();
+  } else if (
+    await chatSidebar.isVisible({ timeout: 1_000 }).catch(() => false)
+  ) {
+    await chatSidebar.click();
+  }
+
+  // Ensure keyboard focus is on the main workbench editor area
+  await page.locator('.monaco-workbench .part.editor').click({ force: true });
 }
 
 /**
@@ -326,6 +346,13 @@ export async function executeCommand(
  */
 export async function connectToMongoDB(page: Page): Promise<void> {
   const isMac = process.platform === 'darwin';
+
+  // Ensure keyboard focus is on the main workbench, not the Chat panel or
+  // secondary sidebar which can steal focus in VS Code Insiders.
+  await page
+    .locator('.monaco-workbench .part.editor')
+    .click({ force: true })
+    .catch(() => {});
 
   // Step 1: Open command palette
   if (isMac) {
