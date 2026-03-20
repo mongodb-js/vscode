@@ -1,5 +1,6 @@
 /* eslint-disable no-empty-pattern */
 /* eslint-disable mocha/no-global-tests */
+import type { TestInfo } from '@playwright/test';
 import {
   test,
   expect,
@@ -23,6 +24,19 @@ import {
 let electronApp: ElectronApplication;
 let page: Page;
 
+async function screenshotOnFailure(testInfo: TestInfo): Promise<void> {
+  if (testInfo.status !== testInfo.expectedStatus && page) {
+    const screenshotPath = testInfo.outputPath('failure.png');
+    await page.screenshot({ path: screenshotPath });
+    console.log('screenshot saved to ', screenshotPath);
+    testInfo.attachments.push({
+      name: 'failure-screenshot',
+      path: screenshotPath,
+      contentType: 'image/png',
+    });
+  }
+}
+
 test.beforeAll(async () => {
   await startMongoDB();
   await seedDatabase();
@@ -34,18 +48,12 @@ test.beforeAll(async () => {
 });
 
 test.afterEach(async ({}, testInfo) => {
-  if (testInfo.status !== testInfo.expectedStatus && page) {
-    const screenshotPath = testInfo.outputPath('failure.png');
-    await page.screenshot({ path: screenshotPath });
-    testInfo.attachments.push({
-      name: 'failure-screenshot',
-      path: screenshotPath,
-      contentType: 'image/png',
-    });
-  }
+  await screenshotOnFailure(testInfo);
 });
 
-test.afterAll(async () => {
+test.afterAll(async ({}, testInfo) => {
+  await screenshotOnFailure(testInfo);
+
   if (electronApp) {
     await electronApp.close();
   }
