@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-pattern */
 /* eslint-disable mocha/no-global-tests */
 import {
   test,
@@ -32,7 +33,7 @@ test.beforeAll(async () => {
   await connectToMongoDB(page);
 });
 
-test.afterEach(async (_, testInfo) => {
+test.afterEach(async ({}, testInfo) => {
   if (testInfo.status !== testInfo.expectedStatus && page) {
     const screenshotPath = testInfo.outputPath('failure.png');
     await page.screenshot({ path: screenshotPath });
