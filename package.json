@@ -1430,6 +1430,12 @@
     ],
     "chatSkills": [
       {
+        "path": "./ext/agent-skills/skills/mongodb-natural-language-querying/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-schema-design/SKILL.md"
+      },
+      {
         "path": "./skills/configure-mongodb-mcp/SKILL.md"
       }
     ]

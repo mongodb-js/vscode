@@ -27,7 +27,7 @@ The workspace config is located at `.vscode/settings.json` within the current wo
 
 The MCP configuration options are prefixed with `mdb.mcp` - for example, `mdb.mcp.apiClientId`. Settings in the workspace config take priority over the user config settings.
 
-Additionally, review the environment variables for MCP server config - those variables should start with `MDB_MCP_` - for example, `MDB_MCP_API_CLIENT_ID`. Environment variables are not used for configuration, but if they are set, you can offer the user to copy those values into their settings file to make them available to the MCP server.
+Additionally, review the environment variables for MCP server config - those variables should start with `MDB_MCP_` - for example, `MDB_MCP_API_CLIENT_ID`. Environment variables are not used for configuration, but if they are set, offer to migrate them into the settings file and confirm with the user before writing.
 
 ## Step 2. Guide User Through Configuration Options
 
@@ -60,7 +60,7 @@ Add both values to your settings file:
 "mdb.mcp.apiClientSecret": "<your-client-secret>"
 ```
 
-> **Security:** Never commit these values to version control. Store them in your user-level settings (`~/Library/Application Support/Code/User/settings.json` on macOS) rather than the workspace `.vscode/settings.json` to avoid accidentally exposing them.
+> **Security:** Never commit these values to version control. Store them in your user-level settings (`~/Library/Application Support/Code/User/settings.json` on macOS) rather than the workspace `.vscode/settings.json` to avoid accidentally exposing them. Don't ask the user for the precise values - instead, guide them through the process of obtaining the credentials from Atlas and instruct them to paste the values into their settings file themselves.
 
 ### `mdb.mcp.readOnly`
 
@@ -79,7 +79,7 @@ Controls whether the MCP server exposes write operations to the connected agent.
   "mdb.mcp.readOnly": false
   ```
 
-> **Recommendation:** Keep `readOnly: true` in shared or production-facing workspace settings. Only disable it in workspace settings when you explicitly need the agent to write data, and consider scoping that to a workspace config rather than user-level config.
+> **Recommendation:** Keep `readOnly: true` in shared or production-facing workspace settings. Only disable it in workspace settings when you explicitly need the agent to write data, and use a workspace config rather than user-level config so the permission is project-scoped.
 
 ### `mdb.mcp.server`
 
@@ -107,6 +107,8 @@ Controls whether the MongoDB MCP server starts automatically when the VS Code ex
 
 Once you know which settings the user wants to change, offer to apply them directly on their behalf.
 
+> **Security reminder:** If `mdb.mcp.apiClientId` or `mdb.mcp.apiClientSecret` are being written, warn the user not to commit the file to version control if it is the workspace `.vscode/settings.json`. Suggest adding `.vscode/settings.json` to `.gitignore` if it isn't already.
+
 ### 3a. Offer to Edit the File Directly
 
 Ask the user: _"Would you like me to update the settings file for you?"_
@@ -126,11 +128,9 @@ When writing the file:
     "mdb.mcp.server": "autoStartEnabled"
   }
   ```
-- Preserve all existing keys and formatting as much as possible.
+- Do not modify keys or values other than the ones the user confirmed. Preserve existing formatting.
 - If there are duplicate keys with different values, prompt the user to choose which one to keep.
-- After writing, confirm to the user which file was updated and list the keys that were changed.
-
-> **Security reminder:** If `mdb.mcp.apiClientId` or `mdb.mcp.apiClientSecret` are being written, warn the user not to commit the file to version control if it is the workspace `.vscode/settings.json`. Suggest adding `.vscode/settings.json` to `.gitignore` if it isn't already.
+- After writing, instruct the user to replace the placeholder values with their actual credentials.
 
 ### 3b. Manual Instructions (if user declines direct edit)
 
