@@ -138,9 +138,9 @@ test('playground aggregation results appear in data browsing view', async () => 
   // The MonacoViewer components render the aggregation results
   // Look for the pagination info showing the results count
   await expect(async () => {
-    // The pagination shows "1-N of N/A" for cursor results (aggregation)
+    // The pagination shows "1-N" for cursor results (aggregation)
     const paginationText = await frameLocator
-      .locator('text=/\\d+-\\d+ of/')
+      .locator('text=/\\d+-\\d+/')
       .textContent({ timeout: 5_000 });
     expect(paginationText).toBeTruthy();
   }).toPass({ timeout: 30_000 });

@@ -10,6 +10,7 @@ import {
 } from '@playwright/test';
 import { MongoCluster } from 'mongodb-runner';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import { clear } from 'console';
 
 export const TEST_DATABASE_PORT = '27088';
 export const TEST_DATABASE_URI = `mongodb://localhost:${TEST_DATABASE_PORT}`;
@@ -269,25 +270,18 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
       .catch(() => {});
   }
 
-  // Close the Chat panel if it auto-opened (VS Code Insiders) — it can steal
-  // keyboard focus and prevent the command palette from appearing.
-  const chatPanel = page.locator(
-    '.part.panel .composite.title .action-label[aria-label="Close Panel"]',
+  await executeCommand(page, 'View: Hide Secondary Side Bar');
+
+  // "All installed extensions are temporarily disabled." is just in the way
+  const clearNotificationsButton = page.locator(
+    '[aria-label*="Clear Notification"]',
   );
-  // Also try the secondary chat sidebar close button
-  const chatSidebar = page.locator(
-    '.part.auxiliarybar .composite.title .action-label[aria-label*="Close"]',
-  );
-  if (await chatPanel.isVisible({ timeout: 1_000 }).catch(() => false)) {
-    await chatPanel.click();
-  } else if (
-    await chatSidebar.isVisible({ timeout: 1_000 }).catch(() => false)
-  ) {
-    await chatSidebar.click();
-  }
+  await clearNotificationsButton.click();
 
   // Ensure keyboard focus is on the main workbench editor area
   await page.locator('.monaco-workbench .part.editor').click({ force: true });
+
+  //await page.pause(); // For debugging: opens Playwright inspector to see the state of the app at this point
 }
 
 /**
