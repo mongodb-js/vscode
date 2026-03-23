@@ -44,6 +44,11 @@ jobs:
             .sbom/snyk-test-result.html
             .sbom/snyk-test-result.json
 
+      - name: Compile Extension Bundles
+        shell: bash
+        run: |
+          pnpm run compile:constants && pnpm run compile:extension-bundles
+
       - name: Generate Vulnerability Report (Fail on >= High)
         continue-on-error: ${{ github.event_name == 'pull_request' }}
         shell: bash
