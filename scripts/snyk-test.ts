@@ -6,6 +6,7 @@ const { promisify } = require('util');
 const execFile = promisify(childProcess.execFile);
 
 async function snykTest(cwd): Promise<{
+  error?: Error;
   results: Record<string, unknown>;
 }> {
   const tmpPath = path.join(os.tmpdir(), 'tempfile-' + Date.now());
@@ -14,6 +15,7 @@ async function snykTest(cwd): Promise<{
     console.info(`testing ${cwd} ...`);
     await fs.mkdir(path.join(cwd, `node_modules`), { recursive: true });
 
+    let error: Error | undefined = undefined;
     try {
       await execFile(
         'pnpm',
@@ -21,7 +23,7 @@ async function snykTest(cwd): Promise<{
           'exec',
           'snyk',
           'test',
-          '--severity-threshold=low',
+          '--severity-threshold=high',
           '--dev',
           `--json-file-output=${tmpPath}`,
         ],
@@ -29,17 +31,13 @@ async function snykTest(cwd): Promise<{
         { cwd, stdio: 'ignore' },
       );
     } catch (err) {
-      // Snyk exits with code 1 when vulnerabilities are found — that's
-      // expected and not a script-level failure. Any other exit code
-      // (e.g. 2 for a Snyk runtime error) should still be surfaced.
-      if (err.code !== 1) {
-        throw err;
-      }
+      error = err;
     }
 
     const res = JSON.parse(await fs.readFile(tmpPath));
     console.info(`Testing ${cwd} completed.`);
     return {
+      error,
       results: res,
     };
   } finally {
@@ -54,7 +52,7 @@ async function snykTest(cwd): Promise<{
 async function main() {
   const rootPath = path.resolve(__dirname, '..');
   await fs.mkdir(path.join(rootPath, `.sbom`), { recursive: true });
-  const { results } = await snykTest(rootPath);
+  const { results, error } = await snykTest(rootPath);
 
   if (!results) {
     console.error('Snyk test failed to produce results');
@@ -77,6 +75,11 @@ async function main() {
     ],
     { cwd: rootPath },
   );
+
+  if (error) {
+    console.error('Snyk test failed. Check the report for details.');
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {
