@@ -23,7 +23,7 @@ async function snykTest(cwd): Promise<{
           'exec',
           'snyk',
           'test',
-          '--severity-threshold=low',
+          '--severity-threshold=high',
           '--dev',
           `--json-file-output=${tmpPath}`,
         ],
