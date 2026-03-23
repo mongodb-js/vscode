@@ -10,7 +10,6 @@ import {
 } from '@playwright/test';
 import { MongoCluster } from 'mongodb-runner';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
-import { clear } from 'console';
 
 export const TEST_DATABASE_PORT = '27088';
 export const TEST_DATABASE_URI = `mongodb://localhost:${TEST_DATABASE_PORT}`;
