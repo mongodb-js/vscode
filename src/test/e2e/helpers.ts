@@ -222,6 +222,7 @@ export async function launchVSCode(): Promise<ElectronApplication> {
       '--skip-release-notes',
       '--skip-welcome',
       '--disable-telemetry',
+      '--log=trace',
     ],
     env: {
       ...(process.env as Record<string, string>),

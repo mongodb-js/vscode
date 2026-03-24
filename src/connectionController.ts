@@ -309,8 +309,13 @@ export default class ConnectionController {
     }
 
     if (!connectionString) {
+      log.info(
+        'connectWithURI command called but no connection string provided',
+      );
       return false;
     }
+
+    log.info('connectWithURI command called with a provided connection string');
 
     return this.addNewConnectionStringAndConnect({
       connectionString,
