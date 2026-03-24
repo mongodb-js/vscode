@@ -360,6 +360,11 @@ export default class ConnectionController {
             name,
           }));
 
+      log.info(
+        'Connected to new connection configuration',
+        connectResult.successfullyConnected,
+      );
+
       return connectResult.successfullyConnected;
     } catch (error) {
       const printableError = formatError(error);
