@@ -5,6 +5,7 @@ import fs from 'fs';
 import { execSync } from 'child_process';
 import {
   _electron as electron,
+  expect,
   type ElectronApplication,
   type Page,
 } from '@playwright/test';
@@ -330,6 +331,19 @@ export async function executeCommand(
     .locator('.quick-input-list .monaco-list-row')
     .first()
     .waitFor({ state: 'visible', timeout: 5_000 });
+
+  // Take a screenshot to make it easier to debug test failures in CI
+  const slug = command
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  await page.screenshot({
+    path: path.join('test-results', `command-${slug}.png`),
+  });
+
+  // Verify the expected command is first in the list
+  const firstRow = page.locator('.quick-input-list .monaco-list-row').first();
+  await expect(firstRow).toContainText(command, { timeout: 5_000 });
 
   // Select the first matching item
   await page.keyboard.press('Enter');
