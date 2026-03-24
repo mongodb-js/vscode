@@ -69,6 +69,28 @@ export function copyExtensionLogs(): void {
     if (fs.existsSync(logsDir)) {
       fs.cpSync(logsDir, dest, { recursive: true });
       console.log(`Copied VS Code logs to ${dest}`);
+
+      // Copy the MongoDB extension log to the root of test-results/ for easy access.
+      // The path is: <logsDir>/<date>/window1/exthost/mongodb.mongodb-vscode/MongoDB Extension.log
+      const dateDirs = fs.readdirSync(logsDir);
+      for (const dateDir of dateDirs) {
+        const extLog = path.join(
+          logsDir,
+          dateDir,
+          'window1',
+          'exthost',
+          'mongodb.mongodb-vscode',
+          'MongoDB Extension.log',
+        );
+        if (fs.existsSync(extLog)) {
+          fs.copyFileSync(
+            extLog,
+            path.join('test-results', 'MongoDB Extension.log'),
+          );
+          console.log(`Copied MongoDB Extension log to test-results/`);
+          break;
+        }
+      }
     }
   } catch (err) {
     console.error('Failed to copy VS Code extension logs:', err);
