@@ -229,6 +229,7 @@ export async function launchVSCode(): Promise<ElectronApplication> {
       // NOTE: Do NOT set MDB_IS_TEST here. When MDB_IS_TEST=true, the extension
       // skips activation entirely (VSCODE-700), which means no commands are registered.
       // E2e tests need the real activation flow.
+      MDB_IS_TEST: 'false', // It might already be set to 'true' in a workflow
     },
   });
 
