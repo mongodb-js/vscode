@@ -275,6 +275,13 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
   const clearNotificationsButton = page.locator(
     '[aria-label*="Clear Notification"]',
   );
+  if (
+    await clearNotificationsButton
+      .isVisible({ timeout: 2_000 })
+      .catch(() => false)
+  ) {
+    await clearNotificationsButton.click();
+  }
   await clearNotificationsButton.click();
 
   // Ensure keyboard focus is on the main workbench editor area
