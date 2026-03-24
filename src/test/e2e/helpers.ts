@@ -239,6 +239,10 @@ export async function launchVSCode(): Promise<ElectronApplication> {
       '--disable-extensions',
       '--disable-gpu',
       '--no-sandbox',
+      // On CI (Linux), SecretStorage uses the system keyring
+      // (gnome-keyring/kwallet/etc.). If no keyring daemon is available, this
+      // call hangs indefinitely, blocking the entire flow.
+      '--password-store=basic',
       `--user-data-dir=${userDataDir}`,
       `--extensions-dir=${extensionsDir}`,
       '--skip-release-notes',
