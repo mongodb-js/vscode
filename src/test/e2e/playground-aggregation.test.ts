@@ -18,6 +18,7 @@ import {
   connectToMongoDB,
   createAndRunPlayground,
   getDataBrowserContent,
+  copyExtensionLogs,
   TEST_DB_NAME,
 } from './helpers';
 
@@ -53,6 +54,7 @@ test.afterEach(async ({}, testInfo) => {
 
 test.afterAll(async ({}, testInfo) => {
   await screenshotOnFailure(testInfo);
+  copyExtensionLogs();
 
   if (electronApp) {
     await electronApp.close();

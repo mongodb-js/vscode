@@ -298,7 +298,8 @@ export default class ConnectionController {
         },
         cancellationToken.token,
       );
-    } catch (e) {
+    } catch (error) {
+      log.error('Failed to show the input box in connectWithURI', error);
       return false;
     } finally {
       if (this._connectionStringInputCancellationToken === cancellationToken) {

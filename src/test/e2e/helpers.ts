@@ -16,6 +16,9 @@ export const TEST_DATABASE_PORT = '27088';
 export const TEST_DATABASE_URI = `mongodb://localhost:${TEST_DATABASE_PORT}`;
 export const TEST_DB_NAME = 'e2eTestDB';
 
+const E2E_TMP_DIR = path.join(os.tmpdir(), 'vscode-e2e-test');
+const USER_DATA_DIR = path.join(E2E_TMP_DIR, 'user-data');
+
 let mongoCluster: MongoCluster | undefined;
 
 function killExistingProcessOnPort(port: string): void {
@@ -52,6 +55,23 @@ export async function stopMongoDB(): Promise<void> {
     console.log('Stopping MongoDB server');
     await mongoCluster.close();
     mongoCluster = undefined;
+  }
+}
+
+/**
+ * Copy VS Code extension logs from the user-data directory into test-results/
+ * so they are uploaded as part of the e2e test artifacts on CI.
+ */
+export function copyExtensionLogs(): void {
+  const logsDir = path.join(USER_DATA_DIR, 'logs');
+  const dest = path.join('test-results', 'vscode-logs');
+  try {
+    if (fs.existsSync(logsDir)) {
+      fs.cpSync(logsDir, dest, { recursive: true });
+      console.log(`Copied VS Code logs to ${dest}`);
+    }
+  } catch (err) {
+    console.error('Failed to copy VS Code extension logs:', err);
   }
 }
 
@@ -163,9 +183,8 @@ export async function launchVSCode(): Promise<ElectronApplication> {
   // Use isolated directories for e2e tests.
   // Remove and recreate the user-data dir so stale connections from previous
   // runs don't accumulate in the sidebar.
-  const e2eTmpDir = path.join(os.tmpdir(), 'vscode-e2e-test');
-  const userDataDir = path.join(e2eTmpDir, 'user-data');
-  const extensionsDir = path.join(e2eTmpDir, 'extensions');
+  const userDataDir = USER_DATA_DIR;
+  const extensionsDir = path.join(E2E_TMP_DIR, 'extensions');
   fs.rmSync(userDataDir, { recursive: true, force: true });
   fs.mkdirSync(userDataDir, { recursive: true });
   fs.mkdirSync(extensionsDir, { recursive: true });
@@ -309,6 +328,7 @@ export async function closeAllEditors(page: Page): Promise<void> {
 export async function executeCommand(
   page: Page,
   command: string,
+  options?: { waitForClose?: boolean },
 ): Promise<void> {
   const isMac = process.platform === 'darwin';
 
@@ -349,43 +369,23 @@ export async function executeCommand(
   await page.keyboard.press('Enter');
 
   // Wait for the command palette to close
-  await page
-    .locator('.quick-input-widget')
-    .waitFor({ state: 'hidden', timeout: 5_000 });
+  if (options?.waitForClose !== false) {
+    await page
+      .locator('.quick-input-widget')
+      .waitFor({ state: 'hidden', timeout: 5_000 });
+  }
 }
 
 /**
  * Connect to MongoDB by executing the connectWithURI command.
  */
 export async function connectToMongoDB(page: Page): Promise<void> {
-  const isMac = process.platform === 'darwin';
+  // Step 1: Execute the connect command (don't wait for close since it opens an input box)
+  await executeCommand(page, 'MongoDB: Connect with Connection String', {
+    waitForClose: false,
+  });
 
-  // Ensure keyboard focus is on the main workbench, not the Chat panel or
-  // secondary sidebar which can steal focus in VS Code Insiders.
-  await page
-    .locator('.monaco-workbench .part.editor')
-    .click({ force: true })
-    .catch(() => {});
-
-  // Step 1: Open command palette
-  if (isMac) {
-    await page.keyboard.press('Meta+Shift+KeyP');
-  } else {
-    await page.keyboard.press('Control+Shift+KeyP');
-  }
-
-  let quickInput = page.locator('.quick-input-widget input[type="text"]');
-  await quickInput.waitFor({ state: 'visible', timeout: 5_000 });
-
-  // Step 2: Type the connect command and execute it
-  await quickInput.fill('>MongoDB: Connect with Connection String');
-  await page
-    .locator('.quick-input-list .monaco-list-row')
-    .first()
-    .waitFor({ state: 'visible', timeout: 5_000 });
-  await page.keyboard.press('Enter');
-
-  // Step 3: Wait for the connection string input box to appear.
+  // Step 2: Wait for the connection string input box to appear.
   // VS Code reuses the quick-input widget. After the command palette closes,
   // showInputBox opens a new one. Wait for the placeholder text that the
   // extension sets on the connection string input as a positive signal.
@@ -404,14 +404,14 @@ export async function connectToMongoDB(page: Page): Promise<void> {
   );
 
   // The input box should now be visible with the connection string placeholder
-  quickInput = page.locator('.quick-input-widget input[type="text"]');
+  const quickInput = page.locator('.quick-input-widget input[type="text"]');
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
 
-  // Step 4: Type the connection string and submit
+  // Step 3: Type the connection string and submit
   await quickInput.fill(TEST_DATABASE_URI);
   await page.keyboard.press('Enter');
 
-  // Step 5: Wait for connection to establish
+  // Step 4: Wait for connection to establish
   // The connection appears as a tree item in the sidebar
   await page
     .locator('.monaco-list-row', { hasText: `localhost:${TEST_DATABASE_PORT}` })
