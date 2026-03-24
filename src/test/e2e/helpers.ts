@@ -282,7 +282,6 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
   ) {
     await clearNotificationsButton.click();
   }
-  await clearNotificationsButton.click();
 
   // Ensure keyboard focus is on the main workbench editor area
   await page.locator('.monaco-workbench .part.editor').click({ force: true });
