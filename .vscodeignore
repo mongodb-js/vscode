@@ -19,9 +19,6 @@ playgrounds/**
 resources
 .sbom/**
 CHANGELOG.md
-ext/**
-!ext/agent-skills/skills/**
-ext/agent-skills/skills/mongodb-mcp-setup/**
 .claude/**
 .github/**
 .husky/**
@@ -32,3 +29,10 @@ ext/agent-skills/skills/mongodb-mcp-setup/**
 babel.config.json
 pnpm-lock.yaml
 scripts/**
+
+# Ignore all files in ext except the skills folder
+ext/**
+!ext/agent-skills/skills/**
+# Ignore the mongodb-mcp-setup skill since that is replaced by the vscode-specific
+# configure-mongodb-mcp skill
+ext/agent-skills/skills/mongodb-mcp-setup/**

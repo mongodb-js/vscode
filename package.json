@@ -1431,10 +1431,22 @@
     ],
     "chatSkills": [
       {
+        "path": "./ext/agent-skills/skills/atlas-stream-processing/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-connection/SKILL.md"
+      },
+      {
         "path": "./ext/agent-skills/skills/mongodb-natural-language-querying/SKILL.md"
       },
       {
+        "path": "./ext/agent-skills/skills/mongodb-query-optimizer/SKILL.md"
+      },
+      {
         "path": "./ext/agent-skills/skills/mongodb-schema-design/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-search-and-ai/SKILL.md"
       },
       {
         "path": "./skills/configure-mongodb-mcp/SKILL.md"
