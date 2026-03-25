@@ -23,6 +23,12 @@ interface EvaluationResultWithExpectedFormat extends EvaluationResult {
   expectedFormat: DocumentViewAndEditFormat;
 }
 
+type SerializableError = {
+  name: string;
+  message: string;
+  stack?: string;
+};
+
 const getContent = ({
   type,
   printable,
@@ -89,7 +95,7 @@ export const execute = async ({
   filePath,
 }: ExecuteCodeOptions): Promise<{
   data: ShellEvaluateResult | null;
-  error?: Error;
+  error?: SerializableError;
 }> => {
   const serviceProvider = await NodeDriverServiceProvider.connect(
     connectionString,
@@ -148,7 +154,12 @@ export const execute = async ({
 
     return { data: { result } };
   } catch (error) {
-    return { error: error as Error, data: null };
+    const serializableError: SerializableError = {
+      name: (error as Error)?.name,
+      message: (error as Error)?.message,
+      stack: (error as Error)?.stack,
+    };
+    return { error: serializableError, data: null };
   } finally {
     await serviceProvider.close();
   }
@@ -156,7 +167,7 @@ export const execute = async ({
 
 type ExecuteCodeFromPlaygroundResult = {
   data: ShellEvaluateResult | null;
-  error?: Error;
+  error?: SerializableError;
 };
 
 type MessageFromParentPort = {
