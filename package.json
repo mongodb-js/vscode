@@ -43,7 +43,7 @@
     "clean": "rimraf -g ./out/* ./dist/*",
     "lint": "eslint . --fix && prettier --check .",
     "update-grammar": "node ./scripts/update-grammar.ts",
-    "compile": "pnpm run clean && pnpm run --sequential \"/^compile:.*/\"",
+    "compile": "pnpm run clean && pnpm run sync-skills && pnpm run --sequential \"/^compile:.*/\"",
     "compile:constants": "node ./scripts/generate-constants.ts",
     "compile:resources": "pnpm run update-grammar",
     "compile:extension": "tsc -p ./",
@@ -71,7 +71,9 @@
     "generate-vulnerability-report": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --fail-on=high",
     "create-vulnerability-tickets": "mongodb-sbom-tools generate-vulnerability-report --snyk-reports=.sbom/snyk-test-result.json --dependencies=.sbom/dependencies.json --create-jira-issues",
     "prepare": "husky",
-    "precommit": "node ./scripts/precommit.ts"
+    "precommit": "node ./scripts/precommit.ts",
+    "bump-agent-skills-submodule": "bash ./scripts/bump-agent-skills-submodule.sh",
+    "sync-skills": "node ./scripts/sync-skills.ts && prettier --write package.json"
   },
   "engines": {
     "vscode": "^1.101.1",
@@ -1425,6 +1427,29 @@
       {
         "id": "mongodb",
         "label": "MongoDB MCP Server Definition Provider"
+      }
+    ],
+    "chatSkills": [
+      {
+        "path": "./ext/agent-skills/skills/atlas-stream-processing/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-connection/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-natural-language-querying/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-query-optimizer/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-schema-design/SKILL.md"
+      },
+      {
+        "path": "./ext/agent-skills/skills/mongodb-search-and-ai/SKILL.md"
+      },
+      {
+        "path": "./skills/configure-mongodb-mcp/SKILL.md"
       }
     ]
   },

@@ -1,0 +1,63 @@
+name: Bump agent-skills submodule
+
+on:
+  schedule:
+    - cron: "30 3 * * *" # Nightly (UTC) at 03:30
+  workflow_dispatch:
+
+concurrency:
+  group: bump-agent-skills-submodule
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump-submodule:
+    name: Bump ext/agent-skills to latest release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mongodb-js/devtools-shared/actions/setup-bot-token@main
+        id: app-token
+        with:
+          app-id: ${{ vars.DEVTOOLS_BOT_APP_ID }}
+          private-key: ${{ secrets.DEVTOOLS_BOT_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: ./.github/workflows/actions/setup-node-environment
+
+      - name: Point submodule at latest mongodb/agent-skills release
+        id: bump
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: pnpm run bump-agent-skills-submodule
+        shell: bash
+
+      - name: Run sync-skills
+        if: steps.bump.outputs.bumped == 'true'
+        run: pnpm run sync-skills
+        shell: bash
+
+      - name: Create Pull Request
+        if: steps.bump.outputs.bumped == 'true'
+        uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # 7.0.6
+        with:
+          commit-message: 'chore: bump agent-skills submodule to ${{ steps.bump.outputs.tag }}'
+          base: main
+          branch: ci/bump-agent-skills-submodule
+          title: 'chore: bump agent-skills submodule to ${{ steps.bump.outputs.tag }}'
+          add-paths: |
+            ext/agent-skills
+            package.json
+          body: |
+            Nightly workflow: `pnpm run bump-agent-skills-submodule` then `pnpm run sync-skills` — updates `ext/agent-skills` to [mongodb/agent-skills](https://github.com/mongodb/agent-skills) `${{ steps.bump.outputs.tag }}` and refreshes `package.json`.
+          token: ${{ steps.app-token.outputs.token }}
+          author: "${{ steps.app-token.outputs.app-slug}}[bot] <${{ steps.app-token.outputs.app-email }}>"
+          committer: "${{ steps.app-token.outputs.app-slug}}[bot] <${{ steps.app-token.outputs.app-email }}>"
