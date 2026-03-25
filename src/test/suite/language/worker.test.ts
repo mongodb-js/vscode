@@ -138,5 +138,44 @@ suite('Worker Test Suite', function () {
       expect(executeFn.called).to.equal(false);
       expect(postMessageFn.called).to.equal(false);
     });
+
+    test('sends serializable errors', async function () {
+      const executeResult = {
+        data: null,
+        error: {
+          name: 'MongoServerError',
+          message: 'ns not found',
+          stack: 'MongoServerError: ns not found\n    at ...',
+        },
+      };
+      const executeFn = sinon.stub().resolves(executeResult);
+      const postMessageFn = sinon.stub();
+
+      await handleMessageFromParentPort(
+        {
+          name: ServerCommand.executeCodeFromPlayground,
+          data: serializeBSON({
+            codeToEvaluate: 'db.pineapple.drop()',
+            connectionString: 'mongodb://localhost:27017',
+            connectionOptions: {},
+            expectedFormat: 'ejson',
+          }),
+        },
+        { executeFn, postMessageFn },
+      );
+
+      expect(postMessageFn.calledOnce).to.equal(true);
+
+      const message = postMessageFn.firstCall.args[0] as {
+        name: string;
+        payload: string;
+      };
+      expect(message.name).to.equal(ServerCommand.codeExecutionResult);
+
+      const deserializedPayload = deserializeBSON(message.payload);
+      expect(deserializedPayload.data).to.equal(null);
+      expect(deserializedPayload.error.message).to.equal('ns not found');
+      expect(deserializedPayload.error.name).to.equal('MongoServerError');
+    });
   });
 });
