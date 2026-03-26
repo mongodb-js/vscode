@@ -286,7 +286,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
   const documentString = useMemo(() => {
     try {
-      const deserialized = EJSON.deserialize(document);
+      const deserialized = EJSON.deserialize(document, { relaxed: false });
       return toJSString(deserialized) ?? '';
     } catch (e) {
       return `Failed to deserialize and render document: ${(e as Error).message}`;
