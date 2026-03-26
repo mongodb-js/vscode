@@ -298,7 +298,8 @@ export default class ConnectionController {
         },
         cancellationToken.token,
       );
-    } catch (e) {
+    } catch (error) {
+      log.error('Failed to show the input box in connectWithURI', error);
       return false;
     } finally {
       if (this._connectionStringInputCancellationToken === cancellationToken) {
@@ -308,8 +309,13 @@ export default class ConnectionController {
     }
 
     if (!connectionString) {
+      log.info(
+        'connectWithURI command called but no connection string provided',
+      );
       return false;
     }
+
+    log.info('connectWithURI command called with a provided connection string');
 
     return this.addNewConnectionStringAndConnect({
       connectionString,
@@ -353,6 +359,11 @@ export default class ConnectionController {
             connectionType: ConnectionType.connectionString,
             name,
           }));
+
+      log.info(
+        'Connected to new connection configuration',
+        connectResult.successfullyConnected,
+      );
 
       return connectResult.successfullyConnected;
     } catch (error) {

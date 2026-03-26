@@ -40,7 +40,11 @@ export async function run(): Promise<void> {
   try {
     const files = await glob('**/**.test.js', {
       cwd: testsRoot,
-      ignore: ['**/webview-app/**/*.js', '**/data-browsing-app/**/*.js'],
+      ignore: [
+        '**/webview-app/**/*.js',
+        '**/data-browsing-app/**/*.js',
+        '**/e2e/**/*.js',
+      ],
     });
 
     // Add files to the test suite.

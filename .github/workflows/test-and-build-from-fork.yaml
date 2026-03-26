@@ -90,6 +90,16 @@ jobs:
           MDB_IS_TEST: "true"
         run: pnpm run test
 
+      - name: Upload e2e test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts-${{ matrix.os }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
   test-install:
     name: Run Install Test
     needs: build-vsix
