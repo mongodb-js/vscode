@@ -285,8 +285,12 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   }, [monaco, colors, themeKind]);
 
   const documentString = useMemo(() => {
-    const deserialized = EJSON.deserialize(document, { relaxed: false });
-    return toJSString(deserialized) ?? '';
+    try {
+      const deserialized = EJSON.deserialize(document);
+      return toJSString(deserialized) ?? '';
+    } catch (e) {
+      return `Failed to deserialize and render document: ${(e as Error).message}`;
+    }
   }, [document]);
 
   const calculateHeight = useCallback(() => {
