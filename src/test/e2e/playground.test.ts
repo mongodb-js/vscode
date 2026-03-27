@@ -48,6 +48,11 @@ test.beforeAll(async () => {
   await connectToMongoDB(page);
 });
 
+test.beforeEach(async () => {
+  // Close any leftover editor tabs from previous runs.
+  await closeAllEditors(page);
+});
+
 test.afterEach(async ({}, testInfo) => {
   await screenshotOnFailure(testInfo);
 });
@@ -64,9 +69,6 @@ test.afterAll(async ({}, testInfo) => {
 });
 
 test('playground aggregation results appear in data browsing view', async () => {
-  // Close any leftover editor tabs from previous runs
-  await closeAllEditors(page);
-
   // This aggregation groups sales by item, computes totals, filters items
   // with totalRevenue > 50, sorts by revenue descending, and adds a computed field.
   const playgroundCode = [
@@ -182,5 +184,31 @@ test('playground aggregation results appear in data browsing view', async () => 
     expect(allText).toContain('revenueCategory');
     // thingamajig has revenue 500 >= 200, so should be "high"
     expect(allText).toContain('high');
+  }).toPass({ timeout: 30_000 });
+});
+
+test('playground aggregation errors are shown to the user', async () => {
+  const playgroundCodeWithError = [
+    `use('${TEST_DB_NAME}');`,
+    '',
+    // You can't skip on a findOne() cursor, so this errors.
+    'db.sales.findOne().skip(2);',
+    '',
+  ].join('\n');
+
+  await createAndRunPlayground(electronApp, page, playgroundCodeWithError);
+
+  // Wait for the error result to show.
+  await expect(async () => {
+    const notification = page.locator('.notification-list-item');
+    const count = await notification.count();
+    const notificationTexts: string[] = [];
+    for (let i = 0; i < count; i++) {
+      notificationTexts.push((await notification.nth(i).textContent()) ?? '');
+    }
+    const hasErrorNotification = notificationTexts.some((text) =>
+      text.includes('db.sales.findOne().skip is not a function'),
+    );
+    expect(hasErrorNotification).toBe(true);
   }).toPass({ timeout: 30_000 });
 });
