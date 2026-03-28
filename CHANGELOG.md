@@ -1,9 +1,20 @@
 # Change Log
 
+## [v1.16.0](https://github.com/mongodb-js/vscode/releases/tag/v1.16.0) - 2026-03-28
+
+## What's Changed
+* feat: add skills VSCODE-766 by @nirinchev in https://github.com/mongodb-js/vscode/pull/1278
+* fix(playgrounds): serialize error so it is shown VSCODE-769 by @Anemy in https://github.com/mongodb-js/vscode/pull/1289
+* fix(data-browsing): show error when cannot deserialize EJSON VSCODE-768 by @Anemy in https://github.com/mongodb-js/vscode/pull/1292
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.15.1...v1.16.0
+
+
 ## [v1.15.1](https://github.com/mongodb-js/vscode/releases/tag/v1.15.1) - 2026-03-09
 
 ## What's Changed
-* fix: just hide the total count rather than displaying N/A VSCODE-765 by @lerouxb in https://github.com/mongodb-js/vscode/pull/1276
+* fix: hide the total count rather than displaying N/A VSCODE-765 by @lerouxb in https://github.com/mongodb-js/vscode/pull/1276
 
 
 **Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.15.0...v1.15.1
