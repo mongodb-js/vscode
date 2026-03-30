@@ -55,6 +55,7 @@ suite('MCPController test suite', function () {
   this.timeout(10_000);
   let connectionController: ConnectionController;
   let mcpController: MCPController;
+  let testTelemetryService: TelemetryService;
 
   let mcpAutoStartValue: string | null | undefined;
   let getConfigurationStub: SinonStub;
@@ -72,7 +73,7 @@ suite('MCPController test suite', function () {
   beforeEach(() => {
     const extensionContext = new ExtensionContextStub();
     const testStorageController = new StorageController(extensionContext);
-    const testTelemetryService = new TelemetryService(
+    testTelemetryService = new TelemetryService(
       testStorageController,
       extensionContext,
     );
@@ -86,6 +87,7 @@ suite('MCPController test suite', function () {
       context: extensionContext,
       connectionController: connectionController,
       getTelemetryAnonymousId: (): string => '1FOO',
+      telemetryService: testTelemetryService,
     });
 
     // GetConfiguration Stubs
@@ -836,6 +838,28 @@ suite('MCPController test suite', function () {
         'You need to connect to a MongoDB instance before you can access its data.',
       );
       expect(secondResponse).to.contain('Not connected');
+    });
+  });
+
+  suite('MCP server telemetry configuration', function () {
+    test('passes telemetry "enabled" to MCP server config when telemetry is enabled', function () {
+      sandbox
+        .stub(testTelemetryService, 'isTelemetryFeatureEnabled')
+        .returns(true);
+      const config = (mcpController as any).getMCPServerConfig({
+        authorization: 'Bearer test',
+      });
+      expect(config.telemetry).to.equal('enabled');
+    });
+
+    test('passes telemetry "disabled" to MCP server config when telemetry is disabled', function () {
+      sandbox
+        .stub(testTelemetryService, 'isTelemetryFeatureEnabled')
+        .returns(false);
+      const config = (mcpController as any).getMCPServerConfig({
+        authorization: 'Bearer test',
+      });
+      expect(config.telemetry).to.equal('disabled');
     });
   });
 
