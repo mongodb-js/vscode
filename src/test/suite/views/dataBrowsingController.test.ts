@@ -570,9 +570,13 @@ suite('DataBrowsingController Test Suite', function () {
       expect(message.error).to.include('no longer active');
     });
 
-    test('does not post any message when connection changed and cancelRequest received', async function () {
+    test('still calls handleCancelRequest when connection changed and cancelRequest received', async function () {
       switchConnection();
       const options = createMockOptions();
+      const handleCancelRequestSpy = sandbox.spy(
+        testController,
+        'handleCancelRequest',
+      );
 
       await testController.handleWebviewMessage(
         { command: PreviewMessageType.cancelRequest },
@@ -580,7 +584,10 @@ suite('DataBrowsingController Test Suite', function () {
         options,
       );
 
-      expect(postMessageStub.called).to.be.false;
+      expect(handleCancelRequestSpy.calledOnce).to.be.true;
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.requestCancelled);
     });
 
     test('shows vscode error when connection changed and editDocument requested', async function () {

@@ -362,7 +362,7 @@ export default class DataBrowsingController {
       this._connectionController.getActiveConnectionId();
 
     if (originalConnectionId !== currentConnectionId) {
-      return 'The connection that this result view was associated with is no longer active. Please re-connect to the cluster and then re-run the query.';
+      return 'The connection that this result view was associated with is no longer active. Please reconnect to the cluster and then re-run the query.';
     }
     return undefined;
   }
@@ -395,10 +395,9 @@ export default class DataBrowsingController {
           });
           break;
         case PreviewMessageType.cancelRequest:
-          // Nothing to cancel if the connection is gone.
+          this.handleCancelRequest(panel);
           break;
         default:
-          // edit, clone, delete, insert — show a modal error.
           void vscode.window.showErrorMessage(connectionError);
           break;
       }
