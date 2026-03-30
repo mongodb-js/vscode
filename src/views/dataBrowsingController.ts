@@ -362,7 +362,7 @@ export default class DataBrowsingController {
       this._connectionController.getActiveConnectionId();
 
     if (originalConnectionId !== currentConnectionId) {
-      return 'The connection that this result view was associated with is no longer active. Please re-run the query or reopen the collection after connecting to the desired cluster.';
+      return 'The connection that this result view was associated with is no longer active. Please re-connect to the cluster and then re-run the query.';
     }
     return undefined;
   }
