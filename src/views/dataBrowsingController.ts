@@ -298,6 +298,8 @@ export default class DataBrowsingController {
   _panelAbortControllers: Map<vscode.WebviewPanel, PanelAbortControllers> =
     new Map();
 
+  _panelConnectionIds: Map<vscode.WebviewPanel, string | null> = new Map();
+
   constructor({
     connectionController,
     telemetryService,
@@ -319,6 +321,7 @@ export default class DataBrowsingController {
       controllers.totalCount?.abort();
     }
     this._panelAbortControllers.clear();
+    this._panelConnectionIds.clear();
   }
 
   private _createAbortController(
@@ -347,11 +350,61 @@ export default class DataBrowsingController {
     }
   }
 
+  /**
+   * Checks whether the panel's original connection is still the active one.
+   * Returns an error message if the connection has changed, or undefined if OK.
+   */
+  private _getConnectionMismatchError(
+    panel: vscode.WebviewPanel,
+  ): string | undefined {
+    const originalConnectionId = this._panelConnectionIds.get(panel);
+    const currentConnectionId =
+      this._connectionController.getActiveConnectionId();
+
+    if (originalConnectionId !== currentConnectionId) {
+      return 'The connection that this result view was associated with is no longer active. Please re-run the query or reopen the collection after connecting to the desired cluster.';
+    }
+    return undefined;
+  }
+
   handleWebviewMessage = async (
     message: MessageFromWebviewToExtension,
     panel: vscode.WebviewPanel,
     options: DataBrowsingOptions,
   ): Promise<void> => {
+    // Allow theme-related messages regardless of connection state.
+    if (message.command === PreviewMessageType.getThemeColors) {
+      this._sendThemeColors(panel);
+      return;
+    }
+
+    // For all data-related messages, verify the connection is still valid.
+    const connectionError = this._getConnectionMismatchError(panel);
+    if (connectionError) {
+      switch (message.command) {
+        case PreviewMessageType.getDocuments:
+          void panel.webview.postMessage({
+            command: PreviewMessageType.getDocumentError,
+            error: connectionError,
+          });
+          break;
+        case PreviewMessageType.getTotalCount:
+          void panel.webview.postMessage({
+            command: PreviewMessageType.updateTotalCountError,
+            error: connectionError,
+          });
+          break;
+        case PreviewMessageType.cancelRequest:
+          // Nothing to cancel if the connection is gone.
+          break;
+        default:
+          // edit, clone, delete, insert — show a modal error.
+          void vscode.window.showErrorMessage(connectionError);
+          break;
+      }
+      return;
+    }
+
     switch (message.command) {
       case PreviewMessageType.getDocuments:
         await this.handleGetDocuments(
@@ -367,9 +420,6 @@ export default class DataBrowsingController {
         return;
       case PreviewMessageType.cancelRequest:
         this.handleCancelRequest(panel);
-        return;
-      case PreviewMessageType.getThemeColors:
-        this._sendThemeColors(panel);
         return;
       case PreviewMessageType.editDocument:
         await this.handleEditDocument(
@@ -890,6 +940,7 @@ export default class DataBrowsingController {
     options: DataBrowsingOptions,
   ): void => {
     this._cleanupAbortController(disposedPanel);
+    this._panelConnectionIds.delete(disposedPanel);
 
     const source = options.query ? 'query-results' : 'collection';
     this._telemetryService.track(new DataBrowserClosedTelemetryEvent(source));
@@ -987,6 +1038,10 @@ export default class DataBrowsingController {
 
     panel.onDidDispose(() => this.onWebviewPanelClosed(panel, options));
     this._activeWebviewPanels.push(panel);
+    this._panelConnectionIds.set(
+      panel,
+      this._connectionController.getActiveConnectionId(),
+    );
 
     panel.webview.html = getDataBrowsingContent({
       extensionPath,

@@ -33,6 +33,7 @@ suite('DataBrowsingController Test Suite', function () {
   let mockConnectionController: {
     getActiveDataService: SinonStub;
     getMongoClientConnectionOptions: SinonStub;
+    getActiveConnectionId: SinonStub;
   };
   let mockServiceProvider: {
     find: SinonStub;
@@ -97,6 +98,7 @@ suite('DataBrowsingController Test Suite', function () {
       getMongoClientConnectionOptions: sandbox
         .stub()
         .returns({ url: 'mongodb://localhost:27017', options: {} }),
+      getActiveConnectionId: sandbox.stub().returns('test-connection-id'),
     };
     mockExplorerController = {
       refresh: sandbox.stub().returns(true),
@@ -108,6 +110,9 @@ suite('DataBrowsingController Test Suite', function () {
       telemetryService: { track: trackStub } as any,
     });
     mockPanel = createMockPanel();
+    // Register the panel as belonging to the current active connection
+    // so that handleWebviewMessage connection validation passes.
+    testController._panelConnectionIds.set(mockPanel, 'test-connection-id');
   });
 
   afterEach(() => {
@@ -520,6 +525,150 @@ suite('DataBrowsingController Test Suite', function () {
       );
 
       expect(postMessageStub.called).to.be.false;
+    });
+  });
+
+  suite('handleWebviewMessage connection mismatch (VSCODE-770)', function () {
+    function switchConnection(): void {
+      // Simulate switching to a different connection.
+      mockConnectionController.getActiveConnectionId.returns(
+        'different-connection-id',
+      );
+    }
+
+    test('sends getDocumentError when connection changed and getDocuments requested', async function () {
+      switchConnection();
+      const options = createMockOptions();
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.getDocuments, skip: 0, limit: 10 },
+        mockPanel,
+        options,
+      );
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.getDocumentError);
+      expect(message.error).to.include('no longer active');
+    });
+
+    test('sends updateTotalCountError when connection changed and getTotalCount requested', async function () {
+      switchConnection();
+      const options = createMockOptions();
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.getTotalCount },
+        mockPanel,
+        options,
+      );
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(
+        PreviewMessageType.updateTotalCountError,
+      );
+      expect(message.error).to.include('no longer active');
+    });
+
+    test('does not post any message when connection changed and cancelRequest received', async function () {
+      switchConnection();
+      const options = createMockOptions();
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.cancelRequest },
+        mockPanel,
+        options,
+      );
+
+      expect(postMessageStub.called).to.be.false;
+    });
+
+    test('shows vscode error when connection changed and editDocument requested', async function () {
+      switchConnection();
+      const options = createMockOptions();
+      const showErrorStub = sandbox
+        .stub(vscode.window, 'showErrorMessage')
+        .resolves();
+
+      await testController.handleWebviewMessage(
+        {
+          command: PreviewMessageType.editDocument,
+          documentId: { $oid: '123' },
+        },
+        mockPanel,
+        options,
+      );
+
+      expect(postMessageStub.called).to.be.false;
+      expect(showErrorStub.calledOnce).to.be.true;
+      expect(showErrorStub.firstCall.args[0]).to.include('no longer active');
+    });
+
+    test('shows vscode error when connection changed and insertDocument requested', async function () {
+      switchConnection();
+      const options = createMockOptions();
+      const showErrorStub = sandbox
+        .stub(vscode.window, 'showErrorMessage')
+        .resolves();
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.insertDocument },
+        mockPanel,
+        options,
+      );
+
+      expect(postMessageStub.called).to.be.false;
+      expect(showErrorStub.calledOnce).to.be.true;
+      expect(showErrorStub.firstCall.args[0]).to.include('no longer active');
+    });
+
+    test('still sends theme colors even when connection changed', async function () {
+      switchConnection();
+      const options = createMockOptions();
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.getThemeColors },
+        mockPanel,
+        options,
+      );
+
+      expect(postMessageStub.calledOnce).to.be.true;
+      const message = postMessageStub.firstCall.args[0];
+      expect(message.command).to.equal(PreviewMessageType.updateThemeColors);
+    });
+
+    test('does not fetch documents when connection changed', async function () {
+      switchConnection();
+      const options = createMockOptions();
+      const handleGetDocumentsSpy = sandbox.spy(
+        testController,
+        'handleGetDocuments',
+      );
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.getDocuments, skip: 0, limit: 10 },
+        mockPanel,
+        options,
+      );
+
+      expect(handleGetDocumentsSpy.called).to.be.false;
+    });
+
+    test('allows requests when panel connection matches active connection', async function () {
+      // Don't switch — connection still matches.
+      const options = createMockOptions();
+      const handleGetDocumentsSpy = sandbox.spy(
+        testController,
+        'handleGetDocuments',
+      );
+
+      await testController.handleWebviewMessage(
+        { command: PreviewMessageType.getDocuments, skip: 0, limit: 10 },
+        mockPanel,
+        options,
+      );
+
+      expect(handleGetDocumentsSpy.calledOnce).to.be.true;
     });
   });
 
