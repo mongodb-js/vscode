@@ -1,19 +1,4 @@
 import { EJSON, type Document } from 'bson';
-import { stringify } from 'javascript-stringify';
-import { toJSString } from 'mongodb-query-parser';
-
-/**
- * Sentinel class used to represent a BSON value that could not be
- * deserialized from EJSON.  The custom stringifier (`toDisplayString`)
- * recognises instances of this class and emits an unquoted
- * `Invalid <Type>` literal in the output.
- */
-export class InvalidBSONValue {
-  readonly typeName: string;
-  constructor(typeName: string) {
-    this.typeName = typeName;
-  }
-}
 
 /**
  * Returns a human-readable label derived from the first `$`-prefixed key in
@@ -68,7 +53,7 @@ function tryDeserializeValue(
       // Special-case: `{ $date: 'pineapple' }` produces an Invalid Date
       // rather than throwing.
       if (deserialized instanceof Date && isNaN(deserialized.getTime())) {
-        return new InvalidBSONValue('Date');
+        return `Invalid ${labelFromDollarKey(value) ?? 'Date'}`;
       }
       return deserialized;
     }
@@ -77,15 +62,15 @@ function tryDeserializeValue(
     return null;
   } catch {
     // EJSON recognised it as a type wrapper but the value is invalid.
-    return new InvalidBSONValue(labelFromDollarKey(value) ?? 'Value');
+    return `Invalid ${labelFromDollarKey(value) ?? 'Value'}`;
   }
 }
 
 /**
  * Recursively walks an EJSON-serialized value and deserialises it field by
  * field.  When a single EJSON type wrapper (e.g. `{ $numberLong: "NaN" }`)
- * cannot be deserialized, an `InvalidBSONValue` instance is substituted so
- * that the rest of the document is still visible.
+ * cannot be deserialized, a string like `"Invalid NumberLong"` is substituted
+ * so that the rest of the document is still visible.
  */
 function walkAndDeserialize(value: unknown): unknown {
   if (value === null || value === undefined) return value;
@@ -113,50 +98,11 @@ function walkAndDeserialize(value: unknown): unknown {
 
 /**
  * Deserializes an EJSON-serialized document gracefully: fields whose EJSON
- * values are invalid are replaced with `InvalidBSONValue` instances instead
- * of throwing an error for the whole document.
+ * values are invalid are replaced with descriptive strings (e.g.
+ * `"Invalid NumberLong"`) instead of throwing an error for the whole document.
  */
 export function gracefullyDeserializeEjson(
   document: Record<string, unknown>,
 ): Record<string, unknown> {
   return walkAndDeserialize(document) as Record<string, unknown>;
 }
-
-/**
- * Converts a deserialized document (which may contain `InvalidBSONValue`
- * instances) into a shell-syntax display string.
- *
- * Uses `javascript-stringify` directly (the same engine behind
- * `mongodb-query-parser`'s `toJSString`) with a custom replacer that:
- *  - emits `Invalid <Type>` as an unquoted literal for `InvalidBSONValue`
- *  - delegates to `toJSString` for recognised BSON types
- *  - falls through to the default stringifier for everything else
- */
-export function toDisplayString(
-  doc: Record<string, unknown>,
-  indent = 2,
-): string {
-  return (
-    stringify(
-      doc,
-      (value, _indent, defaultStringify) => {
-        if (value instanceof InvalidBSONValue) {
-          return `Invalid ${value.typeName}`;
-        }
-
-        if (
-          value !== null &&
-          typeof value === 'object' &&
-          !Array.isArray(value) &&
-          '_bsontype' in value
-        ) {
-          return toJSString(value) ?? defaultStringify(value);
-        }
-
-        return defaultStringify(value);
-      },
-      indent,
-    ) ?? ''
-  );
-}
-

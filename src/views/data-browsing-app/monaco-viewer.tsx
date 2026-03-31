@@ -13,10 +13,8 @@ import type {
   TokenColors,
   MonacoBaseTheme,
 } from './extension-app-message-constants';
-import {
-  gracefullyDeserializeEjson,
-  toDisplayString,
-} from './gracefulEjsonDeserialize';
+import { gracefullyDeserializeEjson } from './gracefulEjsonDeserialize';
+import { toJSString } from 'mongodb-query-parser';
 import {
   sendEditDocument,
   sendCloneDocument,
@@ -288,7 +286,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
   const documentString = useMemo(() => {
     const deserialized = gracefullyDeserializeEjson(document);
-    return toDisplayString(deserialized);
+    return toJSString(deserialized) ?? '';
   }, [document]);
 
   const calculateHeight = useCallback(() => {
