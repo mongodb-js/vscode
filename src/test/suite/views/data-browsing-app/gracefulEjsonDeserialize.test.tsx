@@ -104,11 +104,7 @@ describe('gracefulEjsonDeserialize', function () {
 
     it('should handle arrays with mixed valid/invalid values', function () {
       const ejson = {
-        items: [
-          { $numberLong: '1' },
-          { $numberLong: 'bad' },
-          'plain string',
-        ],
+        items: [{ $numberLong: '1' }, { $numberLong: 'bad' }, 'plain string'],
       };
       const result = gracefullyDeserializeEjson(ejson);
 
@@ -188,11 +184,7 @@ describe('gracefulEjsonDeserialize', function () {
 
     it('should render arrays', function () {
       const doc = gracefullyDeserializeEjson({
-        items: [
-          { $numberLong: '1' },
-          { $numberLong: 'bad' },
-          'plain',
-        ],
+        items: [{ $numberLong: '1' }, { $numberLong: 'bad' }, 'plain'],
       });
       const output = toDisplayString(doc);
 
@@ -215,4 +207,3 @@ describe('gracefulEjsonDeserialize', function () {
     });
   });
 });
-

@@ -53,14 +53,11 @@ function isDeserializedBsonValue(val: unknown): boolean {
  * be deserialized, or `null` when the value is not an EJSON type wrapper
  * (i.e. it is a regular sub-document that should be recursed into).
  */
-function tryDeserializeValue(
-  value: Record<string, unknown>,
-): unknown | null {
+function tryDeserializeValue(value: Record<string, unknown>): unknown | null {
   try {
-    const result = EJSON.deserialize(
-      { _: value } as unknown as Document,
-      { relaxed: false },
-    );
+    const result = EJSON.deserialize({ _: value } as unknown as Document, {
+      relaxed: false,
+    });
     const deserialized = (result as Record<string, unknown>)._;
 
     if (isDeserializedBsonValue(deserialized)) {
@@ -167,7 +164,9 @@ function formatValue(value: unknown, indent: number, depth: number): string {
 
   if (Array.isArray(value)) {
     if (value.length === 0) return '[]';
-    const items = value.map((v) => `${pad}${formatValue(v, indent, depth + 1)}`);
+    const items = value.map(
+      (v) => `${pad}${formatValue(v, indent, depth + 1)}`,
+    );
     return `[\n${items.join(',\n')}\n${closePad}]`;
   }
 
