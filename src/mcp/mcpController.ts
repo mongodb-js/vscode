@@ -22,6 +22,7 @@ import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
 import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
 import formatError from '../utils/formatError';
+import { TelemetryService } from '../telemetry';
 
 export type MCPServerStartupConfig =
   | 'prompt'
@@ -52,12 +53,14 @@ type MCPControllerConfig = {
   context: vscode.ExtensionContext;
   connectionController: ConnectionController;
   getTelemetryAnonymousId: () => string;
+  telemetryService: TelemetryService;
 };
 
 export class MCPController {
   private context: vscode.ExtensionContext;
   private connectionController: ConnectionController;
   private getTelemetryAnonymousId: () => string;
+  private telemetryService: TelemetryService;
   private mcpConnectionManagers: MCPConnectionManager[] = [];
 
   private didChangeEmitter = new vscode.EventEmitter<void>();
@@ -67,10 +70,12 @@ export class MCPController {
     context,
     connectionController,
     getTelemetryAnonymousId,
+    telemetryService,
   }: MCPControllerConfig) {
     this.context = context;
     this.connectionController = connectionController;
     this.getTelemetryAnonymousId = getTelemetryAnonymousId;
+    this.telemetryService = telemetryService;
   }
 
   public async activate(): Promise<void> {
@@ -253,6 +258,9 @@ export class MCPController {
       loggers: Array.from(
         new Set(['mcp', ...(configFromSettings.loggers ?? [])]),
       ),
+      telemetry: this.telemetryService.isTelemetryFeatureEnabled()
+        ? 'enabled'
+        : 'disabled',
     };
 
     return UserConfigSchema.parse(vsCodeConfig);
