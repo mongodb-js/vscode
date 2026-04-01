@@ -132,7 +132,7 @@ export class TelemetryService {
 
   // Checks user settings and extension running mode
   // to determine whether or not we should track telemetry.
-  _isTelemetryFeatureEnabled(): boolean {
+  isTelemetryFeatureEnabled(): boolean {
     // If tests run the extension we do not track telemetry.
     if (this._shouldTrackTelemetry !== true) {
       return false;
@@ -152,7 +152,7 @@ export class TelemetryService {
   }
 
   _segmentAnalyticsTrack(segmentProperties: SegmentProperties): void {
-    if (!this._isTelemetryFeatureEnabled()) {
+    if (!this.isTelemetryFeatureEnabled()) {
       return;
     }
 
