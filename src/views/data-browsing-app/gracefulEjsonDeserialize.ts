@@ -96,10 +96,15 @@ function walkAndDeserialize(value: unknown): unknown {
 
   const obj = value as Record<string, unknown>;
 
-  // Try to deserialize as a single EJSON type wrapper first.
-  const attempted = tryDeserializeValue(obj);
-  if (attempted !== null) {
-    return attempted;
+  // Only attempt EJSON deserialization on objects that look like EJSON type
+  // wrappers (i.e. their first key is `$`-prefixed).  Regular sub-documents
+  // are recursed into field-by-field so that a single invalid value doesn't
+  // poison the entire parent object.
+  if (labelFromDollarKey(obj) !== null) {
+    const attempted = tryDeserializeValue(obj);
+    if (attempted !== null) {
+      return attempted;
+    }
   }
 
   // Regular object – recurse into its properties.
@@ -126,12 +131,24 @@ export function gracefullyDeserializeEjson(
  * - `InvalidBSONValue` → unquoted `Invalid <Type>`
  * - BSON types → delegates to `toJSString`
  * - Primitives / Date / RegExp → `toJSString`
- * - Arrays and plain objects → handled by the recursive `formatValue` caller
+ * - Plain objects and arrays → returns `null` so the caller recurses
  */
 function stringifyLeaf(value: unknown): string | null {
   if (value instanceof InvalidBSONValue) {
     return `Invalid ${value.typeName}`;
   }
+
+  // Plain objects and arrays must be handled by the recursive formatter
+  // so that nested InvalidBSONValue instances are properly rendered.
+  if (
+    Array.isArray(value) ||
+    (value !== null &&
+      typeof value === 'object' &&
+      !isDeserializedBsonValue(value))
+  ) {
+    return null;
+  }
+
   const s = toJSString(value);
   if (s !== undefined) return s;
   return null;
