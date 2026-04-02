@@ -22,7 +22,7 @@ import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
 import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
 import formatError from '../utils/formatError';
-import { TelemetryService } from '../telemetry';
+import type { TelemetryService } from '../telemetry';
 
 export type MCPServerStartupConfig =
   | 'prompt'
