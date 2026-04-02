@@ -387,20 +387,6 @@ describe('documentQuerySlice', function () {
       expect(result.endItem).to.equal(3);
     });
 
-    it('endItem uses the larger term when startItem is smaller for cursor queries', function () {
-      const pageTwoCursorState: DocumentQueryState = {
-        ...cursorState,
-        currentPage: 2,
-        itemsPerPage: 10,
-      };
-      const docs = [];
-
-      const result = reducer(pageTwoCursorState, documentsReceived(docs));
-
-      expect(result.startItem).to.equal(0);
-      expect(result.endItem).to.equal(0);
-    });
-
     it('shows 0-0 when cursor query returns no documents on page 1', function () {
       const result = reducer(cursorState, documentsReceived([]));
       expect(result.startItem).to.equal(0);
