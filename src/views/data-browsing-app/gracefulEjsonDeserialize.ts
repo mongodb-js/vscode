@@ -175,7 +175,9 @@ const SAFE_KEY = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
 
 /** Quotes a key if it isn't a safe unquoted identifier. */
 function formatKey(key: string): string {
-  return SAFE_KEY.test(key) ? key : `'${key.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+  return SAFE_KEY.test(key)
+    ? key
+    : `'${key.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 }
 
 /**
@@ -201,7 +203,8 @@ function formatValue(value: unknown, indent: number, depth: number): string {
     const entries = Object.entries(value as Record<string, unknown>);
     if (entries.length === 0) return '{}';
     const fields = entries.map(
-      ([key, val]) => `${pad}${formatKey(key)}: ${formatValue(val, indent, depth + 1)}`,
+      ([key, val]) =>
+        `${pad}${formatKey(key)}: ${formatValue(val, indent, depth + 1)}`,
     );
     return `{\n${fields.join(',\n')}\n${closePad}}`;
   }

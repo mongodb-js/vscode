@@ -210,7 +210,7 @@ describe('gracefulEjsonDeserialize', function () {
 
     it('should quote keys that are not valid JS identifiers', function () {
       const doc = gracefullyDeserializeEjson({
-        'valid_key': 'a',
+        valid_key: 'a',
         'with space': 'b',
         '123start': 'c',
         'with-hyphen': 'd',
