@@ -28,7 +28,10 @@ CHANGELOG.md
 .snyk
 babel.config.json
 pnpm-lock.yaml
+.pnpm-store
 scripts/**
+playwright-report
+test-results
 
 # Ignore all files in ext except the skills folder
 ext/**

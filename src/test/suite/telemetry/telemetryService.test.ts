@@ -109,7 +109,7 @@ suite('Telemetry Controller Test Suite', function () {
     sandbox.stub(vscode.window, 'showInformationMessage');
     sandbox.replace(
       testTelemetryService,
-      '_isTelemetryFeatureEnabled',
+      'isTelemetryFeatureEnabled',
       sandbox.fake.returns(true),
     );
   });
