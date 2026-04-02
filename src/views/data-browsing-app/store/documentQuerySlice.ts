@@ -134,14 +134,19 @@ const recalculatePaginationValues = (
     // next/previous page and amount per page
     state.totalDocuments = null;
     state.totalPages = null;
-    state.startItem = (state.currentPage - 1) * state.itemsPerPage + 1;
-    state.endItem = Math.max(
-      Math.min(
-        state.currentPage * state.itemsPerPage,
-        state.startItem + state.displayedDocuments.length - 1,
-      ),
-      state.startItem,
-    );
+    if (state.displayedDocuments.length === 0) {
+      state.startItem = 0;
+      state.endItem = 0;
+    } else {
+      state.startItem = (state.currentPage - 1) * state.itemsPerPage + 1;
+      state.endItem = Math.max(
+        Math.min(
+          state.currentPage * state.itemsPerPage,
+          state.startItem + state.displayedDocuments.length - 1,
+        ),
+        state.startItem,
+      );
+    }
   }
 };
 
