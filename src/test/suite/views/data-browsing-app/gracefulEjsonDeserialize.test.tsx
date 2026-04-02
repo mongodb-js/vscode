@@ -79,6 +79,21 @@ describe('gracefulEjsonDeserialize', function () {
       expect(result.query).to.have.property('$set');
     });
 
+    it('should not treat a subdocument with mixed $-prefixed and plain keys as an EJSON wrapper', function () {
+      const ejson = {
+        item: { $date: '2024-01-01T00:00:00Z', extra: 'field' },
+      };
+      const result = gracefullyDeserializeEjson(ejson);
+
+      // Has a non-$-prefixed key alongside $date, so it's a plain object,
+      // not an EJSON type wrapper.
+      expect(result.item).to.not.be.instanceOf(InvalidBSONValue);
+      const item = result.item as Record<string, unknown>;
+      expect(item.extra).to.equal('field');
+      // The $date field inside should be deserialized individually.
+      expect(item.$date).to.equal('2024-01-01T00:00:00Z');
+    });
+
     it('should handle nested documents with mixed valid/invalid values', function () {
       const ejson = {
         _id: { $oid: '507f1f77bcf86cd799439011' },
@@ -191,6 +206,23 @@ describe('gracefulEjsonDeserialize', function () {
       expect(output).to.include("NumberLong('1')");
       expect(output).to.include('Invalid NumberLong');
       expect(output).to.include("'plain'");
+    });
+
+    it('should quote keys that are not valid JS identifiers', function () {
+      const doc = gracefullyDeserializeEjson({
+        'valid_key': 'a',
+        'with space': 'b',
+        '123start': 'c',
+        'with-hyphen': 'd',
+        "it's": 'e',
+      });
+      const output = toDisplayString(doc);
+
+      expect(output).to.include("valid_key: 'a'");
+      expect(output).to.include("'with space': 'b'");
+      expect(output).to.include("'123start': 'c'");
+      expect(output).to.include("'with-hyphen': 'd'");
+      expect(output).to.include("'it\\'s': 'e'");
     });
 
     it('should render empty objects and arrays', function () {

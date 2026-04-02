@@ -129,6 +129,12 @@ function walkAndDeserialize(value: unknown): unknown {
  * Deserializes an EJSON-serialized document gracefully: fields whose EJSON
  * values are invalid are replaced with `InvalidBSONValue` instances instead
  * of throwing an error for the whole document.
+ *
+ * Note: a whole-document `EJSON.deserialize` fast path is intentionally
+ * avoided because it produces different semantics — plain numbers become
+ * Int32/Long with `relaxed: false`, invalid dates silently become
+ * `Invalid Date` objects instead of `InvalidBSONValue`, and extra keys
+ * on EJSON-like wrappers are silently dropped.
  */
 export function gracefullyDeserializeEjson(
   document: Record<string, unknown>,
@@ -164,6 +170,14 @@ function stringifyLeaf(value: unknown): string | null {
   return null;
 }
 
+/** Matches keys that are valid unquoted JS identifiers (ASCII subset). */
+const SAFE_KEY = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
+
+/** Quotes a key if it isn't a safe unquoted identifier. */
+function formatKey(key: string): string {
+  return SAFE_KEY.test(key) ? key : `'${key.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+}
+
 /**
  * Recursively formats a value into an indented shell-syntax string.
  */
@@ -187,7 +201,7 @@ function formatValue(value: unknown, indent: number, depth: number): string {
     const entries = Object.entries(value as Record<string, unknown>);
     if (entries.length === 0) return '{}';
     const fields = entries.map(
-      ([key, val]) => `${pad}${key}: ${formatValue(val, indent, depth + 1)}`,
+      ([key, val]) => `${pad}${formatKey(key)}: ${formatValue(val, indent, depth + 1)}`,
     );
     return `{\n${fields.join(',\n')}\n${closePad}}`;
   }
