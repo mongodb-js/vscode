@@ -33,6 +33,19 @@ function labelFromDollarKey(obj: Record<string, unknown>): string | null {
 }
 
 /**
+ * Returns `true` if `obj` structurally matches an EJSON type wrapper:
+ * 1–2 keys, all `$`-prefixed.  This rejects plain subdocuments that
+ * merely happen to contain a `$`-prefixed field alongside other keys.
+ */
+function looksLikeEjsonWrapper(obj: Record<string, unknown>): boolean {
+  const keys = Object.keys(obj);
+  return (
+    (keys.length === 1 || keys.length === 2) &&
+    keys.every((k) => k.startsWith('$'))
+  );
+}
+
+/**
  * Returns `true` if `val` looks like a successfully-deserialized BSON
  * value (i.e. it is no longer a plain EJSON type wrapper).
  */
@@ -93,11 +106,11 @@ function walkAndDeserialize(value: unknown): unknown {
 
   const obj = value as Record<string, unknown>;
 
-  // Only attempt EJSON deserialization on objects that look like EJSON type
-  // wrappers (i.e. their first key is `$`-prefixed).  Regular sub-documents
+  // Only attempt EJSON deserialization on objects that structurally match
+  // EJSON type wrappers (1–2 keys, all `$`-prefixed).  Plain sub-documents
   // are recursed into field-by-field so that a single invalid value doesn't
   // poison the entire parent object.
-  if (labelFromDollarKey(obj) !== null) {
+  if (looksLikeEjsonWrapper(obj)) {
     const attempted = tryDeserializeValue(obj);
     if (attempted !== null) {
       return attempted;
