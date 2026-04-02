@@ -170,6 +170,26 @@ suite('MDBExtensionController Test Suite', function () {
     });
   });
 
+  suite('MCP server telemetry', function () {
+    test('MCPController uses the same telemetry service as the extension controller', function () {
+      const extensionController = mdbTestExtension.testExtensionController;
+      expect(extensionController._mcpController['telemetryService']).to.equal(
+        extensionController._telemetryService,
+      );
+    });
+
+    test('MCP server is configured with telemetry disabled when extension telemetry is disabled', function () {
+      const extensionController = mdbTestExtension.testExtensionController;
+      // In test mode shouldTrackTelemetry is false, so telemetry is disabled
+      expect(extensionController._telemetryService.isTelemetryFeatureEnabled())
+        .to.be.false;
+      const mcpServerConfig = (
+        extensionController._mcpController as any
+      ).getMCPServerConfig({ authorization: 'Bearer test' });
+      expect(mcpServerConfig.telemetry).to.equal('disabled');
+    });
+  });
+
   suite('when not connected', function () {
     let showErrorMessageStub: SinonSpy;
 
