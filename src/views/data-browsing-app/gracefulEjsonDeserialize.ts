@@ -19,12 +19,12 @@ export class InvalidBSONValue {
  * `obj`, or `null` if the object has no such key.  Used only as a fallback
  * label when EJSON.deserialize throws for this value.
  *
- * Examples: `$numberLong` → `"Long"`,  `$date` → `"Date"`.
+ * Strips the leading `$` and capitalizes the remainder:
+ * `$numberLong` → `"NumberLong"`,  `$date` → `"Date"`.
  */
 function labelFromDollarKey(obj: Record<string, unknown>): string | null {
   for (const key of Object.keys(obj)) {
     if (key.startsWith('$')) {
-      // Strip the leading "$" and common prefixes like "number"
       const raw = key.slice(1);
       return raw.charAt(0).toUpperCase() + raw.slice(1);
     }
