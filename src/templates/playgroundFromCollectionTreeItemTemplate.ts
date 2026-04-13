@@ -1,7 +1,8 @@
 import { createTemplate } from './templateHelpers';
 
 export const playgroundFromCollectionTreeItemTemplate = createTemplate(
-  (databaseName, collectionName) => `// MongoDB Playground
+  (databaseName, collectionName) => `/* global use, db */
+// MongoDB Playground
 // Use Ctrl+Space inside a snippet or a string literal to trigger completions.
 
 // The current database to use.
