@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { BSON } from 'bson';
 import reducer, {
   initialState,
   documentsReceived,
@@ -8,6 +9,7 @@ import reducer, {
   themeColorsReceived,
   selectDocumentQuery,
   getInitialSort,
+  getInitialQuery,
   isBasicQuery,
   nextPageRequested,
   previousPageRequested,
@@ -192,6 +194,25 @@ describe('documentQuerySlice', function () {
     it('should return null when defaultSortOrder is an empty string', function () {
       window.MDB_DATA_BROWSING_OPTIONS = { defaultSortOrder: '' };
       expect(getInitialSort()).to.be.null;
+    });
+  });
+
+  describe('getInitialQuery', function () {
+    afterEach(function () {
+      delete window.MDB_DATA_BROWSING_OPTIONS;
+    });
+
+    it('should return null when window.MDB_DATA_BROWSING_OPTIONS is undefined', function () {
+      delete window.MDB_DATA_BROWSING_OPTIONS;
+      expect(getInitialQuery()).to.be.null;
+    });
+
+    it('should return null when deserializeBSON returns undefined', function () {
+      // Create a BSON payload without a `value` field so deserializeBSON(data).value is undefined.
+      const queryString = Buffer.from(BSON.serialize({})).toString('base64');
+      window.MDB_DATA_BROWSING_OPTIONS = { query: queryString };
+
+      expect(getInitialQuery()).to.be.null;
     });
   });
 

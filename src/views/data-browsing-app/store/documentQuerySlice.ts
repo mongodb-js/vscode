@@ -106,7 +106,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10;
 export const isBasicQuery = (
   state: any,
 ): state is DocumentQueryState & { query: null } => {
-  return state.query === null || state.query === undefined;
+  return !!state.query;
 };
 
 const recalculatePaginationValues = (
@@ -168,7 +168,7 @@ export const getInitialQuery = (): ServiceProviderQuery | null => {
     window.MDB_DATA_BROWSING_OPTIONS?.query
   ) {
     const queryString = window.MDB_DATA_BROWSING_OPTIONS.query;
-    return deserializeBSON(queryString) as ServiceProviderQuery;
+    return (deserializeBSON(queryString) as ServiceProviderQuery) || null;
   }
   return null;
 };
