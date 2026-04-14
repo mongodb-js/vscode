@@ -106,7 +106,7 @@ const DEFAULT_ITEMS_PER_PAGE = 10;
 export const isBasicQuery = (
   state: any,
 ): state is DocumentQueryState & { query: null } => {
-  return !!state.query;
+  return !state.query;
 };
 
 const recalculatePaginationValues = (
