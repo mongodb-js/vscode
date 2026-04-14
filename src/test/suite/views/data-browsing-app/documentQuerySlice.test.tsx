@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { BSON } from 'bson';
 import reducer, {
   initialState,
   documentsReceived,
@@ -8,6 +9,7 @@ import reducer, {
   themeColorsReceived,
   selectDocumentQuery,
   getInitialSort,
+  getInitialQuery,
   isBasicQuery,
   nextPageRequested,
   previousPageRequested,
@@ -195,6 +197,25 @@ describe('documentQuerySlice', function () {
     });
   });
 
+  describe('getInitialQuery', function () {
+    afterEach(function () {
+      delete window.MDB_DATA_BROWSING_OPTIONS;
+    });
+
+    it('should return null when window.MDB_DATA_BROWSING_OPTIONS is undefined', function () {
+      delete window.MDB_DATA_BROWSING_OPTIONS;
+      expect(getInitialQuery()).to.be.null;
+    });
+
+    it('should return null when deserializeBSON returns undefined', function () {
+      // Create a BSON payload without a `value` field so deserializeBSON(data).value is undefined.
+      const queryString = Buffer.from(BSON.serialize({})).toString('base64');
+      window.MDB_DATA_BROWSING_OPTIONS = { query: queryString };
+
+      expect(getInitialQuery()).to.be.null;
+    });
+  });
+
   describe('SORT_VALUE_MAP', function () {
     it('should have exactly three keys', function () {
       expect(Object.keys(SORT_VALUE_MAP)).to.have.lengthOf(3);
@@ -347,6 +368,11 @@ describe('documentQuerySlice', function () {
   });
 
   describe('isBasicQuery', function () {
+    it('returns true when query is undefined', function () {
+      const state = { ...initialState, query: undefined };
+      expect(isBasicQuery(state)).to.be.true;
+    });
+
     it('returns true when query is null', function () {
       const state = { ...initialState, query: null };
       expect(isBasicQuery(state)).to.be.true;
