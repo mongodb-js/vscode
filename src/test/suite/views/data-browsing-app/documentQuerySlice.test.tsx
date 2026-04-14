@@ -347,6 +347,11 @@ describe('documentQuerySlice', function () {
   });
 
   describe('isBasicQuery', function () {
+    it('returns true when query is undefined', function () {
+      const state = { ...initialState, query: undefined };
+      expect(isBasicQuery(state)).to.be.true;
+    });
+
     it('returns true when query is null', function () {
       const state = { ...initialState, query: null };
       expect(isBasicQuery(state)).to.be.true;
