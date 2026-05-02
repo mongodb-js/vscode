@@ -24,6 +24,13 @@ import useConnectionForm, {
 import type { MessageFromExtensionToWebview } from './extension-app-message-constants';
 import { MessageType } from './extension-app-message-constants';
 
+const FileInputBackendProviderWithChildren =
+  FileInputBackendProvider as React.FC<
+    React.ComponentProps<typeof FileInputBackendProvider> & {
+      children?: React.ReactNode;
+    }
+  >;
+
 const pageStyles = css({
   width: '90%',
   minWidth: '500px',
@@ -125,7 +132,7 @@ const OverviewPage: React.FC = () => {
         <ResourcesPanel onClose={handleResourcesPanelClose} />
       )}
       {isConnectionFormOpen && (
-        <FileInputBackendProvider
+        <FileInputBackendProviderWithChildren
           createFileInputBackend={createElectronFileInputBackend(
             dialogProvider,
             null,
@@ -152,7 +159,7 @@ const OverviewPage: React.FC = () => {
             open={isConnectionFormOpen}
             connectionErrorMessage={connectionErrorMessage}
           />
-        </FileInputBackendProvider>
+        </FileInputBackendProviderWithChildren>
       )}
       <OverviewHeader onResourcesClick={handleResourcesClick} />
       <HorizontalRule />
