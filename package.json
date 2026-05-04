@@ -79,7 +79,7 @@
     "sync-skills": "node ./scripts/sync-skills.ts && prettier --write package.json"
   },
   "engines": {
-    "vscode": "^1.101.1",
+    "vscode": "^1.118.1",
     "node": "^22.20.0 || >= 24.0.0",
     "pnpm": ">=10.0.0"
   },
