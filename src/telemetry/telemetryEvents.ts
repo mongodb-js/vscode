@@ -241,9 +241,7 @@ export class DocumentEditedTelemetryEvent implements TelemetryEventBase {
 }
 
 /** Reported when a playground file is exported to a language */
-export class PlaygroundExportedToLanguageTelemetryEvent
-  implements TelemetryEventBase
-{
+export class PlaygroundExportedToLanguageTelemetryEvent implements TelemetryEventBase {
   type = 'Playground Exported To Language';
   properties: {
     /** The target language of the export */
@@ -285,9 +283,7 @@ export class PlaygroundCreatedTelemetryEvent implements TelemetryEventBase {
   }
 }
 /** Reported when exporting to playground fails */
-export class ExportToPlaygroundFailedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ExportToPlaygroundFailedTelemetryEvent implements TelemetryEventBase {
   type = 'Export To Playground Failed';
   properties: {
     /** The length of the playground code */
@@ -309,9 +305,7 @@ export class ExportToPlaygroundFailedTelemetryEvent
  * Reported when saved connections are loaded from disk. This is currently disabled
  * due to the large volume of events.
  */
-export class SavedConnectionsLoadedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class SavedConnectionsLoadedTelemetryEvent implements TelemetryEventBase {
   type = 'Saved Connections Loaded';
   properties: {
     /** Total number of connections saved on disk */
@@ -402,17 +396,13 @@ export class ParticipantFeedbackTelemetryEvent implements TelemetryEventBase {
 }
 
 /** Reported when the participant welcome message is shown */
-export class ParticipantWelcomeShownTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ParticipantWelcomeShownTelemetryEvent implements TelemetryEventBase {
   type = 'Participant Welcome Shown';
   properties = {};
 }
 
 /** Reported when a participant response fails */
-export class ParticipantResponseFailedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ParticipantResponseFailedTelemetryEvent implements TelemetryEventBase {
   type = 'Participant Response Failed';
   properties: {
     /** The type of the command that failed - e.g. 'query', 'schema', 'docs' */
@@ -444,9 +434,7 @@ export class ParticipantResponseFailedTelemetryEvent
 }
 
 /** Reported when a participant prompt is submitted */
-export class ParticipantPromptSubmittedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ParticipantPromptSubmittedTelemetryEvent implements TelemetryEventBase {
   type = 'Participant Prompt Submitted';
   properties: {
     /** The type of the command that was submitted - e.g. 'query', 'schema', 'docs' */
@@ -493,9 +481,7 @@ export class ParticipantPromptSubmittedTelemetryEvent
  * Reported when a participant prompt is submitted from an action other than typing directly.
  * This is typically one of the activation points - e.g. clicking on the tree view, a codelens, etc.
  */
-export class ParticipantPromptSubmittedFromActionTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ParticipantPromptSubmittedFromActionTelemetryEvent implements TelemetryEventBase {
   type = 'Participant Prompt Submitted From Action';
   properties: ParticipantTelemetryMetadata & {
     /** The length of the input */
@@ -519,9 +505,7 @@ export class ParticipantPromptSubmittedFromActionTelemetryEvent
 }
 
 /** Reported when a new chat is initiated from an activation point in the extension (e.g. the database tree view) */
-export class ParticipantChatOpenedFromActionTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ParticipantChatOpenedFromActionTelemetryEvent implements TelemetryEventBase {
   type = 'Participant Chat Opened From Action';
   properties: ParticipantTelemetryMetadata & {
     /** The command - if any - we're opening a chat for - e.g. 'query', 'schema', 'docs' */
@@ -537,9 +521,7 @@ export class ParticipantChatOpenedFromActionTelemetryEvent
 }
 
 /** Reported when we open an input box to ask the user for a message that we'll send to copilot */
-export class ParticipantInputBoxSubmittedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ParticipantInputBoxSubmittedTelemetryEvent implements TelemetryEventBase {
   type = 'Participant Inbox Box Submitted';
   properties: ParticipantTelemetryMetadata & {
     /** The supplied input length */
@@ -567,9 +549,7 @@ export class ParticipantInputBoxSubmittedTelemetryEvent
 }
 
 /** Reported when a participant response is generated */
-export class ParticipantResponseGeneratedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class ParticipantResponseGeneratedTelemetryEvent implements TelemetryEventBase {
   type = 'Participant Response Generated';
   properties: {
     /** The type of the command that was requested - e.g. 'query', 'schema', 'docs' */
@@ -612,9 +592,7 @@ export class ParticipantResponseGeneratedTelemetryEvent
 }
 
 /** Reported when a preset connection is edited */
-export class PresetConnectionEditedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class PresetConnectionEditedTelemetryEvent implements TelemetryEventBase {
   type = 'Preset Connection Edited';
   properties: {
     /** The source of the interaction - currently, only treeview */
@@ -728,9 +706,7 @@ export class DataBrowserClosedTelemetryEvent implements TelemetryEventBase {
 }
 
 /** Reported when documents are fetched/loaded in the data browser */
-export class DataBrowserDocumentsFetchedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class DataBrowserDocumentsFetchedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Documents Fetched';
   properties: {
     /** Whether the user is browsing a collection or viewing playground query results */
@@ -743,9 +719,7 @@ export class DataBrowserDocumentsFetchedTelemetryEvent
 }
 
 /** Reported when a document is opened for editing from the data browser */
-export class DataBrowserDocumentEditedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class DataBrowserDocumentEditedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Document Edited';
   properties: {
     /** Whether the user is browsing a collection or viewing playground query results */
@@ -758,9 +732,7 @@ export class DataBrowserDocumentEditedTelemetryEvent
 }
 
 /** Reported when a document is cloned from the data browser */
-export class DataBrowserDocumentClonedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class DataBrowserDocumentClonedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Document Cloned';
   properties: {
     /** Whether the user is browsing a collection or viewing playground query results */
@@ -773,9 +745,7 @@ export class DataBrowserDocumentClonedTelemetryEvent
 }
 
 /** Reported when a new document is inserted from the data browser or tree view */
-export class DataBrowserDocumentInsertedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class DataBrowserDocumentInsertedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Document Inserted';
   properties: {
     /** Whether the action was triggered from the tree view or the data browser */
@@ -791,9 +761,7 @@ export class DataBrowserDocumentInsertedTelemetryEvent
 }
 
 /** Reported when one or more documents are deleted from the data browser or tree view */
-export class DataBrowserDocumentDeletedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class DataBrowserDocumentDeletedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Document Deleted';
   properties: {
     /** Whether all documents in the collection were deleted */
@@ -816,9 +784,7 @@ export class DataBrowserDocumentDeletedTelemetryEvent
 }
 
 /** Reported when the collection is refreshed in the data browser or tree view */
-export class DataBrowserCollectionRefreshedTelemetryEvent
-  implements TelemetryEventBase
-{
+export class DataBrowserCollectionRefreshedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Collection Refreshed';
   properties: {
     /** Whether the action was triggered from the tree view or the data browser */
