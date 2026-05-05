@@ -79,7 +79,7 @@
     "sync-skills": "node ./scripts/sync-skills.ts && prettier --write package.json"
   },
   "engines": {
-    "vscode": "^1.118.1",
+    "vscode": "^1.117.0",
     "node": "^22.20.0 || >= 24.0.0",
     "pnpm": ">=10.0.0"
   },
@@ -1533,7 +1533,7 @@
     "@types/react-dom": "^18.3.7",
     "@types/sinon": "^9.0.11",
     "@types/sinon-chai": "^3.2.12",
-    "@types/vscode": "^1.118.0",
+    "@types/vscode": "^1.117.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vscode/test-electron": "^2.5.2",

@@ -24,23 +24,16 @@ echo "Installing: $VSIX_FILE"
 ls -lh "$VSIX_FILE"
 echo ""
 
-# Find the VS Code version required by the extension
-REQUIRED_VSCODE_VERSION=$(node -p "require('./package.json').engines.vscode.replace(/[\^~>=< ]/g, '')")
-echo "Required VS Code version: $REQUIRED_VSCODE_VERSION"
-
 # Determine VS Code CLI command based on OS
 if [ "$RUNNER_OS" = "macOS" ]; then
   VSCODE_CLI="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-  if [ -f "$VSCODE_CLI" ] && [ "$("$VSCODE_CLI" --version | head -1)" = "$REQUIRED_VSCODE_VERSION" ]; then
-    echo "VS Code $REQUIRED_VSCODE_VERSION already installed, using existing installation"
-  else
+  if [ ! -f "$VSCODE_CLI" ]; then
     echo "Installing VS Code on macOS..."
     if ! command -v brew &> /dev/null; then
       echo "Error: Homebrew is not installed" >&2
       exit 1
     fi
-    # If brew install fails because VS Code is already installed, fall back to brew upgrade
-    brew install --cask visual-studio-code || brew upgrade --cask visual-studio-code
+    brew install --cask visual-studio-code
     sleep 5
     if [ ! -f "$VSCODE_CLI" ]; then
       echo "Error: VS Code installation failed" >&2
@@ -49,8 +42,7 @@ if [ "$RUNNER_OS" = "macOS" ]; then
   fi
 
 elif [ "$RUNNER_OS" = "Windows" ]; then
-  if command -v code &> /dev/null && [ "$(code --version | head -1)" = "$REQUIRED_VSCODE_VERSION" ]; then
-    echo "VS Code $REQUIRED_VSCODE_VERSION already installed, using existing installation"
+  if command -v code &> /dev/null; then
     VSCODE_CLI="code"
   else
     echo "Installing VS Code on Windows..."
@@ -89,8 +81,7 @@ elif [ "$RUNNER_OS" = "Windows" ]; then
 
 else
   # Linux
-  if command -v code &> /dev/null && [ "$(code --version | head -1)" = "$REQUIRED_VSCODE_VERSION" ]; then
-    echo "VS Code $REQUIRED_VSCODE_VERSION already installed, using existing installation"
+  if command -v code &> /dev/null; then
     VSCODE_CLI="code"
   else
     echo "Installing VS Code on Linux..."
