@@ -981,7 +981,8 @@ suite('Connection Controller Test Suite', function () {
 
     const id = testConnectionController.getSavedConnections()[0].id;
     const connectTimeoutMS = new ConnectionString(
-      testConnectionController.getSavedConnections()[0].connectionOptions.connectionString,
+      testConnectionController.getSavedConnections()[0].connectionOptions
+        .connectionString,
     ).searchParams.get('connectTimeoutMS');
     const name = testConnectionController._connections[id || 'x'].name;
 
