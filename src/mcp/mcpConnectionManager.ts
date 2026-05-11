@@ -19,6 +19,7 @@ export interface MCPConnectParams {
   connectionString: string;
   connectOptions: DevtoolsConnectOptions;
 }
+import { getDeviceId } from '../telemetry/deviceId';
 
 export const MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX = 'MongoDB MCP Server';
 
@@ -34,6 +35,7 @@ export class MCPConnectionManager extends ConnectionManager {
     id: string;
     provider: ServiceProvider;
   } | null = null;
+  private readonly _deviceIdAbortController = new AbortController();
 
   constructor({ logger, getTelemetryAnonymousId }: MCPConnectionManagerConfig) {
     super();
@@ -56,7 +58,7 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
   ): Promise<AnyConnectionState> {
     try {
       const { connectionId, connectOptions, connectionString } =
-        this.overridePresetAppName(connectParams);
+        await this.overridePresetAppName(connectParams);
       const serviceProvider = await NodeDriverServiceProvider.connect(
         connectionString,
         connectOptions,
@@ -135,7 +137,9 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
     await this.connectToVSCodeConnection(connectParams);
   }
 
-  overridePresetAppName(connectParams: MCPConnectParams): MCPConnectParams {
+  async overridePresetAppName(
+    connectParams: MCPConnectParams,
+  ): Promise<MCPConnectParams> {
     const connectionURL = new ConnectionString(connectParams.connectionString);
     const connectOptions: DevtoolsConnectOptions = {
       ...connectParams.connectOptions,
@@ -150,14 +154,12 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
         !appName.includes(MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX))
     ) {
       const defaultAppName = `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}`;
-      const telemetryAnonymousId = this.getTelemetryAnonymousId();
+      const telemetryAnonymousId = this.getTelemetryAnonymousId() || '';
+      const telemetryDeviceId = (await this.getTelemetryDeviceId()) || '';
       const connectionId = connectParams.connectionId;
       const newAppName = isAtlas(connectParams.connectionString)
-        ? `${defaultAppName}${
-            telemetryAnonymousId ? `--${telemetryAnonymousId}` : ''
-          }--${connectionId}`
+        ? `${defaultAppName}--${telemetryAnonymousId}--${connectionId}--${telemetryDeviceId}`
         : defaultAppName;
-
       searchParams.set('appName', newAppName);
       connectOptions.appName = newAppName;
     }
@@ -167,5 +169,9 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
       connectionString: connectionURL.toString(),
       connectOptions,
     };
+  }
+
+  private async getTelemetryDeviceId(): Promise<string> {
+    return getDeviceId(this._deviceIdAbortController.signal);
   }
 }
