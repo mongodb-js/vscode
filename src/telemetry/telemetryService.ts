@@ -18,10 +18,7 @@ import {
   SidePanelOpenedTelemetryEvent,
   ParticipantResponseFailedTelemetryEvent,
 } from './telemetryEvents';
-import { getDeviceId } from '@mongodb-js/device-id';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const nodeMachineId = require('node-machine-id');
+import { getDeviceId } from './deviceId';
 
 const log = createLogger('telemetry');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -241,9 +238,6 @@ export class TelemetryService {
   );
 
   private getDeviceId(): Promise<string> {
-    return getDeviceId({
-      getMachineId: (): Promise<string> => nodeMachineId.machineId(true),
-      abortSignal: this._deviceIdAbortController.signal,
-    });
+    return getDeviceId(this._deviceIdAbortController.signal);
   }
 }

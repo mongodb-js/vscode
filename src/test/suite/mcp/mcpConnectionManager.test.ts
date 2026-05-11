@@ -34,6 +34,9 @@ suite('MCPConnectionManager Test Suite', function () {
     sandbox
       .stub(NodeDriverServiceProvider, 'connect')
       .resolves(fakeServiceProvider);
+    sandbox
+      .stub(mcpConnectionManager as any, 'getTelemetryDeviceId')
+      .resolves('DEVICE_ID');
   });
 
   afterEach(() => {
@@ -343,10 +346,10 @@ suite('MCPConnectionManager Test Suite', function () {
         suiteName: 'when connection string is atlas',
         getConnectionURL: (): ConnectionString => atlasConnectionURL.clone(),
         getConnectionManager: (): MCPConnectionManager => mcpConnectionManager,
-        expectedAppName: `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}--1FOO--1`,
+        expectedAppName: `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}--1FOO--1--DEVICE_ID`,
         expectedString: (): string => {
           const url = atlasConnectionURL.clone();
-          const expectedAppName = `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}--1FOO--1`;
+          const expectedAppName = `${DEFAULT_TELEMETRY_APP_NAME} ${MCP_SERVER_TELEMETRY_APP_NAME_SUFFIX}--1FOO--1--DEVICE_ID`;
           url.searchParams.set('appName', expectedAppName);
           return url.toString();
         },
@@ -354,7 +357,7 @@ suite('MCPConnectionManager Test Suite', function () {
     ]) {
       suite(suiteName, function () {
         suite('and appName is not set', function () {
-          test('should set appName attribute both in connection string and connection options', function () {
+          test('should set appName attribute both in connection string and connection options', async function () {
             const url = getConnectionURL();
             url.searchParams.delete('appName');
             const connectParams: MCPConnectParams = {
@@ -368,7 +371,7 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overridePresetAppName(connectParams),
+              await getConnectionManager().overridePresetAppName(connectParams),
             ).to.deep.equal({
               connectionId: '1',
               connectionString: expectedString(),
@@ -382,7 +385,7 @@ suite('MCPConnectionManager Test Suite', function () {
         });
 
         suite('if appName is set to default vscode app name', function () {
-          test('should set appName attribute both in connection string and connection options', function () {
+          test('should set appName attribute both in connection string and connection options', async function () {
             const url = getConnectionURL();
             const connectParams: MCPConnectParams = {
               connectionId: '1',
@@ -395,7 +398,7 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overridePresetAppName(connectParams),
+              await getConnectionManager().overridePresetAppName(connectParams),
             ).to.deep.equal({
               connectionId: '1',
               connectionString: expectedString(),
@@ -409,7 +412,7 @@ suite('MCPConnectionManager Test Suite', function () {
         });
 
         suite('if appName is set to something else', function () {
-          test('should not override appName attribute both in connection string and connection options', function () {
+          test('should not override appName attribute both in connection string and connection options', async function () {
             const url = getConnectionURL();
             url.searchParams.set('appName', 'MongoDB MCP Server 0.0.0');
             const connectParams: MCPConnectParams = {
@@ -423,7 +426,7 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overridePresetAppName(connectParams),
+              await getConnectionManager().overridePresetAppName(connectParams),
             ).to.deep.equal(connectParams);
 
             // Now for the case when appName is already set to expected MCP server appname
@@ -442,7 +445,9 @@ suite('MCPConnectionManager Test Suite', function () {
             };
 
             expect(
-              getConnectionManager().overridePresetAppName(nextConnectParams),
+              await getConnectionManager().overridePresetAppName(
+                nextConnectParams,
+              ),
             ).to.deep.equal(nextConnectParams);
           });
         });
