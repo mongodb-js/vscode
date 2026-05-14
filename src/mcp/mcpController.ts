@@ -23,11 +23,21 @@ import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
 import formatError from '../utils/formatError';
 import type { TelemetryService } from '../telemetry';
+import { registerMongoDBPrompts } from './mcpPrompts';
 
 export type MCPServerStartupConfig =
   | 'prompt'
   | 'autoStartEnabled'
   | 'autoStartDisabled';
+
+class StreamableHttpRunnerWithPrompts extends StreamableHttpRunner {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected override async createServerForRequest(params: any): Promise<any> {
+    const server = await super.createServerForRequest(params);
+    registerMongoDBPrompts(server);
+    return server;
+  }
+}
 
 class VSCodeMCPLogger extends LoggerBase {
   private readonly _logger = createLogger('mcp-server');
@@ -64,6 +74,8 @@ export class MCPController {
   private mcpConnectionManagers: MCPConnectionManager[] = [];
 
   private didChangeEmitter = new vscode.EventEmitter<void>();
+  public readonly onDidChangeServer: vscode.Event<void> =
+    this.didChangeEmitter.event;
   private server?: MCPServerInfo;
 
   constructor({
@@ -195,6 +207,10 @@ export class MCPController {
     }
   }
 
+  public isServerRunning(): boolean {
+    return !!this.server;
+  }
+
   public async startServer(): Promise<void> {
     try {
       if (this.server) {
@@ -219,7 +235,7 @@ export class MCPController {
         apiClientSecret: '<redacted>',
       });
 
-      const runner = new StreamableHttpRunner({
+      const runner = new StreamableHttpRunnerWithPrompts({
         userConfig: mcpConfig,
         createConnectionManager: (...params) =>
           MCPController.createConnectionManager(this, ...params),
@@ -372,6 +388,16 @@ ${jsonConfig}`,
       );
       return false;
     }
+  }
+
+  public getServerHttpConfig():
+    | { url: string; headers: Record<string, string> }
+    | undefined {
+    if (!this.server) return undefined;
+    return {
+      url: `${String(this.server.runner['mcpServer'].serverAddress)}/mcp`,
+      headers: { ...this.server.headers },
+    };
   }
 
   private getServerConfig(): vscode.McpHttpServerDefinition | undefined {

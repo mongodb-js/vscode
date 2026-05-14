@@ -59,6 +59,7 @@ import {
 
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
+import { ClaudeCommandsController } from './claudeCommandsController';
 import formatError from './utils/formatError';
 import type { DocumentViewAndEditFormat } from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
@@ -183,6 +184,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _participantController: ParticipantController;
   _mcpController: MCPController;
   _dataBrowsingController: DataBrowsingController;
+  _claudeCommandsController: ClaudeCommandsController;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -277,6 +279,9 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._connectionStorage.getUserAnonymousId(),
       telemetryService: this._telemetryService,
     });
+    this._claudeCommandsController = new ClaudeCommandsController(
+      this._mcpController,
+    );
   }
 
   subscribeToConfigurationChanges(): void {
@@ -298,6 +303,7 @@ export default class MDBExtensionController implements vscode.Disposable {
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
     await this._mcpController.activate();
+    this._claudeCommandsController.activate();
 
     this.registerCommands();
     this.showOverviewPageIfRecentlyInstalled();
