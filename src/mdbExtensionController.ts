@@ -117,6 +117,7 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.startMcpServer,
   ExtensionCommand.stopMcpServer,
   ExtensionCommand.getMcpServerConfig,
+  ExtensionCommand.resetMCPServerTools,
 ] as const;
 
 export const DEEP_LINK_DISALLOWED_COMMANDS = [
@@ -1207,6 +1208,14 @@ export default class MDBExtensionController implements vscode.Disposable {
       ExtensionCommand.getMcpServerConfig,
       (): Promise<boolean> => {
         return this._mcpController.openServerConfig();
+      },
+    );
+
+    this.registerCommand(
+      ExtensionCommand.resetMCPServerTools,
+      (): Promise<boolean> => {
+        this._claudeCommandsController.reset();
+        return Promise.resolve(true);
       },
     );
   }

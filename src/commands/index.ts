@@ -96,6 +96,7 @@ export const ExtensionCommand = {
   startMcpServer: 'mdb.startMCPServer',
   stopMcpServer: 'mdb.stopMCPServer',
   getMcpServerConfig: 'mdb.getMCPServerConfig',
+  resetMCPServerTools: 'mdb.resetMCPServerTools',
 } as const;
 
 export type ExtensionCommand =

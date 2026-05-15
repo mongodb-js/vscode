@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -29,7 +30,8 @@ const { AllTools } = require('mongodb-mcp-server/tools') as {
 const log = createLogger('claudeCommandsController');
 
 const CLAUDE_CODE_EXTENSION_ID = 'anthropic.claude-code';
-const MCP_SERVER_NAME = 'mongodb';
+const CLAUDE_DIR = path.join(os.homedir(), '.claude');
+const CLAUDE_JSON_PATH = path.join(os.homedir(), '.claude.json');
 
 function isClaudeCodeInstalled(): boolean {
   return !!vscode.extensions.getExtension(CLAUDE_CODE_EXTENSION_ID);
@@ -37,70 +39,133 @@ function isClaudeCodeInstalled(): boolean {
 
 export class ClaudeCommandsController {
   private mcpController: MCPController;
+  private _currentMcpServerName: string | null = null;
 
   constructor(mcpController: MCPController) {
     this.mcpController = mcpController;
   }
 
   activate(): void {
-    // Claude Code reads .mcp.json from workspace roots to discover MCP servers.
-    // We write/update it whenever the in-process HTTP server starts, and remove
-    // the mongodb entry when it stops. No connection string is written — the
-    // running server manages the active VS Code connection internally.
-    // Slash commands come from MCP prompts registered in StreamableHttpRunnerWithPrompts.
+    // Claude Code reads ~/.claude.json for user-level MCP servers and
+    // ~/.claude/commands/*.md for global slash commands.
+    // We write/update both whenever the in-process HTTP server starts and
+    // remove our entries when it stops. The server name is suffixed with the
+    // port so multiple VS Code windows each own a distinct entry.
 
-    // Case 1: workspace already open + server already running.
     if (isClaudeCodeInstalled() && this.mcpController.isServerRunning()) {
-      for (const folder of this._fileFolders()) {
-        this._syncFolder(folder.uri.fsPath);
-      }
+      this._syncGlobal();
     }
 
-    // Case 2: server starts or stops later ("Start Once" or deferred auto-start).
     this.mcpController.onDidChangeServer(() => {
       if (!isClaudeCodeInstalled()) return;
-      for (const folder of this._fileFolders()) {
-        this._syncFolder(folder.uri.fsPath);
-      }
-    });
-
-    // Case 3: new workspace folder added while server is already running.
-    vscode.workspace.onDidChangeWorkspaceFolders((event) => {
-      if (!isClaudeCodeInstalled() || !this.mcpController.isServerRunning()) {
-        return;
-      }
-      for (const folder of event.added) {
-        if (folder.uri.scheme === 'file') {
-          this._syncFolder(folder.uri.fsPath);
-        }
-      }
+      this._syncGlobal();
     });
   }
 
-  private _fileFolders(): readonly vscode.WorkspaceFolder[] {
-    return (
-      vscode.workspace.workspaceFolders?.filter(
-        (f) => f.uri.scheme === 'file',
-      ) ?? []
-    );
-  }
-
-  private _syncFolder(folderPath: string): void {
-    const httpConfig = this.mcpController.getServerHttpConfig();
-    if (httpConfig) {
-      this._writeMcpJson(folderPath, httpConfig);
-      this._writeCommandsToFolder(folderPath);
-    } else {
-      this._removeMcpJsonEntry(folderPath);
+  private _getMcpServerName(url: string): string {
+    try {
+      const port = new URL(url).port;
+      return port ? `mongodb-${port}` : 'mongodb';
+    } catch {
+      return 'mongodb';
     }
   }
 
-  private _writeCommandsToFolder(folderPath: string): void {
-    const commandsDir = path.join(folderPath, '.claude', 'commands');
+  private _syncGlobal(): void {
+    const httpConfig = this.mcpController.getServerHttpConfig();
+    if (httpConfig) {
+      this._writeGlobalMcpJson(httpConfig);
+      this._writeGlobalCommands();
+    } else {
+      this._removeGlobalMcpJsonEntry();
+      this._removeGlobalCommands();
+    }
+  }
+
+  private _writeGlobalMcpJson(httpConfig: {
+    url: string;
+    headers: Record<string, string>;
+  }): void {
+    const serverName = this._getMcpServerName(httpConfig.url);
+    this._currentMcpServerName = serverName;
+
+    let config: { mcpServers?: Record<string, unknown> } = {};
+    try {
+      if (fs.existsSync(CLAUDE_JSON_PATH)) {
+        config = JSON.parse(
+          fs.readFileSync(CLAUDE_JSON_PATH, 'utf8'),
+        ) as typeof config;
+      }
+    } catch (err) {
+      log.warn('Could not read ~/.claude.json, will overwrite mongodb entry', {
+        err,
+      });
+    }
+
+    config.mcpServers ??= {};
+    config.mcpServers[serverName] = {
+      type: 'http',
+      url: httpConfig.url,
+      headers: httpConfig.headers,
+    };
+
+    try {
+      fs.writeFileSync(
+        CLAUDE_JSON_PATH,
+        JSON.stringify(config, null, 2) + '\n',
+        {
+          encoding: 'utf8',
+          mode: 0o600,
+        },
+      );
+      log.info('Wrote MongoDB MCP server config to ~/.claude.json', {
+        serverName,
+      });
+    } catch (err) {
+      log.error('Failed to write ~/.claude.json', { err });
+    }
+  }
+
+  private _removeGlobalMcpJsonEntry(): void {
+    const serverName = this._currentMcpServerName;
+    if (!serverName || !fs.existsSync(CLAUDE_JSON_PATH)) return;
+
+    let config: { mcpServers?: Record<string, unknown> };
+    try {
+      config = JSON.parse(
+        fs.readFileSync(CLAUDE_JSON_PATH, 'utf8'),
+      ) as typeof config;
+    } catch (err) {
+      log.warn('Could not parse ~/.claude.json on server stop', { err });
+      return;
+    }
+
+    if (!config.mcpServers?.[serverName]) return;
+
+    delete config.mcpServers[serverName];
+    this._currentMcpServerName = null;
+
+    try {
+      fs.writeFileSync(
+        CLAUDE_JSON_PATH,
+        JSON.stringify(config, null, 2) + '\n',
+        {
+          encoding: 'utf8',
+          mode: 0o600,
+        },
+      );
+      log.info('Removed mongodb entry from ~/.claude.json', { serverName });
+    } catch (err) {
+      log.error('Failed to update ~/.claude.json on server stop', { err });
+    }
+  }
+
+  private _writeGlobalCommands(): void {
+    const commandsDir = path.join(CLAUDE_DIR, 'commands');
     try {
       fs.mkdirSync(commandsDir, { recursive: true });
     } catch (err) {
-      log.warn('Could not create .claude/commands directory', {
+      log.warn('Could not create ~/.claude/commands directory', {
         commandsDir,
         err,
       });
@@ -108,7 +173,10 @@ export class ClaudeCommandsController {
     }
     for (const ToolClass of AllTools) {
       try {
-        const filePath = path.join(commandsDir, ToolClass.toolName + '.md');
+        const filePath = path.join(
+          commandsDir,
+          'mongodb-' + ToolClass.toolName + '.md',
+        );
         if (fs.existsSync(filePath)) continue;
         // description is a hardcoded string in each subclass constructor body and does not use any constructor params
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -133,101 +201,35 @@ export class ClaudeCommandsController {
     log.info('Wrote MongoDB slash command files', { commandsDir });
   }
 
-  private _writeMcpJson(
-    folderPath: string,
-    httpConfig: { url: string; headers: Record<string, string> },
-  ): void {
-    const mcpJsonPath = path.join(folderPath, '.mcp.json');
-
-    let config: { mcpServers?: Record<string, unknown> } = {};
-    try {
-      if (fs.existsSync(mcpJsonPath)) {
-        config = JSON.parse(
-          fs.readFileSync(mcpJsonPath, 'utf8'),
-        ) as typeof config;
+  private _removeGlobalCommands(): void {
+    const commandsDir = path.join(CLAUDE_DIR, 'commands');
+    for (const ToolClass of AllTools) {
+      try {
+        const filePath = path.join(
+          commandsDir,
+          'mongodb-' + ToolClass.toolName + '.md',
+        );
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (err) {
+        log.warn('Could not remove command file', {
+          tool: ToolClass.toolName,
+          err,
+        });
       }
-    } catch (err) {
-      log.warn(
-        'Could not read existing .mcp.json, will overwrite mongodb entry',
-        { err },
-      );
     }
-
-    config.mcpServers ??= {};
-    config.mcpServers[MCP_SERVER_NAME] = {
-      type: 'http',
-      url: httpConfig.url,
-      headers: httpConfig.headers,
-    };
-
-    try {
-      fs.writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2) + '\n', {
-        encoding: 'utf8',
-        mode: 0o600,
-      });
-      log.info('Wrote MongoDB MCP server config to .mcp.json', { mcpJsonPath });
-    } catch (err) {
-      log.error('Failed to write .mcp.json', { mcpJsonPath, err });
-      return;
-    }
-
-    this._ensureGitignore(folderPath, '.mcp.json');
+    log.info('Removed MongoDB slash command files', { commandsDir });
   }
 
-  private _removeMcpJsonEntry(folderPath: string): void {
-    const mcpJsonPath = path.join(folderPath, '.mcp.json');
-    if (!fs.existsSync(mcpJsonPath)) return;
-
-    let config: { mcpServers?: Record<string, unknown> };
-    try {
-      config = JSON.parse(
-        fs.readFileSync(mcpJsonPath, 'utf8'),
-      ) as typeof config;
-    } catch (err) {
-      log.warn('Could not parse .mcp.json on server stop', {
-        mcpJsonPath,
-        err,
-      });
-      return;
+  public reset(): void {
+    this._removeGlobalMcpJsonEntry();
+    this._removeGlobalCommands();
+    if (this.mcpController.isServerRunning()) {
+      this._syncGlobal();
     }
-
-    if (!config.mcpServers?.[MCP_SERVER_NAME]) return;
-
-    delete config.mcpServers[MCP_SERVER_NAME];
-
-    try {
-      if (Object.keys(config.mcpServers).length === 0) {
-        fs.unlinkSync(mcpJsonPath);
-        log.info('Removed .mcp.json (no remaining MCP servers)', {
-          mcpJsonPath,
-        });
-      } else {
-        fs.writeFileSync(mcpJsonPath, JSON.stringify(config, null, 2) + '\n', {
-          encoding: 'utf8',
-          mode: 0o600,
-        });
-        log.info('Removed mongodb entry from .mcp.json', { mcpJsonPath });
-      }
-    } catch (err) {
-      log.error('Failed to update .mcp.json on server stop', {
-        mcpJsonPath,
-        err,
-      });
-    }
-  }
-
-  private _ensureGitignore(folderPath: string, entry: string): void {
-    const gitignorePath = path.join(folderPath, '.gitignore');
-    try {
-      const existing = fs.existsSync(gitignorePath)
-        ? fs.readFileSync(gitignorePath, 'utf8')
-        : '';
-      if (existing.split('\n').some((l) => l.trim() === entry)) return;
-      const separator = existing.length && !existing.endsWith('\n') ? '\n' : '';
-      fs.appendFileSync(gitignorePath, `${separator}${entry}\n`, 'utf8');
-      log.info('Added .mcp.json to .gitignore', { gitignorePath });
-    } catch (err) {
-      log.warn('Could not update .gitignore', { gitignorePath, err });
-    }
+    void vscode.window.showInformationMessage(
+      'MongoDB MCP Server Tools have been reset.',
+    );
   }
 }

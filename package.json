@@ -544,6 +544,10 @@
         "title": "MongoDB: Start MCP Server"
       },
       {
+        "command": "mdb.resetMCPServerTools",
+        "title": "MongoDB: Reset MCP Server Tools"
+      },
+      {
         "command": "mdb.stopMCPServer",
         "title": "MongoDB: Stop MCP Server"
       },
