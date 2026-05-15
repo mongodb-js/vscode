@@ -59,6 +59,7 @@ import {
 
 import * as queryString from 'query-string';
 import { MCPController } from './mcp/mcpController';
+import { MCPStatusBarItem } from './mcp/mcpStatusBarItem';
 import { ClaudeCommandsController } from './claudeCommandsController';
 import formatError from './utils/formatError';
 import type { DocumentViewAndEditFormat } from './editors/types';
@@ -183,6 +184,7 @@ export default class MDBExtensionController implements vscode.Disposable {
   _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
   _mcpController: MCPController;
+  _mcpStatusBarItem: MCPStatusBarItem;
   _dataBrowsingController: DataBrowsingController;
   _claudeCommandsController: ClaudeCommandsController;
 
@@ -279,6 +281,7 @@ export default class MDBExtensionController implements vscode.Disposable {
         this._connectionStorage.getUserAnonymousId(),
       telemetryService: this._telemetryService,
     });
+    this._mcpStatusBarItem = new MCPStatusBarItem(this._mcpController, context);
     this._claudeCommandsController = new ClaudeCommandsController(
       this._mcpController,
     );
