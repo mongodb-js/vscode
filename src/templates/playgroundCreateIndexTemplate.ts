@@ -1,12 +1,15 @@
-const template = `/* global use, db */
+import { createTemplate } from './templateHelpers';
+
+const playgroundCreateIndexTemplate = createTemplate(
+  (databaseName, collectionName) => `/* global use, db */
 // MongoDB Playground
 // Use Ctrl+Space inside a snippet or a string literal to trigger completions.
 
 // The current database to use.
-use('CURRENT_DATABASE');
+use(${databaseName});
 
 // Create a new index in the collection.
-db.getCollection('CURRENT_COLLECTION')
+db.getCollection(${collectionName})
   .createIndex(
     {
       /*
@@ -45,6 +48,7 @@ db.getCollection('CURRENT_COLLECTION')
        */
     }
   );
-`;
+`,
+);
 
-export default template;
+export default playgroundCreateIndexTemplate;

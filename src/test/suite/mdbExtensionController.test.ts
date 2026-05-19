@@ -635,6 +635,34 @@ suite('MDBExtensionController Test Suite', function () {
       expect(content).to.include('colllllllllName');
     });
 
+    test('mdb.searchForDocuments should escape special characters in database and collection names', async function () {
+      await vscode.commands.executeCommand('mdb.searchForDocuments', {
+        databaseName: "db'name",
+        collectionName: "coll'name",
+      });
+
+      const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
+      // JSON.stringify wraps in double quotes — single quotes inside are safe
+      expect(content).to.include('"db\'name"');
+      expect(content).to.include('"coll\'name"');
+      // Must not appear as unescaped single-quoted string (would be broken JS)
+      expect(content).to.not.include("use('db'name')");
+      expect(content).to.not.include("getCollection('coll'name')");
+    });
+
+    test('mdb.createIndexFromTreeView should escape special characters in database and collection names', async function () {
+      await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
+        databaseName: "db'name",
+        collectionName: "coll'name",
+      });
+
+      const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
+      expect(content).to.include('"db\'name"');
+      expect(content).to.include('"coll\'name"');
+      expect(content).to.not.include("use('db'name')");
+      expect(content).to.not.include("getCollection('coll'name')");
+    });
+
     test('mdb.createPlayground should create a MongoDB playground with default template', async function () {
       const fakeGetConfiguration = sandbox.fake.returns({
         get: () => true,

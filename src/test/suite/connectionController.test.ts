@@ -1532,6 +1532,9 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('with arguments, uses provided connection string', async function () {
+      sandbox
+        .stub(vscode.window, 'showWarningMessage')
+        .resolves('Connect' as any);
       addNewConnectionAndConnectStub.returns(true);
 
       const result = await testConnectionController.connectWithURI({
@@ -1548,6 +1551,52 @@ suite('Connection Controller Test Suite', function () {
           name: 'foo',
         },
       );
+    });
+
+    test('with pre-supplied connection string, shows confirmation dialog instead of input box', async function () {
+      const showWarningMessageStub = sandbox
+        .stub(vscode.window, 'showWarningMessage')
+        .resolves('Connect' as any);
+      addNewConnectionAndConnectStub.returns(true);
+
+      const result = await testConnectionController.connectWithURI({
+        connectionString: 'mongodb://127.0.0.1:12345',
+      });
+
+      expect(result).to.be.true;
+      expect(showInputBoxStub).to.not.have.been.called;
+      expect(showWarningMessageStub).to.have.been.calledOnce;
+      expect(addNewConnectionAndConnectStub).to.have.been.calledOnce;
+    });
+
+    test('with pre-supplied connection string, shows host but not credentials in confirmation dialog', async function () {
+      const showWarningMessageStub = sandbox
+        .stub(vscode.window, 'showWarningMessage')
+        .resolves('Connect' as any);
+      addNewConnectionAndConnectStub.returns(true);
+
+      await testConnectionController.connectWithURI({
+        connectionString:
+          'mongodb+srv://user:s3cr3t@cluster0.example.com/admin',
+      });
+
+      const dialogMessage = showWarningMessageStub.firstCall.args[0] as string;
+      expect(dialogMessage).to.include('cluster0.example.com');
+      expect(dialogMessage).to.not.include('s3cr3t');
+    });
+
+    test('with pre-supplied connection string, cancelling dialog does not connect', async function () {
+      sandbox
+        .stub(vscode.window, 'showWarningMessage')
+        .resolves(undefined as any);
+
+      const result = await testConnectionController.connectWithURI({
+        connectionString: 'mongodb://127.0.0.1:12345',
+      });
+
+      expect(result).to.be.false;
+      expect(showInputBoxStub).to.not.have.been.called;
+      expect(addNewConnectionAndConnectStub).to.not.have.been.called;
     });
   });
 

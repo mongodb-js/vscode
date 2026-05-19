@@ -74,9 +74,6 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.openMongodbIssueReporter,
   ExtensionCommand.mdbOpenMdbShell,
   ExtensionCommand.mdbCreatePlayground,
-  ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
-  ExtensionCommand.mdbRunAllPlaygroundBlocks,
-  ExtensionCommand.mdbRunAllOrSelectedPlaygroundBlocks,
   ExtensionCommand.mdbExportCodeToPlayground,
   ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
   ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
@@ -128,6 +125,10 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.sendMessageToParticipant,
   ExtensionCommand.sendMessageToParticipantFromInput,
   ExtensionCommand.showExportToLanguageResult,
+  // Playground execution — external triggers should not silently run code
+  ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
+  ExtensionCommand.mdbRunAllPlaygroundBlocks,
+  ExtensionCommand.mdbRunAllOrSelectedPlaygroundBlocks,
   // Destructive operations
   ExtensionCommand.mdbDropDatabase,
   ExtensionCommand.mdbDropCollection,

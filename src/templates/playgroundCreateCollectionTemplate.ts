@@ -1,8 +1,11 @@
-const template = `/* global use, db */
+import { createTemplate } from './templateHelpers';
+
+const playgroundCreateCollectionTemplate = createTemplate(
+  (databaseName) => `/* global use, db */
 // MongoDB Playground
 // Use Ctrl+Space inside a snippet or a string literal to trigger completions.
 
-const database = 'NEW_DATABASE_NAME';
+const database = ${databaseName};
 const collection = 'NEW_COLLECTION_NAME';
 
 // Create a new database.
@@ -41,6 +44,7 @@ db.createCollection(collection);
 
 // More information on the \`createCollection\` command can be found at:
 // https://www.mongodb.com/docs/manual/reference/method/db.createCollection/
-`;
+`,
+);
 
-export default template;
+export default playgroundCreateCollectionTemplate;
