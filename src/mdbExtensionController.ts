@@ -86,28 +86,19 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.mdbAddConnection,
   ExtensionCommand.mdbAddConnectionWithUri,
   ExtensionCommand.mdbEditConnection,
-  ExtensionCommand.mdbRefreshConnection,
   ExtensionCommand.mdbCopyConnectionString,
   ExtensionCommand.mdbEditPresetConnections,
   ExtensionCommand.mdbRenameConnection,
   ExtensionCommand.mdbAddDatabase,
   ExtensionCommand.mdbSearchForDocuments,
   ExtensionCommand.mdbCopyDatabaseName,
-  ExtensionCommand.mdbRefreshDatabase,
   ExtensionCommand.mdbAddCollection,
   ExtensionCommand.mdbCopyCollectionName,
-  ExtensionCommand.mdbRefreshCollection,
-  ExtensionCommand.mdbRefreshDocumentList,
 
-  ExtensionCommand.mdbRefreshSchema,
-  ExtensionCommand.mdbCopySchemaFieldName,
-  ExtensionCommand.mdbRefreshIndexes,
   ExtensionCommand.mdbInsertObjectidToEditor,
   ExtensionCommand.mdbGenerateObjectidToClipboard,
 
   ExtensionCommand.mdbAddStreamProcessor,
-  ExtensionCommand.mdbStartStreamProcessor,
-  ExtensionCommand.mdbStopStreamProcessor,
 
   ExtensionCommand.startMcpServer,
   ExtensionCommand.stopMcpServer,
@@ -135,6 +126,16 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbDropStreamProcessor,
   ExtensionCommand.mdbRemoveConnection,
 
+  // Tree-item-only commands — call methods on live objects, no meaningful deep link use
+  ExtensionCommand.mdbRefreshConnection,
+  ExtensionCommand.mdbRefreshDatabase,
+  ExtensionCommand.mdbRefreshCollection,
+  ExtensionCommand.mdbRefreshDocumentList,
+  ExtensionCommand.mdbRefreshSchema,
+  ExtensionCommand.mdbCopySchemaFieldName,
+  ExtensionCommand.mdbRefreshIndexes,
+  ExtensionCommand.mdbStartStreamProcessor,
+  ExtensionCommand.mdbStopStreamProcessor,
   // Location-specific items - not intended to be accessed in other ways
   ExtensionCommand.mdbRemoveConnectionTreeView,
   ExtensionCommand.mdbOpenMdbShellFromTreeView,
@@ -157,6 +158,91 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
   ExtensionCommand.mdbOpenDataBrowserFromPlayground,
 ] as const;
+
+type ParamDef =
+  | { type: 'string'; pattern?: RegExp; maxLength?: number }
+  | { type: 'boolean' }
+  | { type: 'number' };
+
+// null = command accepts no parameters; commands absent from the map also accept none.
+type CommandParamSchema = Record<string, ParamDef> | null;
+
+const DEEP_LINK_PARAM_SCHEMA: Partial<
+  Record<ExtensionCommand, CommandParamSchema>
+> = {
+  [ExtensionCommand.mdbConnectWithUri]: {
+    connectionString: { type: 'string', pattern: /^mongodb(\+srv)?:\/\// },
+    reuseExisting: { type: 'boolean' },
+    name: { type: 'string', maxLength: 100 },
+  },
+  [ExtensionCommand.mdbSearchForDocuments]: {
+    databaseName: { type: 'string' },
+    collectionName: { type: 'string' },
+  },
+  [ExtensionCommand.mdbExportToLanguage]: {
+    language: { type: 'string' },
+  },
+  [ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage]: {
+    includeDriverSyntax: { type: 'boolean' },
+  },
+  [ExtensionCommand.mdbCodelensShowMoreDocuments]: {
+    operationId: { type: 'string' },
+    connectionId: { type: 'string' },
+    namespace: { type: 'string' },
+  },
+};
+
+function validateDeepLinkParams(
+  command: ExtensionCommand,
+  params: Record<string, unknown>,
+): string | null {
+  const schema = DEEP_LINK_PARAM_SCHEMA[command] ?? null;
+  const keys = Object.keys(params);
+
+  if (schema === null) {
+    if (keys.length > 0) {
+      return `Command '${command}' does not accept parameters via deep links.`;
+    }
+    return null;
+  }
+
+  for (const key of keys) {
+    if (!(key in schema)) {
+      return `Unknown parameter '${key}' for command '${command}'.`;
+    }
+  }
+
+  for (const [key, def] of Object.entries(schema)) {
+    const value = params[key];
+    if (value === undefined || value === null) continue;
+
+    if (Array.isArray(value)) {
+      return `Parameter '${key}' must not be an array.`;
+    }
+
+    if (def.type === 'string') {
+      if (typeof value !== 'string') {
+        return `Parameter '${key}' must be a string.`;
+      }
+      if (def.maxLength !== undefined && value.length > def.maxLength) {
+        return `Parameter '${key}' exceeds maximum length of ${def.maxLength}.`;
+      }
+      if (def.pattern !== undefined && !def.pattern.test(value)) {
+        return `Parameter '${key}' has an invalid format.`;
+      }
+    } else if (def.type === 'boolean') {
+      if (typeof value !== 'boolean') {
+        return `Parameter '${key}' must be a boolean.`;
+      }
+    } else if (def.type === 'number') {
+      if (typeof value !== 'number') {
+        return `Parameter '${key}' must be a number.`;
+      }
+    }
+  }
+
+  return null;
+}
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -369,6 +455,14 @@ export default class MDBExtensionController implements vscode.Disposable {
         throw new Error(
           `Command '${command}' cannot be invoked via deep links.`,
         );
+      }
+
+      const paramError = validateDeepLinkParams(
+        command as ExtensionCommand,
+        parameters as Record<string, unknown>,
+      );
+      if (paramError) {
+        throw new Error(paramError);
       }
 
       await vscode.commands.executeCommand(command, parameters);

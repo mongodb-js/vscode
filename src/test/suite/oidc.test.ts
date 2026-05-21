@@ -238,7 +238,7 @@ suite('OIDC Tests', function () {
   test('it persists tokens for further attempt if the settings is set to true', async function () {
     await vscode.workspace
       .getConfiguration('mdb')
-      .update('persistOIDCTokens', true);
+      .update('persistOIDCTokens', true, vscode.ConfigurationTarget.Global);
     let tokenFetchCalls = 0;
     getTokenPayload = (): ReturnType<
       typeof oidcMockProviderConfig.getTokenPayload
@@ -270,7 +270,7 @@ suite('OIDC Tests', function () {
   test('it will not persist tokens for further attempt if the settings is set to false', async function () {
     await vscode.workspace
       .getConfiguration('mdb')
-      .update('persistOIDCTokens', false);
+      .update('persistOIDCTokens', false, vscode.ConfigurationTarget.Global);
     let tokenFetchCalls = 0;
     getTokenPayload = (): ReturnType<
       typeof oidcMockProviderConfig.getTokenPayload
