@@ -216,10 +216,6 @@ function validateDeepLinkParams(
     const value = params[key];
     if (value === undefined || value === null) continue;
 
-    if (Array.isArray(value)) {
-      return `Parameter '${key}' must not be an array.`;
-    }
-
     if (def.type === 'string') {
       if (typeof value !== 'string') {
         return `Parameter '${key}' must be a string.`;
@@ -238,6 +234,8 @@ function validateDeepLinkParams(
       if (typeof value !== 'number') {
         return `Parameter '${key}' must be a number.`;
       }
+    } else {
+      return `Parameter '${key}' has an unsupported type.`;
     }
   }
 

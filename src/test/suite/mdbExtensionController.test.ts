@@ -1945,7 +1945,7 @@ suite('MDBExtensionController Test Suite', function () {
 
         expect(fakeExecuteCommand).to.not.have.been.called;
         expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-          sinon.match(/Parameter 'databaseName' must not be an array/),
+          sinon.match(/Parameter 'databaseName' must be a string/),
         );
       });
     });
