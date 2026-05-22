@@ -58,6 +58,7 @@ import {
 } from './telemetry';
 
 import * as queryString from 'query-string';
+import { z } from 'zod';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
 import type { DocumentViewAndEditFormat } from './editors/types';
@@ -159,37 +160,36 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbOpenDataBrowserFromPlayground,
 ] as const;
 
-type ParamDef =
-  | { type: 'string'; pattern?: RegExp; maxLength?: number }
-  | { type: 'boolean' }
-  | { type: 'number' };
-
 // null = command accepts no parameters; commands absent from the map also accept none.
-type CommandParamSchema = Record<string, ParamDef> | null;
-
 const DEEP_LINK_PARAM_SCHEMA: Partial<
-  Record<ExtensionCommand, CommandParamSchema>
+  Record<ExtensionCommand, z.ZodObject<z.ZodRawShape> | null>
 > = {
-  [ExtensionCommand.mdbConnectWithUri]: {
-    connectionString: { type: 'string', pattern: /^mongodb(\+srv)?:\/\// },
-    reuseExisting: { type: 'boolean' },
-    name: { type: 'string', maxLength: 100 },
-  },
-  [ExtensionCommand.mdbSearchForDocuments]: {
-    databaseName: { type: 'string' },
-    collectionName: { type: 'string' },
-  },
-  [ExtensionCommand.mdbExportToLanguage]: {
-    language: { type: 'string' },
-  },
-  [ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage]: {
-    includeDriverSyntax: { type: 'boolean' },
-  },
-  [ExtensionCommand.mdbCodelensShowMoreDocuments]: {
-    operationId: { type: 'string' },
-    connectionId: { type: 'string' },
-    namespace: { type: 'string' },
-  },
+  [ExtensionCommand.mdbConnectWithUri]: z.object({
+    connectionString: z
+      .string()
+      .regex(
+        /^mongodb(\+srv)?:\/\//,
+        'must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
+      )
+      .optional(),
+    reuseExisting: z.boolean().optional(),
+    name: z.string().max(100).optional(),
+  }),
+  [ExtensionCommand.mdbSearchForDocuments]: z.object({
+    databaseName: z.string().optional(),
+    collectionName: z.string().optional(),
+  }),
+  [ExtensionCommand.mdbExportToLanguage]: z.object({
+    language: z.string().optional(),
+  }),
+  [ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage]: z.object({
+    includeDriverSyntax: z.boolean().optional(),
+  }),
+  [ExtensionCommand.mdbCodelensShowMoreDocuments]: z.object({
+    operationId: z.string().optional(),
+    connectionId: z.string().optional(),
+    namespace: z.string().optional(),
+  }),
 };
 
 function validateDeepLinkParams(
@@ -197,48 +197,21 @@ function validateDeepLinkParams(
   params: Record<string, unknown>,
 ): string | null {
   const schema = DEEP_LINK_PARAM_SCHEMA[command] ?? null;
-  const keys = Object.keys(params);
 
   if (schema === null) {
-    if (keys.length > 0) {
+    if (Object.keys(params).length > 0) {
       return `Command '${command}' does not accept parameters via deep links.`;
     }
     return null;
   }
 
-  for (const key of keys) {
-    if (!(key in schema)) {
-      return `Unknown parameter '${key}' for command '${command}'.`;
-    }
+  const result = schema.strict().safeParse(params);
+  if (!result.success) {
+    const issue = result.error.issues[0];
+    const field = issue?.path.length ? String(issue.path[0]) : null;
+    const message = issue?.message ?? 'Invalid parameters.';
+    return field ? `Parameter '${field}': ${message}` : message;
   }
-
-  for (const [key, def] of Object.entries(schema)) {
-    const value = params[key];
-    if (value === undefined || value === null) continue;
-
-    if (def.type === 'string') {
-      if (typeof value !== 'string') {
-        return `Parameter '${key}' must be a string.`;
-      }
-      if (def.maxLength !== undefined && value.length > def.maxLength) {
-        return `Parameter '${key}' exceeds maximum length of ${def.maxLength}.`;
-      }
-      if (def.pattern !== undefined && !def.pattern.test(value)) {
-        return `Parameter '${key}' has an invalid format.`;
-      }
-    } else if (def.type === 'boolean') {
-      if (typeof value !== 'boolean') {
-        return `Parameter '${key}' must be a boolean.`;
-      }
-    } else if (def.type === 'number') {
-      if (typeof value !== 'number') {
-        return `Parameter '${key}' must be a number.`;
-      }
-    } else {
-      return `Parameter '${key}' has an unsupported type.`;
-    }
-  }
-
   return null;
 }
 

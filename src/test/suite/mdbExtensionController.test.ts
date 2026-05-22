@@ -1855,9 +1855,7 @@ suite('MDBExtensionController Test Suite', function () {
 
         expect(fakeExecuteCommand).to.not.have.been.called;
         expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-          sinon.match(
-            /Unknown parameter 'unknown' for command 'mdb.connectWithURI'/,
-          ),
+          sinon.match(/Unrecognized key: "unknown"/),
         );
       });
 
@@ -1885,7 +1883,9 @@ suite('MDBExtensionController Test Suite', function () {
 
         expect(fakeExecuteCommand).to.not.have.been.called;
         expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-          sinon.match(/Parameter 'connectionString' has an invalid format/),
+          sinon.match(
+            /Parameter 'connectionString': must be a valid MongoDB connection string/,
+          ),
         );
       });
 
@@ -1898,7 +1898,9 @@ suite('MDBExtensionController Test Suite', function () {
 
         expect(fakeExecuteCommand).to.not.have.been.called;
         expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-          sinon.match(/Parameter 'reuseExisting' must be a boolean/),
+          sinon.match(
+            /Parameter 'reuseExisting': Invalid input: expected boolean/,
+          ),
         );
       });
 
@@ -1915,7 +1917,9 @@ suite('MDBExtensionController Test Suite', function () {
 
         expect(fakeExecuteCommand).to.not.have.been.called;
         expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-          sinon.match(/Parameter 'name' exceeds maximum length of 100/),
+          sinon.match(
+            /Parameter 'name': Too big: expected string to have <=100 characters/,
+          ),
         );
       });
 
@@ -1945,7 +1949,9 @@ suite('MDBExtensionController Test Suite', function () {
 
         expect(fakeExecuteCommand).to.not.have.been.called;
         expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
-          sinon.match(/Parameter 'databaseName' must be a string/),
+          sinon.match(
+            /Parameter 'databaseName': Invalid input: expected string, received array/,
+          ),
         );
       });
     });

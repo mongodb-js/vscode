@@ -1510,7 +1510,8 @@
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",
-    "xss": "^1.0.15"
+    "xss": "^1.0.15",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.28.5",
