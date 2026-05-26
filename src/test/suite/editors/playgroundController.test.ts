@@ -411,7 +411,7 @@ suite('Playground Controller Test Suite', function () {
 
           await vscode.workspace
             .getConfiguration('mdb')
-            .update('confirmRunAll', true);
+            .update('confirmRunAll', true, vscode.ConfigurationTarget.Global);
 
           const result =
             await testPlaygroundController.runAllPlaygroundBlocks();
@@ -425,7 +425,7 @@ suite('Playground Controller Test Suite', function () {
 
           await vscode.workspace
             .getConfiguration('mdb')
-            .update('confirmRunAll', false);
+            .update('confirmRunAll', false, vscode.ConfigurationTarget.Global);
 
           const result =
             await testPlaygroundController.runAllPlaygroundBlocks();
@@ -439,7 +439,7 @@ suite('Playground Controller Test Suite', function () {
 
           await vscode.workspace
             .getConfiguration('mdb')
-            .update('confirmRunAll', true);
+            .update('confirmRunAll', true, vscode.ConfigurationTarget.Global);
 
           const result =
             await testPlaygroundController.runAllPlaygroundBlocks();

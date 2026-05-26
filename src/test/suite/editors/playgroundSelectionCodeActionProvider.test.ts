@@ -71,7 +71,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
       await vscode.workspace
         .getConfiguration('mdb')
-        .update('confirmRunAll', false);
+        .update('confirmRunAll', false, vscode.ConfigurationTarget.Global);
 
       await mdbTestExtension.testExtensionController._playgroundController._activeConnectionChanged();
 
@@ -84,7 +84,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       );
       await vscode.workspace
         .getConfiguration('mdb')
-        .update('confirmRunAll', true);
+        .update('confirmRunAll', true, vscode.ConfigurationTarget.Global);
       await mdbTestExtension.testExtensionController._connectionController.disconnect();
       mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
       sandbox.restore();

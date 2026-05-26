@@ -84,7 +84,7 @@ suite('Playground', function () {
     );
     await vscode.workspace
       .getConfiguration('mdb')
-      .update('confirmRunAll', false);
+      .update('confirmRunAll', false, vscode.ConfigurationTarget.Global);
   });
 
   afterEach(async function () {
