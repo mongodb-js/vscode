@@ -36,10 +36,14 @@ import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
 import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
-import { getDocumentViewAndEditFormat } from './types';
+import {
+  getDocumentViewAndEditFormat,
+  getUseWebViewDataBrowser,
+} from './types';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 import {
+  DataBrowserOpenedTelemetryEvent,
   PlaygroundCreatedTelemetryEvent,
   PlaygroundExecutedTelemetryEvent,
   PlaygroundSavedTelemetryEvent,
@@ -481,11 +485,20 @@ export default class PlaygroundController {
         // Note: We leave out aggregateDb and runCursorCommand for now because
         // those don't have an associated collectionName and that's a bit
         // removed from how data browser currently works.
-        await vscode.commands.executeCommand(
-          ExtensionCommand.mdbOpenDataBrowserFromPlayground,
-          { result },
+        if (getUseWebViewDataBrowser()) {
+          await vscode.commands.executeCommand(
+            ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+            { result },
+          );
+          return;
+        }
+        this._telemetryService.track(
+          new DataBrowserOpenedTelemetryEvent(
+            'unknown',
+            'query-results',
+            false,
+          ),
         );
-        return;
       }
     }
 

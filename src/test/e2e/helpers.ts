@@ -7,6 +7,7 @@ import {
   _electron as electron,
   expect,
   type ElectronApplication,
+  type Locator,
   type Page,
 } from '@playwright/test';
 import { MongoCluster } from 'mongodb-runner';
@@ -18,6 +19,17 @@ export const TEST_DB_NAME = 'e2eTestDB';
 
 const E2E_TMP_DIR = path.join(os.tmpdir(), 'vscode-e2e-test');
 const USER_DATA_DIR = path.join(E2E_TMP_DIR, 'user-data');
+const USER_SETTINGS_PATH = path.join(USER_DATA_DIR, 'User', 'settings.json');
+const PLAYGROUND_TMP_DIR = path.join(E2E_TMP_DIR, 'playgrounds');
+
+const tmpPlaygroundFiles: string[] = [];
+
+export function cleanupTmpPlaygroundFiles(): void {
+  for (const f of tmpPlaygroundFiles) {
+    fs.rmSync(f, { force: true });
+  }
+  tmpPlaygroundFiles.length = 0;
+}
 
 let mongoCluster: MongoCluster | undefined;
 
@@ -342,7 +354,7 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
  */
 export async function closeAllEditors(page: Page): Promise<void> {
   await executeCommand(page, 'View: Close All Editors');
-  // Wait until all editor tabs are closed
+  // Wait until all editor tabs are closed.
   await page
     .locator('.editor-group-container .tab')
     .first()
@@ -449,17 +461,41 @@ export async function connectToMongoDB(page: Page): Promise<void> {
 
 /**
  * Create a new playground file with the given content, run it, and return the page.
+ *
+ * The content is written to a temp .mongodb file so the editor is never in
+ * "unsaved" state. This prevents the "save before closing?" system dialog that
+ * would otherwise appear when VS Code closes with unsaved editors.
+ * Call cleanupTmpPlaygroundFiles() in afterAll to delete the temp files.
  */
 export async function createAndRunPlayground(
-  electronApp: ElectronApplication,
+  _electronApp: ElectronApplication,
   page: Page,
   playgroundContent: string,
 ): Promise<void> {
-  // Create a new playground
-  await executeCommand(page, 'MongoDB: Create MongoDB Playground');
+  fs.mkdirSync(PLAYGROUND_TMP_DIR, { recursive: true });
+  const tmpFile = path.join(
+    PLAYGROUND_TMP_DIR,
+    `playground-${Date.now()}.mongodb`,
+  );
+  fs.writeFileSync(tmpFile, playgroundContent, 'utf-8');
+  tmpPlaygroundFiles.push(tmpFile);
 
-  // Wait for the new playground editor to be ready for input.
-  // The command creates an untitled document and opens it in the editor.
+  const isMac = process.platform === 'darwin';
+
+  // Open the file via Quick Open — typing an absolute path opens it directly.
+  await page.keyboard.press(isMac ? 'Meta+KeyP' : 'Control+KeyP');
+  const quickInput = page.locator('.quick-input-widget input[type="text"]');
+  await quickInput.waitFor({ state: 'visible', timeout: 5_000 });
+  await quickInput.fill(tmpFile);
+  await page
+    .locator('.quick-input-list .monaco-list-row')
+    .first()
+    .waitFor({ state: 'visible', timeout: 5_000 });
+  await page.keyboard.press('Enter');
+  await page
+    .locator('.quick-input-widget')
+    .waitFor({ state: 'hidden', timeout: 5_000 });
+
   const editorViewLines = page.locator('.monaco-editor .view-lines').first();
   await editorViewLines.waitFor({ state: 'visible', timeout: 30_000 });
 
@@ -488,40 +524,19 @@ export async function createAndRunPlayground(
       .catch(() => {});
   }
 
-  // Click on the editor to ensure it has keyboard focus
-  await editorViewLines.click();
-
-  // Select all existing content and replace with our playground
-  const isMac = process.platform === 'darwin';
-  if (isMac) {
-    await page.keyboard.press('Meta+A');
-  } else {
-    await page.keyboard.press('Control+A');
-  }
-
-  // Write to clipboard via Electron's main process API, then paste
-  await electronApp.evaluate(({ clipboard }, text) => {
-    clipboard.writeText(text);
-  }, playgroundContent);
-  if (isMac) {
-    await page.keyboard.press('Meta+V');
-  } else {
-    await page.keyboard.press('Control+V');
-  }
-
-  // Wait for the pasted content to appear in the editor.
-  // Monaco virtualizes rendering, so lines scrolled out of view aren't in the
-  // DOM. Instead, verify the editor tab title updated to reflect the new content
-  // (VS Code uses the first line as the tab title for untitled files).
-  const firstLine = playgroundContent.split('\n')[0];
+  // Wait for the tab showing the playground filename to confirm it loaded.
+  const fileName = path.basename(tmpFile);
   await page.waitForFunction(
-    (snippet) => {
+    (name) => {
       const tabs = document.querySelectorAll('.tab .label-name');
-      return Array.from(tabs).some((tab) => tab.textContent?.includes(snippet));
+      return Array.from(tabs).some((tab) => tab.textContent?.includes(name));
     },
-    firstLine,
+    fileName,
     { timeout: 15_000 },
   );
+
+  // Click on the editor to ensure it has keyboard focus
+  await editorViewLines.click();
 
   // Run the playground (confirmRunAll is disabled in settings)
   await executeCommand(page, 'MongoDB: Run All From Playground');
@@ -531,6 +546,46 @@ export async function createAndRunPlayground(
   if (await confirmButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
     await confirmButton.click();
   }
+}
+
+/**
+ * Update a key in the user settings.json. VS Code watches this file and
+ * picks up changes without a window reload. Pass `undefined` to delete the
+ * key. Returns the previous value so callers can restore it.
+ */
+export function updateUserSetting(key: string, value: unknown): unknown {
+  const raw = fs.readFileSync(USER_SETTINGS_PATH, 'utf-8');
+  const settings = JSON.parse(raw) as Record<string, unknown>;
+  const previous = settings[key];
+  if (value === undefined) {
+    delete settings[key];
+  } else {
+    settings[key] = value;
+  }
+  fs.writeFileSync(USER_SETTINGS_PATH, JSON.stringify(settings));
+  return previous;
+}
+
+/**
+ * Return the full, formatting-preserved text of a Monaco editor identified by
+ * its tab label.
+ *
+ * Monaco virtualizes its DOM — only visible lines have DOM nodes, and
+ * allTextContents() on .view-lines loses indentation. Instead we focus the
+ * editor, select-all, copy, and read from the Electron clipboard so we get
+ * every line with exact whitespace, regardless of scroll position.
+ */
+export async function getEditorText(
+  editorGroup: Locator,
+  electronApp: ElectronApplication,
+): Promise<string> {
+  await editorGroup.locator('.monaco-editor').first().click();
+
+  const isMac = process.platform === 'darwin';
+  await editorGroup.page().keyboard.press(isMac ? 'Meta+A' : 'Control+A');
+  await editorGroup.page().keyboard.press(isMac ? 'Meta+C' : 'Control+C');
+
+  return electronApp.evaluate(({ clipboard }) => clipboard.readText());
 }
 
 /**

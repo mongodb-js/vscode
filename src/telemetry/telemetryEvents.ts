@@ -698,7 +698,7 @@ export class DeepLinkTelemetryEvent implements TelemetryEventBase {
 /** Whether the user is browsing a collection directly or viewing playground query results */
 type DataBrowserSource = 'collection' | 'query-results';
 
-/** Reported when the data browser webview is opened */
+/** Reported when the data browser is opened (either as a webview or as an editor) */
 export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Opened';
   properties: {
@@ -707,10 +707,21 @@ export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
 
     /** Whether the user is browsing a collection or viewing playground query results */
     source: DataBrowserSource;
+
+    /** Whether the user has the `mdb.useWebViewDataBrowser` setting enabled */
+    use_webview_data_browser: boolean;
   };
 
-  constructor(collectionType: string, source: DataBrowserSource) {
-    this.properties = { collection_type: collectionType, source };
+  constructor(
+    collectionType: string,
+    source: DataBrowserSource,
+    useWebViewDataBrowser: boolean,
+  ) {
+    this.properties = {
+      collection_type: collectionType,
+      source,
+      use_webview_data_browser: useWebViewDataBrowser,
+    };
   }
 }
 
