@@ -17,7 +17,6 @@ import {
   closeAllEditors,
   connectToMongoDB,
   createAndRunPlayground,
-  cleanupTmpPlaygroundFiles,
   getDataBrowserContent,
   getEditorText,
   copyExtensionLogs,
@@ -67,7 +66,6 @@ test.afterAll(async ({}, testInfo) => {
   if (electronApp) {
     await electronApp.close();
   }
-  cleanupTmpPlaygroundFiles();
   await cleanupDatabase();
   await stopMongoDB();
 });

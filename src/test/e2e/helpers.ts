@@ -20,16 +20,6 @@ export const TEST_DB_NAME = 'e2eTestDB';
 const E2E_TMP_DIR = path.join(os.tmpdir(), 'vscode-e2e-test');
 const USER_DATA_DIR = path.join(E2E_TMP_DIR, 'user-data');
 const USER_SETTINGS_PATH = path.join(USER_DATA_DIR, 'User', 'settings.json');
-const PLAYGROUND_TMP_DIR = path.join(E2E_TMP_DIR, 'playgrounds');
-
-const tmpPlaygroundFiles: string[] = [];
-
-export function cleanupTmpPlaygroundFiles(): void {
-  for (const f of tmpPlaygroundFiles) {
-    fs.rmSync(f, { force: true });
-  }
-  tmpPlaygroundFiles.length = 0;
-}
 
 let mongoCluster: MongoCluster | undefined;
 
@@ -241,6 +231,8 @@ export async function launchVSCode(): Promise<ElectronApplication> {
       'mdb.confirmRunAll': false,
       'mdb.showMCPAutoStartPrompt': false,
       'mdb.showOverviewPageAfterInstall': false,
+      // Use custom (DOM) dialogs so tests can drive the "save changes?" prompt.
+      'window.dialogStyle': 'custom',
     }),
   );
 
@@ -354,6 +346,13 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
  */
 export async function closeAllEditors(page: Page): Promise<void> {
   await executeCommand(page, 'View: Close All Editors');
+
+  // Discard unsaved changes if the "save changes?" prompt appears.
+  const dontSave = page.getByRole('button', { name: "Don't Save" });
+  if (await dontSave.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await dontSave.click();
+  }
+
   // Wait until all editor tabs are closed.
   await page
     .locator('.editor-group-container .tab')
@@ -460,41 +459,18 @@ export async function connectToMongoDB(page: Page): Promise<void> {
 }
 
 /**
- * Create a new playground file with the given content, run it, and return the page.
- *
- * The content is written to a temp .mongodb file so the editor is never in
- * "unsaved" state. This prevents the "save before closing?" system dialog that
- * would otherwise appear when VS Code closes with unsaved editors.
- * Call cleanupTmpPlaygroundFiles() in afterAll to delete the temp files.
+ * Create a new playground via the `Create MongoDB Playground` command, replace
+ * its content with the given content, and run it. The editor is left unsaved;
+ * `closeAllEditors` discards it on teardown.
  */
 export async function createAndRunPlayground(
-  _electronApp: ElectronApplication,
+  electronApp: ElectronApplication,
   page: Page,
   playgroundContent: string,
 ): Promise<void> {
-  fs.mkdirSync(PLAYGROUND_TMP_DIR, { recursive: true });
-  const tmpFile = path.join(
-    PLAYGROUND_TMP_DIR,
-    `playground-${Date.now()}.mongodb`,
-  );
-  fs.writeFileSync(tmpFile, playgroundContent, 'utf-8');
-  tmpPlaygroundFiles.push(tmpFile);
-
   const isMac = process.platform === 'darwin';
 
-  // Open the file via Quick Open — typing an absolute path opens it directly.
-  await page.keyboard.press(isMac ? 'Meta+KeyP' : 'Control+KeyP');
-  const quickInput = page.locator('.quick-input-widget input[type="text"]');
-  await quickInput.waitFor({ state: 'visible', timeout: 5_000 });
-  await quickInput.fill(tmpFile);
-  await page
-    .locator('.quick-input-list .monaco-list-row')
-    .first()
-    .waitFor({ state: 'visible', timeout: 5_000 });
-  await page.keyboard.press('Enter');
-  await page
-    .locator('.quick-input-widget')
-    .waitFor({ state: 'hidden', timeout: 5_000 });
+  await executeCommand(page, 'MongoDB: Create MongoDB Playground');
 
   const editorViewLines = page.locator('.monaco-editor .view-lines').first();
   await editorViewLines.waitFor({ state: 'visible', timeout: 30_000 });
@@ -524,19 +500,15 @@ export async function createAndRunPlayground(
       .catch(() => {});
   }
 
-  // Wait for the tab showing the playground filename to confirm it loaded.
-  const fileName = path.basename(tmpFile);
-  await page.waitForFunction(
-    (name) => {
-      const tabs = document.querySelectorAll('.tab .label-name');
-      return Array.from(tabs).some((tab) => tab.textContent?.includes(name));
-    },
-    fileName,
-    { timeout: 15_000 },
-  );
-
-  // Click on the editor to ensure it has keyboard focus
+  // Replace the template content with ours. Pasting from the clipboard avoids
+  // Monaco's auto-closing brackets/indentation mangling the content.
   await editorViewLines.click();
+  await electronApp.evaluate(
+    ({ clipboard }, text) => clipboard.writeText(text),
+    playgroundContent,
+  );
+  await page.keyboard.press(isMac ? 'Meta+KeyA' : 'Control+KeyA');
+  await page.keyboard.press(isMac ? 'Meta+KeyV' : 'Control+KeyV');
 
   // Run the playground (confirmRunAll is disabled in settings)
   await executeCommand(page, 'MongoDB: Run All From Playground');
@@ -551,7 +523,7 @@ export async function createAndRunPlayground(
 /**
  * Update a key in the user settings.json. VS Code watches this file and
  * picks up changes without a window reload. Pass `undefined` to delete the
- * key. Returns the previous value so callers can restore it.
+ * key. Returns the previous value.
  */
 export function updateUserSetting(key: string, value: unknown): unknown {
   const raw = fs.readFileSync(USER_SETTINGS_PATH, 'utf-8');
@@ -566,21 +538,14 @@ export function updateUserSetting(key: string, value: unknown): unknown {
   return previous;
 }
 
-/**
- * Return the full, formatting-preserved text of a Monaco editor identified by
- * its tab label.
- *
- * Monaco virtualizes its DOM — only visible lines have DOM nodes, and
- * allTextContents() on .view-lines loses indentation. Instead we focus the
- * editor, select-all, copy, and read from the Electron clipboard so we get
- * every line with exact whitespace, regardless of scroll position.
- */
 export async function getEditorText(
   editorGroup: Locator,
   electronApp: ElectronApplication,
 ): Promise<string> {
   await editorGroup.locator('.monaco-editor').first().click();
 
+  // Select all, copy, and then read it from the clipboard.
+  // The editors virtualize the content so we can't pull directly from the DOM.
   const isMac = process.platform === 'darwin';
   await editorGroup.page().keyboard.press(isMac ? 'Meta+A' : 'Control+A');
   await editorGroup.page().keyboard.press(isMac ? 'Meta+C' : 'Control+C');

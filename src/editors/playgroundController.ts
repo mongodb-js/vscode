@@ -502,7 +502,8 @@ export default class PlaygroundController {
       }
     }
 
-    // as a fallback, show results that aren't find or aggregate cursors in the result pane
+    // When the user isn't using the web view databrowser, or results aren't
+    // find or aggregate cursors, show the result in the editor view.
     await this._openInResultPane(result);
   }
 

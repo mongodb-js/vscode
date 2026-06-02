@@ -708,7 +708,7 @@ export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
     /** Whether the user is browsing a collection or viewing playground query results */
     source: DataBrowserSource;
 
-    /** Whether the user has the `mdb.useWebViewDataBrowser` setting enabled */
+    /** Whether the user has the `mdb.useWebViewDataBrowser` setting enabled. */
     use_webview_data_browser: boolean;
   };
 
