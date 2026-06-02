@@ -459,9 +459,7 @@ export async function connectToMongoDB(page: Page): Promise<void> {
 }
 
 /**
- * Create a new playground via the `Create MongoDB Playground` command, replace
- * its content with the given content, and run it. The editor is left unsaved;
- * `closeAllEditors` discards it on teardown.
+ * Create a new playground file with the given content and run it.
  */
 export async function createAndRunPlayground(
   electronApp: ElectronApplication,
