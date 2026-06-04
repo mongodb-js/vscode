@@ -189,7 +189,7 @@ test('playground aggregation results appear in data browsing view', async () => 
   }).toPass({ timeout: 30_000 });
 });
 
-test('playground aggregation results appear in an editor when useWebViewDataBrowser is false', async () => {
+test('playground find results appear in an editor when useWebViewDataBrowser is false', async () => {
   const previous = updateUserSetting('mdb.useWebViewDataBrowser', false);
 
   try {
