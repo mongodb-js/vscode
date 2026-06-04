@@ -8,9 +8,7 @@ import { getPlaygrounds } from '../utils/playground';
 
 const log = createLogger('playgrounds tree');
 
-export default class PlaygroundsTree
-  implements vscode.TreeDataProvider<vscode.TreeItem>
-{
+export default class PlaygroundsTree implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _playgroundsTreeHeaders: PlaygroundsTreeHeader[];
   private _onDidChangeTreeData: vscode.EventEmitter<any>;
   private _playgroundsTreeItems: { [key: string]: PlaygroundsTreeItem };

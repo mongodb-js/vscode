@@ -230,9 +230,7 @@ export default class PlaygroundController {
     databaseName: string,
     collectionName: string,
   ): Promise<boolean> {
-    const content = playgroundSearchTemplate
-      .replace('CURRENT_DATABASE', databaseName)
-      .replace('CURRENT_COLLECTION', collectionName);
+    const content = playgroundSearchTemplate(databaseName, collectionName);
 
     this._telemetryService.track(new PlaygroundCreatedTelemetryEvent('search'));
     return this._createPlaygroundFileWithContent(content);
@@ -241,18 +239,19 @@ export default class PlaygroundController {
   async createPlaygroundForCreateCollection(
     element: ConnectionTreeItem | DatabaseTreeItem,
   ): Promise<boolean> {
-    let content = playgroundCreateCollectionTemplate;
+    let content: string;
 
     element.cacheIsUpToDate = false;
 
     if (element instanceof DatabaseTreeItem) {
-      content = content
-        .replace('NEW_DATABASE_NAME', element.databaseName)
-        .replace('Create a new database', 'The current database to use');
+      content = playgroundCreateCollectionTemplate(
+        element.databaseName,
+      ).replace('// Create a new database.', '// The current database to use.');
       this._telemetryService.track(
         new PlaygroundCreatedTelemetryEvent('createCollection'),
       );
     } else {
+      content = playgroundCreateCollectionTemplate('NEW_DATABASE_NAME');
       this._telemetryService.track(
         new PlaygroundCreatedTelemetryEvent('createDatabase'),
       );
@@ -265,9 +264,7 @@ export default class PlaygroundController {
     databaseName: string,
     collectionName: string,
   ): Promise<boolean> {
-    const content = playgroundCreateIndexTemplate
-      .replace('CURRENT_DATABASE', databaseName)
-      .replace('CURRENT_COLLECTION', collectionName);
+    const content = playgroundCreateIndexTemplate(databaseName, collectionName);
 
     this._telemetryService.track(new PlaygroundCreatedTelemetryEvent('index'));
     return this._createPlaygroundFileWithContent(content);
@@ -293,10 +290,10 @@ export default class PlaygroundController {
     databaseName: string,
     collectionName: string,
   ): Promise<boolean> {
-    const content = playgroundCloneDocumentTemplate
-      .replace('CURRENT_DATABASE', databaseName)
-      .replace('CURRENT_COLLECTION', collectionName)
-      .replace('DOCUMENT_CONTENTS', documentContents);
+    const content = playgroundCloneDocumentTemplate(
+      databaseName,
+      collectionName,
+    ).replace('DOCUMENT_CONTENTS', documentContents);
 
     this._telemetryService.track(
       new PlaygroundCreatedTelemetryEvent('cloneDocument'),
@@ -308,9 +305,10 @@ export default class PlaygroundController {
     databaseName: string,
     collectionName: string,
   ): Promise<boolean> {
-    const content = playgroundInsertDocumentTemplate
-      .replace('CURRENT_DATABASE', databaseName)
-      .replace('CURRENT_COLLECTION', collectionName);
+    const content = playgroundInsertDocumentTemplate(
+      databaseName,
+      collectionName,
+    );
 
     this._telemetryService.track(
       new PlaygroundCreatedTelemetryEvent('insertDocument'),

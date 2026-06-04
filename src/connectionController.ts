@@ -271,33 +271,49 @@ export default class ConnectionController {
     this._connectionStringInputCancellationToken = cancellationToken;
 
     try {
-      connectionString ??= await vscode.window.showInputBox(
-        {
-          value: '',
-          ignoreFocusOut: true,
-          placeHolder:
-            'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
-          prompt: 'Enter your SRV or standard connection string',
-          validateInput: (uri: string) => {
-            if (
-              !uri.startsWith('mongodb://') &&
-              !uri.startsWith('mongodb+srv://')
-            ) {
-              return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
-            }
+      if (connectionString) {
+        // Connection string came from outside (e.g. deep link) — confirm with user.
+        let host: string;
+        try {
+          host = new ConnectionString(connectionString).hosts.join(', ');
+        } catch {
+          host = connectionString;
+        }
+        const confirmed = await vscode.window.showWarningMessage(
+          `Do you want to connect to "${host}"?`,
+          { modal: true },
+          'Connect',
+        );
+        if (confirmed !== 'Connect') return false;
+      } else {
+        connectionString = await vscode.window.showInputBox(
+          {
+            value: '',
+            ignoreFocusOut: true,
+            placeHolder:
+              'e.g. mongodb+srv://username:password@cluster0.mongodb.net/admin',
+            prompt: 'Enter your SRV or standard connection string',
+            validateInput: (uri: string) => {
+              if (
+                !uri.startsWith('mongodb://') &&
+                !uri.startsWith('mongodb+srv://')
+              ) {
+                return 'MongoDB connection strings begin with "mongodb://" or "mongodb+srv://"';
+              }
 
-            try {
-              // eslint-disable-next-line no-new
-              new ConnectionString(uri);
-            } catch (error) {
-              return formatError(error).message;
-            }
+              try {
+                // eslint-disable-next-line no-new
+                new ConnectionString(uri);
+              } catch (error) {
+                return formatError(error).message;
+              }
 
-            return null;
+              return null;
+            },
           },
-        },
-        cancellationToken.token,
-      );
+          cancellationToken.token,
+        );
+      }
     } catch (error) {
       log.error('Failed to show the input box in connectWithURI', error);
       return false;

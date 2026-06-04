@@ -54,9 +54,7 @@ export class HelpLinkTreeItem extends vscode.TreeItem {
   }
 }
 
-export default class HelpTree
-  implements vscode.TreeDataProvider<vscode.TreeItem>
-{
+export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem> {
   contextValue = 'helpTree' as const;
   _telemetryService?: TelemetryService;
 

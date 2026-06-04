@@ -16,9 +16,7 @@ import { PREVIEW_LIST_ITEM } from './documentPreviewItem';
 
 const log = createLogger('explorer tree controller');
 
-export default class ExplorerTreeController
-  implements vscode.TreeDataProvider<vscode.TreeItem>
-{
+export default class ExplorerTreeController implements vscode.TreeDataProvider<vscode.TreeItem> {
   private _connectionTreeItems: { [key: string]: ConnectionTreeItem };
   private _connectionController: ConnectionController;
   private _telemetryService: TelemetryService;

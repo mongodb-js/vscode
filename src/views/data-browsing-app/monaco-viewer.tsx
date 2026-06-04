@@ -386,16 +386,18 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
   return (
     <div className={cardStyles} data-testid="monaco-viewer-container">
       <div className="action-bar">
-        {document._id && (
-          <button
-            className={actionButtonStyles}
-            onClick={handleEdit}
-            data-tooltip="Edit Document"
-            aria-label="Edit Document"
-          >
-            <i className="codicon codicon-edit" />
-          </button>
-        )}
+        {
+          (document._id && (
+            <button
+              className={actionButtonStyles}
+              onClick={handleEdit}
+              data-tooltip="Edit Document"
+              aria-label="Edit Document"
+            >
+              <i className="codicon codicon-edit" />
+            </button>
+          )) as React.ReactNode
+        }
         <button
           className={actionButtonStyles}
           onClick={handleCopy}
@@ -404,26 +406,30 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
         >
           <i className="codicon codicon-copy" />
         </button>
-        {document._id && (
-          <button
-            className={actionButtonStyles}
-            onClick={handleClone}
-            data-tooltip="Clone Document"
-            aria-label="Clone Document"
-          >
-            <i className="codicon codicon-files" />
-          </button>
-        )}
-        {document._id && (
-          <button
-            className={actionButtonStyles}
-            onClick={handleDelete}
-            data-tooltip="Delete Document"
-            aria-label="Delete Document"
-          >
-            <i className="codicon codicon-trash" />
-          </button>
-        )}
+        {
+          (document._id && (
+            <button
+              className={actionButtonStyles}
+              onClick={handleClone}
+              data-tooltip="Clone Document"
+              aria-label="Clone Document"
+            >
+              <i className="codicon codicon-files" />
+            </button>
+          )) as React.ReactNode
+        }
+        {
+          (document._id && (
+            <button
+              className={actionButtonStyles}
+              onClick={handleDelete}
+              data-tooltip="Delete Document"
+              aria-label="Delete Document"
+            >
+              <i className="codicon codicon-trash" />
+            </button>
+          )) as React.ReactNode
+        }
       </div>
       <div className={monacoWrapperStyles}>
         <Editor

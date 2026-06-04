@@ -59,6 +59,7 @@ import {
 } from './telemetry';
 
 import * as queryString from 'query-string';
+import { z } from 'zod';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
 import {
@@ -78,9 +79,6 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.openMongodbIssueReporter,
   ExtensionCommand.mdbOpenMdbShell,
   ExtensionCommand.mdbCreatePlayground,
-  ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
-  ExtensionCommand.mdbRunAllPlaygroundBlocks,
-  ExtensionCommand.mdbRunAllOrSelectedPlaygroundBlocks,
   ExtensionCommand.mdbExportCodeToPlayground,
   ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
   ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
@@ -93,28 +91,19 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.mdbAddConnection,
   ExtensionCommand.mdbAddConnectionWithUri,
   ExtensionCommand.mdbEditConnection,
-  ExtensionCommand.mdbRefreshConnection,
   ExtensionCommand.mdbCopyConnectionString,
   ExtensionCommand.mdbEditPresetConnections,
   ExtensionCommand.mdbRenameConnection,
   ExtensionCommand.mdbAddDatabase,
   ExtensionCommand.mdbSearchForDocuments,
   ExtensionCommand.mdbCopyDatabaseName,
-  ExtensionCommand.mdbRefreshDatabase,
   ExtensionCommand.mdbAddCollection,
   ExtensionCommand.mdbCopyCollectionName,
-  ExtensionCommand.mdbRefreshCollection,
-  ExtensionCommand.mdbRefreshDocumentList,
 
-  ExtensionCommand.mdbRefreshSchema,
-  ExtensionCommand.mdbCopySchemaFieldName,
-  ExtensionCommand.mdbRefreshIndexes,
   ExtensionCommand.mdbInsertObjectidToEditor,
   ExtensionCommand.mdbGenerateObjectidToClipboard,
 
   ExtensionCommand.mdbAddStreamProcessor,
-  ExtensionCommand.mdbStartStreamProcessor,
-  ExtensionCommand.mdbStopStreamProcessor,
 
   ExtensionCommand.startMcpServer,
   ExtensionCommand.stopMcpServer,
@@ -132,12 +121,26 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.sendMessageToParticipant,
   ExtensionCommand.sendMessageToParticipantFromInput,
   ExtensionCommand.showExportToLanguageResult,
+  // Playground execution — external triggers should not silently run code
+  ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
+  ExtensionCommand.mdbRunAllPlaygroundBlocks,
+  ExtensionCommand.mdbRunAllOrSelectedPlaygroundBlocks,
   // Destructive operations
   ExtensionCommand.mdbDropDatabase,
   ExtensionCommand.mdbDropCollection,
   ExtensionCommand.mdbDropStreamProcessor,
   ExtensionCommand.mdbRemoveConnection,
 
+  // Tree-item-only commands — call methods on live objects, no meaningful deep link use
+  ExtensionCommand.mdbRefreshConnection,
+  ExtensionCommand.mdbRefreshDatabase,
+  ExtensionCommand.mdbRefreshCollection,
+  ExtensionCommand.mdbRefreshDocumentList,
+  ExtensionCommand.mdbRefreshSchema,
+  ExtensionCommand.mdbCopySchemaFieldName,
+  ExtensionCommand.mdbRefreshIndexes,
+  ExtensionCommand.mdbStartStreamProcessor,
+  ExtensionCommand.mdbStopStreamProcessor,
   // Location-specific items - not intended to be accessed in other ways
   ExtensionCommand.mdbRemoveConnectionTreeView,
   ExtensionCommand.mdbOpenMdbShellFromTreeView,
@@ -160,6 +163,61 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbRefreshCollectionFromDataBrowser,
   ExtensionCommand.mdbOpenDataBrowserFromPlayground,
 ] as const;
+
+// null = command accepts no parameters; commands absent from the map also accept none.
+const DEEP_LINK_PARAM_SCHEMA: Partial<
+  Record<ExtensionCommand, z.ZodObject<z.ZodRawShape> | null>
+> = {
+  [ExtensionCommand.mdbConnectWithUri]: z.object({
+    connectionString: z
+      .string()
+      .regex(
+        /^mongodb(\+srv)?:\/\//,
+        'must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
+      )
+      .optional(),
+    reuseExisting: z.boolean().optional(),
+    name: z.string().max(100).optional(),
+  }),
+  [ExtensionCommand.mdbSearchForDocuments]: z.object({
+    databaseName: z.string().optional(),
+    collectionName: z.string().optional(),
+  }),
+  [ExtensionCommand.mdbExportToLanguage]: z.object({
+    language: z.string().optional(),
+  }),
+  [ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage]: z.object({
+    includeDriverSyntax: z.boolean().optional(),
+  }),
+  [ExtensionCommand.mdbCodelensShowMoreDocuments]: z.object({
+    operationId: z.string().optional(),
+    connectionId: z.string().optional(),
+    namespace: z.string().optional(),
+  }),
+};
+
+function validateDeepLinkParams(
+  command: ExtensionCommand,
+  params: Record<string, unknown>,
+): string | null {
+  const schema = DEEP_LINK_PARAM_SCHEMA[command] ?? null;
+
+  if (schema === null) {
+    if (Object.keys(params).length > 0) {
+      return `Command '${command}' does not accept parameters via deep links.`;
+    }
+    return null;
+  }
+
+  const result = schema.strict().safeParse(params);
+  if (!result.success) {
+    const issue = result.error.issues[0];
+    const field = issue?.path.length ? String(issue.path[0]) : null;
+    const message = issue?.message ?? 'Invalid parameters.';
+    return field ? `Parameter '${field}': ${message}` : message;
+  }
+  return null;
+}
 
 // This class is the top-level controller for our extension.
 // Commands which the extensions handles are defined in the function `activate`.
@@ -372,6 +430,14 @@ export default class MDBExtensionController implements vscode.Disposable {
         throw new Error(
           `Command '${command}' cannot be invoked via deep links.`,
         );
+      }
+
+      const paramError = validateDeepLinkParams(
+        command as ExtensionCommand,
+        parameters as Record<string, unknown>,
+      );
+      if (paramError) {
+        throw new Error(paramError);
       }
 
       await vscode.commands.executeCommand(command, parameters);

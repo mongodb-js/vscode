@@ -635,6 +635,34 @@ suite('MDBExtensionController Test Suite', function () {
       expect(content).to.include('colllllllllName');
     });
 
+    test('mdb.searchForDocuments should escape special characters in database and collection names', async function () {
+      await vscode.commands.executeCommand('mdb.searchForDocuments', {
+        databaseName: "db'name",
+        collectionName: "coll'name",
+      });
+
+      const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
+      // JSON.stringify wraps in double quotes — single quotes inside are safe
+      expect(content).to.include('"db\'name"');
+      expect(content).to.include('"coll\'name"');
+      // Must not appear as unescaped single-quoted string (would be broken JS)
+      expect(content).to.not.include("use('db'name')");
+      expect(content).to.not.include("getCollection('coll'name')");
+    });
+
+    test('mdb.createIndexFromTreeView should escape special characters in database and collection names', async function () {
+      await vscode.commands.executeCommand('mdb.createIndexFromTreeView', {
+        databaseName: "db'name",
+        collectionName: "coll'name",
+      });
+
+      const content = fakeCreatePlaygroundFileWithContent.firstCall.args[0];
+      expect(content).to.include('"db\'name"');
+      expect(content).to.include('"coll\'name"');
+      expect(content).to.not.include("use('db'name')");
+      expect(content).to.not.include("getCollection('coll'name')");
+    });
+
     test('mdb.createPlayground should create a MongoDB playground with default template', async function () {
       const fakeGetConfiguration = sandbox.fake.returns({
         get: () => true,
@@ -1687,31 +1715,38 @@ suite('MDBExtensionController Test Suite', function () {
 
     test('handles valid command with query parameters', async function () {
       await mdbTestExtension.testExtensionController._handleDeepLink(
-        vscode.Uri.parse(
-          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=bar&baz=qux',
-        ),
+        vscode.Uri.from({
+          scheme: 'vscode',
+          authority: 'mongodb.mongodb-vscode',
+          path: '/connectWithURI',
+          query:
+            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017&name=local',
+        }),
       );
 
       expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
-        foo: 'bar',
-        baz: 'qux',
+        connectionString: 'mongodb://localhost:27017',
+        name: 'local',
       });
       expect(fakeShowErrorMessage).to.not.have.been.called;
     });
 
-    test('converts query parameters to booleans and numbers', async function () {
+    test('converts query parameters to booleans', async function () {
       await mdbTestExtension.testExtensionController._handleDeepLink(
-        vscode.Uri.parse(
-          'vscode://mongodb.mongodb-vscode/connectWithURI?foo=true&bar=987&baz=str',
-        ),
+        vscode.Uri.from({
+          scheme: 'vscode',
+          authority: 'mongodb.mongodb-vscode',
+          path: '/connectWithURI',
+          query:
+            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017&reuseExisting=true',
+        }),
       );
 
       expect(fakeExecuteCommand).to.have.been.calledOnceWith(
         'mdb.connectWithURI',
         {
-          foo: true,
-          bar: 987,
-          baz: 'str',
+          connectionString: 'mongodb://localhost:27017',
+          reuseExisting: true,
         },
       );
       expect(fakeShowErrorMessage).to.not.have.been.called;
@@ -1789,13 +1824,17 @@ suite('MDBExtensionController Test Suite', function () {
 
     test('removes utm_source from parameters passed to command', async function () {
       await mdbTestExtension.testExtensionController._handleDeepLink(
-        vscode.Uri.parse(
-          'vscode://mongodb.mongodb-vscode/mdb.connectWithURI?foo=bar&utm_source=abc',
-        ),
+        vscode.Uri.from({
+          scheme: 'vscode',
+          authority: 'mongodb.mongodb-vscode',
+          path: '/mdb.connectWithURI',
+          query:
+            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017&utm_source=abc',
+        }),
       );
 
       expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
-        foo: 'bar',
+        connectionString: 'mongodb://localhost:27017',
       });
       expect(fakeExecuteCommand.firstCall.args[1]).to.not.have.property(
         'utm_source',
@@ -1804,6 +1843,117 @@ suite('MDBExtensionController Test Suite', function () {
         new DeepLinkTelemetryEvent('mdb.connectWithURI', 'abc'),
       );
       expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    suite('deep link parameter validation', function () {
+      test('rejects unknown parameters for commands with a schema', async function () {
+        await mdbTestExtension.testExtensionController._handleDeepLink(
+          vscode.Uri.parse(
+            'vscode://mongodb.mongodb-vscode/connectWithURI?unknown=value',
+          ),
+        );
+
+        expect(fakeExecuteCommand).to.not.have.been.called;
+        expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+          sinon.match(/Unrecognized key: "unknown"/),
+        );
+      });
+
+      test('rejects parameters for commands that accept none', async function () {
+        await mdbTestExtension.testExtensionController._handleDeepLink(
+          vscode.Uri.parse(
+            'vscode://mongodb.mongodb-vscode/disconnect?foo=bar',
+          ),
+        );
+
+        expect(fakeExecuteCommand).to.not.have.been.called;
+        expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+          sinon.match(
+            /Command 'mdb.disconnect' does not accept parameters via deep links/,
+          ),
+        );
+      });
+
+      test('rejects connectionString with invalid format', async function () {
+        await mdbTestExtension.testExtensionController._handleDeepLink(
+          vscode.Uri.parse(
+            'vscode://mongodb.mongodb-vscode/connectWithURI?connectionString=http%3A%2F%2Fevil.com',
+          ),
+        );
+
+        expect(fakeExecuteCommand).to.not.have.been.called;
+        expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+          sinon.match(
+            /Parameter 'connectionString': must be a valid MongoDB connection string/,
+          ),
+        );
+      });
+
+      test('rejects wrong type for boolean parameter', async function () {
+        await mdbTestExtension.testExtensionController._handleDeepLink(
+          vscode.Uri.parse(
+            'vscode://mongodb.mongodb-vscode/connectWithURI?reuseExisting=notABool',
+          ),
+        );
+
+        expect(fakeExecuteCommand).to.not.have.been.called;
+        expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+          sinon.match(
+            /Parameter 'reuseExisting': Invalid input: expected boolean/,
+          ),
+        );
+      });
+
+      test('rejects name parameter exceeding maxLength', async function () {
+        const longName = 'a'.repeat(101);
+        await mdbTestExtension.testExtensionController._handleDeepLink(
+          vscode.Uri.from({
+            scheme: 'vscode',
+            authority: 'mongodb.mongodb-vscode',
+            path: '/connectWithURI',
+            query: `connectionString=mongodb%3A%2F%2Flocalhost&name=${longName}`,
+          }),
+        );
+
+        expect(fakeExecuteCommand).to.not.have.been.called;
+        expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+          sinon.match(
+            /Parameter 'name': Too big: expected string to have <=100 characters/,
+          ),
+        );
+      });
+
+      test('accepts valid searchForDocuments parameters', async function () {
+        await mdbTestExtension.testExtensionController._handleDeepLink(
+          vscode.Uri.parse(
+            'vscode://mongodb.mongodb-vscode/searchForDocuments?databaseName=mydb&collectionName=mycoll',
+          ),
+        );
+
+        expect(fakeExecuteCommand).to.have.been.calledWith(
+          'mdb.searchForDocuments',
+          { databaseName: 'mydb', collectionName: 'mycoll' },
+        );
+        expect(fakeShowErrorMessage).to.not.have.been.called;
+      });
+
+      test('rejects array values', async function () {
+        await mdbTestExtension.testExtensionController._handleDeepLink(
+          vscode.Uri.from({
+            scheme: 'vscode',
+            authority: 'mongodb.mongodb-vscode',
+            path: '/searchForDocuments',
+            query: 'databaseName=a&databaseName=b',
+          }),
+        );
+
+        expect(fakeExecuteCommand).to.not.have.been.called;
+        expect(fakeShowErrorMessage).to.have.been.calledOnceWith(
+          sinon.match(
+            /Parameter 'databaseName': Invalid input: expected string, received array/,
+          ),
+        );
+      });
     });
 
     suite(

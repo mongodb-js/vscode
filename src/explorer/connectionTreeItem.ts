@@ -1,9 +1,29 @@
 import * as vscode from 'vscode';
 import path from 'path';
-import type {
-  DataService,
-  StreamProcessor,
-} from 'mongodb-data-service/lib/data-service';
+import type { DataService } from 'mongodb-data-service';
+import type { Document } from 'bson';
+
+export type StreamProcessor = {
+  id: string;
+  name: string;
+  state:
+    | 'CREATING'
+    | 'CREATED'
+    | 'VALIDATING'
+    | 'PROVISIONING'
+    | 'RECEIVED_ON_DISPATCHER'
+    | 'STARTING'
+    | 'STARTED'
+    | 'STOPPING'
+    | 'STOPPED'
+    | 'RELEASING'
+    | 'DROPPING'
+    | 'DROPPED'
+    | 'FAILED';
+  pipeline: Document[];
+  lastStateChange: Date;
+  lastModified: Date;
+};
 
 import DatabaseTreeItem from './databaseTreeItem';
 import type ConnectionController from '../connectionController';
