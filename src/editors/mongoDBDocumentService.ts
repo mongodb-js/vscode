@@ -9,6 +9,7 @@ import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { DocumentUpdatedTelemetryEvent } from '../telemetry';
+import { getDocumentViewAndEditFormat } from './types';
 
 const log = createLogger('document controller');
 
@@ -52,7 +53,11 @@ export default class MongoDBDocumentService {
     const errorMessage = `Unable to save document: ${message}`;
 
     this._telemetryService.track(
-      new DocumentUpdatedTelemetryEvent(DocumentSource.treeview, false),
+      new DocumentUpdatedTelemetryEvent(
+        DocumentSource.treeview,
+        false,
+        getDocumentViewAndEditFormat(),
+      ),
     );
 
     throw new Error(errorMessage);
@@ -100,7 +105,11 @@ export default class MongoDBDocumentService {
         },
       );
       this._telemetryService.track(
-        new DocumentUpdatedTelemetryEvent(source, true),
+        new DocumentUpdatedTelemetryEvent(
+          source,
+          true,
+          getDocumentViewAndEditFormat(),
+        ),
       );
     } catch (error) {
       return this._saveDocumentFailed(formatError(error).message);

@@ -552,7 +552,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
       (data: EditDocumentInfo) => {
         this._telemetryService.track(
-          new DocumentEditedTelemetryEvent(data.source),
+          new DocumentEditedTelemetryEvent(data.source, data.format),
         );
 
         return this._editorsController.openMongoDBDocument(data);
