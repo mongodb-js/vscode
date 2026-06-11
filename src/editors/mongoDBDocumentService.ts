@@ -3,7 +3,7 @@ import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { DocumentSource } from '../documentSource';
+import type { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
@@ -49,12 +49,12 @@ export default class MongoDBDocumentService {
     throw new Error(errorMessage);
   }
 
-  _saveDocumentFailed(message: string): void {
+  _saveDocumentFailed(message: string, source: DocumentSource): void {
     const errorMessage = `Unable to save document: ${message}`;
 
     this._telemetryService.track(
       new DocumentUpdatedTelemetryEvent(
-        DocumentSource.treeview,
+        source,
         false,
         getDocumentViewAndEditFormat(),
       ),
@@ -81,6 +81,7 @@ export default class MongoDBDocumentService {
     if (activeConnectionId !== connectionId) {
       return this._saveDocumentFailed(
         `no longer connected to '${connectionName}'`,
+        source,
       );
     }
 
@@ -89,6 +90,7 @@ export default class MongoDBDocumentService {
     if (dataService === null) {
       return this._saveDocumentFailed(
         `no longer connected to '${connectionName}'`,
+        source,
       );
     }
 
@@ -112,7 +114,7 @@ export default class MongoDBDocumentService {
         ),
       );
     } catch (error) {
-      return this._saveDocumentFailed(formatError(error).message);
+      return this._saveDocumentFailed(formatError(error).message, source);
     } finally {
       this._statusView.hideMessage();
     }

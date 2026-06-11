@@ -1,6 +1,7 @@
 import type { ExtensionCommand } from '../commands';
 import type { DocumentSourceDetails } from '../documentSource';
 import { DocumentSource } from '../documentSource';
+import type { DocumentViewAndEditFormat } from '../editors/types';
 import type {
   ExportToPlaygroundError,
   ParticipantErrorType,
@@ -222,13 +223,13 @@ export class DocumentUpdatedTelemetryEvent implements TelemetryEventBase {
     success: boolean;
 
     /** Whether the user edited the document in shell format or ejson */
-    view_format: 'shell' | 'ejson';
+    view_format: DocumentViewAndEditFormat;
   };
 
   constructor(
     source: DocumentSource,
     success: boolean,
-    view_format: 'shell' | 'ejson',
+    view_format: DocumentViewAndEditFormat,
   ) {
     this.properties = { source, success, view_format };
   }
@@ -242,10 +243,10 @@ export class DocumentEditedTelemetryEvent implements TelemetryEventBase {
     source: DocumentSource;
 
     /** Whether the user opened the document in shell format or ejson */
-    view_format: 'shell' | 'ejson';
+    view_format: DocumentViewAndEditFormat;
   };
 
-  constructor(source: DocumentSource, view_format: 'shell' | 'ejson') {
+  constructor(source: DocumentSource, view_format: DocumentViewAndEditFormat) {
     this.properties = { source, view_format };
   }
 }
@@ -697,13 +698,13 @@ export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
     source: DataBrowserSource;
 
     /** Whether the user is viewing the documents in shell format or ejson */
-    view_format: 'shell' | 'ejson';
+    view_format: DocumentViewAndEditFormat;
   };
 
   constructor(
     collectionType: string,
     source: DataBrowserSource,
-    view_format: 'shell' | 'ejson',
+    view_format: DocumentViewAndEditFormat,
   ) {
     this.properties = { collection_type: collectionType, source, view_format };
   }
@@ -743,10 +744,13 @@ export class DataBrowserDocumentEditedTelemetryEvent implements TelemetryEventBa
     source: DataBrowserSource;
 
     /** Whether the user opened the document in shell format or ejson */
-    view_format: 'shell' | 'ejson';
+    view_format: DocumentViewAndEditFormat;
   };
 
-  constructor(source: DataBrowserSource, view_format: 'shell' | 'ejson') {
+  constructor(
+    source: DataBrowserSource,
+    view_format: DocumentViewAndEditFormat,
+  ) {
     this.properties = { source, view_format };
   }
 }

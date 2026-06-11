@@ -551,22 +551,20 @@ export default class DataBrowsingController {
     documentId: any,
   ): Promise<void> => {
     try {
+      const documentFormat = getDocumentViewAndEditFormat();
       const result = await vscode.commands.executeCommand<boolean>(
         ExtensionCommand.mdbOpenMongodbDocumentFromDataBrowser,
         {
           documentId,
           namespace: `${options.databaseName}.${options.collectionName}`,
-          format: getDocumentViewAndEditFormat(),
+          format: documentFormat,
           connectionId: this._connectionController.getActiveConnectionId(),
         },
       );
       if (result) {
         const source = options.query ? 'query-results' : 'collection';
         this._telemetryService.track(
-          new DataBrowserDocumentEditedTelemetryEvent(
-            source,
-            getDocumentViewAndEditFormat(),
-          ),
+          new DataBrowserDocumentEditedTelemetryEvent(source, documentFormat),
         );
       }
     } catch (error) {
