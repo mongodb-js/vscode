@@ -244,8 +244,8 @@ test('playground find results appear in an editor when useWebViewDataBrowser is 
     expect(resultText).toMatch(/date: ISODate\('2024-01-25T/);
     expect(resultText).toMatch(/date: ISODate\('2024-02-20T/);
 
-    expect(resultText).toMatch(/tags: \[\n\s+'premium'/m);
-    expect(resultText).toMatch(/'premium',\n\s+'sale'/m);
+    expect(resultText).toMatch(/tags: \[\r?\n\s+'premium'/m);
+    expect(resultText).toMatch(/'premium',\r?\n\s+'sale'/m);
   } finally {
     updateUserSetting('mdb.useWebViewDataBrowser', previous);
   }
