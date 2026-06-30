@@ -1471,7 +1471,7 @@
     "@mongodb-js/compass-components": "^1.59.2",
     "@mongodb-js/connection-form": "^1.52.3",
     "@mongodb-js/connection-info": "^0.21.0",
-    "@mongodb-js/device-id": "^0.4.10",
+    "@mongodb-js/device-id": "^0.4.13",
     "@mongodb-js/mongodb-constants": "^0.16.1",
     "@mongodb-js/shell-bson-parser": "^1.5.11",
     "@mongosh/browser-runtime-electron": "^5.3.7",
