@@ -116,9 +116,8 @@ class ResizeObserverPolyfill {
 global.ResizeObserver = ResizeObserverPolyfill as any;
 global.window.ResizeObserver = ResizeObserverPolyfill as any;
 
-// Stub canvas API for lottie-web (via @leafygreen-ui/loading-indicator). lottie-web calls
-// getContext('2d') at module-load time and immediately uses the context without a null
-// check, so returning null throws. Use a no-op Proxy instead.
+// Stub canvas API for lottie-web (via @leafygreen-ui/loading-indicator), which calls
+// getContext() at module-load time and throws in jsdom without the canvas package.
 (HTMLCanvasElement.prototype as any).getContext = () =>
   new Proxy(
     {},
@@ -129,8 +128,8 @@ global.window.ResizeObserver = ResizeObserverPolyfill as any;
     },
   );
 
-// Polyfill rAF/cAF — lottie-web checks for these at load time; jsdom provides them on
-// window but they may not be copied to global before the module imports run.
+// lottie-web checks for these at load time. jsdom provides them
+// on window but they may not be copied to global before the module imports run.
 if (!global.requestAnimationFrame) {
   global.requestAnimationFrame = (cb) => setTimeout(cb, 0) as unknown as number;
 }
