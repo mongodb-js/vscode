@@ -116,6 +116,48 @@ class ResizeObserverPolyfill {
 global.ResizeObserver = ResizeObserverPolyfill as any;
 global.window.ResizeObserver = ResizeObserverPolyfill as any;
 
+// Stub canvas API for lottie-web (via @leafygreen-ui/loading-indicator). lottie-web calls
+// getContext('2d') at module-load time and immediately uses the context without a null
+// check, so returning null throws. Use a no-op Proxy instead.
+(HTMLCanvasElement.prototype as any).getContext = () =>
+  new Proxy(
+    {},
+    {
+      get: (_t, prop) =>
+        prop === 'canvas' ? document.createElement('canvas') : () => {},
+      set: () => true,
+    },
+  );
+
+// Polyfill rAF/cAF — lottie-web checks for these at load time; jsdom provides them on
+// window but they may not be copied to global before the module imports run.
+if (!global.requestAnimationFrame) {
+  global.requestAnimationFrame = (cb) => setTimeout(cb, 0) as unknown as number;
+}
+if (!global.cancelAnimationFrame) {
+  global.cancelAnimationFrame = (id) => clearTimeout(id);
+}
+
+// Polyfill HTMLDialogElement.show/showModal/close — jsdom 23 defines the interface but
+// leaves all three methods unimplemented. @leafygreen-ui/modal@22+ calls them via a ref.
+if (typeof HTMLDialogElement !== 'undefined') {
+  if (!HTMLDialogElement.prototype.show) {
+    HTMLDialogElement.prototype.show = function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    };
+  }
+  if (!HTMLDialogElement.prototype.showModal) {
+    HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    };
+  }
+  if (!HTMLDialogElement.prototype.close) {
+    HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+      this.removeAttribute('open');
+    };
+  }
+}
+
 // Overwrites the node.js version which is incompatible with jsdom.
 global.MessageEvent = global.window.MessageEvent;
 
