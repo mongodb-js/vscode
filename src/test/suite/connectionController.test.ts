@@ -1580,7 +1580,7 @@ suite('Connection Controller Test Suite', function () {
           'mongodb+srv://user:s3cr3t@cluster0.example.com/admin',
       });
 
-      const dialogMessage = showWarningMessageStub.firstCall.args[0] as string;
+      const dialogMessage = showWarningMessageStub.firstCall.args[0];
       expect(dialogMessage).to.include('cluster0.example.com');
       expect(dialogMessage).to.not.include('s3cr3t');
     });

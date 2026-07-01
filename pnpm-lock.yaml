@@ -50,8 +50,8 @@ importers:
         specifier: ^0.21.0
         version: 0.21.5(@aws-sdk/credential-providers@3.1042.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       '@mongodb-js/device-id':
-        specifier: ^0.4.10
-        version: 0.4.11
+        specifier: ^0.4.13
+        version: 0.4.13
       '@mongodb-js/mongodb-constants':
         specifier: ^0.16.1
         version: 0.16.1(bson@7.2.0)
@@ -2071,8 +2071,8 @@ packages:
   '@mongodb-js/connection-info@0.23.0':
     resolution: {integrity: sha512-vwk0/PIxfXvoBJeEA8XrcZGr6pG0atYQQ8hI8SvyUOYKQHpsx9LN3FgMHh8jl85N1SERWt241OFN793DEIpsqA==}
 
-  '@mongodb-js/device-id@0.4.11':
-    resolution: {integrity: sha512-CWeKFNT1dk8oNQazq9o11VrKdRm9JF5Tc5f9ffRHniQdSHGF/u/PbP3NWZVMLExY8t9C4q19pRpX/onreE4+Uw==}
+  '@mongodb-js/device-id@0.4.13':
+    resolution: {integrity: sha512-X9XLwl2sAN4cFPKBjr9fak7SJDxALcVNBz2PVx7uQbPSj+roHsQhWKWIG6yInT2oloo8e7VugtpZJG215YTIRQ==}
 
   '@mongodb-js/devtools-connect@3.14.11':
     resolution: {integrity: sha512-pXKYvO4cQM/iYDBttiw8gi07dtXFqZK56AS/gy6gx0XVFujuycExwUtvE6rNMuURD9rrLOFem90nOMUSCoeVRA==}
@@ -11279,7 +11279,7 @@ snapshots:
       - socks
       - supports-color
 
-  '@mongodb-js/device-id@0.4.11': {}
+  '@mongodb-js/device-id@0.4.13': {}
 
   '@mongodb-js/devtools-connect@3.14.11(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.5.12(bson@7.2.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
     dependencies:
@@ -16127,7 +16127,7 @@ snapshots:
       '@inquirer/select': 5.1.4(@types/node@22.19.17)
       '@mcp-ui/server': 5.16.3(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.4.3)
       '@modelcontextprotocol/sdk': 1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)
-      '@mongodb-js/device-id': 0.4.11
+      '@mongodb-js/device-id': 0.4.13
       '@mongodb-js/devtools-proxy-support': 0.7.5
       '@mongosh/arg-parser': 5.0.2(zod@4.4.3)
       '@mongosh/service-provider-node-driver': 5.0.11(mongodb-log-writer@2.5.12(bson@7.2.0))
