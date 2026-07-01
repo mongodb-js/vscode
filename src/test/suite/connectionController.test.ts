@@ -226,7 +226,7 @@ suite('Connection Controller Test Suite', function () {
         options: {
           autoEncryption: undefined,
           monitorCommands: true,
-          applyProxyToOIDC: {},
+          applyProxyToOIDC: false,
           authMechanismProperties: {},
           oidc: {},
           productDocsLink:
@@ -1248,7 +1248,7 @@ suite('Connection Controller Test Suite', function () {
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
-        applyProxyToOIDC: {},
+        applyProxyToOIDC: false,
         authMechanismProperties: {},
         oidc: {},
         productDocsLink:
