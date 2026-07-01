@@ -118,12 +118,16 @@ global.window.ResizeObserver = ResizeObserverPolyfill as any;
 
 // Stub canvas API for lottie-web (via @leafygreen-ui/loading-indicator), which calls
 // getContext() at module-load time and throws in jsdom without the canvas package.
-(HTMLCanvasElement.prototype as any).getContext = () =>
+(HTMLCanvasElement.prototype as any).getContext = (): unknown =>
   new Proxy(
     {},
     {
       get: (_t, prop) =>
-        prop === 'canvas' ? document.createElement('canvas') : () => {},
+        prop === 'canvas'
+          ? document.createElement('canvas')
+          : (): void => {
+              /* no-op */
+            },
       set: () => true,
     },
   );
