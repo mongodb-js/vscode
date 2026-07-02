@@ -135,10 +135,11 @@ global.window.ResizeObserver = ResizeObserverPolyfill as any;
 // lottie-web checks for these at load time. jsdom provides them
 // on window but they may not be copied to global before the module imports run.
 if (!global.requestAnimationFrame) {
-  global.requestAnimationFrame = (cb) => setTimeout(cb, 0) as unknown as number;
+  global.requestAnimationFrame = (cb: FrameRequestCallback): number =>
+    setTimeout(cb, 0) as unknown as number;
 }
 if (!global.cancelAnimationFrame) {
-  global.cancelAnimationFrame = (id) => clearTimeout(id);
+  global.cancelAnimationFrame = (id: number): void => clearTimeout(id);
 }
 
 // Polyfill HTMLDialogElement.show/showModal/close — jsdom 23 defines the interface but
