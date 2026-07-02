@@ -146,17 +146,23 @@ if (!global.cancelAnimationFrame) {
 // leaves all three methods unimplemented. @leafygreen-ui/modal@22+ calls them via a ref.
 if (typeof HTMLDialogElement !== 'undefined') {
   if (!HTMLDialogElement.prototype.show) {
-    HTMLDialogElement.prototype.show = function (this: HTMLDialogElement) {
+    HTMLDialogElement.prototype.show = function (
+      this: HTMLDialogElement,
+    ): void {
       this.setAttribute('open', '');
     };
   }
   if (!HTMLDialogElement.prototype.showModal) {
-    HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    HTMLDialogElement.prototype.showModal = function (
+      this: HTMLDialogElement,
+    ): void {
       this.setAttribute('open', '');
     };
   }
   if (!HTMLDialogElement.prototype.close) {
-    HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    HTMLDialogElement.prototype.close = function (
+      this: HTMLDialogElement,
+    ): void {
       this.removeAttribute('open');
     };
   }
