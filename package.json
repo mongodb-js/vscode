@@ -1516,7 +1516,6 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.28.5",
     "@babel/types": "^7.29.0",
-    "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^10.0.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@mongodb-js/eslint-config-devtools": "^0.11.6",
