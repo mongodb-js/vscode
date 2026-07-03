@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
-import chai from 'chai';
+import { expect, use } from 'chai';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
@@ -13,8 +13,7 @@ import {
   acceptFirstSuggestion,
 } from './suggestTestHelpers';
 
-const expect = chai.expect;
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 const TEST_DATABASE_URI = 'mongodb://localhost:27088';
 

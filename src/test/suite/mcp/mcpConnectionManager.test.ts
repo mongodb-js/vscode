@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import { afterEach, beforeEach } from 'mocha';
-import chai, { expect } from 'chai';
+import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import ConnectionString from 'mongodb-connection-string-url';
 import type { LoggerBase } from 'mongodb-mcp-server';
@@ -14,7 +14,7 @@ import {
 } from '../../../mcp/mcpConnectionManager';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../../../connectionController';
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 const sandbox = sinon.createSandbox();
 suite('MCPConnectionManager Test Suite', function () {

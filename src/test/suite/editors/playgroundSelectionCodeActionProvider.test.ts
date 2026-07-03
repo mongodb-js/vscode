@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect } from 'chai';
 import sinon from 'sinon';
 import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';
 import { mdbTestExtension } from '../stubbableMdbExtension';
@@ -11,8 +11,6 @@ import { mockTextEditor } from '../stubs';
 import ExportToLanguageCodeLensProvider, {
   DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
 } from '../../../editors/exportToLanguageCodeLensProvider';
-
-const expect = chai.expect;
 
 suite('Playground Selection Code Action Provider Test Suite', function () {
   this.timeout(5000);

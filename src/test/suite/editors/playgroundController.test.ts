@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect, use } from 'chai';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
@@ -20,9 +20,7 @@ import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
 import { mockTextEditor } from '../stubs';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
-const expect = chai.expect;
-
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);

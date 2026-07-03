@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect } from 'chai';
 import { EJSON, Long, ObjectId } from 'bson';
 import sinon from 'sinon';
 
@@ -13,8 +13,6 @@ import { StorageController } from '../../../storage';
 import { StatusView } from '../../../views';
 import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
-
-const expect = chai.expect;
 
 const namespace = 'waffle.house';
 const connectionId = 'tasty_sandwhich';

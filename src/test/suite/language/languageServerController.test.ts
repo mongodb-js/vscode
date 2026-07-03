@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { before, beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect, use } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import sinon from 'sinon';
@@ -22,9 +22,7 @@ import { ExtensionContextStub } from '../stubs';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import type { LanguageServerController } from '../../../language';
 
-const expect = chai.expect;
-
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 suite('Language Server Controller Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();

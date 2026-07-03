@@ -1,7 +1,8 @@
 // Setup sinon-chai
-import chai from 'chai';
+import { use } from 'chai';
 import sinonChai from 'sinon-chai';
-chai.use(sinonChai);
+
+use(sinonChai);
 
 // JSDom
 import { JSDOM, VirtualConsole } from 'jsdom';
@@ -12,9 +13,9 @@ import { JSDOM, VirtualConsole } from 'jsdom';
  *
  * @see {@link https://github.com/focus-trap/tabbable?tab=readme-ov-file#testing-in-jsdom}
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const tabbable = require('tabbable');
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+const tabbable = require('tabbable');
 const origTabbable = { ...tabbable };
 
 Object.assign(tabbable, {
@@ -28,7 +29,7 @@ Object.assign(tabbable, {
     origTabbable.isTabbable(node, { ...options, displayCheck: 'none' }),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const focusTrap = require('focus-trap');
 
 Object.assign(focusTrap, {
@@ -49,18 +50,27 @@ Object.assign(focusTrap, {
 });
 
 const virtualConsole = new VirtualConsole();
-virtualConsole.sendTo(console, { omitJSDOMErrors: true });
+virtualConsole.forwardTo(console, { jsdomErrors: 'none' });
 virtualConsole.on('jsdomError', (err) => {
   // Ignore navigation not implemented errors
-  if (err.message === 'Not implemented: navigation (except hash changes)') {
+  if ((err as any).type === 'not-implemented') {
+    return;
+  }
+
+  // @leafygreen-ui/ripple injects a <style> tag that contains a // JS-style comment,
+  // which css-tree (used by jsdom@29) correctly rejects. Suppress — it doesn't affect tests.
+  if ((err as any).type === 'css-parsing') {
     return;
   }
 
   // Ignore @vscode-elements/elements slot handling errors in JSDOM
-  // These occur because JSDOM's shadow DOM implementation doesn't fully match browser behavior
+  // These occur because JSDOM's shadow DOM implementation doesn't fully match browser behavior.
+  // The error surfaces either on err.detail (unhandled-exception type) or directly on err.
+  const errMsg = err.detail?.message ?? err.message ?? '';
+  const errStack = err.detail?.stack ?? err.stack ?? '';
   if (
-    err.detail?.message?.includes("reading 'trim'") &&
-    err.detail?.stack?.includes('vscode-select-base')
+    errMsg.includes("reading 'trim'") &&
+    errStack.includes('vscode-select-base')
   ) {
     return;
   }
@@ -72,6 +82,18 @@ global.window = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
   url: 'http://localhost',
   virtualConsole,
 }).window as any;
+
+// @vscode-elements/elements throws when slotted option elements have no text content in JSDOM
+// because JSDOM's shadow-DOM slot implementation doesn't fully match browsers. Suppress it
+// so tests stay clean; the real browser is unaffected.
+global.window.addEventListener('error', (event: ErrorEvent) => {
+  if (
+    event.error?.stack?.includes('vscode-select-base') ||
+    event.message?.includes("reading 'trim'")
+  ) {
+    event.preventDefault();
+  }
+});
 
 Object.getOwnPropertyNames(global.window).forEach((property) => {
   if (typeof global[property] !== 'undefined') {

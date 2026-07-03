@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import { afterEach, beforeEach } from 'mocha';
-import chai from 'chai';
+import { expect, use } from 'chai';
 import type { DataService } from 'mongodb-data-service';
 import { config } from 'dotenv';
 import { resolve } from 'path';
@@ -29,9 +29,7 @@ import { ConnectionType } from '../../../connectionController';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../../../../package.json');
 
-const expect = chai.expect;
-
-chai.use(sinonChai);
+use(sinonChai);
 
 config({ path: resolve(__dirname, '../../../../.env') });
 

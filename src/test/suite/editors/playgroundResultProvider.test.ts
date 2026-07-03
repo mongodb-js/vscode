@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { afterEach } from 'mocha';
-import chai from 'chai';
+import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
 import type { Document } from 'mongodb';
@@ -17,8 +17,6 @@ import { StatusView } from '../../../views';
 import { StorageController } from '../../../storage';
 import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
-
-const expect = chai.expect;
 
 suite('Playground Result Provider Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();

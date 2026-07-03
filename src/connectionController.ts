@@ -159,7 +159,7 @@ export default class ConnectionController {
   private _currentConnectionId: null | string = null;
 
   _connectionAttempt: null | ConnectionAttempt = null;
-  private _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
+  private _connectionStringInputCancellationTokenSource: null | vscode.CancellationTokenSource =
     null;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
@@ -267,8 +267,9 @@ export default class ConnectionController {
   }: NewConnectionParams = {}): Promise<boolean> {
     log.info('connectWithURI command called');
 
-    const cancellationToken = new vscode.CancellationTokenSource();
-    this._connectionStringInputCancellationToken = cancellationToken;
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    this._connectionStringInputCancellationTokenSource =
+      cancellationTokenSource;
 
     try {
       if (connectionString) {
@@ -311,16 +312,19 @@ export default class ConnectionController {
               return null;
             },
           },
-          cancellationToken.token,
+          cancellationTokenSource.token,
         );
       }
     } catch (error) {
       log.error('Failed to show the input box in connectWithURI', error);
       return false;
     } finally {
-      if (this._connectionStringInputCancellationToken === cancellationToken) {
-        this._connectionStringInputCancellationToken.dispose();
-        this._connectionStringInputCancellationToken = null;
+      if (
+        this._connectionStringInputCancellationTokenSource ===
+        cancellationTokenSource
+      ) {
+        this._connectionStringInputCancellationTokenSource.dispose();
+        this._connectionStringInputCancellationTokenSource = null;
       }
     }
 
@@ -1031,7 +1035,7 @@ export default class ConnectionController {
   }
 
   closeConnectionStringInput(): void {
-    this._connectionStringInputCancellationToken?.cancel();
+    this._connectionStringInputCancellationTokenSource?.cancel();
   }
 
   isConnecting(): boolean {

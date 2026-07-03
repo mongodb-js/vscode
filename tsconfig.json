@@ -2,21 +2,25 @@
   "compilerOptions": {
     "module": "commonjs",
     "noImplicitAny": false,
-    "target": "es2022",
+    "target": "ES2022",
     "outDir": "out",
-    "lib": ["dom", "es2022"],
+    "lib": ["dom", "ES2022"],
     "types": ["node", "mocha", "chai", "sinon", "@types/sinon-chai"],
     "jsx": "react",
     "sourceMap": true,
     "rootDir": "src",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": true /* enable all strict type-checking options */,
-    "erasableSyntaxOnly": true
-    /* Additional Checks */
-    // "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
-    // "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
-    // "noUnusedParameters": true,  /* Report errors on unused parameters. */
+    "strict": true,
+    "erasableSyntaxOnly": true,
+    "paths": {
+      "vscode-languageclient/node": [
+        "./node_modules/vscode-languageclient/lib/node/main"
+      ],
+      "vscode-languageserver/node": [
+        "./node_modules/vscode-languageserver/lib/node/main"
+      ]
+    }
   },
   "exclude": [
     "node_modules",
