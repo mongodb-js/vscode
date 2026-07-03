@@ -136,7 +136,6 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
 
     const model = await getCopilotModel();
 
-    // eslint-disable-next-line new-cap
     const assistantPrompt = vscode.LanguageModelChatMessage.Assistant(
       this.getAssistantPrompt(args),
     );
@@ -191,7 +190,7 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
     }
 
     const { prompt, hasSampleDocs } = await this.getUserPrompt(args);
-    // eslint-disable-next-line new-cap
+
     const userPrompt = vscode.LanguageModelChatMessage.User(prompt);
 
     const messages = [assistantPrompt, ...historyMessages, userPrompt];

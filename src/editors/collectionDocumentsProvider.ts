@@ -132,7 +132,7 @@ export default class CollectionViewProvider
 
       void vscode.window.showErrorMessage(errorMessage);
 
-      throw Error(errorMessage);
+      throw Error(errorMessage, { cause: error });
     }
   }
 }

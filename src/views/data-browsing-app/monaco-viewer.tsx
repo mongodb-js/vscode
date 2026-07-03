@@ -355,7 +355,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
 
   // Cleanup effect to dispose event listeners when component unmounts
   useEffect(() => {
-    return () => {
+    return (): void => {
       const disposables = (editorRef.current as any)?.__foldDisposables;
       if (disposables) {
         disposables.forEach((d: any) => d.dispose());

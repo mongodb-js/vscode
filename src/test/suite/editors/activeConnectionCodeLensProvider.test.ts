@@ -23,9 +23,10 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
   const testStatusView = new StatusView(extensionContextStub);
   let testConnectionController: ConnectionController;
   let testCodeLensProvider: ActiveConnectionCodeLensProvider;
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     testConnectionController = new ConnectionController({
       statusView: testStatusView,
       storageController: testStorageController,
@@ -36,7 +37,7 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
     );
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 
@@ -51,7 +52,7 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
     } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
 
     suite('user is not connected', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
       });
@@ -70,7 +71,7 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
     });
 
     suite('user is connected', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         const findStub = sandbox.stub();
         findStub.resolves([
           {
@@ -155,7 +156,7 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
     } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
 
     suite('user is not connected', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         const fakeShowQuickPick = sandbox.fake();
         sandbox.replace(vscode.window, 'showQuickPick', fakeShowQuickPick);
       });
@@ -169,7 +170,7 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
     });
 
     suite('user is connected', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         const findStub = sandbox.stub();
         findStub.resolves([
           {

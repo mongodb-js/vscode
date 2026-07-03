@@ -38,7 +38,7 @@ const vscodeMock = {
 
 // Mock the 'vscode' module since we don't run the full vscode
 // integration test setup for the ai-accuracy-tests as it's a bit slow.
-// eslint-disable-next-line @typescript-eslint/unbound-method
+
 const originalRequire = Module.prototype.require;
 Module.prototype.require = function (id: string): any {
   if (id === 'vscode') {

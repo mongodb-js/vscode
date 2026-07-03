@@ -35,7 +35,7 @@ import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
 import type { RequiredBy } from './utils/types';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const packageJSON = require('../package.json');
 
 const log = createLogger('connection controller');
@@ -303,7 +303,6 @@ export default class ConnectionController {
               }
 
               try {
-                // eslint-disable-next-line no-new
                 new ConnectionString(uri);
               } catch (error) {
                 return formatError(error).message;
@@ -457,7 +456,6 @@ export default class ConnectionController {
     return false;
   }
 
-  // eslint-disable-next-line complexity
   async _connect(
     connectionId: string,
     connectionType: ConnectionTypes,
@@ -544,6 +542,7 @@ export default class ConnectionController {
                 try {
                   await openLink(url);
                 } catch (err) {
+                  log.error('Failed to open the OIDC link in the browser', err);
                   if (signal.aborted) return;
                   // If opening the link fails we default to regular link opening.
                   await vscode.commands.executeCommand(
@@ -997,6 +996,7 @@ export default class ConnectionController {
     } catch (e) {
       throw new Error(
         `An error occurred parsing the connection name: ${(e as Error).message}`,
+        { cause: e },
       );
     }
 

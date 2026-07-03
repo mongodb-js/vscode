@@ -21,10 +21,11 @@ suite('Playground', function () {
   this.timeout(8000);
 
   const _disposables: vscode.Disposable[] = [];
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
   let showErrorMessageStub: SinonStub;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
+    sandbox = sinon.createSandbox();
     sandbox.replace(
       mdbTestExtension.testExtensionController._connectionController,
       'connectWithURI',

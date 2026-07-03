@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable */
+
 'use strict';
 const fetch = require('node-fetch');
 

@@ -100,7 +100,7 @@ const BulkActionsSelect: React.FC<BulkActionsSelectProps> = ({
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
+    return (): void => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);

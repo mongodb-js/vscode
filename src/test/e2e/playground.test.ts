@@ -1,5 +1,5 @@
 /* eslint-disable no-empty-pattern */
-/* eslint-disable mocha/no-global-tests */
+
 import type { TestInfo } from '@playwright/test';
 import {
   test,
@@ -38,7 +38,7 @@ async function screenshotOnFailure(testInfo: TestInfo): Promise<void> {
   }
 }
 
-test.beforeAll(async () => {
+test.beforeAll(async function () {
   await startMongoDB();
   await seedDatabase();
 
@@ -48,16 +48,16 @@ test.beforeAll(async () => {
   await connectToMongoDB(page);
 });
 
-test.beforeEach(async () => {
+test.beforeEach(async function () {
   // Close any leftover editor tabs from previous runs.
   await closeAllEditors(page);
 });
 
-test.afterEach(async ({}, testInfo) => {
+test.afterEach(async function ({}, testInfo) {
   await screenshotOnFailure(testInfo);
 });
 
-test.afterAll(async ({}, testInfo) => {
+test.afterAll(async function ({}, testInfo) {
   await screenshotOnFailure(testInfo);
   copyExtensionLogs();
 
@@ -164,7 +164,7 @@ test('playground aggregation results appear in data browsing view', async () => 
 
   // Verify each expected item appears in its own document card
   // and that the filtered-out item does not appear
-  const normalize = (text: string) => text.replace(/\s+/g, ' ');
+  const normalize = (text: string): string => text.replace(/\s+/g, ' ');
   await expect(async () => {
     const cardTexts = await cards.evaluateAll((els) =>
       els.map((el) => el.textContent ?? ''),

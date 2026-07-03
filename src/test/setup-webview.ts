@@ -14,7 +14,7 @@ import { JSDOM, VirtualConsole } from 'jsdom';
  * @see {@link https://github.com/focus-trap/tabbable?tab=readme-ov-file#testing-in-jsdom}
  */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const tabbable = require('tabbable');
 const origTabbable = { ...tabbable };
 
@@ -29,7 +29,7 @@ Object.assign(tabbable, {
     origTabbable.isTabbable(node, { ...options, displayCheck: 'none' }),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const focusTrap = require('focus-trap');
 
 Object.assign(focusTrap, {

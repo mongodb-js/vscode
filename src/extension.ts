@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 
 import { ext } from './extensionConstants';
 import { createLogger } from './logging';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../package.json');
 
 const log = createLogger('extension');

@@ -53,9 +53,9 @@ suite('Language Server Controller Test Suite', function () {
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
 
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  before(async () => {
+  before(async function () {
     languageServerControllerStub =
       mdbTestExtension.testExtensionController._languageServerController;
 
@@ -74,7 +74,8 @@ suite('Language Server Controller Test Suite', function () {
     await testPlaygroundController._activeConnectionChanged();
   });
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.replace(
       testConnectionController,
@@ -99,7 +100,7 @@ suite('Language Server Controller Test Suite', function () {
     );
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 

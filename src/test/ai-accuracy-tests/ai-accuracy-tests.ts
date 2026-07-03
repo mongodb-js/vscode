@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { expect } from 'chai';
 import { MongoClient } from 'mongodb';
 import { execFile as callbackExecFile } from 'child_process';
@@ -658,7 +657,7 @@ describe('AI Accuracy Tests', function () {
 
     testFunction(
       `should pass for input: "${testCase.userInput}" if average accuracy is above threshold`,
-      // eslint-disable-next-line no-loop-func, complexity
+
       async function () {
         console.log(`Starting test run of ${testCase.testCase}.`);
 
@@ -682,9 +681,8 @@ describe('AI Accuracy Tests', function () {
 
           if (testCase.reloadFixtureOnEachRun) {
             await reloadFixture({
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               db: testCase.databaseName!,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               coll: testCase.collectionName!,
               mongoClient,
               fixtures,

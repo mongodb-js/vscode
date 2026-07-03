@@ -197,7 +197,6 @@ export default class WebviewController {
     }
   };
 
-  // eslint-disable-next-line complexity
   handleWebviewMessage = async (
     message: MessageFromWebviewToExtension,
     panel: vscode.WebviewPanel,
@@ -252,6 +251,7 @@ export default class WebviewController {
         try {
           await openLink(message.linkTo);
         } catch (err) {
+          log.error(`Unable to open trusted link ${message.linkTo}`, err);
           // If opening the link fails we default to regular link opening.
           await vscode.commands.executeCommand(
             'vscode.open',

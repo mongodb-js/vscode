@@ -56,7 +56,7 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(async () => {
+    before(async function () {
       testMongoDBService._extensionPath = '';
       await testMongoDBService.activeConnectionChanged(params);
     });
@@ -123,7 +123,7 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(async () => {
+    before(async function () {
       testMongoDBService._getDatabases = (): Promise<Document[]> =>
         Promise.resolve([]);
       testMongoDBService._getCollections = (): Promise<Document[]> =>
@@ -1374,7 +1374,7 @@ suite('MongoDBService Test Suite', function () {
       ({ suiteDescription, beforeAssertions, defaultContent, dbInUse }) => {
         suite(suiteDescription, function () {
           beforeEach(beforeAssertions);
-          afterEach(() => {
+          afterEach(function () {
             Sinon.restore();
             testMongoDBService.clearCachedCompletions({
               databases: true,
@@ -2573,14 +2573,14 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(async () => {
+    before(async function () {
       testMongoDBService._extensionPath =
         mdbTestExtension.extensionContextStub.extensionPath;
       await testMongoDBService.activeConnectionChanged(params);
       await mongoClient.connect();
     });
 
-    after(async () => {
+    after(async function () {
       await mongoClient.close(true);
     });
 
@@ -2612,7 +2612,7 @@ suite('MongoDBService Test Suite', function () {
       const dbName2 = 'testDB2';
       const collectionName2 = 'testCollection2';
       let db2: Db;
-      beforeEach(async () => {
+      beforeEach(async function () {
         db1 = mongoClient.db(dbName1);
         const TestCollection1 = await db1.createCollection(collectionName1);
         await TestCollection1.insertOne({ name: 'Test1', number: 1 });
@@ -2622,7 +2622,7 @@ suite('MongoDBService Test Suite', function () {
         await TestCollection2.insertOne({ name: 'Test2', number: 2 });
       });
 
-      afterEach(async () => {
+      afterEach(async function () {
         await db1.dropDatabase();
         await db2.dropDatabase();
       });
@@ -3014,7 +3014,7 @@ suite('MongoDBService Test Suite', function () {
 
     suite('evaluate allows to import local files', function () {
       let tmpDir: string;
-      beforeEach(async () => {
+      beforeEach(async function () {
         tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'local-import'));
         await fs.writeFile(
           path.join(tmpDir, 'utils.js'),
@@ -3024,9 +3024,10 @@ suite('MongoDBService Test Suite', function () {
         `,
         );
       });
-      afterEach(async () => {
+      afterEach(async function () {
         await fs.rm(tmpDir, { recursive: true });
       });
+
       test('evaluate allows to import file', async function () {
         const source = new vscode.CancellationTokenSource();
         const result = await testMongoDBService.evaluate(
@@ -3060,7 +3061,7 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(() => {
+    before(function () {
       testMongoDBService._cacheDatabaseCompletionItems([{ name: 'test' }]);
     });
 

@@ -16,12 +16,14 @@ import { DEFAULT_TELEMETRY_APP_NAME } from '../../../connectionController';
 
 use(chaiAsPromised);
 
-const sandbox = sinon.createSandbox();
+let sandbox: sinon.SinonSandbox;
+
 suite('MCPConnectionManager Test Suite', function () {
   let mcpConnectionManager: MCPConnectionManager;
   let fakeServiceProvider: NodeDriverServiceProvider;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     mcpConnectionManager = new MCPConnectionManager({
       logger: { error: () => {}, warning: () => {} } as unknown as LoggerBase,
       getTelemetryAnonymousId: (): string => '1FOO',
@@ -39,7 +41,7 @@ suite('MCPConnectionManager Test Suite', function () {
       .resolves('DEVICE_ID');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
     sandbox.reset();
   });
@@ -314,7 +316,7 @@ suite('MCPConnectionManager Test Suite', function () {
   suite('#overrideAppNameIfContainsVSCode', function () {
     let localConnectionURL: ConnectionString;
     let atlasConnectionURL: ConnectionString;
-    beforeEach(() => {
+    beforeEach(function () {
       localConnectionURL = new ConnectionString(
         `mongodb://localhost:27017/?appName=${DEFAULT_TELEMETRY_APP_NAME}`,
       );

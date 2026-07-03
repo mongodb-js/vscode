@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import assert from 'assert';
-import { afterEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import { ObjectId } from 'bson';
 import sinon from 'sinon';
 import util from 'util';
@@ -27,9 +27,13 @@ suite('Edit Document Code Lens Provider Test Suite', function () {
     storageController: testStorageController,
     telemetryService: testTelemetryService,
   });
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  afterEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
     sandbox.restore();
   });
 

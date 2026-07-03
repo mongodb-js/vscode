@@ -196,7 +196,7 @@ export const handleMessageFromParentPort = async (
   {
     executeFn = execute,
     isSafeQueryResultFn = isSafeQueryResult,
-    postMessageFn = (message) => parentPort?.postMessage(message),
+    postMessageFn = (message): void => parentPort?.postMessage(message),
   }: HandleMessageDeps = {},
 ): Promise<void> => {
   const data = deserializeBSON(_data);

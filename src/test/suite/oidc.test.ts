@@ -74,7 +74,7 @@ suite('OIDC Tests', function () {
     telemetryService: testTelemetryService,
   });
   let showInformationMessageStub: SinonStub;
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
   // OIDC related variables
   let getTokenPayload: typeof oidcMockProviderConfig.getTokenPayload = () =>
@@ -179,6 +179,7 @@ suite('OIDC Tests', function () {
   });
 
   beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(testTelemetryService, 'trackNewConnection');
     showInformationMessageStub = sandbox.stub(
       vscode.window,

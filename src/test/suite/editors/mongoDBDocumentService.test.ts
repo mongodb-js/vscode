@@ -40,13 +40,14 @@ suite('MongoDB Document Service Test Suite', function () {
     telemetryService: testTelemetryService,
   });
 
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 

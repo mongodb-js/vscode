@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import path from 'path';
 import { runTests } from '@vscode/test-electron';
 import { MongoCluster } from 'mongodb-runner';

@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { getDBFromConnectionString } from '../../../utils/connection-string-db';
 import { TEST_DATABASE_URI, TEST_DB_NAME } from '../dbTestHelper';
 
-suite('getDBFromConnectionString', () => {
-  suite('when connection string has a default database', () => {
-    test('it should return the default connected database', () => {
+suite('getDBFromConnectionString', function () {
+  suite('when connection string has a default database', function () {
+    test('it should return the default connected database', function () {
       const defaultDB = getDBFromConnectionString(
         `${TEST_DATABASE_URI}/${TEST_DB_NAME}`,
       );
@@ -12,8 +12,8 @@ suite('getDBFromConnectionString', () => {
     });
   });
 
-  suite('when connection string has no default database', () => {
-    test('it should return the null', () => {
+  suite('when connection string has no default database', function () {
+    test('it should return the null', function () {
       const defaultDB = getDBFromConnectionString(
         `${TEST_DATABASE_URI}/${TEST_DB_NAME}`,
       );

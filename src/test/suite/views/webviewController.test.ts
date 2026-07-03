@@ -20,14 +20,15 @@ import * as linkHelper from '../../../utils/linkHelper';
 import { waitFor } from '../waitFor';
 
 suite('Webview Test Suite', function () {
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
   let extensionContextStub: ExtensionContextStub;
   let testStorageController: StorageController;
   let testTelemetryService: TelemetryService;
   let testConnectionController: ConnectionController;
   let testWebviewController: WebviewController;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     extensionContextStub = new ExtensionContextStub();
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
@@ -51,7 +52,7 @@ suite('Webview Test Suite', function () {
     sandbox.stub(testTelemetryService, 'trackNewConnection');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 
@@ -570,7 +571,7 @@ suite('Webview Test Suite', function () {
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
       webview: {
         html: '',
-        // eslint-disable-next-line @typescript-eslint/require-await
+
         postMessage: async (message): Promise<void> => {
           expect(message.command).to.equal('THEME_CHANGED');
           expect(message.darkMode).to.be.true;
@@ -615,7 +616,7 @@ suite('Webview Test Suite', function () {
     );
     let messageReceived;
 
-    beforeEach(() => {
+    beforeEach(function () {
       const testConnectionController = new ConnectionController({
         statusView: new StatusView(extensionContextStub),
         storageController: testStorageController,

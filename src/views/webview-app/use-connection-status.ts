@@ -37,7 +37,7 @@ const useConnectionStatus = (): {
       requestConnectionStatus,
       CONNECTION_STATUS_POLLING_FREQ_MS,
     );
-    return () => {
+    return (): void => {
       window.removeEventListener('message', handleConnectionStatusResponse);
       clearInterval(pollingInterval);
     };

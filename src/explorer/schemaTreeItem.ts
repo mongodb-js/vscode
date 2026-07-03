@@ -135,6 +135,7 @@ export default class SchemaTreeItem
     } catch (parseError) {
       throw new Error(
         `Unable to parse schema: ${formatError(parseError).message}`,
+        { cause: parseError },
       );
     }
   }

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import type { DataService } from 'mongodb-data-service';
@@ -34,9 +34,13 @@ suite('Playground Result Provider Test Suite', function () {
   const testEditDocumentCodeLensProvider = new EditDocumentCodeLensProvider(
     testConnectionController,
   );
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  afterEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
     sandbox.restore();
   });
 

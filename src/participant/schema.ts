@@ -4,6 +4,9 @@ import type {
   SimplifiedSchemaDocumentType,
   SimplifiedSchemaType,
 } from 'mongodb-schema';
+import { createLogger } from '../logging';
+
+const log = createLogger('participant schema');
 
 const PROPERTY_REGEX = '^[a-zA-Z_$][0-9a-zA-Z_$]*$';
 
@@ -89,6 +92,7 @@ export class SchemaFormatter {
     try {
       return JSON.stringify(pProp);
     } catch (e) {
+      log.error('Error stringifying property name', e);
       return pProp;
     }
   }

@@ -25,10 +25,11 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
   suite('the MongoDB playground in JS', function () {
     const testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
-    const sandbox = sinon.createSandbox();
+    let sandbox: sinon.SinonSandbox;
     let testActiveTextEditor;
 
-    beforeEach(async () => {
+    beforeEach(async function () {
+      sandbox = sinon.createSandbox();
       sandbox.stub(vscode.window, 'showInformationMessage');
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
@@ -76,7 +77,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor = sandbox.stub(vscode.window, 'activeTextEditor');
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       await vscode.commands.executeCommand(
         'workbench.action.closeActiveEditor',
       );
@@ -89,7 +90,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
     });
 
     suite('copilot is disabled', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         sandbox.replace(
           vscode.extensions,
           'getExtension',
@@ -131,7 +132,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
     });
 
     suite('copilot is active', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         sandbox.replace(
           vscode.extensions,
           'getExtension',
@@ -185,7 +186,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       });
 
       suite('renders export to java code actions', function () {
-        beforeEach(() => {
+        beforeEach(function () {
           const activeTextEditor = mockTextEditor;
           activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
           activeTextEditor.document.getText = (): string => 'Berlin';
@@ -540,10 +541,11 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
 
   suite('the regular JS file', function () {
     const testCodeActionProvider = new PlaygroundSelectionCodeActionProvider();
-    const sandbox = sinon.createSandbox();
+    let sandbox: sinon.SinonSandbox;
     let testActiveTextEditor;
 
-    beforeEach(() => {
+    beforeEach(function () {
+      sandbox = sinon.createSandbox();
       sandbox.stub(
         mdbTestExtension.testExtensionController._telemetryService,
         'trackNewConnection',
@@ -551,7 +553,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       testActiveTextEditor = sandbox.stub(vscode.window, 'activeTextEditor');
     });
 
-    afterEach(() => {
+    afterEach(function () {
       sandbox.restore();
     });
 

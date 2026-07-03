@@ -33,7 +33,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   // The test extension runner.
   extensionContextStub.extensionPath = '../../';
 
-  beforeEach(() => {
+  beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
       testStorageController,

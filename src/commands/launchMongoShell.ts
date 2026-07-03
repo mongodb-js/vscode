@@ -86,7 +86,7 @@ const openMongoDBShell = (
     connectionController.getMongoClientConnectionOptions()?.options
       .parentHandle;
 
-  let envVariableString = '';
+  let envVariableString: string;
 
   if (userShell.includes('powershell.exe')) {
     envVariableString = getPowershellEnvString();

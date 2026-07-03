@@ -64,7 +64,6 @@ const getCollapsibleStateForField = (
     : vscode.TreeItemCollapsibleState.Collapsed;
 };
 
-// eslint-disable-next-line complexity
 export const getIconFileNameForField = (
   field: SchemaFieldType,
 ): null | string => {
@@ -202,7 +201,6 @@ export default class FieldTreeItem
     return element;
   }
 
-  // eslint-disable-next-line complexity
   getChildren(): Thenable<FieldTreeItem[]> {
     if (!fieldIsExpandable(this.field)) {
       return Promise.resolve([]);
