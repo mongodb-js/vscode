@@ -565,7 +565,9 @@ async function runTest({
       ...message,
       content: message.content
         .map((c) =>
-          c instanceof vscode.LanguageModelTextPart ? c.value : c.toString(),
+          c instanceof vscode.LanguageModelTextPart
+            ? c.value
+            : JSON.stringify(c),
         )
         .join(''),
       role:

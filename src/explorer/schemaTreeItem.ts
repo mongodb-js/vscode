@@ -198,13 +198,7 @@ export default class SchemaTreeItem
       return Object.values(this.childrenCache);
     }
 
-    let schema;
-
-    try {
-      schema = await this.getSchema();
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    const schema = await this.getSchema();
 
     this.cacheIsUpToDate = true;
 

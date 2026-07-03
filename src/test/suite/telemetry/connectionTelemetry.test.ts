@@ -2,7 +2,6 @@ import { before, beforeEach, afterEach } from 'mocha';
 import { connect } from 'mongodb-data-service';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import type { DataService } from 'mongodb-data-service';
 
 import { ConnectionType } from '../../../connectionController';
 import { getConnectionTelemetryProperties } from '../../../telemetry/connectionTelemetry';
@@ -29,7 +28,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         getConnectionString: getConnectionStringStub,
         getLastSeenTopology: getLastSeenTopology,
         instance: instanceStub,
-      } as unknown as DataService;
+      };
     });
 
     afterEach(function () {

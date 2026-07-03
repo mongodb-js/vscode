@@ -1,13 +1,26 @@
-import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
-import mochaPlugin from 'eslint-plugin-mocha';
+import { devtoolsConfig } from './eslint-devtools.js';
 
-const sharedRules = {
-  // TODO(VSCODE-724): Update our file naming and enable this rule.
-  // We have a lot of files that do not match the filename rules.
-  'filename-rules/match': 0,
-  'no-console': [1, { allow: ['warn', 'error', 'info'] }],
+const extraTsRules = {
+  '@typescript-eslint/no-explicit-any': 0,
+  '@typescript-eslint/no-floating-promises': 2,
+  '@typescript-eslint/no-unsafe-assignment': 0,
+  '@typescript-eslint/no-unsafe-member-access': 0,
+  '@typescript-eslint/no-unsafe-call': 0,
+  '@typescript-eslint/no-unsafe-return': 0,
+  '@typescript-eslint/no-unsafe-argument': 0,
+  '@typescript-eslint/consistent-type-imports': [
+    'error',
+    { prefer: 'type-imports' },
+  ],
+  '@typescript-eslint/explicit-function-return-type': [
+    'warn',
+    { allowHigherOrderFunctions: true },
+  ],
+  '@typescript-eslint/ban-ts-comment': [
+    'error',
+    { 'ts-ignore': 'allow-with-description' },
+  ],
 };
 
 export default defineConfig([
@@ -25,9 +38,10 @@ export default defineConfig([
       '.vscode-test/**',
     ],
   },
+  // Base JS/TS config plus the devtools plugins and shared rule maps.
+  ...devtoolsConfig,
   {
     files: ['**/*.js'],
-    extends: [js.configs.recommended, mochaPlugin.configs.recommended],
     languageOptions: {
       globals: {
         module: 'readonly',
@@ -38,24 +52,17 @@ export default defineConfig([
         __filename: 'readonly',
       },
     },
+  },
+  {
     rules: {
-      ...sharedRules,
+      // TODO(VSCODE-724): Update our file naming and enable this rule.
+      // We have a lot of files that do not match the filename rules.
+      'filename-rules/match': 0,
+      'no-console': [1, { allow: ['warn', 'error', 'info'] }],
     },
   },
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      mochaPlugin.configs.recommended,
-    ],
-    settings: {
-      mocha: {
-        additionalCustomNames: [
-          { name: 'suite', interface: 'BDD', type: 'suite' },
-        ],
-      },
-    },
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
@@ -63,26 +70,7 @@ export default defineConfig([
       },
     },
     rules: {
-      ...sharedRules,
-      '@typescript-eslint/no-explicit-any': 0,
-      '@typescript-eslint/no-floating-promises': 2,
-      '@typescript-eslint/no-unsafe-assignment': 0,
-      '@typescript-eslint/no-unsafe-member-access': 0,
-      '@typescript-eslint/no-unsafe-call': 0,
-      '@typescript-eslint/no-unsafe-return': 0,
-      '@typescript-eslint/no-unsafe-argument': 0,
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports' },
-      ],
-      '@typescript-eslint/explicit-function-return-type': [
-        'warn',
-        { allowHigherOrderFunctions: true },
-      ],
-      '@typescript-eslint/ban-ts-comment': [
-        'error',
-        { 'ts-ignore': 'allow-with-description' },
-      ],
+      ...extraTsRules,
     },
   },
   {
@@ -90,7 +78,6 @@ export default defineConfig([
     rules: {
       // Chai assertions such as `expect(x).to.be.true` are expressions.
       '@typescript-eslint/no-unused-expressions': 0,
-      'mocha/no-setup-in-describe': 0,
       'no-console': 0,
     },
   },

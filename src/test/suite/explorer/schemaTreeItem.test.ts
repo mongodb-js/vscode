@@ -3,7 +3,6 @@ import sinon from 'sinon';
 import { after, afterEach, before, beforeEach } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
-import type { Document } from 'mongodb';
 
 import { ext } from '../../../extensionConstants';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
@@ -174,7 +173,7 @@ suite('SchemaTreeItem Test Suite', function () {
 
   test('When schema parsing fails it displays an error message', async function () {
     const findStub = sandbox.stub();
-    findStub.resolves('invalid schema to parse' as unknown as Document[]);
+    findStub.resolves('invalid schema to parse');
     const testDataService = {
       find: findStub,
     } as unknown as DataService;

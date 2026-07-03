@@ -121,10 +121,7 @@ suite('DataBrowsingController Test Suite', function () {
   });
 
   // Helper to find a postMessage call by command type
-  function findMessageByCommand(
-    stub: SinonStub,
-    command: string,
-  ): unknown | undefined {
+  function findMessageByCommand(stub: SinonStub, command: string): unknown {
     const calls = stub.getCalls();
     for (const call of calls) {
       if (call.args[0]?.command === command) {

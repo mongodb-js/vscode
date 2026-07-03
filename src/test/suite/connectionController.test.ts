@@ -1584,9 +1584,7 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('with pre-supplied connection string, cancelling dialog does not connect', async function () {
-      sandbox
-        .stub(vscode.window, 'showWarningMessage')
-        .resolves(undefined as any);
+      sandbox.stub(vscode.window, 'showWarningMessage').resolves(undefined);
 
       const result = await testConnectionController.connectWithURI({
         connectionString: 'mongodb://127.0.0.1:12345',

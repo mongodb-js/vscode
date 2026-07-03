@@ -247,7 +247,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
       base: themeKind,
       inherit: true,
       rules: colors
-        ? ([
+        ? [
             { token: 'identifier', foreground: colors.key },
             { token: 'variable', foreground: colors.key },
             { token: 'variable.name', foreground: colors.key },
@@ -259,7 +259,7 @@ const MonacoViewer: React.FC<MonacoViewerProps> = ({
             { token: 'type', foreground: colors.type },
             { token: 'comment', foreground: colors.comment },
             { token: 'delimiter', foreground: colors.punctuation },
-          ].filter((r) => r.foreground !== null) as editor.ITokenThemeRule[])
+          ].filter((r) => r.foreground !== null)
         : [],
       colors: {
         'editor.background': '#00000000',

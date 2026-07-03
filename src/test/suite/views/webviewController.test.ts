@@ -572,16 +572,17 @@ suite('Webview Test Suite', function () {
       webview: {
         html: '',
 
-        postMessage: async (message): Promise<void> => {
+        postMessage: (message): Promise<boolean> => {
           expect(message.command).to.equal('THEME_CHANGED');
           expect(message.darkMode).to.be.true;
           if (++callsSoFar === 1) {
             // This should be fine since we catch the rejection and proceed ahead silently
-            throw new Error('BAM');
+            return Promise.reject(new Error('BAM'));
           }
           if (++callsSoFar === totalExpectedPostMessageCalls) {
             done();
           }
+          return Promise.resolve(true);
         },
         onDidReceiveMessage: (): void => {},
         asWebviewUri: sandbox.fake.returns(''),

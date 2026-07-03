@@ -77,7 +77,7 @@ const getMessageContent = (
     const value: string =
       element instanceof vscode.LanguageModelTextPart
         ? element.value
-        : element.toString();
+        : JSON.stringify(element);
 
     return agg + value;
   }, '');
@@ -2681,7 +2681,7 @@ Schema:
             .map((sub) =>
               sub instanceof vscode.LanguageModelTextPart
                 ? sub.value
-                : sub.toString(),
+                : JSON.stringify(sub),
             )
             .join('');
 

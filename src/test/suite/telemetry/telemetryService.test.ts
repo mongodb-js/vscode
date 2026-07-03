@@ -60,7 +60,7 @@ suite('Telemetry Controller Test Suite', function () {
       build: {},
       genuineMongoDB: {},
       host: {},
-    } as unknown as Awaited<ReturnType<DataService['instance']>>);
+    });
     dataServiceStub = {
       instance: instanceStub,
     } as unknown as DataService;

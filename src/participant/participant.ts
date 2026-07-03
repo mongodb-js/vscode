@@ -30,10 +30,7 @@ import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
 import { ChatMetadataStore } from './chatMetadata';
-import {
-  DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT,
-  type OpenSchemaCommandArgs,
-} from './prompts/schema';
+import { DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT } from './prompts/schema';
 import {
   ExportToPlaygroundFailedTelemetryEvent,
   ParticipantChatOpenedFromActionTelemetryEvent,
@@ -1445,7 +1442,7 @@ export default class ParticipantController {
       arguments: [
         {
           schema,
-        } as OpenSchemaCommandArgs,
+        },
       ],
     });
 

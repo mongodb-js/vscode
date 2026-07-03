@@ -53,13 +53,13 @@ const virtualConsole = new VirtualConsole();
 virtualConsole.forwardTo(console, { jsdomErrors: 'none' });
 virtualConsole.on('jsdomError', (err) => {
   // Ignore navigation not implemented errors
-  if ((err as any).type === 'not-implemented') {
+  if (err.type === 'not-implemented') {
     return;
   }
 
   // @leafygreen-ui/ripple injects a <style> tag that contains a // JS-style comment,
   // which css-tree (used by jsdom@29) correctly rejects. Suppress — it doesn't affect tests.
-  if ((err as any).type === 'css-parsing') {
+  if (err.type === 'css-parsing') {
     return;
   }
 
@@ -135,8 +135,8 @@ class ResizeObserverPolyfill {
   }
 }
 
-global.ResizeObserver = ResizeObserverPolyfill as any;
-global.window.ResizeObserver = ResizeObserverPolyfill as any;
+global.ResizeObserver = ResizeObserverPolyfill;
+global.window.ResizeObserver = ResizeObserverPolyfill;
 
 // Stub canvas API for lottie-web (via @leafygreen-ui/loading-indicator), which calls
 // getContext() at module-load time and throws in jsdom without the canvas package.
@@ -158,7 +158,7 @@ global.window.ResizeObserver = ResizeObserverPolyfill as any;
 // on window but they may not be copied to global before the module imports run.
 if (!global.requestAnimationFrame) {
   global.requestAnimationFrame = (cb: FrameRequestCallback): number =>
-    setTimeout(cb, 0) as unknown as number;
+    setTimeout(cb, 0);
 }
 if (!global.cancelAnimationFrame) {
   global.cancelAnimationFrame = (id: number): void => clearTimeout(id);

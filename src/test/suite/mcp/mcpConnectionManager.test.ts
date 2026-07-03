@@ -29,10 +29,9 @@ suite('MCPConnectionManager Test Suite', function () {
       getTelemetryAnonymousId: (): string => '1FOO',
     });
     fakeServiceProvider = {
-      runCommand: (() =>
-        Promise.resolve({})) as NodeDriverServiceProvider['runCommand'],
-      close: (() => Promise.resolve()) as NodeDriverServiceProvider['close'],
-    } as NodeDriverServiceProvider;
+      runCommand: () => Promise.resolve({}),
+      close: () => Promise.resolve(),
+    } as unknown as NodeDriverServiceProvider;
     sandbox
       .stub(NodeDriverServiceProvider, 'connect')
       .resolves(fakeServiceProvider);
@@ -67,10 +66,8 @@ suite('MCPConnectionManager Test Suite', function () {
     });
 
     test('should update the state when there is an error', async function () {
-      fakeServiceProvider.runCommand = (() =>
-        Promise.reject(
-          new Error('Bad error'),
-        )) as NodeDriverServiceProvider['runCommand'];
+      fakeServiceProvider.runCommand = (): Promise<Document> =>
+        Promise.reject(new Error('Bad error'));
       const newState = (await mcpConnectionManager.connectToVSCodeConnection({
         connectionId: '1',
         connectionString: 'mongodb://localhost:27017',
@@ -108,10 +105,8 @@ suite('MCPConnectionManager Test Suite', function () {
     });
 
     test('should attempt to disconnect and on failure clear out the state', async function () {
-      fakeServiceProvider.close = (() =>
-        Promise.reject(
-          new Error('Bad close error'),
-        )) as NodeDriverServiceProvider['close'];
+      fakeServiceProvider.close = (): Promise<void> =>
+        Promise.reject(new Error('Bad close error'));
       const newState = await mcpConnectionManager.connectToVSCodeConnection({
         connectionId: '1',
         connectionString: 'mongodb://localhost:27017',

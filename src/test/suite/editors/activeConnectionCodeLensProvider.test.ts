@@ -85,7 +85,7 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
           build: {},
           genuineMongoDB: {},
           host: {},
-        } as unknown as Awaited<ReturnType<DataService['instance']>>);
+        });
         const activeDataServiceStub = {
           find: findStub,
           instance: instanceStub,
@@ -184,7 +184,7 @@ suite('Active Connection CodeLens Provider Test Suite', function () {
           build: {},
           genuineMongoDB: {},
           host: {},
-        } as unknown as Awaited<ReturnType<DataService['instance']>>);
+        });
         const activeDataServiceStub = {
           find: findStub,
           instance: instanceStub,
