@@ -571,7 +571,6 @@ suite('Webview Test Suite', function () {
     sandbox.stub(vscode.window, 'createWebviewPanel').returns({
       webview: {
         html: '',
-
         postMessage: (message): Promise<boolean> => {
           expect(message.command).to.equal('THEME_CHANGED');
           expect(message.darkMode).to.be.true;

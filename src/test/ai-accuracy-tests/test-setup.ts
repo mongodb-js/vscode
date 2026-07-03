@@ -38,7 +38,6 @@ const vscodeMock = {
 
 // Mock the 'vscode' module since we don't run the full vscode
 // integration test setup for the ai-accuracy-tests as it's a bit slow.
-
 // The extracted method is re-invoked with an explicit receiver via
 // `originalRequire.call(this, id)` below, so unbound usage is intentional.
 // eslint-disable-next-line @typescript-eslint/unbound-method

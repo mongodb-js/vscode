@@ -1330,7 +1330,6 @@ export default class ParticipantController {
   }
 
   // @MongoDB /schema
-
   async handleSchemaRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
@@ -1439,11 +1438,7 @@ export default class ParticipantController {
     stream.button({
       command: ExtensionCommand.participantOpenRawSchemaOutput,
       title: vscode.l10n.t('Open JSON Output'),
-      arguments: [
-        {
-          schema,
-        },
-      ],
+      arguments: [{ schema }],
     });
 
     this._telemetryService.track(

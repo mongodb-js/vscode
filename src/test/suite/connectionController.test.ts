@@ -156,6 +156,7 @@ suite('Connection Controller Test Suite', function () {
 
       // Reload connection from storage
       await testConnectionController.loadSavedConnections();
+
       const connection = testConnectionController._connections[connectionId];
       expect(connection.connectionOptions.connectionString).equals(
         `${TEST_DATABASE_URI}/`,
@@ -216,7 +217,6 @@ suite('Connection Controller Test Suite', function () {
       expect(mongoClientConnectionOptions).to.not.be.undefined;
 
       delete mongoClientConnectionOptions!.options.parentHandle;
-
       delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
       expect(mongoClientConnectionOptions).to.deep.equal({

@@ -224,7 +224,6 @@ export default function useConnectionForm(): {
     handleCancelConnectClicked: (): void => {
       sendCancelConnectToExtension();
     },
-
     handleSaveConnectionClicked: (): Promise<void> => {
       // no-op, this cannot be called as don't set the `showFavoriteActions` setting.
       return Promise.resolve();

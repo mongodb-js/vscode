@@ -1,5 +1,4 @@
 /* eslint-disable no-empty-pattern */
-
 import type { TestInfo } from '@playwright/test';
 import {
   test,

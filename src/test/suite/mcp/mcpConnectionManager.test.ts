@@ -107,6 +107,7 @@ suite('MCPConnectionManager Test Suite', function () {
     test('should attempt to disconnect and on failure clear out the state', async function () {
       fakeServiceProvider.close = (): Promise<void> =>
         Promise.reject(new Error('Bad close error'));
+
       const newState = await mcpConnectionManager.connectToVSCodeConnection({
         connectionId: '1',
         connectionString: 'mongodb://localhost:27017',
@@ -311,6 +312,7 @@ suite('MCPConnectionManager Test Suite', function () {
   suite('#overrideAppNameIfContainsVSCode', function () {
     let localConnectionURL: ConnectionString;
     let atlasConnectionURL: ConnectionString;
+
     beforeEach(function () {
       localConnectionURL = new ConnectionString(
         `mongodb://localhost:27017/?appName=${DEFAULT_TELEMETRY_APP_NAME}`,

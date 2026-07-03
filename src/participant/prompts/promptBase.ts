@@ -190,9 +190,7 @@ export abstract class PromptBase<PromptArgs extends PromptArgsBase> {
     }
 
     const { prompt, hasSampleDocs } = await this.getUserPrompt(args);
-
     const userPrompt = vscode.LanguageModelChatMessage.User(prompt);
-
     const messages = [assistantPrompt, ...historyMessages, userPrompt];
 
     return {

@@ -26,6 +26,7 @@ class MongoDBError extends Error {
 
 suite('mcpConnectionErrorHandler suite', function () {
   let connectionController: ConnectionController;
+
   beforeEach(function () {
     const extensionContext = new ExtensionContextStub();
     const testStorageController = new StorageController(extensionContext);

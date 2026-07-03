@@ -684,7 +684,6 @@ describe('AI Accuracy Tests', function () {
           if (testCase.reloadFixtureOnEachRun) {
             await reloadFixture({
               db: testCase.databaseName!,
-
               coll: testCase.collectionName!,
               mongoClient,
               fixtures,
