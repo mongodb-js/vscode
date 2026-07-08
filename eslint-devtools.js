@@ -28,6 +28,13 @@ import sharedDevtools from '@mongodb-js/eslint-config-devtools';
  * are plain objects, read off the MAIN entry's `overrides` (no subpath, so no
  * explicit `.js` extension is required under native ESM) matched by file glob.
  *
+ * Note: `devtoolsRulesFor` only reads each override's `rules` object, which
+ * holds just a handful of explicit rules (eqeqeq, no-console, ...). The bulk of
+ * the shared config comes from `eslint:recommended`, listed in every override's
+ * `extends` array - which we do not read. `js.configs.recommended` below is the
+ * flat-config replacement for that `eslint:recommended` extend; without it we
+ * would silently lose every recommended rule.
+ *
  * TODO(COMPASS-10812): once `@mongodb-js/eslint-config-devtools` ships a native flat
  * config, delete this adapter and consume that flat config directly.
  */
