@@ -6,20 +6,22 @@ import type { SinonSpy, SinonStub } from 'sinon';
 
 import launchMongoShell from '../../../commands/launchMongoShell';
 import { mdbTestExtension } from '../stubbableMdbExtension';
+import type ConnectionController from '../../../connectionController';
 
 suite('Commands Test Suite', function () {
-  const testConnectionController =
-    mdbTestExtension.testExtensionController._connectionController;
-
+  let testConnectionController: ConnectionController;
   let showErrorMessageStub: SinonStub;
   let getMongoClientConnectionOptionsStub: SinonStub;
   let isCurrentlyConnectedStub: SinonStub;
   let createTerminalStub: SinonStub;
   let sendTextStub: SinonSpy;
 
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    testConnectionController =
+      mdbTestExtension.testExtensionController._connectionController;
+    sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showInformationMessage');
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     getMongoClientConnectionOptionsStub = sandbox.stub(
@@ -38,14 +40,14 @@ suite('Commands Test Suite', function () {
     });
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     await testConnectionController.disconnect();
     testConnectionController.clearAllConnections();
     sandbox.restore();
   });
 
   suite('bash env shell', function () {
-    beforeEach(() => {
+    beforeEach(function () {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'bash');
     });
 
@@ -59,7 +61,7 @@ suite('Commands Test Suite', function () {
     suite('when connected', function () {
       const expectedDriverUrl =
         'mongodb://localhost:27088/?readPreference=primary&ssl=false';
-      beforeEach(() => {
+      beforeEach(function () {
         getMongoClientConnectionOptionsStub.returns({
           url: expectedDriverUrl,
           options: {},
@@ -114,7 +116,7 @@ suite('Commands Test Suite', function () {
   });
 
   suite('Windows powershell env shell', function () {
-    beforeEach(() => {
+    beforeEach(function () {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'powershell.exe');
     });
 
@@ -149,7 +151,7 @@ suite('Commands Test Suite', function () {
   });
 
   suite('Windows cmd env shell', function () {
-    beforeEach(() => {
+    beforeEach(function () {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');
     });
 

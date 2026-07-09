@@ -8,15 +8,16 @@ import { getViewCollectionDocumentsUri } from '../../../editors/editorsControlle
 import { mockTextEditor } from '../stubs';
 
 suite('Editors Controller Test Suite', function () {
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
   let showErrorMessageStub: SinonStub;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showInformationMessage');
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 

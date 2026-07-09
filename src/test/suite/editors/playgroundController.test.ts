@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect, use } from 'chai';
 import type { DataService } from 'mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
@@ -20,9 +20,7 @@ import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
 import { mockTextEditor } from '../stubs';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
-const expect = chai.expect;
-
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 suite('Playground Controller Test Suite', function () {
   this.timeout(5000);
@@ -45,7 +43,7 @@ suite('Playground Controller Test Suite', function () {
   let showInformationMessageStub: SinonStub;
   let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.createSandbox();
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
@@ -90,14 +88,14 @@ suite('Playground Controller Test Suite', function () {
     sandbox.stub(testTelemetryService, 'trackNewConnection');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 
   suite('passing connection details to service provider', function () {
     let fakeConnectToServiceProvider: SinonSpy;
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       const mockActiveDataService = {
         getMongoClientConnectionOptions: () => ({
           url: 'mongodb://username@ldaphost:27017/?authMechanism=MONGODB-X509&readPreference=primary&appname=mongodb-vscode+0.0.0-dev.0&ssl=true&authSource=%24external&tlsAllowInvalidCertificates=true&tlsAllowInvalidHostnames=true&tlsCAFile=./path/to/ca&tlsCertificateKeyFile=./path/to/cert',
@@ -158,7 +156,7 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is not open', function () {
-    beforeEach(() => {
+    beforeEach(function () {
       sandbox.stub(vscode.window, 'activeTextEditor').get(function getterFn() {
         return undefined;
       });
@@ -193,7 +191,7 @@ suite('Playground Controller Test Suite', function () {
   });
 
   suite('playground is open', function () {
-    beforeEach(() => {
+    beforeEach(function () {
       const activeTextEditor = mockTextEditor;
       activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
       activeTextEditor.document.getText = (): string => '123';
@@ -206,7 +204,7 @@ suite('Playground Controller Test Suite', function () {
       let changeActiveConnectionStub: SinonStub;
       let isCurrentlyConnectedStub: SinonStub;
 
-      beforeEach(() => {
+      beforeEach(function () {
         isCurrentlyConnectedStub = sandbox
           .stub(
             testPlaygroundController._connectionController,
@@ -350,7 +348,7 @@ suite('Playground Controller Test Suite', function () {
     suite('user is connected', function () {
       let showTextDocumentStub: SinonStub;
 
-      beforeEach(async () => {
+      beforeEach(async function () {
         sandbox.replace(
           testPlaygroundController._connectionController,
           'getActiveConnectionName',

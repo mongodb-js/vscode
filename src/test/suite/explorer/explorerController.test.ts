@@ -23,9 +23,10 @@ suite('Explorer Controller Test Suite', function () {
   // Longer timeout, sometimes it takes a few seconds for vscode to
   // load the extension before running tests.
   this.timeout(10000);
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(async () => {
+  beforeEach(async function () {
+    sandbox = sinon.createSandbox();
     // Don't save connections on default.
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -41,7 +42,7 @@ suite('Explorer Controller Test Suite', function () {
     );
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     // Unset the variable we set in `beforeEach`.
     await vscode.workspace
       .getConfiguration('mdb.connectionSaving')
@@ -146,6 +147,7 @@ suite('Explorer Controller Test Suite', function () {
       await testConnectionController.addNewConnectionStringAndConnect({
         connectionString: testDatabaseURI2WithTimeout,
       });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       /* Silent fail (should fail) */
     }

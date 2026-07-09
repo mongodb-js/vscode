@@ -6,7 +6,8 @@ import type { TopologyType } from 'mongodb';
 import { ConnectionType, type ConnectionTypes } from '../connectionController';
 
 const log = createLogger('connection telemetry helper');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../package.json');
 
 export type NewConnectionTelemetryEventProperties = {
@@ -74,6 +75,7 @@ async function getPublicCloudInfo(host: string): Promise<{
       public_cloud_name: publicCloudName,
     };
   } catch (err) {
+    log.error('Error getting public cloud info', err);
     // Cannot resolve dns used by mongodb-cloud-info in the browser environment.
     return {};
   }

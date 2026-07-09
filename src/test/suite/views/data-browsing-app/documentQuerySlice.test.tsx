@@ -240,7 +240,7 @@ describe('documentQuerySlice', function () {
     });
 
     it('should have keys matching the mdb.defaultSortOrder enum in package.json', function () {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const packageJson = require('../../../../../package.json');
       const configEnum: string[] =
         packageJson.contributes.configuration.properties['mdb.defaultSortOrder']

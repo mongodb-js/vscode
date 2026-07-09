@@ -71,7 +71,7 @@ suite('Collection Documents Provider Test Suite', function () {
     testStorageController,
     extensionContextStub,
   );
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
   let testConnectionController: ConnectionController;
   let testStatusView: StatusView;
 
@@ -79,7 +79,8 @@ suite('Collection Documents Provider Test Suite', function () {
   let testCodeLensProvider: EditDocumentCodeLensProvider;
   let testCollectionViewProvider: CollectionDocumentsProvider;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showInformationMessage');
     testStatusView = new StatusView(extensionContextStub);
 
@@ -106,7 +107,7 @@ suite('Collection Documents Provider Test Suite', function () {
     );
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 

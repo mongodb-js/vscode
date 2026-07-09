@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import path from 'path';
 import os from 'os';
 import fs from 'fs';

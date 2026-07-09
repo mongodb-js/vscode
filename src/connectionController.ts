@@ -35,7 +35,7 @@ import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
 import type { RequiredBy } from './utils/types';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const packageJSON = require('../package.json');
 
 const log = createLogger('connection controller');
@@ -159,7 +159,7 @@ export default class ConnectionController {
   private _currentConnectionId: null | string = null;
 
   _connectionAttempt: null | ConnectionAttempt = null;
-  private _connectionStringInputCancellationToken: null | vscode.CancellationTokenSource =
+  private _connectionStringInputCancellationTokenSource: null | vscode.CancellationTokenSource =
     null;
   private _connectingConnectionId: null | string = null;
   private _disconnecting = false;
@@ -267,8 +267,9 @@ export default class ConnectionController {
   }: NewConnectionParams = {}): Promise<boolean> {
     log.info('connectWithURI command called');
 
-    const cancellationToken = new vscode.CancellationTokenSource();
-    this._connectionStringInputCancellationToken = cancellationToken;
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    this._connectionStringInputCancellationTokenSource =
+      cancellationTokenSource;
 
     try {
       if (connectionString) {
@@ -302,7 +303,6 @@ export default class ConnectionController {
               }
 
               try {
-                // eslint-disable-next-line no-new
                 new ConnectionString(uri);
               } catch (error) {
                 return formatError(error).message;
@@ -311,16 +311,19 @@ export default class ConnectionController {
               return null;
             },
           },
-          cancellationToken.token,
+          cancellationTokenSource.token,
         );
       }
     } catch (error) {
       log.error('Failed to show the input box in connectWithURI', error);
       return false;
     } finally {
-      if (this._connectionStringInputCancellationToken === cancellationToken) {
-        this._connectionStringInputCancellationToken.dispose();
-        this._connectionStringInputCancellationToken = null;
+      if (
+        this._connectionStringInputCancellationTokenSource ===
+        cancellationTokenSource
+      ) {
+        this._connectionStringInputCancellationTokenSource.dispose();
+        this._connectionStringInputCancellationTokenSource = null;
       }
     }
 
@@ -453,7 +456,6 @@ export default class ConnectionController {
     return false;
   }
 
-  // eslint-disable-next-line complexity
   async _connect(
     connectionId: string,
     connectionType: ConnectionTypes,
@@ -540,6 +542,7 @@ export default class ConnectionController {
                 try {
                   await openLink(url);
                 } catch (err) {
+                  log.error('Failed to open the OIDC link in the browser', err);
                   if (signal.aborted) return;
                   // If opening the link fails we default to regular link opening.
                   await vscode.commands.executeCommand(
@@ -993,6 +996,7 @@ export default class ConnectionController {
     } catch (e) {
       throw new Error(
         `An error occurred parsing the connection name: ${(e as Error).message}`,
+        { cause: e },
       );
     }
 
@@ -1031,7 +1035,7 @@ export default class ConnectionController {
   }
 
   closeConnectionStringInput(): void {
-    this._connectionStringInputCancellationToken?.cancel();
+    this._connectionStringInputCancellationTokenSource?.cancel();
   }
 
   isConnecting(): boolean {

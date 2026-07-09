@@ -1,9 +1,7 @@
-import chai from 'chai';
+import { expect } from 'chai';
 
 import { isSafeQueryResult } from '../../../editors/result-utils';
 import type { PlaygroundRunResult } from '../../../types/playgroundType';
-
-const expect = chai.expect;
 
 function makeResult(
   overrides: Partial<PlaygroundRunResult> = {},
