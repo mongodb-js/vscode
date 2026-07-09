@@ -38,7 +38,7 @@ export default class ActiveConnectionCodeLensProvider
     }
 
     const codeLens = new vscode.CodeLens(new vscode.Range(0, 0, 0, 0));
-    let message = '';
+    let message: string;
 
     if (this._connectionController.isConnecting()) {
       message = 'Connecting...';

@@ -39,9 +39,10 @@ suite('Connection Storage Test Suite', function () {
   const testStorageController = new StorageController(extensionContextStub);
   let testConnectionStorage: ConnectionStorage;
 
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
   beforeEach(function () {
+    sandbox = sinon.createSandbox();
     testConnectionStorage = new ConnectionStorage({
       storageController: testStorageController,
     });
@@ -320,7 +321,7 @@ suite('Connection Storage Test Suite', function () {
     const extensionSandbox = sinon.createSandbox();
     const testSandbox = sinon.createSandbox();
 
-    afterEach(() => {
+    afterEach(function () {
       testSandbox.restore();
       extensionSandbox.restore();
     });
@@ -355,7 +356,7 @@ suite('Connection Storage Test Suite', function () {
       >;
       let inspectPresetConnectionsStub: sinon.SinonStub;
 
-      beforeEach(() => {
+      beforeEach(function () {
         testSandbox.restore();
         inspectPresetConnectionsStub = testSandbox.stub();
       });
@@ -454,7 +455,7 @@ suite('Connection Storage Test Suite', function () {
     });
 
     suite('when connection secrets are already in SecretStorage', function () {
-      afterEach(() => {
+      afterEach(function () {
         testSandbox.restore();
       });
 

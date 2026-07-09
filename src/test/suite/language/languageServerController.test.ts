@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { before, beforeEach, afterEach } from 'mocha';
-import chai from 'chai';
+import { expect, use } from 'chai';
 import fs from 'fs';
 import path from 'path';
 import sinon from 'sinon';
@@ -22,9 +22,7 @@ import { ExtensionContextStub } from '../stubs';
 import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import type { LanguageServerController } from '../../../language';
 
-const expect = chai.expect;
-
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 suite('Language Server Controller Test Suite', function () {
   const extensionContextStub = new ExtensionContextStub();
@@ -55,9 +53,9 @@ suite('Language Server Controller Test Suite', function () {
   let languageServerControllerStub: LanguageServerController;
   let testPlaygroundController: PlaygroundController;
 
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  before(async () => {
+  before(async function () {
     languageServerControllerStub =
       mdbTestExtension.testExtensionController._languageServerController;
 
@@ -76,7 +74,8 @@ suite('Language Server Controller Test Suite', function () {
     await testPlaygroundController._activeConnectionChanged();
   });
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showErrorMessage');
     sandbox.replace(
       testConnectionController,
@@ -101,7 +100,7 @@ suite('Language Server Controller Test Suite', function () {
     );
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 

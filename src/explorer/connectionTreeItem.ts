@@ -147,6 +147,7 @@ export default class ConnectionTreeItem
     } catch (error) {
       throw new Error(
         `Unable to list databases: ${formatError(error).message}`,
+        { cause: error },
       );
     }
   }
@@ -164,6 +165,7 @@ export default class ConnectionTreeItem
     } catch (error) {
       throw new Error(
         `Unable to list stream processors: ${formatError(error).message}`,
+        { cause: error },
       );
     }
   }

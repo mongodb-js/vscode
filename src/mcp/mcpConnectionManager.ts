@@ -46,7 +46,6 @@ export class MCPConnectionManager extends ConnectionManager {
   override connect(): Promise<AnyConnectionState> {
     return Promise.reject(
       new Error(
-        // eslint-disable-next-line no-multi-str
         "MongoDB MCP Server in MongoDB VSCode extension makes use of the connection that the MongoDB VSCode extension is connected to. \
 To connect, choose a connection from MongoDB VSCode extensions's sidepanel - https://www.mongodb.com/docs/mongodb-vscode/connect/#connect-to-your-mongodb-deployment",
       ),

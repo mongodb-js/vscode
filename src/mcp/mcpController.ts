@@ -221,7 +221,7 @@ export class MCPController {
 
       const runner = new StreamableHttpRunner({
         userConfig: mcpConfig,
-        createConnectionManager: (...params) =>
+        createConnectionManager: (...params): Promise<ConnectionManager> =>
           MCPController.createConnectionManager(this, ...params),
         connectionErrorHandler: createMCPConnectionErrorHandler(
           this.connectionController,

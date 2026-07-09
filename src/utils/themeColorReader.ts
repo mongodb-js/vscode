@@ -128,7 +128,7 @@ function parseThemeFileRecursive(
     const theme: ThemeJson = JSON5.parse(content);
 
     const parentColors = theme.include
-      ? (() => {
+      ? ((): TokenColors => {
           const parentPath = path.join(path.dirname(themePath), theme.include);
           if (!fs.existsSync(parentPath)) {
             log.error(

@@ -1,6 +1,6 @@
 import os from 'os';
 import path from 'path';
-import chai, { expect } from 'chai';
+import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import fs from 'fs/promises';
 import sinon from 'sinon';
@@ -28,7 +28,7 @@ import { ConnectionString } from 'mongodb-connection-string-url';
 import launchMongoShell from '../../commands/launchMongoShell';
 import { getFullRange } from './suggestTestHelpers';
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 function hash(input: string): string {
   return createHash('sha256').update(input).digest('hex').slice(0, 12);
@@ -74,7 +74,7 @@ suite('OIDC Tests', function () {
     telemetryService: testTelemetryService,
   });
   let showInformationMessageStub: SinonStub;
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
   // OIDC related variables
   let getTokenPayload: typeof oidcMockProviderConfig.getTokenPayload = () =>
@@ -179,6 +179,7 @@ suite('OIDC Tests', function () {
   });
 
   beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(testTelemetryService, 'trackNewConnection');
     showInformationMessageStub = sandbox.stub(
       vscode.window,

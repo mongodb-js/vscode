@@ -30,10 +30,7 @@ import { getSimplifiedSampleDocuments } from './sampleDocuments';
 import { getCopilotModel } from './model';
 import { createMarkdownLink } from './markdown';
 import { ChatMetadataStore } from './chatMetadata';
-import {
-  DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT,
-  type OpenSchemaCommandArgs,
-} from './prompts/schema';
+import { DOCUMENTS_TO_SAMPLE_FOR_SCHEMA_PROMPT } from './prompts/schema';
 import {
   ExportToPlaygroundFailedTelemetryEvent,
   ParticipantChatOpenedFromActionTelemetryEvent,
@@ -655,6 +652,7 @@ export default class ParticipantController {
         data: db.name,
       }));
     } catch (error) {
+      log.error('Error listing databases', error);
       return [];
     }
   }
@@ -716,6 +714,7 @@ export default class ParticipantController {
         data: db.name,
       }));
     } catch (error) {
+      log.error('Error listing collections', error);
       return [];
     }
   }
@@ -908,7 +907,6 @@ export default class ParticipantController {
       ) {
         messagesWithNamespace.messages[
           messagesWithNamespace.messages.length - 1
-          // eslint-disable-next-line new-cap
         ] = vscode.LanguageModelChatMessage.User('see previous messages');
       }
       const responseContentWithNamespace = await this.getChatResponseContent({
@@ -972,6 +970,7 @@ export default class ParticipantController {
         vscode.l10n.t(
           `Unable to fetch database names: ${formatError(error).message}.`,
         ),
+        { cause: error },
       );
     }
   }
@@ -1004,6 +1003,7 @@ export default class ParticipantController {
             formatError(error).message
           }.`,
         ),
+        { cause: error },
       );
     }
   }
@@ -1330,7 +1330,6 @@ export default class ParticipantController {
   }
 
   // @MongoDB /schema
-  // eslint-disable-next-line complexity
   async handleSchemaRequest(
     request: vscode.ChatRequest,
     context: vscode.ChatContext,
@@ -1439,11 +1438,7 @@ export default class ParticipantController {
     stream.button({
       command: ExtensionCommand.participantOpenRawSchemaOutput,
       title: vscode.l10n.t('Open JSON Output'),
-      arguments: [
-        {
-          schema,
-        } as OpenSchemaCommandArgs,
-      ],
+      arguments: [{ schema }],
     });
 
     this._telemetryService.track(
@@ -1532,6 +1527,7 @@ export default class ParticipantController {
           stream,
         }));
     } catch (e) {
+      log.error('Error fetching collection schema and sample documents', e);
       // When an error fetching the collection schema or sample docs occurs,
       // we still want to continue as it isn't critical, however,
       // we do want to notify the user.
@@ -1724,7 +1720,7 @@ export default class ParticipantController {
     let docsResult: {
       responseReferences?: Reference[];
       outputLength?: number;
-    } = {};
+    };
 
     try {
       docsResult = await this._handleDocsRequestWithChatbot({
@@ -1828,6 +1824,10 @@ export default class ParticipantController {
               request: { prompt: codeToExport },
             });
           } catch (error) {
+            log.error(
+              'Failed to build model input for export to playground',
+              error,
+            );
             return { error: 'modelInput' };
           }
 

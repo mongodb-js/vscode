@@ -1,4 +1,3 @@
-/* eslint-disable new-cap */
 import path from 'path';
 import * as vscode from 'vscode';
 

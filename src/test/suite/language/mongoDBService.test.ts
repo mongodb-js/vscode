@@ -1,13 +1,13 @@
+import * as vscode from 'vscode';
 import { before, after, beforeEach, afterEach } from 'mocha';
 import {
-  CancellationTokenSource,
   CompletionItemKind,
   InsertTextFormat,
   DiagnosticSeverity,
   MarkupContent,
-} from 'vscode-languageclient/node';
-import type { CompletionItem } from 'vscode-languageclient/node';
-import chai from 'chai';
+} from 'vscode-languageserver/node';
+import type { CompletionItem } from 'vscode-languageserver/node';
+import { expect } from 'chai';
 import { createConnection } from 'vscode-languageserver/node';
 import fs from 'fs/promises';
 import os from 'os';
@@ -26,7 +26,6 @@ import { ServerCommand } from '../../../language/serverCommands';
 import LINKS from '../../../utils/links';
 import Sinon from 'sinon';
 
-const expect = chai.expect;
 const INCREASED_TEST_TIMEOUT = 5000;
 
 suite('MongoDBService Test Suite', function () {
@@ -57,13 +56,13 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(async () => {
+    before(async function () {
       testMongoDBService._extensionPath = '';
       await testMongoDBService.activeConnectionChanged(params);
     });
 
     test('catches error when evaluate is called and extension path is empty string', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           codeToEvaluate: '1 + 1',
@@ -124,7 +123,7 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(async () => {
+    before(async function () {
       testMongoDBService._getDatabases = (): Promise<Document[]> =>
         Promise.resolve([]);
       testMongoDBService._getCollections = (): Promise<Document[]> =>
@@ -1375,7 +1374,7 @@ suite('MongoDBService Test Suite', function () {
       ({ suiteDescription, beforeAssertions, defaultContent, dbInUse }) => {
         suite(suiteDescription, function () {
           beforeEach(beforeAssertions);
-          afterEach(() => {
+          afterEach(function () {
             Sinon.restore();
             testMongoDBService.clearCachedCompletions({
               databases: true,
@@ -2574,19 +2573,19 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(async () => {
+    before(async function () {
       testMongoDBService._extensionPath =
         mdbTestExtension.extensionContextStub.extensionPath;
       await testMongoDBService.activeConnectionChanged(params);
       await mongoClient.connect();
     });
 
-    after(async () => {
+    after(async function () {
       await mongoClient.close(true);
     });
 
     test('evaluate should sum numbers', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2613,7 +2612,7 @@ suite('MongoDBService Test Suite', function () {
       const dbName2 = 'testDB2';
       const collectionName2 = 'testCollection2';
       let db2: Db;
-      beforeEach(async () => {
+      beforeEach(async function () {
         db1 = mongoClient.db(dbName1);
         const TestCollection1 = await db1.createCollection(collectionName1);
         await TestCollection1.insertOne({ name: 'Test1', number: 1 });
@@ -2623,7 +2622,7 @@ suite('MongoDBService Test Suite', function () {
         await TestCollection2.insertOne({ name: 'Test2', number: 2 });
       });
 
-      afterEach(async () => {
+      afterEach(async function () {
         await db1.dropDatabase();
         await db2.dropDatabase();
       });
@@ -2637,7 +2636,7 @@ suite('MongoDBService Test Suite', function () {
               connectionString: `${params.connectionString}/${dbName1}`,
             });
 
-            const source = new CancellationTokenSource();
+            const source = new vscode.CancellationTokenSource();
             const result = await testMongoDBService.evaluate(
               {
                 connectionId: 'pineapple',
@@ -2669,7 +2668,7 @@ suite('MongoDBService Test Suite', function () {
               connectionString: `${params.connectionString}/${dbName1}`,
             });
 
-            const source = new CancellationTokenSource();
+            const source = new vscode.CancellationTokenSource();
             const result = await testMongoDBService.evaluate(
               {
                 connectionId: 'pineapple',
@@ -2698,7 +2697,7 @@ suite('MongoDBService Test Suite', function () {
           test('it should evaluate the playground in the context of specified database', async function () {
             await testMongoDBService.activeConnectionChanged(params);
 
-            const source = new CancellationTokenSource();
+            const source = new vscode.CancellationTokenSource();
             const result = await testMongoDBService.evaluate(
               {
                 connectionId: 'pineapple',
@@ -2723,7 +2722,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('should not run when the connectionId does not match', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'not pineapple',
@@ -2737,7 +2736,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate multiplies commands at once', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2758,7 +2757,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('create each time a new runtime', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const firstEvalResult = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2797,7 +2796,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate returns valid EJSON', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2824,7 +2823,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate returns an object', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2848,7 +2847,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate returns an array', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2874,7 +2873,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate returns undefined', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2894,7 +2893,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate returns null', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2915,7 +2914,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate returns single line strings', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2937,7 +2936,7 @@ suite('MongoDBService Test Suite', function () {
     });
 
     test('evaluate returns multiline strings', async function () {
-      const source = new CancellationTokenSource();
+      const source = new vscode.CancellationTokenSource();
       const result = await testMongoDBService.evaluate(
         {
           connectionId: 'pineapple',
@@ -2980,7 +2979,7 @@ suite('MongoDBService Test Suite', function () {
       });
 
       test('sends print() and console.log() output continuously', async function () {
-        const source = new CancellationTokenSource();
+        const source = new vscode.CancellationTokenSource();
         const hexString = '65a482edbf4fc24c5255a8fa';
 
         const result = await testMongoDBService.evaluate(
@@ -3015,7 +3014,7 @@ suite('MongoDBService Test Suite', function () {
 
     suite('evaluate allows to import local files', function () {
       let tmpDir: string;
-      beforeEach(async () => {
+      beforeEach(async function () {
         tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'local-import'));
         await fs.writeFile(
           path.join(tmpDir, 'utils.js'),
@@ -3025,11 +3024,12 @@ suite('MongoDBService Test Suite', function () {
         `,
         );
       });
-      afterEach(async () => {
+      afterEach(async function () {
         await fs.rm(tmpDir, { recursive: true });
       });
+
       test('evaluate allows to import file', async function () {
-        const source = new CancellationTokenSource();
+        const source = new vscode.CancellationTokenSource();
         const result = await testMongoDBService.evaluate(
           {
             connectionId: 'pineapple',
@@ -3061,7 +3061,7 @@ suite('MongoDBService Test Suite', function () {
 
     const testMongoDBService = new MongoDBService(connection);
 
-    before(() => {
+    before(function () {
       testMongoDBService._cacheDatabaseCompletionItems([{ name: 'test' }]);
     });
 

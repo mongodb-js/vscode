@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { afterEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import assert from 'assert';
 import sinon from 'sinon';
 
@@ -8,9 +8,13 @@ import * as linkHelper from '../../../utils/linkHelper';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
 suite('Help Explorer Test Suite', function () {
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  afterEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
     mdbTestExtension.testExtensionController._helpExplorer.deactivate();
     sandbox.restore();
   });

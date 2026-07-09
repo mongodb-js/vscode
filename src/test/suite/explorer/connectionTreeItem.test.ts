@@ -9,7 +9,7 @@ import { DataServiceStub } from '../stubs';
 import formatError from '../../../utils/formatError';
 import { mdbTestExtension } from '../stubbableMdbExtension';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contributes } = require('../../../../package.json');
 
 function getTestConnectionTreeItem(): ConnectionTreeItem {
@@ -51,13 +51,14 @@ suite('ConnectionTreeItem Test Suite', function () {
 
   suite('#getChildren', function () {
     let testConnectionTreeItem: ConnectionTreeItem;
-    const sandbox = sinon.createSandbox();
+    let sandbox: sinon.SinonSandbox;
 
-    beforeEach(() => {
+    beforeEach(function () {
+      sandbox = sinon.createSandbox();
       testConnectionTreeItem = getTestConnectionTreeItem();
     });
 
-    afterEach(() => {
+    afterEach(function () {
       sandbox.restore();
     });
 
@@ -150,13 +151,14 @@ suite('ConnectionTreeItem Test Suite', function () {
 
   suite('#listDatabases', function () {
     let testConnectionTreeItem: ConnectionTreeItem;
-    const sandbox = sinon.createSandbox();
+    let sandbox: sinon.SinonSandbox;
 
-    beforeEach(() => {
+    beforeEach(function () {
+      sandbox = sinon.createSandbox();
       testConnectionTreeItem = getTestConnectionTreeItem();
     });
 
-    afterEach(() => {
+    afterEach(function () {
       sandbox.restore();
     });
 

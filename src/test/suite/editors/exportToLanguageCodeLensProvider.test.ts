@@ -1,5 +1,5 @@
 import { beforeEach } from 'mocha';
-import chai from 'chai';
+import { expect } from 'chai';
 
 import ExportToLanguageCodeLensProvider, {
   DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX,
@@ -11,8 +11,6 @@ import { TelemetryService } from '../../../telemetry';
 import StatusView from '../../../views/statusView';
 import ConnectionController from '../../../connectionController';
 import EditDocumentCodeLensProvider from '../../../editors/editDocumentCodeLensProvider';
-
-const expect = chai.expect;
 
 const DEFAULT_EXPORT_TO_LANGUAGE_RESULT = {
   content: '123',
@@ -35,7 +33,7 @@ suite('Export To Language Code Lens Provider Test Suite', function () {
   // The test extension runner.
   extensionContextStub.extensionPath = '../../';
 
-  beforeEach(() => {
+  beforeEach(function () {
     testStorageController = new StorageController(extensionContextStub);
     testTelemetryService = new TelemetryService(
       testStorageController,

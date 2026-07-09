@@ -20,7 +20,7 @@ import {
 import SchemaTreeItem from '../../../explorer/schemaTreeItem';
 import { ExtensionContextStub } from '../stubs';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contributes } = require('../../../../package.json');
 
 function getTestFieldTreeItem(
@@ -57,6 +57,7 @@ function getTestSchemaTreeItem(
 
 suite('FieldTreeItem Test Suite', function () {
   this.timeout(10000);
+
   test('its context value should be in the package json', function () {
     let registeredCommandInPackageJson = false;
 
@@ -170,15 +171,15 @@ suite('FieldTreeItem Test Suite', function () {
     this.timeout(5000);
     let dataService;
 
-    before(async () => {
+    before(async function () {
       dataService = await createTestDataService(TEST_DATABASE_URI);
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       await cleanupTestDB();
     });
 
-    after(async () => {
+    after(async function () {
       dataService = await disconnectFromTestDB();
     });
 

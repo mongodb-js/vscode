@@ -5,6 +5,9 @@ import type { TelemetryService } from '../telemetry';
 import { openLink } from '../utils/linkHelper';
 import LINKS from '../utils/links';
 import { LinkClickedTelemetryEvent } from '../telemetry';
+import { createLogger } from '../logging';
+
+const log = createLogger('help tree');
 
 const HELP_LINK_CONTEXT_VALUE = 'HELP_LINK';
 
@@ -150,6 +153,7 @@ export default class HelpTree implements vscode.TreeDataProvider<vscode.TreeItem
         try {
           await openLink(helpItem.url);
         } catch (err) {
+          log.error(`Failed to open link ${helpItem.url}`, err);
           // If opening the link fails we default to regular link opening.
           await vscode.commands.executeCommand(
             'vscode.open',

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { afterEach } from 'mocha';
+import { afterEach, beforeEach } from 'mocha';
 import { expect } from 'chai';
 import http from 'http';
 import sinon from 'sinon';
@@ -8,9 +8,13 @@ import vscode from 'vscode';
 import { openLink } from '../../../utils/linkHelper';
 
 suite('Open Link Test Suite', function () {
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  afterEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
     sandbox.restore();
   });
 

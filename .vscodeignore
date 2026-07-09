@@ -29,6 +29,17 @@ CHANGELOG.md
 babel.config.json
 pnpm-lock.yaml
 .pnpm-store
+
+# Codicon doc/build artifacts not loaded at runtime (only codicon.css + codicon.ttf are used)
+dist/codicons/codicon.html
+dist/codicons/codicon.svg
+dist/codicons/codicon.csv
+dist/codicons/metadata.json
+
+# Unused Monaco language workers. The data-browsing webview only uses the
+# 'typescript' language, so the css/html workers are never requested at runtime.
+dist/monaco-editor/vs/assets/css.worker-*.js
+dist/monaco-editor/vs/assets/html.worker-*.js
 scripts/**
 playwright-report
 test-results

@@ -12,14 +12,14 @@ suite('Playgrounds Controller Test Suite', function () {
     mdbTestExtension.testExtensionController._playgroundsExplorer;
   let excludeFromPlaygroundsSearchDefault: string[];
 
-  before(async () => {
+  before(async function () {
     excludeFromPlaygroundsSearchDefault =
       (await vscode.workspace
         .getConfiguration('mdb')
         .get('excludeFromPlaygroundsSearch')) || [];
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     await vscode.workspace
       .getConfiguration('mdb')
       .update(
