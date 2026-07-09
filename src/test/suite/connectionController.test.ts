@@ -33,7 +33,7 @@ import {
 import type { LoadedConnection } from '../../storage/connectionStorage';
 import getBuildInfo from 'mongodb-build-info';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../../package.json');
 if (typeof version !== 'string') {
   // Type safety that version is a string.
@@ -64,9 +64,10 @@ suite('Connection Controller Test Suite', function () {
   });
   let showErrorMessageStub: SinonStub;
   let showInformationMessageStub: SinonStub;
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     showInformationMessageStub = sandbox.stub(
       vscode.window,
       'showInformationMessage',
@@ -75,7 +76,7 @@ suite('Connection Controller Test Suite', function () {
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
-  afterEach(async () => {
+  afterEach(async function () {
     // Reset our mock extension's state.
     extensionContextStub._workspaceState = {};
     extensionContextStub._globalState = {};
@@ -106,7 +107,7 @@ suite('Connection Controller Test Suite', function () {
   });
 
   suite('with Atlas connections', function () {
-    beforeEach(() => {
+    beforeEach(function () {
       // Simulate Atlas URI
       sandbox.stub(getBuildInfo, 'isAtlas').returns(true);
     });
@@ -146,8 +147,6 @@ suite('Connection Controller Test Suite', function () {
 
       const connectionId =
         testConnectionController.getActiveConnectionId() || '';
-      let connection = testConnectionController._connections[connectionId];
-
       expect(successfullyConnected).to.be.true;
 
       await testConnectionController.disconnect();
@@ -157,7 +156,8 @@ suite('Connection Controller Test Suite', function () {
 
       // Reload connection from storage
       await testConnectionController.loadSavedConnections();
-      connection = testConnectionController._connections[connectionId];
+
+      const connection = testConnectionController._connections[connectionId];
       expect(connection.connectionOptions.connectionString).equals(
         `${TEST_DATABASE_URI}/`,
       );
@@ -216,9 +216,7 @@ suite('Connection Controller Test Suite', function () {
 
       expect(mongoClientConnectionOptions).to.not.be.undefined;
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       delete mongoClientConnectionOptions!.options.parentHandle;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
       expect(mongoClientConnectionOptions).to.deep.equal({
@@ -226,7 +224,7 @@ suite('Connection Controller Test Suite', function () {
         options: {
           autoEncryption: undefined,
           monitorCommands: true,
-          applyProxyToOIDC: {},
+          applyProxyToOIDC: false,
           authMechanismProperties: {},
           oidc: {},
           productDocsLink:
@@ -1236,19 +1234,18 @@ suite('Connection Controller Test Suite', function () {
 
     expect(mongoClientConnectionOptions).to.not.be.undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     delete mongoClientConnectionOptions!.options.parentHandle;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     delete mongoClientConnectionOptions!.options.oidc?.openBrowser;
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const expectedVersion: string = require('../../../package.json').version;
     expect(mongoClientConnectionOptions).to.deep.equal({
       url: `mongodb://localhost:27088/?appName=mongodb-vscode+${expectedVersion}`,
       options: {
         autoEncryption: undefined,
         monitorCommands: true,
-        applyProxyToOIDC: {},
+        applyProxyToOIDC: false,
         authMechanismProperties: {},
         oidc: {},
         productDocsLink:
@@ -1277,7 +1274,7 @@ suite('Connection Controller Test Suite', function () {
     const extensionSandbox = sinon.createSandbox();
     const testSandbox = sinon.createSandbox();
 
-    beforeEach(() => {
+    beforeEach(function () {
       // To fake a successful auth connection
       testSandbox.replace(
         testConnectionController,
@@ -1286,7 +1283,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    afterEach(() => {
+    afterEach(function () {
       testSandbox.restore();
       extensionSandbox.restore();
     });
@@ -1417,6 +1414,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
+    // TODO: update or delete the test according to VSCODE-462
     test.skip('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async function () {
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (
@@ -1499,7 +1497,7 @@ suite('Connection Controller Test Suite', function () {
     let showInputBoxStub: sinon.SinonStub;
     let addNewConnectionAndConnectStub: sinon.SinonStub;
 
-    beforeEach(() => {
+    beforeEach(function () {
       showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
       addNewConnectionAndConnectStub = sandbox.stub(
         testConnectionController,
@@ -1586,9 +1584,7 @@ suite('Connection Controller Test Suite', function () {
     });
 
     test('with pre-supplied connection string, cancelling dialog does not connect', async function () {
-      sandbox
-        .stub(vscode.window, 'showWarningMessage')
-        .resolves(undefined as any);
+      sandbox.stub(vscode.window, 'showWarningMessage').resolves(undefined);
 
       const result = await testConnectionController.connectWithURI({
         connectionString: 'mongodb://127.0.0.1:12345',
@@ -1603,7 +1599,7 @@ suite('Connection Controller Test Suite', function () {
   suite('addNewConnectionStringAndConnect', function () {
     let fakeConnect: sinon.SinonStub;
 
-    beforeEach(() => {
+    beforeEach(function () {
       fakeConnect = sandbox
         .stub(testConnectionController, '_connect')
         .resolves({ successfullyConnected: true, connectionErrorMessage: '' });

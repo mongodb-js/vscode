@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import type {
-  CancellationTokenSource,
   ServerOptions,
   LanguageClientOptions,
 } from 'vscode-languageclient/node';
@@ -282,7 +281,7 @@ const mockTextEditor = {
 class LanguageServerControllerStub {
   _context: ExtensionContextStub;
   _storageController?: StorageController;
-  _source?: CancellationTokenSource;
+  _source?: vscode.CancellationTokenSource;
   _client: LanguageClient;
   _currentConnectionId: string | null = null;
   _consoleOutputChannel =

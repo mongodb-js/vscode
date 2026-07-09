@@ -434,7 +434,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
       const paramError = validateDeepLinkParams(
         command as ExtensionCommand,
-        parameters as Record<string, unknown>,
+        parameters,
       );
       if (paramError) {
         throw new Error(paramError);

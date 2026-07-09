@@ -9,6 +9,9 @@ import IndexListTreeItem from './indexListTreeItem';
 import type TreeItemParent from './treeItemParentInterface';
 import SchemaTreeItem from './schemaTreeItem';
 import { CollectionType } from './documentUtils';
+import { createLogger } from '../logging';
+
+const log = createLogger('collection tree item');
 
 function getIconPath(
   type: string,
@@ -328,6 +331,7 @@ export default class CollectionTreeItem
 
       return this.documentCount;
     } catch (err) {
+      log.error(`Failed to get document count for ${this.namespace}`, err);
       this.documentCount = null;
       return 0;
     }

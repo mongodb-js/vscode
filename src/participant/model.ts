@@ -14,6 +14,7 @@ export async function getCopilotModel(): Promise<
         family: CHAT_PARTICIPANT_MODEL,
       });
       selectedModel = model;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       // Model is not ready yet. It is being initialised with the first user prompt.
     }

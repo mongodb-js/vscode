@@ -7,7 +7,7 @@ import { ext } from '../../../extensionConstants';
 import { ExtensionContextStub, DataServiceStub } from '../stubs';
 import { CollectionType } from '../../../explorer';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contributes } = require('../../../../package.json');
 
 function getTestCollectionTreeItem(

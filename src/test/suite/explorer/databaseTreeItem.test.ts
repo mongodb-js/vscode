@@ -15,7 +15,7 @@ import {
   TEST_DATABASE_URI,
 } from '../dbTestHelper';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contributes } = require('../../../../package.json');
 
 function getTestDatabaseTreeItem(
@@ -108,11 +108,11 @@ suite('DatabaseTreeItem Test Suite', function () {
     this.timeout(5000);
     let dataService;
 
-    before(async () => {
+    before(async function () {
       dataService = await createTestDataService(TEST_DATABASE_URI);
     });
 
-    after(async () => {
+    after(async function () {
       await cleanupTestDB();
       await disconnectFromTestDB();
     });

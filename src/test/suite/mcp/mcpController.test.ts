@@ -50,7 +50,8 @@ async function createConnectedMCPClient(
   };
 }
 
-const sandbox = sinon.createSandbox();
+let sandbox: sinon.SinonSandbox;
+
 suite('MCPController test suite', function () {
   this.timeout(10_000);
   let connectionController: ConnectionController;
@@ -70,7 +71,8 @@ suite('MCPController test suite', function () {
 
   let stopServerStub: SinonStub;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     const extensionContext = new ExtensionContextStub();
     const testStorageController = new StorageController(extensionContext);
     testTelemetryService = new TelemetryService(
@@ -140,7 +142,7 @@ suite('MCPController test suite', function () {
       });
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
     sandbox.reset();
     connectionController.clearAllConnections();
@@ -160,7 +162,6 @@ suite('MCPController test suite', function () {
         expectMigration: false,
       },
     ]) {
-      // eslint-disable-next-line no-loop-func
       suite(`if stored config "${storedValue}"`, function () {
         const testName = expectMigration
           ? `should migrate the stored value to "${migratedValue}", not show any auto start config popups and not start the server`
@@ -211,7 +212,6 @@ suite('MCPController test suite', function () {
     });
 
     for (const storedValue of ['anything-else', null]) {
-      // eslint-disable-next-line no-loop-func
       suite(`if stored config "${storedValue ?? 'null'}"`, function () {
         test('should keep the stored value as it is, not show any auto-start config popups and not start the server', async function () {
           mcpAutoStartValue = storedValue;
@@ -243,7 +243,6 @@ suite('MCPController test suite', function () {
         expectMigration: false,
       },
     ]) {
-      // eslint-disable-next-line no-loop-func
       suite(`if stored config "${storedValue}"`, function () {
         const testName = expectMigration
           ? `should migrate the stored value to "${migratedValue}", not show any auto start config popups and not start the server`
@@ -279,7 +278,6 @@ suite('MCPController test suite', function () {
     suite('popup visibility', function () {
       suite('if server is running and a connection is connected', function () {
         for (const storedValue of ['ask', 'enabled', 'prompt']) {
-          // eslint-disable-next-line no-loop-func
           suite(`if stored config is "${storedValue}"`, function () {
             test('should show the auto start config prompt with two action buttons', async function () {
               mcpAutoStartValue = storedValue;
@@ -308,7 +306,6 @@ suite('MCPController test suite', function () {
         'if server is not running and a connection is connected',
         function () {
           for (const storedValue of ['ask', 'enabled', 'prompt']) {
-            // eslint-disable-next-line no-loop-func
             suite(`if stored config is "${storedValue}"`, function () {
               test('should show the auto start config prompt with three action buttons', async function () {
                 mcpAutoStartValue = storedValue;
@@ -337,7 +334,6 @@ suite('MCPController test suite', function () {
         'regardless of server state, if a connection is disconnected',
         function () {
           for (const storedValue of ['ask', 'enabled', 'prompt']) {
-            // eslint-disable-next-line no-loop-func
             suite(`if stored config is "${storedValue}"`, function () {
               test('should not show the auto start config prompt', async function () {
                 mcpAutoStartValue = storedValue;

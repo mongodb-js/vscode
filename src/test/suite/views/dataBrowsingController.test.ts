@@ -75,7 +75,7 @@ suite('DataBrowsingController Test Suite', function () {
     };
   }
 
-  beforeEach(() => {
+  beforeEach(function () {
     mockCursor = {
       toArray: sandbox.stub().resolves([{ _id: '1', name: 'test' }]),
     };
@@ -83,7 +83,7 @@ suite('DataBrowsingController Test Suite', function () {
       find: sandbox.stub().returns(mockCursor),
       aggregate: sandbox.stub().returns(mockCursor),
       close: sandbox.stub().resolves(),
-      get bsonLibrary() {
+      get bsonLibrary(): typeof bson {
         return bson;
       },
     };
@@ -115,16 +115,13 @@ suite('DataBrowsingController Test Suite', function () {
     testController._panelConnectionIds.set(mockPanel, 'test-connection-id');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     testController.deactivate();
     sandbox.restore();
   });
 
   // Helper to find a postMessage call by command type
-  function findMessageByCommand(
-    stub: SinonStub,
-    command: string,
-  ): unknown | undefined {
+  function findMessageByCommand(stub: SinonStub, command: string): unknown {
     const calls = stub.getCalls();
     for (const call of calls) {
       if (call.args[0]?.command === command) {

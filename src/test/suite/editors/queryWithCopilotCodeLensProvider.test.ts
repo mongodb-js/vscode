@@ -8,12 +8,13 @@ import ExtensionCommand from '../../../commands';
 
 suite('Query with Copilot CodeLens Provider Test Suite', function () {
   let testCodeLensProvider: QueryWithCopilotCodeLensProvider;
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
   const mockExtensionChangeEmitter: vscode.EventEmitter<void> =
     new vscode.EventEmitter<void>();
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.replaceGetter(
       vscode.extensions,
       'onDidChange',
@@ -23,7 +24,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', function () {
     testCodeLensProvider = new QueryWithCopilotCodeLensProvider();
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 
@@ -38,7 +39,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', function () {
     } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
 
     suite('does not have the copilot extension', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         sandbox.stub(vscode.extensions, 'getExtension').returns(undefined);
       });
 
@@ -60,7 +61,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', function () {
     });
 
     suite('has the copilot extension active', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         sandbox.stub(vscode.extensions, 'getExtension').returns({
           isActive: true,
         } as vscode.Extension<unknown>);
@@ -105,7 +106,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', function () {
     } as Pick<vscode.TextDocument, 'uri'> as vscode.TextDocument;
 
     suite('does not have the copilot extension', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         sandbox.stub(vscode.extensions, 'getExtension').returns(undefined);
       });
 
@@ -118,7 +119,7 @@ suite('Query with Copilot CodeLens Provider Test Suite', function () {
     });
 
     suite('has the copilot extension active', function () {
-      beforeEach(() => {
+      beforeEach(function () {
         sandbox.stub(vscode.extensions, 'getExtension').returns(undefined);
       });
 

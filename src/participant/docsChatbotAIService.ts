@@ -6,7 +6,7 @@ const MONGODB_DOCS_CHATBOT_BASE_URI = 'https://knowledge.mongodb.com';
 const MONGODB_DOCS_CHATBOT_API_VERSION = 'v1';
 const MONGODB_DOCS_CHATBOT_MODEL = 'mongodb-chat-latest';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../package.json');
 
 export type Reference = {

@@ -40,7 +40,7 @@ function getTestDocumentItem(
 }
 
 suite('openMongoDBDocument Command Test Suite', function () {
-  afterEach(() => {
+  afterEach(function () {
     sinon.restore();
   });
 
@@ -48,7 +48,7 @@ suite('openMongoDBDocument Command Test Suite', function () {
     let showTextDocumentSpy: sinon.SinonSpy;
     let dataService: DataService;
 
-    before(async () => {
+    before(async function () {
       dataService = await createTestDataService(TEST_DATABASE_URI);
       // Add connection through the extension controller
       await mdbTestExtension.testExtensionController._connectionController.addNewConnectionStringAndConnect(
@@ -58,7 +58,7 @@ suite('openMongoDBDocument Command Test Suite', function () {
       );
     });
 
-    after(async () => {
+    after(async function () {
       await mdbTestExtension.testExtensionController._connectionController.disconnect();
       await disconnectFromTestDB();
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');
@@ -67,14 +67,14 @@ suite('openMongoDBDocument Command Test Suite', function () {
       await dataService.disconnect();
     });
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       showTextDocumentSpy = sinon.spy(vscode.window, 'showTextDocument');
 
       // Add the all types to the collection.
       await seedTestDB(allTypesCollection, [allBsonTypes]);
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       // Drop the collection.
       await cleanupTestDB();
     });
@@ -101,7 +101,7 @@ suite('openMongoDBDocument Command Test Suite', function () {
     suite('with ejson format', function () {
       let documentViewAndEditFormat;
 
-      beforeEach(async () => {
+      beforeEach(async function () {
         documentViewAndEditFormat = vscode.workspace
           .getConfiguration('mdb')
           .get('documentViewAndEditFormat');
@@ -110,7 +110,7 @@ suite('openMongoDBDocument Command Test Suite', function () {
           .update('documentViewAndEditFormat', 'ejson', true);
       });
 
-      afterEach(async () => {
+      afterEach(async function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('documentViewAndEditFormat', documentViewAndEditFormat, true);

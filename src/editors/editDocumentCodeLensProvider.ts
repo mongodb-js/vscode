@@ -38,14 +38,12 @@ export default class EditDocumentCodeLensProvider
     namespace?: string;
     uri: vscode.Uri;
   }): void {
-    let resultCodeLensesInfo: EditDocumentInfo[] = [];
-
-    resultCodeLensesInfo = this._updateCodeLensesForCursor({
-      ...data,
-      source: DocumentSource.collectionview,
-    });
-
-    this._codeLensesInfo[data.uri.toString()] = resultCodeLensesInfo;
+    this._codeLensesInfo[data.uri.toString()] = this._updateCodeLensesForCursor(
+      {
+        ...data,
+        source: DocumentSource.collectionview,
+      },
+    );
   }
 
   updateCodeLensesForPlayground(playgroundResult: PlaygroundRunResult): void {

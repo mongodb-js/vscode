@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import path from 'path';
 import { afterEach, beforeEach } from 'mocha';
-import chai from 'chai';
+import { expect, use } from 'chai';
 import type { DataService } from 'mongodb-data-service';
 import { config } from 'dotenv';
 import { resolve } from 'path';
@@ -26,12 +26,10 @@ import {
 import type { SegmentProperties } from '../../../telemetry/telemetryService';
 import { ConnectionType } from '../../../connectionController';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../../../package.json');
 
-const expect = chai.expect;
-
-chai.use(sinonChai);
+use(sinonChai);
 
 config({ path: resolve(__dirname, '../../../../.env') });
 
@@ -52,16 +50,17 @@ suite('Telemetry Controller Test Suite', function () {
     app_name: vscode.env.appName || 'Visual Studio Code - Unknown',
   };
 
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     const instanceStub = sandbox.stub();
     instanceStub.resolves({
       dataLake: {},
       build: {},
       genuineMongoDB: {},
       host: {},
-    } as unknown as Awaited<ReturnType<DataService['instance']>>);
+    });
     dataServiceStub = {
       instance: instanceStub,
     } as unknown as DataService;
@@ -114,7 +113,7 @@ suite('Telemetry Controller Test Suite', function () {
     );
   });
 
-  afterEach(() => {
+  afterEach(function () {
     mdbTestExtension.testExtensionController._connectionController.clearAllConnections();
     sandbox.restore();
   });
@@ -124,7 +123,8 @@ suite('Telemetry Controller Test Suite', function () {
 
     try {
       const segmentKeyFileLocation = '../../../../constants';
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       segmentKey = require(segmentKeyFileLocation)?.segmentKey;
     } catch (error) {
       expect(error).to.be.undefined;
@@ -135,7 +135,7 @@ suite('Telemetry Controller Test Suite', function () {
   });
 
   suite('after setup is complete', function () {
-    beforeEach(async () => {
+    beforeEach(async function () {
       await testTelemetryService.activateSegmentAnalytics();
     });
 
@@ -288,25 +288,6 @@ suite('Telemetry Controller Test Suite', function () {
           event: 'Playground Loaded',
           properties: {
             file_type: 'mongodb',
-            ...commonProperties,
-          },
-        }),
-      );
-    });
-
-    test.skip('track mongodbjs playground loaded event', async function () {
-      const docPath = path.resolve(
-        __dirname,
-        '../../../../src/test/fixture/testPlayground.mongodb.js',
-      );
-      await vscode.workspace.openTextDocument(vscode.Uri.file(docPath));
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          ...telemetryIdentity,
-          event: 'Playground Loaded',
-          properties: {
-            file_type: 'mongodbjs',
             ...commonProperties,
           },
         }),
@@ -498,6 +479,7 @@ suite('Telemetry Controller Test Suite', function () {
       });
     });
 
+    // TODO: update or delete the test according to VSCODE-462
     test.skip('track saved connections loaded', function () {
       testTelemetryService.track(
         new SavedConnectionsLoadedTelemetryEvent({

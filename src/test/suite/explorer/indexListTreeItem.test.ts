@@ -8,7 +8,7 @@ import type { DataService, IndexDefinition } from 'mongodb-data-service';
 import formatError from '../../../utils/formatError';
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contributes } = require('../../../../package.json');
 
 function getTestIndexListTreeItem(
@@ -27,13 +27,14 @@ function getTestIndexListTreeItem(
 
 suite('IndexListTreeItem Test Suite', function () {
   let showErrorMessageStub: SinonStub;
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 
