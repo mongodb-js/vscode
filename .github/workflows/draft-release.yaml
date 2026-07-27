@@ -244,6 +244,9 @@ jobs:
     needs: [prepare-version, test, test-install]
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -260,10 +263,14 @@ jobs:
         with:
           name: vsix
 
+      - name: Configure AWS credentials for DevProd Platforms ECR
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.DEVPROD_PLATFORMS_ECR_ROLE_ARN }}
+          aws-region: us-east-1
+
       - name: Sign .vsix
         env:
-          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           GARASIGN_PASSWORD: ${{ secrets.GARASIGN_PASSWORD }}
           GARASIGN_USERNAME: ${{ secrets.GARASIGN_USERNAME }}
         run: |
@@ -273,6 +280,8 @@ jobs:
             echo "Error: No .vsix file found in the current directory." >&2
             exit 1
           fi
+          ECR_LOGIN_PASSWORD="$(aws ecr get-login-password --region us-east-1)"
+          export ECR_LOGIN_PASSWORD
           node scripts/sign-vsix.js "${FILE_TO_SIGN}"
           ls *.vsix.sig
         shell: bash
