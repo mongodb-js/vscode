@@ -269,8 +269,8 @@ importers:
         specifier: ^1.117.0
         version: 1.118.0
       '@vscode/test-electron':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.1.0
+        version: 3.1.0
       '@vscode/vsce':
         specifier: ^3.9.2
         version: 3.9.2
@@ -3577,8 +3577,8 @@ packages:
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
 
-  '@vscode/test-electron@3.0.0':
-    resolution: {integrity: sha512-TY5mC7aAjxSLDXsyjhrG8cJHgc/HLdiE5lvtW7hABYQrY24Qwozzr5UoO3HiuAM4Hzz4b7K/eZlwrCILj94CcA==}
+  '@vscode/test-electron@3.1.0':
+    resolution: {integrity: sha512-CRqv5u+YYoseuNVJ6Tyo4k0sF0mx4qnKMihRB0PjsUF8Dc0WKtCXo6CNL6nWWm5esfFQsQA/pejMj4ZbpJVLTw==}
     engines: {node: '>=22'}
 
   '@vscode/vsce-sign-alpine-arm64@2.0.6':
@@ -10054,7 +10054,7 @@ snapshots:
       env-paths: 3.0.0
       graceful-fs: 4.2.11
       progress: 2.0.3
-      semver: 7.7.4
+      semver: 7.8.5
       sumchecker: 3.0.1
     optionalDependencies:
       undici: 7.28.0
@@ -13035,12 +13035,12 @@ snapshots:
   '@mongodb-js/mongodb-constants@0.20.1(bson@7.2.0)':
     dependencies:
       bson: 7.2.0
-      semver: 7.7.4
+      semver: 7.8.5
 
   '@mongodb-js/mongodb-constants@0.31.0(bson@7.2.0)':
     dependencies:
       bson: 7.2.0
-      semver: 7.7.4
+      semver: 7.8.5
 
   '@mongodb-js/mongodb-downloader@1.1.14':
     dependencies:
@@ -13179,7 +13179,7 @@ snapshots:
       '@mongodb-js/mongodb-constants': 0.20.1(bson@7.2.0)
       '@mongodb-js/mongodb-ts-autocomplete': 0.6.5(@aws-sdk/credential-providers@3.1042.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@4.4.3)
       '@mongosh/shell-api': 5.3.4(@aws-sdk/credential-providers@3.1042.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@4.4.3)
-      semver: 7.7.4
+      semver: 7.8.5
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@mongodb-js/zstd'
@@ -14653,13 +14653,13 @@ snapshots:
 
   '@vscode/l10n@0.0.18': {}
 
-  '@vscode/test-electron@3.0.0':
+  '@vscode/test-electron@3.1.0':
     dependencies:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
       jszip: 3.10.1
       ora: 8.2.0
-      semver: 7.7.4
+      semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
 
@@ -17369,7 +17369,7 @@ snapshots:
       lodash.isstring: 4.0.1
       lodash.once: 4.1.1
       ms: 2.1.3
-      semver: 7.7.4
+      semver: 7.8.5
 
   jsx-ast-utils@3.3.5:
     dependencies:
@@ -18223,13 +18223,13 @@ snapshots:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.16.1
-      semver: 7.7.4
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   normalize-package-data@6.0.2:
     dependencies:
       hosted-git-info: 7.0.2
-      semver: 7.7.4
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   normalize-path@3.0.0: {}
