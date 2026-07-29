@@ -240,33 +240,6 @@ export class DocumentEditedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-/** Reported when a playground file is exported to a language */
-export class PlaygroundExportedToLanguageTelemetryEvent implements TelemetryEventBase {
-  type = 'Playground Exported To Language';
-  properties: {
-    /** The target language of the export */
-    language: string;
-
-    /** The length of the exported code */
-    exported_code_length: number;
-
-    /** Whether the user opted to include driver syntax (e.g. import statements) */
-    with_driver_syntax: boolean;
-  };
-
-  constructor(
-    language: string,
-    exportedCodeLength: number | undefined,
-    withDriverSyntax: boolean,
-  ) {
-    this.properties = {
-      language,
-      exported_code_length: exportedCodeLength || 0,
-      with_driver_syntax: withDriverSyntax,
-    };
-  }
-}
-
 /** Reported when a new playground is created */
 export class PlaygroundCreatedTelemetryEvent implements TelemetryEventBase {
   type = 'Playground Created';
@@ -810,7 +783,6 @@ export type TelemetryEvent =
   | PlaygroundLoadedTelemetryEvent
   | DocumentUpdatedTelemetryEvent
   | DocumentEditedTelemetryEvent
-  | PlaygroundExportedToLanguageTelemetryEvent
   | PlaygroundCreatedTelemetryEvent
   | ExportToPlaygroundFailedTelemetryEvent
   | SavedConnectionsLoadedTelemetryEvent

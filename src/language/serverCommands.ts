@@ -4,7 +4,6 @@ export const ServerCommand = {
   executeRangeFromPlayground: 'EXECUTE_RANGE_FROM_PLAYGROUND',
   showErrorMessage: 'SHOW_ERROR_MESSAGE',
   showInfoMessage: 'SHOW_INFO_MESSAGE',
-  getExportToLanguageMode: 'GET_EXPORT_TO_LANGUAGE_MODE',
   updateCurrentSessionFields: 'UPDATE_CURRENT_SESSION_FIELDS',
   clearCachedCompletions: 'CLEAR_CACHED_COMPLETIONS',
   mongodbServiceCreated: 'MONGODB_SERVICE_CREATED',

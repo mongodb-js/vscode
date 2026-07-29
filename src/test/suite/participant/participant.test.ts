@@ -1864,7 +1864,7 @@ Schema:
             'Export To Playground Failed',
           );
           expect(playgroundFailedTelemetryEvent.properties.error_name).to.equal(
-            'streamChatResponseWithExportToLanguage',
+            'streamChatResponseWithExportToPlayground',
           );
           expect(
             playgroundFailedTelemetryEvent.properties.input_length,

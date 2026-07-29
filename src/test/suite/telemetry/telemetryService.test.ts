@@ -19,7 +19,6 @@ import {
   LinkClickedTelemetryEvent,
   ParticipantFeedbackTelemetryEvent,
   PlaygroundExecutedTelemetryEvent,
-  PlaygroundExportedToLanguageTelemetryEvent,
   PlaygroundSavedTelemetryEvent,
   SavedConnectionsLoadedTelemetryEvent,
 } from '../../../telemetry';
@@ -325,25 +324,6 @@ suite('Telemetry Controller Test Suite', function () {
           properties: {
             screen: 'helpPanel',
             link_id: 'linkId',
-            ...commonProperties,
-          },
-        }),
-      );
-    });
-
-    test('track playground exported to language', function () {
-      testTelemetryService.track(
-        new PlaygroundExportedToLanguageTelemetryEvent('java', 3, false),
-      );
-
-      sandbox.assert.calledWith(
-        fakeSegmentAnalyticsTrack,
-        sinon.match({
-          ...telemetryIdentity,
-          event: 'Playground Exported To Language',
-          properties: {
-            language: 'java',
-            with_driver_syntax: false,
             ...commonProperties,
           },
         }),

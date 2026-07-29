@@ -19,7 +19,6 @@ import { StorageController } from '../../../storage';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { TelemetryService } from '../../../telemetry';
 import { ExtensionContextStub } from '../stubs';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 import type { LanguageServerController } from '../../../language';
 
 use(chaiAsPromised);
@@ -59,9 +58,6 @@ suite('Language Server Controller Test Suite', function () {
     languageServerControllerStub =
       mdbTestExtension.testExtensionController._languageServerController;
 
-    const testExportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
-
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
@@ -69,7 +65,6 @@ suite('Language Server Controller Test Suite', function () {
       statusView: testStatusView,
       playgroundResultProvider: testPlaygroundResultProvider,
       playgroundSelectionCodeActionProvider: testCodeActionProvider,
-      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
     await testPlaygroundController._activeConnectionChanged();
   });
