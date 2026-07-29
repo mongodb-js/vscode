@@ -45,6 +45,10 @@ export default class PlaygroundResultProvider
       return 'undefined';
     }
 
+    if (this._playgroundResult.type === 'string') {
+      return this._playgroundResult.content;
+    }
+
     if (this._playgroundResult.type === 'undefined') {
       return 'undefined';
     }
