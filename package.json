@@ -1607,7 +1607,8 @@
       "trim": "^0.0.3",
       "@xmldom/xmldom": "^0.9.10",
       "js-yaml@3": "^3.15.0",
-      "js-yaml@4": "^5.2.2"
+      "js-yaml@4": "^5.2.2",
+      "serialize-javascript": "^7.0.5"
     }
   }
 }
