@@ -1593,22 +1593,22 @@
   },
   "pnpm": {
     "overrides": {
-      "react": "^18.3.1",
-      "mongodb": "^7.2.0",
-      "kerberos": "^7.0.0",
-      "bson": "^7.2.0",
-      "@mongodb-js/devtools-connect": "^3.17.3",
-      "mongodb-client-encryption": "^7.0.0",
-      "@mongosh/service-provider-node-driver": "^5.2.0",
-      "@mongodb-js/oidc-plugin": "^2.0.8",
-      "@mongodb-js/devtools-proxy-support": "^0.7.16",
       "@hono/node-server": "^1.19.17",
-      "undici": "^7.29.0",
-      "trim": "^0.0.3",
+      "@mongodb-js/devtools-connect": "^3.17.3",
+      "@mongodb-js/devtools-proxy-support": "^0.7.16",
+      "@mongodb-js/oidc-plugin": "^2.0.8",
+      "@mongosh/service-provider-node-driver": "^5.2.0",
       "@xmldom/xmldom": "^0.9.10",
+      "bson": "^7.2.0",
       "js-yaml@3": "^3.15.0",
       "js-yaml@4": "^5.2.2",
-      "serialize-javascript": "^7.0.5"
+      "kerberos": "^7.0.0",
+      "mongodb": "^7.2.0",
+      "mongodb-client-encryption": "^7.0.0",
+      "react": "^18.3.1",
+      "serialize-javascript": "^7.0.5",
+      "trim": "^0.0.3",
+      "undici": "^7.29.0"
     }
   }
 }
