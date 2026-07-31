@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getSimplifiedSchema, parseSchema } from 'mongodb-schema';
+import { getSimplifiedSchema, parseSchema } from '@mongodb-js/mongodb-schema';
 import type { Document } from 'bson';
 import type { ModelMessage } from 'ai';
 import type { Reference } from './docsChatbotAIService';
