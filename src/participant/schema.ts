@@ -3,7 +3,7 @@ import type {
   SimplifiedSchemaArrayType,
   SimplifiedSchemaDocumentType,
   SimplifiedSchemaType,
-} from 'mongodb-schema';
+} from '@mongodb-js/mongodb-schema';
 import { createLogger } from '../logging';
 
 const log = createLogger('participant schema');

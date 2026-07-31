@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import parseSchema from 'mongodb-schema';
+import parseSchema from '@mongodb-js/mongodb-schema';
 import path from 'path';
 
 import { createLogger } from '../logging';
