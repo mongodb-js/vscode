@@ -17,7 +17,7 @@ import type {
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import type { Document } from '@mongosh/service-provider-core';
 import { getFilteredCompletions } from '@mongodb-js/mongodb-constants';
-import parseSchema from 'mongodb-schema';
+import parseSchema from '@mongodb-js/mongodb-schema';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';

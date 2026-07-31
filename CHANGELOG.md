@@ -1,5 +1,24 @@
 # Change Log
 
+## [v1.16.1](https://github.com/mongodb-js/vscode/releases/tag/v1.16.1) - 2026-07-14
+
+Edit the release notes before publishing.
+
+## What's Changed
+
+* fix: pass telemetry status to MCP server VSCODE-763 by @nirinchev in https://github.com/mongodb-js/vscode/pull/1302
+* fix: show error message if connection closed VSCODE-770 by @tculig in https://github.com/mongodb-js/vscode/pull/1299
+* fix: With an empty collection we should show 0-0 instead of 1-1 VSCODE-771 by @tculig in https://github.com/mongodb-js/vscode/pull/1295
+* fix: add the missing globals we use to the playground templates by @lerouxb in https://github.com/mongodb-js/vscode/pull/1306
+* fix: undefined query should work like null query VSCODE-774 by @lerouxb in https://github.com/mongodb-js/vscode/pull/1307
+* feat(mcp): deviceId in appName passed to embedded MCP server VSCODE-709 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/1309
+* feat: guard remote code execution VSCODE-759 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/1310
+* fix: device id drift between devtools products and altas cli COMPASS-10690 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/1316
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.16.0...v1.16.1
+
+
 ## [v1.16.0](https://github.com/mongodb-js/vscode/releases/tag/v1.16.0) - 2026-03-28
 
 ## What's Changed
