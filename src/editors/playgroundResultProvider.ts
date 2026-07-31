@@ -4,11 +4,7 @@ import { EJSON } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import type EditDocumentCodeLensProvider from './editDocumentCodeLensProvider';
-import {
-  type PlaygroundRunResult,
-  type ExportToLanguageResult,
-} from '../types/playgroundType';
-import { isExportToLanguageResult } from '../types/playgroundType';
+import { type PlaygroundRunResult } from '../types/playgroundType';
 
 export const PLAYGROUND_RESULT_SCHEME = 'PLAYGROUND_RESULT_SCHEME';
 
@@ -21,7 +17,7 @@ export default class PlaygroundResultProvider
 {
   _connectionController: ConnectionController;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-  _playgroundResult?: PlaygroundRunResult | ExportToLanguageResult;
+  _playgroundResult?: PlaygroundRunResult;
 
   constructor(
     connectionController: ConnectionController,
@@ -34,9 +30,7 @@ export default class PlaygroundResultProvider
   onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this.onDidChangeEmitter.event;
 
-  setPlaygroundResult(
-    playgroundResult?: PlaygroundRunResult | ExportToLanguageResult,
-  ): void {
+  setPlaygroundResult(playgroundResult?: PlaygroundRunResult): void {
     if (playgroundResult) {
       this._playgroundResult = playgroundResult;
     }
@@ -51,10 +45,7 @@ export default class PlaygroundResultProvider
       return 'undefined';
     }
 
-    if (
-      isExportToLanguageResult(this._playgroundResult) ||
-      this._playgroundResult.type === 'string'
-    ) {
+    if (this._playgroundResult.type === 'string') {
       return this._playgroundResult.content;
     }
 

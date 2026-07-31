@@ -1791,7 +1791,7 @@ Schema:
 
         afterEach(async function () {
           await vscode.commands.executeCommand(
-            'workbench.action.closeActiveEditor',
+            'workbench.action.closeAllEditors',
           );
         });
 
@@ -1864,7 +1864,7 @@ Schema:
             'Export To Playground Failed',
           );
           expect(playgroundFailedTelemetryEvent.properties.error_name).to.equal(
-            'streamChatResponseWithExportToLanguage',
+            'streamChatResponseWithExportToPlayground',
           );
           expect(
             playgroundFailedTelemetryEvent.properties.input_length,

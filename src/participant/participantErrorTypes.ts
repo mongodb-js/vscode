@@ -12,4 +12,4 @@ export type ParticipantErrorType =
 export type ExportToPlaygroundError =
   | 'cancelled'
   | 'modelInput'
-  | 'streamChatResponseWithExportToLanguage';
+  | 'streamChatResponseWithExportToPlayground';

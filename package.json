@@ -343,10 +343,6 @@
         "title": "MongoDB: Change Active Connection"
       },
       {
-        "command": "mdb.changeDriverSyntaxForExportToLanguage",
-        "title": "MongoDB: Change Export To Language Driver Syntax"
-      },
-      {
         "command": "mdb.runSelectedPlaygroundBlocks",
         "title": "MongoDB: Run Selected Lines From Playground"
       },
@@ -364,14 +360,6 @@
         "icon": {
           "light": "images/light/play.svg",
           "dark": "images/dark/play.svg"
-        }
-      },
-      {
-        "command": "mdb.selectTargetForExportToLanguage",
-        "title": "MongoDB: Select Target For Export to Language",
-        "icon": {
-          "light": "images/light/export-to-language.svg",
-          "dark": "images/dark/export-to-language.svg"
         }
       },
       {
@@ -825,13 +813,8 @@
       ],
       "editor/title": [
         {
-          "command": "mdb.selectTargetForExportToLanguage",
-          "group": "navigation@1",
-          "when": "mdb.isPlayground == true && mdb.isCopilotActive == true"
-        },
-        {
           "command": "mdb.runPlayground",
-          "group": "navigation@2",
+          "group": "navigation@1",
           "when": "mdb.isPlayground == true"
         }
       ],
@@ -925,10 +908,6 @@
           "when": "mdb.isPlayground"
         },
         {
-          "command": "mdb.changeDriverSyntaxForExportToLanguage",
-          "when": "false"
-        },
-        {
           "command": "mdb.copyConnectionString",
           "when": "false"
         },
@@ -1018,10 +997,6 @@
         },
         {
           "command": "mdb.runPlayground",
-          "when": "false"
-        },
-        {
-          "command": "mdb.selectTargetForExportToLanguage",
           "when": "false"
         },
         {

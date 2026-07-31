@@ -23,7 +23,6 @@ import {
   type ThisDiagnosticFix,
   type AllDiagnosticFixes,
   type PlaygroundRunResult,
-  type ExportToLanguageResult,
 } from '../types/playgroundType';
 import type PlaygroundResultProvider from './playgroundResultProvider';
 import {
@@ -35,7 +34,6 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
-import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import { getDocumentViewAndEditFormat } from './types';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
@@ -60,11 +58,10 @@ const connectBeforeRunningMessage =
  */
 export default class PlaygroundController {
   _connectionController: ConnectionController;
-  _playgroundResult?: PlaygroundRunResult | ExportToLanguageResult;
+  _playgroundResult?: PlaygroundRunResult;
   _languageServerController: LanguageServerController;
   _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _telemetryService: TelemetryService;
-  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
 
   _isPartialRun = false;
 
@@ -81,7 +78,6 @@ export default class PlaygroundController {
     statusView,
     playgroundResultProvider,
     playgroundSelectionCodeActionProvider,
-    exportToLanguageCodeLensProvider,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
@@ -89,7 +85,6 @@ export default class PlaygroundController {
     statusView: StatusView;
     playgroundResultProvider: PlaygroundResultProvider;
     playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
-    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   }) {
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
@@ -98,7 +93,6 @@ export default class PlaygroundController {
     this._playgroundResultProvider = playgroundResultProvider;
     this._playgroundSelectionCodeActionProvider =
       playgroundSelectionCodeActionProvider;
-    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
 
     this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();
@@ -444,9 +438,7 @@ export default class PlaygroundController {
     );
   }
 
-  async _openInResultPane(
-    result: PlaygroundRunResult | ExportToLanguageResult,
-  ): Promise<void> {
+  async _openInResultPane(result: PlaygroundRunResult): Promise<void> {
     this._playgroundResultProvider.setPlaygroundResult(result);
 
     if (!this._playgroundResultTextDocument) {
@@ -551,13 +543,6 @@ export default class PlaygroundController {
 
     await this._openResult(evaluateResponse.result);
 
-    return true;
-  }
-
-  async showExportToLanguageResult(
-    result: ExportToLanguageResult,
-  ): Promise<boolean> {
-    await this._openInResultPane(result);
     return true;
   }
 

@@ -41,7 +41,6 @@ import {
   ParticipantResponseFailedTelemetryEvent,
   ParticipantResponseGeneratedTelemetryEvent,
   ParticipantWelcomeShownTelemetryEvent,
-  PlaygroundExportedToLanguageTelemetryEvent,
 } from '../telemetry';
 import { DocsChatbotAIService } from './docsChatbotAIService';
 import type { TelemetryService } from '../telemetry';
@@ -49,14 +48,13 @@ import formatError from '../utils/formatError';
 import { getContent, type ModelInput } from './prompts/promptBase';
 import { processStreamWithIdentifiers } from './streamParsing';
 import type { PromptIntent } from './prompts/intent';
-import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
+import { getSelectedText, getAllText } from '../utils/playground';
 import type { DataService } from 'mongodb-data-service';
 import {
   ParticipantErrorType,
   type ExportToPlaygroundError,
 } from './participantErrorTypes';
 import type PlaygroundResultProvider from '../editors/playgroundResultProvider';
-import { isExportToLanguageResult } from '../types/playgroundType';
 import { PromptHistory } from './prompts/promptHistory';
 import type {
   SendMessageToParticipantOptions,
@@ -64,8 +62,6 @@ import type {
   ParticipantCommand,
   ParticipantCommandType,
 } from './participantTypes';
-import { DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX } from '../editors/exportToLanguageCodeLensProvider';
-import { EXPORT_TO_LANGUAGE_ALIASES } from '../editors/playgroundSelectionCodeActionProvider';
 import { CollectionTreeItem, DatabaseTreeItem } from '../explorer';
 import { DocumentSource } from '../documentSource';
 
@@ -349,7 +345,7 @@ export default class ParticipantController {
     });
   }
 
-  async streamChatResponseWithExportToLanguage({
+  async streamChatResponseWithExportToPlayground({
     modelInput,
     token,
     language,
@@ -384,7 +380,7 @@ export default class ParticipantController {
     } catch (error) {
       /** If anything goes wrong with the response or the stream, return null instead of throwing. */
       log.error(
-        'Error while streaming chat response with export to language',
+        'Error while streaming chat response with export to playground',
         error,
       );
       return null;
@@ -1774,34 +1770,6 @@ export default class ParticipantController {
     return docsRequestChatResult({ chatId });
   }
 
-  async selectLanguageWithQuickPick(): Promise<string | undefined> {
-    const targetLanguages = EXPORT_TO_LANGUAGE_ALIASES.map(
-      ({ alias }) => alias,
-    );
-    const selectedQuickPickItem = await vscode.window.showQuickPick(
-      targetLanguages,
-      {
-        placeHolder: 'Export to...',
-      },
-    );
-    return selectedQuickPickItem;
-  }
-
-  async selectTargetForExportToLanguage(): Promise<boolean> {
-    const languageAlias = await this.selectLanguageWithQuickPick();
-    const language = EXPORT_TO_LANGUAGE_ALIASES.find(
-      (item) => item.alias === languageAlias,
-    );
-    if (!language) {
-      return false;
-    }
-    await vscode.commands.executeCommand(
-      ExtensionCommand.mdbExportToLanguage,
-      language.id,
-    );
-    return true;
-  }
-
   async exportCodeToPlayground(): Promise<boolean> {
     const codeToExport = getSelectedText() || getAllText();
 
@@ -1832,7 +1800,7 @@ export default class ParticipantController {
           }
 
           const result = await Promise.race([
-            this.streamChatResponseWithExportToLanguage({
+            this.streamChatResponseWithExportToPlayground({
               modelInput,
               token,
             }),
@@ -1849,7 +1817,7 @@ export default class ParticipantController {
           }
 
           if (!result || result?.includes("Sorry, I can't assist with that.")) {
-            return { error: 'streamChatResponseWithExportToLanguage' };
+            return { error: 'streamChatResponseWithExportToPlayground' };
           }
 
           return { value: result };
@@ -1894,58 +1862,6 @@ export default class ParticipantController {
       );
       return false;
     }
-  }
-
-  async _exportPlaygroundToLanguageWithCancelModal({
-    prompt,
-    language,
-    includeDriverSyntax,
-  }: {
-    prompt: string;
-    language: string;
-    includeDriverSyntax: boolean;
-  }): Promise<string | null> {
-    const languageById = EXPORT_TO_LANGUAGE_ALIASES.find(
-      (item) => item.id === language,
-    );
-    const progressResult = await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: `Exporting playground to ${languageById?.alias || language}...`,
-        cancellable: true,
-      },
-      async (progress, token): Promise<string | null> => {
-        const modelInput = await Prompts.exportToLanguage.buildMessages({
-          request: { prompt },
-          language,
-          includeDriverSyntax,
-        });
-        const result = await Promise.race([
-          this.streamChatResponseWithExportToLanguage({
-            modelInput,
-            token,
-            language,
-          }),
-          new Promise<null>((resolve) =>
-            token.onCancellationRequested(() => {
-              log.info(`The export to ${language} operation was canceled.`);
-              resolve(null);
-            }),
-          ),
-        ]);
-
-        if (result?.includes("Sorry, I can't assist with that.")) {
-          void vscode.window.showErrorMessage(
-            `Sorry, we were unable to export code to the "${language}" language, please try again. If the error persists, try changing your selected code.`,
-          );
-          return null;
-        }
-
-        return result || null;
-      },
-    );
-
-    return progressResult;
   }
 
   async chatHandler(
@@ -2026,112 +1942,5 @@ Please see our [FAQ](https://www.mongodb.com/docs/generative-ai-faq/) for more i
     return this._connectionController
       .getSavedConnections()
       .map((connection) => connection.name);
-  }
-
-  async changeDriverSyntaxForExportToLanguage(
-    includeDriverSyntax: boolean,
-  ): Promise<boolean> {
-    if (
-      !this._playgroundResultProvider._playgroundResult ||
-      !isExportToLanguageResult(
-        this._playgroundResultProvider._playgroundResult,
-      )
-    ) {
-      void vscode.window.showErrorMessage(
-        'Unable to change the driver syntax, no playground content found.',
-      );
-      return false;
-    }
-
-    const { prompt, language } =
-      this._playgroundResultProvider._playgroundResult;
-    return this._transpile({ prompt, language, includeDriverSyntax });
-  }
-
-  async exportPlaygroundToLanguage(language: string): Promise<boolean> {
-    const editor = vscode.window.activeTextEditor;
-
-    if (!isPlayground(editor?.document.uri)) {
-      void vscode.window.showErrorMessage(
-        'Please select one or more lines in the playground.',
-      );
-      return false;
-    }
-
-    const selectedText = getSelectedText();
-    const prompt = selectedText || getAllText();
-    let includeDriverSyntax = DEFAULT_EXPORT_TO_LANGUAGE_DRIVER_SYNTAX;
-
-    if (
-      this._playgroundResultProvider._playgroundResult &&
-      isExportToLanguageResult(this._playgroundResultProvider._playgroundResult)
-    ) {
-      includeDriverSyntax =
-        this._playgroundResultProvider._playgroundResult.includeDriverSyntax;
-    }
-
-    return this._transpile({ prompt, language, includeDriverSyntax });
-  }
-
-  async _transpile({
-    prompt,
-    language,
-    includeDriverSyntax,
-  }: {
-    prompt: string;
-    language: string;
-    includeDriverSyntax: boolean;
-  }): Promise<boolean> {
-    log.info(`Exporting to the '${language}' language.`);
-
-    try {
-      const transpiledContent =
-        await this._exportPlaygroundToLanguageWithCancelModal({
-          prompt,
-          language,
-          includeDriverSyntax,
-        });
-
-      if (!transpiledContent) {
-        return false;
-      }
-
-      log.info(`The playground was exported to ${language}`, {
-        prompt,
-        language,
-        includeDriverSyntax,
-      });
-
-      this._telemetryService.track(
-        new PlaygroundExportedToLanguageTelemetryEvent(
-          language,
-          transpiledContent?.length,
-          includeDriverSyntax,
-        ),
-      );
-
-      await vscode.commands.executeCommand(
-        ExtensionCommand.showExportToLanguageResult,
-        {
-          prompt,
-          content: transpiledContent,
-          language,
-          includeDriverSyntax,
-        },
-      );
-    } catch (error) {
-      log.error(`Export to ${language} failed`, error);
-      const printableError = formatError(error);
-      const languageById = EXPORT_TO_LANGUAGE_ALIASES.find(
-        (item) => item.id === language,
-      );
-      void vscode.window.showErrorMessage(
-        `Unable to export to ${languageById?.alias || language}: ${
-          printableError.message
-        }`,
-      );
-    }
-
-    return true;
   }
 }
