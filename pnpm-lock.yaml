@@ -63,6 +63,9 @@ importers:
       '@mongodb-js/mongodb-constants':
         specifier: ^0.16.1
         version: 0.16.1(bson@7.2.0)
+      '@mongodb-js/mongodb-schema':
+        specifier: ^12.7.2
+        version: 12.7.2(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       '@mongodb-js/shell-bson-parser':
         specifier: ^1.5.11
         version: 1.5.12(bson@7.2.0)
@@ -138,9 +141,6 @@ importers:
       mongodb-query-parser:
         specifier: ^4.7.11
         version: 4.7.12(bson@7.2.0)
-      mongodb-schema:
-        specifier: ^12.7.0
-        version: 12.7.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       node-machine-id:
         specifier: 1.1.12
         version: 1.1.12
@@ -2479,6 +2479,10 @@ packages:
 
   '@mongodb-js/mongodb-downloader@1.1.14':
     resolution: {integrity: sha512-7u1KBmRvv3qsH7wYJssv9uhcZWcW0VEihgnr6s6I2i8dG3jIaO68yaU/9NwLFJK0dFWvs8XkpfOyBTRU3zup8A==}
+
+  '@mongodb-js/mongodb-schema@12.7.2':
+    resolution: {integrity: sha512-+LC21SF05XYVmlkP0d3llaJ1OCkC7VdD1ozLbRKCmwltFyObtFMEFEarZURRL6wjBEuqxBkLurhq+HsC6U6bOA==}
+    hasBin: true
 
   '@mongodb-js/mongodb-ts-autocomplete@0.6.5':
     resolution: {integrity: sha512-ijnvfCD9EI8sQx3tXbJcXacgLh6iuxAHGzxCrncmFpF2dPvVj0cT195Fjc96K6Nqv+qaevVhCxFy3F1CdVyERg==}
@@ -5884,6 +5888,10 @@ packages:
     resolution: {integrity: sha512-1td788aAnnZ5qs7V2QIRl1owjtYpbKt749Y3xauqQgwIIGF/xXWz1wMTEBx5O3LK3lXLVuqXPdPxj2BoFHaW9Q==}
     hasBin: true
 
+  js-yaml@5.2.2:
+    resolution: {integrity: sha512-dayzUzKkJ1MkuUtZglSebU43utNXH0OWQByK9rKOOuYIO8M5TV1y+n8ALMdG0rdzBnfNkOmZEqrURepb0ejqBw==}
+    hasBin: true
+
   jsbn@1.1.0:
     resolution: {integrity: sha512-4bYVV3aAMtDTTu4+xsDYa6sy9GyJ69/amsu9sYF2zqjiEoZA5xJi3BrfX3uY+/IekIu7MwdObdbDWpoZdBv3/A==}
 
@@ -6421,6 +6429,9 @@ packages:
 
   mongodb-ns@3.2.0:
     resolution: {integrity: sha512-Kxi+IjywEGCcKXZ5iy3FDgU4NAao9r0xs9x1nvwDli7IPVnWPzW4l6HSLRIkGTBQFEfytNNwMpyakBx/ZGhjhw==}
+
+  mongodb-ns@3.2.1:
+    resolution: {integrity: sha512-PhuRl7oAzHbILnn+DoJkHnfduh7VRKMYnkzOv/x32GC8YvnhYXr42rhzxIK/UQvyZcnG968yVvCvjF2xSUP1OQ==}
 
   mongodb-query-parser@4.7.12:
     resolution: {integrity: sha512-7NPKfTGWEjxbtl/oBjX+X1xQEndh23Eps1IUFy0thgfv4TTxlMWfRBMnUuSdJfs0usdht2xbuPg4wh7WgNFt7A==}
@@ -13054,6 +13065,28 @@ snapshots:
       - encoding
       - supports-color
 
+  '@mongodb-js/mongodb-schema@12.7.2(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+    dependencies:
+      reservoir: 0.1.2
+    optionalDependencies:
+      bson: 7.2.0
+      cli-table: 0.3.11
+      js-yaml: 5.2.2
+      mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      mongodb-ns: 3.2.1
+      numeral: 2.0.6
+      progress: 2.0.3
+      stats-lite: 2.2.0
+      yargs: 18.0.0
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - socks
+
   '@mongodb-js/mongodb-ts-autocomplete@0.6.5(@aws-sdk/credential-providers@3.1042.0)(bson@7.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)(zod@4.4.3)':
     dependencies:
       '@mongodb-js/ts-autocomplete': 0.5.6
@@ -17296,6 +17329,11 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
+  js-yaml@5.2.2:
+    dependencies:
+      argparse: 2.0.1
+    optional: true
+
   jsbn@1.1.0: {}
 
   jsdom@29.1.1:
@@ -18028,6 +18066,9 @@ snapshots:
     optional: true
 
   mongodb-ns@3.2.0: {}
+
+  mongodb-ns@3.2.1:
+    optional: true
 
   mongodb-query-parser@4.7.12(bson@7.2.0):
     dependencies:

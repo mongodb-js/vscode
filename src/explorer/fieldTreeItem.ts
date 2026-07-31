@@ -5,7 +5,7 @@ import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
 // Loosely based on bson types. These values match with the
-// types returned by `parseSchema` with `mongodb-schema`.
+// types returned by `parseSchema` with `@mongodb-js/mongodb-schema`.
 // We have types for elements we have special handing for (icons).
 // https://docs.mongodb.com/manual/reference/bson-types/
 export const FieldType = {
