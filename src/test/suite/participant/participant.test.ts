@@ -1791,7 +1791,7 @@ Schema:
 
         afterEach(async function () {
           await vscode.commands.executeCommand(
-            'workbench.action.closeActiveEditor',
+            'workbench.action.closeAllEditors',
           );
         });
 
