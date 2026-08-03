@@ -264,7 +264,7 @@ jobs:
           name: vsix
 
       - name: Configure AWS credentials for DevProd Platforms ECR
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
           role-to-assume: ${{ secrets.DEVPROD_PLATFORMS_ECR_ROLE_ARN }}
           aws-region: us-east-1
@@ -281,6 +281,7 @@ jobs:
             exit 1
           fi
           ECR_LOGIN_PASSWORD="$(aws ecr get-login-password --region us-east-1)"
+          echo "::add-mask::$ECR_LOGIN_PASSWORD"
           export ECR_LOGIN_PASSWORD
           node scripts/sign-vsix.js "${FILE_TO_SIGN}"
           ls *.vsix.sig
