@@ -87,6 +87,64 @@ suite('Playground Controller Test Suite', function () {
     sandbox.restore();
   });
 
+  suite('_openResult', function () {
+    let executeCommandStub: SinonStub;
+    let openInResultPaneStub: SinonStub;
+    let useClassicDataBrowsingExperience: unknown;
+
+    const fakeFindResult = {
+      content: [],
+      constructionOptions: {
+        options: { method: 'find', args: ['testDb', 'testColl'] },
+      },
+    } as any;
+
+    beforeEach(function () {
+      executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
+      openInResultPaneStub = sandbox
+        .stub(testPlaygroundController, '_openInResultPane')
+        .resolves();
+      useClassicDataBrowsingExperience = vscode.workspace
+        .getConfiguration('mdb')
+        .get('useClassicDataBrowsingExperience');
+    });
+
+    afterEach(async function () {
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update(
+          'useClassicDataBrowsingExperience',
+          useClassicDataBrowsingExperience,
+          vscode.ConfigurationTarget.Global,
+        );
+    });
+
+    test('opens find/aggregate cursor results in the data browser by default', async function () {
+      await testPlaygroundController._openResult(fakeFindResult);
+
+      expect(executeCommandStub).to.have.been.calledOnceWith(
+        'mdb.openBrowserFromPlayground',
+        { result: fakeFindResult },
+      );
+      expect(openInResultPaneStub).to.not.have.been.called;
+    });
+
+    test('opens find/aggregate cursor results in the result pane when mdb.useClassicDataBrowsingExperience is true', async function () {
+      await vscode.workspace
+        .getConfiguration('mdb')
+        .update(
+          'useClassicDataBrowsingExperience',
+          true,
+          vscode.ConfigurationTarget.Global,
+        );
+
+      await testPlaygroundController._openResult(fakeFindResult);
+
+      expect(executeCommandStub).to.not.have.been.called;
+      expect(openInResultPaneStub).to.have.been.calledOnceWith(fakeFindResult);
+    });
+  });
+
   suite('passing connection details to service provider', function () {
     let fakeConnectToServiceProvider: SinonSpy;
 

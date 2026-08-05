@@ -13,3 +13,16 @@ export function getDocumentViewAndEditFormat(): DocumentViewAndEditFormat {
       .get<DocumentViewAndEditFormat>('documentViewAndEditFormat') ?? 'shell'
   );
 }
+
+/**
+ * Gets whether the user opted into the classic, editor-based data browsing
+ * experience (instead of the webview-based data browser) from VS Code settings.
+ * @returns `true` if the classic experience should be used, defaulting to `false`.
+ */
+export function getUseClassicDataBrowsingExperience(): boolean {
+  return (
+    vscode.workspace
+      .getConfiguration('mdb')
+      .get<boolean>('useClassicDataBrowsingExperience') ?? false
+  );
+}

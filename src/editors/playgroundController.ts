@@ -34,7 +34,10 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
-import { getDocumentViewAndEditFormat } from './types';
+import {
+  getDocumentViewAndEditFormat,
+  getUseClassicDataBrowsingExperience,
+} from './types';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 import {
@@ -464,7 +467,7 @@ export default class PlaygroundController {
   }
 
   async _openResult(result: PlaygroundRunResult): Promise<void> {
-    if (result.constructionOptions) {
+    if (result.constructionOptions && !getUseClassicDataBrowsingExperience()) {
       const { method } = result.constructionOptions.options;
       if (method === 'find' || method === 'aggregate') {
         // open find or aggregate cursor results in the data browser
@@ -479,7 +482,9 @@ export default class PlaygroundController {
       }
     }
 
-    // as a fallback, show results that aren't find or aggregate cursors in the result pane
+    // as a fallback, show results that aren't find or aggregate cursors in the result
+    // pane - this is also the path used for all results when the user opted into the
+    // classic, editor-based data browsing experience via `mdb.useClassicDataBrowsingExperience`.
     await this._openInResultPane(result);
   }
 

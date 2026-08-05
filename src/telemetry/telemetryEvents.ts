@@ -772,6 +772,24 @@ export class DataBrowserCollectionRefreshedTelemetryEvent implements TelemetryEv
   }
 }
 
+/**
+ * Reported both on extension activation (to capture an accurate adoption baseline, not just
+ * deltas from changes) and whenever the user toggles `mdb.useClassicDataBrowsingExperience`,
+ * so we can track how many people opt into the classic, editor-based data browsing experience
+ * and decide whether it should become the default.
+ */
+export class DataBrowsingExperienceSettingTelemetryEvent implements TelemetryEventBase {
+  type = 'Data Browsing Experience Setting';
+  properties: {
+    /** Whether the classic, editor-based data browsing experience is enabled */
+    use_classic_experience: boolean;
+  };
+
+  constructor(useClassicExperience: boolean) {
+    this.properties = { use_classic_experience: useClassicExperience };
+  }
+}
+
 export type TelemetryEvent =
   | PlaygroundExecutedTelemetryEvent
   | LinkClickedTelemetryEvent
@@ -804,4 +822,5 @@ export type TelemetryEvent =
   | DataBrowserDocumentInsertedTelemetryEvent
   | DataBrowserDocumentDeletedTelemetryEvent
   | DataBrowserClosedTelemetryEvent
-  | DataBrowserCollectionRefreshedTelemetryEvent;
+  | DataBrowserCollectionRefreshedTelemetryEvent
+  | DataBrowsingExperienceSettingTelemetryEvent;

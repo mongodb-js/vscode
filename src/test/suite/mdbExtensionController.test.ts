@@ -294,6 +294,55 @@ suite('MDBExtensionController Test Suite', function () {
       });
     });
 
+    suite('with mdb.useClassicDataBrowsingExperience enabled', function () {
+      let useClassicDataBrowsingExperience: unknown;
+
+      beforeEach(async function () {
+        useClassicDataBrowsingExperience = vscode.workspace
+          .getConfiguration('mdb')
+          .get('useClassicDataBrowsingExperience');
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update('useClassicDataBrowsingExperience', true, true);
+      });
+
+      afterEach(async function () {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update(
+            'useClassicDataBrowsingExperience',
+            useClassicDataBrowsingExperience,
+            true,
+          );
+      });
+
+      test('mdb.viewCollectionDocuments command opens the classic editor-based view instead of the data browser', async function () {
+        const openDataBrowserStub = sandbox.stub(
+          mdbTestExtension.testExtensionController._dataBrowsingController,
+          'openDataBrowser',
+        );
+        const onViewCollectionDocumentsStub = sandbox
+          .stub(
+            mdbTestExtension.testExtensionController._editorsController,
+            'onViewCollectionDocuments',
+          )
+          .resolves(true);
+        const collectionTreeItem = getTestCollectionTreeItem();
+
+        await vscode.commands.executeCommand(
+          'mdb.viewCollectionDocuments',
+          collectionTreeItem,
+        );
+
+        expect(openDataBrowserStub.called).to.equal(false);
+        expect(
+          onViewCollectionDocumentsStub.calledOnceWith(
+            'testDbName.testColName',
+          ),
+        ).to.equal(true);
+      });
+    });
+
     test('mdb.addConnection command should call openWebview on the webview controller', async function () {
       const openWebviewStub = sandbox.stub(
         mdbTestExtension.testExtensionController._webviewController,

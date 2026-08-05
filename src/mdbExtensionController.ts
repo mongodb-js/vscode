@@ -52,6 +52,7 @@ import {
   DataBrowserCollectionRefreshedTelemetryEvent,
   DataBrowserDocumentDeletedTelemetryEvent,
   DataBrowserDocumentInsertedTelemetryEvent,
+  DataBrowsingExperienceSettingTelemetryEvent,
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
@@ -60,6 +61,7 @@ import { z } from 'zod';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
 import type { DocumentViewAndEditFormat } from './editors/types';
+import { getUseClassicDataBrowsingExperience } from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
 import DataBrowsingController from './views/dataBrowsingController';
 
@@ -325,6 +327,16 @@ export default class MDBExtensionController implements vscode.Disposable {
       if (event.affectsConfiguration('mdb.presetConnections')) {
         void this._connectionController.loadSavedConnections();
       }
+
+      if (event.affectsConfiguration('mdb.useClassicDataBrowsingExperience')) {
+        // Tracked on change (in addition to on activation) so we can see how
+        // often people opt in/out, not just the current adoption snapshot.
+        this._telemetryService.track(
+          new DataBrowsingExperienceSettingTelemetryEvent(
+            getUseClassicDataBrowsingExperience(),
+          ),
+        );
+      }
     });
     this._context.subscriptions.push(subscription);
   }
@@ -335,6 +347,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._playgroundsExplorer.activatePlaygroundsTreeView();
     void this._telemetryService.activateSegmentAnalytics();
     this._participantController.createParticipant(this._context);
+
+    // Tracked on every activation (in addition to on change) so we get an accurate
+    // adoption baseline, rather than only relative deltas from settings changes.
+    this._telemetryService.track(
+      new DataBrowsingExperienceSettingTelemetryEvent(
+        getUseClassicDataBrowsingExperience(),
+      ),
+    );
 
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
@@ -895,6 +915,14 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       ExtensionCommand.mdbViewCollectionDocuments,
       (element: ShowPreviewTreeItem | CollectionTreeItem): Promise<boolean> => {
+        if (getUseClassicDataBrowsingExperience()) {
+          // Classic, editor-based experience (opt-in via
+          // `mdb.useClassicDataBrowsingExperience`) instead of the webview data browser.
+          return this._editorsController.onViewCollectionDocuments(
+            `${element.databaseName}.${element.collectionName}`,
+          );
+        }
+
         const collectionType =
           ('type' in element && element.type) ||
           ('collection' in element && element.collection?.type) ||

@@ -1199,6 +1199,11 @@
           "default": "shell",
           "description": "The format to use when viewing and editing documents as well as playground results."
         },
+        "mdb.useClassicDataBrowsingExperience": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the classic, editor-based experience to view collection documents and playground query results instead of the webview-based data browser."
+        },
         "mdb.confirmRunAll": {
           "type": "boolean",
           "default": true,
