@@ -638,7 +638,7 @@ describe('AI Accuracy Tests', function () {
       await pushResultsToDB({
         results,
         anyFailedAccuracyThreshold,
-        httpErrors: 0, // TODO
+        httpErrors: 0,
         runTimeMS: Date.now() - startTime,
       });
     }

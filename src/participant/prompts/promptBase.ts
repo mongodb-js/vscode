@@ -29,70 +29,30 @@ export interface ModelInput {
   stats: ParticipantPromptProperties;
 }
 
+/**
+ * A message can contain tool calls and data alongside text, so we only pull out
+ * the text parts.
+ */
+function getTextParts(message: vscode.LanguageModelChatMessage): string[] {
+  return message.content.flatMap((part) =>
+    part instanceof vscode.LanguageModelTextPart ? [part.value] : [],
+  );
+}
+
 export function getContentLength(
   message: vscode.LanguageModelChatMessage,
 ): number {
-  const content = message.content as any;
-  if (typeof content === 'string') {
-    return content.trim().length;
-  }
-
-  // TODO: https://github.com/microsoft/vscode/pull/231788 made it so message.content is no longer a string,
-  // but an array of things that a message can contain. This will eventually be reflected in the type definitions
-  // but until then, we're manually checking the array contents to ensure we don't break when this PR gets released
-  // in the stable channel.
-  if (Array.isArray(content)) {
-    return content.reduce((acc: number, element) => {
-      const value = element?.value ?? element?.content?.value;
-      if (typeof value === 'string') {
-        return acc + value.length;
-      }
-
-      return acc;
-    }, 0);
-  }
-
-  return 0;
+  return getTextParts(message).reduce((acc, value) => acc + value.length, 0);
 }
 
 export function getContent(message: vscode.LanguageModelChatMessage): string {
-  const content = message.content as any;
-  if (typeof content === 'string') {
-    return content;
-  }
-
-  if (Array.isArray(content)) {
-    return content.reduce((agg: string, element) => {
-      const value = element?.value ?? element?.content?.value;
-      if (typeof value === 'string') {
-        return agg + value;
-      }
-
-      return agg;
-    }, '');
-  }
-
-  return '';
+  return getTextParts(message).join('');
 }
 
 export function isContentEmpty(
   message: vscode.LanguageModelChatMessage,
 ): boolean {
-  const content = message.content as any;
-  if (typeof content === 'string') {
-    return content.trim().length === 0;
-  }
-
-  if (Array.isArray(content)) {
-    for (const element of content) {
-      const value = element?.value ?? element?.content?.value;
-      if (typeof value === 'string' && value.trim().length > 0) {
-        return false;
-      }
-    }
-  }
-
-  return true;
+  return getTextParts(message).every((value) => value.trim().length === 0);
 }
 
 export abstract class PromptBase<PromptArgs extends PromptArgsBase> {

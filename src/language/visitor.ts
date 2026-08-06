@@ -110,19 +110,18 @@ export class Visitor {
   ): string {
     const textLines = textFromEditor.split('\n');
     // Text before the current character
-    const prefix =
-      position.character === 0
-        ? ''
-        : textLines[position.line].slice(0, position.character);
+    const prefix = textLines[position.line].slice(0, position.character);
     // Text after the current character
-    const postfix =
-      position.character === 0
-        ? textLines[position.line]
-        : textLines[position.line].slice(position.character);
+    const postfix = textLines[position.line].slice(position.character);
 
     // Use a placeholder to handle a trigger dot
-    // and track of the current character position
-    // TODO: check the absolute character position
+    // and keep track of the current character position.
+    //
+    // As an alternative, babel puts absolute offsets on nodes as `node.start` /
+    // `node.end`, which would let the line and column comparisons below collapse
+    // into plain numeric ones. Keep in mind the AST is parsed from text that
+    // already has the placeholder inserted, so those offsets are shifted
+    // relative to the original selection.
     textLines[position.line] = `${prefix}${PLACEHOLDER}${postfix}`;
 
     return textLines.join('\n');

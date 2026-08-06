@@ -1414,7 +1414,7 @@ suite('Connection Controller Test Suite', function () {
       );
     });
 
-    // TODO: update or delete the test according to VSCODE-462
+    // TODO(VSCODE-462): Re-enable when the issue with too many Saved Connections Loaded events has resolved.
     test.skip('should track SAVED_CONNECTIONS_LOADED event on load of saved connections', async function () {
       testSandbox.replace(testStorageController, 'get', (key, storage) => {
         if (
