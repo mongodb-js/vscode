@@ -16,19 +16,6 @@ export type PlaygroundRunCursorResult = PlaygroundRunResult & {
   constructionOptions: CursorConstructionOptionsWithChains;
 };
 
-export type ExportToLanguageResult = {
-  prompt: string;
-  content: string;
-  language: string;
-  includeDriverSyntax: boolean;
-};
-
-export function isExportToLanguageResult(
-  result: PlaygroundRunResult | ExportToLanguageResult,
-): result is ExportToLanguageResult {
-  return (result as ExportToLanguageResult).prompt !== undefined;
-}
-
 export type ShellEvaluateResult = {
   result: PlaygroundRunResult | undefined;
 } | null;

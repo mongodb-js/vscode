@@ -18,7 +18,6 @@ import { TelemetryService } from '../../../telemetry';
 import { TEST_DATABASE_URI } from '../dbTestHelper';
 import { ExtensionContextStub, LanguageServerControllerStub } from '../stubs';
 import { mockTextEditor } from '../stubs';
-import ExportToLanguageCodeLensProvider from '../../../editors/exportToLanguageCodeLensProvider';
 
 use(chaiAsPromised);
 
@@ -68,9 +67,6 @@ suite('Playground Controller Test Suite', function () {
       extensionContextStub,
       testStorageController,
     );
-    const testExportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider(testPlaygroundResultProvider);
-
     testPlaygroundController = new PlaygroundController({
       connectionController: testConnectionController,
       languageServerController: languageServerControllerStub,
@@ -78,7 +74,6 @@ suite('Playground Controller Test Suite', function () {
       statusView: testStatusView,
       playgroundResultProvider: testPlaygroundResultProvider,
       playgroundSelectionCodeActionProvider: testCodeActionProvider,
-      exportToLanguageCodeLensProvider: testExportToLanguageCodeLensProvider,
     });
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
     showInformationMessageStub = sandbox.stub(

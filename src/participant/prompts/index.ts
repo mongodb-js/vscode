@@ -6,7 +6,6 @@ import { NamespacePrompt } from './namespace';
 import { QueryPrompt } from './query';
 import { SchemaPrompt } from './schema';
 import { ExportToPlaygroundPrompt } from './exportToPlayground';
-import { ExportToLanguagePrompt } from './exportToLanguage';
 import { isContentEmpty } from './promptBase';
 import { DocsPrompt } from './docs';
 
@@ -20,7 +19,6 @@ export class Prompts {
   public static query = new QueryPrompt();
   public static schema = new SchemaPrompt();
   public static exportToPlayground = new ExportToPlaygroundPrompt();
-  public static exportToLanguage = new ExportToLanguagePrompt();
 
   public static isPromptEmpty(request: vscode.ChatRequest): boolean {
     return !request.prompt || request.prompt.trim().length === 0;

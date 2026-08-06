@@ -7,7 +7,6 @@ import parseShellStringToEJSON, {
 import { toJSString } from 'mongodb-query-parser';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
-import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
 import PlaygroundSelectionCodeActionProvider from './playgroundSelectionCodeActionProvider';
 import PlaygroundDiagnosticsCodeActionProvider from './playgroundDiagnosticsCodeActionProvider';
 import type ConnectionController from '../connectionController';
@@ -103,7 +102,6 @@ export default class EditorsController {
   _mongoDBDocumentService: MongoDBDocumentService;
   _playgroundResultProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
   _queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
@@ -123,7 +121,6 @@ export default class EditorsController {
     telemetryService,
     playgroundResultProvider,
     activeConnectionCodeLensProvider,
-    exportToLanguageCodeLensProvider,
     playgroundSelectionCodeActionProvider,
     playgroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider,
@@ -136,7 +133,6 @@ export default class EditorsController {
     telemetryService: TelemetryService;
     playgroundResultProvider: PlaygroundResultProvider;
     activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
-    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
     playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
     playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
@@ -164,7 +160,6 @@ export default class EditorsController {
     });
     this._playgroundResultProvider = playgroundResultProvider;
     this._activeConnectionCodeLensProvider = activeConnectionCodeLensProvider;
-    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
     this._collectionDocumentsCodeLensProvider =
       new CollectionDocumentsCodeLensProvider(
         this._collectionDocumentsOperationsStore,
@@ -510,14 +505,6 @@ export default class EditorsController {
       vscode.languages.registerCodeLensProvider(
         { language: 'javascript' },
         this._activeConnectionCodeLensProvider,
-      ),
-    );
-    this._context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(
-        {
-          scheme: PLAYGROUND_RESULT_SCHEME,
-        },
-        this._exportToLanguageCodeLensProvider,
       ),
     );
     this._context.subscriptions.push(
