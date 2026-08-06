@@ -2,19 +2,34 @@ import Module from 'module';
 
 const AssistantRole = 2;
 const UserRole = 1;
+
+class LanguageModelTextPart {
+  value: string;
+
+  constructor(value: string) {
+    this.value = value;
+  }
+}
+
+// `vscode.LanguageModelChatMessage` stores content as an array of parts rather
+// than a string, so the mock has to do the same for the tests to read it back.
+const toParts = (content: unknown): LanguageModelTextPart[] =>
+  Array.isArray(content) ? content : [new LanguageModelTextPart(`${content}`)];
+
 const vscodeMock = {
   LanguageModelChatMessageRole: {
     Assistant: AssistantRole,
     User: UserRole,
   },
+  LanguageModelTextPart,
   LanguageModelChatMessage: {
     Assistant: (content, name?: string): unknown => ({
       name,
-      content,
+      content: toParts(content),
       role: AssistantRole,
     }),
     User: (content: string, name?: string): unknown => ({
-      content,
+      content: toParts(content),
       name,
       role: UserRole,
     }),
