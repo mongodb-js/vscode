@@ -1019,7 +1019,7 @@ export default class DataBrowsingController {
     );
     const source = options.query ? 'query-results' : 'collection';
     this._telemetryService.track(
-      new DataBrowserOpenedTelemetryEvent(options.collectionType, source),
+      new DataBrowserOpenedTelemetryEvent(options.collectionType, source, true),
     );
     const extensionPath = context.extensionPath;
 

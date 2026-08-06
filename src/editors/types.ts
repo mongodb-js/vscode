@@ -13,3 +13,11 @@ export function getDocumentViewAndEditFormat(): DocumentViewAndEditFormat {
       .get<DocumentViewAndEditFormat>('documentViewAndEditFormat') ?? 'shell'
   );
 }
+
+export function getUseWebViewDataBrowser(): boolean {
+  return (
+    vscode.workspace
+      .getConfiguration('mdb')
+      .get<boolean>('useWebViewDataBrowser') ?? true
+  );
+}
