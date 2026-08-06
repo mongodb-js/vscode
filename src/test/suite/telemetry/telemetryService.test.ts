@@ -273,7 +273,8 @@ suite('Telemetry Controller Test Suite', function () {
       );
     });
 
-    // TODO: re-enable two tests after https://jira.mongodb.org/browse/VSCODE-432
+    // TODO(VSCODE-432): Re-enable two tests when the issue
+    // with too many Playground Loaded events has resolved.
     test.skip('track mongodb playground loaded event', async function () {
       const docPath = path.resolve(
         __dirname,
@@ -459,7 +460,7 @@ suite('Telemetry Controller Test Suite', function () {
       });
     });
 
-    // TODO: update or delete the test according to VSCODE-462
+    // TODO(VSCODE-462): Re-enable when the issue with too many Saved Connections Loaded events has resolved.
     test.skip('track saved connections loaded', function () {
       testTelemetryService.track(
         new SavedConnectionsLoadedTelemetryEvent({
