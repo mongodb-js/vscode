@@ -1040,6 +1040,9 @@ suite('DataBrowsingController Test Suite', function () {
     expect(trackStub.firstCall.args[0].properties.source).to.equal(
       'collection',
     );
+    expect(trackStub.firstCall.args[0].properties.view_format).to.equal(
+      'shell',
+    );
   });
 
   test('handleEditDocument does not track telemetry when command returns false', async function () {

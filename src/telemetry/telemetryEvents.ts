@@ -1,6 +1,7 @@
 import type { ExtensionCommand } from '../commands';
 import type { DocumentSourceDetails } from '../documentSource';
 import { DocumentSource } from '../documentSource';
+import type { DocumentViewAndEditFormat } from '../editors/types';
 import type {
   ExportToPlaygroundError,
   ParticipantErrorType,
@@ -220,10 +221,17 @@ export class DocumentUpdatedTelemetryEvent implements TelemetryEventBase {
 
     /** Whether the operation was successful */
     success: boolean;
+
+    /** Whether the user edited the document in shell format or ejson */
+    view_format: DocumentViewAndEditFormat;
   };
 
-  constructor(source: DocumentSource, success: boolean) {
-    this.properties = { source, success };
+  constructor(
+    source: DocumentSource,
+    success: boolean,
+    view_format: DocumentViewAndEditFormat,
+  ) {
+    this.properties = { source, success, view_format };
   }
 }
 
@@ -233,10 +241,13 @@ export class DocumentEditedTelemetryEvent implements TelemetryEventBase {
   properties: {
     /** The source of the document - e.g. codelens, treeview, etc. */
     source: DocumentSource;
+
+    /** Whether the user opened the document in shell format or ejson */
+    view_format: DocumentViewAndEditFormat;
   };
 
-  constructor(source: DocumentSource) {
-    this.properties = { source };
+  constructor(source: DocumentSource, view_format: DocumentViewAndEditFormat) {
+    this.properties = { source, view_format };
   }
 }
 
@@ -658,10 +669,17 @@ export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
 
     /** Whether the user is browsing a collection or viewing playground query results */
     source: DataBrowserSource;
+
+    /** Whether the user is viewing the documents in shell format or ejson */
+    view_format: DocumentViewAndEditFormat;
   };
 
-  constructor(collectionType: string, source: DataBrowserSource) {
-    this.properties = { collection_type: collectionType, source };
+  constructor(
+    collectionType: string,
+    source: DataBrowserSource,
+    view_format: DocumentViewAndEditFormat,
+  ) {
+    this.properties = { collection_type: collectionType, source, view_format };
   }
 }
 
@@ -697,10 +715,16 @@ export class DataBrowserDocumentEditedTelemetryEvent implements TelemetryEventBa
   properties: {
     /** Whether the user is browsing a collection or viewing playground query results */
     source: DataBrowserSource;
+
+    /** Whether the user opened the document in shell format or ejson */
+    view_format: DocumentViewAndEditFormat;
   };
 
-  constructor(source: DataBrowserSource) {
-    this.properties = { source };
+  constructor(
+    source: DataBrowserSource,
+    view_format: DocumentViewAndEditFormat,
+  ) {
+    this.properties = { source, view_format };
   }
 }
 

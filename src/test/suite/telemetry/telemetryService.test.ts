@@ -24,6 +24,7 @@ import {
 } from '../../../telemetry';
 import type { SegmentProperties } from '../../../telemetry/telemetryService';
 import { ConnectionType } from '../../../connectionController';
+import { getDocumentViewAndEditFormat } from '../../../editors/types';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../../../package.json');
@@ -219,7 +220,11 @@ suite('Telemetry Controller Test Suite', function () {
     test('track document saved form a tree-view event', function () {
       const source = DocumentSource.treeview;
       testTelemetryService.track(
-        new DocumentUpdatedTelemetryEvent(source, true),
+        new DocumentUpdatedTelemetryEvent(
+          source,
+          true,
+          getDocumentViewAndEditFormat(),
+        ),
       );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
@@ -229,6 +234,7 @@ suite('Telemetry Controller Test Suite', function () {
           properties: {
             source: 'treeview',
             success: true,
+            view_format: getDocumentViewAndEditFormat(),
             ...commonProperties,
           },
         }),
@@ -237,13 +243,22 @@ suite('Telemetry Controller Test Suite', function () {
 
     test('track document opened form playground results', function () {
       const source = DocumentSource.playground;
-      testTelemetryService.track(new DocumentEditedTelemetryEvent(source));
+      testTelemetryService.track(
+        new DocumentEditedTelemetryEvent(
+          source,
+          getDocumentViewAndEditFormat(),
+        ),
+      );
       sandbox.assert.calledWith(
         fakeSegmentAnalyticsTrack,
         sinon.match({
           ...telemetryIdentity,
           event: 'Document Edited',
-          properties: { source: 'playground', extension_version: version },
+          properties: {
+            source: 'playground',
+            view_format: getDocumentViewAndEditFormat(),
+            extension_version: version,
+          },
         }),
       );
     });
