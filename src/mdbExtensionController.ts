@@ -21,9 +21,7 @@ import {
   PlaygroundsExplorer,
   HelpExplorer,
 } from './explorer';
-import ExportToLanguageCodeLensProvider from './editors/exportToLanguageCodeLensProvider';
 import type { PlaygroundRunCursorResult } from './types/playgroundType';
-import { type ExportToLanguageResult } from './types/playgroundType';
 import type FieldTreeItem from './explorer/fieldTreeItem';
 import type IndexListTreeItem from './explorer/indexListTreeItem';
 import { LanguageServerController } from './language';
@@ -54,6 +52,7 @@ import {
   DataBrowserCollectionRefreshedTelemetryEvent,
   DataBrowserDocumentDeletedTelemetryEvent,
   DataBrowserDocumentInsertedTelemetryEvent,
+  DataBrowserOpenedTelemetryEvent,
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
@@ -61,7 +60,11 @@ import * as queryString from 'query-string';
 import { z } from 'zod';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
-import type { DocumentViewAndEditFormat } from './editors/types';
+import {
+  type DocumentViewAndEditFormat,
+  getDocumentViewAndEditFormat,
+  getUseWebViewDataBrowser,
+} from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
 import DataBrowsingController from './views/dataBrowsingController';
 
@@ -78,9 +81,6 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.mdbExportCodeToPlayground,
   ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
   ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
-  ExtensionCommand.mdbSelectTargetForExportToLanguage,
-  ExtensionCommand.mdbExportToLanguage,
-  ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage,
   ExtensionCommand.mdbSaveMongodbDocument,
   ExtensionCommand.mdbChangeActiveConnection,
   ExtensionCommand.mdbCodelensShowMoreDocuments,
@@ -116,7 +116,6 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.participantOpenRawSchemaOutput,
   ExtensionCommand.sendMessageToParticipant,
   ExtensionCommand.sendMessageToParticipantFromInput,
-  ExtensionCommand.showExportToLanguageResult,
   // Playground execution — external triggers should not silently run code
   ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
   ExtensionCommand.mdbRunAllPlaygroundBlocks,
@@ -179,12 +178,6 @@ const DEEP_LINK_PARAM_SCHEMA: Partial<
     databaseName: z.string().optional(),
     collectionName: z.string().optional(),
   }),
-  [ExtensionCommand.mdbExportToLanguage]: z.object({
-    language: z.string().optional(),
-  }),
-  [ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage]: z.object({
-    includeDriverSyntax: z.boolean().optional(),
-  }),
   [ExtensionCommand.mdbCodelensShowMoreDocuments]: z.object({
     operationId: z.string().optional(),
     connectionId: z.string().optional(),
@@ -237,7 +230,6 @@ export default class MDBExtensionController implements vscode.Disposable {
   _playgroundResultProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   _participantController: ParticipantController;
   _mcpController: MCPController;
   _dataBrowsingController: DataBrowsingController;
@@ -280,8 +272,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       new QueryWithCopilotCodeLensProvider();
     this._activeConnectionCodeLensProvider =
       new ActiveConnectionCodeLensProvider(this._connectionController);
-    this._exportToLanguageCodeLensProvider =
-      new ExportToLanguageCodeLensProvider(this._playgroundResultProvider);
     this._playgroundSelectionCodeActionProvider =
       new PlaygroundSelectionCodeActionProvider();
     this._playgroundDiagnosticsCodeActionProvider =
@@ -294,7 +284,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundResultProvider: this._playgroundResultProvider,
       playgroundSelectionCodeActionProvider:
         this._playgroundSelectionCodeActionProvider,
-      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
     });
     this._participantController = new ParticipantController({
       connectionController: this._connectionController,
@@ -310,7 +299,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       telemetryService: this._telemetryService,
       playgroundResultProvider: this._playgroundResultProvider,
       activeConnectionCodeLensProvider: this._activeConnectionCodeLensProvider,
-      exportToLanguageCodeLensProvider: this._exportToLanguageCodeLensProvider,
       playgroundSelectionCodeActionProvider:
         this._playgroundSelectionCodeActionProvider,
       playgroundDiagnosticsCodeActionProvider:
@@ -430,7 +418,7 @@ export default class MDBExtensionController implements vscode.Disposable {
 
       const paramError = validateDeepLinkParams(
         command as ExtensionCommand,
-        parameters as Record<string, unknown>,
+        parameters,
       );
       if (paramError) {
         throw new Error(paramError);
@@ -521,30 +509,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.registerCommand(
       ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
       (data) => this._playgroundController.fixAllInvalidInteractiveSyntax(data),
-    );
-
-    // ------ EXPORT TO LANGUAGE ------ //
-    this.registerCommand(
-      ExtensionCommand.mdbSelectTargetForExportToLanguage,
-      () => this._participantController.selectTargetForExportToLanguage(),
-    );
-    this.registerCommand(
-      ExtensionCommand.mdbExportToLanguage,
-      (language: string) =>
-        this._participantController.exportPlaygroundToLanguage(language),
-    );
-    this.registerCommand(
-      ExtensionCommand.mdbChangeDriverSyntaxForExportToLanguage,
-      (includeDriverSyntax: boolean) =>
-        this._participantController.changeDriverSyntaxForExportToLanguage(
-          includeDriverSyntax,
-        ),
-    );
-    this.registerParticipantCommand(
-      ExtensionCommand.showExportToLanguageResult,
-      (data: ExportToLanguageResult) => {
-        return this._playgroundController.showExportToLanguageResult(data);
-      },
     );
 
     // ------ DOCUMENTS ------ //
@@ -935,19 +899,35 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbViewCollectionDocuments,
-      (element: ShowPreviewTreeItem | CollectionTreeItem): Promise<boolean> => {
+      async (
+        element: ShowPreviewTreeItem | CollectionTreeItem,
+      ): Promise<boolean> => {
         const collectionType =
           ('type' in element && element.type) ||
           ('collection' in element && element.collection?.type) ||
           'collection';
+        const useWebViewDataBrowser = getUseWebViewDataBrowser();
 
-        this._dataBrowsingController.openDataBrowser(this._context, {
-          databaseName: element.databaseName,
-          collectionName: element.collectionName,
-          collectionType,
-        });
+        if (useWebViewDataBrowser) {
+          this._dataBrowsingController.openDataBrowser(this._context, {
+            databaseName: element.databaseName,
+            collectionName: element.collectionName,
+            collectionType,
+          });
+          return true;
+        }
 
-        return Promise.resolve(true);
+        this._telemetryService.track(
+          new DataBrowserOpenedTelemetryEvent(
+            collectionType,
+            'collection',
+            false,
+            getDocumentViewAndEditFormat(),
+          ),
+        );
+        return await this._editorsController.onViewCollectionDocuments(
+          `${element.databaseName}.${element.collectionName}`,
+        );
       },
     );
     this.registerCommand(

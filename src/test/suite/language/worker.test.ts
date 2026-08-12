@@ -1,4 +1,4 @@
-import chai from 'chai';
+import { expect } from 'chai';
 import sinon from 'sinon';
 
 import {
@@ -7,8 +7,6 @@ import {
 } from '../../../language/worker';
 import { serializeBSON, deserializeBSON } from '../../../language/serializer';
 import { ServerCommand } from '../../../language/serverCommands';
-
-const expect = chai.expect;
 
 suite('Worker Test Suite', function () {
   suite('getLanguage', function () {

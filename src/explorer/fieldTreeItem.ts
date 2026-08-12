@@ -5,8 +5,8 @@ import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
 
 // Loosely based on bson types. These values match with the
-// types returned by `parseSchema` with `mongodb-schema`.
-// We have types for elements we have special handing for (icons).
+// types returned by `parseSchema` with `@mongodb-js/mongodb-schema`.
+// We have types for elements we have special handling for (icons).
 // https://docs.mongodb.com/manual/reference/bson-types/
 export const FieldType = {
   array: 'Array',
@@ -64,7 +64,6 @@ const getCollapsibleStateForField = (
     : vscode.TreeItemCollapsibleState.Collapsed;
 };
 
-// eslint-disable-next-line complexity
 export const getIconFileNameForField = (
   field: SchemaFieldType,
 ): null | string => {
@@ -202,7 +201,6 @@ export default class FieldTreeItem
     return element;
   }
 
-  // eslint-disable-next-line complexity
   getChildren(): Thenable<FieldTreeItem[]> {
     if (!fieldIsExpandable(this.field)) {
       return Promise.resolve([]);

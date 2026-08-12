@@ -23,7 +23,6 @@ import {
   type ThisDiagnosticFix,
   type AllDiagnosticFixes,
   type PlaygroundRunResult,
-  type ExportToLanguageResult,
 } from '../types/playgroundType';
 import type PlaygroundResultProvider from './playgroundResultProvider';
 import {
@@ -35,11 +34,14 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
-import type ExportToLanguageCodeLensProvider from './exportToLanguageCodeLensProvider';
-import { getDocumentViewAndEditFormat } from './types';
+import {
+  getDocumentViewAndEditFormat,
+  getUseWebViewDataBrowser,
+} from './types';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 import {
+  DataBrowserOpenedTelemetryEvent,
   PlaygroundCreatedTelemetryEvent,
   PlaygroundExecutedTelemetryEvent,
   PlaygroundSavedTelemetryEvent,
@@ -60,11 +62,10 @@ const connectBeforeRunningMessage =
  */
 export default class PlaygroundController {
   _connectionController: ConnectionController;
-  _playgroundResult?: PlaygroundRunResult | ExportToLanguageResult;
+  _playgroundResult?: PlaygroundRunResult;
   _languageServerController: LanguageServerController;
   _playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
   _telemetryService: TelemetryService;
-  _exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
 
   _isPartialRun = false;
 
@@ -81,7 +82,6 @@ export default class PlaygroundController {
     statusView,
     playgroundResultProvider,
     playgroundSelectionCodeActionProvider,
-    exportToLanguageCodeLensProvider,
   }: {
     connectionController: ConnectionController;
     languageServerController: LanguageServerController;
@@ -89,7 +89,6 @@ export default class PlaygroundController {
     statusView: StatusView;
     playgroundResultProvider: PlaygroundResultProvider;
     playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
-    exportToLanguageCodeLensProvider: ExportToLanguageCodeLensProvider;
   }) {
     this._connectionController = connectionController;
     this._languageServerController = languageServerController;
@@ -98,7 +97,6 @@ export default class PlaygroundController {
     this._playgroundResultProvider = playgroundResultProvider;
     this._playgroundSelectionCodeActionProvider =
       playgroundSelectionCodeActionProvider;
-    this._exportToLanguageCodeLensProvider = exportToLanguageCodeLensProvider;
 
     this._activeConnectionChangedHandler = (): void => {
       void this._activeConnectionChanged();
@@ -444,9 +442,7 @@ export default class PlaygroundController {
     );
   }
 
-  async _openInResultPane(
-    result: PlaygroundRunResult | ExportToLanguageResult,
-  ): Promise<void> {
+  async _openInResultPane(result: PlaygroundRunResult): Promise<void> {
     this._playgroundResultProvider.setPlaygroundResult(result);
 
     if (!this._playgroundResultTextDocument) {
@@ -479,15 +475,26 @@ export default class PlaygroundController {
         // Note: We leave out aggregateDb and runCursorCommand for now because
         // those don't have an associated collectionName and that's a bit
         // removed from how data browser currently works.
-        await vscode.commands.executeCommand(
-          ExtensionCommand.mdbOpenDataBrowserFromPlayground,
-          { result },
+        if (getUseWebViewDataBrowser()) {
+          await vscode.commands.executeCommand(
+            ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+            { result },
+          );
+          return;
+        }
+        this._telemetryService.track(
+          new DataBrowserOpenedTelemetryEvent(
+            'unknown',
+            'query-results',
+            false,
+            getDocumentViewAndEditFormat(),
+          ),
         );
-        return;
       }
     }
 
-    // as a fallback, show results that aren't find or aggregate cursors in the result pane
+    // When the user isn't using the web view databrowser, or results aren't
+    // find or aggregate cursors, show the result in the editor view.
     await this._openInResultPane(result);
   }
 
@@ -551,13 +558,6 @@ export default class PlaygroundController {
 
     await this._openResult(evaluateResponse.result);
 
-    return true;
-  }
-
-  async showExportToLanguageResult(
-    result: ExportToLanguageResult,
-  ): Promise<boolean> {
-    await this._openInResultPane(result);
     return true;
   }
 

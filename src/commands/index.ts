@@ -21,11 +21,6 @@ export const ExtensionCommand = {
   mdbFixThisInvalidInteractiveSyntax: 'mdb.fixThisInvalidInteractiveSyntax',
   mdbFixAllInvalidInteractiveSyntax: 'mdb.fixAllInvalidInteractiveSyntax',
 
-  mdbSelectTargetForExportToLanguage: 'mdb.selectTargetForExportToLanguage',
-  mdbExportToLanguage: 'mdb.exportToLanguage',
-  mdbChangeDriverSyntaxForExportToLanguage:
-    'mdb.changeDriverSyntaxForExportToLanguage',
-
   mdbOpenMongodbDocumentFromCodeLens: 'mdb.openMongoDBDocumentFromCodeLens',
   mdbSaveMongodbDocument: 'mdb.saveMongoDBDocument',
 
@@ -90,7 +85,6 @@ export const ExtensionCommand = {
   selectDatabaseWithParticipant: 'mdb.selectDatabaseWithParticipant',
   selectCollectionWithParticipant: 'mdb.selectCollectionWithParticipant',
   participantOpenRawSchemaOutput: 'mdb.participantViewRawSchemaOutput',
-  showExportToLanguageResult: 'mdb.showExportToLanguageResult',
 
   // MCP Server commands.
   startMcpServer: 'mdb.startMCPServer',

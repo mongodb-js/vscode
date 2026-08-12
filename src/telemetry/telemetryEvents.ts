@@ -251,33 +251,6 @@ export class DocumentEditedTelemetryEvent implements TelemetryEventBase {
   }
 }
 
-/** Reported when a playground file is exported to a language */
-export class PlaygroundExportedToLanguageTelemetryEvent implements TelemetryEventBase {
-  type = 'Playground Exported To Language';
-  properties: {
-    /** The target language of the export */
-    language: string;
-
-    /** The length of the exported code */
-    exported_code_length: number;
-
-    /** Whether the user opted to include driver syntax (e.g. import statements) */
-    with_driver_syntax: boolean;
-  };
-
-  constructor(
-    language: string,
-    exportedCodeLength: number | undefined,
-    withDriverSyntax: boolean,
-  ) {
-    this.properties = {
-      language,
-      exported_code_length: exportedCodeLength || 0,
-      with_driver_syntax: withDriverSyntax,
-    };
-  }
-}
-
 /** Reported when a new playground is created */
 export class PlaygroundCreatedTelemetryEvent implements TelemetryEventBase {
   type = 'Playground Created';
@@ -687,7 +660,7 @@ export class DeepLinkTelemetryEvent implements TelemetryEventBase {
 /** Whether the user is browsing a collection directly or viewing playground query results */
 type DataBrowserSource = 'collection' | 'query-results';
 
-/** Reported when the data browser webview is opened */
+/** Reported when the data browser is opened (either as a webview or as an editor) */
 export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
   type = 'Data Browser Opened';
   properties: {
@@ -697,6 +670,9 @@ export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
     /** Whether the user is browsing a collection or viewing playground query results */
     source: DataBrowserSource;
 
+    /** Whether the user has the `mdb.useWebViewDataBrowser` setting enabled. */
+    use_webview_data_browser: boolean;
+
     /** Whether the user is viewing the documents in shell format or ejson */
     view_format: DocumentViewAndEditFormat;
   };
@@ -704,9 +680,15 @@ export class DataBrowserOpenedTelemetryEvent implements TelemetryEventBase {
   constructor(
     collectionType: string,
     source: DataBrowserSource,
+    useWebViewDataBrowser: boolean,
     view_format: DocumentViewAndEditFormat,
   ) {
-    this.properties = { collection_type: collectionType, source, view_format };
+    this.properties = {
+      collection_type: collectionType,
+      source,
+      view_format,
+      use_webview_data_browser: useWebViewDataBrowser,
+    };
   }
 }
 
@@ -834,7 +816,6 @@ export type TelemetryEvent =
   | PlaygroundLoadedTelemetryEvent
   | DocumentUpdatedTelemetryEvent
   | DocumentEditedTelemetryEvent
-  | PlaygroundExportedToLanguageTelemetryEvent
   | PlaygroundCreatedTelemetryEvent
   | ExportToPlaygroundFailedTelemetryEvent
   | SavedConnectionsLoadedTelemetryEvent

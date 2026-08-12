@@ -119,9 +119,13 @@ function getTestSchemaTreeItem(): SchemaTreeItem {
 
 suite('MDBExtensionController Test Suite', function () {
   this.timeout(10000);
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  afterEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
     sandbox.restore();
   });
 
@@ -193,7 +197,7 @@ suite('MDBExtensionController Test Suite', function () {
   suite('when not connected', function () {
     let showErrorMessageStub: SinonSpy;
 
-    beforeEach(() => {
+    beforeEach(function () {
       sandbox.stub(vscode.window, 'showInformationMessage');
       sandbox.stub(vscode.workspace, 'openTextDocument');
       sandbox.stub(vscode.window, 'showTextDocument');
@@ -224,7 +228,7 @@ suite('MDBExtensionController Test Suite', function () {
     let showErrorMessageStub: SinonStub;
     let fakeCreatePlaygroundFileWithContent: SinonSpy;
 
-    beforeEach(() => {
+    beforeEach(function () {
       showInformationMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage',
@@ -287,6 +291,59 @@ suite('MDBExtensionController Test Suite', function () {
         databaseName: 'testDbName',
         collectionName: 'testColName',
         collectionType: CollectionType.collection,
+      });
+    });
+
+    test('mdb.viewCollectionDocuments command should open an editor when useWebViewDataBrowser is false', async function () {
+      const openDataBrowserStub = sandbox.stub(
+        mdbTestExtension.testExtensionController._dataBrowsingController,
+        'openDataBrowser',
+      );
+      const onViewCollectionDocumentsStub = sandbox
+        .stub(
+          mdbTestExtension.testExtensionController._editorsController,
+          'onViewCollectionDocuments',
+        )
+        .resolves(true);
+      const trackStub = sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'track',
+      );
+
+      const config = vscode.workspace.getConfiguration('mdb');
+      await config.update(
+        'useWebViewDataBrowser',
+        false,
+        vscode.ConfigurationTarget.Global,
+      );
+
+      try {
+        await vscode.commands.executeCommand(
+          'mdb.viewCollectionDocuments',
+          getTestCollectionTreeItem(),
+        );
+      } finally {
+        await config.update(
+          'useWebViewDataBrowser',
+          undefined,
+          vscode.ConfigurationTarget.Global,
+        );
+      }
+
+      expect(openDataBrowserStub.called).to.equal(false);
+      expect(onViewCollectionDocumentsStub.calledOnce).to.equal(true);
+      expect(onViewCollectionDocumentsStub.firstCall.args[0]).to.equal(
+        'testDbName.testColName',
+      );
+
+      const telemetryEvent = trackStub
+        .getCalls()
+        .map((call) => call.args[0])
+        .find((event) => event.type === 'Data Browser Opened');
+      expect(telemetryEvent?.properties).to.deep.equal({
+        collection_type: CollectionType.collection,
+        source: 'collection',
+        use_webview_data_browser: false,
       });
     });
 
@@ -794,7 +851,6 @@ suite('MDBExtensionController Test Suite', function () {
 
     // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
     // TODO: update or delete the test according to VSCODE-461
-    // eslint-disable-next-line mocha/no-skipped-tests
     test.skip('mdb.dropCollection fails when a collection does not exist', async function () {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;
@@ -1040,7 +1096,7 @@ suite('MDBExtensionController Test Suite', function () {
     suite('document operations with ejson format', function () {
       let documentViewAndEditFormat;
 
-      beforeEach(async () => {
+      beforeEach(async function () {
         documentViewAndEditFormat = vscode.workspace
           .getConfiguration('mdb')
           .get('documentViewAndEditFormat');
@@ -1049,7 +1105,7 @@ suite('MDBExtensionController Test Suite', function () {
           .update('documentViewAndEditFormat', 'ejson', true);
       });
 
-      afterEach(async () => {
+      afterEach(async function () {
         await vscode.workspace
           .getConfiguration('mdb')
           .update('documentViewAndEditFormat', documentViewAndEditFormat, true);
@@ -1463,7 +1519,7 @@ suite('MDBExtensionController Test Suite', function () {
     suite('with mock execute command', function () {
       let executeCommandStub: SinonStub;
 
-      beforeEach(() => {
+      beforeEach(function () {
         executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
       });
 
@@ -1472,7 +1528,7 @@ suite('MDBExtensionController Test Suite', function () {
         function () {
           let fakeUpdate: SinonSpy;
 
-          beforeEach(() => {
+          beforeEach(function () {
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
@@ -1526,7 +1582,7 @@ suite('MDBExtensionController Test Suite', function () {
         function () {
           let fakeUpdate: SinonSpy;
 
-          beforeEach(() => {
+          beforeEach(function () {
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
@@ -1569,7 +1625,7 @@ suite('MDBExtensionController Test Suite', function () {
       suite(
         'when a user has been shown the initial overview page',
         function () {
-          beforeEach(() => {
+          beforeEach(function () {
             sandbox.replace(
               mdbTestExtension.testExtensionController._storageController,
               'get',
@@ -1586,7 +1642,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
 
       suite('when a user has opted out of the overview page', function () {
-        beforeEach(async () => {
+        beforeEach(async function () {
           await vscode.workspace
             .getConfiguration('mdb')
             .update('showOverviewPageAfterInstall', false);
@@ -1600,7 +1656,7 @@ suite('MDBExtensionController Test Suite', function () {
           void mdbTestExtension.testExtensionController.showOverviewPageIfRecentlyInstalled();
         });
 
-        afterEach(async () => {
+        afterEach(async function () {
           await vscode.workspace
             .getConfiguration('mdb')
             .update('showOverviewPageAfterInstall', undefined);
@@ -1671,7 +1727,7 @@ suite('MDBExtensionController Test Suite', function () {
 
     let fakeShowErrorMessage: sinon.SinonSpy;
 
-    beforeEach(() => {
+    beforeEach(function () {
       fakeExecuteCommand = sandbox.stub(vscode.commands, 'executeCommand');
       fakeShowErrorMessage = sandbox.stub(vscode.window, 'showErrorMessage');
       fakeTrack = sandbox.stub(
@@ -1680,7 +1736,7 @@ suite('MDBExtensionController Test Suite', function () {
       );
     });
 
-    afterEach(() => {
+    afterEach(function () {
       sandbox.restore();
     });
 

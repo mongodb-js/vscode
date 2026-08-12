@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import sinon from 'sinon';
-import { after, afterEach, before } from 'mocha';
+import { after, afterEach, before, beforeEach } from 'mocha';
 import assert from 'assert';
 import type { DataService } from 'mongodb-data-service';
-import type { Document } from 'mongodb';
 
 import { ext } from '../../../extensionConstants';
 import { fieldIsExpandable } from '../../../explorer/fieldTreeItem';
@@ -20,7 +19,7 @@ import SchemaTreeItem, {
 } from '../../../explorer/schemaTreeItem';
 import { ExtensionContextStub } from '../stubs';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contributes } = require('../../../../package.json');
 
 function getTestSchemaTreeItem(
@@ -41,9 +40,13 @@ function getTestSchemaTreeItem(
 
 suite('SchemaTreeItem Test Suite', function () {
   this.timeout(10000);
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
 
-  afterEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
     sandbox.restore();
   });
 
@@ -170,7 +173,7 @@ suite('SchemaTreeItem Test Suite', function () {
 
   test('When schema parsing fails it displays an error message', async function () {
     const findStub = sandbox.stub();
-    findStub.resolves('invalid schema to parse' as unknown as Document[]);
+    findStub.resolves('invalid schema to parse');
     const testDataService = {
       find: findStub,
     } as unknown as DataService;
@@ -201,15 +204,15 @@ suite('SchemaTreeItem Test Suite', function () {
     this.timeout(5000);
     let dataService;
 
-    before(async () => {
+    before(async function () {
       dataService = await createTestDataService(TEST_DATABASE_URI);
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       await cleanupTestDB();
     });
 
-    after(async () => {
+    after(async function () {
       await disconnectFromTestDB();
     });
 

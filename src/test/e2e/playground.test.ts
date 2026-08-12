@@ -1,5 +1,4 @@
 /* eslint-disable no-empty-pattern */
-/* eslint-disable mocha/no-global-tests */
 import type { TestInfo } from '@playwright/test';
 import {
   test,
@@ -18,7 +17,9 @@ import {
   connectToMongoDB,
   createAndRunPlayground,
   getDataBrowserContent,
+  getEditorText,
   copyExtensionLogs,
+  updateUserSetting,
   TEST_DB_NAME,
 } from './helpers';
 
@@ -38,7 +39,7 @@ async function screenshotOnFailure(testInfo: TestInfo): Promise<void> {
   }
 }
 
-test.beforeAll(async () => {
+test.beforeAll(async function () {
   await startMongoDB();
   await seedDatabase();
 
@@ -48,16 +49,16 @@ test.beforeAll(async () => {
   await connectToMongoDB(page);
 });
 
-test.beforeEach(async () => {
+test.beforeEach(async function () {
   // Close any leftover editor tabs from previous runs.
   await closeAllEditors(page);
 });
 
-test.afterEach(async ({}, testInfo) => {
+test.afterEach(async function ({}, testInfo) {
   await screenshotOnFailure(testInfo);
 });
 
-test.afterAll(async ({}, testInfo) => {
+test.afterAll(async function ({}, testInfo) {
   await screenshotOnFailure(testInfo);
   copyExtensionLogs();
 
@@ -164,7 +165,7 @@ test('playground aggregation results appear in data browsing view', async () => 
 
   // Verify each expected item appears in its own document card
   // and that the filtered-out item does not appear
-  const normalize = (text: string) => text.replace(/\s+/g, ' ');
+  const normalize = (text: string): string => text.replace(/\s+/g, ' ');
   await expect(async () => {
     const cardTexts = await cards.evaluateAll((els) =>
       els.map((el) => el.textContent ?? ''),
@@ -185,6 +186,68 @@ test('playground aggregation results appear in data browsing view', async () => 
     // thingamajig has revenue 500 >= 200, so should be "high"
     expect(allText).toContain('high');
   }).toPass({ timeout: 30_000 });
+});
+
+test('playground find results appear in an editor when useWebViewDataBrowser is false', async () => {
+  const previous = updateUserSetting('mdb.useWebViewDataBrowser', false);
+
+  try {
+    const playgroundCode = [
+      `use('${TEST_DB_NAME}');`,
+      '',
+      'db.sales.find({ item: "thingamajig" });',
+    ].join('\n');
+
+    await createAndRunPlayground(electronApp, page, playgroundCode);
+
+    await expect(async () => {
+      const tabs = page.locator('.tab .label-name');
+      const tabTexts = await tabs.allTextContents();
+      expect(tabTexts).toContain('Playground Result');
+      expect(
+        tabTexts.some((text) => text.startsWith('Playground Result: ')),
+      ).toBe(false);
+    }).toPass({ timeout: 10_000 });
+
+    let resultText = '';
+    await expect(async () => {
+      const resultEditorGroup = page.locator('.editor-group-container').filter({
+        has: page.locator('.tab .label-name', {
+          hasText: /^Playground Result$/,
+        }),
+      });
+      resultText = await getEditorText(resultEditorGroup, electronApp);
+      expect(resultText).toContain('thingamajig');
+    }).toPass({ timeout: 10_000 });
+
+    // _id is serialised as ObjectId('…24-hex-chars…'), not a plain string.
+    expect(resultText).toMatch(/ObjectId\('[0-9a-f]{24}'\)/);
+
+    // All document field names appear with indentation (not as a flat blob).
+    for (const field of [
+      '_id',
+      'item',
+      'quantity',
+      'price',
+      'date',
+      'region',
+      'tags',
+    ]) {
+      expect(resultText).toMatch(new RegExp(`^\\s+${field}:`, 'm'));
+    }
+
+    // Both thingamajig documents are present.
+    expect(resultText).toMatch(/region: 'east'/);
+    expect(resultText).toMatch(/region: 'west'/);
+
+    expect(resultText).toMatch(/date: ISODate\('2024-01-25T/);
+    expect(resultText).toMatch(/date: ISODate\('2024-02-20T/);
+
+    expect(resultText).toMatch(/tags: \[\r?\n\s+'premium'/m);
+    expect(resultText).toMatch(/'premium',\r?\n\s+'sale'/m);
+  } finally {
+    updateUserSetting('mdb.useWebViewDataBrowser', previous);
+  }
 });
 
 test('playground aggregation errors are shown to the user', async () => {

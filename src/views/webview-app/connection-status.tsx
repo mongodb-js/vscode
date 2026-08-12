@@ -146,7 +146,6 @@ const ConnectionStatusConnected: React.FC<{ connectionName: string }> = ({
   );
 };
 
-// eslint-disable-next-line react/no-multi-comp
 const ConnectionStatus: React.FC = () => {
   const { connectionStatus, connectionName } = useConnectionStatus();
   return (

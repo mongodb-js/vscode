@@ -28,8 +28,67 @@ ignore:
   SNYK-JS-MODELCONTEXTPROTOCOLSDK-14871802:
     - '*':
         reason: >-
-          Not applicable: we don't use templated uris in a way this vulnerability
-          would be exploitable.
+          Not applicable: we don't use templated uris in a way this
+          vulnerability would be exploitable.
         expires: 2026-02-11T23:25:45.051Z
         created: 2026-01-12T23:25:45.058Z
+  SNYK-JS-DECOMPRESS-17874437:
+    - '*':
+        reason: >-
+          Not applicable: decompress is a dev-only transitive dep of
+          mongodb-runner used in tests to extract MongoDB's own release archives
+          from trusted URLs. We never extract untrusted archives, and it is not
+          in the shipped extension bundle.
+        expires: 2027-01-30T00:00:00.000Z
+        created: 2026-07-09T09:12:14.036Z
+  SNYK-JS-DECOMPRESS-16415209:
+    - '*':
+        reason: >-
+          Not applicable: decompress is a dev-only transitive dep of
+          mongodb-runner used in tests to extract MongoDB's own release archives
+          from trusted URLs. We never extract untrusted archives, and it is not
+          in the shipped extension bundle. No fix is available (4.2.1 is the
+          last published, unmaintained version).
+        expires: 2027-01-30T00:00:00.000Z
+        created: 2026-07-30T00:00:00.000Z
+  SNYK-JS-DECOMPRESS-17937327:
+    - '*':
+        reason: >-
+          Not applicable: decompress is a dev-only transitive dep of
+          mongodb-runner used in tests to extract MongoDB's own release archives
+          from trusted URLs. We never extract untrusted archives, and it is not
+          in the shipped extension bundle. No fix is available (4.2.1 is the
+          last published, unmaintained version).
+        expires: 2027-01-30T00:00:00.000Z
+        created: 2026-07-30T00:00:00.000Z
+  SNYK-JS-DECOMPRESS-17937340:
+    - '*':
+        reason: >-
+          Not applicable: decompress is a dev-only transitive dep of
+          mongodb-runner used in tests to extract MongoDB's own release archives
+          from trusted URLs. We never extract untrusted archives, and it is not
+          in the shipped extension bundle. No fix is available (4.2.1 is the
+          last published, unmaintained version).
+        expires: 2027-01-30T00:00:00.000Z
+        created: 2026-07-30T00:00:00.000Z
+  SNYK-JS-DECOMPRESS-17937347:
+    - '*':
+        reason: >-
+          Not applicable: decompress is a dev-only transitive dep of
+          mongodb-runner used in tests to extract MongoDB's own release archives
+          from trusted URLs. We never extract untrusted archives, and it is not
+          in the shipped extension bundle. No fix is available (4.2.1 is the
+          last published, unmaintained version).
+        expires: 2027-01-30T00:00:00.000Z
+        created: 2026-07-30T00:00:00.000Z
+  SNYK-JS-DECOMPRESSTAR-559095:
+    - '*':
+        reason: >-
+          Not applicable: decompress-tar is a dev-only transitive dep of
+          mongodb-runner (via decompress) used in tests to extract MongoDB's own
+          release archives from trusted URLs. We never extract untrusted
+          archives, and it is not in the shipped extension bundle. No fix is
+          available.
+        expires: 2027-01-30T00:00:00.000Z
+        created: 2026-07-30T00:00:00.000Z
 patch: {}

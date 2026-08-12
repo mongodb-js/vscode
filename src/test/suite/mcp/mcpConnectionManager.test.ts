@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import { afterEach, beforeEach } from 'mocha';
-import chai, { expect } from 'chai';
+import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import ConnectionString from 'mongodb-connection-string-url';
 import type { LoggerBase } from 'mongodb-mcp-server';
@@ -14,23 +14,24 @@ import {
 } from '../../../mcp/mcpConnectionManager';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../../../connectionController';
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
-const sandbox = sinon.createSandbox();
+let sandbox: sinon.SinonSandbox;
+
 suite('MCPConnectionManager Test Suite', function () {
   let mcpConnectionManager: MCPConnectionManager;
   let fakeServiceProvider: NodeDriverServiceProvider;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     mcpConnectionManager = new MCPConnectionManager({
       logger: { error: () => {}, warning: () => {} } as unknown as LoggerBase,
       getTelemetryAnonymousId: (): string => '1FOO',
     });
     fakeServiceProvider = {
-      runCommand: (() =>
-        Promise.resolve({})) as NodeDriverServiceProvider['runCommand'],
-      close: (() => Promise.resolve()) as NodeDriverServiceProvider['close'],
-    } as NodeDriverServiceProvider;
+      runCommand: () => Promise.resolve({}),
+      close: () => Promise.resolve(),
+    } as unknown as NodeDriverServiceProvider;
     sandbox
       .stub(NodeDriverServiceProvider, 'connect')
       .resolves(fakeServiceProvider);
@@ -39,7 +40,7 @@ suite('MCPConnectionManager Test Suite', function () {
       .resolves('DEVICE_ID');
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
     sandbox.reset();
   });
@@ -65,10 +66,8 @@ suite('MCPConnectionManager Test Suite', function () {
     });
 
     test('should update the state when there is an error', async function () {
-      fakeServiceProvider.runCommand = (() =>
-        Promise.reject(
-          new Error('Bad error'),
-        )) as NodeDriverServiceProvider['runCommand'];
+      fakeServiceProvider.runCommand = (): Promise<Document> =>
+        Promise.reject(new Error('Bad error'));
       const newState = (await mcpConnectionManager.connectToVSCodeConnection({
         connectionId: '1',
         connectionString: 'mongodb://localhost:27017',
@@ -106,10 +105,9 @@ suite('MCPConnectionManager Test Suite', function () {
     });
 
     test('should attempt to disconnect and on failure clear out the state', async function () {
-      fakeServiceProvider.close = (() =>
-        Promise.reject(
-          new Error('Bad close error'),
-        )) as NodeDriverServiceProvider['close'];
+      fakeServiceProvider.close = (): Promise<void> =>
+        Promise.reject(new Error('Bad close error'));
+
       const newState = await mcpConnectionManager.connectToVSCodeConnection({
         connectionId: '1',
         connectionString: 'mongodb://localhost:27017',
@@ -314,7 +312,8 @@ suite('MCPConnectionManager Test Suite', function () {
   suite('#overrideAppNameIfContainsVSCode', function () {
     let localConnectionURL: ConnectionString;
     let atlasConnectionURL: ConnectionString;
-    beforeEach(() => {
+
+    beforeEach(function () {
       localConnectionURL = new ConnectionString(
         `mongodb://localhost:27017/?appName=${DEFAULT_TELEMETRY_APP_NAME}`,
       );

@@ -77,7 +77,7 @@ const getMessageContent = (
     const value: string =
       element instanceof vscode.LanguageModelTextPart
         ? element.value
-        : element.toString();
+        : JSON.stringify(element);
 
     return agg + value;
   }, '');
@@ -770,13 +770,13 @@ suite('Participant Controller Test Suite', function () {
           });
 
           suite('useSampleDocsInCopilot setting is true', function () {
-            beforeEach(async () => {
+            beforeEach(async function () {
               await vscode.workspace
                 .getConfiguration('mdb')
                 .update('useSampleDocsInCopilot', true);
             });
 
-            afterEach(async () => {
+            afterEach(async function () {
               await vscode.workspace
                 .getConfiguration('mdb')
                 .update('useSampleDocsInCopilot', false);
@@ -1791,7 +1791,7 @@ Schema:
 
         afterEach(async function () {
           await vscode.commands.executeCommand(
-            'workbench.action.closeActiveEditor',
+            'workbench.action.closeAllEditors',
           );
         });
 
@@ -1864,7 +1864,7 @@ Schema:
             'Export To Playground Failed',
           );
           expect(playgroundFailedTelemetryEvent.properties.error_name).to.equal(
-            'streamChatResponseWithExportToLanguage',
+            'streamChatResponseWithExportToPlayground',
           );
           expect(
             playgroundFailedTelemetryEvent.properties.input_length,
@@ -2681,7 +2681,7 @@ Schema:
             .map((sub) =>
               sub instanceof vscode.LanguageModelTextPart
                 ? sub.value
-                : sub.toString(),
+                : JSON.stringify(sub),
             )
             .join('');
 
@@ -2794,7 +2794,6 @@ Schema:
     });
 
     test('Reports error code when available', function () {
-      // eslint-disable-next-line new-cap
       const err = vscode.LanguageModelError.NotFound('Model not found');
       testParticipantController._telemetryService.trackParticipantError(
         err,

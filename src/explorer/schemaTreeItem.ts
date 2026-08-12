@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import parseSchema from 'mongodb-schema';
+import parseSchema from '@mongodb-js/mongodb-schema';
 import path from 'path';
 
 import { createLogger } from '../logging';
@@ -135,6 +135,7 @@ export default class SchemaTreeItem
     } catch (parseError) {
       throw new Error(
         `Unable to parse schema: ${formatError(parseError).message}`,
+        { cause: parseError },
       );
     }
   }
@@ -197,13 +198,7 @@ export default class SchemaTreeItem
       return Object.values(this.childrenCache);
     }
 
-    let schema;
-
-    try {
-      schema = await this.getSchema();
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    const schema = await this.getSchema();
 
     this.cacheIsUpToDate = true;
 

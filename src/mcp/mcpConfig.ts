@@ -1,7 +1,8 @@
 import { type UserConfig, UserConfigSchema } from 'mongodb-mcp-server';
 import * as vscode from 'vscode';
 import { createLogger } from '../logging';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contributes } = require('../../package.json');
 
 const logger = createLogger('mcp-config');
@@ -46,7 +47,6 @@ export function getMCPConfigFromVSCodeSettings(
 
 const defaultUserConfig = UserConfigSchema.parse({});
 
-// eslint-disable-next-line complexity
 function mcpConfigValues(
   property: keyof UserConfig,
   configuredValue: unknown,

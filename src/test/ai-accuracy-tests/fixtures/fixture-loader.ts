@@ -1,5 +1,5 @@
 import type { Document, MongoClient } from 'mongodb';
-import { getSimplifiedSchema } from 'mongodb-schema';
+import { getSimplifiedSchema } from '@mongodb-js/mongodb-schema';
 
 import type { Fixture } from './fixture-type';
 import antiques from './antiques';

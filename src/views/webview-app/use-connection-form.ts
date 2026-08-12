@@ -173,7 +173,7 @@ export default function useConnectionForm(): {
       }
     };
     window.addEventListener('message', handleConnectResultResponse);
-    return () => {
+    return (): void => {
       window.removeEventListener('message', handleConnectResultResponse);
     };
   }, [initialConnectionInfo]);
@@ -224,7 +224,6 @@ export default function useConnectionForm(): {
     handleCancelConnectClicked: (): void => {
       sendCancelConnectToExtension();
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     handleSaveConnectionClicked: (): Promise<void> => {
       // no-op, this cannot be called as don't set the `showFavoriteActions` setting.
       return Promise.resolve();

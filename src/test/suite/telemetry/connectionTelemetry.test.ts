@@ -2,7 +2,6 @@ import { before, beforeEach, afterEach } from 'mocha';
 import { connect } from 'mongodb-data-service';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import type { DataService } from 'mongodb-data-service';
 
 import { ConnectionType } from '../../../connectionController';
 import { getConnectionTelemetryProperties } from '../../../telemetry/connectionTelemetry';
@@ -13,13 +12,14 @@ import ConnectionString from 'mongodb-connection-string-url';
 suite('ConnectionTelemetry Controller Test Suite', function () {
   suite('with mock data service', function () {
     this.timeout(8000);
-    const sandbox = sinon.createSandbox();
+    let sandbox: sinon.SinonSandbox;
     let dataServiceStub;
     let getConnectionStringStub;
     let getLastSeenTopology;
     let instanceStub;
 
-    before(() => {
+    before(function () {
+      sandbox = sinon.createSandbox();
       getConnectionStringStub = sandbox.stub();
       getLastSeenTopology = sandbox.stub();
       instanceStub = sandbox.stub();
@@ -28,10 +28,10 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         getConnectionString: getConnectionStringStub,
         getLastSeenTopology: getLastSeenTopology,
         instance: instanceStub,
-      } as unknown as DataService;
+      };
     });
 
-    afterEach(() => {
+    afterEach(function () {
       sandbox.restore();
     });
 
@@ -642,13 +642,13 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
     this.timeout(20000);
     let dataServ;
 
-    beforeEach(async () => {
+    beforeEach(async function () {
       dataServ = await connect({
         connectionOptions: { connectionString: TEST_DATABASE_URI },
       });
     });
 
-    afterEach(async () => {
+    afterEach(async function () {
       await dataServ.disconnect();
     });
 

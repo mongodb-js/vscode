@@ -154,6 +154,7 @@ export class Visitor {
         // Parse in strict mode and allow module declarations
         sourceType: 'module',
       });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       /* Silent fail. When a user hasn't finished typing it causes parsing JS errors */
     }

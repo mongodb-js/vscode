@@ -21,7 +21,8 @@ import {
 import { getDeviceId } from './deviceId';
 
 const log = createLogger('telemetry');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../package.json');
 
 export type SegmentProperties = {
@@ -74,7 +75,7 @@ export class TelemetryService {
         this._context.extensionPath,
         './constants.json',
       );
-      // eslint-disable-next-line no-sync
+
       const constantsFile = await fs.readFile(segmentKeyFileLocation, {
         encoding: 'utf8',
       });

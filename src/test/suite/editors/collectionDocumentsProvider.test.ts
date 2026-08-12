@@ -71,7 +71,7 @@ suite('Collection Documents Provider Test Suite', function () {
     testStorageController,
     extensionContextStub,
   );
-  const sandbox = sinon.createSandbox();
+  let sandbox: sinon.SinonSandbox;
   let testConnectionController: ConnectionController;
   let testStatusView: StatusView;
 
@@ -79,7 +79,8 @@ suite('Collection Documents Provider Test Suite', function () {
   let testCodeLensProvider: EditDocumentCodeLensProvider;
   let testCollectionViewProvider: CollectionDocumentsProvider;
 
-  beforeEach(() => {
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showInformationMessage');
     testStatusView = new StatusView(extensionContextStub);
 
@@ -106,7 +107,7 @@ suite('Collection Documents Provider Test Suite', function () {
     );
   });
 
-  afterEach(() => {
+  afterEach(function () {
     sandbox.restore();
   });
 
@@ -136,6 +137,67 @@ suite('Collection Documents Provider Test Suite', function () {
     );
     expect(findStub.firstCall.args[2]?.limit).to.equal(10);
     expect(documents).to.include('Declaration of Independence');
+  });
+
+  test('provideTextDocumentContent applies the defaultSortOrder setting', async function () {
+    const findStub = sandbox.stub();
+    findStub.resolves([{ field: 'Declaration of Independence' }]);
+    const testDataService = {
+      find: findStub,
+      once: sandbox.stub(),
+    } as unknown as DataService;
+
+    testConnectionController.setActiveDataService(testDataService);
+
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
+
+    const config = vscode.workspace.getConfiguration('mdb');
+    await config.update(
+      'defaultSortOrder',
+      '_id_desc',
+      vscode.ConfigurationTarget.Global,
+    );
+
+    try {
+      const operationId = testQueryStore.createNewOperation();
+      const uri = vscode.Uri.parse(
+        `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
+      );
+
+      await testCollectionViewProvider.provideTextDocumentContent(uri);
+
+      expect(findStub.firstCall.args[2]?.sort).to.deep.equal({ _id: -1 });
+    } finally {
+      await config.update(
+        'defaultSortOrder',
+        undefined,
+        vscode.ConfigurationTarget.Global,
+      );
+    }
+  });
+
+  test('provideTextDocumentContent does not sort with the default defaultSortOrder', async function () {
+    const findStub = sandbox.stub();
+    findStub.resolves([{ field: 'Declaration of Independence' }]);
+    const testDataService = {
+      find: findStub,
+      once: sandbox.stub(),
+    } as unknown as DataService;
+
+    testConnectionController.setActiveDataService(testDataService);
+
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
+
+    const operationId = testQueryStore.createNewOperation();
+    const uri = vscode.Uri.parse(
+      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
+    );
+
+    await testCollectionViewProvider.provideTextDocumentContent(uri);
+
+    expect(findStub.firstCall.args[2]?.sort).to.equal(undefined);
   });
 
   test('provideTextDocumentContent returns a ejson.stringify string with format ejson', async function () {
