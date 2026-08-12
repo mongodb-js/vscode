@@ -234,7 +234,7 @@ suite('Telemetry Controller Test Suite', function () {
           properties: {
             source: 'treeview',
             success: true,
-            view_format: getDocumentViewAndEditFormat(),
+            view_format: 'shell',
             ...commonProperties,
           },
         }),
@@ -256,7 +256,7 @@ suite('Telemetry Controller Test Suite', function () {
           event: 'Document Edited',
           properties: {
             source: 'playground',
-            view_format: getDocumentViewAndEditFormat(),
+            view_format: 'shell',
             extension_version: version,
           },
         }),

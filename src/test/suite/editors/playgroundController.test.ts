@@ -405,6 +405,7 @@ suite('Playground Controller Test Suite', function () {
           collection_type: 'unknown',
           source: 'query-results',
           use_webview_data_browser: false,
+          view_format: 'shell',
         });
       });
 

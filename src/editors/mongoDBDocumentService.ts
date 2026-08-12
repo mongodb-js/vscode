@@ -9,7 +9,6 @@ import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { DocumentUpdatedTelemetryEvent } from '../telemetry';
-import { getDocumentViewAndEditFormat } from './types';
 
 const log = createLogger('document controller');
 
@@ -49,21 +48,22 @@ export default class MongoDBDocumentService {
     throw new Error(errorMessage);
   }
 
-  _saveDocumentFailed(message: string, source: DocumentSource): void {
+  _saveDocumentFailed(
+    message: string,
+    source: DocumentSource,
+    documentFormat: 'shell' | 'ejson',
+  ): void {
     const errorMessage = `Unable to save document: ${message}`;
 
     this._telemetryService.track(
-      new DocumentUpdatedTelemetryEvent(
-        source,
-        false,
-        getDocumentViewAndEditFormat(),
-      ),
+      new DocumentUpdatedTelemetryEvent(source, false, documentFormat),
     );
 
     throw new Error(errorMessage);
   }
 
   async replaceDocument(data: {
+    documentFormat: 'shell' | 'ejson';
     documentId: any;
     namespace: string;
     connectionId: string;
@@ -72,7 +72,14 @@ export default class MongoDBDocumentService {
   }): Promise<void> {
     log.info('Replace document in MongoDB', data);
 
-    const { documentId, namespace, connectionId, newDocument, source } = data;
+    const {
+      documentId,
+      namespace,
+      connectionId,
+      newDocument,
+      source,
+      documentFormat,
+    } = data;
     const activeConnectionId =
       this._connectionController.getActiveConnectionId();
     const connectionName =
@@ -82,6 +89,7 @@ export default class MongoDBDocumentService {
       return this._saveDocumentFailed(
         `no longer connected to '${connectionName}'`,
         source,
+        documentFormat,
       );
     }
 
@@ -91,6 +99,7 @@ export default class MongoDBDocumentService {
       return this._saveDocumentFailed(
         `no longer connected to '${connectionName}'`,
         source,
+        documentFormat,
       );
     }
 
@@ -107,14 +116,14 @@ export default class MongoDBDocumentService {
         },
       );
       this._telemetryService.track(
-        new DocumentUpdatedTelemetryEvent(
-          source,
-          true,
-          getDocumentViewAndEditFormat(),
-        ),
+        new DocumentUpdatedTelemetryEvent(source, true, documentFormat),
       );
     } catch (error) {
-      return this._saveDocumentFailed(formatError(error).message, source);
+      return this._saveDocumentFailed(
+        formatError(error).message,
+        source,
+        documentFormat,
+      );
     } finally {
       this._statusView.hideMessage();
     }

@@ -222,7 +222,7 @@ export class DocumentUpdatedTelemetryEvent implements TelemetryEventBase {
     /** Whether the operation was successful */
     success: boolean;
 
-    /** Whether the user edited the document in shell format or ejson */
+    /** Whether the user saved the document in shell format or ejson */
     view_format: DocumentViewAndEditFormat;
   };
 

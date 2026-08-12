@@ -344,6 +344,7 @@ suite('MDBExtensionController Test Suite', function () {
         collection_type: CollectionType.collection,
         source: 'collection',
         use_webview_data_browser: false,
+        view_format: 'shell',
       });
     });
 

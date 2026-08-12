@@ -82,6 +82,7 @@ suite('MongoDB Document Service Test Suite', function () {
       connectionId,
       newDocument,
       source,
+      documentFormat: 'shell',
     });
 
     expect(document).to.be.deep.equal(newDocument);
@@ -128,6 +129,7 @@ suite('MongoDB Document Service Test Suite', function () {
       connectionId,
       newDocument,
       source,
+      documentFormat: 'shell',
     });
 
     expect(document).to.be.deep.equal(document);
@@ -235,6 +237,7 @@ suite('MongoDB Document Service Test Suite', function () {
         namespace,
         connectionId,
         newDocument,
+        documentFormat: 'shell',
         source,
       });
       throw new Error('expected earlier failure');
@@ -271,6 +274,7 @@ suite('MongoDB Document Service Test Suite', function () {
         connectionId,
         newDocument,
         source,
+        documentFormat: 'shell',
       });
       throw new Error('expected earlier failure');
     } catch (error) {
