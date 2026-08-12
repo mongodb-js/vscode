@@ -12,7 +12,7 @@ overrides:
   '@mongosh/service-provider-node-driver': ^5.2.0
   '@xmldom/xmldom': ^0.9.10
   bson: ^7.2.0
-  js-yaml@3: ^3.15.0
+  js-yaml@3: ^3.15.1
   js-yaml@4: ^5.2.2
   kerberos: ^7.0.0
   mongodb: ^7.2.0
@@ -5894,8 +5894,8 @@ packages:
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
-  js-yaml@3.15.0:
-    resolution: {integrity: sha512-ttBQIIQPDeLjpPOohtUdXuXUVoA2uIB6fEH9HyJ7234s5mBJ5wTx20njxplLZQgLaOfpmPQA7X2t5AX6tIPbog==}
+  js-yaml@3.15.1:
+    resolution: {integrity: sha512-S99WuO3HlhO3XN41EtYUNl9zzXjoJx7QvmipxsJVxtCBT0YHEFy+iOJhjSvrmV12nYhWpZaM8lPHkJm0yUMbag==}
     hasBin: true
 
   js-yaml@5.2.2:
@@ -14250,7 +14250,7 @@ snapshots:
       '@textlint/types': 15.4.0
       chalk: 4.1.2
       debug: 4.4.3(supports-color@8.1.1)
-      js-yaml: 3.15.0
+      js-yaml: 3.15.1
       lodash: 4.18.1
       pluralize: 2.0.0
       string-width: 4.2.3
@@ -15599,7 +15599,7 @@ snapshots:
     dependencies:
       import-fresh: 2.0.0
       is-directory: 0.3.1
-      js-yaml: 3.15.0
+      js-yaml: 3.15.1
       parse-json: 4.0.0
 
   cosmiconfig@7.1.0:
@@ -15883,7 +15883,7 @@ snapshots:
       findup-sync: 5.0.0
       ignore: 5.3.2
       is-core-module: 2.16.1
-      js-yaml: 3.15.0
+      js-yaml: 3.15.1
       json5: 2.2.3
       lodash: 4.18.1
       minimatch: 7.4.9
@@ -17353,7 +17353,7 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
-  js-yaml@3.15.0:
+  js-yaml@3.15.1:
     dependencies:
       argparse: 1.0.10
       esprima: 4.0.1
@@ -19378,7 +19378,7 @@ snapshots:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       email-validator: 2.0.4
-      js-yaml: 3.15.0
+      js-yaml: 3.15.1
       lodash.clonedeep: 4.5.0
       semver: 7.7.4
       snyk-module: 3.3.0
