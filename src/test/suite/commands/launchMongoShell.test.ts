@@ -150,6 +150,45 @@ suite('Commands Test Suite', function () {
     });
   });
 
+  suite('PowerShell 7 (pwsh) env shell', function () {
+    beforeEach(function () {
+      sandbox.replaceGetter(
+        vscode.env,
+        'shell',
+        () => 'C:\\Program Files\\PowerShell\\7\\pwsh.exe',
+      );
+    });
+
+    test('pwsh openMongoDBShell should open a terminal with the active connection driver url', async function () {
+      const expectedDriverUrl =
+        'mongodb://localhost:27088/?readPreference=primary&ssl=false';
+
+      getMongoClientConnectionOptionsStub.returns({
+        url: 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
+        options: {
+          parentHandle: 'pineapple',
+        },
+      });
+
+      isCurrentlyConnectedStub.returns(true);
+
+      await launchMongoShell(testConnectionController);
+      expect(createTerminalStub.called).to.be.true;
+
+      const terminalOptions: vscode.TerminalOptions =
+        createTerminalStub.firstCall.args[0];
+      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+        expectedDriverUrl,
+      );
+      expect(terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE).to.equal(
+        'pineapple',
+      );
+
+      const shellCommandText = sendTextStub.firstCall.args[0];
+      expect(shellCommandText).to.include('$Env:MDB_CONNECTION_STRING');
+    });
+  });
+
   suite('Windows cmd env shell', function () {
     beforeEach(function () {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');

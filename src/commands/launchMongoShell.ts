@@ -88,7 +88,7 @@ const openMongoDBShell = (
 
   let envVariableString: string;
 
-  if (userShell.includes('powershell.exe')) {
+  if (userShell.includes('powershell.exe') || userShell.includes('pwsh')) {
     envVariableString = getPowershellEnvString();
   } else if (userShell.includes('cmd.exe')) {
     envVariableString = getCmdEnvString();
