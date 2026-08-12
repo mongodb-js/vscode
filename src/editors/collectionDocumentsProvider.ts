@@ -9,6 +9,7 @@ import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
 import { DOCUMENT_FORMAT_URI_IDENTIFIER } from './mongoDBDocumentService';
 import { EJSON } from 'bson';
+import { getDefaultDocumentSort } from './types';
 
 export const NAMESPACE_URI_IDENTIFIER = 'namespace';
 export const OPERATION_ID_URI_IDENTIFIER = 'operationId';
@@ -103,6 +104,7 @@ export default class CollectionViewProvider
         {
           limit: documentLimit,
           promoteValues: false,
+          sort: getDefaultDocumentSort(),
         },
       );
 
