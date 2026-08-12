@@ -336,9 +336,11 @@ suite('MDBExtensionController Test Suite', function () {
         'testDbName.testColName',
       );
 
-      const telemetryEvent = trackStub.firstCall.args[0];
-      expect(telemetryEvent.type).to.equal('Data Browser Opened');
-      expect(telemetryEvent.properties).to.deep.equal({
+      const telemetryEvent = trackStub
+        .getCalls()
+        .map((call) => call.args[0])
+        .find((event) => event.type === 'Data Browser Opened');
+      expect(telemetryEvent?.properties).to.deep.equal({
         collection_type: CollectionType.collection,
         source: 'collection',
         use_webview_data_browser: false,
