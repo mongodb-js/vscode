@@ -52,6 +52,7 @@ import {
   DataBrowserCollectionRefreshedTelemetryEvent,
   DataBrowserDocumentDeletedTelemetryEvent,
   DataBrowserDocumentInsertedTelemetryEvent,
+  DataBrowserOpenedTelemetryEvent,
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
@@ -59,7 +60,10 @@ import * as queryString from 'query-string';
 import { z } from 'zod';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
-import type { DocumentViewAndEditFormat } from './editors/types';
+import {
+  type DocumentViewAndEditFormat,
+  getUseWebViewDataBrowser,
+} from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
 import DataBrowsingController from './views/dataBrowsingController';
 
@@ -894,19 +898,34 @@ export default class MDBExtensionController implements vscode.Disposable {
     );
     this.registerCommand(
       ExtensionCommand.mdbViewCollectionDocuments,
-      (element: ShowPreviewTreeItem | CollectionTreeItem): Promise<boolean> => {
+      async (
+        element: ShowPreviewTreeItem | CollectionTreeItem,
+      ): Promise<boolean> => {
         const collectionType =
           ('type' in element && element.type) ||
           ('collection' in element && element.collection?.type) ||
           'collection';
+        const useWebViewDataBrowser = getUseWebViewDataBrowser();
 
-        this._dataBrowsingController.openDataBrowser(this._context, {
-          databaseName: element.databaseName,
-          collectionName: element.collectionName,
-          collectionType,
-        });
+        if (useWebViewDataBrowser) {
+          this._dataBrowsingController.openDataBrowser(this._context, {
+            databaseName: element.databaseName,
+            collectionName: element.collectionName,
+            collectionType,
+          });
+          return true;
+        }
 
-        return Promise.resolve(true);
+        this._telemetryService.track(
+          new DataBrowserOpenedTelemetryEvent(
+            collectionType,
+            'collection',
+            false,
+          ),
+        );
+        return await this._editorsController.onViewCollectionDocuments(
+          `${element.databaseName}.${element.collectionName}`,
+        );
       },
     );
     this.registerCommand(

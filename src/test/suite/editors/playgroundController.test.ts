@@ -340,6 +340,85 @@ suite('Playground Controller Test Suite', function () {
       });
     });
 
+    suite('_openResult', function () {
+      const findResult = {
+        content: [],
+        language: 'json',
+        constructionOptions: {
+          options: { method: 'find', args: ['dbName', 'colName'] },
+        },
+      } as any;
+
+      let openInResultPaneStub: SinonStub;
+      let executeCommandStub: SinonStub;
+      let trackStub: SinonStub;
+
+      beforeEach(function () {
+        openInResultPaneStub = sandbox
+          .stub(testPlaygroundController, '_openInResultPane')
+          .resolves();
+        executeCommandStub = sandbox
+          .stub(vscode.commands, 'executeCommand')
+          .resolves();
+        trackStub = sandbox.stub(
+          testPlaygroundController._telemetryService,
+          'track',
+        );
+      });
+
+      afterEach(async function () {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update(
+            'useWebViewDataBrowser',
+            undefined,
+            vscode.ConfigurationTarget.Global,
+          );
+      });
+
+      test('opens cursor results in the data browser by default', async function () {
+        await testPlaygroundController._openResult(findResult);
+
+        expect(executeCommandStub.firstCall.args[0]).to.equal(
+          'mdb.openBrowserFromPlayground',
+        );
+        expect(openInResultPaneStub.called).to.equal(false);
+      });
+
+      test('opens cursor results in the result pane when useWebViewDataBrowser is false', async function () {
+        await vscode.workspace
+          .getConfiguration('mdb')
+          .update(
+            'useWebViewDataBrowser',
+            false,
+            vscode.ConfigurationTarget.Global,
+          );
+
+        await testPlaygroundController._openResult(findResult);
+
+        expect(executeCommandStub.called).to.equal(false);
+        expect(openInResultPaneStub.calledOnceWith(findResult)).to.equal(true);
+
+        const telemetryEvent = trackStub.firstCall.args[0];
+        expect(telemetryEvent.type).to.equal('Data Browser Opened');
+        expect(telemetryEvent.properties).to.deep.equal({
+          collection_type: 'unknown',
+          source: 'query-results',
+          use_webview_data_browser: false,
+        });
+      });
+
+      test('opens non-cursor results in the result pane', async function () {
+        const result = { content: '123', language: 'plaintext' } as any;
+
+        await testPlaygroundController._openResult(result);
+
+        expect(executeCommandStub.called).to.equal(false);
+        expect(openInResultPaneStub.calledOnceWith(result)).to.equal(true);
+        expect(trackStub.called).to.equal(false);
+      });
+    });
+
     suite('user is connected', function () {
       let showTextDocumentStub: SinonStub;
 

@@ -8,9 +8,7 @@ import ExtensionCommand from '../commands';
 import { createLogger } from '../logging';
 import {
   PreviewMessageType,
-  SORT_VALUE_MAP,
   type DocumentSort,
-  type SortValueKey,
 } from './data-browsing-app/extension-app-message-constants';
 import type { TelemetryService } from '../telemetry';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
@@ -21,7 +19,11 @@ import {
   getThemeTokenColors,
   getMonacoBaseTheme,
 } from '../utils/themeColorReader';
-import { getDocumentViewAndEditFormat } from '../editors/types';
+import {
+  getDocumentViewAndEditFormat,
+  getDefaultSortOrder,
+  getDefaultDocumentSort,
+} from '../editors/types';
 import type {
   CursorConstructionOptionsWithChains,
   CursorChainOptions,
@@ -57,18 +59,6 @@ const getCodiconsDistPath = (extensionPath: string): string => {
 const getMonacoEditorDistPath = (extensionPath: string): string => {
   return path.join(extensionPath, 'dist', 'monaco-editor');
 };
-
-export function getDefaultSortOrder(): SortValueKey {
-  return (
-    vscode.workspace
-      .getConfiguration('mdb')
-      .get<SortValueKey>('defaultSortOrder') ?? 'default'
-  );
-}
-
-function getDefaultDocumentSort(): DocumentSort | undefined {
-  return SORT_VALUE_MAP[getDefaultSortOrder()];
-}
 
 type FindQuery = {
   filter: Document;
@@ -1019,7 +1009,7 @@ export default class DataBrowsingController {
     );
     const source = options.query ? 'query-results' : 'collection';
     this._telemetryService.track(
-      new DataBrowserOpenedTelemetryEvent(options.collectionType, source),
+      new DataBrowserOpenedTelemetryEvent(options.collectionType, source, true),
     );
     const extensionPath = context.extensionPath;
 

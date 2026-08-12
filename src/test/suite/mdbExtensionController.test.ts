@@ -294,6 +294,59 @@ suite('MDBExtensionController Test Suite', function () {
       });
     });
 
+    test('mdb.viewCollectionDocuments command should open an editor when useWebViewDataBrowser is false', async function () {
+      const openDataBrowserStub = sandbox.stub(
+        mdbTestExtension.testExtensionController._dataBrowsingController,
+        'openDataBrowser',
+      );
+      const onViewCollectionDocumentsStub = sandbox
+        .stub(
+          mdbTestExtension.testExtensionController._editorsController,
+          'onViewCollectionDocuments',
+        )
+        .resolves(true);
+      const trackStub = sandbox.stub(
+        mdbTestExtension.testExtensionController._telemetryService,
+        'track',
+      );
+
+      const config = vscode.workspace.getConfiguration('mdb');
+      await config.update(
+        'useWebViewDataBrowser',
+        false,
+        vscode.ConfigurationTarget.Global,
+      );
+
+      try {
+        await vscode.commands.executeCommand(
+          'mdb.viewCollectionDocuments',
+          getTestCollectionTreeItem(),
+        );
+      } finally {
+        await config.update(
+          'useWebViewDataBrowser',
+          undefined,
+          vscode.ConfigurationTarget.Global,
+        );
+      }
+
+      expect(openDataBrowserStub.called).to.equal(false);
+      expect(onViewCollectionDocumentsStub.calledOnce).to.equal(true);
+      expect(onViewCollectionDocumentsStub.firstCall.args[0]).to.equal(
+        'testDbName.testColName',
+      );
+
+      const telemetryEvent = trackStub
+        .getCalls()
+        .map((call) => call.args[0])
+        .find((event) => event.type === 'Data Browser Opened');
+      expect(telemetryEvent?.properties).to.deep.equal({
+        collection_type: CollectionType.collection,
+        source: 'collection',
+        use_webview_data_browser: false,
+      });
+    });
+
     test('mdb.addConnection command should call openWebview on the webview controller', async function () {
       const openWebviewStub = sandbox.stub(
         mdbTestExtension.testExtensionController._webviewController,

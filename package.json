@@ -1102,6 +1102,11 @@
             }
           }
         },
+        "mdb.useWebViewDataBrowser": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use a webview for viewing documents in a collection and find or aggregation playground results. When false, a VS Code editor is used."
+        },
         "mdb.shell": {
           "type": "string",
           "enum": [
