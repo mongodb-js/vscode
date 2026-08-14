@@ -1,13 +1,16 @@
 import OpenAI from 'openai';
 import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
 
-import { CHAT_PARTICIPANT_MODEL } from '../../participant/constants';
+import { CHAT_PARTICIPANT_PREFERRED_MODEL } from '../../participant/constants';
 
 let openai: OpenAI;
 function getOpenAIClient(): OpenAI {
   if (!openai) {
+    const apiKey = process.env.OPENAI_API_KEY ?? '';
     openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey,
+      baseURL: process.env.OPENAI_BASE_URL, // Run against an OpenAI gateway.
+      defaultHeaders: { 'api-key': apiKey }, // Gateways authenticate with an `api-key` header.
     });
   }
 
@@ -30,9 +33,12 @@ export type ChatCompletion = {
   };
 };
 
+const TEST_MODEL = process.env.OPENAI_MODEL ?? CHAT_PARTICIPANT_PREFERRED_MODEL;
+console.log(`Running accuracy tests against '${TEST_MODEL}'.`);
+
 async function createOpenAIChatCompletion({
   messages,
-  model = CHAT_PARTICIPANT_MODEL,
+  model = TEST_MODEL,
 }: {
   messages: ChatMessages;
   model?: ChatCompletionCreateParamsBase['model'];

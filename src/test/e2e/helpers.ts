@@ -6,6 +6,7 @@ import {
   _electron as electron,
   expect,
   type ElectronApplication,
+  type Locator,
   type Page,
 } from '@playwright/test';
 import { MongoCluster } from 'mongodb-runner';
@@ -17,6 +18,7 @@ export const TEST_DB_NAME = 'e2eTestDB';
 
 const E2E_TMP_DIR = path.join(os.tmpdir(), 'vscode-e2e-test');
 const USER_DATA_DIR = path.join(E2E_TMP_DIR, 'user-data');
+const USER_SETTINGS_PATH = path.join(USER_DATA_DIR, 'User', 'settings.json');
 
 let mongoCluster: MongoCluster | undefined;
 
@@ -228,6 +230,8 @@ export async function launchVSCode(): Promise<ElectronApplication> {
       'mdb.confirmRunAll': false,
       'mdb.showMCPAutoStartPrompt': false,
       'mdb.showOverviewPageAfterInstall': false,
+      // Use custom (DOM) dialogs so tests can drive the "save changes?" prompt.
+      'window.dialogStyle': 'custom',
     }),
   );
 
@@ -341,7 +345,14 @@ export async function waitForExtensionReady(page: Page): Promise<void> {
  */
 export async function closeAllEditors(page: Page): Promise<void> {
   await executeCommand(page, 'View: Close All Editors');
-  // Wait until all editor tabs are closed
+
+  // Discard unsaved changes if the "save changes?" prompt appears.
+  const dontSave = page.getByRole('button', { name: "Don't Save" });
+  if (await dontSave.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await dontSave.click();
+  }
+
+  // Wait until all editor tabs are closed.
   await page
     .locator('.editor-group-container .tab')
     .first()
@@ -447,18 +458,17 @@ export async function connectToMongoDB(page: Page): Promise<void> {
 }
 
 /**
- * Create a new playground file with the given content, run it, and return the page.
+ * Create a new playground file with the given content and run it.
  */
 export async function createAndRunPlayground(
   electronApp: ElectronApplication,
   page: Page,
   playgroundContent: string,
 ): Promise<void> {
-  // Create a new playground
+  const isMac = process.platform === 'darwin';
+
   await executeCommand(page, 'MongoDB: Create MongoDB Playground');
 
-  // Wait for the new playground editor to be ready for input.
-  // The command creates an untitled document and opens it in the editor.
   const editorViewLines = page.locator('.monaco-editor .view-lines').first();
   await editorViewLines.waitFor({ state: 'visible', timeout: 30_000 });
 
@@ -487,40 +497,15 @@ export async function createAndRunPlayground(
       .catch(() => {});
   }
 
-  // Click on the editor to ensure it has keyboard focus
+  // Replace the template content with ours. Pasting from the clipboard avoids
+  // Monaco's auto-closing brackets/indentation mangling the content.
   await editorViewLines.click();
-
-  // Select all existing content and replace with our playground
-  const isMac = process.platform === 'darwin';
-  if (isMac) {
-    await page.keyboard.press('Meta+A');
-  } else {
-    await page.keyboard.press('Control+A');
-  }
-
-  // Write to clipboard via Electron's main process API, then paste
-  await electronApp.evaluate(({ clipboard }, text) => {
-    clipboard.writeText(text);
-  }, playgroundContent);
-  if (isMac) {
-    await page.keyboard.press('Meta+V');
-  } else {
-    await page.keyboard.press('Control+V');
-  }
-
-  // Wait for the pasted content to appear in the editor.
-  // Monaco virtualizes rendering, so lines scrolled out of view aren't in the
-  // DOM. Instead, verify the editor tab title updated to reflect the new content
-  // (VS Code uses the first line as the tab title for untitled files).
-  const firstLine = playgroundContent.split('\n')[0];
-  await page.waitForFunction(
-    (snippet) => {
-      const tabs = document.querySelectorAll('.tab .label-name');
-      return Array.from(tabs).some((tab) => tab.textContent?.includes(snippet));
-    },
-    firstLine,
-    { timeout: 15_000 },
+  await electronApp.evaluate(
+    ({ clipboard }, text) => clipboard.writeText(text),
+    playgroundContent,
   );
+  await page.keyboard.press(isMac ? 'Meta+KeyA' : 'Control+KeyA');
+  await page.keyboard.press(isMac ? 'Meta+KeyV' : 'Control+KeyV');
 
   // Run the playground (confirmRunAll is disabled in settings)
   await executeCommand(page, 'MongoDB: Run All From Playground');
@@ -530,6 +515,39 @@ export async function createAndRunPlayground(
   if (await confirmButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
     await confirmButton.click();
   }
+}
+
+/**
+ * Update a key in the user settings.json. VS Code watches this file and
+ * picks up changes without a window reload. Pass `undefined` to delete the
+ * key. Returns the previous value.
+ */
+export function updateUserSetting(key: string, value: unknown): unknown {
+  const raw = fs.readFileSync(USER_SETTINGS_PATH, 'utf-8');
+  const settings = JSON.parse(raw) as Record<string, unknown>;
+  const previous = settings[key];
+  if (value === undefined) {
+    delete settings[key];
+  } else {
+    settings[key] = value;
+  }
+  fs.writeFileSync(USER_SETTINGS_PATH, JSON.stringify(settings));
+  return previous;
+}
+
+export async function getEditorText(
+  editorGroup: Locator,
+  electronApp: ElectronApplication,
+): Promise<string> {
+  await editorGroup.locator('.monaco-editor').first().click();
+
+  // Select all, copy, and then read it from the clipboard.
+  // The editors virtualize the content so we can't pull directly from the DOM.
+  const isMac = process.platform === 'darwin';
+  await editorGroup.page().keyboard.press(isMac ? 'Meta+A' : 'Control+A');
+  await editorGroup.page().keyboard.press(isMac ? 'Meta+C' : 'Control+C');
+
+  return electronApp.evaluate(({ clipboard }) => clipboard.readText());
 }
 
 /**

@@ -34,10 +34,14 @@ import playgroundTemplate from '../templates/playgroundTemplate';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { isPlayground, getSelectedText, getAllText } from '../utils/playground';
-import { getDocumentViewAndEditFormat } from './types';
+import {
+  getDocumentViewAndEditFormat,
+  getUseWebViewDataBrowser,
+} from './types';
 import { playgroundFromDatabaseTreeItemTemplate } from '../templates/playgroundFromDatabaseTreeItemTemplate';
 import { playgroundFromCollectionTreeItemTemplate } from '../templates/playgroundFromCollectionTreeItemTemplate';
 import {
+  DataBrowserOpenedTelemetryEvent,
   PlaygroundCreatedTelemetryEvent,
   PlaygroundExecutedTelemetryEvent,
   PlaygroundSavedTelemetryEvent,
@@ -470,15 +474,25 @@ export default class PlaygroundController {
         // Note: We leave out aggregateDb and runCursorCommand for now because
         // those don't have an associated collectionName and that's a bit
         // removed from how data browser currently works.
-        await vscode.commands.executeCommand(
-          ExtensionCommand.mdbOpenDataBrowserFromPlayground,
-          { result },
+        if (getUseWebViewDataBrowser()) {
+          await vscode.commands.executeCommand(
+            ExtensionCommand.mdbOpenDataBrowserFromPlayground,
+            { result },
+          );
+          return;
+        }
+        this._telemetryService.track(
+          new DataBrowserOpenedTelemetryEvent(
+            'unknown',
+            'query-results',
+            false,
+          ),
         );
-        return;
       }
     }
 
-    // as a fallback, show results that aren't find or aggregate cursors in the result pane
+    // When the user isn't using the web view databrowser, or results aren't
+    // find or aggregate cursors, show the result in the editor view.
     await this._openInResultPane(result);
   }
 

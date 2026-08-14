@@ -88,11 +88,17 @@ const openMongoDBShell = (
 
   let envVariableString: string;
 
-  if (userShell.includes('powershell.exe')) {
+  // Shell paths are case-insensitive on Windows, so normalize before matching.
+  const normalizedUserShell = userShell.toLowerCase();
+
+  if (
+    normalizedUserShell.includes('powershell.exe') ||
+    normalizedUserShell.includes('pwsh')
+  ) {
     envVariableString = getPowershellEnvString();
-  } else if (userShell.includes('cmd.exe')) {
+  } else if (normalizedUserShell.includes('cmd.exe')) {
     envVariableString = getCmdEnvString();
-  } else if (userShell.toLocaleLowerCase().includes('git\\bin\\bash.exe')) {
+  } else if (normalizedUserShell.includes('git\\bin\\bash.exe')) {
     envVariableString = getGitBashEnvString();
   } else {
     // Assume it's a bash environment. This may fail on certain

@@ -139,6 +139,67 @@ suite('Collection Documents Provider Test Suite', function () {
     expect(documents).to.include('Declaration of Independence');
   });
 
+  test('provideTextDocumentContent applies the defaultSortOrder setting', async function () {
+    const findStub = sandbox.stub();
+    findStub.resolves([{ field: 'Declaration of Independence' }]);
+    const testDataService = {
+      find: findStub,
+      once: sandbox.stub(),
+    } as unknown as DataService;
+
+    testConnectionController.setActiveDataService(testDataService);
+
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
+
+    const config = vscode.workspace.getConfiguration('mdb');
+    await config.update(
+      'defaultSortOrder',
+      '_id_desc',
+      vscode.ConfigurationTarget.Global,
+    );
+
+    try {
+      const operationId = testQueryStore.createNewOperation();
+      const uri = vscode.Uri.parse(
+        `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
+      );
+
+      await testCollectionViewProvider.provideTextDocumentContent(uri);
+
+      expect(findStub.firstCall.args[2]?.sort).to.deep.equal({ _id: -1 });
+    } finally {
+      await config.update(
+        'defaultSortOrder',
+        undefined,
+        vscode.ConfigurationTarget.Global,
+      );
+    }
+  });
+
+  test('provideTextDocumentContent does not sort with the default defaultSortOrder', async function () {
+    const findStub = sandbox.stub();
+    findStub.resolves([{ field: 'Declaration of Independence' }]);
+    const testDataService = {
+      find: findStub,
+      once: sandbox.stub(),
+    } as unknown as DataService;
+
+    testConnectionController.setActiveDataService(testDataService);
+
+    sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
+    sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
+
+    const operationId = testQueryStore.createNewOperation();
+    const uri = vscode.Uri.parse(
+      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
+    );
+
+    await testCollectionViewProvider.provideTextDocumentContent(uri);
+
+    expect(findStub.firstCall.args[2]?.sort).to.equal(undefined);
+  });
+
   test('provideTextDocumentContent returns a ejson.stringify string with format ejson', async function () {
     const findStub = sandbox.stub();
     const onceStub = sandbox.stub();

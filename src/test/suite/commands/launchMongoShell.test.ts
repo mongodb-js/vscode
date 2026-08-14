@@ -150,6 +150,93 @@ suite('Commands Test Suite', function () {
     });
   });
 
+  suite('PowerShell 7 (pwsh) env shell', function () {
+    beforeEach(function () {
+      sandbox.replaceGetter(
+        vscode.env,
+        'shell',
+        () => 'C:\\Program Files\\PowerShell\\7\\pwsh.exe',
+      );
+    });
+
+    test('pwsh openMongoDBShell should open a terminal with the active connection driver url', async function () {
+      const expectedDriverUrl =
+        'mongodb://localhost:27088/?readPreference=primary&ssl=false';
+
+      getMongoClientConnectionOptionsStub.returns({
+        url: 'mongodb://localhost:27088/?readPreference=primary&ssl=false',
+        options: {
+          parentHandle: 'pineapple',
+        },
+      });
+
+      isCurrentlyConnectedStub.returns(true);
+
+      await launchMongoShell(testConnectionController);
+      expect(createTerminalStub.called).to.be.true;
+
+      const terminalOptions: vscode.TerminalOptions =
+        createTerminalStub.firstCall.args[0];
+      expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
+        expectedDriverUrl,
+      );
+      expect(terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE).to.equal(
+        'pineapple',
+      );
+
+      const shellCommandText = sendTextStub.firstCall.args[0];
+      expect(shellCommandText).to.include('$Env:MDB_CONNECTION_STRING');
+    });
+  });
+
+  suite('mixed case Windows shell paths', function () {
+    const expectedDriverUrl =
+      'mongodb://localhost:27088/?readPreference=primary&ssl=false';
+
+    beforeEach(function () {
+      getMongoClientConnectionOptionsStub.returns({
+        url: expectedDriverUrl,
+        options: {},
+      });
+      isCurrentlyConnectedStub.returns(true);
+    });
+
+    const testCases: {
+      shell: string;
+      expectedEnvVariable: string;
+    }[] = [
+      {
+        shell: 'C:\\Program Files\\PowerShell\\7\\Pwsh.exe',
+        expectedEnvVariable: '$Env:MDB_CONNECTION_STRING',
+      },
+      {
+        shell: 'C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\PowerShell.exe',
+        expectedEnvVariable: '$Env:MDB_CONNECTION_STRING',
+      },
+      {
+        shell: 'C:\\WINDOWS\\System32\\CMD.EXE',
+        expectedEnvVariable: '%MDB_CONNECTION_STRING%',
+      },
+      {
+        shell: 'C:\\Program Files\\Git\\bin\\Bash.exe',
+        expectedEnvVariable: '$MDB_CONNECTION_STRING',
+      },
+    ];
+
+    for (const { shell, expectedEnvVariable } of testCases) {
+      test(`openMongoDBShell matches ${shell} regardless of casing`, async function () {
+        sandbox.replaceGetter(vscode.env, 'shell', () => shell);
+
+        await launchMongoShell(testConnectionController);
+
+        expect(createTerminalStub.called).to.be.true;
+        expect(sendTextStub.firstCall.args[0]).to.equal(
+          `mongosh ${expectedEnvVariable};`,
+        );
+      });
+    }
+  });
+
   suite('Windows cmd env shell', function () {
     beforeEach(function () {
       sandbox.replaceGetter(vscode.env, 'shell', () => 'cmd.exe');
