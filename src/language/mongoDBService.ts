@@ -412,11 +412,6 @@ export default class MongoDBService {
           { limit: 1 },
         )
         .toArray();
-
-      // TODO(VSCODE-793): with `limit: 1` we don't need `parseSchema` and could
-      // walk the document into dotted paths ourselves. But one document misses
-      // any field absent from it, and Compass samples 1000 instead, so we might
-      // want to sample more here and flatten `parseSchema`'s nested fields.
       const schema = await parseSchema(documents);
       result = schema?.fields ? schema.fields.map((item) => item.name) : [];
     } catch (error) {
