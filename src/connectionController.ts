@@ -246,8 +246,7 @@ export default class ConnectionController {
       this.eventEmitter.emit('CONNECTIONS_DID_CHANGE');
     }
 
-    // TODO: re-enable with fewer 'Saved Connections Loaded' events
-    // https://jira.mongodb.org/browse/VSCODE-462
+    // TODO(VSCODE-462): Re-enable with fewer 'Saved Connections Loaded' events.
     /* this._telemetryService.track(new SavedConnectionsLoadedTelemetryEvent({
       saved_connections: globalAndWorkspaceConnections.length,
       loaded_connections: loadedConnections.length,

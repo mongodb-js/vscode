@@ -45,9 +45,7 @@ async function createOpenAIChatCompletion({
 }): Promise<ChatCompletion> {
   const openai = getOpenAIClient();
 
-  // TODO: Currently we aren't supplying a system message, that may
-  // create a discrepancy in responses. We should investigate passing a system
-  // message, even if it's minimal.
+  // TODO(VSCODE-794): Pass a system message to Copilot, even if it's minimal.
   const completion: OpenAI.Chat.Completions.ChatCompletion =
     await openai.chat.completions.create({
       messages,

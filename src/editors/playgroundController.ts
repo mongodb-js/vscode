@@ -132,8 +132,7 @@ export default class PlaygroundController {
 
     vscode.workspace.onDidOpenTextDocument(async (document) => {
       if (isPlayground(document.uri)) {
-        // TODO: re-enable with fewer 'Playground Loaded' events
-        // https://jira.mongodb.org/browse/VSCODE-432
+        // TODO(VSCODE-432): Re-enable with fewer 'Playground Loaded' events.
         // this._telemetryService.track(new PlaygroundLoadedTelemetryEvent(document.uri));
         await vscode.languages.setTextDocumentLanguage(document, 'javascript');
       }

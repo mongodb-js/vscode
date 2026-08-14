@@ -849,8 +849,8 @@ suite('MDBExtensionController Test Suite', function () {
       assert.strictEqual(calledNamespace, 'testDbName.testColName');
     });
 
+    // TODO(VSCODE-461): Update test and allow dropping nonexistent collections.
     // Starting server 7.0, the outcome of dropping nonexistent collections is successful SERVER-43894
-    // TODO: update or delete the test according to VSCODE-461
     test.skip('mdb.dropCollection fails when a collection does not exist', async function () {
       const testConnectionController =
         mdbTestExtension.testExtensionController._connectionController;

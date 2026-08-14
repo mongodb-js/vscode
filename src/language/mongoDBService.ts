@@ -252,13 +252,11 @@ export default class MongoDBService {
         // By doing this we ensure that the NodeDriverServiceProvider connection is up-to-date,
         // and that multiple playground runs do not interfere with each other.
         //
-        // There is an issue with support for `.ts` files.
-        // Trying to run a `.ts` file in a worker thread returns the error:
-        // `The worker script extension must be “.js” or “.mjs”. Received “.ts”`
-        // As a workaround require `.js` file from the out folder.
-        //
-        // TODO: After webpackifying the extension replace
-        // the workaround with some similar 3rd-party plugin.
+        // A worker thread can only be started from a `.js` or `.mjs` file, so we
+        // point it at the bundled worker instead of `src/language/worker.ts`.
+        // `dist/languageServerWorker.js` is built by its own webpack entry, which
+        // also bundles the worker's dependencies so they don't need to be
+        // resolvable at runtime.
         const worker = new WorkerThreads(
           path.resolve(
             this._extensionPath,
@@ -352,9 +350,10 @@ export default class MongoDBService {
     }
 
     try {
-      // TODO: There is a mistake in the service provider interface
-      // Use `admin` as arguments to get list of dbs
-      // and remove it later when `mongosh` will merge a fix.
+      // TODO(MONGOSH-3581): The service provider requires a database name here,
+      // but the value is inert: the driver always runs `listDatabases` against
+      // `admin` regardless of what we pass. Drop this argument once mongosh
+      // makes it optional.
       const documents = await this._serviceProvider.listDatabases('admin');
       result = documents.databases ?? [];
     } catch (error) {
@@ -408,15 +407,11 @@ export default class MongoDBService {
           databaseName,
           collectionName,
           {},
-          // TODO: figure out if we need parseSchema for one field at all.
-          // For one document we can simply get deep object keys,
-          // or we could analyze the schema for at least 5-10 documents.
-          // The current behaviour came from Compass when we do the same:
-          // https://github.com/mongodb-js/compass/blob/main/packages/compass-field-store/src/stores/store.js#L193
+          // This runs on every completion request for a namespace,
+          // so a larger sample would need caching to stay responsive.
           { limit: 1 },
         )
         .toArray();
-
       const schema = await parseSchema(documents);
       result = schema?.fields ? schema.fields.map((item) => item.name) : [];
     } catch (error) {

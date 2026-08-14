@@ -6,17 +6,16 @@ export function createMarkdownLink({
   name,
 }: {
   commandId: string;
-  // TODO: Create types for this data so we can also then use them on the extension
-  // controller when we parse the result.
+  // Currently, nothing checks that what we serialize here matches what the
+  // command handler destructures on the other side of the URI.
   data: {
     [field: string]: any;
   };
   name: string;
 }): vscode.MarkdownString {
   const encodedData = encodeURIComponent(JSON.stringify(data));
-  const commandQueryString = data ? `?${encodedData}` : '';
   const link = new vscode.MarkdownString(
-    `- [${name}](command:${commandId}${commandQueryString})\n`,
+    `- [${name}](command:${commandId}?${encodedData})\n`,
   );
   link.isTrusted = { enabledCommands: [commandId] };
   return link;

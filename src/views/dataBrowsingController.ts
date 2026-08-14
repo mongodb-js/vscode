@@ -777,7 +777,15 @@ export default class DataBrowsingController {
         // if the parsed query has a limit we want to honor that so that we don't go past it
         const remaining = parsedQuery.limit - (findOptions.skip ?? 0);
         if (remaining < 1) {
-          // TODO: log
+          log.info(
+            'No documents left within the query limit',
+            `${databaseName}.${collectionName}`,
+            {
+              queryLimit: parsedQuery.limit,
+              querySkip: parsedQuery.skip,
+              paginationSkip: skip,
+            },
+          );
           return [];
         }
         findOptions.limit = limit ? Math.min(remaining, limit) : remaining;

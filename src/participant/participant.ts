@@ -890,10 +890,9 @@ export default class ParticipantController {
     // When there's no user message content we can
     // skip the request to the model. This would happen with /schema.
     if (Prompts.doMessagesContainUserInput(messagesWithNamespace.messages)) {
-      // VSCODE-626: When there's an empty message sent to the ai model,
-      // it currently errors (not on insiders, only main VSCode).
-      // Here we're defaulting to have some content as a workaround.
-      // TODO: Remove this when the issue is fixed.
+      // Some VSCode builds error when the last message sent to the ai model has
+      // no content, so we fall back to a 'see previous messages' placeholder
+      // that keeps the model working from the earlier context.
       if (
         !Prompts.doMessagesContainUserInput([
           messagesWithNamespace.messages[
