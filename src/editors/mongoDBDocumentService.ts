@@ -3,7 +3,7 @@ import type { Document } from 'bson';
 
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
-import { DocumentSource } from '../documentSource';
+import type { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
 import type { StatusView } from '../views';
@@ -48,17 +48,22 @@ export default class MongoDBDocumentService {
     throw new Error(errorMessage);
   }
 
-  _saveDocumentFailed(message: string): void {
+  _saveDocumentFailed(
+    message: string,
+    source: DocumentSource,
+    documentFormat: 'shell' | 'ejson',
+  ): void {
     const errorMessage = `Unable to save document: ${message}`;
 
     this._telemetryService.track(
-      new DocumentUpdatedTelemetryEvent(DocumentSource.treeview, false),
+      new DocumentUpdatedTelemetryEvent(source, false, documentFormat),
     );
 
     throw new Error(errorMessage);
   }
 
   async replaceDocument(data: {
+    documentFormat: 'shell' | 'ejson';
     documentId: any;
     namespace: string;
     connectionId: string;
@@ -67,7 +72,14 @@ export default class MongoDBDocumentService {
   }): Promise<void> {
     log.info('Replace document in MongoDB', data);
 
-    const { documentId, namespace, connectionId, newDocument, source } = data;
+    const {
+      documentId,
+      namespace,
+      connectionId,
+      newDocument,
+      source,
+      documentFormat,
+    } = data;
     const activeConnectionId =
       this._connectionController.getActiveConnectionId();
     const connectionName =
@@ -76,6 +88,8 @@ export default class MongoDBDocumentService {
     if (activeConnectionId !== connectionId) {
       return this._saveDocumentFailed(
         `no longer connected to '${connectionName}'`,
+        source,
+        documentFormat,
       );
     }
 
@@ -84,6 +98,8 @@ export default class MongoDBDocumentService {
     if (dataService === null) {
       return this._saveDocumentFailed(
         `no longer connected to '${connectionName}'`,
+        source,
+        documentFormat,
       );
     }
 
@@ -100,10 +116,14 @@ export default class MongoDBDocumentService {
         },
       );
       this._telemetryService.track(
-        new DocumentUpdatedTelemetryEvent(source, true),
+        new DocumentUpdatedTelemetryEvent(source, true, documentFormat),
       );
     } catch (error) {
-      return this._saveDocumentFailed(formatError(error).message);
+      return this._saveDocumentFailed(
+        formatError(error).message,
+        source,
+        documentFormat,
+      );
     } finally {
       this._statusView.hideMessage();
     }

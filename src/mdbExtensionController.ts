@@ -62,6 +62,7 @@ import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
 import {
   type DocumentViewAndEditFormat,
+  getDocumentViewAndEditFormat,
   getUseWebViewDataBrowser,
 } from './editors/types';
 import type ShowPreviewTreeItem from './explorer/documentPreviewItem';
@@ -515,7 +516,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
       (data: EditDocumentInfo) => {
         this._telemetryService.track(
-          new DocumentEditedTelemetryEvent(data.source),
+          new DocumentEditedTelemetryEvent(data.source, data.format),
         );
 
         return this._editorsController.openMongoDBDocument(data);
@@ -921,6 +922,7 @@ export default class MDBExtensionController implements vscode.Disposable {
             collectionType,
             'collection',
             false,
+            getDocumentViewAndEditFormat(),
           ),
         );
         return await this._editorsController.onViewCollectionDocuments(

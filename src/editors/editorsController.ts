@@ -313,6 +313,7 @@ export default class EditorsController {
       await this._mongoDBDocumentService.replaceDocument({
         namespace,
         connectionId,
+        documentFormat,
         documentId,
         newDocument,
         source,

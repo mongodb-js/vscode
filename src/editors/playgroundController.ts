@@ -486,6 +486,7 @@ export default class PlaygroundController {
             'unknown',
             'query-results',
             false,
+            getDocumentViewAndEditFormat(),
           ),
         );
       }
