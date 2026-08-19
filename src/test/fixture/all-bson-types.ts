@@ -60,7 +60,19 @@ export const allBsonTypes = {
     custom: new Binary(Buffer.from('//8='), 128), // 128
   },
 
-  dbRef: new DBRef('namespace', new ObjectId('642d76b4b7ebfab15d3c4a78')), // not actually a separate type, just a convention
+  // DBRef is not a separate type, rather a convention.
+  dbRef: new DBRef(
+    'collect',
+    new ObjectId('642d766b7300158b1f22e973'),
+    'datab',
+  ),
+  dbRefNoDB: new DBRef('coll', new ObjectId('642d766b7300158b1f22e974')),
+  dbRefNoDBFields: new DBRef(
+    'col',
+    new ObjectId('642d766b7300158b1f22e975'),
+    undefined,
+    { a: 5 },
+  ),
 };
 
 export const allBsonTypesShellSyntax = `{
@@ -82,11 +94,11 @@ export const allBsonTypesShellSyntax = `{
   date: ISODate('2023-04-05T13:25:08.445Z'),
   null: null,
   regex: RegExp("pattern", 'i'),
-  javascript: Code('function() {}'),
+  javascript: Code("function() {}"),
   symbol: {
     value: 'symbol'
   },
-  javascriptWithScope: Code('function() {}',{"foo":1,"bar":"a"}),
+  javascriptWithScope: Code("function() {}",{"foo":1,"bar":"a"}),
   'int': NumberInt('12345'),
   timestamp: Timestamp({ t: 1680701109, i: 1 }),
   'long': NumberLong('123456789123456789'),
@@ -104,7 +116,9 @@ export const allBsonTypesShellSyntax = `{
     compressedTimeSeries: BinData(7, 'CQCKW/8XjAEAAIfx//////////H/////////AQAAAAAAAABfAAAAAAAAAAEAAAAAAAAAAgAAAAAAAAAHAAAAAAAAAA4AAAAAAAAAAA=='),
     custom: BinData(128, 'Ly84PQ==')
   },
-  dbRef: DBRef('namespace', '642d76b4b7ebfab15d3c4a78')
+  dbRef: DBRef("collect", ObjectId('642d766b7300158b1f22e973'), "datab"),
+  dbRefNoDB: DBRef("coll", ObjectId('642d766b7300158b1f22e974')),
+  dbRefNoDBFields: DBRef("col", ObjectId('642d766b7300158b1f22e975'), undefined, {a:NumberInt('5')})
 }`;
 
 export const allBSONTypesStringifiedEJSON = `{
@@ -244,9 +258,25 @@ export const allBSONTypesStringifiedEJSON = `{
     }
   },
   "dbRef": {
-    "$ref": "namespace",
+    "$ref": "collect",
     "$id": {
-      "$oid": "642d76b4b7ebfab15d3c4a78"
+      "$oid": "642d766b7300158b1f22e973"
+    },
+    "$db": "datab"
+  },
+  "dbRefNoDB": {
+    "$ref": "coll",
+    "$id": {
+      "$oid": "642d766b7300158b1f22e974"
+    }
+  },
+  "dbRefNoDBFields": {
+    "$ref": "col",
+    "$id": {
+      "$oid": "642d766b7300158b1f22e975"
+    },
+    "a": {
+      "$numberInt": "5"
     }
   }
 }`;
