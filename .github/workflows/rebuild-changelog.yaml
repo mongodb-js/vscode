@@ -87,6 +87,7 @@ jobs:
           committer: "${{ steps.app-token.outputs.app-slug}}[bot] <${{ steps.app-token.outputs.app-email }}>"
 
       - name: Merge PR
+        if: steps.cpr.outputs.pull-request-number != ''
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
