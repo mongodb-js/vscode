@@ -132,8 +132,8 @@ importers:
         specifier: 1.13.0
         version: 1.13.0(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(@types/express@5.0.6)(@types/node@22.19.17)(gcp-metadata@7.0.1)(mongodb-client-encryption@7.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
       mongodb-query-parser:
-        specifier: ^4.7.11
-        version: 4.7.12(bson@7.2.0)
+        specifier: ^5.0.1
+        version: 5.0.1(bson@7.2.0)
       node-machine-id:
         specifier: 1.1.12
         version: 1.1.12
@@ -2524,6 +2524,11 @@ packages:
 
   '@mongodb-js/shell-bson-parser@1.5.13':
     resolution: {integrity: sha512-5r8OArHf2Vexm+rfZYWuezINjMtPn4MoH7ejKqf8D5LUTY/0zsl5c8cmpzH4B95PEoaDRcPM0ebSsoh4RPrmQg==}
+    peerDependencies:
+      bson: ^7.2.0
+
+  '@mongodb-js/shell-bson-parser@1.5.15':
+    resolution: {integrity: sha512-b4fZfSKYGNk13N1kdOy/TA1e9P7hIc4fWwO8JLgteKYm/1LnGiqcXVntmNjtI6Pkzfr2ujqyuWykEN7Oq64c+A==}
     peerDependencies:
       bson: ^7.2.0
 
@@ -6428,13 +6433,13 @@ packages:
   mongodb-ns@3.2.1:
     resolution: {integrity: sha512-PhuRl7oAzHbILnn+DoJkHnfduh7VRKMYnkzOv/x32GC8YvnhYXr42rhzxIK/UQvyZcnG968yVvCvjF2xSUP1OQ==}
 
-  mongodb-query-parser@4.7.12:
-    resolution: {integrity: sha512-7NPKfTGWEjxbtl/oBjX+X1xQEndh23Eps1IUFy0thgfv4TTxlMWfRBMnUuSdJfs0usdht2xbuPg4wh7WgNFt7A==}
+  mongodb-query-parser@4.7.14:
+    resolution: {integrity: sha512-3UfvnavJ76IXNW6RP40vcL0lFKqffy3vJ9ZWy/Z7e+48qOwoxXR4Zmecq5aMWyR74DN775Bjmkls4BndRNylnQ==}
     peerDependencies:
       bson: ^7.2.0
 
-  mongodb-query-parser@4.7.14:
-    resolution: {integrity: sha512-3UfvnavJ76IXNW6RP40vcL0lFKqffy3vJ9ZWy/Z7e+48qOwoxXR4Zmecq5aMWyR74DN775Bjmkls4BndRNylnQ==}
+  mongodb-query-parser@5.0.1:
+    resolution: {integrity: sha512-5ztwTMfa7p2CUENkzgG6ugFP+guIaQ5c8n8X11tHVcgMlKXcMjeNoQRjrF2Oq83irVA5BG0ZOKe8EpdPsy0m1A==}
     peerDependencies:
       bson: ^7.2.0
 
@@ -13154,6 +13159,11 @@ snapshots:
       acorn: 8.16.0
       bson: 7.2.0
 
+  '@mongodb-js/shell-bson-parser@1.5.15(bson@7.2.0)':
+    dependencies:
+      acorn: 8.16.0
+      bson: 7.2.0
+
   '@mongodb-js/signing-utils@0.5.11':
     dependencies:
       '@types/ssh2': 1.15.5
@@ -18061,9 +18071,9 @@ snapshots:
   mongodb-ns@3.2.1:
     optional: true
 
-  mongodb-query-parser@4.7.12(bson@7.2.0):
+  mongodb-query-parser@4.7.14(bson@7.2.0):
     dependencies:
-      '@mongodb-js/shell-bson-parser': 1.5.12(bson@7.2.0)
+      '@mongodb-js/shell-bson-parser': 1.5.13(bson@7.2.0)
       bson: 7.2.0
       debug: 4.4.3(supports-color@8.1.1)
       javascript-stringify: 2.1.0
@@ -18071,9 +18081,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  mongodb-query-parser@4.7.14(bson@7.2.0):
+  mongodb-query-parser@5.0.1(bson@7.2.0):
     dependencies:
-      '@mongodb-js/shell-bson-parser': 1.5.13(bson@7.2.0)
+      '@mongodb-js/shell-bson-parser': 1.5.15(bson@7.2.0)
       bson: 7.2.0
       debug: 4.4.3(supports-color@8.1.1)
       javascript-stringify: 2.1.0

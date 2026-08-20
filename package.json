@@ -1478,7 +1478,7 @@
     "mongodb-data-service": "^22.40.0",
     "mongodb-log-writer": "^2.5.11",
     "mongodb-mcp-server": "1.13.0",
-    "mongodb-query-parser": "^4.7.11",
+    "mongodb-query-parser": "^5.0.1",
     "node-machine-id": "1.1.12",
     "numeral": "^2.0.6",
     "query-string": "^7.1.3",

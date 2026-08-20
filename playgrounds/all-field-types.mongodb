@@ -38,7 +38,10 @@ const doc = {
     custom: new Binary('//8=', 128), // 128
   },
 
-  dbRef: new DBRef('namespace', new ObjectId()), // not actually a separate type, just a convention
+  // DBRef is not a separate type, rather a convention.
+  dbRef: new DBRef('collect', new ObjectId(), 'datab'),
+  dbRefNoDB: new DBRef('coll', new ObjectId()),
+  dbRefNoDBFields: new DBRef('col', new ObjectId(), undefined, {a: 5}),
 };
 
 // Insert the document into the `all_types` collection.
