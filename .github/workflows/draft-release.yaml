@@ -234,6 +234,14 @@ jobs:
             .sbom/snyk-test-result.html
             .sbom/snyk-test-result.json
 
+      # The webpack build writes .sbom/dependencies.json (via WebpackDependenciesPlugin),
+      # which the vulnerability report needs to know which packages are actually bundled.
+      - name: Build extension bundles
+        shell: bash
+        run: |
+          pnpm run compile:constants
+          pnpm run compile:extension-bundles
+
       - name: Generate Vulnerability Report (Fail on >= High)
         shell: bash
         run: |
