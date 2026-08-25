@@ -1448,7 +1448,7 @@
     "@babel/parser": "^7.29.3",
     "@babel/traverse": "^7.29.0",
     "@monaco-editor/react": "^4.7.0",
-    "@mongodb-js/compass-components": "^1.59.2",
+    "@mongodb-js/compass-components": "^1.68.0",
     "@mongodb-js/connection-form": "^1.84.1",
     "@mongodb-js/connection-info": "^0.26.1",
     "@mongodb-js/device-id": "^0.4.13",

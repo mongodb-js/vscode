@@ -11,6 +11,9 @@ import {
 const modalContentStyles = css({
   // Override LeafyGreen width to accommodate the strict connection-form size.
   width: `${spacing[6] * 12}px !important`,
+  // Modal v20+ renders a native <dialog> inline in the DOM rather than in a
+  // portal, so it inherits the centered text of the overview page container.
+  textAlign: 'left',
 });
 
 const formContainerStyles = css({
@@ -62,9 +65,7 @@ const ConnectionForm: React.FunctionComponent<
 
   return (
     <Modal
-      // Warning: This property may be removed in future
-      // modal releases.
-      contentClassName={modalContentStyles}
+      className={modalContentStyles}
       setOpen={(): void => onClose()}
       darkMode={darkMode}
       open={open}
