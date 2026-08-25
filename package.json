@@ -1574,15 +1574,10 @@
   "pnpm": {
     "overrides": {
       "@hono/node-server": "^1.19.17",
-      "@mongodb-js/devtools-connect": "^3.17.3",
-      "@mongodb-js/devtools-proxy-support": "^0.7.16",
-      "@mongodb-js/oidc-plugin": "^2.0.8",
-      "@mongosh/service-provider-node-driver": "^5.2.0",
       "@xmldom/xmldom": "^0.9.10",
       "bson": "^7.2.0",
       "js-yaml@3": "^3.15.1",
       "js-yaml@4": "^5.2.2",
-      "kerberos": "^7.0.0",
       "mongodb": "^7.2.0",
       "mongodb-client-encryption": "^7.0.0",
       "react": "^18.3.1",
