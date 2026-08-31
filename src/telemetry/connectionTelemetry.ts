@@ -38,15 +38,27 @@ export type HostInformation = {
   public_cloud_name?: string;
 };
 
-function getHostnameForConnection(dataService: DataService): string | null {
-  const lastSeenTopology = dataService.getLastSeenTopology();
-  const resolvedHost = lastSeenTopology?.servers.values().next().value?.address;
-
-  if (resolvedHost?.startsWith('[')) {
-    return resolvedHost.slice(1).split(']')[0]; // IPv6
+// Strips the port from a `host:port` address.
+function extractHostname(address?: string): string | null {
+  if (address?.startsWith('[')) {
+    return address.slice(1).split(']')[0] || null; // IPv6
   }
 
-  return resolvedHost?.split(':')[0] || null;
+  return address?.split(':')[0] || null;
+}
+
+// Prefers the address of the server we actually talked to, falling back to the
+// seed host from the connection string when the topology has not been populated.
+// Both sources are credential-free, since the result is handed to a DNS resolver.
+function getResolvedHostname(dataService: DataService): string | null {
+  const lastSeenTopology = dataService.getLastSeenTopology();
+
+  // Parsed separately rather than `extractHostname(address ?? hosts[0])` so that
+  // hostname-less addresses (`''`, `':27017'`) also have a fallback.
+  return (
+    extractHostname(lastSeenTopology?.servers.values().next().value?.address) ??
+    extractHostname(dataService.getConnectionString().hosts[0])
+  );
 }
 
 async function getPublicCloudInfo(host: string): Promise<{
@@ -136,16 +148,14 @@ export async function getConnectionTelemetryProperties(
     const authMechanism = connectionString.searchParams.get('authMechanism');
     const username = connectionString.username ? 'DEFAULT' : 'NONE';
     const authStrategy = authMechanism ?? username;
-    const resolvedHostname = getHostnameForConnection(dataService);
+    const resolvedHostname = getResolvedHostname(dataService);
     const { dataLake, genuineMongoDB, host, build, isAtlas, isLocalAtlas } =
       await dataService.instance();
     const atlasHostname = isAtlas ? resolvedHostname : null;
 
     preparedProperties = {
       ...preparedProperties,
-      ...(await getHostInformation(
-        resolvedHostname || connectionString.toString(),
-      )),
+      ...(await getHostInformation(resolvedHostname)),
       auth_strategy: authStrategy,
       is_atlas: isAtlas,
       atlas_hostname: atlasHostname,
