@@ -230,7 +230,7 @@ suite('OIDC Tests', function () {
     expect(terminalCsWithoutAppName.toString()).to.equal(connectionString);
 
     const shellCommandText = sendTextStub.firstCall.args[0];
-    expect(shellCommandText).to.equal('mongosh $MDB_CONNECTION_STRING;');
+    expect(shellCommandText).to.equal('mongosh "$MDB_CONNECTION_STRING";');
 
     // Required for shell to share the OIDC state
     expect(terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE).to.not.be.undefined;
