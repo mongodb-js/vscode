@@ -11,6 +11,7 @@ import type ConnectionController from '../../../connectionController';
 suite('Commands Test Suite', function () {
   let testConnectionController: ConnectionController;
   let showErrorMessageStub: SinonStub;
+  let showWarningMessageStub: SinonStub;
   let getMongoClientConnectionOptionsStub: SinonStub;
   let isCurrentlyConnectedStub: SinonStub;
   let createTerminalStub: SinonStub;
@@ -24,6 +25,9 @@ suite('Commands Test Suite', function () {
     sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showInformationMessage');
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    showWarningMessageStub = sandbox
+      .stub(vscode.window, 'showWarningMessage')
+      .resolves('Launch Shell' as any);
     getMongoClientConnectionOptionsStub = sandbox.stub(
       testConnectionController,
       'getMongoClientConnectionOptions',
@@ -139,6 +143,32 @@ suite('Commands Test Suite', function () {
         expect(showErrorMessageStub.firstCall.args[0]).to.equal(
           'The connection string contains unsupported characters (quotes or line breaks) and cannot be used to launch the MongoDB Shell.',
         );
+      });
+
+      test('openMongoDBShell shows the redacted connection string before launching', async function () {
+        getMongoClientConnectionOptionsStub.returns({
+          url: 'mongodb://user:s3cr3t@localhost:27088/?readPreference=primary',
+          options: {},
+        });
+
+        await launchMongoShell(testConnectionController);
+
+        const [message, { detail }] = showWarningMessageStub.firstCall.args as [
+          string,
+          { detail: string },
+        ];
+        expect(detail).to.include('localhost:27088');
+        expect(detail).to.include('readPreference=primary');
+        expect(`${message}${detail}`).to.not.include('s3cr3t');
+      });
+
+      test('openMongoDBShell does not launch the shell when the confirmation is cancelled', async function () {
+        showWarningMessageStub.resolves(undefined);
+
+        const result = await launchMongoShell(testConnectionController);
+
+        expect(result).to.be.false;
+        expect(createTerminalStub.called).to.be.false;
       });
     });
   });

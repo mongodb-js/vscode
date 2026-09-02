@@ -1578,9 +1578,67 @@ suite('Connection Controller Test Suite', function () {
           'mongodb+srv://user:s3cr3t@cluster0.example.com/admin',
       });
 
-      const dialogMessage = showWarningMessageStub.firstCall.args[0];
-      expect(dialogMessage).to.include('cluster0.example.com');
-      expect(dialogMessage).to.not.include('s3cr3t');
+      const [message, { detail }] = showWarningMessageStub.firstCall.args as [
+        string,
+        { detail: string },
+      ];
+      expect(detail).to.include('cluster0.example.com');
+      expect(`${message}${detail}`).to.not.include('s3cr3t');
+    });
+
+    test('with pre-supplied connection string, shows the whole connection string in the confirmation dialog', async function () {
+      const showWarningMessageStub = sandbox
+        .stub(vscode.window, 'showWarningMessage')
+        .resolves('Connect' as any);
+      addNewConnectionAndConnectStub.returns(true);
+
+      await testConnectionController.connectWithURI({
+        connectionString:
+          'mongodb+srv://cluster0.example.com/?appName=evil&proxyHost=proxy.example.com',
+      });
+
+      const { detail } = showWarningMessageStub.firstCall.args[1] as {
+        detail: string;
+      };
+      expect(detail).to.include('cluster0.example.com');
+      expect(detail).to.include('appName=evil');
+      expect(detail).to.include('proxyHost=proxy.example.com');
+    });
+
+    test('with pre-supplied connection string, does not show credentials in the confirmation dialog', async function () {
+      const showWarningMessageStub = sandbox
+        .stub(vscode.window, 'showWarningMessage')
+        .resolves('Connect' as any);
+      addNewConnectionAndConnectStub.returns(true);
+
+      await testConnectionController.connectWithURI({
+        connectionString:
+          'mongodb+srv://user:s3cr3t@cluster0.example.com/admin?proxyPassword=alsosecret',
+      });
+
+      const [message, { detail }] = showWarningMessageStub.firstCall.args as [
+        string,
+        { detail: string },
+      ];
+      expect(detail).to.include('cluster0.example.com');
+      expect(`${message}${detail}`).to.not.include('s3cr3t');
+      expect(`${message}${detail}`).to.not.include('alsosecret');
+    });
+
+    test('with an unparseable pre-supplied connection string, does not show credentials in the confirmation dialog', async function () {
+      const showWarningMessageStub = sandbox
+        .stub(vscode.window, 'showWarningMessage')
+        .resolves(undefined);
+
+      await testConnectionController.connectWithURI({
+        connectionString: 'mongodb://user:s3cr3t@',
+      });
+
+      const [message, { detail }] = showWarningMessageStub.firstCall.args as [
+        string,
+        { detail: string },
+      ];
+      expect(`${message}${detail}`).to.not.include('s3cr3t');
     });
 
     test('with pre-supplied connection string, cancelling dialog does not connect', async function () {

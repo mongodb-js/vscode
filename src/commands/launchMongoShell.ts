@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
+import { confirmConnection } from '../utils/confirmConnection';
 
 const launchMongoDBShellWithEnv = ({
   shellCommand,
@@ -48,7 +49,7 @@ const getBashEnvString = (): string => {
   return '"$MDB_CONNECTION_STRING"';
 };
 
-const openMongoDBShell = (
+const openMongoDBShell = async (
   connectionController: ConnectionController,
 ): Promise<boolean> => {
   if (!connectionController.isCurrentlyConnected()) {
@@ -117,6 +118,19 @@ const openMongoDBShell = (
     envVariableString = getBashEnvString();
   }
 
+  // The shell is handed the connection string of whichever connection is active, which
+  // may have been set up a while ago or by someone else, so confirm the destination.
+  const confirmed = await confirmConnection({
+    connectionString: mdbConnectionString,
+    question:
+      'Please verify the details below. Would you like to launch the MongoDB Shell with this connection?',
+    action: 'Launch Shell',
+  });
+
+  if (!confirmed) {
+    return false;
+  }
+
   launchMongoDBShellWithEnv({
     shellCommand,
     mdbConnectionString,
@@ -124,7 +138,7 @@ const openMongoDBShell = (
     envVariableString,
   });
 
-  return Promise.resolve(true);
+  return true;
 };
 
 export default openMongoDBShell;

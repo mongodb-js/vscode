@@ -186,6 +186,10 @@ suite('OIDC Tests', function () {
       'showInformationMessage',
     );
 
+    sandbox
+      .stub(vscode.window, 'showWarningMessage')
+      .resolves('Launch Shell' as any);
+
     createTerminalStub = sandbox.stub(vscode.window, 'createTerminal');
     sendTextStub = sandbox.stub();
     createTerminalStub.returns({
