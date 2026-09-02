@@ -1,6 +1,6 @@
 import path from 'path';
 import { runTests } from '@vscode/test-electron';
-import { MongoCluster } from 'mongodb-runner';
+import { MongoCluster } from '@mongodb-js/mongodb-runner';
 import os from 'os';
 
 import { TEST_DATABASE_PORT } from './suite/dbTestHelper';
