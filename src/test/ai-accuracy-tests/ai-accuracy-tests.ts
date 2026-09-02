@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { MongoClient } from 'mongodb';
 import { execFile as callbackExecFile } from 'child_process';
-import { MongoCluster } from 'mongodb-runner';
+import { MongoCluster } from '@mongodb-js/mongodb-runner';
 import path from 'path';
 import util from 'util';
 import os from 'os';

@@ -16,8 +16,8 @@ import ConnectionController from '../../connectionController';
 import { StatusView } from '../../views';
 import { waitFor } from './waitFor';
 
-import { MongoCluster } from 'mongodb-runner';
-import type { MongoClusterOptions } from 'mongodb-runner';
+import { MongoCluster } from '@mongodb-js/mongodb-runner';
+import type { MongoClusterOptions } from '@mongodb-js/mongodb-runner';
 import { OIDCMockProvider } from '@mongodb-js/oidc-mock-provider';
 import type {
   MaybePromise,
