@@ -20,6 +20,7 @@ import {
 } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
 import formatError from './utils/formatError';
+import { confirmConnection } from './utils/confirmConnection';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
 import type { TelemetryService } from './telemetry';
@@ -273,18 +274,13 @@ export default class ConnectionController {
     try {
       if (connectionString) {
         // Connection string came from outside (e.g. deep link) — confirm with user.
-        let host: string;
-        try {
-          host = new ConnectionString(connectionString).hosts.join(', ');
-        } catch {
-          host = connectionString;
-        }
-        const confirmed = await vscode.window.showWarningMessage(
-          `Do you want to connect to "${host}"?`,
-          { modal: true },
-          'Connect',
-        );
-        if (confirmed !== 'Connect') return false;
+        const confirmed = await confirmConnection({
+          connectionString,
+          question:
+            'Please verify the details below. Would you like to proceed with the connection?',
+          action: 'Connect',
+        });
+        if (!confirmed) return false;
       } else {
         connectionString = await vscode.window.showInputBox(
           {
