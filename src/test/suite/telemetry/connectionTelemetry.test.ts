@@ -217,7 +217,7 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
       expect(instanceTelemetry.is_atlas_url).to.equal(false);
     });
 
-    test('it tracks atlas with fallback to original uri if failed resolving srv', async function () {
+    test('it falls back to the connection string seed host when the topology has no address', async function () {
       instanceStub.resolves({
         dataLake: {
           isDataLake: false,
@@ -633,6 +633,186 @@ suite('ConnectionTelemetry Controller Test Suite', function () {
         ConnectionType.connectionString,
       );
       expect(instanceTelemetry.auth_strategy).to.equal('SCRAM-SHA-1');
+    });
+  });
+
+  // `mongodb-cloud-info` is loaded through a dynamic `import()`, so it is mocked
+  // via `require.cache` instead of sinon. This relies on the CommonJS output; if
+  // it is ever loaded as real ESM the mock stops intercepting and these tests
+  // would issue live DNS lookups.
+  suite('dns resolving fallback', function () {
+    this.timeout(8000);
+
+    const PASSWORD = 'sup3rs3cr3tp4ssw0rd';
+    const USERNAME = 'leaky-user';
+
+    let sandbox: sinon.SinonSandbox;
+    let dataServiceStub;
+    let getConnectionStringStub;
+    let getLastSeenTopology;
+    let lookedUpHosts: string[];
+
+    const cloudInfoPath = require.resolve('mongodb-cloud-info');
+    let realCloudInfoModule: NodeModule | undefined;
+
+    beforeEach(function () {
+      sandbox = sinon.createSandbox();
+      lookedUpHosts = [];
+
+      realCloudInfoModule = require.cache[cloudInfoPath];
+      require.cache[cloudInfoPath] = {
+        id: cloudInfoPath,
+        filename: cloudInfoPath,
+        loaded: true,
+        exports: {
+          getCloudInfo: (host: string) => {
+            lookedUpHosts.push(host);
+            return Promise.resolve({
+              isAws: false,
+              isAzure: false,
+              isGcp: false,
+            });
+          },
+        },
+      } as unknown as NodeModule;
+
+      getConnectionStringStub = sandbox.stub();
+      getLastSeenTopology = sandbox.stub();
+      dataServiceStub = {
+        getCurrentTopologyType: sandbox.stub(),
+        getConnectionString: getConnectionStringStub,
+        getLastSeenTopology: getLastSeenTopology,
+        instance: sandbox.stub().resolves({
+          dataLake: { isDataLake: false, version: 'na' },
+          genuineMongoDB: { dbType: 'na', isGenuine: true },
+          host: {},
+          build: { isEnterprise: false, version: 'na' },
+          isAtlas: true,
+          isLocalAtlas: false,
+          featureCompatibilityVersion: null,
+        }),
+      };
+    });
+
+    afterEach(function () {
+      sandbox.restore();
+      if (realCloudInfoModule) {
+        require.cache[cloudInfoPath] = realCloudInfoModule;
+      } else {
+        delete require.cache[cloudInfoPath];
+      }
+    });
+
+    function expectNoCredentialsLeaked(
+      instanceTelemetry: Record<string, unknown>,
+    ): void {
+      for (const host of lookedUpHosts) {
+        expect(host).to.not.contain(PASSWORD);
+        expect(host).to.not.contain(USERNAME);
+        expect(host).to.not.contain('@');
+        expect(host).to.not.contain('mongodb://');
+        expect(host).to.not.contain('mongodb+srv://');
+      }
+
+      const serialised = JSON.stringify(instanceTelemetry);
+      expect(serialised).to.not.contain(PASSWORD);
+      expect(serialised).to.not.contain(USERNAME);
+    }
+
+    test('it does not send credentials to dns when the topology has no servers', async function () {
+      getConnectionStringStub.returns(
+        new ConnectionString(
+          `mongodb://${USERNAME}:${PASSWORD}@cluster0.abcde.mongodb.net:27017`,
+        ),
+      );
+      getLastSeenTopology.returns({ servers: new Map() });
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionType.connectionString,
+      );
+
+      expectNoCredentialsLeaked(instanceTelemetry);
+      expect(lookedUpHosts).to.deep.equal(['cluster0.abcde.mongodb.net']);
+    });
+
+    test('it does not send credentials to dns when the first server address is empty', async function () {
+      getConnectionStringStub.returns(
+        new ConnectionString(
+          `mongodb://${USERNAME}:${PASSWORD}@cluster0.abcde.mongodb.net:27017`,
+        ),
+      );
+      getLastSeenTopology.returns({
+        servers: new Map().set('', { address: '' }),
+      });
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionType.connectionString,
+      );
+
+      expectNoCredentialsLeaked(instanceTelemetry);
+      expect(lookedUpHosts).to.deep.equal(['cluster0.abcde.mongodb.net']);
+    });
+
+    test('it does not send credentials to dns when the topology is missing entirely', async function () {
+      getConnectionStringStub.returns(
+        new ConnectionString(
+          `mongodb://${USERNAME}:${PASSWORD}@cluster0.abcde.mongodb.net:27017`,
+        ),
+      );
+      getLastSeenTopology.returns(undefined);
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionType.connectionString,
+      );
+
+      expectNoCredentialsLeaked(instanceTelemetry);
+    });
+
+    test('it issues no dns query at all when no hostname can be derived', async function () {
+      // A connection string always has at least one host, so the only way to
+      // reach `getHostInformation(null)` is a malformed seed host.
+      getConnectionStringStub.returns({
+        searchParams: new URLSearchParams(),
+        username: USERNAME,
+        password: PASSWORD,
+        hosts: [':27017'],
+        toString: () =>
+          `mongodb://${USERNAME}:${PASSWORD}@cluster0.abcde.mongodb.net:27017`,
+      });
+      getLastSeenTopology.returns({ servers: new Map() });
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionType.connectionString,
+      );
+
+      expect(lookedUpHosts).to.deep.equal([]);
+      expectNoCredentialsLeaked(instanceTelemetry);
+      expect(instanceTelemetry.is_atlas_url).to.equal(false);
+      expect(instanceTelemetry.is_localhost).to.equal(false);
+      expect(instanceTelemetry.is_do_url).to.equal(false);
+    });
+
+    test('it does not send credentials to dns for a credentialed srv connection', async function () {
+      getConnectionStringStub.returns(
+        new ConnectionString(
+          `mongodb+srv://${USERNAME}:${PASSWORD}@cluster0.abcde.mongodb.net/?authSource=admin`,
+        ),
+      );
+      getLastSeenTopology.returns({ servers: new Map() });
+
+      const instanceTelemetry = await getConnectionTelemetryProperties(
+        dataServiceStub,
+        ConnectionType.connectionString,
+      );
+
+      expectNoCredentialsLeaked(instanceTelemetry);
+      expect(instanceTelemetry.atlas_hostname).to.equal(
+        'cluster0.abcde.mongodb.net',
+      );
     });
   });
 
