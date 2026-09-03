@@ -1,5 +1,46 @@
 # Change Log
 
+## [v1.17.1](https://github.com/mongodb-js/vscode/releases/tag/v1.17.1) - 2026-09-03
+
+## What's Changed
+* fix(launch-mongo-shell): quote connection string when launching via cmd VSCODE-796. Addresses [CVE-1436](https://jira.mongodb.org/browse/CVE-1436) Arbitrary command execution via shell-expanded connection string in Launch MongoDB Shell terminal by @ivandevp in https://github.com/mongodb-js/vscode/pull/1356
+* fix(connections): show redacted connection string in confirmation modal. Addresses [CVE-1436](https://jira.mongodb.org/browse/CVE-1436) Arbitrary command execution via shell-expanded connection string in Launch MongoDB Shell terminal VSCODE-798 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1359
+* fix(connections): wrap the connection string in the confirmation modal VSCODE-820 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1360
+
+## New Contributors
+* @ivandevp made their first contribution in https://github.com/mongodb-js/vscode/pull/1356
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.17.0...v1.17.1
+
+
+## [v1.17.0](https://github.com/mongodb-js/vscode/releases/tag/v1.17.0) - 2026-08-27
+
+## What's Changed
+* chore(deps): bump @vscode/test-electron to v3.1.0 for binary resolution by @Anemy in https://github.com/mongodb-js/vscode/pull/1322
+* chore: update mongodb-schema to use new published package COMPASS-10911 by @dudaschar in https://github.com/mongodb-js/vscode/pull/1325
+* chore(deps): run pnpm install for lock file duplicate key by @Anemy in https://github.com/mongodb-js/vscode/pull/1327
+* feat(playgrounds): remove export to language VSCODE-789 by @Anemy in https://github.com/mongodb-js/vscode/pull/1321
+* feat: use ECR for signing image DEVPROD-34208 by @fetsko in https://github.com/mongodb-js/vscode/pull/1328
+* fix(participant): copilot chat participant model not found error VSCODE-791 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/1332
+* feat(data-browser): add setting to view documents in native VSCode editors VSCODE-776 by @Anemy in https://github.com/mongodb-js/vscode/pull/1311
+* fix(shell): detect PowerShell 7 (pwsh) when launching the shell VSCODE-797 by @mongodb-sage-bot[bot] in https://github.com/mongodb-js/vscode/pull/1335
+* chore(telemetry): track view format VSCODE-783 by @Anemy in https://github.com/mongodb-js/vscode/pull/1313
+* chore(ci): skip changelog task if no prs, don't fail by @Anemy in https://github.com/mongodb-js/vscode/pull/1338
+* chore(ci): pin actions and bump for node by @Anemy in https://github.com/mongodb-js/vscode/pull/1339
+* fix(deps): bump query parser for code and dbref changes VSCODE-807 by @Anemy in https://github.com/mongodb-js/vscode/pull/1337
+* build: sign vsix fails VSCODE-809 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/1342
+* fix(deps): dedupe react dom VSCODE-810 by @Anemy in https://github.com/mongodb-js/vscode/pull/1344
+* fix(deps): bump compass components to avoid dupes, fix file selection VSCODE-811 by @Anemy in https://github.com/mongodb-js/vscode/pull/1345
+* chore(deps): remove unnecessary overrides in package.json by @Anemy in https://github.com/mongodb-js/vscode/pull/1348
+
+## New Contributors
+* @dudaschar made their first contribution in https://github.com/mongodb-js/vscode/pull/1325
+* @fetsko made their first contribution in https://github.com/mongodb-js/vscode/pull/1328
+* @mongodb-sage-bot[bot] made their first contribution in https://github.com/mongodb-js/vscode/pull/1335
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.16.1...v1.17.0
+
+
 ## [v1.16.1](https://github.com/mongodb-js/vscode/releases/tag/v1.16.1) - 2026-07-14
 
 Edit the release notes before publishing.
