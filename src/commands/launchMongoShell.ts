@@ -30,19 +30,22 @@ const launchMongoDBShellWithEnv = ({
 };
 
 const getPowershellEnvString = (): string => {
-  return '$Env:MDB_CONNECTION_STRING';
+  return '"$Env:MDB_CONNECTION_STRING"';
 };
 
 const getCmdEnvString = (): string => {
-  return '%MDB_CONNECTION_STRING%';
+  // Quoting wraps the *substituted* value (cmd.exe expands %VAR% before
+  // parsing for shell metacharacters like |, &, >), so this prevents a
+  // connection string from injecting extra commands.
+  return '"%MDB_CONNECTION_STRING%"';
 };
 
 const getGitBashEnvString = (): string => {
-  return '$MDB_CONNECTION_STRING';
+  return '"$MDB_CONNECTION_STRING"';
 };
 
 const getBashEnvString = (): string => {
-  return '$MDB_CONNECTION_STRING';
+  return '"$MDB_CONNECTION_STRING"';
 };
 
 const openMongoDBShell = (
@@ -82,6 +85,14 @@ const openMongoDBShell = (
   }
 
   const mdbConnectionString = connectionController.getActiveConnectionString();
+
+  if (/["\r\n]/.test(mdbConnectionString)) {
+    void vscode.window.showErrorMessage(
+      'The connection string contains unsupported characters (quotes or line breaks) and cannot be used to launch the MongoDB Shell.',
+    );
+    return Promise.resolve(false);
+  }
+
   const parentHandle =
     connectionController.getMongoClientConnectionOptions()?.options
       .parentHandle;
