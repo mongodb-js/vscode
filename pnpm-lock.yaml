@@ -45,8 +45,8 @@ importers:
         specifier: ^0.26.1
         version: 0.26.3(@aws-sdk/credential-providers@3.1042.0)(@mongodb-js/oidc-plugin@2.0.8)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       '@mongodb-js/device-id':
-        specifier: ^0.4.13
-        version: 0.4.13
+        specifier: ^0.4.14
+        version: 0.4.14
       '@mongodb-js/mongodb-constants':
         specifier: ^0.16.1
         version: 0.16.1(bson@7.2.0)
@@ -2136,8 +2136,8 @@ packages:
   '@mongodb-js/connection-info@0.28.1':
     resolution: {integrity: sha512-/gZQTFcJhwSq1BEyCE4GL+sZ+mCbn3kXYmbYIFOH9FuoULwge8NmUHTO58A+n8zBbYfZfmZCHwKc7VcFozVmaA==}
 
-  '@mongodb-js/device-id@0.4.13':
-    resolution: {integrity: sha512-X9XLwl2sAN4cFPKBjr9fak7SJDxALcVNBz2PVx7uQbPSj+roHsQhWKWIG6yInT2oloo8e7VugtpZJG215YTIRQ==}
+  '@mongodb-js/device-id@0.4.14':
+    resolution: {integrity: sha512-XcGbm+LUD6q14oiBg57Dit8TT2gvxwaGJJL1lbY+QF8ARNe6IfzQzTogi5e121yIosb4y1zgAMv9u60zlWyQag==}
 
   '@mongodb-js/devtools-connect@3.17.3':
     resolution: {integrity: sha512-ggM3WGhFUPH5gNo/mlEmE1hnjZWNdmi4lbtYTvzAlI8hqBKkfP38pDsqwq9f2pCHAecjdevjoxhVDtQGXZxukg==}
@@ -11550,7 +11550,7 @@ snapshots:
       - socks
       - supports-color
 
-  '@mongodb-js/device-id@0.4.13': {}
+  '@mongodb-js/device-id@0.4.14': {}
 
   '@mongodb-js/devtools-connect@3.17.3(@mongodb-js/oidc-plugin@2.0.8)(mongodb-log-writer@2.5.14(bson@7.2.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
     dependencies:
@@ -16593,7 +16593,7 @@ snapshots:
       '@inquirer/select': 5.1.4(@types/node@22.19.17)
       '@mcp-ui/server': 6.1.0(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.4.3)
       '@modelcontextprotocol/sdk': 1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)
-      '@mongodb-js/device-id': 0.4.13
+      '@mongodb-js/device-id': 0.4.14
       '@mongodb-js/devtools-proxy-support': 0.7.16
       '@mongodb-js/mcp-metrics': 1.13.0
       '@mongodb-js/mcp-types': 1.13.0
