@@ -8,8 +8,6 @@ overrides:
   '@hono/node-server': ^1.19.17
   '@xmldom/xmldom': ^0.9.10
   bson: ^7.2.0
-  js-yaml@3: ^3.15.1
-  js-yaml@4: ^5.2.2
   mongodb: ^7.2.0
   mongodb-client-encryption: ^7.0.0
   react: ^18.3.1
@@ -188,6 +186,9 @@ importers:
       '@mongodb-js/eslint-plugin-devtools':
         specifier: 0.3.4
         version: 0.3.4
+      '@mongodb-js/mongodb-runner':
+        specifier: ^6.7.10
+        version: 6.10.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       '@mongodb-js/oidc-mock-provider':
         specifier: ^0.13.11
         version: 0.13.12
@@ -320,9 +321,6 @@ importers:
       mongodb-client-encryption:
         specifier: ^7.0.0
         version: 7.0.0
-      mongodb-runner:
-        specifier: ^6.7.10
-        version: 6.7.11(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       node-fetch:
         specifier: ^2.7.0
         version: 2.7.0
@@ -2183,8 +2181,12 @@ packages:
     peerDependencies:
       bson: ^7.2.0
 
-  '@mongodb-js/mongodb-downloader@1.1.14':
-    resolution: {integrity: sha512-7u1KBmRvv3qsH7wYJssv9uhcZWcW0VEihgnr6s6I2i8dG3jIaO68yaU/9NwLFJK0dFWvs8XkpfOyBTRU3zup8A==}
+  '@mongodb-js/mongodb-downloader@1.2.0':
+    resolution: {integrity: sha512-5eglg1leuY/OtdpgJFS6/LEoYonKIGnYEYrFH5csH5jT5P8ae9cdtNAJDjS2lMV20s5JUsybOLuylBbkAdjcJQ==}
+
+  '@mongodb-js/mongodb-runner@6.10.0':
+    resolution: {integrity: sha512-WHoNxW78osCNGmMP5ckUq64Nm4hXVA15KoXa46500wV0f0u4846YbK4U4uGxDFf2GmMtso6fvPMlwsbELQoVUQ==}
+    hasBin: true
 
   '@mongodb-js/mongodb-schema@12.7.2':
     resolution: {integrity: sha512-+LC21SF05XYVmlkP0d3llaJ1OCkC7VdD1ozLbRKCmwltFyObtFMEFEarZURRL6wjBEuqxBkLurhq+HsC6U6bOA==}
@@ -2200,6 +2202,10 @@ packages:
     resolution: {integrity: sha512-BFNAUkaw0qo2fvgUZCfNwUGpixy3AWraUZUw29NcNfdkjMLFKNoaj1BbHczWT4OgXDtWRd4oC3sVB+eRKdtu8A==}
     hasBin: true
 
+  '@mongodb-js/oidc-mock-provider@0.13.14':
+    resolution: {integrity: sha512-RtvANWY339/tYaz8NVV4G4kqsvJc3XiMDEWuze68Wg8HSRSnZqI58stOV3NMiznusGU/0x/wnKAPW4OMM97T2g==}
+    hasBin: true
+
   '@mongodb-js/oidc-plugin@2.0.8':
     resolution: {integrity: sha512-UHmw5kppOZjOefxZuPcsWNtA3P7PbsjNYaKYz4tbWy6mlH0wkgdf55A3bHuW3SZmvL7ZhpuYTz+gTq2xCr7NVA==}
     engines: {node: '>= 20.19.2'}
@@ -2209,11 +2215,11 @@ packages:
     peerDependencies:
       prettier: ^3.8.1
 
-  '@mongodb-js/saslprep@1.4.11':
-    resolution: {integrity: sha512-o9rAHc0IpIjuPSxRutWpE1F62x7n+4mVS4rCNHkzhIUMQcc18bb6xEq5wd2NdN0WjepIyXIppRshYI2kQDOZVA==}
-
   '@mongodb-js/saslprep@1.4.6':
     resolution: {integrity: sha512-y+x3H1xBZd38n10NZF/rEBlvDOOMQ6LKUTHqr8R9VkJ+mmQOYtJFxIlkkK8fZrtOiL6VixbOBWMbZGBdal3Z1g==}
+
+  '@mongodb-js/saslprep@1.5.0':
+    resolution: {integrity: sha512-Hk1SKJCMcCos38+vqDnZzlIo4XRj9yCGzYkjB4LcqpeXRIYfia1UWTz+VrueLxoU+uSRJzgkufxoRZg8gi52YA==}
 
   '@mongodb-js/sbom-tools@0.10.16':
     resolution: {integrity: sha512-vaqntxNkI79lti8+rsHIy4zIxAYejgp2p+wBjLEyhbDQIpiV2pASljAUsaJei6RbFbBrlgvijIXJFEjXRgXbnQ==}
@@ -3412,8 +3418,8 @@ packages:
   '@webassemblyjs/wast-printer@1.14.1':
     resolution: {integrity: sha512-kPSSXE6De1XOR820C90RIo2ogvZG+c3KiHzqUoO/F34Y2shGzesfqv7o57xrxovZJH/MetF5UjroJ/R/3isoiw==}
 
-  '@xmldom/xmldom@0.9.10':
-    resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
+  '@xmldom/xmldom@0.9.12':
+    resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
     engines: {node: '>=14.6'}
     deprecated: this version has critical issues, please update to the latest version
 
@@ -4789,8 +4795,8 @@ packages:
   fast-string-width@3.0.2:
     resolution: {integrity: sha512-gX8LrtNEI5hq8DVUfRQMbr5lpaS4nMIWV+7XEbXk2b8kiQIizgnlr12B4dA3ZEx3308ze0O4Q1R+cHts8kyUJg==}
 
-  fast-uri@3.1.6:
-    resolution: {integrity: sha512-7Ical1vFEMr0onbVzEDIreM22I4khW+fzyQPwvAFWBp1iwdshSZRsL4jjRvPG9JP1uiqMHRto+YU6R2/CzDz5Q==}
+  fast-uri@3.1.7:
+    resolution: {integrity: sha512-dOvZVzjdZdz7phd9v6jCbwxrBW3fK6n8Rc0CtdmM4bumzMnxywBYhuph6J819RRw/ku+rLbelwfMunktuzVVHg==}
 
   fast-wrap-ansi@0.2.0:
     resolution: {integrity: sha512-rLV8JHxTyhVmFYhBJuMujcrHqOT2cnO5Zxj37qROj23CP39GXubJRBUFF0z8KFK77Uc0SukZUf7JZhsVEQ6n8w==}
@@ -5184,8 +5190,8 @@ packages:
     resolution: {integrity: sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==}
     engines: {node: '>=0.10.0'}
 
-  hono@4.12.27:
-    resolution: {integrity: sha512-1yrb/+w6HWQJrUCLkJ2IF5jNIPvvFkblV5RNOYl6bV+OA6p9GLcMpHFFGTosSvHvcAUibuUukRqhlYI4z32C7Q==}
+  hono@4.13.5:
+    resolution: {integrity: sha512-O6+/eCYRkzzzy0rPWwKLiGBR1nFuUPZynnwjxN1MBA62NNqbT0wQEzQyK2gSO5yDIDB336sXQleAhOHrzlYyKw==}
     engines: {node: '>=16.9.0'}
 
   hosted-git-info@2.8.9:
@@ -5586,12 +5592,16 @@ packages:
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
-  js-yaml@3.15.1:
-    resolution: {integrity: sha512-S99WuO3HlhO3XN41EtYUNl9zzXjoJx7QvmipxsJVxtCBT0YHEFy+iOJhjSvrmV12nYhWpZaM8lPHkJm0yUMbag==}
+  js-yaml@3.15.2:
+    resolution: {integrity: sha512-6EuL879VkRA+1Cz578mKMiKvjPNEuk6+r1JaFzoSWejZmtf7xWbIyw1e3KkxlkzTIt9Taw6JBhEppG7utc1P+w==}
     hasBin: true
 
-  js-yaml@5.2.2:
-    resolution: {integrity: sha512-dayzUzKkJ1MkuUtZglSebU43utNXH0OWQByK9rKOOuYIO8M5TV1y+n8ALMdG0rdzBnfNkOmZEqrURepb0ejqBw==}
+  js-yaml@4.3.2:
+    resolution: {integrity: sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==}
+    hasBin: true
+
+  js-yaml@5.4.1:
+    resolution: {integrity: sha512-28R/k+NAjeuf7+CKlTxWZVExJGwVVLwY06DgEnOMz2gEpfNkDcD7QvyiVPT0xy0XXhU8vHsd4Ot42OOPdJG7dQ==}
     hasBin: true
 
   jsbn@1.1.0:
@@ -6105,8 +6115,8 @@ packages:
   mongodb-data-service@22.40.1:
     resolution: {integrity: sha512-dFMazgUXOTvD8gU4uCrRet2afNl63ScZp/CDA3q9z6gMsGCc1PjY2AfnJon8+YypmrAD66RF7T2KOCCTJwgyAA==}
 
-  mongodb-download-url@1.8.12:
-    resolution: {integrity: sha512-wq8nw96hSua4JVFITwk5eFZf1iou+K86R+wknfrh5Q9UdTbzEiHy2ixlhkhZrPPORgo9kRAMEd7l/bCXPCgGTw==}
+  mongodb-download-url@1.8.15:
+    resolution: {integrity: sha512-nxUbO7IzblTeKJEP2KHyxTUStSrBtZhPWkNHOlmNgSjYbkZf6Ss/DtKQQtS3aAQVVZG+UE1v7GAwILnpZNd09Q==}
     hasBin: true
 
   mongodb-log-writer@2.5.14:
@@ -6148,10 +6158,6 @@ packages:
 
   mongodb-redact@1.4.11:
     resolution: {integrity: sha512-Q3UcgQi1AHiVryP1VVJmPh7uqaBzjtra6ERYKIeHmWYi/pmlK4eC+dEDQ287wsvbE5qtXIgcfV5eriRvs2tanw==}
-
-  mongodb-runner@6.7.11:
-    resolution: {integrity: sha512-/XmLs68Qsghu7qUZEeJs1AXUZRFF728JTA6yUFzjaFdIfyl5sFXRboZkSwAKpNENF6CbE9rsyMAkGjb4zsdRuw==}
-    hasBin: true
 
   mongodb-schema@12.7.0:
     resolution: {integrity: sha512-TPfop6c2AAQJP1QhQwi/uJnuPEeLhMvN9ouJAZ6M9mouH6fCr0WOHLJWx5Z0dSeXJIVy//WTXxZB6yiol1bGEA==}
@@ -9922,9 +9928,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@hono/node-server@1.19.17(hono@4.12.27)':
+  '@hono/node-server@1.19.17(hono@4.13.5)':
     dependencies:
-      hono: 4.12.27
+      hono: 4.13.5
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -11285,7 +11291,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)':
     dependencies:
-      '@hono/node-server': 1.19.17(hono@4.12.27)
+      '@hono/node-server': 1.19.17(hono@4.13.5)
       ajv: 8.18.0
       ajv-formats: 3.0.1(ajv@8.18.0)
       content-type: 1.0.5
@@ -11295,7 +11301,7 @@ snapshots:
       eventsource-parser: 3.0.6
       express: 5.2.1
       express-rate-limit: 8.3.1(express@5.2.1)
-      hono: 4.12.27
+      hono: 4.13.5
       jose: 6.2.1
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -11645,16 +11651,38 @@ snapshots:
       bson: 7.2.0
       semver: 7.8.5
 
-  '@mongodb-js/mongodb-downloader@1.1.14':
+  '@mongodb-js/mongodb-downloader@1.2.0':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       decompress: 4.2.1
-      mongodb-download-url: 1.8.12
+      mongodb-download-url: 1.8.15
       node-fetch: 2.7.0
       proper-lockfile: 4.1.2
       tar: 7.5.22
     transitivePeerDependencies:
       - encoding
+      - supports-color
+
+  '@mongodb-js/mongodb-runner@6.10.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
+    dependencies:
+      '@mongodb-js/mongodb-downloader': 1.2.0
+      '@mongodb-js/oidc-mock-provider': 0.13.14
+      '@mongodb-js/saslprep': 1.5.0
+      '@peculiar/x509': 2.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      mongodb-connection-string-url: 7.0.1
+      reflect-metadata: 0.2.2
+      yargs: 18.0.0
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@mongodb-js/zstd'
+      - encoding
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - snappy
+      - socks
       - supports-color
 
   '@mongodb-js/mongodb-schema@12.7.2(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)':
@@ -11663,7 +11691,7 @@ snapshots:
     optionalDependencies:
       bson: 7.2.0
       cli-table: 0.3.11
-      js-yaml: 5.2.2
+      js-yaml: 5.4.1
       mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       mongodb-ns: 3.2.1
       numeral: 2.0.6
@@ -11706,6 +11734,10 @@ snapshots:
     dependencies:
       yargs: 18.0.0
 
+  '@mongodb-js/oidc-mock-provider@0.13.14':
+    dependencies:
+      yargs: 18.0.0
+
   '@mongodb-js/oidc-plugin@2.0.8':
     dependencies:
       express: 5.2.1
@@ -11719,11 +11751,11 @@ snapshots:
     dependencies:
       prettier: 3.8.3
 
-  '@mongodb-js/saslprep@1.4.11':
+  '@mongodb-js/saslprep@1.4.6':
     dependencies:
       sparse-bitfield: 3.0.3
 
-  '@mongodb-js/saslprep@1.4.6':
+  '@mongodb-js/saslprep@1.5.0':
     dependencies:
       sparse-bitfield: 3.0.3
 
@@ -12799,7 +12831,7 @@ snapshots:
       '@textlint/types': 15.4.0
       chalk: 4.1.2
       debug: 4.4.3(supports-color@8.1.1)
-      js-yaml: 3.15.1
+      js-yaml: 3.15.2
       lodash: 4.18.1
       pluralize: 2.0.0
       string-width: 4.2.3
@@ -13448,7 +13480,7 @@ snapshots:
       '@webassemblyjs/ast': 1.14.1
       '@xtuc/long': 4.2.2
 
-  '@xmldom/xmldom@0.9.10': {}
+  '@xmldom/xmldom@0.9.12': {}
 
   '@xtuc/ieee754@1.2.0': {}
 
@@ -13543,7 +13575,7 @@ snapshots:
   ajv@8.18.0:
     dependencies:
       fast-deep-equal: 3.1.3
-      fast-uri: 3.1.6
+      fast-uri: 3.1.7
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
 
@@ -14136,7 +14168,7 @@ snapshots:
     dependencies:
       import-fresh: 2.0.0
       is-directory: 0.3.1
-      js-yaml: 3.15.1
+      js-yaml: 3.15.2
       parse-json: 4.0.0
 
   cosmiconfig@7.1.0:
@@ -14150,7 +14182,7 @@ snapshots:
   cosmiconfig@8.3.6(typescript@5.9.3):
     dependencies:
       import-fresh: 3.3.1
-      js-yaml: 5.2.2
+      js-yaml: 4.3.2
       parse-json: 5.2.0
       path-type: 4.0.0
     optionalDependencies:
@@ -14420,7 +14452,7 @@ snapshots:
       findup-sync: 5.0.0
       ignore: 5.3.2
       is-core-module: 2.16.1
-      js-yaml: 3.15.1
+      js-yaml: 3.15.2
       json5: 2.2.3
       lodash: 4.18.1
       minimatch: 7.4.9
@@ -14980,7 +15012,7 @@ snapshots:
     dependencies:
       fast-string-truncated-width: 3.0.3
 
-  fast-uri@3.1.6: {}
+  fast-uri@3.1.7: {}
 
   fast-wrap-ansi@0.2.0:
     dependencies:
@@ -15490,7 +15522,7 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
-  hono@4.12.27: {}
+  hono@4.13.5: {}
 
   hosted-git-info@2.8.9: {}
 
@@ -15867,14 +15899,19 @@ snapshots:
 
   js-tokens@4.0.0: {}
 
-  js-yaml@3.15.1:
+  js-yaml@3.15.2:
     dependencies:
       argparse: 1.0.10
       esprima: 4.0.1
 
-  js-yaml@5.2.2:
+  js-yaml@4.3.2:
     dependencies:
       argparse: 2.0.1
+
+  js-yaml@5.4.1:
+    dependencies:
+      argparse: 2.0.1
+    optional: true
 
   jsbn@1.1.0: {}
 
@@ -16468,7 +16505,7 @@ snapshots:
       glob: 10.5.0
       he: 1.2.0
       is-path-inside: 3.0.3
-      js-yaml: 5.2.2
+      js-yaml: 4.3.2
       log-symbols: 4.1.0
       minimatch: 9.0.9
       ms: 2.1.3
@@ -16535,12 +16572,12 @@ snapshots:
       - socks
       - supports-color
 
-  mongodb-download-url@1.8.12:
+  mongodb-download-url@1.8.15:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       minimist: 1.2.8
       node-fetch: 2.7.0
-      semver: 7.7.4
+      semver: 7.8.5
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -16643,35 +16680,13 @@ snapshots:
       mongodb-connection-string-url: 7.0.1
       regexp.escape: 2.0.1
 
-  mongodb-runner@6.7.11(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7):
-    dependencies:
-      '@mongodb-js/mongodb-downloader': 1.1.14
-      '@mongodb-js/oidc-mock-provider': 0.13.12
-      '@mongodb-js/saslprep': 1.4.11
-      '@peculiar/x509': 2.0.0
-      debug: 4.4.3(supports-color@8.1.1)
-      mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      mongodb-connection-string-url: 7.0.1
-      reflect-metadata: 0.2.2
-      yargs: 18.0.0
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@mongodb-js/zstd'
-      - encoding
-      - gcp-metadata
-      - kerberos
-      - mongodb-client-encryption
-      - snappy
-      - socks
-      - supports-color
-
   mongodb-schema@12.7.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7):
     dependencies:
       reservoir: 0.1.2
     optionalDependencies:
       bson: 7.2.0
       cli-table: 0.3.11
-      js-yaml: 5.2.2
+      js-yaml: 4.3.2
       mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
       mongodb-ns: 3.0.3
       numeral: 2.0.6
@@ -17256,7 +17271,7 @@ snapshots:
   rc-config-loader@4.1.3:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
-      js-yaml: 5.2.2
+      js-yaml: 4.3.2
       json5: 2.2.3
       require-from-string: 2.0.2
     transitivePeerDependencies:
@@ -17859,7 +17874,7 @@ snapshots:
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       email-validator: 2.0.4
-      js-yaml: 3.15.1
+      js-yaml: 3.15.2
       lodash.clonedeep: 4.5.0
       semver: 7.7.4
       snyk-module: 3.3.0
@@ -18133,7 +18148,7 @@ snapshots:
 
   svg2ttf@6.0.3:
     dependencies:
-      '@xmldom/xmldom': 0.9.10
+      '@xmldom/xmldom': 0.9.12
       argparse: 2.0.1
       cubic2quad: 1.2.1
       lodash: 4.18.1

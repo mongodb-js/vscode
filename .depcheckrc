@@ -12,7 +12,7 @@ ignores:
  - "@mongodb-js/oidc-plugin"
  - "node-loader"
  - "ts-loader"
- - "mongodb-runner"
+ - "@mongodb-js/mongodb-runner"
  - "tabbable" # Mocha register testing workaround stub.
  - "focus-trap" # Mocha register testing workaround stub.
  - "ejson-shell-parser" # Used by the connection-form.

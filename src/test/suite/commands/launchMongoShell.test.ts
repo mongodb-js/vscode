@@ -11,6 +11,7 @@ import type ConnectionController from '../../../connectionController';
 suite('Commands Test Suite', function () {
   let testConnectionController: ConnectionController;
   let showErrorMessageStub: SinonStub;
+  let showWarningMessageStub: SinonStub;
   let getMongoClientConnectionOptionsStub: SinonStub;
   let isCurrentlyConnectedStub: SinonStub;
   let createTerminalStub: SinonStub;
@@ -24,6 +25,9 @@ suite('Commands Test Suite', function () {
     sandbox = sinon.createSandbox();
     sandbox.stub(vscode.window, 'showInformationMessage');
     showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+    showWarningMessageStub = sandbox
+      .stub(vscode.window, 'showWarningMessage')
+      .resolves('Launch Shell' as any);
     getMongoClientConnectionOptionsStub = sandbox.stub(
       testConnectionController,
       'getMongoClientConnectionOptions',
@@ -108,9 +112,63 @@ suite('Commands Test Suite', function () {
         );
 
         const shellCommandText = sendTextStub.firstCall.args[0];
-        expect(shellCommandText).to.equal('mongosh $MDB_CONNECTION_STRING;');
+        expect(shellCommandText).to.equal('mongosh "$MDB_CONNECTION_STRING";');
 
         expect(showErrorMessageStub.called).to.be.false;
+      });
+
+      test('openMongoDBShell should reject a connection string containing a double quote', async function () {
+        getMongoClientConnectionOptionsStub.returns({
+          url: 'mongodb://cluster0.example.com/?appName=x"|calc.exe',
+          options: {},
+        });
+
+        await launchMongoShell(testConnectionController);
+
+        expect(createTerminalStub.called).to.be.false;
+        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
+          'The connection string contains unsupported characters (quotes or line breaks) and cannot be used to launch the MongoDB Shell.',
+        );
+      });
+
+      test('openMongoDBShell should reject a connection string containing a newline', async function () {
+        getMongoClientConnectionOptionsStub.returns({
+          url: 'mongodb://cluster0.example.com/?appName=x\ncalc.exe',
+          options: {},
+        });
+
+        await launchMongoShell(testConnectionController);
+
+        expect(createTerminalStub.called).to.be.false;
+        expect(showErrorMessageStub.firstCall.args[0]).to.equal(
+          'The connection string contains unsupported characters (quotes or line breaks) and cannot be used to launch the MongoDB Shell.',
+        );
+      });
+
+      test('openMongoDBShell shows the redacted connection string before launching', async function () {
+        getMongoClientConnectionOptionsStub.returns({
+          url: 'mongodb://user:s3cr3t@localhost:27088/?readPreference=primary',
+          options: {},
+        });
+
+        await launchMongoShell(testConnectionController);
+
+        const [message, { detail }] = showWarningMessageStub.firstCall.args as [
+          string,
+          { detail: string },
+        ];
+        expect(detail).to.include('localhost:27088');
+        expect(detail).to.include('readPreference=primary');
+        expect(`${message}${detail}`).to.not.include('s3cr3t');
+      });
+
+      test('openMongoDBShell does not launch the shell when the confirmation is cancelled', async function () {
+        showWarningMessageStub.resolves(undefined);
+
+        const result = await launchMongoShell(testConnectionController);
+
+        expect(result).to.be.false;
+        expect(createTerminalStub.called).to.be.false;
       });
     });
   });
@@ -146,7 +204,7 @@ suite('Commands Test Suite', function () {
       );
 
       const shellCommandText = sendTextStub.firstCall.args[0];
-      expect(shellCommandText).to.include('$Env:MDB_CONNECTION_STRING');
+      expect(shellCommandText).to.include('"$Env:MDB_CONNECTION_STRING"');
     });
   });
 
@@ -185,7 +243,7 @@ suite('Commands Test Suite', function () {
       );
 
       const shellCommandText = sendTextStub.firstCall.args[0];
-      expect(shellCommandText).to.include('$Env:MDB_CONNECTION_STRING');
+      expect(shellCommandText).to.include('"$Env:MDB_CONNECTION_STRING"');
     });
   });
 
@@ -207,19 +265,19 @@ suite('Commands Test Suite', function () {
     }[] = [
       {
         shell: 'C:\\Program Files\\PowerShell\\7\\Pwsh.exe',
-        expectedEnvVariable: '$Env:MDB_CONNECTION_STRING',
+        expectedEnvVariable: '"$Env:MDB_CONNECTION_STRING"',
       },
       {
         shell: 'C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\PowerShell.exe',
-        expectedEnvVariable: '$Env:MDB_CONNECTION_STRING',
+        expectedEnvVariable: '"$Env:MDB_CONNECTION_STRING"',
       },
       {
         shell: 'C:\\WINDOWS\\System32\\CMD.EXE',
-        expectedEnvVariable: '%MDB_CONNECTION_STRING%',
+        expectedEnvVariable: '"%MDB_CONNECTION_STRING%"',
       },
       {
         shell: 'C:\\Program Files\\Git\\bin\\Bash.exe',
-        expectedEnvVariable: '$MDB_CONNECTION_STRING',
+        expectedEnvVariable: '"$MDB_CONNECTION_STRING"',
       },
     ];
 
@@ -261,6 +319,20 @@ suite('Commands Test Suite', function () {
       expect(terminalOptions.env?.MDB_CONNECTION_STRING).to.equal(
         expectedDriverUrl,
       );
+    });
+
+    test('windows cmd openMongoDBShell should quote the connection string so pipe/redirect payloads are inert', async function () {
+      getMongoClientConnectionOptionsStub.returns({
+        url: 'mongodb://cluster0.example.com/?appName=x|calc.exe',
+        options: {},
+      });
+
+      isCurrentlyConnectedStub.returns(true);
+
+      await launchMongoShell(testConnectionController);
+
+      const shellCommandText = sendTextStub.firstCall.args[0];
+      expect(shellCommandText).to.equal('mongosh "%MDB_CONNECTION_STRING%";');
     });
   });
 });

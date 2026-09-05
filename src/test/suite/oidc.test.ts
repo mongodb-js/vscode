@@ -16,8 +16,8 @@ import ConnectionController from '../../connectionController';
 import { StatusView } from '../../views';
 import { waitFor } from './waitFor';
 
-import { MongoCluster } from 'mongodb-runner';
-import type { MongoClusterOptions } from 'mongodb-runner';
+import { MongoCluster } from '@mongodb-js/mongodb-runner';
+import type { MongoClusterOptions } from '@mongodb-js/mongodb-runner';
 import { OIDCMockProvider } from '@mongodb-js/oidc-mock-provider';
 import type {
   MaybePromise,
@@ -186,6 +186,10 @@ suite('OIDC Tests', function () {
       'showInformationMessage',
     );
 
+    sandbox
+      .stub(vscode.window, 'showWarningMessage')
+      .resolves('Launch Shell' as any);
+
     createTerminalStub = sandbox.stub(vscode.window, 'createTerminal');
     sendTextStub = sandbox.stub();
     createTerminalStub.returns({
@@ -230,7 +234,7 @@ suite('OIDC Tests', function () {
     expect(terminalCsWithoutAppName.toString()).to.equal(connectionString);
 
     const shellCommandText = sendTextStub.firstCall.args[0];
-    expect(shellCommandText).to.equal('mongosh $MDB_CONNECTION_STRING;');
+    expect(shellCommandText).to.equal('mongosh "$MDB_CONNECTION_STRING";');
 
     // Required for shell to share the OIDC state
     expect(terminalOptions.env?.MONGOSH_OIDC_PARENT_HANDLE).to.not.be.undefined;

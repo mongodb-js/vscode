@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import type ConnectionController from '../connectionController';
+import { confirmConnection } from '../utils/confirmConnection';
 
 const launchMongoDBShellWithEnv = ({
   shellCommand,
@@ -30,22 +31,25 @@ const launchMongoDBShellWithEnv = ({
 };
 
 const getPowershellEnvString = (): string => {
-  return '$Env:MDB_CONNECTION_STRING';
+  return '"$Env:MDB_CONNECTION_STRING"';
 };
 
 const getCmdEnvString = (): string => {
-  return '%MDB_CONNECTION_STRING%';
+  // Quoting wraps the *substituted* value (cmd.exe expands %VAR% before
+  // parsing for shell metacharacters like |, &, >), so this prevents a
+  // connection string from injecting extra commands.
+  return '"%MDB_CONNECTION_STRING%"';
 };
 
 const getGitBashEnvString = (): string => {
-  return '$MDB_CONNECTION_STRING';
+  return '"$MDB_CONNECTION_STRING"';
 };
 
 const getBashEnvString = (): string => {
-  return '$MDB_CONNECTION_STRING';
+  return '"$MDB_CONNECTION_STRING"';
 };
 
-const openMongoDBShell = (
+const openMongoDBShell = async (
   connectionController: ConnectionController,
 ): Promise<boolean> => {
   if (!connectionController.isCurrentlyConnected()) {
@@ -82,6 +86,14 @@ const openMongoDBShell = (
   }
 
   const mdbConnectionString = connectionController.getActiveConnectionString();
+
+  if (/["\r\n]/.test(mdbConnectionString)) {
+    void vscode.window.showErrorMessage(
+      'The connection string contains unsupported characters (quotes or line breaks) and cannot be used to launch the MongoDB Shell.',
+    );
+    return Promise.resolve(false);
+  }
+
   const parentHandle =
     connectionController.getMongoClientConnectionOptions()?.options
       .parentHandle;
@@ -106,6 +118,19 @@ const openMongoDBShell = (
     envVariableString = getBashEnvString();
   }
 
+  // The shell is handed the connection string of whichever connection is active, which
+  // may have been set up a while ago or by someone else, so confirm the destination.
+  const confirmed = await confirmConnection({
+    connectionString: mdbConnectionString,
+    question:
+      'Please verify the details below. Would you like to launch the MongoDB Shell with this connection?',
+    action: 'Launch Shell',
+  });
+
+  if (!confirmed) {
+    return false;
+  }
+
   launchMongoDBShellWithEnv({
     shellCommand,
     mdbConnectionString,
@@ -113,7 +138,7 @@ const openMongoDBShell = (
     envVariableString,
   });
 
-  return Promise.resolve(true);
+  return true;
 };
 
 export default openMongoDBShell;

@@ -9,7 +9,7 @@ import {
   type Locator,
   type Page,
 } from '@playwright/test';
-import { MongoCluster } from 'mongodb-runner';
+import { MongoCluster } from '@mongodb-js/mongodb-runner';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 
 export const TEST_DATABASE_PORT = '27088';
