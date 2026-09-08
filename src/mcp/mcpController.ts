@@ -25,9 +25,7 @@ import formatError from '../utils/formatError';
 import type { TelemetryService } from '../telemetry';
 
 export type MCPServerStartupConfig =
-  | 'prompt'
-  | 'autoStartEnabled'
-  | 'autoStartDisabled';
+  'prompt' | 'autoStartEnabled' | 'autoStartDisabled';
 
 class VSCodeMCPLogger extends LoggerBase {
   private readonly _logger = createLogger('mcp-server');
@@ -434,8 +432,7 @@ ${jsonConfig}`,
   }
 
   private getMCPAutoStartConfig<ConfigValue = MCPServerStartupConfig>():
-    | ConfigValue
-    | undefined {
+    ConfigValue | undefined {
     return vscode.workspace
       .getConfiguration()
       .get<ConfigValue>('mdb.mcp.server');

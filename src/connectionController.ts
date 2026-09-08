@@ -652,8 +652,7 @@ export default class ConnectionController {
     }
 
     let mergeConnectionInfo:
-      | RecursivePartial<LoadedConnection>
-      | Record<string, never> = {};
+      RecursivePartial<LoadedConnection> | Record<string, never> = {};
     if (vscode.workspace.getConfiguration('mdb').get('persistOIDCTokens')) {
       mergeConnectionInfo = {
         connectionOptions: await dataService.getUpdatedSecrets(),

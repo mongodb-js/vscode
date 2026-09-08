@@ -4,6 +4,7 @@
 dist
 images
 languages
+.claude
 node_modules
 out
 playgrounds

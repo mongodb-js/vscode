@@ -237,8 +237,9 @@ const mockVSCodeTextDocument = {
   positionAt: (/* offset: number */): vscode.Position => mockPosition,
   getText: (/* range?: vscode.Range */): string => '',
 
-  getWordRangeAtPosition:
-    (/* position: vscode.Position, regex?: RegExp */): undefined => undefined,
+  getWordRangeAtPosition: (
+    /* position: vscode.Position, regex?: RegExp */
+  ): undefined => undefined,
   validateRange: (/* range: vscode.Range */): vscode.Range => mockRange,
   validatePosition: (/* position: vscode.Position */): vscode.Position =>
     mockPosition,
@@ -368,11 +369,13 @@ class LanguageServerControllerStub {
     });
   }
 
-  activeConnectionChanged(/* params: {
+  activeConnectionChanged(
+    /* params: {
     connectionString?: string;
     connectionOptions?: MongoClientOptions;
     extensionPath: string;
-  }*/): Promise<void> {
+  }*/
+  ): Promise<void> {
     return Promise.resolve();
   }
 

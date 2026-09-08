@@ -91,8 +91,7 @@ export default class ExplorerController {
 
   // Exposed for testing.
   public getConnectionsTreeView():
-    | vscode.TreeView<vscode.TreeItem>
-    | undefined {
+    vscode.TreeView<vscode.TreeItem> | undefined {
     return this._treeView;
   }
 

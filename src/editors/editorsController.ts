@@ -268,7 +268,13 @@ export default class EditorsController {
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
-      await vscode.commands.executeCommand('workbench.action.files.save');
+      // A focused tab that isn't a text document — a webview, a notebook, a
+      // diff view - leaves `activeTextEditor` undefined, so getting here does
+      // not mean nothing is open. We override ctrl/cmd+s, so pass the save
+      // back to VSCode, which handles every tab type.
+      //
+      // Not awaited: VSCode may answer with a modal that never resolves.
+      void vscode.commands.executeCommand('workbench.action.files.save');
       return false;
     }
 

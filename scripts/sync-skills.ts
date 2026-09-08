@@ -75,16 +75,12 @@ function updatePackageJson(agentSkills: string[], localSkills: string[]): void {
 
   // Recreate chatSkills array with proper paths for each type
   packageJson.contributes.chatSkills = [
-    ...agentSkills.map(
-      (name): ChatSkill => ({
-        path: `./ext/agent-skills/skills/${name}/SKILL.md`,
-      }),
-    ),
-    ...localSkills.map(
-      (name): ChatSkill => ({
-        path: `./skills/${name}/SKILL.md`,
-      }),
-    ),
+    ...agentSkills.map((name): ChatSkill => ({
+      path: `./ext/agent-skills/skills/${name}/SKILL.md`,
+    })),
+    ...localSkills.map((name): ChatSkill => ({
+      path: `./skills/${name}/SKILL.md`,
+    })),
   ];
 
   const totalSkills = agentSkills.length + localSkills.length;
