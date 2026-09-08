@@ -140,6 +140,9 @@ suite('Collection Documents Provider Test Suite', function () {
   });
 
   test('provideTextDocumentContent applies the defaultSortOrder setting', async function () {
+    // The test writes global settings and outruns the 2s default in CI.
+    this.timeout(5000);
+
     const findStub = sandbox.stub();
     findStub.resolves([{ field: 'Declaration of Independence' }]);
     const testDataService = {
