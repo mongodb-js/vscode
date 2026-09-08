@@ -43,11 +43,13 @@ You can launch a debugging task for tests inside VSCode with the **"Run Tests"**
 
 #### Using command line
 
-You can run tests using command line along with an optional `MOCHA_GREP` environment variable to apply a grep filter on tests to run.
+You can run tests using command line along with an optional `MOCHA_GREP` environment variable to apply a grep filter on tests to run. It applies to the Mocha suites (`test-extension` and `test-webview`) — the Playwright e2e suite ignores it.
 
 ```shell
-MOCHA_GREP="Participant .* prompt builders" pnpm test
+MOCHA_GREP="MCPController test suite" pnpm run test-extension
 ```
+
+Note that a `MOCHA_GREP` value matching no test titles reports `0 passing` rather than an error, so make sure it is unset when you intend to run the whole suite.
 
 It may be quicker to be more specific and use `pnpm run test-extension` or `pnpm run test-webview` after compiling.
 

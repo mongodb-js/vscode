@@ -1670,58 +1670,6 @@ suite('MDBExtensionController Test Suite', function () {
     });
   });
 
-  test('mdb.participantViewRawSchemaOutput command opens a json document with the output', async function () {
-    const openTextDocumentStub = sandbox.stub(
-      vscode.workspace,
-      'openTextDocument',
-    );
-    const showTextDocumentStub = sandbox.stub(
-      vscode.window,
-      'showTextDocument',
-    );
-
-    const schemaContent = `{
-  "count": 1,
-  "fields": [
-    {
-      "name": "_id",
-      "path": [
-        "_id"
-      ],
-      "count": 1,
-      "type": "ObjectId",
-      "probability": 1,
-      "hasDuplicates": false,
-      "types": [
-        {
-          "name": "ObjectId",
-          "path": [
-            "_id"
-          ],
-          "count": 1,
-          "probability": 1,
-          "bsonType": "ObjectId"
-        }
-      ]
-    }
-  ]
-}`;
-    await vscode.commands.executeCommand('mdb.participantViewRawSchemaOutput', {
-      schema: schemaContent,
-    });
-
-    assert(openTextDocumentStub.calledOnce);
-    assert.deepStrictEqual(openTextDocumentStub.firstCall.args[0], {
-      language: 'json',
-      content: schemaContent,
-    });
-
-    assert(showTextDocumentStub.calledOnce);
-    assert.deepStrictEqual(showTextDocumentStub.firstCall.args[1], {
-      preview: true,
-    });
-  });
-
   suite('handleDeepLink', function () {
     let fakeExecuteCommand: sinon.SinonStub;
     let fakeTrack: sinon.SinonStub;
@@ -2014,7 +1962,7 @@ suite('MDBExtensionController Test Suite', function () {
     });
 
     suite(
-      'blocks participant and destructive commands from deep links',
+      'blocks destructive and internal commands from deep links',
       function () {
         const disabledCommands = DEEP_LINK_DISALLOWED_COMMANDS;
 

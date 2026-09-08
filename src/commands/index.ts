@@ -16,7 +16,6 @@ export const ExtensionCommand = {
   mdbRunSelectedPlaygroundBlocks: 'mdb.runSelectedPlaygroundBlocks',
   mdbRunAllPlaygroundBlocks: 'mdb.runAllPlaygroundBlocks',
   mdbRunAllOrSelectedPlaygroundBlocks: 'mdb.runPlayground',
-  mdbExportCodeToPlayground: 'mdb.exportCodeToPlayground',
 
   mdbFixThisInvalidInteractiveSyntax: 'mdb.fixThisInvalidInteractiveSyntax',
   mdbFixAllInvalidInteractiveSyntax: 'mdb.fixAllInvalidInteractiveSyntax',
@@ -74,17 +73,6 @@ export const ExtensionCommand = {
   mdbCloneDocumentFromDataBrowser: 'mdb.cloneDocumentFromDataBrowser',
   mdbRefreshCollectionFromDataBrowser: 'mdb.refreshCollectionFromDataBrowser',
   mdbOpenDataBrowserFromPlayground: 'mdb.openBrowserFromPlayground',
-
-  // Chat participant.
-  openParticipantCodeInPlayground: 'mdb.openParticipantCodeInPlayground',
-  sendMessageToParticipant: 'mdb.sendMessageToParticipant',
-  sendMessageToParticipantFromInput: 'mdb.sendMessageToParticipantFromInput',
-  askCopilotFromTreeItem: 'mdb.askCopilotFromTreeItem',
-  runParticipantCode: 'mdb.runParticipantCode',
-  connectWithParticipant: 'mdb.connectWithParticipant',
-  selectDatabaseWithParticipant: 'mdb.selectDatabaseWithParticipant',
-  selectCollectionWithParticipant: 'mdb.selectCollectionWithParticipant',
-  participantOpenRawSchemaOutput: 'mdb.participantViewRawSchemaOutput',
 
   // MCP Server commands.
   startMcpServer: 'mdb.startMCPServer',

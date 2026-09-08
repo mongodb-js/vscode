@@ -12,7 +12,6 @@ export const StorageVariable = {
   globalAnonymousId: 'GLOBAL_ANONYMOUS_ID',
   // Only exists on workspaceState.
   workspaceSavedConnections: 'WORKSPACE_SAVED_CONNECTIONS',
-  copilotHasBeenShownWelcomeMessage: 'COPILOT_HAS_BEEN_SHOWN_WELCOME_MESSAGE',
 } as const;
 
 export type StorageVariable =
@@ -60,7 +59,6 @@ interface StorageVariableContents {
   [StorageVariable.globalHasBeenShownInitialView]: boolean;
   [StorageVariable.globalSavedConnections]: ConnectionsFromStorage;
   [StorageVariable.workspaceSavedConnections]: ConnectionsFromStorage;
-  [StorageVariable.copilotHasBeenShownWelcomeMessage]: boolean;
 }
 type StoredVariableName = keyof StorageVariableContents;
 type StoredItem<T extends StoredVariableName> = StorageVariableContents[T];
