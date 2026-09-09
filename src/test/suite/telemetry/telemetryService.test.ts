@@ -17,7 +17,6 @@ import {
   DocumentEditedTelemetryEvent,
   DocumentUpdatedTelemetryEvent,
   LinkClickedTelemetryEvent,
-  ParticipantFeedbackTelemetryEvent,
   PlaygroundExecutedTelemetryEvent,
   PlaygroundSavedTelemetryEvent,
   SavedConnectionsLoadedTelemetryEvent,
@@ -588,25 +587,6 @@ suite('Telemetry Controller Test Suite', function () {
         .properties.type;
       expect(type).to.be.null;
     });
-  });
-
-  function enumKeys<
-    TEnum extends object,
-    TKey extends keyof TEnum = keyof TEnum,
-  >(obj: TEnum): TKey[] {
-    return Object.keys(obj).filter((k) => Number.isNaN(k)) as TKey[];
-  }
-
-  test('ChatResultFeedbackKind to TelemetryFeedbackKind maps all values', function () {
-    for (const kind of enumKeys(vscode.ChatResultFeedbackKind)) {
-      expect(
-        new ParticipantFeedbackTelemetryEvent(
-          vscode.ChatResultFeedbackKind[kind],
-          'generic',
-        ).properties.feedback,
-        `Expect ${kind} to produce a concrete telemetry value`,
-      ).to.not.be.undefined;
-    }
   });
 
   test('trackTreeViewActivated throttles invocations', async function () {

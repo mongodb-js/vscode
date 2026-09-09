@@ -34,8 +34,7 @@ import StreamProcessorTreeItem from './streamProcessorTreeItem';
 import type { ConnectionSource } from '../storage/connectionStorage';
 
 export type ConnectionItemContextValue = `${'disconnected' | 'connected'}${
-  | ''
-  | 'Preset'}ConnectionTreeItem`;
+  '' | 'Preset'}ConnectionTreeItem`;
 
 function getIconPath(isActiveConnection: boolean): {
   light: vscode.Uri;

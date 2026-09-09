@@ -292,52 +292,6 @@ suite('Playground Controller Test Suite', function () {
           await testPlaygroundController.runAllPlaygroundBlocks();
         expect(afterConnectResult).to.be.true;
       });
-
-      suite('running code from the participant', function () {
-        beforeEach(function () {
-          sinon
-            .stub(testPlaygroundController, '_evaluateWithCancelModal')
-            .resolves({ result: '123' } as any);
-          sinon.stub(testPlaygroundController, '_openInResultPane').resolves();
-        });
-
-        afterEach(() => sinon.restore());
-
-        test('prompts to connect to a database and succeeds with selection', async function () {
-          showInformationMessageStub.onFirstCall().resolves('Connect now');
-          showInformationMessageStub.onSecondCall().resolves('Yes');
-          changeActiveConnectionStub.resolves(true);
-
-          const result = await testPlaygroundController.evaluateParticipantCode(
-            'console.log("test");',
-          );
-
-          expect(showErrorMessageStub.notCalled).is.true;
-
-          expect(changeActiveConnectionStub.calledOnce).is.true;
-
-          expect(result).is.true;
-        });
-
-        test('prompts to connect to a database and errors if not selected', async function () {
-          showInformationMessageStub.onFirstCall().resolves('Connect now');
-          showInformationMessageStub.onSecondCall().resolves('Yes');
-          changeActiveConnectionStub.resolves(false);
-
-          const result = await testPlaygroundController.evaluateParticipantCode(
-            'console.log("test");',
-          );
-
-          const expectedMessage =
-            'Please connect to a database before running a playground.';
-          await testPlaygroundController.runAllOrSelectedPlaygroundBlocks();
-          expect(showErrorMessageStub.firstCall.args[0]).to.be.equal(
-            expectedMessage,
-          );
-
-          expect(result).is.false;
-        });
-      });
     });
 
     suite('_openResult', function () {
@@ -518,35 +472,6 @@ suite('Playground Controller Test Suite', function () {
             await testPlaygroundController.runAllPlaygroundBlocks();
 
           expect(result).to.be.false;
-        });
-      });
-
-      suite('running code from the participant', function () {
-        beforeEach(function () {
-          sinon
-            .stub(testPlaygroundController, '_evaluateWithCancelModal')
-            .resolves({ result: '123' } as any);
-          sinon.stub(testPlaygroundController, '_openInResultPane').resolves();
-
-          showInformationMessageStub.resolves('Yes');
-        });
-
-        afterEach(() => sinon.restore());
-
-        test('does not prompt to connect to the database', async function () {
-          const changeActiveConnectionStub = sinon.stub(
-            testPlaygroundController._connectionController,
-            'changeActiveConnection',
-          );
-          const result = await testPlaygroundController.evaluateParticipantCode(
-            'console.log("test");',
-          );
-
-          expect(showErrorMessageStub.notCalled).is.true;
-
-          expect(changeActiveConnectionStub.notCalled).is.true;
-
-          expect(result).is.true;
         });
       });
     });

@@ -10,13 +10,10 @@ import type { ConnectionTypes } from '../connectionController';
 import { createLogger } from '../logging';
 import { getConnectionTelemetryProperties } from './connectionTelemetry';
 import type { StorageController } from '../storage';
-import { ParticipantErrorType } from '../participant/participantErrorTypes';
-import type { ParticipantResponseType } from '../participant/participantTypes';
 import type { TelemetryEvent } from './telemetryEvents';
 import {
   NewConnectionTelemetryEvent,
   SidePanelOpenedTelemetryEvent,
-  ParticipantResponseFailedTelemetryEvent,
 } from './telemetryEvents';
 import { getDeviceId } from './deviceId';
 
@@ -191,43 +188,6 @@ export class TelemetryService {
       await getConnectionTelemetryProperties(dataService, connectionType);
 
     this.track(new NewConnectionTelemetryEvent(connectionTelemetryProperties));
-  }
-
-  trackParticipantError(err: any, command: ParticipantResponseType): void {
-    let errorCode: string | undefined;
-    let errorName: ParticipantErrorType;
-    // Making the chat request might fail because
-    // - model does not exist
-    // - user consent not given
-    // - quote limits exceeded
-    if (err instanceof vscode.LanguageModelError) {
-      errorCode = err.code;
-    }
-
-    if (err instanceof Error) {
-      // Unwrap the error if a cause is provided
-      err = err.cause || err;
-    }
-
-    const message: string = err.message || err.toString();
-
-    if (message.includes('off_topic')) {
-      errorName = ParticipantErrorType.chatModelOffTopic;
-    } else if (message.includes('Filtered by Responsible AI Service')) {
-      errorName = ParticipantErrorType.filtered;
-    } else if (message.includes('Prompt failed validation')) {
-      errorName = ParticipantErrorType.invalidPrompt;
-    } else {
-      errorName = ParticipantErrorType.other;
-    }
-
-    this.track(
-      new ParticipantResponseFailedTelemetryEvent(
-        command,
-        errorName,
-        errorCode,
-      ),
-    );
   }
 
   trackTreeViewActivated: () => void = throttle(

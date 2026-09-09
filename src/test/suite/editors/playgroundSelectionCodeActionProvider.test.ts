@@ -78,57 +78,7 @@ suite('Playground Selection Code Action Provider Test Suite', function () {
       sandbox.restore();
     });
 
-    suite('copilot is disabled', function () {
-      beforeEach(function () {
-        sandbox.replace(
-          vscode.extensions,
-          'getExtension',
-          sandbox.fake.returns(undefined),
-        );
-      });
-
-      test('renders only the run selected playground blocks code action', function () {
-        const activeTextEditor = mockTextEditor;
-        activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');
-        activeTextEditor.document.getText = (): string => '123';
-        activeTextEditor.selections = [
-          {
-            start: { line: 0, character: 0 },
-            end: { line: 0, character: 4 },
-          } as vscode.Selection,
-        ];
-        testActiveTextEditor.get(function getterFn() {
-          return activeTextEditor;
-        });
-
-        const codeActions = testCodeActionProvider.provideCodeActions();
-        expect(codeActions).to.exist;
-
-        if (codeActions) {
-          expect(codeActions.length).to.be.equal(1);
-          const actionCommand = codeActions[0].command;
-
-          if (actionCommand) {
-            expect(actionCommand.command).to.be.equal(
-              'mdb.runSelectedPlaygroundBlocks',
-            );
-            expect(actionCommand.title).to.be.equal(
-              'Run selected playground blocks',
-            );
-          }
-        }
-      });
-    });
-
-    suite('copilot is active', function () {
-      beforeEach(function () {
-        sandbox.replace(
-          vscode.extensions,
-          'getExtension',
-          sandbox.fake.returns({ isActive: true }),
-        );
-      });
-
+    suite('code actions', function () {
       test('does not render code actions when text is not selected', function () {
         const activeTextEditor = mockTextEditor;
         activeTextEditor.document.uri = vscode.Uri.parse('test.mongodb.js');

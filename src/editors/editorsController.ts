@@ -40,7 +40,6 @@ import type PlaygroundResultProvider from './playgroundResultProvider';
 import { PLAYGROUND_RESULT_SCHEME } from './playgroundResultProvider';
 import { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
-import type { QueryWithCopilotCodeLensProvider } from './queryWithCopilotCodeLensProvider';
 import { getEJSON } from '../utils/ejson';
 import { getFileDisplayNameForDocument } from '../utils/documentName';
 
@@ -104,7 +103,6 @@ export default class EditorsController {
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
   _collectionDocumentsCodeLensProvider: CollectionDocumentsCodeLensProvider;
-  _queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
   // We don't have an extension on the documents to have them
   // appear cleaner in the UI. As a consequence, when we set the
   // language to show syntax highlighting, it calls that the
@@ -124,7 +122,6 @@ export default class EditorsController {
     playgroundSelectionCodeActionProvider,
     playgroundDiagnosticsCodeActionProvider,
     editDocumentCodeLensProvider,
-    queryWithCopilotCodeLensProvider,
   }: {
     context: vscode.ExtensionContext;
     connectionController: ConnectionController;
@@ -136,7 +133,6 @@ export default class EditorsController {
     playgroundSelectionCodeActionProvider: PlaygroundSelectionCodeActionProvider;
     playgroundDiagnosticsCodeActionProvider: PlaygroundDiagnosticsCodeActionProvider;
     editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-    queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
   }) {
     this._connectionController = connectionController;
     this._playgroundController = playgroundController;
@@ -168,7 +164,6 @@ export default class EditorsController {
       playgroundSelectionCodeActionProvider;
     this._playgroundDiagnosticsCodeActionProvider =
       playgroundDiagnosticsCodeActionProvider;
-    this._queryWithCopilotCodeLensProvider = queryWithCopilotCodeLensProvider;
 
     vscode.workspace.onDidCloseTextDocument((e) => {
       if (
@@ -273,7 +268,13 @@ export default class EditorsController {
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
-      await vscode.commands.executeCommand('workbench.action.files.save');
+      // A focused tab that isn't a text document — a webview, a notebook, a
+      // diff view - leaves `activeTextEditor` undefined, so getting here does
+      // not mean nothing is open. We override ctrl/cmd+s, so pass the save
+      // back to VSCode, which handles every tab type.
+      //
+      // Not awaited: VSCode may answer with a modal that never resolves.
+      void vscode.commands.executeCommand('workbench.action.files.save');
       return false;
     }
 
@@ -499,10 +500,6 @@ export default class EditorsController {
       ),
     );
     this._context.subscriptions.push(
-      vscode.languages.registerCodeLensProvider(
-        { language: 'javascript' },
-        this._queryWithCopilotCodeLensProvider,
-      ),
       vscode.languages.registerCodeLensProvider(
         { language: 'javascript' },
         this._activeConnectionCodeLensProvider,

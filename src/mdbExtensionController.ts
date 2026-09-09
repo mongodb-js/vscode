@@ -36,17 +36,7 @@ import WebviewController from './views/webviewController';
 import { createIdFactory, generateId } from './utils/objectIdHelper';
 import { ConnectionStorage } from './storage/connectionStorage';
 import type StreamProcessorTreeItem from './explorer/streamProcessorTreeItem';
-import type { RunParticipantCodeCommandArgs } from './participant/participant';
-import ParticipantController from './participant/participant';
-import type { OpenSchemaCommandArgs } from './participant/prompts/schema';
-import { QueryWithCopilotCodeLensProvider } from './editors/queryWithCopilotCodeLensProvider';
-import type {
-  SendMessageToParticipantOptions,
-  SendMessageToParticipantFromInputOptions,
-  ParticipantCommand,
-} from './participant/participantTypes';
 import ExtensionCommand from './commands';
-import { COPILOT_EXTENSION_ID } from './participant/constants';
 import {
   CommandRunTelemetryEvent,
   DataBrowserCollectionRefreshedTelemetryEvent,
@@ -78,7 +68,6 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
   ExtensionCommand.openMongodbIssueReporter,
   ExtensionCommand.mdbOpenMdbShell,
   ExtensionCommand.mdbCreatePlayground,
-  ExtensionCommand.mdbExportCodeToPlayground,
   ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
   ExtensionCommand.mdbFixAllInvalidInteractiveSyntax,
   ExtensionCommand.mdbSaveMongodbDocument,
@@ -107,15 +96,6 @@ export const DEEP_LINK_ALLOWED_COMMANDS = [
 ] as const;
 
 export const DEEP_LINK_DISALLOWED_COMMANDS = [
-  // Participant commands - internal APIs designed for chat UI only
-  ExtensionCommand.runParticipantCode,
-  ExtensionCommand.openParticipantCodeInPlayground,
-  ExtensionCommand.connectWithParticipant,
-  ExtensionCommand.selectDatabaseWithParticipant,
-  ExtensionCommand.selectCollectionWithParticipant,
-  ExtensionCommand.participantOpenRawSchemaOutput,
-  ExtensionCommand.sendMessageToParticipant,
-  ExtensionCommand.sendMessageToParticipantFromInput,
   // Playground execution — external triggers should not silently run code
   ExtensionCommand.mdbRunSelectedPlaygroundBlocks,
   ExtensionCommand.mdbRunAllPlaygroundBlocks,
@@ -146,7 +126,6 @@ export const DEEP_LINK_DISALLOWED_COMMANDS = [
   ExtensionCommand.mdbCreatePlaygroundFromTreeItem,
   ExtensionCommand.mdbDisconnectFromConnectionTreeView,
   ExtensionCommand.mdbInsertDocumentFromTreeView,
-  ExtensionCommand.askCopilotFromTreeItem,
   ExtensionCommand.mdbCreateIndexTreeView,
   ExtensionCommand.mdbOpenMongodbDocumentFromCodeLens,
   ExtensionCommand.mdbCreatePlaygroundFromOverviewPage,
@@ -226,11 +205,9 @@ export default class MDBExtensionController implements vscode.Disposable {
   _telemetryService: TelemetryService;
   _languageServerController: LanguageServerController;
   _webviewController: WebviewController;
-  _queryWithCopilotCodeLensProvider: QueryWithCopilotCodeLensProvider;
   _playgroundResultProvider: PlaygroundResultProvider;
   _activeConnectionCodeLensProvider: ActiveConnectionCodeLensProvider;
   _editDocumentCodeLensProvider: EditDocumentCodeLensProvider;
-  _participantController: ParticipantController;
   _mcpController: MCPController;
   _dataBrowsingController: DataBrowsingController;
 
@@ -268,8 +245,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       this._connectionController,
       this._editDocumentCodeLensProvider,
     );
-    this._queryWithCopilotCodeLensProvider =
-      new QueryWithCopilotCodeLensProvider();
     this._activeConnectionCodeLensProvider =
       new ActiveConnectionCodeLensProvider(this._connectionController);
     this._playgroundSelectionCodeActionProvider =
@@ -285,12 +260,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundSelectionCodeActionProvider:
         this._playgroundSelectionCodeActionProvider,
     });
-    this._participantController = new ParticipantController({
-      connectionController: this._connectionController,
-      storageController: this._storageController,
-      telemetryService: this._telemetryService,
-      playgroundResultProvider: this._playgroundResultProvider,
-    });
     this._editorsController = new EditorsController({
       context,
       connectionController: this._connectionController,
@@ -304,7 +273,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       playgroundDiagnosticsCodeActionProvider:
         this._playgroundDiagnosticsCodeActionProvider,
       editDocumentCodeLensProvider: this._editDocumentCodeLensProvider,
-      queryWithCopilotCodeLensProvider: this._queryWithCopilotCodeLensProvider,
     });
     this._webviewController = new WebviewController({
       connectionController: this._connectionController,
@@ -339,7 +307,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this._helpExplorer.activateHelpTreeView();
     this._playgroundsExplorer.activatePlaygroundsTreeView();
     void this._telemetryService.activateSegmentAnalytics();
-    this._participantController.createParticipant(this._context);
 
     await this._connectionController.loadSavedConnections();
     await this._languageServerController.startLanguageServer();
@@ -349,27 +316,6 @@ export default class MDBExtensionController implements vscode.Disposable {
     this.showOverviewPageIfRecentlyInstalled();
     this.subscribeToConfigurationChanges();
     this.registerUriHandler();
-
-    const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
-    void vscode.commands.executeCommand(
-      'setContext',
-      'mdb.isCopilotActive',
-      copilot?.isActive,
-    );
-
-    // If the extension was found but is not activated, there is a chance that the MongoDB extension
-    // was activated before the Copilot one, so we check again after a delay.
-    // See https://github.com/microsoft/vscode/issues/234426
-    if (copilot && !copilot?.isActive) {
-      setTimeout(() => {
-        const copilot = vscode.extensions.getExtension(COPILOT_EXTENSION_ID);
-        void vscode.commands.executeCommand(
-          'setContext',
-          'mdb.isCopilotActive',
-          copilot?.isActive === true,
-        );
-      }, 3000);
-    }
   }
 
   registerUriHandler = (): void => {
@@ -496,10 +442,6 @@ export default class MDBExtensionController implements vscode.Disposable {
       ExtensionCommand.mdbRunAllOrSelectedPlaygroundBlocks,
       () => this._playgroundController.runAllOrSelectedPlaygroundBlocks(),
     );
-    this.registerCommand(ExtensionCommand.mdbExportCodeToPlayground, () =>
-      this._participantController.exportCodeToPlayground(),
-    );
-
     this.registerCommand(
       ExtensionCommand.mdbFixThisInvalidInteractiveSyntax,
       (data) =>
@@ -528,101 +470,6 @@ export default class MDBExtensionController implements vscode.Disposable {
 
     this.registerEditorCommands();
     this.registerTreeViewCommands();
-
-    // ------ CHAT PARTICIPANT ------ //
-    this.registerParticipantCommand(
-      ExtensionCommand.openParticipantCodeInPlayground,
-      ({ runnableContent }: RunParticipantCodeCommandArgs) => {
-        return this._playgroundController.createPlaygroundFromParticipantCode({
-          text: runnableContent,
-        });
-      },
-    );
-    this.registerParticipantCommand(
-      ExtensionCommand.sendMessageToParticipant,
-      async (options: SendMessageToParticipantOptions) => {
-        await this._participantController.sendMessageToParticipant(options);
-        return true;
-      },
-    );
-    this.registerParticipantCommand(
-      ExtensionCommand.sendMessageToParticipantFromInput,
-      async (options: SendMessageToParticipantFromInputOptions) => {
-        await this._participantController.sendMessageToParticipantFromInput(
-          options,
-        );
-        return true;
-      },
-    );
-    this.registerParticipantCommand(
-      ExtensionCommand.askCopilotFromTreeItem,
-      async (treeItem: DatabaseTreeItem | CollectionTreeItem) => {
-        await this._participantController.askCopilotFromTreeItem(treeItem);
-        return true;
-      },
-    );
-    this.registerParticipantCommand(
-      ExtensionCommand.runParticipantCode,
-      ({ runnableContent }: RunParticipantCodeCommandArgs) => {
-        return this._playgroundController.evaluateParticipantCode(
-          runnableContent,
-        );
-      },
-    );
-    this.registerCommand(
-      ExtensionCommand.connectWithParticipant,
-      (data: { id?: string; command?: string }) => {
-        return this._participantController.connectWithParticipant(data);
-      },
-    );
-    this.registerCommand(
-      ExtensionCommand.selectDatabaseWithParticipant,
-      (data: {
-        chatId: string;
-        command: ParticipantCommand;
-        databaseName?: string;
-      }) => {
-        return this._participantController.selectDatabaseWithParticipant(data);
-      },
-    );
-    this.registerCommand(
-      ExtensionCommand.selectCollectionWithParticipant,
-      (data: any) => {
-        return this._participantController.selectCollectionWithParticipant(
-          data,
-        );
-      },
-    );
-    this.registerCommand(
-      ExtensionCommand.participantOpenRawSchemaOutput,
-      async ({ schema }: OpenSchemaCommandArgs) => {
-        const document = await vscode.workspace.openTextDocument({
-          language: 'json',
-          content: schema,
-        });
-        await vscode.window.showTextDocument(document, { preview: true });
-
-        return !!document;
-      },
-    );
-  };
-
-  registerParticipantCommand = (
-    command: ExtensionCommand,
-    commandHandler: (...args: any[]) => Promise<boolean>,
-  ): void => {
-    const commandHandlerWithTelemetry = (args: any[]): Promise<boolean> => {
-      this._telemetryService.track(new CommandRunTelemetryEvent(command));
-
-      return commandHandler(args);
-    };
-    const participant = this._participantController.getParticipant();
-    if (participant) {
-      this._context.subscriptions.push(
-        participant,
-        vscode.commands.registerCommand(command, commandHandlerWithTelemetry),
-      );
-    }
   };
 
   registerCommand = (
