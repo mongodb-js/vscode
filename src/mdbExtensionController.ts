@@ -46,7 +46,6 @@ import {
   DocumentEditedTelemetryEvent,
 } from './telemetry';
 
-import * as queryString from 'query-string';
 import { z } from 'zod';
 import { MCPController } from './mcp/mcpController';
 import formatError from './utils/formatError';
@@ -163,6 +162,67 @@ const DEEP_LINK_PARAM_SCHEMA: Partial<
     namespace: z.string().optional(),
   }),
 };
+
+// Every parameter name the commands above accept, plus the tracking parameter that
+// `_handleDeepLink` consumes itself.
+const DEEP_LINK_PARAM_NAMES = [
+  'utm_source',
+  ...Object.values(DEEP_LINK_PARAM_SCHEMA).flatMap((schema) =>
+    schema ? Object.keys(schema.shape) : [],
+  ),
+];
+
+/**
+ * Parse the query of a deep link into its parameters.
+ *
+ * VS Code percent-decodes `Uri.query` before the handler runs, so by the time we see it
+ * a connection string's own `&` and `=` are indistinguishable from the separators
+ * between parameters, and a `+` can no longer be told apart from an encoded space. That
+ * rules out parsing this as form encoding: it would read `mongodb+srv://` as
+ * `mongodb srv://` and split the connection string's own options out into parameters of
+ * their own.
+ *
+ * So we split only where a parameter name we know about begins a new parameter, and take
+ * the rest of each parameter verbatim. A connection string containing `&<known name>=`
+ * would still be split too early, but none of these names is a connection string option.
+ */
+function parseDeepLinkQuery(query: string): Record<string, unknown> {
+  // A deep link is untrusted input, so the parameters must not inherit from
+  // `Object.prototype` and let a parameter named e.g. `__proto__` reach it.
+  const parameters: Record<string, unknown> = Object.create(null);
+
+  if (!query) {
+    return parameters;
+  }
+
+  const nextParameter = new RegExp(
+    `&(?=(?:${DEEP_LINK_PARAM_NAMES.join('|')})=)`,
+  );
+
+  for (const parameter of query.split(nextParameter)) {
+    const separator = parameter.indexOf('=');
+    const name = separator === -1 ? parameter : parameter.slice(0, separator);
+    const rawValue = separator === -1 ? null : parameter.slice(separator + 1);
+
+    let value: unknown = rawValue;
+    if (rawValue === 'true' || rawValue === 'false') {
+      value = rawValue === 'true';
+    }
+
+    // Keep repeated parameters as a list, so that they are rejected by the schema
+    // rather than one of them quietly winning.
+    if (name in parameters) {
+      const existing = parameters[name];
+      parameters[name] = Array.isArray(existing)
+        ? [...existing, value]
+        : [existing, value];
+    } else {
+      parameters[name] = value;
+    }
+  }
+
+  return parameters;
+}
 
 function validateDeepLinkParams(
   command: ExtensionCommand,
@@ -330,10 +390,7 @@ export default class MDBExtensionController implements vscode.Disposable {
       command = `mdb.${command}`;
     }
 
-    const parameters = queryString.parse(uri.query, {
-      parseBooleans: true,
-      parseNumbers: true,
-    });
+    const parameters = parseDeepLinkQuery(uri.query);
 
     const source =
       'utm_source' in parameters && typeof parameters.utm_source === 'string'

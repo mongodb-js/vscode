@@ -1671,6 +1671,23 @@ suite('MDBExtensionController Test Suite', function () {
   });
 
   suite('handleDeepLink', function () {
+    // Build a deep link the way something linking to the extension would: percent-encode
+    // each value once, then hand the whole URI to `Uri.parse`. Going through `Uri.parse`
+    // matters, because it decodes the query before a handler sees it, while `Uri.from`
+    // keeps whatever it is given verbatim.
+    const deepLink = (
+      command: string,
+      parameters: Record<string, string>,
+    ): vscode.Uri => {
+      const query = Object.entries(parameters)
+        .map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
+        .join('&');
+
+      return vscode.Uri.parse(
+        `vscode://mongodb.mongodb-vscode/${command}?${query}`,
+      );
+    };
+
     let fakeExecuteCommand: sinon.SinonStub;
     let fakeTrack: sinon.SinonStub;
 
@@ -1720,12 +1737,9 @@ suite('MDBExtensionController Test Suite', function () {
 
     test('handles valid command with query parameters', async function () {
       await mdbTestExtension.testExtensionController._handleDeepLink(
-        vscode.Uri.from({
-          scheme: 'vscode',
-          authority: 'mongodb.mongodb-vscode',
-          path: '/connectWithURI',
-          query:
-            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017&name=local',
+        deepLink('connectWithURI', {
+          connectionString: 'mongodb://localhost:27017',
+          name: 'local',
         }),
       );
 
@@ -1736,14 +1750,58 @@ suite('MDBExtensionController Test Suite', function () {
       expect(fakeShowErrorMessage).to.not.have.been.called;
     });
 
+    test('handles an srv connection string', async function () {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        deepLink('connectWithURI', {
+          connectionString: 'mongodb+srv://cluster0.example.com/',
+        }),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
+        connectionString: 'mongodb+srv://cluster0.example.com/',
+      });
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('handles a connection string that sets options', async function () {
+      const connectionString =
+        'mongodb+srv://cluster0.example.com/admin?appName=x&proxyHost=proxy.example.com&tls=false';
+
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        deepLink('connectWithURI', { connectionString }),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
+        connectionString,
+      });
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('handles a connection string that sets options alongside other parameters', async function () {
+      const connectionString =
+        'mongodb+srv://user:s3cr3t@cluster0.example.com/admin?appName=x&tls=false';
+
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        deepLink('connectWithURI', {
+          connectionString,
+          reuseExisting: 'true',
+          name: 'local',
+        }),
+      );
+
+      expect(fakeExecuteCommand).to.have.been.calledWith('mdb.connectWithURI', {
+        connectionString,
+        reuseExisting: true,
+        name: 'local',
+      });
+      expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
     test('converts query parameters to booleans', async function () {
       await mdbTestExtension.testExtensionController._handleDeepLink(
-        vscode.Uri.from({
-          scheme: 'vscode',
-          authority: 'mongodb.mongodb-vscode',
-          path: '/connectWithURI',
-          query:
-            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017&reuseExisting=true',
+        deepLink('connectWithURI', {
+          connectionString: 'mongodb://localhost:27017',
+          reuseExisting: 'true',
         }),
       );
 
@@ -1759,12 +1817,9 @@ suite('MDBExtensionController Test Suite', function () {
 
     test('decodes query parameters', async function () {
       await mdbTestExtension.testExtensionController._handleDeepLink(
-        vscode.Uri.from({
-          scheme: 'vscode',
-          authority: 'mongodb.mongodb-vscode',
-          path: '/connectWithURI',
-          query:
-            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017%2F%3FappName%3Dblah%26test%3Dtrue&reuseExisting=true',
+        deepLink('connectWithURI', {
+          connectionString: 'mongodb://localhost:27017/?appName=blah&test=true',
+          reuseExisting: 'true',
         }),
       );
 
@@ -1776,6 +1831,32 @@ suite('MDBExtensionController Test Suite', function () {
         },
       );
       expect(fakeShowErrorMessage).to.not.have.been.called;
+    });
+
+    test('does not let a parameter reach Object.prototype', async function () {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?__proto__=polluted',
+        ),
+      );
+
+      // The parameters are built without a prototype, so the name is carried as an
+      // ordinary key that never reaches Object.prototype, and the schema then
+      // rejects it as unrecognised rather than the command running with it.
+      expect(({} as Record<string, unknown>).polluted).to.be.undefined;
+      expect(fakeExecuteCommand).to.not.have.been.called;
+      expect(fakeShowErrorMessage).to.have.been.calledOnce;
+    });
+
+    test('rejects a repeated parameter rather than picking one', async function () {
+      await mdbTestExtension.testExtensionController._handleDeepLink(
+        vscode.Uri.parse(
+          'vscode://mongodb.mongodb-vscode/connectWithURI?connectionString=mongodb%3A%2F%2Fa&connectionString=mongodb%3A%2F%2Fb',
+        ),
+      );
+
+      expect(fakeExecuteCommand).to.not.have.been.called;
+      expect(fakeShowErrorMessage).to.have.been.calledOnce;
     });
 
     test('shows an error message when executeCommand fails', async function () {
@@ -1829,12 +1910,9 @@ suite('MDBExtensionController Test Suite', function () {
 
     test('removes utm_source from parameters passed to command', async function () {
       await mdbTestExtension.testExtensionController._handleDeepLink(
-        vscode.Uri.from({
-          scheme: 'vscode',
-          authority: 'mongodb.mongodb-vscode',
-          path: '/mdb.connectWithURI',
-          query:
-            'connectionString=mongodb%3A%2F%2Flocalhost%3A27017&utm_source=abc',
+        deepLink('mdb.connectWithURI', {
+          connectionString: 'mongodb://localhost:27017',
+          utm_source: 'abc',
         }),
       );
 
@@ -1912,11 +1990,9 @@ suite('MDBExtensionController Test Suite', function () {
       test('rejects name parameter exceeding maxLength', async function () {
         const longName = 'a'.repeat(101);
         await mdbTestExtension.testExtensionController._handleDeepLink(
-          vscode.Uri.from({
-            scheme: 'vscode',
-            authority: 'mongodb.mongodb-vscode',
-            path: '/connectWithURI',
-            query: `connectionString=mongodb%3A%2F%2Flocalhost&name=${longName}`,
+          deepLink('connectWithURI', {
+            connectionString: 'mongodb://localhost',
+            name: longName,
           }),
         );
 
@@ -1944,12 +2020,9 @@ suite('MDBExtensionController Test Suite', function () {
 
       test('rejects array values', async function () {
         await mdbTestExtension.testExtensionController._handleDeepLink(
-          vscode.Uri.from({
-            scheme: 'vscode',
-            authority: 'mongodb.mongodb-vscode',
-            path: '/searchForDocuments',
-            query: 'databaseName=a&databaseName=b',
-          }),
+          vscode.Uri.parse(
+            'vscode://mongodb.mongodb-vscode/searchForDocuments?databaseName=a&databaseName=b',
+          ),
         );
 
         expect(fakeExecuteCommand).to.not.have.been.called;
