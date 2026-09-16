@@ -8,6 +8,17 @@ const addUTMAttrs = (url: string): string => {
   return parsed.toString();
 };
 
+/**
+ * encodeURIComponent leaves !'()* unescaped. Unescaped parens let a value
+ * break out of the surrounding Markdown link when these URLs are rendered in
+ * completion documentation, so escape them too.
+ */
+const encodeUriPart = (value: string): string => {
+  return encodeURIComponent(value).replace(/[!'()*]/g, (char) => {
+    return `%${char.charCodeAt(0).toString(16).toUpperCase()}`;
+  });
+};
+
 const LINKS = {
   changelog: 'https://github.com/mongodb-js/vscode/blob/main/CHANGELOG.md',
   feedback: 'https://feedback.mongodb.com/?category=7548143030521447168',
@@ -29,13 +40,19 @@ const LINKS = {
     return `https://docs.mongodb.com/mongodb-vscode/${subcategory}`;
   },
   aggregationDocs: (title: string): string => {
-    return `https://www.mongodb.com/docs/manual/reference/operator/aggregation/${title}/`;
+    return `https://www.mongodb.com/docs/manual/reference/operator/aggregation/${encodeUriPart(
+      title,
+    )}/`;
   },
   bsonDocs: (type: string): string => {
-    return `https://www.mongodb.com/docs/mongodb-shell/reference/data-types/#${type}`;
+    return `https://www.mongodb.com/docs/mongodb-shell/reference/data-types/#${encodeUriPart(
+      type,
+    )}`;
   },
   systemVariableDocs: (name: string): string => {
-    return `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${name}`;
+    return `https://www.mongodb.com/docs/manual/reference/aggregation-variables/#mongodb-variable-variable.${encodeUriPart(
+      name,
+    )}`;
   },
   ldapDocs: 'https://docs.mongodb.com/manual/core/security-ldap/',
   authDatabaseDocs:

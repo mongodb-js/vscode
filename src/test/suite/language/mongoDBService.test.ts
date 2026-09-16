@@ -2557,6 +2557,73 @@ suite('MongoDBService Test Suite', function () {
         expect(completion).to.have.property('kind', CompletionItemKind.Folder);
       });
     });
+
+    suite('when a field name contains a Markdown link breakout', function () {
+      const maliciousField =
+        'x)[SECURITY-UPDATE-click-here](https://example.com/attacker';
+
+      test('does not build a docs link for a field name in the $match stage', async function () {
+        const content =
+          "use('test'); db.collection.aggregate([{ $match: { x } }]);";
+        const position = { line: 0, character: content.indexOf('x }') + 1 };
+        const document = TextDocument.create('init', 'javascript', 1, content);
+
+        testMongoDBService.cacheFields('test.collection', [maliciousField]);
+
+        const result = await testMongoDBService.provideCompletionItems({
+          document,
+          position,
+        });
+        const completion = result.find(
+          (item: CompletionItem) => item.label === maliciousField,
+        );
+
+        expect(completion).to.have.property('kind', CompletionItemKind.Field);
+        expect(completion?.documentation).to.be.undefined;
+      });
+
+      test('does not build a docs link for a field name in find', async function () {
+        const content = "use('test'); db.collection.find({ x });";
+        const position = { line: 0, character: content.indexOf('x }') + 1 };
+        const document = TextDocument.create('init', 'javascript', 1, content);
+
+        testMongoDBService.cacheFields('test.collection', [maliciousField]);
+
+        const result = await testMongoDBService.provideCompletionItems({
+          document,
+          position,
+        });
+        const completion = result.find(
+          (item: CompletionItem) => item.label === maliciousField,
+        );
+
+        expect(completion).to.have.property('kind', CompletionItemKind.Field);
+        expect(completion?.documentation).to.be.undefined;
+      });
+
+      test('still builds a docs link for operators alongside fields', async function () {
+        const content =
+          "use('test'); db.collection.aggregate([{ $match: { $e } }]);";
+        const position = { line: 0, character: content.indexOf('$e }') + 2 };
+        const document = TextDocument.create('init', 'javascript', 1, content);
+
+        testMongoDBService.cacheFields('test.collection', [maliciousField]);
+
+        const result = await testMongoDBService.provideCompletionItems({
+          document,
+          position,
+        });
+        const completion = result.find(
+          (item: CompletionItem) => item.label === '$eq',
+        );
+
+        const documentation = completion?.documentation;
+        expect(MarkupContent.is(documentation)).to.be.eql(true);
+        expect((documentation as MarkupContent).value).to.include(
+          'reference/operator/aggregation/eq/',
+        );
+      });
+    });
   });
 
   suite('Evaluate', function () {

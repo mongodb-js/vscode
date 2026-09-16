@@ -48,4 +48,28 @@ suite('LINKS', function () {
       }
     });
   });
+
+  suite('when a name comes from untrusted data', function () {
+    const markdownBreakout =
+      'x)[SECURITY-UPDATE-click-here](https://example.com/attacker';
+
+    ['aggregationDocs', 'bsonDocs', 'systemVariableDocs'].forEach((name) => {
+      test(`${name} escapes characters that break out of a Markdown link`, function () {
+        const link = LINKS[name](markdownBreakout);
+
+        expect(link).to.not.include('(');
+        expect(link).to.not.include(')');
+        expect(link).to.not.include('[');
+        expect(link).to.not.include(']');
+        // The injected URL must not survive as a usable link target.
+        expect(link).to.not.include('https://example.com');
+      });
+    });
+
+    test('escapes the characters encodeURIComponent leaves alone', function () {
+      const link = LINKS.aggregationDocs("!'()*");
+
+      expect(link).to.include('%21%27%28%29%2A');
+    });
+  });
 });
