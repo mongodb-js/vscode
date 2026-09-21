@@ -16,6 +16,11 @@ import type { MessageFromWebviewToExtension } from './data-browsing-app/extensio
 import { CollectionType } from '../explorer/documentUtils';
 import formatError from '../utils/formatError';
 import {
+  documentIdFilter,
+  formatDocumentIdForDisplay,
+  unmatchedDocumentIdMessage,
+} from '../utils/documentIdFilter';
+import {
   getThemeTokenColors,
   getMonacoBaseTheme,
 } from '../utils/themeColorReader';
@@ -662,9 +667,7 @@ export default class DataBrowsingController {
         .get('confirmDeleteDocument');
 
       if (shouldConfirmDeleteDocument === true) {
-        const documentIdString = JSON.stringify(
-          EJSON.serialize(documentId, { relaxed: false }),
-        );
+        const documentIdString = formatDocumentIdForDisplay(documentId);
         const confirmationResult = await vscode.window.showInformationMessage(
           `Are you sure you wish to drop this document${documentIdString ? ` ${documentIdString}` : ''}?`,
           {
@@ -687,12 +690,18 @@ export default class DataBrowsingController {
 
       const deleteResult = await dataService.deleteOne(
         `${options.databaseName}.${options.collectionName}`,
-        { _id: documentId },
+        documentIdFilter(documentId),
         {},
       );
 
       if (deleteResult.deletedCount !== 1) {
-        throw new Error('document not found');
+        throw new Error(
+          unmatchedDocumentIdMessage(
+            documentId,
+            `${options.databaseName}.${options.collectionName}`,
+            !!options.query,
+          ),
+        );
       }
 
       void vscode.window.showInformationMessage(

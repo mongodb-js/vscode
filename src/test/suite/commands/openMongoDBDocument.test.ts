@@ -79,6 +79,30 @@ suite('openMongoDBDocument Command Test Suite', function () {
       await cleanupTestDB();
     });
 
+    test('mdb.openMongoDBDocumentFromDataBrowser explains an _id that matches no document', async function () {
+      const showErrorMessageStub = sinon.stub(
+        vscode.window,
+        'showErrorMessage',
+      );
+      const testDocument = getTestDocumentItem(
+        mdbTestExtension.testExtensionController._connectionController.getActiveConnectionId(),
+        { _id: 'no-such-document' },
+        'shell',
+      );
+
+      await vscode.commands.executeCommand(
+        'mdb.openMongoDBDocumentFromDataBrowser',
+        testDocument,
+      );
+
+      expect(showTextDocumentSpy.called, 'opens no editor').to.be.false;
+      expect(showErrorMessageStub.calledOnce).to.be.true;
+      const message = showErrorMessageStub.firstCall.args[0];
+      expect(message).to.include(`${TEST_DB_NAME}.${allTypesCollection}`);
+      expect(message).to.include('no-such-document');
+      expect(message).to.include('a value the query produced');
+    });
+
     test('mdb.openMongoDBDocumentFromDataBrowser opens a document with shell format (all types)', async function () {
       const testDocument = getTestDocumentItem(
         mdbTestExtension.testExtensionController._connectionController.getActiveConnectionId(),

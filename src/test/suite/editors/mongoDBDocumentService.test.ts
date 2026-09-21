@@ -320,4 +320,94 @@ suite('MongoDB Document Service Test Suite', function () {
       expect(formatError(error).message).to.be.equal(expectedMessage);
     }
   });
+
+  suite('query operator injection via documentId', function () {
+    // Matches every document, so unwrapped it becomes a wildcard filter.
+    const poisonedDocumentId = { $exists: true };
+
+    beforeEach(function () {
+      sandbox.replace(
+        testConnectionController,
+        'getActiveConnectionId',
+        sandbox.fake.returns(connectionId),
+      );
+      sandbox.replace(
+        testConnectionController,
+        'getSavedConnectionName',
+        sandbox.fake.returns('tasty_sandwhich'),
+      );
+    });
+
+    test('replaceDocument filters by an $eq-wrapped _id', async function () {
+      const findOneAndReplaceStub = sandbox.stub().resolves({});
+      sandbox.replace(
+        testConnectionController,
+        'getActiveDataService',
+        sandbox.fake.returns({
+          findOneAndReplace: findOneAndReplaceStub,
+        }) as any,
+      );
+
+      await testMongoDBDocumentService.replaceDocument({
+        namespace,
+        documentId: poisonedDocumentId,
+        connectionId,
+        newDocument: { pwned: true },
+        source: DocumentSource.playground,
+        documentFormat: 'shell',
+      });
+
+      expect(findOneAndReplaceStub.firstCall.args[1]).to.deep.equal({
+        _id: { $eq: poisonedDocumentId },
+      });
+    });
+
+    test('fetchDocument filters by an $eq-wrapped _id', async function () {
+      const findStub = sandbox.stub().resolves([{ _id: documentId }]);
+      sandbox.replace(
+        testConnectionController,
+        'getActiveDataService',
+        sandbox.fake.returns({ find: findStub }) as any,
+      );
+
+      await testMongoDBDocumentService.fetchDocument({
+        namespace,
+        documentId,
+        line: 1,
+        format: 'ejson',
+        connectionId,
+        source: DocumentSource.playground,
+      });
+
+      expect(findStub.firstCall.args[1]).to.deep.equal({
+        _id: { $eq: documentId },
+      });
+    });
+
+    test('fetchDocument explains an _id that matches no document', async function () {
+      const findStub = sandbox.stub().resolves([]);
+      sandbox.replace(
+        testConnectionController,
+        'getActiveDataService',
+        sandbox.fake.returns({ find: findStub }) as any,
+      );
+
+      try {
+        await testMongoDBDocumentService.fetchDocument({
+          namespace,
+          documentId: 'active',
+          line: 1,
+          format: 'ejson',
+          connectionId,
+          source: DocumentSource.playground,
+        });
+        throw new Error('expected earlier failure');
+      } catch (error) {
+        const message = formatError(error).message;
+        expect(message).to.include(namespace);
+        expect(message).to.include('"active"');
+        expect(message).to.include('a value the query produced');
+      }
+    });
+  });
 });

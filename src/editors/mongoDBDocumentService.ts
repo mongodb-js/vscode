@@ -6,6 +6,10 @@ import { createLogger } from '../logging';
 import type { DocumentSource } from '../documentSource';
 import type { EditDocumentInfo } from '../types/editDocumentInfoType';
 import formatError from '../utils/formatError';
+import {
+  documentIdFilter,
+  unmatchedDocumentIdMessage,
+} from '../utils/documentIdFilter';
 import type { StatusView } from '../views';
 import type { TelemetryService } from '../telemetry';
 import { DocumentUpdatedTelemetryEvent } from '../telemetry';
@@ -42,7 +46,7 @@ export default class MongoDBDocumentService {
     this._telemetryService = telemetryService;
   }
 
-  _fetchDocumentFailed(message: string): void {
+  _fetchDocumentFailed(message: string): never {
     const errorMessage = `Unable to fetch document: ${message}`;
 
     throw new Error(errorMessage);
@@ -108,7 +112,7 @@ export default class MongoDBDocumentService {
     try {
       await dataService.findOneAndReplace(
         namespace,
-        { _id: documentId },
+        documentIdFilter(documentId),
         newDocument,
         {
           returnDocument: 'after',
@@ -129,7 +133,7 @@ export default class MongoDBDocumentService {
     }
   }
 
-  async fetchDocument(data: EditDocumentInfo): Promise<Document | void> {
+  async fetchDocument(data: EditDocumentInfo): Promise<Document> {
     log.info('Fetch document from MongoDB', data);
 
     const { documentId, namespace, connectionId } = data;
@@ -158,7 +162,7 @@ export default class MongoDBDocumentService {
     try {
       const documents = await dataService.find(
         namespace,
-        { _id: documentId },
+        documentIdFilter(documentId),
         {
           limit: 1,
           promoteValues: false,
@@ -166,7 +170,10 @@ export default class MongoDBDocumentService {
       );
 
       if (!documents || documents.length === 0) {
-        return;
+        // EditDocumentInfo carries no query, so leave the provenance open.
+        return this._fetchDocumentFailed(
+          unmatchedDocumentIdMessage(documentId, namespace),
+        );
       }
 
       return documents[0];
