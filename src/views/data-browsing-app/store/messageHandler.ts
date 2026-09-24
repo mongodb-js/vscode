@@ -1,5 +1,8 @@
 import type { MessageFromExtensionToWebview } from '../extension-app-message-constants';
-import { PreviewMessageType } from '../extension-app-message-constants';
+import {
+  PreviewMessageType,
+  isMessageFromExtension,
+} from '../extension-app-message-constants';
 import type { AppDispatch } from './index';
 import type { PreviewDocument } from './documentQuerySlice';
 import {
@@ -18,11 +21,7 @@ export const handleExtensionMessage = (
 ): void => {
   switch (message.command) {
     case PreviewMessageType.loadPage:
-      dispatch(
-        documentsReceived(
-          message.documents ? (message.documents as PreviewDocument[]) : [],
-        ),
-      );
+      dispatch(documentsReceived(message.documents as PreviewDocument[]));
       break;
     case PreviewMessageType.getDocumentError: {
       const errorMessage = message.error || 'Failed to fetch documents';
@@ -55,10 +54,24 @@ export const handleExtensionMessage = (
   }
 };
 
+/**
+ * Each panel gets its own unguessable `vscode-webview://<uuid>` origin, which
+ * is the origin VS Code posts extension messages from.
+ *
+ * Checking `event.source === window.parent` instead rejects every real message:
+ * this frame is sandboxed, so `window.parent` is the frame itself while real
+ * messages carry the unreachable host frame as their source.
+ */
+const isFromExtensionHost = (event: MessageEvent): boolean =>
+  event.origin === window.location.origin;
+
 export const setupMessageHandler = (dispatch: AppDispatch): (() => void) => {
   const handleMessage = (event: MessageEvent): void => {
-    const message: MessageFromExtensionToWebview = event.data;
-    handleExtensionMessage(dispatch, message);
+    if (!isFromExtensionHost(event) || !isMessageFromExtension(event.data)) {
+      return;
+    }
+
+    handleExtensionMessage(dispatch, event.data);
   };
 
   window.addEventListener('message', handleMessage);

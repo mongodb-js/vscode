@@ -113,6 +113,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '123', name: 'Test' }],
@@ -172,6 +173,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.requestCancelled,
             },
@@ -193,6 +195,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '123', name: 'Test' }],
@@ -211,6 +214,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [],
@@ -235,6 +239,7 @@ describe('PreviewApp test suite', function () {
         // Send loadPage message
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '1', name: 'Doc1' }],
@@ -244,6 +249,7 @@ describe('PreviewApp test suite', function () {
         // Send updateTotalCount message (now sent separately)
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.updateTotalCount,
               totalCount: 1,
@@ -301,6 +307,7 @@ describe('PreviewApp test suite', function () {
         // Send loadPage message
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents,
@@ -310,6 +317,7 @@ describe('PreviewApp test suite', function () {
         // Send updateTotalCount message (now sent separately)
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.updateTotalCount,
               totalCount,
@@ -393,6 +401,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents,
@@ -401,6 +410,7 @@ describe('PreviewApp test suite', function () {
         );
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.updateTotalCount,
               totalCount: null,
@@ -427,6 +437,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents,
@@ -435,6 +446,7 @@ describe('PreviewApp test suite', function () {
         );
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.updateTotalCountError,
               error: errorMessage,
@@ -486,6 +498,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '123', name: 'TestDocument', value: 42 }],
@@ -509,6 +522,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [
@@ -542,6 +556,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [testDocument],
@@ -581,6 +596,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '1', name: 'Doc1' }],
@@ -789,6 +805,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '1', name: 'FirstPage' }],
@@ -805,6 +822,7 @@ describe('PreviewApp test suite', function () {
       act(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
+            origin: window.location.origin,
             data: {
               command: PreviewMessageType.loadPage,
               documents: [{ _id: '11', name: 'SecondPage' }],
