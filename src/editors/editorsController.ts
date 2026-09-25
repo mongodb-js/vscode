@@ -196,16 +196,6 @@ export default class EditorsController {
       const mdbDocument =
         await this._mongoDBDocumentService.fetchDocument(data);
 
-      if (!mdbDocument) {
-        void vscode.window.showErrorMessage(`
-          Unable to open mongodb document: document ${JSON.stringify(
-            data.documentId,
-          )} not found
-        `);
-
-        return false;
-      }
-
       const activeConnectionId =
         this._connectionController.getActiveConnectionId() || '';
       const namespaceUriQuery = `${NAMESPACE_URI_IDENTIFIER}=${data.namespace}`;

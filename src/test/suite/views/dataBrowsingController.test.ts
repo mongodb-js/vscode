@@ -1708,4 +1708,105 @@ suite('DataBrowsingController Test Suite', function () {
       expect(lastSkip).to.deep.equal({ $skip: 0 });
     });
   });
+
+  suite('query operator injection via documentId', function () {
+    // Matches every document, so unwrapped it becomes a wildcard filter.
+    const poisonedDocumentId = { $exists: true };
+
+    function stubDataService(deleteOne: sinon.SinonStub): void {
+      (testController as any)._connectionController = {
+        getActiveConnectionId: sandbox.stub().returns('conn-id'),
+        getActiveDataService: sandbox.stub().returns({ deleteOne }),
+      };
+    }
+
+    test('deletes by an $eq-wrapped _id', async function () {
+      const deleteOneStub = sandbox.stub().resolves({ deletedCount: 1 });
+      stubDataService(deleteOneStub);
+      sandbox
+        .stub(vscode.window, 'showInformationMessage')
+        .resolves('Yes' as any);
+      sandbox.stub(vscode.commands, 'executeCommand').resolves(true);
+
+      await testController.handleDeleteDocument(
+        mockPanel,
+        createMockOptions(),
+        'my-id',
+      );
+
+      expect(deleteOneStub.calledOnce).to.be.true;
+      expect(deleteOneStub.firstCall.args[1]).to.deep.equal({
+        _id: { $eq: 'my-id' },
+      });
+    });
+
+    test('keeps an operator _id under $eq rather than directly under _id', async function () {
+      const deleteOneStub = sandbox.stub().resolves({ deletedCount: 1 });
+      stubDataService(deleteOneStub);
+      sandbox
+        .stub(vscode.window, 'showInformationMessage')
+        .resolves('Yes' as any);
+      sandbox.stub(vscode.commands, 'executeCommand').resolves(true);
+
+      await testController.handleDeleteDocument(
+        mockPanel,
+        createMockOptions(),
+        poisonedDocumentId,
+      );
+
+      expect(deleteOneStub.firstCall.args[1]).to.deep.equal({
+        _id: { $eq: poisonedDocumentId },
+      });
+    });
+
+    test('explains an unmatched _id, and blames the query when there is one', async function () {
+      const deleteOneStub = sandbox.stub().resolves({ deletedCount: 0 });
+      stubDataService(deleteOneStub);
+      sandbox
+        .stub(vscode.window, 'showInformationMessage')
+        .resolves('Yes' as any);
+      const showErrorStub = sandbox
+        .stub(vscode.window, 'showErrorMessage')
+        .resolves();
+
+      const options = createMockOptions({
+        query: {
+          options: {
+            method: 'aggregate',
+            args: ['test', 'collection', [{ $group: { _id: '$tag' } }], {}, {}],
+          },
+          chains: [],
+        } as any,
+      });
+
+      await testController.handleDeleteDocument(mockPanel, options, 'active');
+
+      expect(showErrorStub.calledOnce).to.be.true;
+      const message = showErrorStub.firstCall.args[0];
+      expect(message).to.include('test.collection');
+      expect(message).to.include('"active"');
+      expect(message).to.include('a value the query produced');
+    });
+
+    test('does not blame a query when browsing the collection', async function () {
+      const deleteOneStub = sandbox.stub().resolves({ deletedCount: 0 });
+      stubDataService(deleteOneStub);
+      sandbox
+        .stub(vscode.window, 'showInformationMessage')
+        .resolves('Yes' as any);
+      const showErrorStub = sandbox
+        .stub(vscode.window, 'showErrorMessage')
+        .resolves();
+
+      await testController.handleDeleteDocument(
+        mockPanel,
+        createMockOptions(),
+        'my-id',
+      );
+
+      const message = showErrorStub.firstCall.args[0];
+      expect(message).to.include('deleted or changed');
+      expect(message).to.not.include('a value the query produced');
+    });
+  });
 });
