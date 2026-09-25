@@ -91,4 +91,48 @@ ignore:
           available.
         expires: 2027-01-30T00:00:00.000Z
         created: 2026-07-30T00:00:00.000Z
+  SNYK-JS-BRACES-19963945:
+    - '*':
+        reason: >-
+          Not applicable: the only shipped use is micromatch.isMatch() in
+          src/utils/playground.ts, matching file names against the user's own
+          excludeFromPlaygroundsSearch setting. Patterns are never supplied by
+          an untrusted party, so the recursion crash cannot be triggered
+          remotely. Other paths are dev-only tooling. No fix is available.
+        expires: 2026-10-25T00:00:00.000Z
+        created: 2026-09-25T00:00:00.000Z
+  SNYK-JS-DEEPMERGE-19964053:
+    - '*':
+        reason: >-
+          Not applicable: deepmerge is a dev-only transitive dep of
+          fork-ts-checker-webpack-plugin and webfont, used at build time on
+          trusted config. It is not in the shipped extension bundle. No fix is
+          available.
+        expires: 2026-10-25T00:00:00.000Z
+        created: 2026-09-25T00:00:00.000Z
+  SNYK-JS-HTTPCACHESEMANTICS-19964064:
+    - '*':
+        reason: >-
+          Not applicable: http-cache-semantics is a dev-only transitive dep of
+          @mongodb-js/sbom-tools (via got). We do not run a shared HTTP cache
+          and it is not in the shipped extension bundle. No fix is available.
+        expires: 2026-10-25T00:00:00.000Z
+        created: 2026-09-25T00:00:00.000Z
+  SNYK-JS-HTTPCACHESEMANTICS-19964068:
+    - '*':
+        reason: >-
+          Not applicable: http-cache-semantics is a dev-only transitive dep of
+          @mongodb-js/sbom-tools (via got). We do not run a shared HTTP cache
+          and it is not in the shipped extension bundle. No fix is available.
+        expires: 2026-10-25T00:00:00.000Z
+        created: 2026-09-25T00:00:00.000Z
+  SNYK-JS-URIJS-19963963:
+    - '*':
+        reason: >-
+          Not applicable: uri-js is a dev-only transitive dep of eslint and
+          schema-utils (via ajv@6), used for lint and build-time schema
+          validation of trusted config. It is not in the shipped extension
+          bundle. No fix is available.
+        expires: 2026-10-25T00:00:00.000Z
+        created: 2026-09-25T00:00:00.000Z
 patch: {}
