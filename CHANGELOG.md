@@ -1,5 +1,22 @@
 # Change Log
 
+## [v1.18.0](https://github.com/mongodb-js/vscode/releases/tag/v1.18.0) - 2026-09-25
+
+## What's Changed
+* feat: deprecate the MongoDB Copilot participant VSCODE-816 by @alenakhineika in https://github.com/mongodb-js/vscode/pull/1361
+* fix: replace deprecated M2 shared-tier cluster with Flex cluster in Atlas Terraform template by @xargom in https://github.com/mongodb-js/vscode/pull/1363
+* fix(mcp): scope settings to application where applicable VSCODE-800 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1367
+* fix(data-browser): validate messages arriving in the webview VSCODE-804 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1366
+* fix(data-browser): reject query operators in document ids VSCODE-805 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1365
+* fix(playground): don't build an operator docs link for a field name VSCODE-802 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1364
+* feat(connections): warn about connection string options outside of the shared policy VSCODE-821 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1369
+
+## New Contributors
+* @xargom made their first contribution in https://github.com/mongodb-js/vscode/pull/1363
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.17.1...v1.18.0
+
+
 ## [v1.17.1](https://github.com/mongodb-js/vscode/releases/tag/v1.17.1) - 2026-09-03
 
 ## What's Changed
