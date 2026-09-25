@@ -159,3 +159,42 @@ export type MessageFromExtensionToWebview =
   | UpdateTotalCountErrorMessage
   | UpdateThemeColorsMessage
   | DocumentDeletedMessage;
+
+const isOptionalString = (value: unknown): boolean =>
+  value === undefined || typeof value === 'string';
+
+/**
+ * Checks a payload against the command it claims to be, so the webview never
+ * acts on a message it cannot attribute. Unknown commands are rejected too.
+ */
+export function isMessageFromExtension(
+  data: unknown,
+): data is MessageFromExtensionToWebview {
+  if (data === null || typeof data !== 'object') {
+    return false;
+  }
+
+  const message = data as Record<string, unknown>;
+
+  switch (message.command) {
+    case PreviewMessageType.loadPage:
+      return Array.isArray(message.documents);
+    case PreviewMessageType.getDocumentError:
+    case PreviewMessageType.updateTotalCountError:
+      return isOptionalString(message.error);
+    case PreviewMessageType.requestCancelled:
+    case PreviewMessageType.documentDeleted:
+      return true;
+    case PreviewMessageType.updateTotalCount:
+      return (
+        message.totalCount === null || typeof message.totalCount === 'number'
+      );
+    case PreviewMessageType.updateThemeColors:
+      return (
+        typeof message.themeColors === 'object' &&
+        typeof message.themeKind === 'string'
+      );
+    default:
+      return false;
+  }
+}

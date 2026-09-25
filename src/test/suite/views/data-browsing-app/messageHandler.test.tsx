@@ -1,8 +1,12 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 
-import { PreviewMessageType } from '../../../../views/data-browsing-app/extension-app-message-constants';
+import {
+  PreviewMessageType,
+  isMessageFromExtension,
+} from '../../../../views/data-browsing-app/extension-app-message-constants';
 import { createStore } from '../../../../views/data-browsing-app/store';
+import type { AppDispatch } from '../../../../views/data-browsing-app/store';
 import {
   handleExtensionMessage,
   setupMessageHandler,
@@ -69,16 +73,15 @@ describe('messageHandler test suite', function () {
         );
       });
 
-      it('should handle undefined documents', function () {
-        const store = createStore();
-        handleExtensionMessage(store.dispatch, {
-          command: PreviewMessageType.loadPage,
-          isInitialLoad: true,
-        } as any);
-
-        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
-          [],
-        );
+      it('should reject a loadPage with undefined documents at the boundary', function () {
+        // handleExtensionMessage trusts its input; the listener is what keeps
+        // a payload like this from reaching it.
+        expect(
+          isMessageFromExtension({
+            command: PreviewMessageType.loadPage,
+            isInitialLoad: true,
+          }),
+        ).to.be.false;
       });
 
       it('should clear getDocuments error on successful load', function () {
@@ -326,6 +329,122 @@ describe('messageHandler test suite', function () {
         'message',
         sinon.match.func,
       );
+    });
+
+    describe('untrusted messages', function () {
+      // Drive the registered listener itself with events a real window sends.
+      const getListener = (dispatch: AppDispatch): EventListener => {
+        const addEventListenerSpy = sinon.spy(window, 'addEventListener');
+        setupMessageHandler(dispatch);
+        return addEventListenerSpy.firstCall.args[1] as EventListener;
+      };
+
+      const fromHost = (data: unknown): MessageEvent =>
+        new MessageEvent('message', { data, origin: window.location.origin });
+
+      it('dispatches a well-formed message from the host frame', function () {
+        const store = createStore();
+        const listener = getListener(store.dispatch);
+
+        listener(
+          fromHost({
+            command: PreviewMessageType.loadPage,
+            documents: [{ _id: '1' }],
+          }),
+        );
+
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          [{ _id: '1' }],
+        );
+      });
+
+      it('ignores a message from another origin', function () {
+        const store = createStore();
+        const listener = getListener(store.dispatch);
+
+        listener(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadPage,
+              documents: [{ _id: 'injected' }],
+            },
+            origin: 'vscode-webview://some-other-panel',
+          }),
+        );
+
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          [],
+        );
+      });
+
+      it('ignores a message with no origin', function () {
+        const store = createStore();
+        const listener = getListener(store.dispatch);
+
+        listener(
+          new MessageEvent('message', {
+            data: {
+              command: PreviewMessageType.loadPage,
+              documents: [{ _id: 'injected' }],
+            },
+          }),
+        );
+
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          [],
+        );
+      });
+
+      it('ignores a loadPage whose documents are not an array', function () {
+        const store = createStore();
+        const listener = getListener(store.dispatch);
+
+        listener(
+          fromHost({
+            command: PreviewMessageType.loadPage,
+            documents: 'not-an-array',
+          }),
+        );
+
+        expect(store.getState().documentQuery.isLoading).to.be.true;
+      });
+
+      it('ignores an updateTotalCount whose count is not a number', function () {
+        const store = createStore();
+        const listener = getListener(store.dispatch);
+
+        listener(
+          fromHost({
+            command: PreviewMessageType.updateTotalCount,
+            totalCount: '100',
+          }),
+        );
+
+        expect(store.getState().documentQuery.hasReceivedCount).to.be.false;
+      });
+
+      it('ignores an unknown command', function () {
+        const store = createStore();
+        const listener = getListener(store.dispatch);
+
+        listener(fromHost({ command: 'NOT_A_REAL_COMMAND' }));
+
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          [],
+        );
+      });
+
+      it('ignores a non-object payload', function () {
+        const store = createStore();
+        const listener = getListener(store.dispatch);
+
+        listener(fromHost('LOAD_PAGE'));
+        listener(fromHost(null));
+
+        expect(store.getState().documentQuery.displayedDocuments).to.deep.equal(
+          [],
+        );
+      });
     });
   });
 });
