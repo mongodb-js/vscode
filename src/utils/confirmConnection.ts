@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import ConnectionString, {
   redactConnectionString,
 } from 'mongodb-connection-string-url';
+import { checkConnectionStringPolicy } from '@mongodb-js/connection-string-policy';
 
 /**
  * A connection string is a single unbroken token, and the native dialog VS Code
@@ -43,7 +44,9 @@ export const formatConnectionStringForDisplay = (
 /**
  * Ask the user to confirm something we are about to do with a connection string,
  * showing them the whole connection string with its credentials removed so that they
- * can see the options it sets and not just the host they recognise.
+ * can see the options it sets and not just the host they recognise. Options that are
+ * outside of the shared connection string policy are called out, because those are the
+ * ones worth refusing over.
  */
 export const confirmConnection = async ({
   connectionString,
@@ -54,9 +57,23 @@ export const confirmConnection = async ({
   question: string;
   action: string;
 }): Promise<boolean> => {
+  const { withinPolicy, flaggedOptions } =
+    checkConnectionStringPolicy(connectionString);
+
+  const detail = [
+    formatConnectionStringForDisplay(connectionString),
+    ...(withinPolicy
+      ? []
+      : [
+          '',
+          'Warning: these options may put your credentials or data at risk:',
+          flaggedOptions.join(', '),
+        ]),
+  ].join('\n');
+
   const confirmed = await vscode.window.showWarningMessage(
     question,
-    { modal: true, detail: formatConnectionStringForDisplay(connectionString) },
+    { modal: true, detail },
     action,
   );
 

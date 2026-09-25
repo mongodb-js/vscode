@@ -40,6 +40,44 @@ suite('Confirm Connection Test Suite', function () {
     expect(options.detail).to.not.include('s3cr3t');
   });
 
+  test('warns about the options that are outside of the policy', async function () {
+    showWarningMessageStub.resolves(undefined);
+
+    await confirmConnection({
+      connectionString:
+        'mongodb+srv://cluster0.example.com/?proxyHost=proxy.example.com&appName=mongodb-vscode',
+      question: 'Do the thing?',
+      action: 'Connect',
+    });
+
+    const [, options] = showWarningMessageStub.firstCall.args as [
+      string,
+      { detail: string },
+    ];
+    expect(options.detail).to.include('Warning');
+    expect(options.detail).to.include('proxyHost');
+    // Options that are within the policy are shown, but not warned about.
+    expect(options.detail).to.include('appName=mongodb-vscode');
+    expect(options.detail.split('Warning')[1]).to.not.include('appName');
+  });
+
+  test('does not warn when every option is within the policy', async function () {
+    showWarningMessageStub.resolves(undefined);
+
+    await confirmConnection({
+      connectionString:
+        'mongodb+srv://cluster0.example.com/?appName=mongodb-vscode&readPreference=primary',
+      question: 'Do the thing?',
+      action: 'Connect',
+    });
+
+    const [, options] = showWarningMessageStub.firstCall.args as [
+      string,
+      { detail: string },
+    ];
+    expect(options.detail).to.not.include('Warning');
+  });
+
   test('is confirmed only when the action is picked', async function () {
     showWarningMessageStub.resolves('Connect');
     expect(

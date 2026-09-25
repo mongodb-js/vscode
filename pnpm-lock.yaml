@@ -42,6 +42,9 @@ importers:
       '@mongodb-js/connection-info':
         specifier: ^0.26.3
         version: 0.26.3(@aws-sdk/credential-providers@3.1042.0)(@mongodb-js/oidc-plugin@2.2.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      '@mongodb-js/connection-string-policy':
+        specifier: ^0.2.4
+        version: 0.2.4(mongodb@7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))
       '@mongodb-js/device-id':
         specifier: ^0.4.16
         version: 0.4.16
@@ -129,9 +132,6 @@ importers:
       numeral:
         specifier: ^2.0.6
         version: 2.0.6
-      query-string:
-        specifier: ^7.1.3
-        version: 7.1.3
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2150,6 +2150,11 @@ packages:
 
   '@mongodb-js/connection-info@0.28.2':
     resolution: {integrity: sha512-p3GuXp+lG5h4mkMARIhGWBEtXWKeY6TL3n3UkziXe82fwx+MiZD8bhTxv1jlSmc1AoWdhZjDzkeifORLxvwRqA==}
+
+  '@mongodb-js/connection-string-policy@0.2.4':
+    resolution: {integrity: sha512-oHektnUGuaDNihDZnbRG6DCCMWmeBVOKtEy+BeR36H/Q+NZe+cqyjUptEvNmEDSmtQyMdx2zJ0lsutKPRN4D1Q==}
+    peerDependencies:
+      mongodb: ^7.2.0
 
   '@mongodb-js/device-id@0.4.16':
     resolution: {integrity: sha512-yrNmI5o8W0cFzuUeeraQ+sJ8XFND4NAl8BFSU0fUDMmkvxVm5Bqj9eFs9xMnQrgwl8W6oX1qWnHns3U0H1Z/gQ==}
@@ -4231,10 +4236,6 @@ packages:
   decode-named-character-reference@1.2.0:
     resolution: {integrity: sha512-c6fcElNV6ShtZXmsgNgFFV5tVX2PaV4g+MOAkb8eXHvn6sryJBrZa9r0zV6+dtTyoCKxtDy5tyQ5ZwQuidtd+Q==}
 
-  decode-uri-component@0.2.2:
-    resolution: {integrity: sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==}
-    engines: {node: '>=0.10'}
-
   decompress-response@6.0.0:
     resolution: {integrity: sha512-aW35yZM6Bb/4oJlZncMH2LCoZtJXTRxES17vE3hoRiowU2kWHaJKFkSBDnDR+cm9J+9QhXmREyIfv0pji9ejCQ==}
     engines: {node: '>=10'}
@@ -4793,10 +4794,6 @@ packages:
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
-
-  filter-obj@1.1.0:
-    resolution: {integrity: sha512-8rXg1ZnX7xzy2NGDVkBVaAy+lSlPNwad13BtgSlLuxfIslyt5Vg64U7tFcCt4WS1R0hvtnQybT/IyCkGZ3DpXQ==}
-    engines: {node: '>=0.10.0'}
 
   finalhandler@2.1.0:
     resolution: {integrity: sha512-/t88Ty3d5JWQbWYgaOGCCYfXRwV1+be02WqYYlL6h0lEiUAMPM8o8qKGO01YIkOHzka2up08wvgYD0mDiI+q3Q==}
@@ -6072,6 +6069,9 @@ packages:
   mongodb-build-info@1.9.14:
     resolution: {integrity: sha512-l1bL8ldG2UrZNSV255AJR+9Atqx5kSd4oYQlMLLtbuHhUj5KvFKtSRWkkNR1KrEKHA5UoihM5fMIvl9yTDF9Ow==}
 
+  mongodb-build-info@1.9.16:
+    resolution: {integrity: sha512-GqZkK0+X6CZz15Qk/Q3kUlvwEzPePLT7YgPiInlWABfKYURTAqecuneOZcM3LrKGmSEof6O1uglAU3dnYSnp1Q==}
+
   mongodb-client-encryption@7.0.0:
     resolution: {integrity: sha512-0egSmyCQ31MLdDFH2j5fHnX8OkAWytUC4ZoPuelU0E+lgPQ2/UcpxkYQXF20SW0rCzADIc0qouiULtqAKDs/uQ==}
     engines: {node: '>=20.19.0'}
@@ -6679,10 +6679,6 @@ packages:
     resolution: {integrity: sha512-mAZTtNCeetKMH+pSjrb76NAM8V9a05I9aBZOHztWy/UqcJdQYNsf59vrRKWnojAT9Y+GbIvoTBC++CPHqpDBhQ==}
     engines: {node: '>=0.6'}
 
-  query-string@7.1.3:
-    resolution: {integrity: sha512-hh2WYhq4fi8+b+/2Kg9CEge4fDPvHS534aOOvOZeQ3+Vf2mCFsaFBYj0i+iXcAq6I9Vzp5fjMFBlONvayDC1qg==}
-    engines: {node: '>=6'}
-
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -7245,10 +7241,6 @@ packages:
   spdx-satisfies@5.0.1:
     resolution: {integrity: sha512-Nwor6W6gzFp8XX4neaKQ7ChV4wmpSh2sSDemMFSzHxpTw460jxFYeOn+jq4ybnSSw/5sc3pjka9MQPouksQNpw==}
 
-  split-on-first@1.1.0:
-    resolution: {integrity: sha512-43ZssAJaMusuKWL8sKUBQXHWOpq8d6CfN/u1p4gUzfJkM05C8rxTmYrkIPTXapZpORA6LkkzcUulJ8FqA7Uudw==}
-    engines: {node: '>=6'}
-
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
@@ -7283,10 +7275,6 @@ packages:
 
   stream-browserify@3.0.0:
     resolution: {integrity: sha512-H73RAHsVBapbim0tU2JwwOiXUj+fikfiaoYAKHF3VJfA0pe2BCzkhAHBlLG6REzE+2WNZcxOXjK7lkso+9euLA==}
-
-  strict-uri-encode@2.0.0:
-    resolution: {integrity: sha512-QwiXZgpRcKkhTj2Scnn++4PKtWsH0kpzZ62L2R6c/LUVYv7hVnZqcg2+sMuT6R7Jusu1vviK/MFsu6kNJfWlEQ==}
-    engines: {node: '>=4'}
 
   string-width@4.2.3:
     resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
@@ -11568,6 +11556,14 @@ snapshots:
       - socks
       - supports-color
 
+  '@mongodb-js/connection-string-policy@0.2.4(mongodb@7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
+    dependencies:
+      mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      mongodb-build-info: 1.9.16
+      mongodb-connection-string-url: 7.0.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@mongodb-js/device-id@0.4.16': {}
 
   '@mongodb-js/devtools-connect@3.17.3(@mongodb-js/oidc-plugin@2.2.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
@@ -14295,8 +14291,6 @@ snapshots:
     dependencies:
       character-entities: 2.0.2
 
-  decode-uri-component@0.2.2: {}
-
   decompress-response@6.0.0:
     dependencies:
       mimic-response: 3.1.0
@@ -15013,8 +15007,6 @@ snapshots:
   fill-range@7.1.1:
     dependencies:
       to-regex-range: 5.0.1
-
-  filter-obj@1.1.0: {}
 
   finalhandler@2.1.0:
     dependencies:
@@ -16465,6 +16457,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  mongodb-build-info@1.9.16:
+    dependencies:
+      debug: 4.4.3(supports-color@8.1.1)
+      mongodb-connection-string-url: 7.0.2
+    transitivePeerDependencies:
+      - supports-color
+
   mongodb-client-encryption@7.0.0:
     dependencies:
       node-addon-api: 8.5.0
@@ -17158,13 +17157,6 @@ snapshots:
   qs@6.15.0:
     dependencies:
       side-channel: 1.1.0
-
-  query-string@7.1.3:
-    dependencies:
-      decode-uri-component: 0.2.2
-      filter-obj: 1.1.0
-      split-on-first: 1.1.0
-      strict-uri-encode: 2.0.0
 
   queue-microtask@1.2.3: {}
 
@@ -17862,8 +17854,6 @@ snapshots:
       spdx-expression-parse: 3.0.1
       spdx-ranges: 2.1.1
 
-  split-on-first@1.1.0: {}
-
   sprintf-js@1.0.3: {}
 
   sprintf-js@1.1.3: {}
@@ -17898,8 +17888,6 @@ snapshots:
     dependencies:
       inherits: 2.0.4
       readable-stream: 3.6.2
-
-  strict-uri-encode@2.0.0: {}
 
   string-width@4.2.3:
     dependencies:
