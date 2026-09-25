@@ -674,10 +674,14 @@ export default class MongoDBService {
             item.meta === 'field:identifier'
               ? CompletionItemKind.Field
               : CompletionItemKind.Keyword,
-          documentation: this._getAggregationDocumentation({
-            operator: item.value,
-            description: item.description,
-          }),
+          // Field names aren't operators, so they have no operator docs page.
+          documentation:
+            item.meta === 'field:identifier'
+              ? item.description
+              : this._getAggregationDocumentation({
+                  operator: item.value,
+                  description: item.description,
+                }),
           preselect: true,
         };
       });
@@ -728,10 +732,14 @@ export default class MongoDBService {
             item.meta === 'field:identifier'
               ? CompletionItemKind.Field
               : CompletionItemKind.Keyword,
-          documentation: this._getAggregationDocumentation({
-            operator: item.value,
-            description: item.description,
-          }),
+          // Field names aren't operators, so they have no operator docs page.
+          documentation:
+            item.meta === 'field:identifier'
+              ? item.description
+              : this._getAggregationDocumentation({
+                  operator: item.value,
+                  description: item.description,
+                }),
           preselect: true,
         };
       });
