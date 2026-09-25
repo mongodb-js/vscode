@@ -1017,6 +1017,7 @@
             "Sort by _id descending (_id: -1)"
           ],
           "default": "default",
+          "scope": "application",
           "description": "The default sort order when browsing documents in a collection."
         },
         "mdb.documentViewAndEditFormat": {
@@ -1136,16 +1137,19 @@
         "mdb.mcp.apiBaseUrl": {
           "type": "string",
           "default": "https://cloud.mongodb.com/",
+          "scope": "application",
           "description": "API URL of MongoDB Atlas to be used by MongoDB MCP server for enabling Atlas tools. When empty, it defaults to 'https://cloud.mongodb.com/'. Only change this if you're using a custom Atlas deployment."
         },
         "mdb.mcp.apiClientId": {
           "type": "string",
           "default": "",
+          "scope": "application",
           "description": "Atlas API client ID for authenticating against Atlas API. Use a Service Account (https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) for programmatic access to Atlas APIs. Required for enabling Atlas tools in MongoDB MCP server. Store this securely and do not commit to version control."
         },
         "mdb.mcp.apiClientSecret": {
           "type": "string",
           "default": "",
+          "scope": "application",
           "description": "Atlas API client secret for authenticating against Atlas API. Use a Service Account (https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) for programmatic access to Atlas APIs. Required for enabling Atlas tools in MongoDB MCP server. Store this securely and do not commit to version control."
         },
         "mdb.mcp.disabledTools": {
@@ -1180,11 +1184,13 @@
             "Auto Start Disabled"
           ],
           "default": "prompt",
+          "scope": "application",
           "description": "Controls whether MongoDB MCP server starts automatically with the extension and connects to the active connection. If automatic startup is disabled, the server can still be started using the 'MongoDB: Start MCP Server' command."
         },
         "mdb.mcp.exportsPath": {
           "type": "string",
           "default": "",
+          "scope": "machine",
           "description": "The directory where the MongoDB MCP server will export the data to when using the export tool. Ensure the path is writable or leave empty to use the default path."
         },
         "mdb.mcp.exportTimeoutMs": {
