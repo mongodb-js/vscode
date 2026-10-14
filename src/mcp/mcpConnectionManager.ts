@@ -3,8 +3,8 @@ import {
   ConnectionStateConnected,
   type AnyConnectionState,
   type ConnectionStateDisconnected,
-  type LoggerBase,
-} from 'mongodb-mcp-server';
+} from '@mongodb-js/mcp-tools-mongodb';
+import type { LoggerBase } from '@mongodb-js/mcp-core';
 import {
   NodeDriverServiceProvider,
   type DevtoolsConnectOptions,
@@ -69,7 +69,7 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
       };
       return this.changeState(
         'connection-success',
-        new ConnectionStateConnected(serviceProvider),
+        new ConnectionStateConnected({ serviceProvider }),
       );
     } catch (error) {
       this.logger.error({

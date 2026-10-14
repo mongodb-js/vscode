@@ -48,6 +48,33 @@ importers:
       '@mongodb-js/device-id':
         specifier: ^0.4.16
         version: 0.4.16
+      '@mongodb-js/mcp-atlas-telemetry':
+        specifier: 3.0.5
+        version: 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-cli':
+        specifier: 3.0.5
+        version: 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      '@mongodb-js/mcp-core':
+        specifier: 3.0.5
+        version: 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-http-runners':
+        specifier: 3.0.5
+        version: 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-tools-assistant':
+        specifier: 3.0.5
+        version: 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-tools-atlas':
+        specifier: 3.0.5
+        version: 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      '@mongodb-js/mcp-tools-atlas-local':
+        specifier: 3.0.5
+        version: 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      '@mongodb-js/mcp-tools-mongodb':
+        specifier: 3.0.5
+        version: 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      '@mongodb-js/mcp-types':
+        specifier: 3.0.5
+        version: 3.0.5
       '@mongodb-js/mongodb-constants':
         specifier: ^0.16.1
         version: 0.16.1(bson@7.2.0)
@@ -120,9 +147,6 @@ importers:
       mongodb-log-writer:
         specifier: ^2.5.16
         version: 2.5.16(bson@7.2.0)
-      mongodb-mcp-server:
-        specifier: 1.13.0
-        version: 1.13.0(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(@types/express@5.0.6)(@types/node@22.20.1)(gcp-metadata@7.0.1)(mongodb-client-encryption@7.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
       mongodb-query-parser:
         specifier: ^5.0.3
         version: 5.0.3(bson@7.2.0)
@@ -1519,140 +1543,6 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@inquirer/ansi@2.0.5':
-    resolution: {integrity: sha512-doc2sWgJpbFQ64UflSVd17ibMGDuxO1yKgOgLMwavzESnXjFWJqUeG8saYosqKpHp4kWiM5x1nXvEjbpx90gzw==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-
-  '@inquirer/checkbox@5.1.4':
-    resolution: {integrity: sha512-w6KF8ZYRvqHhROkOTHXYC3qIV/KYEu5o12oLqQySvch61vrYtRxNSHTONSdJqWiFJPlCUQAHT5OgOIyuTr+MHQ==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/confirm@6.0.12':
-    resolution: {integrity: sha512-h9FgGun3QwVYNj5TWIZZ+slii73bMoBFjPfVIGtnFuL4t8gBiNDV9PcSfIzkuxvgquJKt9nr1QzszpBzTbH8Og==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/core@11.1.9':
-    resolution: {integrity: sha512-BDE4fG22uYh1bGSifcj7JSx119TVYNViMhMu85usp4Fswrzh6M0DV3yld64jA98uOAa2GSQ4Bg4bZRm2d2cwSg==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/editor@5.1.1':
-    resolution: {integrity: sha512-6y11LgmNpmn5D2aB5FgnCfBUBK8ZstwLCalyJmORcJZ/WrhOjm16mu6eSqIx8DnErxDqSLr+Jkp+GP8/Nwd5tA==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/expand@5.0.13':
-    resolution: {integrity: sha512-dF2zvrFo9LshkcB23/O1il13kBkBltWIXzut1evfbuBLXMiGIuC45c+ZQ0uukjCDsvI8OWqun4FRYMnzFCQa3g==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/external-editor@3.0.0':
-    resolution: {integrity: sha512-lDSwMgg+M5rq6JKBYaJwSX6T9e/HK2qqZ1oxmOwn4AQoJE5D+7TumsxLGC02PWS//rkIVqbZv3XA3ejsc9FYvg==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/figures@2.0.5':
-    resolution: {integrity: sha512-NsSs4kzfm12lNetHwAn3GEuH317IzpwrMCbOuMIVytpjnJ90YYHNwdRgYGuKmVxwuIqSgqk3M5qqQt1cDk0tGQ==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-
-  '@inquirer/input@5.0.12':
-    resolution: {integrity: sha512-uiMFBl4LqFzJClh80Q3f9hbOFJ6kgkDWI4LjAeBuyO6EanVVMF69AgOvpi1qdqjDSjDN6578B6nky9ceEpI+1Q==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/number@4.0.12':
-    resolution: {integrity: sha512-/vrwhEf7Xsuh+YlHF4IjSy3g1cyrQuPaSiHIxCEbLu8qnfvrcvJyCkoktOOF+xV9gSb77/G0n3h04RbMDW2sIg==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/password@5.0.12':
-    resolution: {integrity: sha512-CBh7YHju623lxJRcAOo498ZUwIuMy63bqW/vVq0tQAZVv+lkWlHkP9ealYE1utWSisEShY5VMdzIXRmyEODzcQ==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/prompts@8.4.2':
-    resolution: {integrity: sha512-XJmn/wY4AX56l1BRU+ZjDrFtg9+2uBEi4JvJQj82kwJDQKiPgSn4CEsbfGGygS4Gw6rkL4W18oATjfVfaqub2Q==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/rawlist@5.2.8':
-    resolution: {integrity: sha512-Su7FQvp5buZmCymN3PPoYv31ZQQX4ve2j02k7piGgKAWgE+AQRB5YoYVveGXcl3TZ9ldgRMSxj56YfDFmmaqLg==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/search@4.1.8':
-    resolution: {integrity: sha512-fGiHKGD6DyPIYUWxoXnQTeXeyYqSOUrasDMABBmMHUalH/LxkuzY0xVRtimXAt1sUeeyYkVuKQx1bebMuN11Kw==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/select@5.1.4':
-    resolution: {integrity: sha512-2kWcGKPMLAXAWRp1AH1SLsQmX+j0QjeljyXMUji9WMZC8nRDO0b7qquIGr6143E7KMLt3VAIGNXzwa/6PXQs4Q==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
-  '@inquirer/type@4.0.5':
-    resolution: {integrity: sha512-aetVUNeKNc/VriqXlw1NRSW0zhMBB0W4bNbWRJgzRl/3d0QNDQFfk0GO5SDdtjMZVg6o8ZKEiadd7SCCzoOn5Q==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^21.7.0 || ^20.12.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
     engines: {node: '>=12'}
@@ -2061,6 +1951,10 @@ packages:
   '@mcp-ui/server@6.1.0':
     resolution: {integrity: sha512-uxv9JrzEzHfdGo/V/KTFKp5WeCOsaiAoQZ3V88jw1dSXUofONEw4rMwEvVP3612aj/unS2TIeM0o1I0asfIxtw==}
 
+  '@modelcontextprotocol/core@2.3.1':
+    resolution: {integrity: sha512-laVmIhPGpWi7rG9q+0UigblRN0Hws/Yjlb6qLFtVqryXVLkc4h+yN8z731POD2LnAGQlFe7/tXhUm7Bi0YB91g==}
+    engines: {node: '>=20'}
+
   '@modelcontextprotocol/ext-apps@0.3.1':
     resolution: {integrity: sha512-Iivz2KwWK8xlRbiWwFB/C4NXqE8VJBoRCbBkJCN98ST2UbQvA6kfyebcLsypiqylJS467XOOaBcI9DeQ3t+zqA==}
     peerDependencies:
@@ -2074,6 +1968,12 @@ packages:
       react-dom:
         optional: true
 
+  '@modelcontextprotocol/node@2.1.1':
+    resolution: {integrity: sha512-EY92OAXN2xYL7tNS/MVsWJW1v8VHAPwl9B4Ca3pCrjmvqyC+S1C/6UHsMxF2GoFPraS5Yyg56vFz9brVpFojMA==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@modelcontextprotocol/server': ^2.3.0
+
   '@modelcontextprotocol/sdk@1.30.0':
     resolution: {integrity: sha512-xKd8OIzlqNzcqcNumGAa6g+PW2kjD5vrpcKOnfldAUPP3j7lnqMPwlTXQm8gF+UwH72z0lqaRbjr9hqGz0eITA==}
     engines: {node: '>=18'}
@@ -2083,6 +1983,10 @@ packages:
     peerDependenciesMeta:
       '@cfworker/json-schema':
         optional: true
+
+  '@modelcontextprotocol/server@2.3.1':
+    resolution: {integrity: sha512-e59MfWuSssj6DoQ96JCTqdW1AXT5/XtnTl0WWd6MU1Ka434fFUGGosCLJbGNySDhHGvxQWoRWK137FXYFkYNWw==}
+    engines: {node: '>=20'}
 
   '@monaco-editor/loader@1.7.0':
     resolution: {integrity: sha512-gIwR1HrJrrx+vfyOhYmCZ0/JcWqG5kbfG7+d3f/C1LXk2EvzAbHSg3MQ5lO2sMlo9izoAZ04shohfKLVT6crVA==}
@@ -2094,40 +1998,40 @@ packages:
       react: ^18.3.1
       react-dom: ^18.3.1
 
-  '@mongodb-js/atlas-local-darwin-arm64@1.3.0':
-    resolution: {integrity: sha512-+g4So8Fz9TNdDsWGWUUf9F4bsVvGaqwebMq/mHmHpHp+HVD71GDYlmCTsfm/YzDkmVLPKkHSC7pAqXgpO3DROw==}
+  '@mongodb-js/atlas-local-darwin-arm64@1.3.1':
+    resolution: {integrity: sha512-Hi9kycJbOnRKamb73QuJJ+7Wt1Y6CwhKsd4Wd9BJg10BLVc1e/okLlfzW0MRYBniCxBuHfGT9O5L8tQFOZVoZA==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
     cpu: [arm64]
     os: [darwin]
 
-  '@mongodb-js/atlas-local-darwin-x64@1.3.0':
-    resolution: {integrity: sha512-/ENeKGv9HXtsm4OiFS1tnIxmp6JV9/wWpOQum4MhXR9px9+rfyWhY/BFxXAVSB/i7YvntbP2Z0U91Am9Hw8n9g==}
+  '@mongodb-js/atlas-local-darwin-x64@1.3.1':
+    resolution: {integrity: sha512-cPeh2QhjfzXA970Zqg4xAc6IK3t2A+XFvlCZ4ktzEm528xA7v4web+N0rIOe4wSf9ssSa3Nk8pwCQVpiAUxrRw==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
     cpu: [x64]
     os: [darwin]
 
-  '@mongodb-js/atlas-local-linux-arm64-gnu@1.3.0':
-    resolution: {integrity: sha512-FsNqduceCFWm6/llp7Y3GlARBGew7nPNWFbNHsWghGeP/jW1J5pc8zdj9NGN+lbX5INdSg8Rz6WVPNDiYTnJyQ==}
+  '@mongodb-js/atlas-local-linux-arm64-gnu@1.3.1':
+    resolution: {integrity: sha512-rMaTNFGQwNvF9PmS6D4FVxAHIVYZAiTzs0xQ+05pKU3L1EUE4DGbvtmi3nqq1JWu+76TcNbyJMH6vPlyeOuxmA==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@mongodb-js/atlas-local-linux-x64-gnu@1.3.0':
-    resolution: {integrity: sha512-I+gCqMXTC5SG1GLUxhPprWb0MyiIhzsAKxi9/FsrB0XL9qrrDurY2W2PGBIFan5eloo8tti9uIMeZUQ4ov/X5w==}
+  '@mongodb-js/atlas-local-linux-x64-gnu@1.3.1':
+    resolution: {integrity: sha512-qV+eYb8e+c76AO5r9oApSf5knDpE6wcAdjpX46GHPJa67aRL0q1wtnwVRDma7mZnkHn61fzr6DRrkHfRDK0b8Q==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@mongodb-js/atlas-local-win32-x64-msvc@1.3.0':
-    resolution: {integrity: sha512-nGHHd3MlhQQixjguuMGwgG5OnMBxHOJY+wqGVDE72vGoY7YBbGwAucqhGU/UMCbppweMqZmykVnTWjmqVW9Yww==}
+  '@mongodb-js/atlas-local-win32-x64-msvc@1.3.1':
+    resolution: {integrity: sha512-hiFX++AUOkNA9giOJiA/fWUCesWo7709BUIbkSCejvIdk+6UNoLZfBIMwSmaCeVpFoRZ2IlVT790Xr+vBVzkXA==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
     cpu: [x64]
     os: [win32]
 
-  '@mongodb-js/atlas-local@1.3.0':
-    resolution: {integrity: sha512-NYcXgw3/P+mEe9dUMEJbEpSCxEKvqTfoHu/doGKaCaSSKjxTDUnybJDPyE3NksjmSK5XU++IoYudIuAFfYdzow==}
+  '@mongodb-js/atlas-local@1.3.1':
+    resolution: {integrity: sha512-rf+ve4jSRQhsdZsWR9fCxVieMEczpzFbWMg6Zqabf1Vfj0W2hW3Y5idCA7VvogSj6WNZiskIl018ykvObx4iAw==}
     engines: {node: '>= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0'}
 
   '@mongodb-js/compass-components@1.68.0':
@@ -2159,6 +2063,9 @@ packages:
   '@mongodb-js/device-id@0.4.16':
     resolution: {integrity: sha512-yrNmI5o8W0cFzuUeeraQ+sJ8XFND4NAl8BFSU0fUDMmkvxVm5Bqj9eFs9xMnQrgwl8W6oX1qWnHns3U0H1Z/gQ==}
 
+  '@mongodb-js/device-id@0.4.19':
+    resolution: {integrity: sha512-mQ1wDZgCv0+rvHPjFxLHWVMM2BqM1VKdj/p9f5i+hVMKdKUe8/m2djh0dcToy2UWS0Oq+xn3xWz3L/AvZPMNOA==}
+
   '@mongodb-js/devtools-connect@3.17.3':
     resolution: {integrity: sha512-ggM3WGhFUPH5gNo/mlEmE1hnjZWNdmi4lbtYTvzAlI8hqBKkfP38pDsqwq9f2pCHAecjdevjoxhVDtQGXZxukg==}
     peerDependencies:
@@ -2186,11 +2093,44 @@ packages:
   '@mongodb-js/eslint-plugin-devtools@0.3.7':
     resolution: {integrity: sha512-wgk/6AGGVWZkBLZgAkbt9yJxMKaMwNFxQP7z9/E6bAoiihHf/EvwLqMzJAlb7kPkdTCAc0pUt0BE8NqyRzmINA==}
 
-  '@mongodb-js/mcp-metrics@1.13.0':
-    resolution: {integrity: sha512-3S7LHHPjTGp6X8iGswnjQ7aRcynM7OmNdki2yT8HyaljZ57N1yJAGzllwXKPYedUQx7AyJIaLqdVVNEUsX59WA==}
+  '@mongodb-js/mcp-atlas-api-client@3.0.5':
+    resolution: {integrity: sha512-Dbt5NpG4fdYPnu9LWZKZMPEzILA9ZLjBrfO6Xv1uKDvfD1ETVduQpicm4kIPnQBtHpm7tA2DZ9G2Ov3QxHKOtg==}
 
-  '@mongodb-js/mcp-types@1.13.0':
-    resolution: {integrity: sha512-ndw44ysHe8y8o7ipoWtY9KujKA5Zdu2px4mluUwXmGNtyFzffIo0Ebk2Y5t2y5ImZGd/ORbk363JOKjF7kiTqg==}
+  '@mongodb-js/mcp-atlas-telemetry@3.0.5':
+    resolution: {integrity: sha512-Lsjbn3LNfEcAE5qac+inzW8VbTb0UzJWW/IcSovk9u81/MJJm3xS8loGIUrqEoZBPGwxAFRcvv7begH8nQw6tQ==}
+
+  '@mongodb-js/mcp-cli@3.0.5':
+    resolution: {integrity: sha512-MklmX2RsuXCR7S5YcpkBVyWE4gKxzRJWIQUlOp5BcG7GWiAud6VqJostPYICCApR3kIDwHEiE17fWNddnEZYgw==}
+
+  '@mongodb-js/mcp-core@3.0.5':
+    resolution: {integrity: sha512-Hg/vnSr4dWj/abpoEhhhDBrWn1HiVYHDrNCjA7LhcZanEg3/qUMGU128EvE9aVZz6561NNqoBUFRdQQm1rHQ7g==}
+
+  '@mongodb-js/mcp-fetch@3.0.5':
+    resolution: {integrity: sha512-Qjei6CQ2ySAXQNJTmlWOgAw1ou/1jLBLPXrD2KgN2ZO0rkFHtYKxalH2T2FomN3GBeFBtuX2Fgr0SBbm/DkWGQ==}
+
+  '@mongodb-js/mcp-http-runners@3.0.5':
+    resolution: {integrity: sha512-KBiqWWBGwm27x30grscjko9DWjMVahVOTemfcOMuoSKRDKExzBAGJG3kvYbeogwQrAzjD5P+RNblloMxMGjQtA==}
+
+  '@mongodb-js/mcp-logging@3.0.5':
+    resolution: {integrity: sha512-dP2whT67pptaevVOcuTK1TM15HUvWVgn96S5kRwn3YZBd+sv29tx67fEnGTZ1XXyu66FtQnFMJ1bz1dgFZKPpQ==}
+
+  '@mongodb-js/mcp-metrics@3.0.5':
+    resolution: {integrity: sha512-tjvXd8CFUS8KBhMvR6dTGHcmRFp85jJ6wiQcDz+o0gGyR25T7GDtuvVocrLsGoMm5NEz+wAC18kbZDK3dcMITA==}
+
+  '@mongodb-js/mcp-tools-assistant@3.0.5':
+    resolution: {integrity: sha512-CPId2nW81U3V69f5QgNnogU69DXphmfsLpdXmTYFkHTxroAOurBK1Nab0dTZMojMRvZjmLqOem6mRC06Ard40A==}
+
+  '@mongodb-js/mcp-tools-atlas-local@3.0.5':
+    resolution: {integrity: sha512-E7GOulYb4GPynp/U91Wi0XjZonyTCk9SdMzB8fMoodxAR3LVen/T4kr6zhvIOb4kZ7VoLDMIwzdyddJ9xFe3GA==}
+
+  '@mongodb-js/mcp-tools-atlas@3.0.5':
+    resolution: {integrity: sha512-uClpXH+1tspWYNaZab2+5hLTNHfvw3NX+EAZvi8gTrN3ReE1kFWx0gHZJKx/6B+l18PFqNfdwPUgad9zvmsWuQ==}
+
+  '@mongodb-js/mcp-tools-mongodb@3.0.5':
+    resolution: {integrity: sha512-syZkiRZvtLiYsIh0ybKX4eTIw7i3QxWT0b93P0Ud6oj6t0Ig/X4oAtwHqi60KOP5fAM5HOpxAnAL9YRj4WjJ0Q==}
+
+  '@mongodb-js/mcp-types@3.0.5':
+    resolution: {integrity: sha512-BWna6eo0bOZqdRWWjA+NfhxqWgsOicFcWL+HWLmLzVPLNJeoJiKU1LTkRxv7zUUbevdY2So00BDKdIVqBKo2vw==}
 
   '@mongodb-js/mongodb-constants@0.16.1':
     resolution: {integrity: sha512-dm9low2Fp0fSftUYFslTMNpXQuoVm1qOH9vpswQBn5GmtlW11VdaK1EKFI33BR/kusNq6bQhqeqtRiNdTNTD5w==}
@@ -2265,12 +2205,6 @@ packages:
 
   '@mongodb-js/ts-autocomplete@0.5.6':
     resolution: {integrity: sha512-ZiwpD2JvkKU4nliLmDfqBlgnhIvZrBL9m89vtut3NreoJKtkowshBXR6TSsGeBOy/A2S+fUeSJ5eOHH1dh/1iA==}
-
-  '@mongosh/arg-parser@5.0.3':
-    resolution: {integrity: sha512-MSaxQZJ7ph6K2dks2PqkwK8aUEQAMxJIK3b0SSjS12J8IgpeSU8VEcqNZmSpWeLqy2qwp9MQrg71fp8FmP2JiQ==}
-    engines: {node: '>=14.15.1'}
-    peerDependencies:
-      zod: ^3.25.76
 
   '@mongosh/arg-parser@5.4.0':
     resolution: {integrity: sha512-8NZVahj/NV5ZqLMyP8KIuZJbWi5j438AEDeA8SEmQ/hGj1UekqzOzYdKdhMNjdpSp6puS3MnMzYX7AgS9X4fAA==}
@@ -2964,9 +2898,6 @@ packages:
   '@types/babel__traverse@7.28.0':
     resolution: {integrity: sha512-8PvcXf70gTDZBgt9ptxJ8elBeBjcLOAcOtoO/mPJjtji1+CdGbHgm77om1GrsPxsiE+uXIpNSK64UYaIwQXd4Q==}
 
-  '@types/body-parser@1.19.6':
-    resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
-
   '@types/braces@3.0.5':
     resolution: {integrity: sha512-SQFof9H+LXeWNz8wDe7oN5zu7ket0qwMu5vZubW4GCJ8Kkeh6nBWUz87+KTz/G3Kqsrp0j/W253XJb3KMEeg3w==}
 
@@ -2978,9 +2909,6 @@ packages:
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
-
-  '@types/connect@3.4.38':
-    resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
   '@types/d3-color@3.1.3':
     resolution: {integrity: sha512-iO90scth9WAbmgv7ogoq57O9YpKmFBbmoEoCHDB2xMBY0+/KVrqAaCDyCE16dUspeOvIxFFRI+0sEtqDqy2b4A==}
@@ -3012,12 +2940,6 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
-  '@types/express-serve-static-core@5.1.3':
-    resolution: {integrity: sha512-dPfW8NFiOF4wOHc7+N/QSxlY9cfSsenewGbAz8C8U/MULPd/YZ27LvJUIlzaXie7e6Ove9YunJGgC9tbHD2cKw==}
-
-  '@types/express@5.0.6':
-    resolution: {integrity: sha512-sKYVuV7Sv9fbPIt/442koC7+IIwK5olP1KWeD88e/idgoJqDm3JV/YUiPwkoKK92ylff2MGxSz1CSjsXelx0YA==}
-
   '@types/facepaint@1.2.5':
     resolution: {integrity: sha512-fi9kvwtC3IQ6Y3QVDkYEZsqEcetAdWD0zqqk8pEHlDXWkgS2WzolWN8Z5PGPT7YJ7ga71CCI0fVKVnVKqV+P6Q==}
 
@@ -3030,9 +2952,6 @@ packages:
 
   '@types/http-cache-semantics@4.0.4':
     resolution: {integrity: sha512-1m0bIFVc7eJWyve9S0RnuRgcQqF/Xd5QsUZAZeQFr1Q3/p9JWoQQEqmVy+DPTNpGXwhgIetAoYF8JSc33q29QA==}
-
-  '@types/http-errors@2.0.5':
-    resolution: {integrity: sha512-r8Tayk8HJnX0FztbZN7oVqGccWgw98T/0neJphO91KkmOzug1KkofZURD4UaD5uH8AqcFLfdPErnBod0u71/qg==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -3085,12 +3004,6 @@ packages:
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
-  '@types/qs@6.15.1':
-    resolution: {integrity: sha512-GZHUBZR9hckSUhrxmp1nG6NwdpM9fCunJwyThLW1X3AyHgd9IlHb6VANpQQqDr2o/qQp6McZ3y/IA2rVzKzSbw==}
-
-  '@types/range-parser@1.2.7':
-    resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
-
   '@types/react-dom@18.3.7':
     resolution: {integrity: sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==}
     peerDependencies:
@@ -3115,12 +3028,6 @@ packages:
 
   '@types/semver@7.7.1':
     resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
-
-  '@types/send@1.2.1':
-    resolution: {integrity: sha512-arsCikDvlU99zl1g69TcAB3mzZPpxgw0UQnaHeC1Nwb015xp8bknZv5rIfri9xTOcMuaVgvabfIRA7PSZVuZIQ==}
-
-  '@types/serve-static@2.2.0':
-    resolution: {integrity: sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ==}
 
   '@types/sinon-chai@3.2.12':
     resolution: {integrity: sha512-9y0Gflk3b0+NhQZ/oxGtaAJDvRywCa5sIyaVnounqLvmf93yBF4EgIRspePtkMs3Tr844nCclYMlcCNmLCvjuQ==}
@@ -3883,9 +3790,6 @@ packages:
   character-entities@2.0.2:
     resolution: {integrity: sha512-shx7oQ0Awen/BRIdkjkvz54PnEEI/EjwXDSIZp86/KKdbafHh1Df/RYGBhn4hbe2+uKC9FnT5UCEdyPz3ai9hQ==}
 
-  chardet@2.1.1:
-    resolution: {integrity: sha512-PsezH1rqdV9VvyNhxxOW32/d75r01NY7TQCmOqomRo15ZSOKbpTFVsfjghxo6JloQUCGnH4k1LGu0R4yCLlWQQ==}
-
   charenc@0.0.2:
     resolution: {integrity: sha512-yrLQ/yVUFXkzg7EDQsPieE/53+0RlaWTs+wBrvW36cyilJ2SaDWfl4Yj7MtLTXleV9uEKefbAGUPv2/iWSooRA==}
 
@@ -3937,10 +3841,6 @@ packages:
   cli-table@0.3.11:
     resolution: {integrity: sha512-IqLQi4lO0nIB4tcdTpN4LCB9FI3uqrJZK7RC515EnhZ6qBaglkIgICb1wjeAqpdoOabm1+SuQtkXIPdYC93jhQ==}
     engines: {node: '>= 0.2.0'}
-
-  cli-width@4.1.0:
-    resolution: {integrity: sha512-ouuZd4/dm2Sw5Gmqy6bGyNNNe1qt9RpmxveLSO7KcgsTnU7RXfsw+/bukWGo1abgBiMAic068rclZsO4IWmmxQ==}
-    engines: {node: '>= 12'}
 
   clipboard@2.0.11:
     resolution: {integrity: sha512-C+0bbOqkezLIsmWSvlsXS0Q0bmkugu7jcfMIACB+RDEntIzQIkdr148we28AfSloQLRdZlYL/QYyrq05j/3Faw==}
@@ -4735,17 +4635,8 @@ packages:
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
-  fast-string-truncated-width@3.0.3:
-    resolution: {integrity: sha512-0jjjIEL6+0jag3l2XWWizO64/aZVtpiGE3t0Zgqxv0DPuxiMjvB3M24fCyhZUO4KomJQPj3LTSUnDP3GpdwC0g==}
-
-  fast-string-width@3.0.2:
-    resolution: {integrity: sha512-gX8LrtNEI5hq8DVUfRQMbr5lpaS4nMIWV+7XEbXk2b8kiQIizgnlr12B4dA3ZEx3308ze0O4Q1R+cHts8kyUJg==}
-
   fast-uri@3.1.7:
     resolution: {integrity: sha512-dOvZVzjdZdz7phd9v6jCbwxrBW3fK6n8Rc0CtdmM4bumzMnxywBYhuph6J819RRw/ku+rLbelwfMunktuzVVHg==}
-
-  fast-wrap-ansi@0.2.0:
-    resolution: {integrity: sha512-rLV8JHxTyhVmFYhBJuMujcrHqOT2cnO5Zxj37qROj23CP39GXubJRBUFF0z8KFK77Uc0SukZUf7JZhsVEQ6n8w==}
 
   fast-xml-builder@1.1.8:
     resolution: {integrity: sha512-sDVBc2gg8pSKvcbE8rBmOyjSGQf0AdsbqvHeIOv3D/uYNoV4eCReQXyDF8Pdv8+m1FHazACypSz2hR7O2S1LLw==}
@@ -6095,16 +5986,6 @@ packages:
     peerDependencies:
       bson: ^7.2.0
 
-  mongodb-mcp-server@1.13.0:
-    resolution: {integrity: sha512-waD7XdP1WZsObdjcLKBlWmhyelp1R+o40KcsSpbcvoBfT0RjHm7HKHkKZ6c4GRrq2w0Joxp3YBDCJ+znwHJKww==}
-    engines: {node: ^20.19.0 || ^22.13.0 || >= 24.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/express': ^5.0.3
-
-  mongodb-ns@3.0.3:
-    resolution: {integrity: sha512-ctpHlSXGYlIim3JSgcsQjNkgB4CWvwWSFIxKFphSY/MoY/2i6E5rtVkOt1FBbSjEJYa2XvD4c+G2BbLfjhQqaQ==}
-
   mongodb-ns@3.2.1:
     resolution: {integrity: sha512-PhuRl7oAzHbILnn+DoJkHnfduh7VRKMYnkzOv/x32GC8YvnhYXr42rhzxIK/UQvyZcnG968yVvCvjF2xSUP1OQ==}
 
@@ -6182,10 +6063,6 @@ packages:
 
   mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
-
-  mute-stream@3.0.0:
-    resolution: {integrity: sha512-dkEJPVvun4FryqBmZ5KhDo0K9iDXAwn08tMLDinNdRBNPcYEDiWYysLcc6k3mjTMlbP9KyylvRpd4wFtwrT9rw==}
-    engines: {node: ^20.17.0 || >=22.9.0}
 
   nan@2.26.2:
     resolution: {integrity: sha512-0tTvBTYkt3tdGw22nrAy50x7gpbGCCFH3AFcyS5WiUu7Eu4vWlri1woE6qHBSfy11vksDqkiwjOnlR7WV8G1Hw==}
@@ -9946,125 +9823,6 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@inquirer/ansi@2.0.5': {}
-
-  '@inquirer/checkbox@5.1.4(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/ansi': 2.0.5
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/figures': 2.0.5
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/confirm@6.0.12(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/core@11.1.9(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/ansi': 2.0.5
-      '@inquirer/figures': 2.0.5
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-      cli-width: 4.1.0
-      fast-wrap-ansi: 0.2.0
-      mute-stream: 3.0.0
-      signal-exit: 4.1.0
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/editor@5.1.1(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/external-editor': 3.0.0(@types/node@22.20.1)
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/expand@5.0.13(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/external-editor@3.0.0(@types/node@22.20.1)':
-    dependencies:
-      chardet: 2.1.1
-      iconv-lite: 0.7.2
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/figures@2.0.5': {}
-
-  '@inquirer/input@5.0.12(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/number@4.0.12(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/password@5.0.12(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/ansi': 2.0.5
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/prompts@8.4.2(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/checkbox': 5.1.4(@types/node@22.20.1)
-      '@inquirer/confirm': 6.0.12(@types/node@22.20.1)
-      '@inquirer/editor': 5.1.1(@types/node@22.20.1)
-      '@inquirer/expand': 5.0.13(@types/node@22.20.1)
-      '@inquirer/input': 5.0.12(@types/node@22.20.1)
-      '@inquirer/number': 4.0.12(@types/node@22.20.1)
-      '@inquirer/password': 5.0.12(@types/node@22.20.1)
-      '@inquirer/rawlist': 5.2.8(@types/node@22.20.1)
-      '@inquirer/search': 4.1.8(@types/node@22.20.1)
-      '@inquirer/select': 5.1.4(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/rawlist@5.2.8(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/search@4.1.8(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/figures': 2.0.5
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/select@5.1.4(@types/node@22.20.1)':
-    dependencies:
-      '@inquirer/ansi': 2.0.5
-      '@inquirer/core': 11.1.9(@types/node@22.20.1)
-      '@inquirer/figures': 2.0.5
-      '@inquirer/type': 4.0.5(@types/node@22.20.1)
-    optionalDependencies:
-      '@types/node': 22.20.1
-
-  '@inquirer/type@4.0.5(@types/node@22.20.1)':
-    optionalDependencies:
-      '@types/node': 22.20.1
-
   '@isaacs/cliui@8.0.2':
     dependencies:
       string-width: 5.1.2
@@ -11270,6 +11028,10 @@ snapshots:
       - supports-color
       - zod
 
+  '@modelcontextprotocol/core@2.3.1':
+    dependencies:
+      zod: 4.5.4
+
   '@modelcontextprotocol/ext-apps@0.3.1(@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)
@@ -11295,6 +11057,12 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
+  '@modelcontextprotocol/node@2.1.1(@modelcontextprotocol/server@2.3.1)':
+    dependencies:
+      '@hono/node-server': 1.19.17(hono@4.13.5)
+      '@modelcontextprotocol/server': 2.3.1
+      hono: 4.13.5
+
   '@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)':
     dependencies:
       '@hono/node-server': 1.19.17(hono@4.13.5)
@@ -11319,6 +11087,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@modelcontextprotocol/server@2.3.1':
+    dependencies:
+      '@modelcontextprotocol/core': 2.3.1
+      zod: 4.5.4
+
   '@monaco-editor/loader@1.7.0':
     dependencies:
       state-local: 1.0.7
@@ -11330,29 +11103,28 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@mongodb-js/atlas-local-darwin-arm64@1.3.0':
+  '@mongodb-js/atlas-local-darwin-arm64@1.3.1':
     optional: true
 
-  '@mongodb-js/atlas-local-darwin-x64@1.3.0':
+  '@mongodb-js/atlas-local-darwin-x64@1.3.1':
     optional: true
 
-  '@mongodb-js/atlas-local-linux-arm64-gnu@1.3.0':
+  '@mongodb-js/atlas-local-linux-arm64-gnu@1.3.1':
     optional: true
 
-  '@mongodb-js/atlas-local-linux-x64-gnu@1.3.0':
+  '@mongodb-js/atlas-local-linux-x64-gnu@1.3.1':
     optional: true
 
-  '@mongodb-js/atlas-local-win32-x64-msvc@1.3.0':
+  '@mongodb-js/atlas-local-win32-x64-msvc@1.3.1':
     optional: true
 
-  '@mongodb-js/atlas-local@1.3.0':
+  '@mongodb-js/atlas-local@1.3.1':
     optionalDependencies:
-      '@mongodb-js/atlas-local-darwin-arm64': 1.3.0
-      '@mongodb-js/atlas-local-darwin-x64': 1.3.0
-      '@mongodb-js/atlas-local-linux-arm64-gnu': 1.3.0
-      '@mongodb-js/atlas-local-linux-x64-gnu': 1.3.0
-      '@mongodb-js/atlas-local-win32-x64-msvc': 1.3.0
-    optional: true
+      '@mongodb-js/atlas-local-darwin-arm64': 1.3.1
+      '@mongodb-js/atlas-local-darwin-x64': 1.3.1
+      '@mongodb-js/atlas-local-linux-arm64-gnu': 1.3.1
+      '@mongodb-js/atlas-local-linux-x64-gnu': 1.3.1
+      '@mongodb-js/atlas-local-win32-x64-msvc': 1.3.1
 
   '@mongodb-js/compass-components@1.68.0(@aws-sdk/credential-providers@3.1042.0)(@types/react@18.3.31)(gcp-metadata@7.0.1)(immer@11.1.3)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(prop-types@15.8.1)(socks@2.8.7)':
     dependencies:
@@ -11566,6 +11338,8 @@ snapshots:
 
   '@mongodb-js/device-id@0.4.16': {}
 
+  '@mongodb-js/device-id@0.4.19': {}
+
   '@mongodb-js/devtools-connect@3.17.3(@mongodb-js/oidc-plugin@2.2.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7))':
     dependencies:
       '@mongodb-js/devtools-proxy-support': 0.7.16
@@ -11662,11 +11436,199 @@ snapshots:
 
   '@mongodb-js/eslint-plugin-devtools@0.3.7': {}
 
-  '@mongodb-js/mcp-metrics@1.13.0':
+  '@mongodb-js/mcp-atlas-api-client@3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-types': 3.0.5
+      oauth4webapi: 3.8.6
+      openapi-fetch: 0.17.0
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - react
+      - react-dom
+      - supports-color
+
+  '@mongodb-js/mcp-atlas-telemetry@3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@mongodb-js/mcp-atlas-api-client': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-types': 3.0.5
+      lru-cache: 11.3.6
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - react
+      - react-dom
+      - supports-color
+
+  '@mongodb-js/mcp-cli@3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)':
+    dependencies:
+      '@modelcontextprotocol/core': 2.3.1
+      '@modelcontextprotocol/server': 2.3.1
+      '@mongodb-js/mcp-atlas-api-client': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-atlas-telemetry': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-fetch': 3.0.5
+      '@mongodb-js/mcp-http-runners': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-logging': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-metrics': 3.0.5
+      '@mongodb-js/mcp-tools-atlas-local': 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      '@mongodb-js/mcp-tools-mongodb': 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      '@mongosh/arg-parser': 5.4.0(zod@4.5.4)
+      bson: 7.2.0
+      mongodb-log-writer: 2.5.16(bson@7.2.0)
+      ts-levenshtein: 1.0.7
+      zod: 4.5.4
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@cfworker/json-schema'
+      - '@mongodb-js/zstd'
+      - aws-crt
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - react
+      - react-dom
+      - snappy
+      - socks
+      - supports-color
+
+  '@mongodb-js/mcp-core@3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@mcp-ui/server': 6.1.0(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)
+      '@modelcontextprotocol/server': 2.3.1
+      bson: 7.2.0
+      mongodb-redact: 1.4.11
+      zod: 4.5.4
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - react
+      - react-dom
+      - supports-color
+
+  '@mongodb-js/mcp-fetch@3.0.5':
+    dependencies:
+      '@mongodb-js/devtools-proxy-support': 0.7.21
+      node-fetch: 3.3.2
+    transitivePeerDependencies:
+      - supports-color
+
+  '@mongodb-js/mcp-http-runners@3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@modelcontextprotocol/node': 2.1.1(@modelcontextprotocol/server@2.3.1)
+      '@modelcontextprotocol/server': 2.3.1
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      express: 5.2.1
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - react
+      - react-dom
+      - supports-color
+
+  '@mongodb-js/mcp-logging@3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - react
+      - react-dom
+      - supports-color
+
+  '@mongodb-js/mcp-metrics@3.0.5':
     dependencies:
       prom-client: 15.1.3
 
-  '@mongodb-js/mcp-types@1.13.0': {}
+  '@mongodb-js/mcp-tools-assistant@3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-fetch': 3.0.5
+      yaml: 2.8.4
+      zod: 4.5.4
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - react
+      - react-dom
+      - supports-color
+
+  '@mongodb-js/mcp-tools-atlas-local@3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)':
+    dependencies:
+      '@mongodb-js/atlas-local': 1.3.1
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-tools-mongodb': 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      zod: 4.5.4
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@cfworker/json-schema'
+      - '@mongodb-js/zstd'
+      - aws-crt
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - mongodb-log-writer
+      - react
+      - react-dom
+      - snappy
+      - socks
+      - supports-color
+
+  '@mongodb-js/mcp-tools-atlas@3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)':
+    dependencies:
+      '@mongodb-js/mcp-atlas-api-client': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-metrics': 3.0.5
+      '@mongodb-js/mcp-tools-mongodb': 3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)
+      '@mongodb-js/mcp-types': 3.0.5
+      mongodb-connection-string-url: 7.0.2
+      zod: 4.5.4
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@cfworker/json-schema'
+      - '@mongodb-js/zstd'
+      - aws-crt
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - mongodb-log-writer
+      - react
+      - react-dom
+      - snappy
+      - socks
+      - supports-color
+
+  '@mongodb-js/mcp-tools-mongodb@3.0.5(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.2.0))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7)':
+    dependencies:
+      '@mongodb-js/device-id': 0.4.19
+      '@mongodb-js/mcp-atlas-telemetry': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-core': 3.0.5(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@mongodb-js/mcp-types': 3.0.5
+      '@mongosh/arg-parser': 5.4.0(zod@4.5.4)
+      '@mongosh/service-provider-node-driver': 5.2.0(mongodb-log-writer@2.5.16(bson@7.2.0))
+      bson: 7.2.0
+      hadron-document: 8.11.8(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      mongodb-build-info: 1.9.16
+      mongodb-connection-string-url: 7.0.2
+      mongodb-schema: 12.7.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
+      node-machine-id: 1.1.12
+      zod: 4.5.4
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-providers'
+      - '@cfworker/json-schema'
+      - '@mongodb-js/zstd'
+      - aws-crt
+      - gcp-metadata
+      - kerberos
+      - mongodb-client-encryption
+      - mongodb-log-writer
+      - react
+      - react-dom
+      - snappy
+      - socks
+      - supports-color
+
+  '@mongodb-js/mcp-types@3.0.5':
+    dependencies:
+      '@modelcontextprotocol/server': 2.3.1
+      mongodb-redact: 1.4.11
 
   '@mongodb-js/mongodb-constants@0.16.1(bson@7.2.0)':
     dependencies:
@@ -11831,14 +11793,6 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
-
-  '@mongosh/arg-parser@5.0.3(zod@4.5.4)':
-    dependencies:
-      '@mongosh/errors': 2.4.7
-      '@mongosh/i18n': 2.24.0
-      mongodb-connection-string-url: 7.0.2
-      yargs-parser: 20.2.9
-      zod: 4.5.4
 
   '@mongosh/arg-parser@5.4.0(zod@4.5.4)':
     dependencies:
@@ -12860,11 +12814,6 @@ snapshots:
     dependencies:
       '@babel/types': 7.29.8
 
-  '@types/body-parser@1.19.6':
-    dependencies:
-      '@types/connect': 3.4.38
-      '@types/node': 22.20.1
-
   '@types/braces@3.0.5': {}
 
   '@types/cacheable-request@6.0.3':
@@ -12882,10 +12831,6 @@ snapshots:
     dependencies:
       '@types/deep-eql': 4.0.2
       assertion-error: 2.0.1
-
-  '@types/connect@3.4.38':
-    dependencies:
-      '@types/node': 22.20.1
 
   '@types/d3-color@3.1.3': {}
 
@@ -12918,19 +12863,6 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
-  '@types/express-serve-static-core@5.1.3':
-    dependencies:
-      '@types/node': 22.20.1
-      '@types/qs': 6.15.1
-      '@types/range-parser': 1.2.7
-      '@types/send': 1.2.1
-
-  '@types/express@5.0.6':
-    dependencies:
-      '@types/body-parser': 1.19.6
-      '@types/express-serve-static-core': 5.1.3
-      '@types/serve-static': 2.2.0
-
   '@types/facepaint@1.2.5': {}
 
   '@types/hast@2.3.10':
@@ -12942,8 +12874,6 @@ snapshots:
       highlight.js: 11.5.1
 
   '@types/http-cache-semantics@4.0.4': {}
-
-  '@types/http-errors@2.0.5': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -12991,10 +12921,6 @@ snapshots:
 
   '@types/prop-types@15.7.15': {}
 
-  '@types/qs@6.15.1': {}
-
-  '@types/range-parser@1.2.7': {}
-
   '@types/react-dom@18.3.7(@types/react@18.3.31)':
     dependencies:
       '@types/react': 18.3.31
@@ -13019,15 +12945,6 @@ snapshots:
   '@types/sarif@2.1.7': {}
 
   '@types/semver@7.7.1': {}
-
-  '@types/send@1.2.1':
-    dependencies:
-      '@types/node': 22.20.1
-
-  '@types/serve-static@2.2.0':
-    dependencies:
-      '@types/http-errors': 2.0.5
-      '@types/node': 22.20.1
 
   '@types/sinon-chai@3.2.12':
     dependencies:
@@ -13942,8 +13859,6 @@ snapshots:
 
   character-entities@2.0.2: {}
 
-  chardet@2.1.1: {}
-
   charenc@0.0.2: {}
 
   check-error@2.1.3: {}
@@ -14010,8 +13925,6 @@ snapshots:
     dependencies:
       colors: 1.0.3
     optional: true
-
-  cli-width@4.1.0: {}
 
   clipboard@2.0.11:
     dependencies:
@@ -14951,17 +14864,7 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
-  fast-string-truncated-width@3.0.3: {}
-
-  fast-string-width@3.0.2:
-    dependencies:
-      fast-string-truncated-width: 3.0.3
-
   fast-uri@3.1.7: {}
-
-  fast-wrap-ansi@0.2.0:
-    dependencies:
-      fast-string-width: 3.0.2
 
   fast-xml-builder@1.1.8:
     dependencies:
@@ -16521,58 +16424,6 @@ snapshots:
       bson: 7.2.0
       heap-js: 2.7.1
 
-  mongodb-mcp-server@1.13.0(@aws-sdk/credential-providers@3.1042.0)(@cfworker/json-schema@4.1.1)(@types/express@5.0.6)(@types/node@22.20.1)(gcp-metadata@7.0.1)(mongodb-client-encryption@7.0.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(socks@2.8.7):
-    dependencies:
-      '@inquirer/prompts': 8.4.2(@types/node@22.20.1)
-      '@inquirer/select': 5.1.4(@types/node@22.20.1)
-      '@mcp-ui/server': 6.1.0(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)
-      '@modelcontextprotocol/sdk': 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)
-      '@mongodb-js/device-id': 0.4.16
-      '@mongodb-js/devtools-proxy-support': 0.7.16
-      '@mongodb-js/mcp-metrics': 1.13.0
-      '@mongodb-js/mcp-types': 1.13.0
-      '@mongosh/arg-parser': 5.0.3(zod@4.5.4)
-      '@mongosh/service-provider-node-driver': 5.2.0(mongodb-log-writer@2.5.16(bson@7.2.0))
-      '@types/express': 5.0.6
-      bson: 7.2.0
-      chalk: 5.6.2
-      express: 5.2.1
-      jsonc-parser: 3.3.1
-      lru-cache: 11.3.6
-      mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      mongodb-build-info: 1.9.14
-      mongodb-connection-string-url: 7.0.2
-      mongodb-log-writer: 2.5.16(bson@7.2.0)
-      mongodb-redact: 1.4.11
-      mongodb-schema: 12.7.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      node-fetch: 3.3.2
-      node-machine-id: 1.1.12
-      oauth4webapi: 3.8.6
-      openapi-fetch: 0.17.0
-      semver: 7.8.5
-      ts-levenshtein: 1.0.7
-      yaml: 2.8.4
-      zod: 4.5.4
-    optionalDependencies:
-      '@mongodb-js/atlas-local': 1.3.0
-      kerberos: 7.0.0
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@cfworker/json-schema'
-      - '@mongodb-js/zstd'
-      - '@types/node'
-      - aws-crt
-      - gcp-metadata
-      - mongodb-client-encryption
-      - react
-      - react-dom
-      - snappy
-      - socks
-      - supports-color
-
-  mongodb-ns@3.0.3:
-    optional: true
-
   mongodb-ns@3.2.1: {}
 
   mongodb-ns@3.2.3:
@@ -16617,7 +16468,7 @@ snapshots:
       cli-table: 0.3.11
       js-yaml: 4.3.2
       mongodb: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      mongodb-ns: 3.0.3
+      mongodb-ns: 3.2.3
       numeral: 2.0.6
       progress: 2.0.3
       stats-lite: 2.2.0
@@ -16665,8 +16516,6 @@ snapshots:
       object-assign: 4.1.1
 
   mute-stream@0.0.8: {}
-
-  mute-stream@3.0.0: {}
 
   nan@2.26.2:
     optional: true
