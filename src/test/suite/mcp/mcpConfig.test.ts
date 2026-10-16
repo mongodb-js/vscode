@@ -1,6 +1,11 @@
 import type * as vscode from 'vscode';
+import fs from 'fs';
+import path from 'path';
 import { expect } from 'chai';
-import { getMCPConfigFromVSCodeSettings } from '../../../mcp/mcpConfig';
+import {
+  getMCPConfigFromVSCodeSettings,
+  MCP_SERVER_METADATA,
+} from '../../../mcp/mcpConfig';
 
 const vscMCPConfig = {
   'mdb.mcp.apiBaseUrl': 'https://cloud.mongodb.com/',
@@ -152,5 +157,16 @@ suite('MCPConfig test suite', function () {
       expect(output.disabledTools).to.be.an('array');
       expect(output.disabledTools).to.deep.equal([]);
     });
+  });
+
+  test('MCP_SERVER_METADATA.version matches the installed @mongodb-js/mcp-* version', function () {
+    const packageJsonPath = path.join(
+      path.dirname(require.resolve('@mongodb-js/mcp-cli')),
+      '..',
+      'package.json',
+    );
+    const { version } = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+
+    expect(MCP_SERVER_METADATA.version).to.equal(version);
   });
 });

@@ -1,35 +1,55 @@
 import * as vscode from 'vscode';
+import {
+  applyConfigOverrides,
+  CliServer,
+  closeSharedServices,
+  createKeychainFromConfig,
+  createLoggerFromConfig,
+  createSharedServicesFromConfig,
+  Resources,
+  UserConfigSchema,
+  type SharedServerServices,
+  type UserConfig,
+} from '@mongodb-js/mcp-cli';
+import {
+  Elicitation,
+  McpServer,
+  RedactingLoggerBase,
+} from '@mongodb-js/mcp-core';
+import {
+  MCPHttpServer,
+  StreamableHttpRunner,
+} from '@mongodb-js/mcp-http-runners';
+import type { ConnectionErrorHandler } from '@mongodb-js/mcp-tools-mongodb';
 import type {
-  LoggerType,
+  HttpServerOptions,
   LogLevel,
   LogPayload,
-  UserConfig,
-  ConnectionManagerFactoryFn,
-  ConnectionManager,
-} from 'mongodb-mcp-server';
-import {
-  LoggerBase,
-  StreamableHttpRunner,
-  Keychain,
-  registerGlobalSecretToRedact,
-  UserConfigSchema,
-} from 'mongodb-mcp-server';
+  LoggerType,
+  TransportRequestContext,
+} from '@mongodb-js/mcp-types';
 import type ConnectionController from '../connectionController';
 import { createLogger } from '../logging';
+import type { TelemetryService } from '../telemetry';
+import formatError from '../utils/formatError';
+import {
+  getMCPConfigFromVSCodeSettings,
+  MCP_SERVER_METADATA,
+} from './mcpConfig';
+import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
 import type { MCPConnectParams } from './mcpConnectionManager';
 import { MCPConnectionManager } from './mcpConnectionManager';
-import { createMCPConnectionErrorHandler } from './mcpConnectionErrorHandler';
-import { getMCPConfigFromVSCodeSettings } from './mcpConfig';
-import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';
-import formatError from '../utils/formatError';
-import type { TelemetryService } from '../telemetry';
+import { VSCodeConnectionRegistry } from './mcpConnectionRegistry';
+import { VSCodeAtlasTelemetry } from './mcpTelemetry';
+import { MCPTools } from './mcpTools';
 
 export type MCPServerStartupConfig =
   'prompt' | 'autoStartEnabled' | 'autoStartDisabled';
 
-class VSCodeMCPLogger extends LoggerBase {
+class VSCodeMCPLogger extends RedactingLoggerBase {
   private readonly _logger = createLogger('mcp-server');
-  protected type: LoggerType = 'console';
+  protected readonly type: LoggerType = 'console';
+
   protected logCore(level: LogLevel, payload: LogPayload): void {
     const logMethod = this.mapToMongoDBLogLevel(level);
 
@@ -38,12 +58,37 @@ class VSCodeMCPLogger extends LoggerBase {
       ...(payload.attributes ? [payload.attributes] : []),
     );
   }
+
+  private mapToMongoDBLogLevel(
+    level: LogLevel,
+  ): 'info' | 'warn' | 'error' | 'debug' | 'fatal' {
+    switch (level) {
+      case 'info':
+        return 'info';
+      case 'warning':
+        return 'warn';
+      case 'error':
+        return 'error';
+      case 'notice':
+      case 'debug':
+        return 'debug';
+      case 'critical':
+      case 'alert':
+      case 'emergency':
+        return 'fatal';
+      default:
+        return 'info';
+    }
+  }
 }
 
 const logger = createLogger('mcp-controller');
 
 export type MCPServerInfo = {
   runner: StreamableHttpRunner;
+  mcpHttpServer: VSCodeMCPHttpServer;
+  sharedServices: SharedServerServices;
+  connectionManager: MCPConnectionManager;
   headers: Record<string, string>;
 };
 
@@ -54,12 +99,75 @@ type MCPControllerConfig = {
   telemetryService: TelemetryService;
 };
 
+/** Injects the extension's connection registry and error handler, which `createServerFromConfig` hardcodes. */
+class VSCodeMCPHttpServer extends MCPHttpServer<CliServer> {
+  private readonly sharedServices: SharedServerServices;
+  private readonly connectionRegistry: VSCodeConnectionRegistry;
+  private readonly connectionErrorHandler: ConnectionErrorHandler;
+
+  constructor({
+    sharedServices,
+    options,
+    connectionRegistry,
+    connectionErrorHandler,
+  }: {
+    sharedServices: SharedServerServices;
+    options: { http: HttpServerOptions };
+    connectionRegistry: VSCodeConnectionRegistry;
+    connectionErrorHandler: ConnectionErrorHandler;
+  }) {
+    super({
+      options,
+      logger: sharedServices.logger,
+      metrics: sharedServices.metrics,
+    });
+    this.sharedServices = sharedServices;
+    this.connectionRegistry = connectionRegistry;
+    this.connectionErrorHandler = connectionErrorHandler;
+  }
+
+  protected override createServerForRequest(
+    request: TransportRequestContext,
+  ): Promise<CliServer> {
+    const config = applyConfigOverrides({
+      baseConfig: this.sharedServices.config,
+      request,
+    });
+
+    const mcpServer = new McpServer({
+      name: MCP_SERVER_METADATA.mcpServerName,
+      version: MCP_SERVER_METADATA.version,
+    });
+    const elicitation = new Elicitation({ server: mcpServer.server });
+
+    return Promise.resolve(
+      new CliServer({
+        config,
+        logger: this.sharedServices.logger,
+        keychain: this.sharedServices.keychain,
+        connectionRegistry: this.connectionRegistry,
+        exportsManager: this.sharedServices.exportsManager,
+        apiClient: this.sharedServices.apiClient,
+        connectionErrorHandler: this.connectionErrorHandler,
+        atlasLocalClient: this.sharedServices.atlasLocalClient,
+        mcpServer,
+        telemetry: this.sharedServices.telemetry,
+        elicitation,
+        metrics: this.sharedServices.metrics,
+        tools: this.sharedServices.tools,
+        resources: this.sharedServices.resources,
+        serverMetadata: this.sharedServices.serverMetadata,
+        transportRequest: request,
+      }),
+    );
+  }
+}
+
 export class MCPController {
   private context: vscode.ExtensionContext;
   private connectionController: ConnectionController;
   private getTelemetryAnonymousId: () => string;
   private telemetryService: TelemetryService;
-  private mcpConnectionManagers: MCPConnectionManager[] = [];
 
   private didChangeEmitter = new vscode.EventEmitter<void>();
   private server?: MCPServerInfo;
@@ -78,9 +186,7 @@ export class MCPController {
 
   public async activate(): Promise<void> {
     await this.migrateOldConfigToNewConfig(
-      // At this point we don't know for certain if the "mdb.mcp.server" holds
-      // one of the old values or something totally unknown so to keep cases
-      // covered we consider the retrieved value unknown.
+      // The stored value may be old, already-migrated, or unknown, so read it as `unknown`.
       this.getMCPAutoStartConfig<unknown>(),
     );
 
@@ -111,28 +217,20 @@ export class MCPController {
   private async migrateOldConfigToNewConfig(oldConfig: unknown): Promise<void> {
     try {
       switch (oldConfig) {
-        // The previous logic would set the mdb.mcp.server to 'enabled' on
-        // extension activate (with a notification) so we're assuming that this
-        // value is not the result of explicit user action and hence mapping it
-        // to 'prompt'.
+        // 'enabled' was set automatically on activate, not by explicit user action, so map it to 'prompt'.
         case 'ask':
         case 'enabled': {
           await this.setMCPAutoStartConfig('prompt');
           break;
         }
 
-        // In the previous logic only 'disabled' value would've represented an
-        // explicit user action which is why we preserve that and map it to new
-        // disabled value.
+        // 'disabled' was the only value set by explicit user action, so preserve it.
         case 'disabled': {
           await this.setMCPAutoStartConfig('autoStartDisabled');
           break;
         }
 
-        // Any other value is possible only if:
-        // 1. user explicitly did the modification or,
-        // 2. the old values were already migrated to the new values.
-        // So we don't migrate in this case.
+        // Any other value is explicit user input or already migrated, so leave it.
         default: {
           break;
         }
@@ -157,8 +255,7 @@ export class MCPController {
         return;
       }
 
-      // 'Start Once' action might confuse users if the server is already
-      // running so we skip exposing this action in this particular case.
+      // Hide 'Start Once' when the server is already running, where it would confuse users.
       const notificationActions = this.server
         ? (['Auto-Start', 'Never'] as const)
         : (['Auto-Start', 'Start Once', 'Never'] as const);
@@ -206,7 +303,6 @@ export class MCPController {
       const headers = {
         authorization: `Bearer ${token}`,
       };
-      registerGlobalSecretToRedact(token, 'password');
 
       const mcpConfig = this.getMCPServerConfig(headers);
 
@@ -217,28 +313,84 @@ export class MCPController {
         apiClientSecret: '<redacted>',
       });
 
-      const runner = new StreamableHttpRunner({
-        userConfig: mcpConfig,
-        createConnectionManager: (...params): Promise<ConnectionManager> =>
-          MCPController.createConnectionManager(this, ...params),
+      // The keychain is immutable in v3, so the generated auth token is registered up front.
+      const keychain = createKeychainFromConfig({
+        config: mcpConfig,
+        additionalSecrets: { [token]: 'password' },
+      });
+      const mcpLogger = await createLoggerFromConfig({
+        config: mcpConfig,
+        keychain,
+      });
+      mcpLogger.addLogger(new VSCodeMCPLogger({ keychain }));
+
+      const sharedServices = await createSharedServicesFromConfig({
+        config: mcpConfig,
+        serverMetadata: MCP_SERVER_METADATA,
+        tools: MCPTools,
+        resources: Resources,
+        logger: mcpLogger,
+        keychain,
+      });
+
+      // Swap in a pipeline that also reports the VSCode hosting mode.
+      await sharedServices.telemetry.close();
+      sharedServices.telemetry = VSCodeAtlasTelemetry.createVSCodeTelemetry({
+        logger: mcpLogger,
+        deviceId: sharedServices.deviceId,
+        apiClient: sharedServices.apiClient,
+        keychain,
+        enabled: mcpConfig.telemetry === 'enabled',
+        serverMetadata: sharedServices.serverMetadata,
+      });
+
+      const connectionManager = new MCPConnectionManager({
+        logger: mcpLogger,
+        getTelemetryAnonymousId: this.getTelemetryAnonymousId,
+      });
+      const connectionRegistry = new VSCodeConnectionRegistry({
+        manager: connectionManager,
+        keychain,
+      });
+      sharedServices.connectionRegistry = connectionRegistry;
+
+      const mcpHttpServer = new VSCodeMCPHttpServer({
+        sharedServices,
+        options: {
+          http: {
+            host: mcpConfig.httpHost,
+            port: mcpConfig.httpPort,
+            bodyLimit: mcpConfig.httpBodyLimit,
+            headers: mcpConfig.httpHeaders,
+            responseType: mcpConfig.httpResponseType,
+            dangerousHostBinding: mcpConfig.dangerousHostBinding,
+          },
+        },
+        connectionRegistry,
         connectionErrorHandler: createMCPConnectionErrorHandler(
           this.connectionController,
         ),
-        additionalLoggers: [new VSCodeMCPLogger(Keychain.root)],
-        telemetryProperties: {
-          hosting_mode: DEFAULT_TELEMETRY_APP_NAME,
-        },
+      });
+
+      const runner = new StreamableHttpRunner({
+        logger: mcpLogger,
+        mcpHttpServer,
+        monitoringServer: sharedServices.monitoringServer,
       });
       await runner.start();
 
       this.server = {
         runner,
+        mcpHttpServer,
+        sharedServices,
+        connectionManager,
         headers,
       };
+
+      await this.switchConnectionManagerToCurrentConnection(connectionManager);
       this.didChangeEmitter.fire();
     } catch (error) {
-      // In case of errors we don't want VSCode extension process to crash so we
-      // silence MCP start errors and instead log them for debugging.
+      // Silence start errors so the extension host cannot crash; log them instead.
       logger.error('Error when attempting to start MCP server', error);
     }
   }
@@ -264,40 +416,6 @@ export class MCPController {
     return UserConfigSchema.parse(vsCodeConfig);
   }
 
-  private static async createConnectionManager(
-    mcpController: MCPController,
-    ...params: Parameters<ConnectionManagerFactoryFn>
-  ): Promise<ConnectionManager> {
-    const [{ logger: mcpLogger }] = params;
-    const connectionManager = new MCPConnectionManager({
-      logger: mcpLogger,
-      getTelemetryAnonymousId: mcpController.getTelemetryAnonymousId,
-    });
-
-    // Track this ConnectionManager instance for future connection updates
-    mcpController.mcpConnectionManagers.push(connectionManager);
-
-    // Also set up listener on close event to perform a cleanup when the Client
-    // closes connection to MCP server and eventually ConnectionManager shuts
-    // down.
-    connectionManager.events.on('close', (): void => {
-      logger.debug('MCPConnectionManager closed. Performing cleanup', {
-        connectionManagerClientName: connectionManager.clientName,
-      });
-      mcpController.mcpConnectionManagers =
-        mcpController.mcpConnectionManagers.filter(
-          (manager) => manager !== connectionManager,
-        );
-    });
-
-    // The newly created ConnectionManager need to be brought up to date with
-    // the current connection state.
-    await mcpController.switchConnectionManagerToCurrentConnection(
-      connectionManager,
-    );
-    return connectionManager;
-  }
-
   public async stopServer(): Promise<void> {
     try {
       if (!this.server) {
@@ -306,8 +424,13 @@ export class MCPController {
         );
         return;
       }
-      await this.server.runner.close();
+
+      const { runner, sharedServices, connectionManager } = this.server;
       this.server = undefined;
+
+      await connectionManager.close();
+      await runner.close();
+      await closeSharedServices(sharedServices);
       this.didChangeEmitter.fire();
     } catch (error) {
       logger.error('Error when attempting to close the MCP server', error);
@@ -324,8 +447,7 @@ export class MCPController {
     }
 
     try {
-      // Does not create a physical file, it only creates a URI from specified component parts.
-      // An untitled file URI: untitled:/extensionPath/mongodb-mcp-config.json
+      // An in-memory untitled URI, e.g. untitled:/extensionPath/mongodb-mcp-config.json
       const documentUri = vscode.Uri.from({
         path: 'mongodb-mcp-config.json',
         scheme: 'untitled',
@@ -357,9 +479,7 @@ ${jsonConfig}`,
       );
       await vscode.workspace.applyEdit(edit);
 
-      // Actually show the editor.
-      // We open playgrounds by URI to use the secondary `mongodb` extension
-      // as an identifier that distinguishes them from regular JS files.
+      // Open by URI so the secondary `mongodb` extension distinguishes it from regular JS files.
       const document = await vscode.workspace.openTextDocument(documentUri);
       await vscode.languages.setTextDocumentLanguage(document, 'json');
       await vscode.window.showTextDocument(document);
@@ -379,9 +499,7 @@ ${jsonConfig}`,
 
     return new vscode.McpHttpServerDefinition(
       'MongoDB MCP Server',
-      vscode.Uri.parse(
-        `${String(this.server.runner['mcpServer'].serverAddress)}/mcp`,
-      ),
+      vscode.Uri.parse(`${this.server.mcpHttpServer.serverAddress}/mcp`),
       this.server.headers,
     );
   }
@@ -399,11 +517,11 @@ ${jsonConfig}`,
       void this.promptForMCPAutoStart();
     }
 
-    await Promise.all(
-      this.mcpConnectionManagers.map((manager) =>
-        this.switchConnectionManagerToCurrentConnection(manager),
-      ),
-    );
+    if (this.server) {
+      await this.switchConnectionManagerToCurrentConnection(
+        this.server.connectionManager,
+      );
+    }
   }
 
   private async switchConnectionManagerToCurrentConnection(
