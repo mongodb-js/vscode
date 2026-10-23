@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { toJSString } from 'mongodb-query-parser';
+import { toJSString } from '@mongodb-js/shell-bson-parser';
 import { EJSON } from 'bson';
 
 import type ConnectionController from '../connectionController';
