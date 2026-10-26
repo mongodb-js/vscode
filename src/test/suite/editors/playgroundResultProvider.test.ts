@@ -257,12 +257,12 @@ suite('Playground Result Provider Test Suite', function () {
     expect(result).to.equal(`[
   {
     _id: ObjectId('6536b0aef59f6ffc9af93f3c'),
-    pineapple: NumberLong('90071992547409920'),
+    pineapple: Long('90071992547409920'),
     name: 'Berlin'
   },
   {
     _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
-    pineapple2: NumberLong('900719925474099199'),
+    pineapple2: Long('900719925474099199'),
     name: 'Rome'
   }
 ]`);

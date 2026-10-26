@@ -1275,7 +1275,7 @@
     "@mongodb-js/connection-info": "^0.26.3",
     "@mongodb-js/connection-string-policy": "^0.2.4",
     "@mongodb-js/device-id": "^0.4.16",
-    "@mongodb-js/mongodb-constants": "^0.16.1",
+    "@mongodb-js/mongodb-constants": "^0.34.14",
     "@mongodb-js/mongodb-schema": "^12.7.10",
     "@mongodb-js/shell-bson-parser": "^2.0.0",
     "@mongosh/browser-runtime-electron": "^5.7.0",

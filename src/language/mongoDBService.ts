@@ -46,6 +46,8 @@ const GROUP = '$group';
 
 const MATCH = '$match';
 
+const DOCUMENTS = '$documents';
+
 const SET_WINDOW_FIELDS = '$setWindowFields';
 
 export const languageServerWorkerFileName = 'languageServerWorker.js';
@@ -712,8 +714,9 @@ export default class MongoDBService {
       return getFilteredCompletions({
         fields,
         meta: [
-          'expr:*',
-          'conv',
+          ...(state.stageOperator === DOCUMENTS
+            ? []
+            : (['expr:*', 'conv'] as const)),
           ...([PROJECT, GROUP].includes(state.stageOperator ?? '')
             ? ([
                 'accumulator',

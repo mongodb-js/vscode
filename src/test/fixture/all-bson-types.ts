@@ -101,8 +101,8 @@ export const allBsonTypesShellSyntax = `{
   javascriptWithScope: Code("function() {}",{"foo":1,"bar":"a"}),
   'int': NumberInt('12345'),
   timestamp: Timestamp({ t: 1680701109, i: 1 }),
-  'long': NumberLong('123456789123456789'),
-  decimal: NumberDecimal('5.477284286264328586719275128128001E-4088'),
+  'long': Long('123456789123456789'),
+  decimal: Decimal128('5.477284286264328586719275128128001E-4088'),
   minKey: MinKey(),
   maxKey: MaxKey(),
   binaries: {
