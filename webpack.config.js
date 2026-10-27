@@ -120,6 +120,20 @@ module.exports = (env, argv) => {
       target: 'node',
       resolve: {
         extensions: ['.js', '.ts', '.json'],
+        // ESM deps pull in MongoDB packages whose `.esm-wrapper.mjs` reads named
+        // exports off a default import of their CJS build (undefined under webpack);
+        // prefer the CJS entry for ESM imports to skip those wrappers.
+        byDependency: {
+          esm: {
+            conditionNames: [
+              'require',
+              'import',
+              'module-sync',
+              'module',
+              '...',
+            ],
+          },
+        },
       },
       module: {
         rules: [
