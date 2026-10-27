@@ -291,6 +291,9 @@ export class MCPController {
   }
 
   public async startServer(): Promise<void> {
+    let sharedServices: SharedServerServices | undefined;
+    let connectionManager: MCPConnectionManager | undefined;
+    let runner: StreamableHttpRunner | undefined;
     try {
       if (this.server) {
         logger.info(
@@ -324,7 +327,7 @@ export class MCPController {
       });
       mcpLogger.addLogger(new VSCodeMCPLogger({ keychain }));
 
-      const sharedServices = await createSharedServicesFromConfig({
+      sharedServices = await createSharedServicesFromConfig({
         config: mcpConfig,
         serverMetadata: MCP_SERVER_METADATA,
         tools: MCPTools,
@@ -344,7 +347,7 @@ export class MCPController {
         serverMetadata: sharedServices.serverMetadata,
       });
 
-      const connectionManager = new MCPConnectionManager({
+      connectionManager = new MCPConnectionManager({
         logger: mcpLogger,
         getTelemetryAnonymousId: this.getTelemetryAnonymousId,
       });
@@ -372,7 +375,7 @@ export class MCPController {
         ),
       });
 
-      const runner = new StreamableHttpRunner({
+      runner = new StreamableHttpRunner({
         logger: mcpLogger,
         mcpHttpServer,
         monitoringServer: sharedServices.monitoringServer,
@@ -392,6 +395,16 @@ export class MCPController {
     } catch (error) {
       // Silence start errors so the extension host cannot crash; log them instead.
       logger.error('Error when attempting to start MCP server', error);
+
+      // Close anything created before `this.server` was assigned so a failed
+      // start doesn't leak services the server would otherwise own.
+      if (!this.server) {
+        await Promise.allSettled([
+          runner?.close(),
+          connectionManager?.close(),
+          sharedServices ? closeSharedServices(sharedServices) : undefined,
+        ]);
+      }
     }
   }
 
