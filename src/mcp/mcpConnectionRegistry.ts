@@ -71,9 +71,12 @@ export class VSCodeConnectionRegistry implements ConnectionRegistry {
   }
 
   find(
-    _predicate?: (entry: ConnectionEntry) => boolean,
+    predicate?: (entry: ConnectionEntry) => boolean,
   ): Promise<ConnectionEntry[]> {
-    return Promise.resolve([this.entry()]);
+    const entry = this.entry();
+    return Promise.resolve(
+      predicate === undefined || predicate(entry) ? [entry] : [],
+    );
   }
 
   resolve(connectionId: string): Promise<NodeDriverServiceProvider> {
