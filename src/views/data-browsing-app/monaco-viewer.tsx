@@ -13,7 +13,7 @@ import type {
   TokenColors,
   MonacoBaseTheme,
 } from './extension-app-message-constants';
-import { toJSString } from '@mongodb-js/shell-bson-parser';
+import { toJSString } from '@mongodb-js/shell-bson-parser/stringify';
 import { EJSON } from 'bson';
 import {
   sendEditDocument,

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { URLSearchParams } from 'url';
-import { toJSString } from '@mongodb-js/shell-bson-parser';
+import { toJSString } from '@mongodb-js/shell-bson-parser/stringify';
 
 import type CollectionDocumentsOperationsStore from './collectionDocumentsOperationsStore';
 import type ConnectionController from '../connectionController';

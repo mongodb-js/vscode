@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
-import { parse, ParseMode, toJSString } from '@mongodb-js/shell-bson-parser';
+import { parse, ParseMode } from '@mongodb-js/shell-bson-parser';
+import { toJSString } from '@mongodb-js/shell-bson-parser/stringify';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import PlaygroundSelectionCodeActionProvider from './playgroundSelectionCodeActionProvider';
