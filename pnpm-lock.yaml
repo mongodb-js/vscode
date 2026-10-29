@@ -48,6 +48,9 @@ importers:
       '@mongodb-js/device-id':
         specifier: ^0.4.16
         version: 0.4.16
+      '@mongodb-js/mongodb-build-info':
+        specifier: ^1.9.19
+        version: 1.9.19
       '@mongodb-js/mongodb-constants':
         specifier: ^0.34.14
         version: 0.34.14(bson@7.2.0)
@@ -105,9 +108,6 @@ importers:
       mongodb:
         specifier: ^7.2.0
         version: 7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.7)
-      mongodb-build-info:
-        specifier: ^1.9.14
-        version: 1.9.14
       mongodb-cloud-info:
         specifier: ^2.3.18
         version: 2.3.18
@@ -2216,6 +2216,9 @@ packages:
 
   '@mongodb-js/mcp-types@1.13.0':
     resolution: {integrity: sha512-ndw44ysHe8y8o7ipoWtY9KujKA5Zdu2px4mluUwXmGNtyFzffIo0Ebk2Y5t2y5ImZGd/ORbk363JOKjF7kiTqg==}
+
+  '@mongodb-js/mongodb-build-info@1.9.19':
+    resolution: {integrity: sha512-xCjvW+evu99Cuf6pJrZIOwBjLtSKQxv9fRmdDuOwtQEhQ6Kjk1/W8h1/noAhz8DVLlYkbY6yBW9S/sLn72KYxA==}
 
   '@mongodb-js/mongodb-constants@0.20.1':
     resolution: {integrity: sha512-zes9Ays51BkF/OP9ATFbHbLw5UWKv7V0NnPfDDj/TMgdjPMQvnf0yqu1Bwb7VIr1cSBAM9vLXgcVeh3iEPkXpw==}
@@ -11770,6 +11773,13 @@ snapshots:
       prom-client: 15.1.3
 
   '@mongodb-js/mcp-types@1.13.0': {}
+
+  '@mongodb-js/mongodb-build-info@1.9.19':
+    dependencies:
+      debug: 4.4.3(supports-color@8.1.1)
+      mongodb-connection-string-url: 7.0.2
+    transitivePeerDependencies:
+      - supports-color
 
   '@mongodb-js/mongodb-constants@0.20.1(bson@7.2.0)':
     dependencies:

@@ -31,7 +31,7 @@ import type {
 } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
-import { isAtlasStream } from 'mongodb-build-info';
+import { isAtlasStream } from '@mongodb-js/mongodb-build-info';
 import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
 import type { RequiredBy } from './utils/types';
