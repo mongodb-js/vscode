@@ -1,5 +1,5 @@
 import type { DataService } from 'mongodb-data-service';
-import mongoDBBuildInfo from 'mongodb-build-info';
+import mongoDBBuildInfo from '@mongodb-js/mongodb-build-info';
 
 import { createLogger } from '../logging';
 import type { TopologyType } from 'mongodb';

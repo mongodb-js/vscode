@@ -31,7 +31,7 @@ import {
   TEST_USER_PASSWORD,
 } from './dbTestHelper';
 import type { LoadedConnection } from '../../storage/connectionStorage';
-import getBuildInfo from 'mongodb-build-info';
+import getBuildInfo from '@mongodb-js/mongodb-build-info';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { version } = require('../../../package.json');
