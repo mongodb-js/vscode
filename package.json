@@ -1297,7 +1297,7 @@
     "mongodb": "^7.6.0",
     "mongodb-cloud-info": "^2.3.18",
     "mongodb-connection-string-url": "^7.0.2",
-    "mongodb-data-service": "^22.40.2",
+    "@mongodb-js/mongodb-data-service": "^22.41.3",
     "mongodb-log-writer": "^2.5.16",
     "mongodb-mcp-server": "1.13.0",
     "node-machine-id": "1.1.12",
@@ -1393,6 +1393,7 @@
   "pnpm": {
     "overrides": {
       "@hono/node-server": "^1.19.17",
+      "@mongodb-js/devtools-connect": "^3.17.15",
       "@xmldom/xmldom": "^0.9.10",
       "bson": "^7.2.0",
       "mongodb": "^7.2.0",

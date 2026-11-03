@@ -1,5 +1,5 @@
 import { before, beforeEach, afterEach } from 'mocha';
-import { connect } from 'mongodb-data-service';
+import { connect } from '@mongodb-js/mongodb-data-service';
 import { expect } from 'chai';
 import sinon from 'sinon';
 

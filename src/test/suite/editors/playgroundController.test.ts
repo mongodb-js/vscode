@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import { expect, use } from 'chai';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import sinon from 'sinon';
 import type { SinonSpy, SinonStub } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';

@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
-import { connect, createConnectionAttempt } from 'mongodb-data-service';
+import {
+  connect,
+  createConnectionAttempt,
+} from '@mongodb-js/mongodb-data-service';
 import type {
   DataService,
   ConnectionAttempt,
   ConnectionOptions,
-} from 'mongodb-data-service';
+} from '@mongodb-js/mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';

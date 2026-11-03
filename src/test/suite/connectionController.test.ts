@@ -3,7 +3,7 @@ import type { SinonStub } from 'sinon';
 import util from 'util';
 import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
-import * as mongodbDataService from 'mongodb-data-service';
+import * as mongodbDataService from '@mongodb-js/mongodb-data-service';
 import { expect } from 'chai';
 import ConnectionString from 'mongodb-connection-string-url';
 

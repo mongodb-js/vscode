@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import assert from 'assert';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 
 import StreamProcessorTreeItem from '../../../explorer/streamProcessorTreeItem';
 import { DataServiceStub, mockStreamProcessors } from '../stubs';

@@ -1,7 +1,7 @@
 import path from 'path';
 import * as vscode from 'vscode';
 import { config } from 'dotenv';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import fs from 'fs/promises';
 import { Analytics as SegmentAnalytics } from '@segment/analytics-node';
 import { throttle } from 'lodash';

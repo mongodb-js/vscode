@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import path from 'path';
 
 import ActiveConnectionCodeLensProvider from '../../../editors/activeConnectionCodeLensProvider';
