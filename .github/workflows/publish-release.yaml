@@ -3,13 +3,24 @@ name: Publish Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      asset_url:
+        description: 'URL of a .vsix to download.'
+        required: true
+        type: string
+      dry_run:
+        description: 'Validate everything and stop before publishing.'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish-release:
-    name: Publish Release
+    name: Publish Release ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '(dry run)' || '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js Environment
@@ -22,10 +33,15 @@ jobs:
           curl -sSfLO https://raw.githubusercontent.com/mongodb-js/compass/42e6142ae08be6fec944b80ff6289e6bcd11badf/.evergreen/node-gyp-bug-workaround.sh && bash node-gyp-bug-workaround.sh
 
       - name: Install VSCode publishing dependencies
-        run: npm install -g vsce
+        run: npm install -g @vscode/vsce@4.1.0
 
       - name: Download release assets
         run: |
+          if [[ -z "${ASSET_URL}" ]]; then
+            echo "No VSIX URL provided"
+            exit 1
+          fi
+
           filename=$(basename -- "$ASSET_URL")
           extension="${filename##*.}"
 
@@ -38,11 +54,54 @@ jobs:
             echo "VSIX_PATH=${filename}" >> $GITHUB_ENV
           fi
         env:
-          ASSET_URL: ${{ github.event.release.assets[0].browser_download_url }}
+          ASSET_URL: ${{ github.event_name == 'release' && github.event.release.assets[0].browser_download_url || inputs.asset_url }}
+
+      # Exchanges a GitHub OIDC token for a Marketplace credential exactly the way
+      # `vsce publish --oidc` does, without publishing anything.
+      - name: Validate OIDC trusted publishing
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        env:
+          VSCE_PUBLISHER: mongodb
+        run: |
+          set -euo pipefail
+
+          token=$(curl -sSf -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=marketplace.visualstudio.com" | jq -r .value)
+          echo "Obtained GitHub OIDC token (${#token} chars)"
+
+          python3 - "$token" <<'PY'
+          import base64, json, sys
+          payload = sys.argv[1].split('.')[1]
+          claims = json.loads(base64.urlsafe_b64decode(payload + '=' * (-len(payload) % 4)))
+          keys = ('iss', 'aud', 'sub', 'event_name', 'repository', 'workflow_ref', 'ref', 'environment')
+          print(json.dumps({k: claims.get(k) for k in keys}, indent=2))
+          PY
+
+          response=$(curl -sS -w '\n%{http_code}' -X POST \
+            "https://marketplace.visualstudio.com/_apis/gallery/token?api-version=7.2-preview.1" \
+            -H "Authorization: FederatedToken ${token}" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"publisherName\":\"${VSCE_PUBLISHER}\"}")
+
+          status=$(tail -n1 <<<"${response}")
+          body=$(sed '$d' <<<"${response}")
+          echo "Marketplace response: HTTP ${status}"
+          echo "${body}"
+
+          [[ "${status}" == "200" ]] || { echo "Token exchange failed"; exit 1; }
+          echo "${body}" | jq -e '.credential | length > 0' > /dev/null || { echo "No credential in response"; exit 1; }
+          echo "OK: OIDC trusted publishing is configured for ${VSCE_PUBLISHER}"
 
       - name: Publish to marketplace
+        if: github.event_name == 'release' || inputs.dry_run != true
         run: |
           echo "Publishing ${VSIX_PATH} to marketplace"
-          npx vsce publish --packagePath "${VSIX_PATH}" --githubBranch main
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          vsce publish --packagePath "${VSIX_PATH}" --githubBranch main --oidc
+
+      - name: Dry run summary
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: |
+          echo "Dry run complete for ${VSIX_PATH}."
+          echo "OIDC credential obtained for publisher 'mongodb'; nothing was published."
+          echo "A real run would have executed: vsce publish --packagePath '${VSIX_PATH}' --githubBranch main --oidc"
