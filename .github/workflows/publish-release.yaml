@@ -86,11 +86,24 @@ jobs:
 
           status=$(tail -n1 <<<"${response}")
           body=$(sed '$d' <<<"${response}")
-          echo "Marketplace response: HTTP ${status}"
-          echo "${body}"
 
-          [[ "${status}" == "200" ]] || { echo "Token exchange failed"; exit 1; }
-          echo "${body}" | jq -e '.credential | length > 0' > /dev/null || { echo "No credential in response"; exit 1; }
+          # The credential grants publish rights for 15 minutes, so it must never
+          # reach the (public) workflow log: only print the body when the request
+          # failed, and mask the credential in case it is ever echoed.
+          if [[ "${status}" != "200" ]]; then
+            echo "Marketplace response: HTTP ${status}"
+            echo "${body}"
+            exit 1
+          fi
+
+          credential=$(jq -r '.credential // empty' <<<"${body}")
+          if [[ -z "${credential}" ]]; then
+            echo "No credential in response: ${body}"
+            exit 1
+          fi
+          echo "::add-mask::${credential}"
+
+          echo "HTTP ${status}: received a Marketplace credential (${#credential} chars)"
           echo "OK: OIDC trusted publishing is configured for ${VSCE_PUBLISHER}"
 
       - name: Publish to marketplace
