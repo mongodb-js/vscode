@@ -1317,7 +1317,7 @@
     "@babel/preset-typescript": "^7.29.7",
     "@babel/types": "^7.29.8",
     "@eslint/js": "^10.0.1",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@mongodb-js/eslint-config-devtools": "^0.11.10",
     "@mongodb-js/eslint-plugin-devtools": "0.3.4",
     "@mongodb-js/mongodb-runner": "^6.12.2",
@@ -1395,6 +1395,9 @@
       "@hono/node-server": "^1.19.17",
       "@xmldom/xmldom": "^0.9.10",
       "bson": "^7.2.0",
+      "brace-expansion@^2.0.0": "^2.1.6",
+      "brace-expansion@^5.0.0": "^5.0.11",
+      "dompurify": "^3.4.17",
       "mongodb": "^7.2.0",
       "mongodb-client-encryption": "^7.0.0",
       "proxy-addr": "^2.0.8",
@@ -1402,7 +1405,7 @@
       "react-dom": "^18.3.1",
       "serialize-javascript": "^7.0.5",
       "trim": "^0.0.3",
-      "undici": "^7.29.1"
+      "undici": "^7.30.1"
     }
   }
 }
