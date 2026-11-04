@@ -170,8 +170,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.10.0)
       '@modelcontextprotocol/sdk':
-        specifier: ^1.30.0
-        version: 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)
+        specifier: ^1.32.2
+        version: 1.32.2(@cfworker/json-schema@4.1.1)(zod@4.5.4)
       '@mongodb-js/eslint-config-devtools':
         specifier: ^0.11.10
         version: 0.11.10(eslint@10.10.0)(typescript@5.9.3)
@@ -2089,8 +2089,8 @@ packages:
       react-dom:
         optional: true
 
-  '@modelcontextprotocol/sdk@1.30.0':
-    resolution: {integrity: sha512-xKd8OIzlqNzcqcNumGAa6g+PW2kjD5vrpcKOnfldAUPP3j7lnqMPwlTXQm8gF+UwH72z0lqaRbjr9hqGz0eITA==}
+  '@modelcontextprotocol/sdk@1.32.2':
+    resolution: {integrity: sha512-SWsVtH/0vULSQStoZ6xxH2K09Li8fXYTMC64ZeogCdpZ3XSi1eCPOByV1OpuJxuI3OcmHhosDWYyii07tpPsLw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@cfworker/json-schema': ^4.1.1
@@ -11343,8 +11343,8 @@ snapshots:
 
   '@mcp-ui/server@6.1.0(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)':
     dependencies:
-      '@modelcontextprotocol/ext-apps': 0.3.1(@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)
-      '@modelcontextprotocol/sdk': 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)
+      '@modelcontextprotocol/ext-apps': 0.3.1(@modelcontextprotocol/sdk@1.32.2(@cfworker/json-schema@4.1.1)(zod@4.5.4))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)
+      '@modelcontextprotocol/sdk': 1.32.2(@cfworker/json-schema@4.1.1)(zod@4.5.4)
     transitivePeerDependencies:
       - '@cfworker/json-schema'
       - react
@@ -11352,9 +11352,9 @@ snapshots:
       - supports-color
       - zod
 
-  '@modelcontextprotocol/ext-apps@0.3.1(@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)':
+  '@modelcontextprotocol/ext-apps@0.3.1(@modelcontextprotocol/sdk@1.32.2(@cfworker/json-schema@4.1.1)(zod@4.5.4))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)':
     dependencies:
-      '@modelcontextprotocol/sdk': 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)
+      '@modelcontextprotocol/sdk': 1.32.2(@cfworker/json-schema@4.1.1)(zod@4.5.4)
       zod: 4.5.4
     optionalDependencies:
       '@oven/bun-darwin-aarch64': 1.3.6
@@ -11377,7 +11377,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@modelcontextprotocol/sdk@1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)':
+  '@modelcontextprotocol/sdk@1.32.2(@cfworker/json-schema@4.1.1)(zod@4.5.4)':
     dependencies:
       '@hono/node-server': 1.19.17(hono@4.13.5)
       ajv: 8.18.0
@@ -16681,7 +16681,7 @@ snapshots:
       '@inquirer/prompts': 8.4.2(@types/node@22.20.1)
       '@inquirer/select': 5.1.4(@types/node@22.20.1)
       '@mcp-ui/server': 6.1.0(@cfworker/json-schema@4.1.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(zod@4.5.4)
-      '@modelcontextprotocol/sdk': 1.30.0(@cfworker/json-schema@4.1.1)(zod@4.5.4)
+      '@modelcontextprotocol/sdk': 1.32.2(@cfworker/json-schema@4.1.1)(zod@4.5.4)
       '@mongodb-js/device-id': 0.4.16
       '@mongodb-js/devtools-proxy-support': 0.7.16
       '@mongodb-js/mcp-metrics': 1.13.0

@@ -1317,7 +1317,7 @@
     "@babel/preset-typescript": "^7.29.7",
     "@babel/types": "^7.29.8",
     "@eslint/js": "^10.0.1",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@mongodb-js/eslint-config-devtools": "^0.11.10",
     "@mongodb-js/eslint-plugin-devtools": "0.3.4",
     "@mongodb-js/mongodb-runner": "^6.12.2",
