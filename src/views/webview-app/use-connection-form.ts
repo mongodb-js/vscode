@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { ConnectionOptions } from 'mongodb-data-service';
+import type { ConnectionOptions } from '@mongodb-js/mongodb-data-service';
 
 import {
   sendConnectToExtension,

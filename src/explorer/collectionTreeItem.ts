@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import path from 'path';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 
 import ShowPreviewTreeItem from './documentPreviewItem';
 import formatError from '../utils/formatError';

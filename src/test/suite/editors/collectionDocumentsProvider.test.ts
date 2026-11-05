@@ -3,7 +3,7 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import { expect } from 'chai';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import { Long, ObjectId } from 'bson';
 
 import { DocumentSource } from '../../../documentSource';

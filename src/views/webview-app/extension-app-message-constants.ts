@@ -1,4 +1,4 @@
-import type { ConnectionOptions } from 'mongodb-data-service';
+import type { ConnectionOptions } from '@mongodb-js/mongodb-data-service';
 import type { FileChooserOptions } from './use-connection-form';
 
 export const CONNECTION_STATUS = {

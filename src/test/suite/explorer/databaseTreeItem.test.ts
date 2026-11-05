@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { after, before } from 'mocha';
 import assert from 'assert';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 
 import type { CollectionTreeItem } from '../../../explorer';
 import DatabaseTreeItem from '../../../explorer/databaseTreeItem';
