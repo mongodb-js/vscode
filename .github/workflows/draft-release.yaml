@@ -242,6 +242,20 @@ jobs:
           pnpm run compile:constants
           pnpm run compile:extension-bundles
 
+      - name: Create vulnerability tickets
+        shell: bash
+        env:
+          JIRA_BASE_URL: https://jira.mongodb.org
+          JIRA_PROJECT: VSCODE
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_VULNERABILITY_BUILD_INFO: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [[ -z "${JIRA_API_TOKEN}" ]]; then
+            echo "JIRA_API_TOKEN is not configured; skipping ticket creation."
+            exit 0
+          fi
+          pnpm run create-vulnerability-tickets
+
       - name: Generate Vulnerability Report (Fail on >= High)
         shell: bash
         run: |
