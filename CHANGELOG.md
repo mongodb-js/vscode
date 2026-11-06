@@ -1,5 +1,21 @@
 # Change Log
 
+## [v1.18.1](https://github.com/mongodb-js/vscode/releases/tag/v1.18.1) - 2026-11-06
+
+Edit the release notes before publishing.
+
+## What's Changed
+* fix(snippets): switch Atlas Terraform template to service accounts and advanced_cluster by @xargom in https://github.com/mongodb-js/vscode/pull/1370
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1371
+* feat(parsing): sandboxed parsing COMPASS-11131 by @mabaasit in https://github.com/mongodb-js/vscode/pull/1373
+* chore: rename mongodb-build-info to @mongodb-js scope COMPASS-11197 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1374
+* chore: snyk remediations VSCODE-784 by @kmruiz in https://github.com/mongodb-js/vscode/pull/1377
+* chore: publish extension with OIDC trusted publishing VSCODE-784 by @kmruiz in https://github.com/mongodb-js/vscode/pull/1375
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.18.0...v1.18.1
+
+
 ## [v1.18.0](https://github.com/mongodb-js/vscode/releases/tag/v1.18.0) - 2026-09-25
 
 ## What's Changed
