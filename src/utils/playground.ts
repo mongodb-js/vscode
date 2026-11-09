@@ -7,6 +7,11 @@ import { createLogger } from '../logging';
 
 const log = createLogger('playground utils');
 
+export const isSafeGlobPattern = (pattern: string): boolean =>
+  typeof pattern === 'string' &&
+  pattern.length <= 256 &&
+  (pattern.match(/\{/g)?.length ?? 0) <= 8;
+
 export class FileStat implements vscode.FileStat {
   private fsStat: fs.Stats;
 
@@ -115,6 +120,20 @@ export const getPlaygrounds = async ({
   excludeFromPlaygroundsSearch: string[];
 }): Promise<{ name: string; path: string }[]> => {
   const result: { name: string; path: string }[] = [];
+  excludeFromPlaygroundsSearch = excludeFromPlaygroundsSearch?.filter(
+    (pattern) => {
+      const safe = isSafeGlobPattern(pattern);
+      if (!safe) {
+        log.warn(
+          'Ignoring unsupported mdb.excludeFromPlaygroundsSearch pattern',
+          {
+            length: String(pattern).length,
+          },
+        );
+      }
+      return safe;
+    },
+  );
   const fileNames = await getFileNames(fsPath);
   for (const fileName of fileNames) {
     try {
