@@ -62,14 +62,18 @@ test('saved connection persists across a reload and can be reconnected', async (
   await expect(row()).not.toContainText(connected, { timeout: 30_000 });
 
   // 3. Reload the window: the saved connection must still be listed.
+  // Register the wait first so it can't resolve against the old document.
+  const reloaded = page.waitForEvent('domcontentloaded', { timeout: 60_000 });
   await executeCommand(page, 'Developer: Reload Window', {
     waitForClose: false,
   });
+  await reloaded;
   await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
-  await page
-    .getByRole('tab', { name: 'MongoDB' })
-    .first()
-    .click({ timeout: 60_000 });
+  const tab = page.getByRole('tab', { name: 'MongoDB' }).first();
+  await expect(tab).toBeVisible({ timeout: 60_000 });
+  if ((await tab.getAttribute('aria-expanded')) !== 'true') {
+    await tab.click();
+  }
   await expect(row()).toBeVisible({ timeout: 60_000 });
   await expect(row()).not.toContainText(connected);
 

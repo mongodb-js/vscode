@@ -84,6 +84,13 @@ test.afterAll(async function () {
 
 test('launch shell passes the active connection string to mongosh', async () => {
   await connectToMongoDB(page);
+  await expect(
+    page
+      .locator('.monaco-list-row', {
+        hasText: `localhost:${TEST_DATABASE_PORT}`,
+      })
+      .first(),
+  ).toContainText(/(?<!dis)connected/, { timeout: 30_000 });
 
   await executeCommand(page, 'MongoDB: Launch MongoDB Shell', {
     waitForClose: false,
@@ -97,11 +104,17 @@ test('launch shell passes the active connection string to mongosh', async () => 
     page.getByRole('textbox', { name: /Terminal \d+, MongoDB Shell/ }),
   ).toBeVisible({ timeout: 30_000 });
 
-  // ...and mongosh was started with the expanded connection string.
+  // ...and mongosh was started with the complete expanded connection string
+  // (anchored; the Windows recorder's trailing newline is trimmed).
   await expect
     .poll(
-      () => (fs.existsSync(outFile) ? fs.readFileSync(outFile, 'utf-8') : ''),
+      () =>
+        fs.existsSync(outFile) ? fs.readFileSync(outFile, 'utf-8').trim() : '',
       { timeout: 30_000, message: 'fake mongosh was never invoked' },
     )
-    .toContain(`mongodb://localhost:${TEST_DATABASE_PORT}`);
+    .toMatch(
+      new RegExp(
+        `^mongodb://localhost:${TEST_DATABASE_PORT}/\\?appName=mongodb-vscode\\S*$`,
+      ),
+    );
 });
