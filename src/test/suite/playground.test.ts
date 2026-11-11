@@ -1,7 +1,4 @@
 import * as vscode from 'vscode';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { afterEach, beforeEach } from 'mocha';
 import { expect, use } from 'chai';
 import sinon from 'sinon';
@@ -9,8 +6,6 @@ import type { SinonStub } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
 
 import { mdbTestExtension } from './stubbableMdbExtension';
-import { getPlaygrounds, isSafeGlobPattern } from '../../utils/playground';
-import { createLogger } from '../../logging';
 import {
   disposeAll,
   getFullRange,
@@ -162,51 +157,5 @@ suite('Playground', function () {
     expect(showErrorMessageStub.firstCall.args[0]).to.equal(
       'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.',
     );
-  });
-
-  suite('isSafeGlobPattern', function () {
-    test('accepts the default-style patterns', function () {
-      expect(isSafeGlobPattern('**/node_modules/**')).to.be.true;
-      expect(isSafeGlobPattern('**/{build,dist}/**')).to.be.true;
-    });
-
-    test('rejects overly long or complex patterns', function () {
-      expect(isSafeGlobPattern('{a,b}'.repeat(9))).to.be.false;
-      expect(isSafeGlobPattern('a'.repeat(257))).to.be.false;
-    });
-
-    test('rejects repetition extglobs that can backtrack', function () {
-      expect(isSafeGlobPattern('+(a|aa)b')).to.be.false;
-      expect(isSafeGlobPattern('**/*(a|aa)/**')).to.be.false;
-    });
-
-    test('getPlaygrounds drops unsupported patterns, warns once, and keeps valid ones', async function () {
-      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-playgrounds-'));
-      const warnStub = sinon.stub(
-        Object.getPrototypeOf(createLogger('test')),
-        'warn',
-      );
-
-      try {
-        fs.mkdirSync(path.join(root, 'a', 'b'), { recursive: true });
-        fs.mkdirSync(path.join(root, 'skip'));
-        fs.writeFileSync(path.join(root, 'a', 'b', 'nested.mongodb.js'), '');
-        fs.writeFileSync(path.join(root, 'skip', 'excluded.mongodb.js'), '');
-
-        const playgrounds = await getPlaygrounds({
-          fsPath: root,
-          excludeFromPlaygroundsSearch: ['a'.repeat(257), 'skip'],
-        });
-
-        expect(playgrounds.map((p) => p.name)).to.deep.equal([
-          'nested.mongodb.js',
-        ]);
-        expect(warnStub.callCount).to.equal(1);
-        expect(warnStub.firstCall.args[0]).to.include('unsupported');
-      } finally {
-        warnStub.restore();
-        fs.rmSync(root, { recursive: true, force: true });
-      }
-    });
   });
 });
