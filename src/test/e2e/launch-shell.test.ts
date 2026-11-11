@@ -29,10 +29,9 @@ function installFakeMongosh(): void {
   fakeBinDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fake-mongosh-'));
   outFile = path.join(fakeBinDir, 'argv.txt');
   if (process.platform === 'win32') {
-    // PowerShell and cmd both resolve mongosh.cmd through PATHEXT.
     fs.writeFileSync(
       path.join(fakeBinDir, 'mongosh.cmd'),
-      '@echo off\r\necho %~1>"%MDB_FAKE_MONGOSH_OUT%"\r\n',
+      '@echo off\r\necho %*>"%MDB_FAKE_MONGOSH_OUT%"\r\n',
     );
   } else {
     const bin = path.join(fakeBinDir, 'mongosh');
@@ -105,11 +104,13 @@ test('launch shell passes the active connection string to mongosh', async () => 
   ).toBeVisible({ timeout: 30_000 });
 
   // ...and mongosh was started with the complete expanded connection string
-  // (anchored; the Windows recorder's trailing newline is trimmed).
+  // (anchored; the Windows recorder's quotes and trailing newline are trimmed).
   await expect
     .poll(
       () =>
-        fs.existsSync(outFile) ? fs.readFileSync(outFile, 'utf-8').trim() : '',
+        fs.existsSync(outFile)
+          ? fs.readFileSync(outFile, 'utf-8').replace(/"/g, '').trim()
+          : '',
       { timeout: 30_000, message: 'fake mongosh was never invoked' },
     )
     .toMatch(
