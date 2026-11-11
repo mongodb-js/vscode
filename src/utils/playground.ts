@@ -10,7 +10,8 @@ const log = createLogger('playground utils');
 export const isSafeGlobPattern = (pattern: string): boolean =>
   typeof pattern === 'string' &&
   pattern.length <= 256 &&
-  (pattern.match(/\{/g)?.length ?? 0) <= 8;
+  (pattern.match(/\{/g)?.length ?? 0) <= 8 &&
+  !/[*+]\(/.test(pattern);
 
 export class FileStat implements vscode.FileStat {
   private fsStat: fs.Stats;

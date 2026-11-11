@@ -175,6 +175,11 @@ suite('Playground', function () {
       expect(isSafeGlobPattern('a'.repeat(257))).to.be.false;
     });
 
+    test('rejects repetition extglobs that can backtrack', function () {
+      expect(isSafeGlobPattern('+(a|aa)b')).to.be.false;
+      expect(isSafeGlobPattern('**/*(a|aa)/**')).to.be.false;
+    });
+
     test('getPlaygrounds drops unsupported patterns, warns once, and keeps valid ones', async function () {
       const root = fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-playgrounds-'));
       const warnStub = sinon.stub(
