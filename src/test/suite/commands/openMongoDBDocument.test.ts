@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { after, afterEach, before, beforeEach } from 'mocha';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import sinon from 'sinon';
 import { expect } from 'chai';
 

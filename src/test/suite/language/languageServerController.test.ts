@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import chaiAsPromised from 'chai-as-promised';
 
 import PlaygroundSelectionCodeActionProvider from '../../../editors/playgroundSelectionCodeActionProvider';

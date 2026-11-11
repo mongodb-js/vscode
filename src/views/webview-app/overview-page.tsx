@@ -8,7 +8,7 @@ import {
   createElectronFileInputBackend,
   type ElectronFileDialogOptions,
 } from '@mongodb-js/compass-components';
-import type { ConnectionOptions } from 'mongodb-data-service';
+import type { ConnectionOptions } from '@mongodb-js/mongodb-data-service';
 
 import OverviewHeader from './overview-header';
 import ConnectionStatus from './connection-status';

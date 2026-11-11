@@ -1,5 +1,5 @@
 import assert from 'assert';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 
 import CollectionTreeItem from '../../../explorer/collectionTreeItem';
 import type { CollectionDetailsType } from '../../../explorer/collectionTreeItem';
