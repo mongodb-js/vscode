@@ -65,6 +65,7 @@ module.exports = (env, argv) => {
       keytar: 'keytar',
 
       '@electron/remote': '@electron/remote',
+      './web-worker.js': './web-worker.js',
 
       // MongoDB node driver externals:
       snappy: 'snappy',
@@ -227,6 +228,20 @@ module.exports = (env, argv) => {
           {
             from: path.resolve(__dirname, 'node_modules/@vscode/codicons/dist'),
             to: 'codicons',
+          },
+          {
+            from: path.resolve(
+              __dirname,
+              'node_modules/@mongodb-js/shell-bson-parser/dist/cjs/web-worker.js',
+            ),
+            to: 'web-worker.js',
+          },
+          {
+            from: path.resolve(
+              __dirname,
+              'node_modules/@mongodb-js/shell-bson-parser/dist/worker.js',
+            ),
+            to: 'shell-bson-parser-worker.js',
           },
           // Copy Monaco Editor files for offline support
           {
