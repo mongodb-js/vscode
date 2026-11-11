@@ -99,7 +99,7 @@ ignore:
           excludeFromPlaygroundsSearch setting. Patterns are never supplied by
           an untrusted party, so the recursion crash cannot be triggered
           remotely. Other paths are dev-only tooling. No fix is available.
-        expires: 2026-10-25T00:00:00.000Z
+        expires: 2027-01-25T00:00:00.000Z
         created: 2026-09-25T00:00:00.000Z
   SNYK-JS-DEEPMERGE-19964053:
     - '*':
