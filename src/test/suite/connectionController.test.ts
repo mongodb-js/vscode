@@ -725,6 +725,34 @@ suite('Connection Controller Test Suite', function () {
     expect(name).to.equal('localhost:27088');
   });
 
+  test('a saved connection can be loaded and connected to global store', async function () {
+    await testConnectionController.loadSavedConnections();
+    await vscode.workspace
+      .getConfiguration('mdb.connectionSaving')
+      .update('defaultConnectionSavingLocation', DefaultSavingLocation.global);
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    await testConnectionController.disconnect();
+    testConnectionController.clearAllConnections();
+
+    expect(testConnectionController.getSavedConnections()).to.have.lengthOf(0);
+
+    await testConnectionController.loadSavedConnections();
+
+    expect(testConnectionController.getSavedConnections()).to.have.lengthOf(1);
+
+    const id = testConnectionController.getSavedConnections()[0].id;
+    const { successfullyConnected } =
+      await testConnectionController.connectWithConnectionId(id);
+
+    expect(successfullyConnected).to.be.true;
+    expect(testConnectionController.getActiveConnectionId()).to.equal(id);
+    expect(testConnectionController._connections[id].name).to.equal(
+      testDatabaseConnectionName,
+    );
+  });
+
   test('"copyConnectionStringByConnectionId" returns the driver uri of a connection', async function () {
     const expectedDriverUrl = 'mongodb://localhost:27088/';
 
