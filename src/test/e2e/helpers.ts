@@ -458,9 +458,9 @@ export async function connectToMongoDB(page: Page): Promise<void> {
 }
 
 /**
- * Create a new playground file with the given content and run it.
+ * Create a new playground file with the given content (without running it).
  */
-export async function createAndRunPlayground(
+export async function createPlayground(
   electronApp: ElectronApplication,
   page: Page,
   playgroundContent: string,
@@ -506,6 +506,17 @@ export async function createAndRunPlayground(
   );
   await page.keyboard.press(isMac ? 'Meta+KeyA' : 'Control+KeyA');
   await page.keyboard.press(isMac ? 'Meta+KeyV' : 'Control+KeyV');
+}
+
+/**
+ * Create a new playground file with the given content and run it.
+ */
+export async function createAndRunPlayground(
+  electronApp: ElectronApplication,
+  page: Page,
+  playgroundContent: string,
+): Promise<void> {
+  await createPlayground(electronApp, page, playgroundContent);
 
   // Run the playground (confirmRunAll is disabled in settings)
   await executeCommand(page, 'MongoDB: Run All From Playground');
