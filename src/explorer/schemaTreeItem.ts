@@ -7,7 +7,7 @@ import FieldTreeItem from './fieldTreeItem';
 import formatError from '../utils/formatError';
 import { getImagesPath } from '../extensionConstants';
 import type TreeItemParent from './treeItemParentInterface';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 
 const log = createLogger('schema tree item');
 

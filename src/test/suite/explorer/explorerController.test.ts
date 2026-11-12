@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import { expect } from 'chai';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
-import { connect, createConnectionAttempt } from 'mongodb-data-service';
+import {
+  connect,
+  createConnectionAttempt,
+} from '@mongodb-js/mongodb-data-service';
 import { mongoLogId } from 'mongodb-log-writer';
 
 import {

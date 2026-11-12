@@ -30,12 +30,12 @@ module.exports = (env, argv) => {
         browserslist: false,
 
         // Removes `ampersand-sync`: `ampersand-sync` is required by `ampersand-model` which is temporarily
-        // still used by some files inside `mongodb-data-service` (although not needed for the VSCode extension).
+        // still used by some files inside `@mongodb-js/mongodb-data-service` (although not needed for the VSCode extension).
         //
         // `ampersand-sync` brings into the bundle a number of other dependencies that are outdated and having
         // known vulnerabilities.
         //
-        // This alias can be removed once `mongodb-data-service` will not include `mongodb-connection-model` anymore.
+        // This alias can be removed once `@mongodb-js/mongodb-data-service` will not include `mongodb-connection-model` anymore.
         'ampersand-sync': false,
 
         // Removes `electron`: is an optional dependency of `oidc-plugin`, but also installed as dev-dep,

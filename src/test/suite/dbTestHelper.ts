@@ -1,5 +1,5 @@
-import type { DataService } from 'mongodb-data-service';
-import { connect } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
+import { connect } from '@mongodb-js/mongodb-data-service';
 import type { Document } from 'bson';
 
 export const TEST_USER_USERNAME = 'testUser';
