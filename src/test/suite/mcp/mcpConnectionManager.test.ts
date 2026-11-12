@@ -3,8 +3,8 @@ import { afterEach, beforeEach } from 'mocha';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import ConnectionString from 'mongodb-connection-string-url';
-import type { LoggerBase } from 'mongodb-mcp-server';
-import type { ConnectionStateErrored } from 'mongodb-mcp-server';
+import type { LoggerBase } from '@mongodb-js/mcp-core';
+import type { ConnectionStateErrored } from '@mongodb-js/mcp-tools-mongodb';
 import type { DevtoolsConnectOptions } from '@mongosh/service-provider-node-driver';
 import { NodeDriverServiceProvider } from '@mongosh/service-provider-node-driver';
 import type { MCPConnectParams } from '../../../mcp/mcpConnectionManager';
@@ -452,5 +452,32 @@ suite('MCPConnectionManager Test Suite', function () {
         });
       });
     }
+  });
+
+  suite('#connectToVSCodeConnection shutdown race', function () {
+    test('closes a provider that finishes connecting after the manager was closed', async function () {
+      let resolveHello: () => void = () => undefined;
+      fakeServiceProvider.runCommand = (): Promise<never> =>
+        new Promise((resolve) => {
+          resolveHello = (): void => resolve(undefined as never);
+        });
+      const closeSpy = sandbox.spy(fakeServiceProvider, 'close');
+
+      const connectPromise = mcpConnectionManager.connectToVSCodeConnection({
+        connectionId: '1',
+        connectionString: 'mongodb://localhost:27017',
+        connectOptions: {} as unknown as DevtoolsConnectOptions,
+      });
+
+      await mcpConnectionManager.close();
+      resolveHello();
+      await connectPromise;
+
+      expect(closeSpy).to.have.been.calledOnce;
+      expect((mcpConnectionManager as any).activeConnection).to.be.null;
+      expect(mcpConnectionManager.currentConnectionState.tag).to.equal(
+        'disconnected',
+      );
+    });
   });
 });

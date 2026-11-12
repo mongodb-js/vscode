@@ -1,9 +1,17 @@
-import { type UserConfig, UserConfigSchema } from 'mongodb-mcp-server';
+import { type UserConfig, UserConfigSchema } from '@mongodb-js/mcp-cli';
+import type { ServerMetadata } from '@mongodb-js/mcp-types';
 import * as vscode from 'vscode';
 import { createLogger } from '../logging';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { contributes } = require('../../package.json');
+const { contributes, dependencies } = require('../../package.json');
+
+/** Version is read from the pinned `@mongodb-js/mcp-*` dependency so it can't drift. */
+export const MCP_SERVER_METADATA: ServerMetadata = {
+  mcpServerName: 'mongodb-mcp-server',
+  version: dependencies['@mongodb-js/mcp-cli'],
+  engines: { node: '^22.20.0 || >=24' },
+};
 
 const logger = createLogger('mcp-config');
 
@@ -15,11 +23,7 @@ export function getMCPConfigFromVSCodeSettings(
 ): Partial<UserConfig> {
   const configurableProperties = Object.keys(UserConfigSchema.shape);
 
-  // We're attempting to:
-  // 1. Use only the config values for MCP server exposed by VSCode config
-  // 2. Use only the config values that are relevant for MCP server (all mcp
-  //    config exposed by VSCode does contain some irrelevant config as well,
-  //    such as `server`)
+  // Keep only MCP-relevant keys; the VSCode config also exposes non-MCP keys such as `server`.
   const vscConfiguredProperties = Object.keys(packageJsonConfiguredProperties)
     .filter((key) => key.startsWith('mdb.mcp'))
     .map((key) => key.replace(/^mdb\.mcp\./, ''))
@@ -35,10 +39,7 @@ export function getMCPConfigFromVSCodeSettings(
       const configuredValue = mcpConfiguration.get(property);
       return [
         property,
-        // Most of the MCP config, if not all, consists of non-null configs and it is
-        // possible for a VSCode config to have a null value edited directly in the
-        // settings file which is why to safeguard against incorrect values we map
-        // them at-least to the expected defaults.
+        // A null can be written directly in settings, so fall back to the expected default.
         mcpConfigValues(property as keyof UserConfig, configuredValue),
       ];
     }),

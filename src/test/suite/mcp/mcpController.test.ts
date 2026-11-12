@@ -721,10 +721,10 @@ suite('MCPController test suite', function () {
         expect(JSON.stringify(secondClientResponse.content)).to.contain(
           'Found 3 databases',
         );
-        // There should be 2 connection managers for the two clients we created
-        await waitFor(
-          () => (mcpController as any).mcpConnectionManagers.length === 2,
-        );
+        // v3 is sessionless: the extension shares a single connection manager across every client.
+        const connectionManager = (mcpController as any).server
+          .connectionManager;
+        expect(connectionManager).to.not.be.undefined;
 
         // MCP server shuts down
         await mcpController.stopServer();
@@ -743,8 +743,9 @@ suite('MCPController test suite', function () {
 
         // Cleanup that we are expecting
         await waitFor(
-          () => (mcpController as any).mcpConnectionManagers.length === 0,
+          () => connectionManager.currentConnectionState.tag === 'disconnected',
         );
+        expect((mcpController as any).server).to.be.undefined;
       });
     });
 
@@ -783,12 +784,8 @@ suite('MCPController test suite', function () {
         'Found 3 databases',
       );
 
-      // Closing second client to test that it clears up and not affect the
-      // first client
+      // Closing the second client should not affect the first client.
       await closeSecondClient();
-      await waitFor(() => {
-        return (mcpController as any).mcpConnectionManagers.length === 1;
-      });
 
       // Second client is closed but the first should still get a response
       [firstResponse, secondResponse] = await Promise.all([
@@ -815,8 +812,7 @@ suite('MCPController test suite', function () {
       // A small timeout
       await timeout(10);
 
-      // Second client is closed so that should respond with the error message
-      // but the first client should get the disconnected response.
+      // The closed second client errors; the first client gets the disconnected response.
       [firstResponse, secondResponse] = await Promise.all([
         firstClient.callTool({
           name: 'list-databases',

@@ -3,8 +3,8 @@ import {
   ConnectionStateConnected,
   type AnyConnectionState,
   type ConnectionStateDisconnected,
-  type LoggerBase,
-} from 'mongodb-mcp-server';
+} from '@mongodb-js/mcp-tools-mongodb';
+import type { LoggerBase } from '@mongodb-js/mcp-core';
 import {
   NodeDriverServiceProvider,
   type DevtoolsConnectOptions,
@@ -36,6 +36,7 @@ export class MCPConnectionManager extends ConnectionManager {
     provider: ServiceProvider;
   } | null = null;
   private readonly _deviceIdAbortController = new AbortController();
+  private connectGeneration = 0;
 
   constructor({ logger, getTelemetryAnonymousId }: MCPConnectionManagerConfig) {
     super();
@@ -55,23 +56,34 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
   async connectToVSCodeConnection(
     connectParams: MCPConnectParams,
   ): Promise<AnyConnectionState> {
+    // Guards against installing a provider that finished dialing after the
+    // manager was closed or superseded by a newer connection.
+    const generation = ++this.connectGeneration;
+    let serviceProvider: NodeDriverServiceProvider | undefined;
     try {
       const { connectionId, connectOptions, connectionString } =
         await this.overridePresetAppName(connectParams);
-      const serviceProvider = await NodeDriverServiceProvider.connect(
+      serviceProvider = await NodeDriverServiceProvider.connect(
         connectionString,
         connectOptions,
       );
       await serviceProvider.runCommand('admin', { hello: 1 });
+
+      if (generation !== this.connectGeneration) {
+        await serviceProvider.close().catch(() => undefined);
+        return this.currentConnectionState;
+      }
+
       this.activeConnection = {
         id: connectionId,
         provider: serviceProvider,
       };
       return this.changeState(
         'connection-success',
-        new ConnectionStateConnected(serviceProvider),
+        new ConnectionStateConnected({ serviceProvider }),
       );
     } catch (error) {
+      await serviceProvider?.close().catch(() => undefined);
       this.logger.error({
         id: MCPLogIds.ConnectError,
         context: 'vscode-mcp-connection-manager',
@@ -85,6 +97,7 @@ To connect, choose a connection from MongoDB VSCode extensions's sidepanel - htt
   }
 
   override async disconnect(): Promise<ConnectionStateDisconnected> {
+    this.connectGeneration++;
     try {
       await this.activeConnection?.provider?.close();
     } catch (error) {

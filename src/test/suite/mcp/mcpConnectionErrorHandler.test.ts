@@ -9,8 +9,8 @@ import { StatusView } from '../../../views';
 import type {
   ConnectionErrorHandled,
   ConnectionErrorHandlerContext,
-} from 'mongodb-mcp-server';
-import { ErrorCodes } from 'mongodb-mcp-server';
+} from '@mongodb-js/mcp-tools-mongodb';
+import { ErrorCodes } from '@mongodb-js/mcp-tools-mongodb';
 
 type MongoDBErrorCode =
   | typeof ErrorCodes.NotConnectedToMongoDB
