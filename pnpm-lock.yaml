@@ -66,8 +66,8 @@ importers:
         specifier: ^12.7.10
         version: 12.7.10(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.10)
       '@mongodb-js/shell-bson-parser':
-        specifier: ^2.1.0
-        version: 2.1.0(bson@7.3.4)
+        specifier: ^2.2.2
+        version: 2.2.2(bson@7.3.4)
       '@mongosh/browser-runtime-electron':
         specifier: ^5.7.0
         version: 5.7.0(@aws-sdk/credential-providers@3.1042.0)(@mongodb-js/oidc-plugin@2.2.1)(bson@7.3.4)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(mongodb-log-writer@2.5.16(bson@7.3.4))(mongodb@7.2.0(@aws-sdk/credential-providers@3.1042.0)(gcp-metadata@7.0.1)(kerberos@7.0.0)(mongodb-client-encryption@7.0.0)(socks@2.8.10))(socks@2.8.10)(zod@4.5.4)
@@ -2274,8 +2274,8 @@ packages:
     peerDependencies:
       bson: ^7.3.2
 
-  '@mongodb-js/shell-bson-parser@2.1.0':
-    resolution: {integrity: sha512-eRx2gH+VkUmeTysEbL8i+MA8P4HQm9Y4dHUKNCI6kOXF+gnR7kQxmATTCd5xYVxjx5WniRV8z/9KPH1LTECBgg==}
+  '@mongodb-js/shell-bson-parser@2.2.2':
+    resolution: {integrity: sha512-Nsr36ESg8v4B6KmUj7MkCx2gx2wFT2NyYxtU+oOy4bzY7S5QF6qpd8nCoL9qJZTM3G9sRlX65HMj1Sd6veJqFQ==}
     peerDependencies:
       bson: ^7.3.2
 
@@ -11728,7 +11728,7 @@ snapshots:
       bson: 7.3.4
       javascript-stringify: 2.1.0
 
-  '@mongodb-js/shell-bson-parser@2.1.0(bson@7.3.4)':
+  '@mongodb-js/shell-bson-parser@2.2.2(bson@7.3.4)':
     dependencies:
       acorn: 8.19.0
       bson: 7.3.4
