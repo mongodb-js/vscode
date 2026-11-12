@@ -335,6 +335,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$toArray\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$toArray.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$toBool\\b",
           "captures": {
             "0": {
@@ -389,6 +398,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$toObject\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$toObject.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$toObjectId\\b",
           "captures": {
             "0": {
@@ -434,6 +452,24 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$acos\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$acos.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$acosh\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$acosh.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$add\\b",
           "captures": {
             "0": {
@@ -470,6 +506,24 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$asin\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$asin.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$asinh\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$asinh.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$arrayElemAt\\b",
           "captures": {
             "0": {
@@ -488,6 +542,33 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$atan\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$atan.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$atan2\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$atan2.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$atanh\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$atanh.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$binarySize\\b",
           "captures": {
             "0": {
@@ -501,6 +582,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.$bsonSize.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$bottom\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$bottom.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$bottomN\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$bottomN.mongodb"
             }
           }
         },
@@ -546,6 +645,51 @@
           "captures": {
             "0": {
               "name": "keyword.other.$cond.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$cos\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$cos.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$cosh\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$cosh.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$createObjectId\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$createObjectId.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$createUUID\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$createUUID.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$currentDate\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$currentDate.mongodb"
             }
           }
         },
@@ -659,6 +803,24 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$degreesToRadians\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$degreesToRadians.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$deserializeEJSON\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$deserializeEJSON.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$divide\\b",
           "captures": {
             "0": {
@@ -744,6 +906,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.$gte.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$hash\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$hash.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$hexHash\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$hexHash.mongodb"
             }
           }
         },
@@ -884,10 +1064,10 @@
         },
         {
           "name": "meta.object.member.mongodb",
-          "match": "\\$lt\\b",
+          "match": "\\$lte\\b",
           "captures": {
             "0": {
-              "name": "keyword.other.$lt.mongodb"
+              "name": "keyword.other.$lte.mongodb"
             }
           }
         },
@@ -956,6 +1136,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$minMaxScaler\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$minMaxScaler.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$minute\\b",
           "captures": {
             "0": {
@@ -992,15 +1181,6 @@
         },
         {
           "name": "meta.object.member.mongodb",
-          "match": "\\$new\\b",
-          "captures": {
-            "0": {
-              "name": "keyword.other.$new.mongodb"
-            }
-          }
-        },
-        {
-          "name": "meta.object.member.mongodb",
           "match": "\\$not\\b",
           "captures": {
             "0": {
@@ -1032,6 +1212,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.$pow.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$radiansToDegrees\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$radiansToDegrees.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$rand\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$rand.mongodb"
             }
           }
         },
@@ -1109,10 +1307,37 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$round\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$round.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$sampleRate\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$sampleRate.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$second\\b",
           "captures": {
             "0": {
               "name": "keyword.other.$second.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$serializeEJSON\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$serializeEJSON.mongodb"
             }
           }
         },
@@ -1131,6 +1356,15 @@
           "captures": {
             "0": {
               "name": "keyword.other.$setEquals.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$setField\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$setField.mongodb"
             }
           }
         },
@@ -1163,6 +1397,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$sigmoid\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$sigmoid.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$similarityCosine\\b",
           "captures": {
             "0": {
@@ -1185,6 +1428,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.$similarityEuclidean.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$sin\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$sin.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$sinh\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$sinh.mongodb"
             }
           }
         },
@@ -1298,10 +1559,37 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$subtype\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$subtype.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$switch\\b",
           "captures": {
             "0": {
               "name": "keyword.other.$switch.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$tan\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$tan.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$tanh\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$tanh.mongodb"
             }
           }
         },
@@ -1329,6 +1617,24 @@
           "captures": {
             "0": {
               "name": "keyword.other.$toUpper.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$top\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$top.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$topN\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$topN.mongodb"
             }
           }
         },
@@ -1365,6 +1671,15 @@
           "captures": {
             "0": {
               "name": "keyword.other.$type.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$unsetField\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$unsetField.mongodb"
             }
           }
         },
@@ -1766,6 +2081,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$changeStreamSplitLargeEvent\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$changeStreamSplitLargeEvent.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$collStats\\b",
           "captures": {
             "0": {
@@ -1883,6 +2207,15 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$listSearchIndexes\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$listSearchIndexes.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$lookup\\b",
           "captures": {
             "0": {
@@ -1982,10 +2315,28 @@
         },
         {
           "name": "meta.object.member.mongodb",
+          "match": "\\$rerank\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$rerank.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
           "match": "\\$sample\\b",
           "captures": {
             "0": {
               "name": "keyword.other.$sample.mongodb"
+            }
+          }
+        },
+        {
+          "name": "meta.object.member.mongodb",
+          "match": "\\$score\\b",
+          "captures": {
+            "0": {
+              "name": "keyword.other.$score.mongodb"
             }
           }
         },

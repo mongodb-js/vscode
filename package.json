@@ -1243,7 +1243,7 @@
     ],
     "chatSkills": [
       {
-        "path": "./ext/agent-skills/skills/atlas-stream-processing/SKILL.md"
+        "path": "./ext/agent-skills/skills/mongodb-atlas-stream-processing/SKILL.md"
       },
       {
         "path": "./ext/agent-skills/skills/mongodb-connection/SKILL.md"
@@ -1270,8 +1270,8 @@
     "@babel/parser": "^7.29.8",
     "@babel/traverse": "^7.29.8",
     "@monaco-editor/react": "^4.7.0",
-    "@mongodb-js/compass-components": "^1.68.0",
-    "@mongodb-js/connection-form": "^1.85.0",
+    "@mongodb-js/compass-components": "^1.70.2",
+    "@mongodb-js/connection-form": "^1.87.2",
     "@mongodb-js/connection-info": "^0.26.3",
     "@mongodb-js/connection-string-policy": "^0.2.4",
     "@mongodb-js/device-id": "^0.4.16",
@@ -1284,9 +1284,10 @@
     "@mongodb-js/mcp-tools-atlas-local": "3.0.5",
     "@mongodb-js/mcp-tools-mongodb": "3.0.5",
     "@mongodb-js/mcp-types": "3.0.5",
-    "@mongodb-js/mongodb-constants": "^0.16.1",
+    "@mongodb-js/mongodb-build-info": "^1.9.19",
+    "@mongodb-js/mongodb-constants": "^0.34.14",
     "@mongodb-js/mongodb-schema": "^12.7.10",
-    "@mongodb-js/shell-bson-parser": "^1.5.17",
+    "@mongodb-js/shell-bson-parser": "^2.1.0",
     "@mongosh/browser-runtime-electron": "^5.7.0",
     "@mongosh/i18n": "^2.24.0",
     "@mongosh/service-provider-node-driver": "^5.2.0",
@@ -1303,12 +1304,10 @@
     "micromatch": "^4.0.8",
     "monaco-editor": "^0.55.1",
     "mongodb": "^7.6.0",
-    "mongodb-build-info": "^1.9.14",
     "mongodb-cloud-info": "^2.3.18",
     "mongodb-connection-string-url": "^7.0.2",
-    "mongodb-data-service": "^22.40.2",
+    "@mongodb-js/mongodb-data-service": "^22.41.3",
     "mongodb-log-writer": "^2.5.16",
-    "mongodb-query-parser": "^5.0.3",
     "node-machine-id": "1.1.12",
     "numeral": "^2.0.6",
     "react": "^18.3.1",
@@ -1326,12 +1325,12 @@
     "@babel/preset-typescript": "^7.29.7",
     "@babel/types": "^7.29.8",
     "@eslint/js": "^10.0.1",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@mongodb-js/eslint-config-devtools": "^0.11.10",
     "@mongodb-js/eslint-plugin-devtools": "0.3.4",
     "@mongodb-js/mongodb-runner": "^6.12.2",
     "@mongodb-js/oidc-mock-provider": "^0.13.16",
-    "@mongodb-js/oidc-plugin": "^2.2.0",
+    "@mongodb-js/oidc-plugin": "^2.2.1",
     "@mongodb-js/prettier-config-devtools": "^1.0.6",
     "@mongodb-js/sbom-tools": "^0.10.21",
     "@mongodb-js/signing-utils": "^0.5.16",
@@ -1354,7 +1353,7 @@
     "@types/sinon-chai": "^3.2.12",
     "@types/vscode": "~1.118.0",
     "@vscode/test-electron": "^3.1.0",
-    "@vscode/vsce": "^3.9.2",
+    "@vscode/vsce": "^4.1.0",
     "buffer": "^6.0.3",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
@@ -1402,8 +1401,13 @@
   "pnpm": {
     "overrides": {
       "@hono/node-server": "^1.19.17",
+      "@mongodb-js/devtools-connect": "^3.17.15",
       "@xmldom/xmldom": "^0.9.10",
-      "bson": "^7.2.0",
+      "basic-ftp": "^6.2.1",
+      "bson": "^7.3.2",
+      "brace-expansion@^2.0.0": "^2.1.6",
+      "brace-expansion@^5.0.0": "^5.0.11",
+      "dompurify": "^3.4.17",
       "mongodb": "^7.2.0",
       "mongodb-client-encryption": "^7.0.0",
       "proxy-addr": "^2.0.8",
@@ -1411,7 +1415,7 @@
       "react-dom": "^18.3.1",
       "serialize-javascript": "^7.0.5",
       "trim": "^0.0.3",
-      "undici": "^7.29.1"
+      "undici": "^7.30.1"
     }
   }
 }

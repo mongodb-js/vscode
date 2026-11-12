@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
-import { connect, createConnectionAttempt } from 'mongodb-data-service';
+import {
+  connect,
+  createConnectionAttempt,
+} from '@mongodb-js/mongodb-data-service';
 import type {
   DataService,
   ConnectionAttempt,
   ConnectionOptions,
-} from 'mongodb-data-service';
+} from '@mongodb-js/mongodb-data-service';
 import ConnectionString from 'mongodb-connection-string-url';
 import { EventEmitter } from 'events';
 import type { MongoClientOptions } from 'mongodb';
@@ -31,7 +34,7 @@ import type {
 } from './storage/connectionStorage';
 import { ConnectionStorage } from './storage/connectionStorage';
 import LINKS from './utils/links';
-import { isAtlasStream } from 'mongodb-build-info';
+import { isAtlasStream } from '@mongodb-js/mongodb-build-info';
 import type { ConnectionTreeItem } from './explorer';
 import { PresetConnectionEditedTelemetryEvent } from './telemetry';
 import type { RequiredBy } from './utils/types';

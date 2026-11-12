@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 
 import ConnectionTreeItem from '../../../explorer/connectionTreeItem';
 import { DataServiceStub } from '../stubs';

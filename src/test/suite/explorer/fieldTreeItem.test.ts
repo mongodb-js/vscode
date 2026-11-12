@@ -1,6 +1,6 @@
 import { after, afterEach, before } from 'mocha';
 import assert from 'assert';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import type * as vscode from 'vscode';
 
 import { ext } from '../../../extensionConstants';

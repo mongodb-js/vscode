@@ -16,6 +16,7 @@ import {
   closeAllEditors,
   connectToMongoDB,
   createAndRunPlayground,
+  createPlayground,
   getDataBrowserContent,
   getEditorText,
   copyExtensionLogs,
@@ -274,4 +275,61 @@ test('playground aggregation errors are shown to the user', async () => {
     );
     expect(hasErrorNotification).toBe(true);
   }).toPass({ timeout: 30_000 });
+});
+
+// Manual-test matrix: "Completion works in playground" (also run on Windows
+// CI, where it exercises the language server worker + connection hand-off).
+test('playground autocompletes db, collection, field names and shell API', async () => {
+  await createPlayground(electronApp, page, '');
+
+  const editor = page.locator('.monaco-editor').first();
+  const isMac = process.platform === 'darwin';
+  const mod = isMac ? 'Meta' : 'Control';
+  const suggestions = page.locator('.suggest-widget .monaco-list-row');
+
+  // Replace the editor content with complete code (pasted, so the language
+  // server can parse it; the cursor ends up at the end), move it `charsBack`
+  // characters left
+  // and wait until a suggestion containing `expected` shows.
+  async function expectCompletion(
+    code: string,
+    charsBack: number,
+    expected: string,
+  ): Promise<void> {
+    await editor.click();
+    await electronApp.evaluate(
+      ({ clipboard }, text) => clipboard.writeText(text),
+      code,
+    );
+    await page.keyboard.press(`${mod}+KeyA`);
+    await page.keyboard.press(`${mod}+KeyV`);
+    // Wait for the paste to land: ArrowLeft on a still-selected editor would
+    // jump to the start of the document. (Monaco renders spaces as nbsp.)
+    await expect
+      .poll(async () =>
+        (await editor.locator('.view-lines').innerText()).replace(
+          /\u00a0/g,
+          ' ',
+        ),
+      )
+      .toContain(code.split('\n').pop()!);
+    for (let i = 0; i < charsBack; i++) {
+      await page.keyboard.press('ArrowLeft');
+    }
+    // Collection/field names come from the connected server via the language
+    // server, which can lag behind the first request: retry the trigger.
+    await expect(async () => {
+      await page.keyboard.press('Control+Space');
+      await expect(
+        suggestions.filter({ hasText: expected }).first(),
+      ).toBeVisible({ timeout: 3_000 });
+    }).toPass({ timeout: 60_000 });
+    await page.keyboard.press('Escape');
+  }
+
+  const use = `use('${TEST_DB_NAME}');\n`;
+  await expectCompletion("use('e2e');", 3, TEST_DB_NAME); // db names
+  await expectCompletion(`${use}db.sa`, 0, 'sales'); // collection names
+  await expectCompletion(`${use}db.sales.find({ ite});`, 3, 'item'); // fields
+  await expectCompletion(`${use}db.sales.aggregat`, 0, 'aggregate'); // shell API
 });

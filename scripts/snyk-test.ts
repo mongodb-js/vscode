@@ -19,19 +19,14 @@ async function snykTest(cwd): Promise<{
     try {
       await execFile(
         'pnpm',
-        [
-          'exec',
-          'snyk',
-          'test',
-          '--severity-threshold=high',
-          '--dev',
-          `--json-file-output=${tmpPath}`,
-        ],
+        ['exec', 'snyk', 'test', '--dev', `--json-file-output=${tmpPath}`],
         // Do not print anything to the console.
         { cwd, stdio: 'ignore' },
       );
     } catch (err) {
-      error = err;
+      if ((err as { code?: number }).code !== 1) {
+        error = err as Error;
+      }
     }
 
     const res = JSON.parse(await fs.readFile(tmpPath));

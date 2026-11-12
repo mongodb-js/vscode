@@ -3,7 +3,7 @@ import assert from 'assert';
 import { beforeEach, afterEach } from 'mocha';
 import sinon from 'sinon';
 import { expect } from 'chai';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import { Long, ObjectId } from 'bson';
 
 import { DocumentSource } from '../../../documentSource';
@@ -56,11 +56,11 @@ const mockDocumentsAsJsonString = `[
 const mockDocumentsAsJSString = `[
   {
     _id: ObjectId('6536b0aef59f6ffc9af93f3c'),
-    pineapple: NumberLong('90071992547409920')
+    pineapple: Long('90071992547409920')
   },
   {
     _id: ObjectId('6536b0aef59f6ffc9af93f3d'),
-    pineapple2: NumberLong('900719925474099199')
+    pineapple2: Long('900719925474099199')
   }
 ]`;
 

@@ -21,7 +21,7 @@ import parseSchema from '@mongodb-js/mongodb-schema';
 import path from 'path';
 import { signatures } from '@mongosh/shell-api';
 import translator from '@mongosh/i18n';
-import { isAtlasStream } from 'mongodb-build-info';
+import { isAtlasStream } from '@mongodb-js/mongodb-build-info';
 import { Worker as WorkerThreads } from 'worker_threads';
 
 import formatError from '../utils/formatError';
@@ -45,6 +45,8 @@ const PROJECT = '$project';
 const GROUP = '$group';
 
 const MATCH = '$match';
+
+const DOCUMENTS = '$documents';
 
 const SET_WINDOW_FIELDS = '$setWindowFields';
 
@@ -712,8 +714,9 @@ export default class MongoDBService {
       return getFilteredCompletions({
         fields,
         meta: [
-          'expr:*',
-          'conv',
+          ...(state.stageOperator === DOCUMENTS
+            ? []
+            : (['expr:*', 'conv'] as const)),
           ...([PROJECT, GROUP].includes(state.stageOperator ?? '')
             ? ([
                 'accumulator',

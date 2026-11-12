@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import path from 'path';
 import { afterEach, beforeEach } from 'mocha';
 import { expect, use } from 'chai';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import sinon from 'sinon';

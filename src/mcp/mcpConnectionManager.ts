@@ -10,7 +10,7 @@ import {
   type DevtoolsConnectOptions,
 } from '@mongosh/service-provider-node-driver';
 import type { ServiceProvider } from '@mongosh/service-provider-core';
-import { isAtlas, isAtlasStream } from 'mongodb-build-info';
+import { isAtlas, isAtlasStream } from '@mongodb-js/mongodb-build-info';
 import { MCPLogIds } from './mcpLogIds';
 import ConnectionString from 'mongodb-connection-string-url';
 import { DEFAULT_TELEMETRY_APP_NAME } from '../connectionController';

@@ -3,7 +3,10 @@ import { beforeEach, afterEach } from 'mocha';
 import assert from 'assert';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
-import type { DataService, IndexDefinition } from 'mongodb-data-service';
+import type {
+  DataService,
+  IndexDefinition,
+} from '@mongodb-js/mongodb-data-service';
 
 import formatError from '../../../utils/formatError';
 import IndexListTreeItem from '../../../explorer/indexListTreeItem';

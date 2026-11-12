@@ -1,10 +1,8 @@
 import * as vscode from 'vscode';
 import { EJSON } from 'bson';
 import type { Document } from 'bson';
-import parseShellStringToEJSON, {
-  ParseMode,
-} from '@mongodb-js/shell-bson-parser';
-import { toJSString } from 'mongodb-query-parser';
+import { parse, ParseMode } from '@mongodb-js/shell-bson-parser';
+import { toJSString } from '@mongodb-js/shell-bson-parser/stringify';
 
 import type ActiveConnectionCodeLensProvider from './activeConnectionCodeLensProvider';
 import PlaygroundSelectionCodeActionProvider from './playgroundSelectionCodeActionProvider';
@@ -294,7 +292,7 @@ export default class EditorsController {
     try {
       let newDocument: Document;
       if (documentFormat === 'shell') {
-        newDocument = parseShellStringToEJSON(editor.document.getText() || '', {
+        newDocument = await parse(editor.document.getText() || '', {
           mode: ParseMode.Strict,
         });
       } else {

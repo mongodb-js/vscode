@@ -2,7 +2,7 @@ import _ from 'lodash';
 import * as vscode from 'vscode';
 import { EJSON, type Document } from 'bson';
 import path from 'path';
-import { toJSString } from 'mongodb-query-parser';
+import { toJSString } from '@mongodb-js/shell-bson-parser/stringify';
 import type ConnectionController from '../connectionController';
 import ExtensionCommand from '../commands';
 import { createLogger } from '../logging';
