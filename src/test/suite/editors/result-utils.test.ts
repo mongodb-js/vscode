@@ -22,6 +22,7 @@ suite('result-utils', function () {
 
     test('returns false when chain includes map method', function () {
       const result = makeResult({
+        type: 'Cursor',
         constructionOptions: {
           chains: [{ method: 'map' }],
           options: { method: 'find' },
@@ -33,6 +34,7 @@ suite('result-utils', function () {
 
     test('returns false for aggregate with $out stage', function () {
       const result = makeResult({
+        type: 'AggregationCursor',
         constructionOptions: {
           options: {
             method: 'aggregate',
@@ -46,6 +48,7 @@ suite('result-utils', function () {
 
     test('returns false for aggregate with $merge stage', function () {
       const result = makeResult({
+        type: 'AggregationCursor',
         constructionOptions: {
           options: {
             method: 'aggregate',
