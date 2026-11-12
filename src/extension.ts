@@ -15,6 +15,8 @@ const log = createLogger('extension');
  * etc. and write them to the extension's log output channel too.
  */
 import debug from 'debug';
+import path from 'path';
+import { pathToFileURL } from 'url';
 debug.enable('INFO');
 debug.enable('ERROR');
 debug.enable('WARN');
@@ -32,6 +34,10 @@ export async function activate(
   context: vscode.ExtensionContext,
 ): Promise<void> {
   ext.context = context;
+
+  process.env.TEST_WORKER_SCRIPT_URL = pathToFileURL(
+    path.join(context.extensionPath, 'dist', 'shell-bson-parser-worker.js'),
+  ).href;
 
   const defaultConnectionSavingLocation = vscode.workspace
     .getConfiguration('mdb.connectionSaving')

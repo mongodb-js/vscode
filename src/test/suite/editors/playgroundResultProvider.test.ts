@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { afterEach, beforeEach } from 'mocha';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import type { Document } from 'mongodb';
 import { EJSON, Long, ObjectId } from 'bson';
 

@@ -1243,7 +1243,7 @@
     ],
     "chatSkills": [
       {
-        "path": "./ext/agent-skills/skills/atlas-stream-processing/SKILL.md"
+        "path": "./ext/agent-skills/skills/mongodb-atlas-stream-processing/SKILL.md"
       },
       {
         "path": "./ext/agent-skills/skills/mongodb-connection/SKILL.md"
@@ -1297,7 +1297,7 @@
     "mongodb": "^7.6.0",
     "mongodb-cloud-info": "^2.3.18",
     "mongodb-connection-string-url": "^7.0.2",
-    "mongodb-data-service": "^22.40.2",
+    "@mongodb-js/mongodb-data-service": "^22.41.3",
     "mongodb-log-writer": "^2.5.16",
     "mongodb-mcp-server": "1.13.0",
     "node-machine-id": "1.1.12",
@@ -1393,8 +1393,10 @@
   "pnpm": {
     "overrides": {
       "@hono/node-server": "^1.19.17",
+      "@mongodb-js/devtools-connect": "^3.17.15",
       "@xmldom/xmldom": "^0.9.10",
-      "bson": "^7.2.0",
+      "basic-ftp": "^6.2.1",
+      "bson": "^7.3.2",
       "brace-expansion@^2.0.0": "^2.1.6",
       "brace-expansion@^5.0.0": "^5.0.11",
       "dompurify": "^3.4.17",

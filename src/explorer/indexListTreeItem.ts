@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import path from 'path';
 
 import formatError from '../utils/formatError';

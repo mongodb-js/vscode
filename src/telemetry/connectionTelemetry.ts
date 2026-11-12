@@ -1,4 +1,4 @@
-import type { DataService } from 'mongodb-data-service';
+import type { DataService } from '@mongodb-js/mongodb-data-service';
 import mongoDBBuildInfo from '@mongodb-js/mongodb-build-info';
 
 import { createLogger } from '../logging';
