@@ -1399,6 +1399,7 @@
       "bson": "^7.3.2",
       "brace-expansion@^2.0.0": "^2.1.6",
       "brace-expansion@^5.0.0": "^5.0.11",
+      "diff@5.2.0": "5.2.2",
       "dompurify": "^3.4.17",
       "fast-uri": "^3.1.9",
       "fast-xml-parser": "^5.12.0",
