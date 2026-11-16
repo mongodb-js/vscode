@@ -1392,7 +1392,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@hono/node-server": "^1.19.17",
+      "@hono/node-server": "^2.1.6",
       "@mongodb-js/devtools-connect": "^3.17.15",
       "@xmldom/xmldom": "^0.9.10",
       "basic-ftp": "^6.2.1",
