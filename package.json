@@ -1394,6 +1394,7 @@
     "overrides": {
       "@hono/node-server": "^2.1.6",
       "@mongodb-js/devtools-connect": "^3.17.15",
+      "@vscode/vsce>minimatch": "^11.0.1",
       "@xmldom/xmldom": "^0.9.10",
       "basic-ftp": "^6.2.1",
       "bson": "^7.3.2",
@@ -1403,14 +1404,19 @@
       "dompurify": "^3.4.17",
       "fast-uri": "^3.1.9",
       "fast-xml-parser": "^5.12.0",
-      "mongodb": "^7.2.0",
+      "hono": "^4.13.16",
+      "mongodb": "^7.9.0",
       "mongodb-client-encryption": "^7.0.0",
       "proxy-addr": "^2.0.8",
       "react": "^18.3.1",
       "react-dom": "^18.3.1",
       "serialize-javascript": "^7.0.5",
       "trim": "^0.0.3",
-      "undici": "^7.30.1"
+      "undici": "^7.30.1",
+      "vscode-languageclient>minimatch": "^11.0.1"
+    },
+    "patchedDependencies": {
+      "vscode-languageclient@10.1.1": "patches/vscode-languageclient@10.1.1.patch"
     }
   }
 }
