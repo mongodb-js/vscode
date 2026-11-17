@@ -836,6 +836,19 @@ suite('Connection Controller Test Suite', function () {
     expect(showInformationMessageStub.firstCall.args[0]).to.include('testabc');
   });
 
+  test('getNotifyDeviceFlowForConnectionAttempt shows the url and code as plain text', function () {
+    const oidcConnectionString = new ConnectionString(TEST_DATABASE_URI);
+    oidcConnectionString.searchParams.set('authMechanism', 'MONGODB-OIDC');
+    getNotifyDeviceFlowForConnectionAttempt({
+      connectionString: oidcConnectionString.toString(),
+    })?.({
+      verificationUrl: '[text](target)',
+      userCode: 'abc',
+    });
+
+    expect(showInformationMessageStub.firstCall.args[0]).to.not.match(/\]\(/);
+  });
+
   test('when a connection is removed it is also removed from workspace store', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace
