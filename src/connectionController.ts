@@ -22,7 +22,7 @@ import {
   type ConnectionStatus,
 } from './views/webview-app/extension-app-message-constants';
 import { createLogger } from './logging';
-import formatError from './utils/formatError';
+import formatError, { toPlainNotificationText } from './utils/formatError';
 import { confirmConnection } from './utils/confirmConnection';
 import type { StorageController } from './storage';
 import type { StatusView } from './views';
@@ -131,7 +131,9 @@ export function getNotifyDeviceFlowForConnectionAttempt(
       userCode: string;
     }): void => {
       void vscode.window.showInformationMessage(
-        `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`,
+        toPlainNotificationText(
+          `Visit the following URL to complete authentication: ${verificationUrl}  Enter the following code on that page: ${userCode}`,
+        ),
       );
     };
   }
@@ -387,7 +389,7 @@ export default class ConnectionController {
       const printableError = formatError(error);
       log.error('Failed to connect with a connection string', error);
       void vscode.window.showErrorMessage(
-        `Unable to connect: ${printableError.message}`,
+        toPlainNotificationText(`Unable to connect: ${printableError.message}`),
       );
       return false;
     }
@@ -741,7 +743,7 @@ export default class ConnectionController {
       log.error('Failed to connect by a connection id', error);
       const printableError = formatError(error);
       void vscode.window.showErrorMessage(
-        `Unable to connect: ${printableError.message}`,
+        toPlainNotificationText(`Unable to connect: ${printableError.message}`),
       );
       return {
         successfullyConnected: false,

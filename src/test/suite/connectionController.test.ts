@@ -836,6 +836,37 @@ suite('Connection Controller Test Suite', function () {
     expect(showInformationMessageStub.firstCall.args[0]).to.include('testabc');
   });
 
+  test('getNotifyDeviceFlowForConnectionAttempt shows the url and code as plain text', function () {
+    const oidcConnectionString = new ConnectionString(TEST_DATABASE_URI);
+    oidcConnectionString.searchParams.set('authMechanism', 'MONGODB-OIDC');
+    getNotifyDeviceFlowForConnectionAttempt({
+      connectionString: oidcConnectionString.toString(),
+    })?.({
+      verificationUrl: '[text](target)',
+      userCode: 'abc',
+    });
+
+    expect(showInformationMessageStub.firstCall.args[0]).to.not.match(/\]\(/);
+  });
+
+  test('connect errors are shown as plain text', async function () {
+    sandbox
+      .stub(testConnectionController, '_connect')
+      .rejects(new Error('[text](target)'));
+
+    await testConnectionController.addNewConnectionStringAndConnect({
+      connectionString: TEST_DATABASE_URI,
+    });
+    const [connectionId] = Object.keys(testConnectionController._connections);
+    await testConnectionController.connectWithConnectionId(connectionId);
+
+    expect(showErrorMessageStub.callCount).to.equal(2);
+    for (const call of showErrorMessageStub.getCalls()) {
+      expect(call.args[0]).to.include('[text]');
+      expect(call.args[0]).to.not.match(/\]\(/);
+    }
+  });
+
   test('when a connection is removed it is also removed from workspace store', async function () {
     await testConnectionController.loadSavedConnections();
     await vscode.workspace

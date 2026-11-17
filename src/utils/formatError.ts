@@ -21,3 +21,6 @@ export default (
   }
   return { message: 'Unknown error.' };
 };
+
+export const toPlainNotificationText = (text: string): string =>
+  text.replace(/\]\s*\(/g, '] (');
