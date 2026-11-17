@@ -3,10 +3,16 @@ import type {
   PlaygroundRunResult,
 } from '../types/playgroundType';
 
+const CURSOR_RESULT_TYPES = new Set(['Cursor', 'AggregationCursor']);
+
 export function isSafeQueryResult(
   result: PlaygroundRunResult,
 ): result is PlaygroundRunCursorResult {
   if (!result.constructionOptions) {
+    return false;
+  }
+
+  if (!result.type || !CURSOR_RESULT_TYPES.has(result.type)) {
     return false;
   }
 

@@ -143,6 +143,11 @@ module.exports = (env, argv) => {
       },
     });
 
+  const shellBsonParserCjsDir = path.resolve(
+    __dirname,
+    'node_modules/@mongodb-js/shell-bson-parser/dist/cjs',
+  );
+
   const extensionConfig = merge(nodeTargetConfig(), {
     experiments: {
       // required for `bson`
@@ -151,6 +156,25 @@ module.exports = (env, argv) => {
     entry: {
       extension: './src/extension.ts',
     },
+    plugins: [
+      // `@mongodb-js/shell-bson-parser` (bundled into extension.js) parses in a
+      // worker thread. It loads `./web-worker.js` (kept external, as it
+      // re-launches its own file as the thread entry) and resolves
+      // `./worker.cjs` relative to its own file, so both sit next to
+      // extension.js.
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: path.join(shellBsonParserCjsDir, 'web-worker.js'),
+            to: 'web-worker.js',
+          },
+          {
+            from: path.join(shellBsonParserCjsDir, 'worker.cjs'),
+            to: 'worker.cjs',
+          },
+        ],
+      }),
+    ],
   });
 
   const languageServerConfig = merge(nodeTargetConfig(), {
@@ -228,20 +252,6 @@ module.exports = (env, argv) => {
           {
             from: path.resolve(__dirname, 'node_modules/@vscode/codicons/dist'),
             to: 'codicons',
-          },
-          {
-            from: path.resolve(
-              __dirname,
-              'node_modules/@mongodb-js/shell-bson-parser/dist/cjs/web-worker.js',
-            ),
-            to: 'web-worker.js',
-          },
-          {
-            from: path.resolve(
-              __dirname,
-              'node_modules/@mongodb-js/shell-bson-parser/dist/worker.js',
-            ),
-            to: 'shell-bson-parser-worker.js',
           },
           // Copy Monaco Editor files for offline support
           {
