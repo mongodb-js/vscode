@@ -565,6 +565,30 @@ suite('Webview Test Suite', function () {
     await testConnectionController.disconnect();
   });
 
+  test('connection form errors are shown as plain text', async function () {
+    const showErrorMessageStub = sandbox.stub(
+      vscode.window,
+      'showErrorMessage',
+    );
+    sandbox
+      .stub(testConnectionController, 'saveNewConnectionAndConnect')
+      .rejects(new Error('[text](target)'));
+
+    await testWebviewController.handleWebviewConnectAttempt({
+      panel: {
+        webview: { postMessage: sandbox.stub() },
+      } as unknown as vscode.WebviewPanel,
+      connection: {
+        id: 'pineapple',
+        connectionOptions: { connectionString: 'test' },
+      },
+    });
+
+    expect(showErrorMessageStub).to.be.calledOnce;
+    expect(showErrorMessageStub.firstCall.args[0]).to.include('[text]');
+    expect(showErrorMessageStub.firstCall.args[0]).to.not.match(/\]\(/);
+  });
+
   test('it notifies all the webviews of the change of current theme and gulps the error if any', function (done) {
     const totalExpectedPostMessageCalls = 3;
     let callsSoFar = 0;

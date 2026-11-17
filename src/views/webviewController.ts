@@ -18,7 +18,7 @@ import {
 } from '../telemetry';
 import type { FileChooserOptions } from './webview-app/use-connection-form';
 import { createWebviewPanel, getWebviewHtml } from '../utils/webviewHelpers';
-import formatError from '../utils/formatError';
+import formatError, { toPlainNotificationText } from '../utils/formatError';
 
 const log = createLogger('webview controller');
 
@@ -185,7 +185,9 @@ export default class WebviewController {
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
-        `Unable to load connection: ${formatError(error).message}`,
+        toPlainNotificationText(
+          `Unable to load connection: ${formatError(error).message}`,
+        ),
       );
 
       void panel.webview.postMessage({
