@@ -1394,6 +1394,7 @@
     "overrides": {
       "@hono/node-server": "^2.1.6",
       "@mongodb-js/devtools-connect": "^3.17.15",
+      "@vscode/vsce>minimatch": "^11.0.1",
       "@xmldom/xmldom": "^0.9.10",
       "basic-ftp": "^6.2.1",
       "bson": "^7.3.2",
@@ -1411,7 +1412,11 @@
       "react-dom": "^18.3.1",
       "serialize-javascript": "^7.0.5",
       "trim": "^0.0.3",
-      "undici": "^7.30.1"
+      "undici": "^7.30.1",
+      "vscode-languageclient>minimatch": "^11.0.1"
+    },
+    "patchedDependencies": {
+      "vscode-languageclient@10.1.1": "patches/vscode-languageclient@10.1.1.patch"
     }
   }
 }
