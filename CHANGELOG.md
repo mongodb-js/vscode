@@ -1,5 +1,46 @@
 # Change Log
 
+## [v1.18.3](https://github.com/mongodb-js/vscode/releases/tag/v1.18.3) - 2026-11-12
+
+## What's Changed
+* fix: validate query result type before treating it as cursor metadata VSCODE-869 by @dudaschar in https://github.com/mongodb-js/vscode/pull/1388
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.18.2...v1.18.3
+
+
+## [v1.18.2](https://github.com/mongodb-js/vscode/releases/tag/v1.18.2) - 2026-11-12
+
+## What's Changed
+* chore: regenerate pnpm lock with updated dependencies VSCODE-839 by @dudaschar in https://github.com/mongodb-js/vscode/pull/1380
+* chore: bump mongodb-js/oidc-plugin to 2.2.1 VSCODE-852 by @dudaschar in https://github.com/mongodb-js/vscode/pull/1381
+* chore: override basic-ftp to ^6.2.1 VSCODE-831 by @dudaschar in https://github.com/mongodb-js/vscode/pull/1382
+* chore: bump agent-skills submodule to v1.2.1 by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1384
+* fix: validate playground exclude globs before matching VSCODE-832 by @dudaschar in https://github.com/mongodb-js/vscode/pull/1383
+* chore: rename mongodb-data-service to @mongodb-js scope COMPASS-11197 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1376
+* test: add e2e tests for Windows manual-test cases by @dudaschar in https://github.com/mongodb-js/vscode/pull/1386
+* fix: make saving edited documents work in the extension VSCODE-870 by @dudaschar in https://github.com/mongodb-js/vscode/pull/1387
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.18.1...v1.18.2
+
+
+## [v1.18.1](https://github.com/mongodb-js/vscode/releases/tag/v1.18.1) - 2026-11-06
+
+Edit the release notes before publishing.
+
+## What's Changed
+* fix(snippets): switch Atlas Terraform template to service accounts and advanced_cluster by @xargom in https://github.com/mongodb-js/vscode/pull/1370
+* chore: update CHANGELOG.md by @mongodb-devtools-bot[bot] in https://github.com/mongodb-js/vscode/pull/1371
+* feat(parsing): sandboxed parsing COMPASS-11131 by @mabaasit in https://github.com/mongodb-js/vscode/pull/1373
+* chore: rename mongodb-build-info to @mongodb-js scope COMPASS-11197 by @ivandevp in https://github.com/mongodb-js/vscode/pull/1374
+* chore: snyk remediations VSCODE-784 by @kmruiz in https://github.com/mongodb-js/vscode/pull/1377
+* chore: publish extension with OIDC trusted publishing VSCODE-784 by @kmruiz in https://github.com/mongodb-js/vscode/pull/1375
+
+
+**Full Changelog**: https://github.com/mongodb-js/vscode/compare/v1.18.0...v1.18.1
+
+
 ## [v1.18.0](https://github.com/mongodb-js/vscode/releases/tag/v1.18.0) - 2026-09-25
 
 ## What's Changed
