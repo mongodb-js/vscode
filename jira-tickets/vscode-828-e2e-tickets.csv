@@ -1,10 +1,10 @@
 "Summary","Issue Type","Priority","Labels","Epic Link","Description"
-"Refactor e2e tests to use shared Playwright fixtures and page objects","Task","Major - P3","e2e,refactor","VSCODE-828","Every spec in src/test/e2e repeats the same beforeAll/afterEach/afterAll (start mongod, launch VS Code, wait for ready, screenshot on failure, copy logs, teardown). Failure screenshots are attached to the report in some files and not others. Tree row locators, the connected-state regex, and the overview webview frame chain are duplicated across specs. Do this before adding the new suites so they start from a clean base.
+"Refactor e2e tests to use shared Playwright fixtures and page objects","Task","Major - P3","e2e,refactor","VSCODE-828","Every spec in src/test/e2e repeats the same beforeAll/afterEach/afterAll (start mongod, launch VS Code, wait for ready, screenshot on failure, copy logs, teardown). Failure screenshots are attached to the report in some files and not others. Tree row locators, the connected-state regex, and the overview webview frame chain are duplicated across specs. Do this first so the new suites start from a clean base.
 
 *Scope:*
 * Worker-scoped fixtures for mongod and the VS Code app; test-scoped page with automatic failure screenshot attachment and log copy.
-* Page objects/helpers for the connection tree (row, connected state, expand, context menu), overview webview, connection form, and playground.
-* Make mongod topology and port configurable so replica set and Docker-backed suites can reuse the fixtures.
+* Page objects/helpers for the connection tree (row, connected state, expand, context menu), overview webview, connection form, playground, and data browser.
+* Make mongod topology, port, and TLS options configurable so later suites can reuse the fixtures, including running two servers at once.
 * Remove silent .catch(() => {}) calls that can hide real failures.
 
 *Notes:*
@@ -13,52 +13,38 @@
 
 *Scope:*
 * Split e2e into its own job (ubuntu, windows, macos) in test-and-build.yaml and test-and-build-from-fork.yaml, keeping the artifact upload.
-* Introduce Playwright tags (e.g. @docker, @atlas) so environment-dependent suites are skipped where the environment is unavailable.
+* Add Playwright tags (e.g. @atlas) and a scheduled/main-only run for suites that need secrets or external services.
 * Decide on CI retries and flaky-test reporting (currently retries: 0).
 * Document running a single suite or tag locally in CONTRIBUTING.md."
-"Run e2e tests against VS Code Stable in addition to Insiders","Task","Minor - P4","e2e,ci","VSCODE-828","globalSetup and launchVSCode only download Insiders, while most users and the manual release pass use Stable. Add Stable as a Playwright project or CI matrix dimension (Stable on every PR, Insiders nightly is one option)."
-"Add Docker-based SSH and TLS environments for e2e tests","Task","Major - P3","e2e,infra","VSCODE-828","Several critical-path matrix rows need SSH and TLS servers. Use mongodb-js/devtools-docker-test-envs (as Compass does) to provide them.
+"Run e2e tests against VS Code Stable in addition to Insiders","Task","Minor - P4","e2e,ci","VSCODE-828","globalSetup and launchVSCode only download Insiders, while most users and the manual release pass use Stable. Add Stable as a Playwright project or CI matrix dimension (e.g. Stable on every PR, Insiders nightly)."
+"Add cross-platform SSH and TLS test servers for e2e tests","Task","Major - P3","e2e,infra","VSCODE-828","The SSH and TLS suites need servers that run on every CI OS, since connection bugs are often platform-specific.
 
 *Scope:*
-* Helpers to start/stop the SSH (password and identity file) and TLS (CA, client certificate) compose environments and expose their hosts, credentials, and cert paths.
-* Run on Linux CI runners only (GitHub macOS/Windows runners cannot run Linux containers); tag the suites @docker so they skip elsewhere.
+* SSH: an in-process ssh2 server (ssh2 is already a transitive dependency via devtools-proxy-support) that accepts password and key auth and forwards to the test mongod.
+* TLS: start mongod with TLS through mongodb-runner using committed test certificates (CA, server, and client).
+* Expose hosts, credentials, and certificate paths through the shared fixtures.
 
 *Notes:*
-* Blocks the SSH and TLS ticket(s)."
-"Add e2e tests for connecting to an Atlas SRV cluster","Task","Major - P3","e2e","VSCODE-828","Cover connecting to a mongodb+srv cluster with the Compass test dataset.
-
-*Testing matrix rows:*
-* Connection String > Connect to Compass dataset (srv)
-* Connection Form > Connect to Compass dataset (srv)
-* Saved connection > Connect to Compass dataset (srv)
-* Launch Shell > Connect to Compass dataset (srv)
-
-*Scope:*
-* Store a read-only SRV connection string as a CI secret; skip (@atlas) when it is absent, e.g. on fork PRs.
-* Connect via connection string and via the form, verify databases load, reconnect after reload, and assert launch shell receives the mongodb+srv string."
-"Add e2e test for connecting to a replica set via the connection form multi-host input","Task","Minor - P4","e2e","VSCODE-828","Start a replica set with mongodb-runner (no Docker needed), add each host in the form, connect, and verify data is visible.
-
-*Testing matrix rows:*
-* Connection Form > Connect to replica set (using multi-host/port input)"
-"Add e2e tests for SSH connections","Task","Major - P3","e2e","VSCODE-828","Connect through an SSH tunnel using password and identity file auth.
+* Fallback if the in-process approach is not viable: mongodb-js/devtools-docker-test-envs on Linux runners only.
+* Blocks the SSH and TLS test tickets."
+"Add e2e tests for SSH tunnel connections","Task","Major - P3","e2e","VSCODE-828","SSH connections reach the playground language server through proxy options, and launch shell through a VS Code-specific connection string rewrite (_getConnectionStringWithProxy), so both need to be tested against a real tunnel.
 
 *Testing matrix rows:*
 * Connection Form > Connect via SSH
 * Saved connection > Connect via SSH
-* Tree View > Can copy a connection's SSH connection string
-
-*Notes:*
-* Depends on the Docker SSH/TLS environments ticket."
-"Add e2e tests for playgrounds and launch shell over SSH","Task","Major - P3","e2e","VSCODE-828","Run a playground, check autocompletion, and launch the shell against an SSH-tunnelled connection.
-
-*Testing matrix rows:*
 * Playgrounds > Can run a playground against the SSH connection
 * Playgrounds > Completion works in playground via SSH connection
 * Launch Shell > Connect via SSH
 
+*Scope:*
+* Connect through the form with password and identity file auth.
+* Reload, reconnect from the saved connection (SSH secrets restored from storage).
+* Run a playground and get db/collection completions over the tunnel.
+* Launch shell and assert mongosh receives the proxy connection string.
+
 *Notes:*
-* Depends on the Docker SSH/TLS environments and SSH connection tickets."
-"Add e2e tests for TLS/SSL connections","Task","Major - P3","e2e","VSCODE-828","Connect with TLS (CA file and client certificate), then run a playground and launch the shell against that connection.
+* Depends on the SSH/TLS test servers ticket."
+"Add e2e tests for TLS connections","Task","Major - P3","e2e","VSCODE-828","Connect with a CA file and client certificate, reconnect from the saved connection after a reload, run a playground, and launch the shell. Certificate file paths have to reach the language server worker and mongosh correctly.
 
 *Testing matrix rows:*
 * Connection Form > Connect via SSL
@@ -67,66 +53,66 @@
 * Launch Shell > Connect via SSL
 
 *Notes:*
-* Depends on the Docker SSH/TLS environments ticket."
-"Add e2e tests for managing connections in the tree view","Task","Major - P3","e2e","VSCODE-828","Cover adding, switching, copying, and removing connections from the MongoDB tree view.
+* Depends on the SSH/TLS test servers ticket."
+"Add e2e tests for connecting to an Atlas SRV cluster","Task","Major - P3","e2e","VSCODE-828","Most users connect to Atlas with mongodb+srv, which exercises DNS SRV/TXT resolution and Atlas TLS that a local mongod does not.
 
 *Testing matrix rows:*
-* Tree View > Can add a connection with the buttons in the tree view
-* Tree View > When a connection is added it is shown in the tree view
-* Tree View > Can switch connections in the tree view
-* Tree View > Can copy a connection's connection string (right click)
-* Tree View > Can remove a connection (command palette and right click)
-
-*Notes:*
-* Switching needs two distinct servers (e.g. two mongod ports).
-* Read the clipboard via electronApp.evaluate to assert the copied string."
-"Add e2e tests for browsing databases, collections, and schema in the tree view","Task","Major - P3","e2e","VSCODE-828","Expand a connection and verify databases, collections, documents, and schema; verify refresh picks up a database/collection created from a playground and that it then autocompletes. The documents list is already covered, so build on that.
-
-*Testing matrix rows:*
-* Tree View > When connected, you can see databases, collections, and documents
-* Tree View > A collection's schema is shown in the tree view
-* Tree View > Refresh shows new dbs and collections created from playground and adds them to autocomplete"
-"Add e2e tests for playground run behaviour","Task","Major - P3","e2e","VSCODE-828","Cover the run flow around a playground beyond the happy path already tested.
-
-*Testing matrix rows:*
-* Playgrounds > When not connected, a playground cannot be run and the user is prompted to connect
-* Playgrounds > A confirmation is shown before running; selecting 'no' does not run
-* Playgrounds > The playground editor remains visible and the result pane splits to the right
-* Playgrounds > Can run a playground twice
-
-*Notes:*
-* launchVSCode sets mdb.confirmRunAll to false; the confirmation test must turn it back on."
-"Add e2e test for cancelling a long-running playground","Task","Major - P3","e2e","VSCODE-828","Run while(true) {}, cancel it, then run a simple command and verify it returns a result. Kept separate because it is timing-sensitive.
-
-*Testing matrix rows:*
-* Playgrounds > Can cancel a playground that is running for a long time and then run a simple non-blocking command"
-"Add e2e tests for the overview page, resources panel, and help links","Task","Minor - P4","e2e","VSCODE-828","Opening the connection form from the overview page is already covered by connection-form.test.ts.
-
-*Testing matrix rows:*
-* Overview > Shows your connected status
-* Overview > Can open a connection string input
-* Overview > Can view the resources panel
-* Tree View > Can open a link from Help and Feedback
-
-*Notes:*
-* Stub shell.openExternal in the Electron main process to assert links without opening a browser."
-"Spike: e2e coverage for Copilot with the MongoDB MCP Server","Task","Major - P3","e2e,spike","VSCODE-828","Copilot chat needs a signed-in GitHub account, which makes this hard to run in CI.
-
-*Testing matrix rows:*
-* Copilot MongoDB MCP Server > Can ask Copilot MongoDB questions and it responds using MongoDB MCP Server
+* Connection String > Connect to Compass dataset (srv)
+* Launch Shell > Connect to Compass dataset (srv)
 
 *Scope:*
-* Check whether we can assert the MCP server registers, starts, and lists its tools without Copilot.
-* Evaluate a dedicated test account secret for the full chat flow, possibly nightly only.
-* Outcome: follow-up ticket(s) or a decision to keep this manual."
-"Spike: e2e coverage for WSL","Task","Minor - P4","e2e,spike","VSCODE-828","Investigate whether GitHub Windows runners can provide a WSL distro for these tests, or keep them manual.
+* Store a read-only SRV connection string as a CI secret; tag @atlas and run on main/nightly only so fork PRs and outages do not block merges.
+* Connect with the connection string, verify databases load, run a simple playground, and assert launch shell receives the mongodb+srv string.
+
+*Notes:*
+* The form and saved connection SRV rows add little once connected, since they share the localhost code path."
+"Add e2e tests for data browser document actions","Task","Major - P3","e2e","VSCODE-828","The webview data browser is the default way to view documents, but e2e only covers opening it and editing a document. Cover the remaining actions against a real database.
+
+*Scope:*
+* Insert a document and clone a document; verify both in the database.
+* Delete a single document and bulk delete, including the confirmation prompt.
+* Pagination (items per page, next/previous) and sort against a seeded collection.
+* Refresh after an external change, and stopping a slow query."
+"Add e2e test for cancelling and re-running a playground","Task","Major - P3","e2e","VSCODE-828","Nothing tests playground cancellation today. Run while(true) {}, cancel it, then run a simple command and run it again, verifying both results. This exercises terminating and restarting the language server worker, which unit tests cannot.
 
 *Testing matrix rows:*
-* Launch Shell > Connect via WSL
-* Playgrounds > Can run a playground against the WSL connection"
-"Map e2e tests to the testing matrix and update the release checklist","Task","Minor - P4","e2e","VSCODE-828","Make it obvious which matrix rows are automated so they can be dropped from the manual release pass.
+* Playgrounds > Can cancel a playground that is running for a long time and then run a simple non-blocking command
+* Playgrounds > Can run a playground twice"
+"Add e2e test for switching the active connection","Task","Major - P3","e2e","VSCODE-828","With two servers holding different data, connect to one, switch to the other, and verify every consumer of the active connection follows.
+
+*Testing matrix rows:*
+* Tree View > Can switch connections in the tree view
+* Overview > Can view the overview page and it shows your connected status
+
+*Scope:*
+* Tree view marks only the new connection as connected and shows its databases.
+* Overview page shows the new connection status.
+* A playground run and its completions target the new server."
+"Add e2e tests for connection actions in the tree view","Task","Major - P3","e2e","VSCODE-828","Unit tests check that context values exist in package.json, but not that the menu actions work end to end.
+
+*Testing matrix rows:*
+* Tree View > Can copy a connection's connection string
+* Tree View > Can remove a connection (command palette and right click)
+
+*Scope:*
+* Edit connection: the form opens prefilled, saving reconnects with the new options.
+* Rename connection: the new name shows in the tree and survives a reload.
+* Copy connection string: read the clipboard via electronApp.evaluate.
+* Remove connection from the context menu and from the command palette."
+"Add e2e test for creating and dropping databases and collections from the tree view","Task","Minor - P4","e2e","VSCODE-828","Use Add Database/Add Collection from the tree, run the generated playground, and verify refresh shows the new database and collection and that they appear in playground completions. Then drop the collection and database through their confirmation prompts and verify they disappear.
+
+*Testing matrix rows:*
+* Tree View > The Refresh shows new dbs and collections created from playground and adds them to autocomplete"
+"Spike: e2e coverage for the MongoDB MCP Server","Task","Major - P3","e2e,spike","VSCODE-828","The matrix row targets the Copilot participant, which is deprecated (VSCODE-816). The extension now registers the MongoDB MCP Server with VS Code, and that integration is untested end to end.
+
+*Scope:*
+* Find a way to observe the MCP server from e2e: start it with ""MongoDB: Start MCP Server"" and check that VS Code lists it as running, or call a tool directly.
+* Verify the server follows the active connection when it changes.
+* Avoid needing a Copilot account in CI.
+* Outcome: follow-up ticket(s), or a decision to keep this manual."
+"Map e2e tests to the release testing matrix and retire automated rows","Task","Minor - P4","e2e","VSCODE-828","Make it obvious which manual checks are automated so they can be dropped from the release pass.
 
 *Scope:*
 * Add a Playwright annotation on each test naming the matrix row(s) it covers.
 * Update the matrix's e2e column, including rows already covered but unmarked: Saved connection > Connect on Windows (connection.test.ts) and Overview > Can open a connection form (connection-form.test.ts).
-* Remove automated rows from the manual release template once the suites are stable."
+* Remove rows that are now automated, or covered well enough by unit/integration tests (e.g. the playground confirmation modal and the not-connected prompt), and the stale Copilot row."
