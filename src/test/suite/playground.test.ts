@@ -4,6 +4,7 @@ import { expect, use } from 'chai';
 import sinon from 'sinon';
 import type { SinonStub } from 'sinon';
 import chaiAsPromised from 'chai-as-promised';
+import { State } from 'vscode-languageclient/node';
 
 import { mdbTestExtension } from './stubbableMdbExtension';
 import {
@@ -129,6 +130,8 @@ suite('Playground', function () {
 
   test('restores the language server when the out of memory error occurred', async function () {
     this.timeout(30000);
+    const { _languageServerController: languageServerController } =
+      mdbTestExtension.testExtensionController._playgroundController;
     await vscode.commands.executeCommand('mdb.createPlayground');
 
     const editor = vscode.window.activeTextEditor;
@@ -146,18 +149,26 @@ suite('Playground', function () {
     await vscode.workspace.applyEdit(edit);
 
     // Listen before running so a fast restart can't be missed.
-    const diagnosticsChanged = new Promise<void>((resolve) => {
-      const listener = vscode.languages.onDidChangeDiagnostics(() => {
-        listener.dispose();
-        resolve();
-      });
+    const restarted = new Promise<void>((resolve) => {
+      const listener = languageServerController._client.onDidChangeState(
+        ({ newState }) => {
+          if (newState === State.Running) {
+            listener.dispose();
+            resolve();
+          }
+        },
+      );
     });
     await vscode.commands.executeCommand('mdb.runPlayground');
-    await diagnosticsChanged;
+    await restarted;
 
     expect(showErrorMessageStub.calledOnce).to.equal(true);
     expect(showErrorMessageStub.firstCall.args[0]).to.equal(
       'An internal error has occurred. The playground services have been restored. This can occur when the playground runner runs out of memory.',
     );
+    await languageServerController.updateCurrentSessionFields({
+      namespace: 'test.test',
+      schemaFields: ['_id'],
+    });
   });
 });
