@@ -108,10 +108,18 @@ suite('Collection Documents Provider Test Suite', function () {
   });
 
   afterEach(async function () {
+    // Writing global settings can outrun the 2s default in CI.
+    this.timeout(5000);
     sandbox.restore();
-    await vscode.workspace
-      .getConfiguration('mdb')
-      .update('defaultSortOrder', undefined, vscode.ConfigurationTarget.Global);
+
+    const config = vscode.workspace.getConfiguration('mdb');
+    if (config.inspect('defaultSortOrder')?.globalValue !== undefined) {
+      await config.update(
+        'defaultSortOrder',
+        undefined,
+        vscode.ConfigurationTarget.Global,
+      );
+    }
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async function () {
