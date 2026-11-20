@@ -107,8 +107,11 @@ suite('Collection Documents Provider Test Suite', function () {
     );
   });
 
-  afterEach(function () {
+  afterEach(async function () {
     sandbox.restore();
+    await vscode.workspace
+      .getConfiguration('mdb')
+      .update('defaultSortOrder', undefined, vscode.ConfigurationTarget.Global);
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async function () {
@@ -162,22 +165,14 @@ suite('Collection Documents Provider Test Suite', function () {
       vscode.ConfigurationTarget.Global,
     );
 
-    try {
-      const operationId = testQueryStore.createNewOperation();
-      const uri = vscode.Uri.parse(
-        `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
-      );
+    const operationId = testQueryStore.createNewOperation();
+    const uri = vscode.Uri.parse(
+      `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
+    );
 
-      await testCollectionViewProvider.provideTextDocumentContent(uri);
+    await testCollectionViewProvider.provideTextDocumentContent(uri);
 
-      expect(findStub.firstCall.args[2]?.sort).to.deep.equal({ _id: -1 });
-    } finally {
-      await config.update(
-        'defaultSortOrder',
-        undefined,
-        vscode.ConfigurationTarget.Global,
-      );
-    }
+    expect(findStub.firstCall.args[2]?.sort).to.deep.equal({ _id: -1 });
   });
 
   test('provideTextDocumentContent does not sort with the default defaultSortOrder', async function () {

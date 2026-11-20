@@ -144,14 +144,16 @@ suite('Playground', function () {
       "use('test'); const mockDataArray = []; for(let i = 0; i < 50000; i++) { mockDataArray.push(Math.random() * 10000); } const docs = []; for(let i = 0; i < 10000000; i++) { docs.push({ mockData: [...mockDataArray], a: 'test 123', b: Math.ceil(Math.random() * 10000) }); }",
     );
     await vscode.workspace.applyEdit(edit);
-    await vscode.commands.executeCommand('mdb.runPlayground');
 
-    const onDidChangeDiagnostics = (): Promise<unknown> =>
-      new Promise((resolve) => {
-        // The diagnostics are set again when the server restarts.
-        vscode.languages.onDidChangeDiagnostics(resolve);
+    // Listen before running so a fast restart can't be missed.
+    const diagnosticsChanged = new Promise<void>((resolve) => {
+      const listener = vscode.languages.onDidChangeDiagnostics(() => {
+        listener.dispose();
+        resolve();
       });
-    await onDidChangeDiagnostics();
+    });
+    await vscode.commands.executeCommand('mdb.runPlayground');
+    await diagnosticsChanged;
 
     expect(showErrorMessageStub.calledOnce).to.equal(true);
     expect(showErrorMessageStub.firstCall.args[0]).to.equal(
