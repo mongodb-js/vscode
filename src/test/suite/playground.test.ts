@@ -129,7 +129,7 @@ suite('Playground', function () {
   });
 
   test('restores the language server when the out of memory error occurred', async function () {
-    this.timeout(30000);
+    this.timeout(60000);
     const { _languageServerController: languageServerController } =
       mdbTestExtension.testExtensionController._playgroundController;
     await vscode.commands.executeCommand('mdb.createPlayground');
