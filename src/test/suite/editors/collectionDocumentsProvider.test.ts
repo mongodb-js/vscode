@@ -107,19 +107,8 @@ suite('Collection Documents Provider Test Suite', function () {
     );
   });
 
-  afterEach(async function () {
-    // Writing global settings can outrun the 2s default in CI.
-    this.timeout(5000);
+  afterEach(function () {
     sandbox.restore();
-
-    const config = vscode.workspace.getConfiguration('mdb');
-    if (config.inspect('defaultSortOrder')?.globalValue !== undefined) {
-      await config.update(
-        'defaultSortOrder',
-        undefined,
-        vscode.ConfigurationTarget.Global,
-      );
-    }
   });
 
   test('provideTextDocumentContent parses uri and return documents in the form of a string from a find call', async function () {
@@ -151,9 +140,6 @@ suite('Collection Documents Provider Test Suite', function () {
   });
 
   test('provideTextDocumentContent applies the defaultSortOrder setting', async function () {
-    // The test writes global settings and outruns the 2s default in CI.
-    this.timeout(5000);
-
     const findStub = sandbox.stub();
     findStub.resolves([{ field: 'Declaration of Independence' }]);
     const testDataService = {
@@ -166,17 +152,16 @@ suite('Collection Documents Provider Test Suite', function () {
     sandbox.stub(testCollectionViewProvider._statusView, 'showMessage');
     sandbox.stub(testCollectionViewProvider._statusView, 'hideMessage');
 
-    const config = vscode.workspace.getConfiguration('mdb');
-    await config.update(
-      'defaultSortOrder',
-      '_id_desc',
-      vscode.ConfigurationTarget.Global,
-    );
-
     const operationId = testQueryStore.createNewOperation();
     const uri = vscode.Uri.parse(
       `scheme:Results: filename.json?namespace=test.test&operationId=${operationId}&format=ejson`,
     );
+
+    const getStub = sandbox.stub();
+    getStub.withArgs('defaultSortOrder').returns('_id_desc');
+    sandbox
+      .stub(vscode.workspace, 'getConfiguration')
+      .returns({ get: getStub } as unknown as vscode.WorkspaceConfiguration);
 
     await testCollectionViewProvider.provideTextDocumentContent(uri);
 
